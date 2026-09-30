@@ -160,25 +160,31 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
 
-### F18. Insights
+### F18. Insights, deferred to 1.0
 
-Everything derived from the record, in one place, rather than sprinkled over the screens people use
-to do the work. Attendance trends, who is new, who has stopped coming, growth and retention.
+Everything derived from the record, in one place: attendance trends, who is new, who has stopped
+coming, growth and retention.
 
 Two lists were briefly on the Services page and were wrong there twice over: they pushed the day's
 work down the screen, and they were unbounded, so a church of two hundred got a wall. The queries
-behind them are built and tested. They need a home.
+behind them are built and tested, and they sit in `@hearth/db` until there is a page for them.
+
+**Deferred at release planning, 30 September 2026.** F18 is a 1.0 domain (E5 Reporting). It was
+pulled forward to house those two lists, which is a reason to have somewhere to put them, and not a
+reason to build a reporting surface before a church can run a Sunday. E2 exists so a church can take
+attendance and check children in. Reporting on a record the church cannot yet keep is the wrong
+order.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-64 | An Insights page: the shape, the navigation, and what belongs on it | R18.1 | New |
-| HRT-65 | Who is new, and who has stopped coming, as bounded lists that link into the directory | R18.4, R7.5, R7.6 | New |
-| HRT-66 | Attendance trends: week over week, year over year, rolling four-week average | R18.2, R7.9 | New |
-| HRT-67 | Growth and retention, and the first-time-visitor conversion funnel | R18.3 | New |
+| HRT-64 | An Insights page: the shape, the navigation, and what belongs on it | R18.1 | Deferred to 1.0 |
+| HRT-65 | Who is new, and who has stopped coming, as bounded lists that link into the directory | R18.4, R7.5, R7.6 | Deferred to 1.0 |
+| HRT-66 | Attendance trends: week over week, year over year, rolling four-week average | R18.2, R7.9 | Deferred to 1.0 |
+| HRT-67 | Growth and retention, and the first-time-visitor conversion funnel | R18.3 | Deferred to 1.0 |
 
 HRT-65 gives the directory a filter driven by those queries, so Insights links into a list that
-already searches, sorts, pages, selects, bulk tags and exports. None of that gets rebuilt. The
-filter is not there yet, because a filter nothing links to is a filter nobody finds.
+already searches, sorts, pages, selects, bulk tags and exports. None of that gets rebuilt when it
+comes back.
 
 ### F5, F9, F3, F22
 
@@ -211,7 +217,7 @@ The presenter. Separate PRD written at build time.
 |---|---|
 | **Active** | Nothing |
 | **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views |
-| **Next** | HRT-64 the Insights page, then HRT-52 group and event attendance. HRT-13 MFA stays deferred. |
+| **Next** | **HRT-54** rooms, the first check-in story, then HRT-55 stations. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -610,3 +616,6 @@ Services, with a month showing.
    than midnight, and takes "9", "9am", "9.30pm" or "21:30" typed.
 6. **The date field near the bottom of the screen.** Open the calendar with the dialog low in the
    window. It opens upward and stays on screen.
+7. **The month and the year.** Press "September 2026" in the calendar header. A grid of months
+   appears in the same panel, and pressing the year again gives twelve years at a time. Nothing
+   opens an operating system menu, and nothing leaves the window.

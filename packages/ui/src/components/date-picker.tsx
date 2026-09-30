@@ -157,6 +157,7 @@ export function DatePicker({
   const [locale, setLocale] = React.useState<string | undefined>(undefined);
   const root = React.useRef<HTMLDivElement>(null);
   const panel = React.useRef<HTMLDivElement>(null);
+  const [mode, setMode] = React.useState<"days" | "months" | "years">("days");
   const grid = React.useRef<HTMLDivElement>(null);
 
   // Resolved after mount. Reading it during render would make the server and
@@ -228,9 +229,13 @@ export function DatePicker({
   // move within it. Thirty tab presses to reach the end of a month is not
   // keyboard support.
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) setMode("days");
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open || mode !== "days") return;
     grid.current?.querySelector<HTMLButtonElement>('[data-focused="true"]')?.focus();
-  }, [open, focused]);
+  }, [open, mode, focused]);
 
   const onGridKey = (e: React.KeyboardEvent) => {
     const moves: Record<string, () => void> = {
@@ -272,14 +277,25 @@ export function DatePicker({
     });
   }
 
-  const years = React.useMemo(() => {
+  const [yearFloor, yearCeiling] = React.useMemo(() => {
     const now = new Date().getFullYear();
-    const lo = min ? Number(min.slice(0, 4)) : now - 110;
-    const hi = max ? Number(max.slice(0, 4)) : now + 10;
-    const span: number[] = [];
-    for (let y = hi; y >= lo; y -= 1) span.push(y);
-    return span;
+    return [min ? Number(min.slice(0, 4)) : now - 110, max ? Number(max.slice(0, 4)) : now + 10];
   }, [min, max]);
+
+  // Twelve years to a page, starting where the cursor is.
+  const decade = Math.floor(cursor.y / 12) * 12;
+
+  /** The arrows move whatever the panel is currently showing. */
+  const step = (by: number) => {
+    if (mode === "days") {
+      setCursor((c) => {
+        const d = new Date(c.y, c.m + by, 1);
+        return { y: d.getFullYear(), m: d.getMonth() };
+      });
+      return;
+    }
+    setCursor((c) => ({ ...c, y: c.y + (mode === "months" ? by : by * 12) }));
+  };
 
   const drop = useDrop(open, root, { height: 392, width: 304 });
 
@@ -357,53 +373,92 @@ export function DatePicker({
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
         >
-          <div className="mb-3 flex items-center gap-2">
-            <select
-              aria-label={labels.month}
-              value={cursor.m}
-              onChange={(e) => setCursor((c) => ({ ...c, m: Number(e.target.value) }))}
-              className="min-w-0 flex-1 rounded-md border border-line-strong bg-surface px-2 py-1.5 text-label text-fg"
-            >
-              {months.map((label, i) => (
-                <option key={label} value={i}>{label}</option>
-              ))}
-            </select>
-
-            <select
-              aria-label={labels.year}
-              value={cursor.y}
-              onChange={(e) => setCursor((c) => ({ ...c, y: Number(e.target.value) }))}
-              className="rounded-md border border-line-strong bg-surface px-2 py-1.5 text-label text-fg"
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-
+          <div className="mb-3 flex items-center gap-1">
             <button
               type="button"
               aria-label={labels.previousMonth}
-              onClick={() => setCursor((c) => {
-                const d = new Date(c.y, c.m - 1, 1);
-                return { y: d.getFullYear(), m: d.getMonth() };
-              })}
+              onClick={() => step(-1)}
               className="rounded-md p-1.5 text-fg-muted hover:bg-sunken hover:text-fg"
             >
               <ChevronLeft className="size-4" aria-hidden />
             </button>
+
+            {/* The month and the year are a button into a grid of months and a
+                grid of years, drawn in this same panel. A native select opens
+                an operating system menu we cannot place, cannot theme and
+                cannot keep on the screen. */}
+            <button
+              type="button"
+              onClick={() => setMode(mode === "days" ? "months" : mode === "months" ? "years" : "days")}
+              className={cn(
+                "flex-1 rounded-md px-2 py-1.5 text-label text-fg hover:bg-sunken",
+                mode === "days" ? "text-center" : "text-center font-medium",
+              )}
+            >
+              {mode === "days"
+                ? `${months[cursor.m]} ${cursor.y}`
+                : mode === "months"
+                  ? cursor.y
+                  : `${decade} to ${decade + 11}`}
+            </button>
+
             <button
               type="button"
               aria-label={labels.nextMonth}
-              onClick={() => setCursor((c) => {
-                const d = new Date(c.y, c.m + 1, 1);
-                return { y: d.getFullYear(), m: d.getMonth() };
-              })}
+              onClick={() => step(1)}
               className="rounded-md p-1.5 text-fg-muted hover:bg-sunken hover:text-fg"
             >
               <ChevronRight className="size-4" aria-hidden />
             </button>
           </div>
 
+          {mode === "months" ? (
+            <div className="grid grid-cols-3 gap-1" role="grid" aria-label={labels.month}>
+              {months.map((label, i) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="gridcell"
+                  aria-selected={i === cursor.m}
+                  onClick={() => { setCursor((c) => ({ ...c, m: i })); setMode("days"); }}
+                  className={cn(
+                    "rounded-md px-2 py-2.5 text-[length:var(--d-text-body)] transition-colors duration-instant",
+                    i === cursor.m ? "bg-primary text-primary-fg" : "text-fg hover:bg-sunken",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : mode === "years" ? (
+            <div className="grid grid-cols-3 gap-1" role="grid" aria-label={labels.year}>
+              {Array.from({ length: 12 }, (_, i) => decade + i).map((y) => {
+                const blocked = y < yearFloor || y > yearCeiling;
+                return (
+                  <button
+                    key={y}
+                    type="button"
+                    role="gridcell"
+                    aria-selected={y === cursor.y}
+                    aria-disabled={blocked || undefined}
+                    disabled={blocked}
+                    onClick={() => { setCursor((c) => ({ ...c, y })); setMode("months"); }}
+                    className={cn(
+                      "rounded-md px-2 py-2.5 text-[length:var(--d-text-body)] transition-colors duration-instant",
+                      y === cursor.y
+                        ? "bg-primary text-primary-fg"
+                        : blocked
+                          ? "text-fg-subtle opacity-40"
+                          : "text-fg hover:bg-sunken",
+                    )}
+                  >
+                    {y}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <>
           <div className="mb-1 grid grid-cols-7 gap-0.5">
             {weekdays.map((w, i) => (
               <span key={i} className="py-1 text-center text-caption text-fg-subtle" aria-hidden>
@@ -452,6 +507,8 @@ export function DatePicker({
               );
             })}
           </div>
+            </>
+          )}
 
           <div className="mt-2 flex items-center justify-between">
             <button
