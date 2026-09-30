@@ -19,6 +19,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
 
   const tabs: SettingsTab[] = [
     { href: "/settings", label: t("settings.tab.account") },
+    { href: "/settings/security", label: t("settings.tab.security") },
     ...(canManageChurch(session.role)
       ? [{ href: "/settings/church", label: t("settings.tab.church") }]
       : []),

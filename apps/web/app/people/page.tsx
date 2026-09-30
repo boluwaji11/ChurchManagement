@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Users, UserPlus, HeartHandshake, Plus, Download } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, countPeopleByStatus, listTagsWithCounts, findDuplicatePairs,
-  canEditPeople, canArchivePeople, PER_PAGE,
+  canEditPeople, canArchivePeople, canManageChurch, demoState, PER_PAGE,
 } from "@hearth/db";
 import { StatTile, Button, Banner } from "@hearth/ui";
+import { DemoData } from "./demo";
 import { t, plural } from "@hearth/i18n";
 import { PageTitle, Section } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -25,7 +26,7 @@ export default async function PeoplePage({
   const query = queryFromParams(params);
   const page = pageFromParams(params);
 
-  const { people, counts, tags, total, duplicates, matching } = await withTenant(
+  const { people, counts, tags, total, duplicates, matching, demo } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       people: await listPeople(tx, { ...query, page, perPage: PER_PAGE }),
@@ -34,6 +35,7 @@ export default async function PeoplePage({
       tags: await listTagsWithCounts(tx),
       total: (await listPeople(tx)).length,
       duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
+      demo: await demoState(tx),
     }),
   );
 
@@ -62,6 +64,17 @@ export default async function PeoplePage({
             </div>
           ) : null}
         </div>
+
+        {demo.loaded || total === 0 ? (
+          <div className="mb-8">
+            <DemoData
+              church={session.tenantSlug}
+              loaded={demo.loaded}
+              people={demo.people}
+              canEdit={canManageChurch(session.role)}
+            />
+          </div>
+        ) : null}
 
         {duplicates > 0 ? (
           <Banner tone="warning" title={t("merge.title")} className="mb-8">

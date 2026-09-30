@@ -1,6 +1,6 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 const url = () => process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
 const key = () => process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]!;
@@ -15,7 +15,15 @@ const key = () => process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]!;
  */
 export async function supabaseServer() {
   const store = await cookies();
+
+  // Sign-in happens on the server, so without this Supabase records the Node
+  // fetch agent as the device and every row in the session list reads "unknown
+  // device". Passing the browser's own agent through makes that list say
+  // something a person can act on. R1.10.
+  const agent = (await headers()).get("user-agent");
+
   return createServerClient(url(), key(), {
+    ...(agent ? { global: { headers: { "User-Agent": agent } } } : {}),
     cookies: {
       getAll: () => store.getAll(),
       setAll: (list) => {

@@ -348,8 +348,8 @@ Press your name in the top right.
 
 1. **The navigation is one item now.** Directory. Tags, Fields and Settings were beside it, which
    put the two things a volunteer touches every day next to two they touch twice a year.
-2. **Four tabs, by role.** Account for everyone. Church for Owner and Admin. Tags for anyone who can
-   edit people. Fields for Owner and Admin. Sign in as staff and the Church and Fields tabs are
+2. **Five tabs, by role.** Account and Security for everyone. Church for Owner and Admin. Tags for
+   anyone who can edit people. Fields for Owner and Admin. Sign in as staff and the Church and Fields tabs are
    absent, and typing the URL is still refused by the query layer.
 3. **Each tab is a real page.** Reload on Tags and you stay on Tags. The links can be shared and
    opened in a new tab, which a widget that swaps panels cannot do.
@@ -357,6 +357,9 @@ Press your name in the top right.
    email address when there is none.
 5. **Signing out moved** into the Account tab. It used to sit beside the name people aim for, which
    is a press somebody makes by accident.
+6. **Devices are named.** Sign-in happens on the server, so Supabase was recording the Node fetch
+   agent and every row read "Unknown device". The browser's own agent is passed through now.
+   Sessions created before this change stay unknown, since the agent is recorded once.
 
 ### HRT-18, how to test it
 
@@ -381,14 +384,17 @@ that reads membership from our own tables, so a user can only write into their o
 
 Settings, the Sample church card.
 
-1. **Load it.** Twenty-one people arrive in the directory: six households, five tags, milestones,
-   and relationships that already point both ways.
+1. **Load it.** The offer is on the directory, when the directory is empty, which is the moment
+   somebody needs it. Twenty-one people arrive: six households, five tags, milestones, and
+   relationships that already point both ways.
 2. **Look for the untidy parts.** A household with no phone number, three visitors at different
    stages, two people who have drifted to inactive, a widower on his own, a record with a death on
    it. A demo of perfect records teaches nothing about your own list.
-3. **Add somebody of your own**, then remove the sample church. Yours stays. The twenty-one go, with
+3. **It says so while it is loaded**, in a line above the list, with the way out beside it. A demo
+   somebody cannot tell apart from their own records ends up in a giving statement.
+4. **Add somebody of your own**, then remove the sample church. Yours stays. The twenty-one go, with
    their households, tags, milestones and relationships.
-4. **Load it again.** It comes back, so a church can try this as often as they like.
+5. **Load it again.** It comes back, so a church can try this as often as they like.
 
 Removal is a real delete. This is the one place the archive rule does not apply: these are not the
 church's records, and a demo you cannot get rid of is worse than no demo.
