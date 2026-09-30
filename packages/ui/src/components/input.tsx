@@ -11,7 +11,10 @@ const base = [
   "transition-[border-color,box-shadow] duration-instant ease-out",
   "hover:border-fg-subtle",
   "disabled:opacity-45 disabled:pointer-events-none",
-  "aria-[invalid=true]:border-danger aria-[invalid=true]:bg-danger-soft",
+  // Border and ring only. Filling the field tints the background while the text
+  // keeps its own colour, and in dark mode the two collide and the value becomes
+  // unreadable. The message below the field carries the meaning anyway.
+  "aria-[invalid=true]:border-danger aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger/25",
 ].join(" ");
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(

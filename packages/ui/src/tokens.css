@@ -167,6 +167,21 @@
     --accent-soft: oklch(0.298 0.060 62);
     --ring: var(--ink-300);
     --overlay: oklch(0.100 0.006 75 / 0.65);
+    --success: oklch(0.582 0.132 155);
+    --success-soft: oklch(0.268 0.058 155);
+    --success-text: oklch(0.828 0.108 155);
+    --warning: oklch(0.712 0.152 75);
+    --warning-soft: oklch(0.292 0.062 68);
+    --warning-text: oklch(0.868 0.118 80);
+    --danger: oklch(0.558 0.198 25);
+    --danger-soft: oklch(0.278 0.078 25);
+    --danger-text: oklch(0.828 0.128 22);
+    --info: oklch(0.582 0.122 235);
+    --info-soft: oklch(0.268 0.058 235);
+    --info-text: oklch(0.838 0.098 235);
+    --critical: oklch(0.505 0.225 20);
+    --critical-soft: oklch(0.302 0.098 22);
+    --critical-text: oklch(0.868 0.138 20);
     /* Hue pairs for dark: tint an area with 900, key text to 100. */
     --hue-rose-tint: var(--hue-rose-900);
     --hue-rose-key: var(--hue-rose-100);
@@ -212,6 +227,21 @@
     --accent-soft: oklch(0.298 0.060 62);
     --ring: var(--ink-300);
     --overlay: oklch(0.100 0.006 75 / 0.65);
+    --success: oklch(0.582 0.132 155);
+    --success-soft: oklch(0.268 0.058 155);
+    --success-text: oklch(0.828 0.108 155);
+    --warning: oklch(0.712 0.152 75);
+    --warning-soft: oklch(0.292 0.062 68);
+    --warning-text: oklch(0.868 0.118 80);
+    --danger: oklch(0.558 0.198 25);
+    --danger-soft: oklch(0.278 0.078 25);
+    --danger-text: oklch(0.828 0.128 22);
+    --info: oklch(0.582 0.122 235);
+    --info-soft: oklch(0.268 0.058 235);
+    --info-text: oklch(0.838 0.098 235);
+    --critical: oklch(0.505 0.225 20);
+    --critical-soft: oklch(0.302 0.098 22);
+    --critical-text: oklch(0.868 0.138 20);
     /* Hue pairs for dark: tint an area with 900, key text to 100. */
     --hue-rose-tint: var(--hue-rose-900);
     --hue-rose-key: var(--hue-rose-100);

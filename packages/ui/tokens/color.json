@@ -118,27 +118,52 @@
     "success": {
       "base": "oklch(0.582 0.132 155)",
       "soft": "oklch(0.945 0.040 155)",
-      "text": "oklch(0.448 0.108 155)"
+      "text": "oklch(0.448 0.108 155)",
+      "dark": {
+        "base": "oklch(0.582 0.132 155)",
+        "soft": "oklch(0.268 0.058 155)",
+        "text": "oklch(0.828 0.108 155)"
+      }
     },
     "warning": {
       "base": "oklch(0.712 0.152 75)",
       "soft": "oklch(0.958 0.046 75)",
-      "text": "oklch(0.512 0.118 62)"
+      "text": "oklch(0.512 0.118 62)",
+      "dark": {
+        "base": "oklch(0.712 0.152 75)",
+        "soft": "oklch(0.292 0.062 68)",
+        "text": "oklch(0.868 0.118 80)"
+      }
     },
     "danger": {
       "base": "oklch(0.558 0.198 25)",
       "soft": "oklch(0.948 0.036 25)",
-      "text": "oklch(0.482 0.182 25)"
+      "text": "oklch(0.482 0.182 25)",
+      "dark": {
+        "base": "oklch(0.558 0.198 25)",
+        "soft": "oklch(0.278 0.078 25)",
+        "text": "oklch(0.828 0.128 22)"
+      }
     },
     "info": {
       "base": "oklch(0.582 0.122 235)",
       "soft": "oklch(0.948 0.036 235)",
-      "text": "oklch(0.468 0.112 238)"
+      "text": "oklch(0.468 0.112 238)",
+      "dark": {
+        "base": "oklch(0.582 0.122 235)",
+        "soft": "oklch(0.268 0.058 235)",
+        "text": "oklch(0.838 0.098 235)"
+      }
     },
     "critical": {
       "base": "oklch(0.505 0.225 20)",
       "soft": "oklch(0.935 0.052 20)",
-      "text": "oklch(0.432 0.205 20)"
+      "text": "oklch(0.432 0.205 20)",
+      "dark": {
+        "base": "oklch(0.505 0.225 20)",
+        "soft": "oklch(0.302 0.098 22)",
+        "text": "oklch(0.868 0.138 20)"
+      }
     }
   },
   "$semantic": "Components reference these only. Changing a ramp must never require touching a component.",
@@ -179,5 +204,6 @@
       "ring": "{ink.300}",
       "overlay": "oklch(0.100 0.006 75 / 0.65)"
     }
-  }
+  },
+  "$status": "One meaning each, with a dark pair for the tint and the text on it. A soft tint defined only for light mode is a real bug in dark mode: the tint stays pale, the text keeps its own colour, and the content disappears. `base` deliberately does not change, because it is a solid fill under white text and lightening it would weaken that contrast."
 }

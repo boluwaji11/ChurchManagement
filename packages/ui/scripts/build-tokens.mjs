@@ -57,6 +57,15 @@ w();
 
 /* ---------- dark ---------- */
 const darkBody = Object.entries(colour.semantic.dark).map(([k, v]) => `    --${k}: ${resolve(v)};`);
+const darkStatus = Object.entries(colour.status).flatMap(([name, v]) => {
+  const dark = v.dark ?? {};
+  return [
+    `    --${name}: ${dark.base ?? v.base};`,
+    `    --${name}-soft: ${dark.soft ?? v.soft};`,
+    `    --${name}-text: ${dark.text ?? v.text};`,
+  ];
+});
+
 const darkSpectrum = [
   `    /* Hue pairs for dark: tint an area with 900, key text to 100. */`,
   ...Object.keys(colour.spectrum).filter((h) => !skip(h)).flatMap((h) => [
@@ -76,12 +85,14 @@ w();
 w(`@media (prefers-color-scheme: dark) {`);
 w(`  :root:not([data-theme="light"]) {`);
 darkBody.forEach(w);
+darkStatus.forEach(w);
 darkSpectrum.forEach(w);
 w(`  }`);
 w(`}`);
 w();
 w(`:root[data-theme="dark"] {`);
 darkBody.forEach(w);
+darkStatus.forEach(w);
 darkSpectrum.forEach(w);
 w(`}`);
 w();
