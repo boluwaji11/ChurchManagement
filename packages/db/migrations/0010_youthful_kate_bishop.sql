@@ -1,0 +1,1 @@
+ALTER TABLE "tenants" ADD COLUMN "absence_threshold" integer DEFAULT 3 NOT NULL;

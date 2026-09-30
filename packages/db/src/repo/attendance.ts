@@ -294,3 +294,75 @@ export async function visitorsBetween(
         a.firstName.localeCompare(b.firstName),
     );
 }
+
+export interface AbsentPerson {
+  personId: string;
+  firstName: string;
+  preferredName: string | null;
+  lastName: string;
+  /** The last held service they were at. */
+  lastSeenOn: string;
+  /** Held services since, that they were not at. */
+  missed: number;
+}
+
+export const DEFAULT_ABSENCE_THRESHOLD = 3;
+
+/**
+ * R7.6. People who have stopped coming.
+ *
+ * Counted against the services that were actually held: cancelled ones are not
+ * in it, so a church that cancelled a Sunday for snow does not accuse half its
+ * congregation of drifting the following week. Two services on one day count
+ * once, for the same reason a visit does.
+ *
+ * Only people who have been at least once are here. Somebody who has never
+ * attended has not stopped coming, and putting them in this list buries the
+ * people who have.
+ */
+export async function absentPeople(
+  db: Tx,
+  opts: { threshold?: number; asOf?: string } = {},
+): Promise<AbsentPerson[]> {
+  const threshold = opts.threshold ?? DEFAULT_ABSENCE_THRESHOLD;
+  const asOf = opts.asOf ?? new Date().toISOString().slice(0, 10);
+
+  const rows = await db.execute<Record<string, unknown>>(sql`
+    with held as (
+      select distinct occurs_on
+        from service_occurrences
+       where status = 'scheduled' and occurs_on <= ${asOf}
+    ),
+    last_seen as (
+      select a.person_id, max(o.occurs_on) as last_on
+        from attendance_records a
+        join service_occurrences o on o.id = a.occurrence_id
+       where o.status = 'scheduled' and o.occurs_on <= ${asOf}
+       group by a.person_id
+    )
+    select p.id, p.first_name, p.preferred_name, p.last_name, l.last_on,
+           (select count(*) from held h where h.occurs_on > l.last_on) as missed
+      from last_seen l
+      join people p on p.id = l.person_id
+     where p.archived_at is null
+       and p.lifecycle_status not in ('deceased', 'archived')
+  `);
+
+  return (rows as unknown as Record<string, string>[])
+    .map((r) => ({
+      personId: String(r["id"]),
+      firstName: String(r["first_name"]),
+      preferredName: (r["preferred_name"] as string | null) ?? null,
+      lastName: String(r["last_name"]),
+      lastSeenOn: String(r["last_on"]).slice(0, 10),
+      missed: Number(r["missed"]),
+    }))
+    .filter((r) => r.missed >= threshold)
+    // Longest gone first, then by name so the order holds between loads.
+    .sort(
+      (a, b) =>
+        b.missed - a.missed ||
+        a.lastName.localeCompare(b.lastName) ||
+        a.firstName.localeCompare(b.firstName),
+    );
+}

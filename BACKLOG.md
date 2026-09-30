@@ -131,7 +131,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Resolved |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Resolved |
-| HRT-51 | Absence detection against a configurable threshold | R7.6 | New |
+| HRT-51 | Absence detection against a configurable threshold | R7.6 | Resolved |
 | HRT-52 | Attendance against groups and events | R7.4 | New |
 | HRT-53 | Trends: week over week, year over year, rolling average | R7.9 | New |
 
@@ -187,8 +187,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags |
-| **Next** | HRT-51 absence detection, then HRT-53 trends. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence |
+| **Next** | HRT-53 trends, then HRT-52 group and event attendance. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -439,6 +439,22 @@ A Services tab sits beside Directory. One concept, one button.
 
 An earlier build of this had three ideas (a weekly pattern in Settings, a Fill the calendar button,
 and the services themselves) and two setup steps before any value. It is one idea now.
+
+### HRT-51, how to test it
+
+Two lists at the top of Services: **New lately** and **Not seen lately**.
+
+1. **Tick somebody at three services, then stop.** After three held services without them, they
+   appear in Not seen lately with how many they missed and when they were last there.
+2. **Cancel one of those services.** They drop off, because a Sunday the church cancelled is not a
+   Sunday anybody missed. A church that cancelled for snow must not accuse half its congregation of
+   drifting the following week. This is R7.6's acceptance criterion.
+3. **Somebody who has never attended is not in the list.** They have not stopped coming, and putting
+   them there buries the people who have.
+4. **Two services on one day count once**, the same as a visit does.
+5. **The threshold is three** and lives on the church record, ready to be changed per church.
+
+Both lists link straight to the person, and the pipelines in R5.3 will read the same two queries.
 
 ### HRT-50, how to test it
 

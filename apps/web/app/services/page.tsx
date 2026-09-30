@@ -1,11 +1,14 @@
 import {
-  withTenant, listOccurrences, topUpCalendar, countsFor, canManageServices,
+  withTenant, listOccurrences, topUpCalendar, countsFor, getChurch, canManageServices,
+  visitorsBetween, absentPeople,
 } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Calendar } from "./calendar";
+import { churchNow, hasHappened } from "@/lib/church-now";
+import { FollowUp } from "./follow-up";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +32,7 @@ export default async function ServicesPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { rows, present } = await withTenant(
+  const { rows, present, timezone, newcomers, absent } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // Keeps a repeating service six months ahead without anybody maintaining
@@ -38,15 +41,47 @@ export default async function ServicesPage({
         await topUpCalendar(tx, { tenantId: session.tenantId, role: session.role });
       }
       const list = await listOccurrences(tx, { includeCancelled: true });
-      return { rows: list, present: await countsFor(tx, list.map((r) => r.id)) };
+      const church = await getChurch(tx, session.tenantId);
+      const zone = church?.timezone ?? "America/Chicago";
+      const today = churchNow(zone).date;
+      const sixWeeksAgo = new Date(`${today}T00:00:00`);
+      sixWeeksAgo.setDate(sixWeeksAgo.getDate() - 42);
+      const from = sixWeeksAgo.toISOString().slice(0, 10);
+
+      return {
+        rows: list,
+        present: await countsFor(tx, list.map((r) => r.id)),
+        timezone: zone,
+        newcomers: await visitorsBetween(tx, from, today, 1),
+        absent: await absentPeople(tx, { threshold: 3, asOf: today }),
+      };
     },
   );
+
+  const now = churchNow(timezone);
 
   return (
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageTitle title={t("services.title")} lede={session.tenantName} />
+
+        <div className="mb-6">
+          <FollowUp
+            church={session.tenantSlug}
+            newcomers={newcomers.map((v) => ({
+              personId: v.personId,
+              name: `${v.preferredName ?? v.firstName} ${v.lastName}`,
+              detail: t("newcomers.first", { date: readableDate(v.occursOn) }),
+            }))}
+            absent={absent.map((a) => ({
+              personId: a.personId,
+              name: `${a.preferredName ?? a.firstName} ${a.lastName}`,
+              badge: plural("absent.missed", a.missed),
+              detail: t("absent.lastSeen", { date: readableDate(a.lastSeenOn) }),
+            }))}
+          />
+        </div>
 
         <Calendar
           church={session.tenantSlug}
@@ -66,7 +101,7 @@ export default async function ServicesPage({
               r.countAdults === null && r.countChildren === null && r.countVisitors === null
                 ? null
                 : (r.countAdults ?? 0) + (r.countChildren ?? 0) + (r.countVisitors ?? 0),
-            past: r.occursOn <= new Date().toISOString().slice(0, 10),
+            past: hasHappened(now, r.occursOn, r.startsAt),
             present: present[r.id] ?? 0,
             serviceTimeId: r.serviceTimeId,
             readableDate: readableDate(r.occursOn),

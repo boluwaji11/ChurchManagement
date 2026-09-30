@@ -25,6 +25,11 @@ export const tenants = pgTable(
     country: text("country").notNull().default("US"),
     phone: text("phone"),
     website: text("website"),
+    /**
+     * R7.6. How many held services somebody misses in a row before the church
+     * wants to know. Three by default, which is roughly a month of Sundays.
+     */
+    absenceThreshold: integer("absence_threshold").notNull().default(3),
     /** R1.1. One of the twelve hues, used wherever the church brands a page. */
     brandHue: hue("brand_hue").notNull().default("indigo"),
     /** R1.1. The key of the logo in the church bucket. */

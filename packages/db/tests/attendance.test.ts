@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   listRoster, setPresent, setPresentMany, countPresent, attendanceForPerson, countsFor,
-  visitNumbers, visitorsBetween,
+  visitNumbers, visitorsBetween, absentPeople,
 } from "../src/repo/attendance";
 import { addService, listOccurrences, setOccurrenceCancelled } from "../src/repo/services";
 import { createPerson } from "../src/repo/people";
@@ -193,5 +193,76 @@ describe("first and second visits (R7.5)", () => {
 
     const second = await run((tx) => visitorsBetween(tx, "2026-06-01", "2026-06-30", 2));
     expect(second.map((v) => v.firstName)).toEqual(["Abigail"]);
+  });
+});
+
+describe("absence (R7.6)", () => {
+  beforeAll(async () => {
+    await owner()`delete from attendance_records where tenant_id = ${tenant}`;
+    await owner()`delete from service_occurrences where tenant_id = ${tenant}`;
+
+    for (const [name, on] of [
+      ["S1", "2026-03-01"], ["S2", "2026-03-08"], ["S3", "2026-03-15"],
+      ["S4", "2026-03-22"], ["S5", "2026-03-29"],
+    ] as const) {
+      await run((tx) => addService(tx, as(), { name, occursOn: on, startsAt: "09:00" }));
+    }
+    const rows = await run((tx) => listOccurrences(tx));
+    const at = (name: string) => rows.find((r) => r.name === name)!.id;
+
+    // Abigail comes every week. Benjamin stopped after the first. Caroline
+    // stopped after the third.
+    for (const name of ["S1", "S2", "S3", "S4", "S5"]) {
+      await run((tx) => setPresent(tx, as(), at(name), ids["Abigail"]!, true));
+    }
+    await run((tx) => setPresent(tx, as(), at("S1"), ids["Benjamin"]!, true));
+    await run((tx) => setPresent(tx, as(), at("S3"), ids["Caroline"]!, true));
+  });
+
+  it("finds who has missed the threshold, longest gone first", async () => {
+    const absent = await run((tx) =>
+      absentPeople(tx, { threshold: 3, asOf: "2026-03-29" }),
+    );
+
+    expect(absent.map((a) => a.firstName)).toEqual(["Benjamin"]);
+    expect(absent[0]!.missed).toBe(4);
+    expect(absent[0]!.lastSeenOn).toBe("2026-03-01");
+  });
+
+  it("uses the threshold it is given", async () => {
+    const two = await run((tx) => absentPeople(tx, { threshold: 2, asOf: "2026-03-29" }));
+    expect(two.map((a) => a.firstName)).toEqual(["Benjamin", "Caroline"]);
+  });
+
+  it("leaves out somebody who was there last week", async () => {
+    const absent = await run((tx) => absentPeople(tx, { threshold: 1, asOf: "2026-03-29" }));
+    expect(absent.map((a) => a.firstName)).not.toContain("Abigail");
+  });
+
+  it("does not count a service the church cancelled", async () => {
+    const rows = await run((tx) => listOccurrences(tx));
+    const s4 = rows.find((r) => r.name === "S4")!.id;
+    const s5 = rows.find((r) => r.name === "S5")!.id;
+
+    await run((tx) => setOccurrenceCancelled(tx, as(), s4, true, "Snow"));
+    await run((tx) => setOccurrenceCancelled(tx, as(), s5, true, "Snow"));
+
+    // Caroline last came on the 15th. Two of the three Sundays since did not
+    // happen, so she has missed one, not three.
+    const absent = await run((tx) => absentPeople(tx, { threshold: 3, asOf: "2026-03-29" }));
+    expect(absent.map((a) => a.firstName)).not.toContain("Caroline");
+
+    await run((tx) => setOccurrenceCancelled(tx, as(), s4, false));
+    await run((tx) => setOccurrenceCancelled(tx, as(), s5, false));
+  });
+
+  it("leaves out somebody who has never been", async () => {
+    const never = await run((tx) =>
+      createPerson(tx, as(), {
+        firstName: "Dorothy", lastName: "Attendtest", lifecycleStatus: "member",
+      } as never),
+    );
+    const absent = await run((tx) => absentPeople(tx, { threshold: 1, asOf: "2026-03-29" }));
+    expect(absent.some((a) => a.personId === never.id)).toBe(false);
   });
 });

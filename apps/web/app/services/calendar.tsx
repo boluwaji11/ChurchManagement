@@ -166,8 +166,14 @@ export function Calendar({
                       )}
                     </Td>
                     <Td>
-                      <Badge tone={cancelled ? "warning" : "success"}>
-                        {cancelled ? t("services.status.cancelled") : t("services.status.scheduled")}
+                      {/* Three states, not two. A service that has already
+                          started is held, whatever the calendar says. */}
+                      <Badge tone={cancelled ? "warning" : row.past ? "success" : "neutral"}>
+                        {cancelled
+                          ? t("services.status.cancelled")
+                          : row.past
+                            ? t("services.status.held")
+                            : t("services.status.upcoming")}
                       </Badge>
                     </Td>
                     <Td>
