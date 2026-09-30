@@ -77,3 +77,33 @@ describe("nothing is reachable over the auto-generated REST API", () => {
     expect(grants).toEqual([]);
   });
 });
+
+/**
+ * R1.11 says the audit log covers every write. That was once a hardcoded list of
+ * table names in security.sql, which held until the day a table was added and
+ * nobody noticed it was writing nothing. An unaudited table looks exactly like an
+ * audited one right up to the moment somebody asks who changed a record.
+ *
+ * So the coverage is asserted rather than trusted, by looking at what the
+ * database actually has.
+ */
+describe("the audit log covers every table that holds church data", () => {
+  it("has an audit trigger on every table with a tenant_id, and none on the log itself", async () => {
+    const rows = await owner()<{ relname: string; triggers: number }[]>`
+      select c.relname, count(t.tgname) filter (where t.tgname like 'audit_%')::int as triggers
+        from pg_class c
+        join pg_namespace n on n.oid = c.relnamespace
+        join pg_attribute a on a.attrelid = c.oid and a.attname = 'tenant_id' and a.attnum > 0
+        left join pg_trigger t on t.tgrelid = c.oid
+       group by c.relname, n.nspname, c.relkind
+      having n.nspname = 'public' and c.relkind = 'r'
+       order by c.relname`;
+
+    const unaudited = rows.filter((r) => r.relname !== "audit_entries" && r.triggers === 0);
+    expect(unaudited.map((r) => r.relname), "tables with no audit trigger").toEqual([]);
+
+    // Auditing the audit log would recurse on every write.
+    const log = rows.find((r) => r.relname === "audit_entries");
+    expect(log?.triggers).toBe(0);
+  });
+});

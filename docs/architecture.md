@@ -115,6 +115,11 @@ independent mechanisms, so no single mistake exposes anything:
 3. **Audit on read.** Every confidential read writes an audit entry naming the reader, so the
    boundary is observable rather than merely asserted.
 
+The audit trigger is attached to every table that carries a `tenant_id`, found by querying the
+catalogue rather than from a list in the migration. A list is a thing somebody forgets to add to, and
+an unaudited table is indistinguishable from an audited one until the day someone asks who changed a
+record. A test asserts the coverage.
+
 The audit trigger strips `body` and `body_encrypted` before writing, because the log is read by more
 people than the note is.
 

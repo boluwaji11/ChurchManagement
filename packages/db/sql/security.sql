@@ -209,14 +209,22 @@ begin
   return coalesce(new, old);
 end $$;
 
+-- Every table that carries a tenant_id gets the trigger, found by looking rather
+-- than by a list. A list is a thing somebody forgets to add to, and an unaudited
+-- table looks identical to an audited one until the day someone asks who changed
+-- a record. audit_entries itself is excluded: auditing the audit log recurses.
 do $$
 declare t text;
 begin
   for t in
-    select unnest(array[
-      'people', 'households', 'household_memberships', 'relationships', 'milestones',
-      'notes', 'background_checks', 'tenant_members', 'contact_methods', 'addresses'
-    ])
+    select c.relname
+      from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+      join pg_attribute a on a.attrelid = c.oid and a.attname = 'tenant_id' and a.attnum > 0
+     where n.nspname = 'public'
+       and c.relkind = 'r'
+       and c.relname <> 'audit_entries'
+     order by c.relname
   loop
     execute format('drop trigger if exists audit_%1$s on public.%1$I', t);
     execute format(
