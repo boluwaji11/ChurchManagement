@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Church, ChevronDown } from "lucide-react";
 import { Avatar, Badge, Separator } from "@hearth/ui";
 import { SignOutButton } from "./sign-out-button";
+import { Logo } from "./brand";
 import type { Session } from "@/lib/session";
 
 /**
@@ -13,9 +14,7 @@ export function AppHeader({ session }: { session: Session }) {
     <header className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <Link href="/people" className="flex items-baseline gap-2">
-            <span className="font-display text-title text-fg">Hearth</span>
-          </Link>
+          <Logo href="/people" />
           <Separator orientation="vertical" className="h-5" />
           {session.memberships.length > 1 ? (
             <Link

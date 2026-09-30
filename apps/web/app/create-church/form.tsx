@@ -6,7 +6,7 @@ import {
   Button, Input, Field, Banner,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
-import { startChurch } from "./actions";
+import { createChurchAccount } from "./actions";
 
 /**
  * Timezone is not a detail. Sunday is local, the no-deploy window is local, and
@@ -31,7 +31,7 @@ function detect(): string {
   }
 }
 
-export function StartForm() {
+export function CreateChurchForm() {
   const [name, setName] = React.useState("");
   const [zone, setZone] = React.useState("America/Chicago");
   const [nameError, setNameError] = React.useState<string>();
@@ -52,7 +52,7 @@ export function StartForm() {
     setNameError(undefined);
     setPending(true);
     try {
-      const result = await startChurch(data);
+      const result = await createChurchAccount(data);
       if (result?.error) setError(result.error);
     } finally {
       setPending(false);

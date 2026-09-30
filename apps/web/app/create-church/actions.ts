@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createChurch, InvalidInputError } from "@hearth/db";
 import { currentUser } from "@/lib/session";
 
-export interface StartResult {
+export interface CreateResult {
   error?: string;
 }
 
@@ -15,9 +15,9 @@ export interface StartResult {
  * is the strongest grant in the product, and a form field is not where that
  * decision gets made.
  */
-export async function startChurch(data: FormData): Promise<StartResult> {
+export async function createChurchAccount(data: FormData): Promise<CreateResult> {
   const user = await currentUser();
-  if (!user) redirect("/sign-in?next=/start");
+  if (!user) redirect("/sign-in?next=/create-church");
 
   const name = String(data.get("name") ?? "");
   const timezone = String(data.get("timezone") ?? "");

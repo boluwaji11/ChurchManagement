@@ -2,16 +2,21 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { currentUser } from "@/lib/session";
-import { StartForm } from "./form";
+import { CreateChurchForm } from "./form";
+import { BrandBar } from "@/components/brand";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export const dynamic = "force-dynamic";
 
 export default async function StartPage() {
   const user = await currentUser();
-  if (!user) redirect("/sign-in?next=/start");
+  if (!user) redirect("/sign-in?next=/create-church");
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-6 py-16">
+    <div className="flex min-h-dvh flex-col">
+      <BrandBar right={<SignOutButton />} />
+
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
       <Link
         href="/choose-church"
         className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
@@ -20,11 +25,12 @@ export default async function StartPage() {
       </Link>
 
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-display text-fg">Start your church</h1>
+        <h1 className="font-display text-display text-fg">Create a church account</h1>
         <p className="text-[length:var(--d-text-body)] text-fg-muted">You will be the owner.</p>
       </div>
 
-      <StartForm />
-    </main>
+      <CreateChurchForm />
+      </main>
+    </div>
   );
 }

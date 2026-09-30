@@ -165,8 +165,8 @@ The presenter. Separate PRD written at build time.
 
 Churches used to exist only because the seed script made them. Now anyone signed in can start one.
 
-1. **From nothing.** Sign out. Sign in with an email that is in no church, using the email link.
-   You land on "Choose a church" with a "Start a church" button.
+1. **From nothing.** Sign out. Sign in as `founder@newchurch.example.org` on the Password tab. You
+   land on "Choose a church" with "Create a church account" as the main action.
 2. **Create it.** Name it. The timezone is already filled in from your browser. You arrive in your
    own church as its owner, with an empty directory.
 3. **The slug.** A church called "St. Mark's Riverside" becomes `st-marks-riverside` in the URL.
@@ -175,5 +175,5 @@ Churches used to exist only because the seed script made them. Now anyone signed
 4. **Isolation.** Add a person to the new church. Sign in as `pastor@riverside.example.org` and
    confirm they are nowhere in Riverside. Then try `?church=<your new slug>` as the Riverside
    pastor: refused, exactly like a church that does not exist.
-5. **Existing members.** "Start a church" is also on the chooser for someone already in one, as a
-   secondary button rather than the main action.
+5. **Existing members.** The same button is on the chooser for someone already in a church, as a
+   secondary action rather than the main one.

@@ -156,11 +156,12 @@ export { raw, and, eq, gt, isNull };
  */
 export const RESERVED_SLUGS: readonly string[] = [
   "about", "account", "admin", "api", "app", "assets", "auth", "billing", "blog",
-  "choose-church", "contact", "dashboard", "design", "docs", "download", "fields",
+  "choose-church", "contact", "create-church", "dashboard", "design", "docs", "download",
+  "fields",
   "give", "giving", "help", "home", "hearth", "icon", "images", "index", "invite",
   "legal", "login", "logout", "new", "people", "portal", "pricing", "privacy",
   "public", "register", "reset", "root", "security", "settings", "setup", "sign-in",
-  "sign-out", "sign-up", "static", "status", "stage", "support", "system", "tags",
+  "sign-out", "sign-up", "start", "static", "status", "stage", "support", "system", "tags",
   "terms", "test", "user", "users", "www",
 ];
 

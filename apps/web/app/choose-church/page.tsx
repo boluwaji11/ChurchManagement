@@ -2,16 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Church, Plus } from "lucide-react";
 import { membershipsForUser } from "@hearth/db";
-import { Banner, Card, Button } from "@hearth/ui";
+import { Banner, Button } from "@hearth/ui";
 import { currentUser } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
+import { BrandBar } from "@/components/brand";
 
 export const dynamic = "force-dynamic";
 
 const REASONS: Record<string, { title: string; body: string }> = {
   none: {
     title: "Your account is not in a church yet",
-    body: "Start one below, or wait for an invitation. An invitation is accepted automatically the next time you sign in.",
+    body: "Create one below, or wait to be invited.",
   },
   denied: {
     title: "That church is not available to you",
@@ -32,7 +33,10 @@ export default async function ChooseChurch({
   const notice = reason ? REASONS[reason] : undefined;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-6 py-16">
+    <div className="flex min-h-dvh flex-col">
+      <BrandBar right={<SignOutButton />} />
+
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
       <div className="flex flex-col gap-1">
         <h1 className="font-display text-display text-fg">Choose a church</h1>
         <p className="text-[length:var(--d-text-body)] text-fg-muted">Signed in as {user.email}</p>
@@ -64,24 +68,15 @@ export default async function ChooseChurch({
             </li>
           ))}
         </ul>
-      ) : (
-        <Card className="text-center">
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">No churches yet.</p>
-        </Card>
-      )}
+      ) : null}
 
       <Button asChild variant={memberships.length > 0 ? "secondary" : "primary"} full>
-        <Link href="/start">
-          <Plus /> Start a church
+        <Link href="/create-church">
+          <Plus /> Create a church account
         </Link>
       </Button>
 
-      <div className="flex items-center gap-3">
-        <SignOutButton />
-        <Button variant="ghost" asChild>
-          <Link href="/design">Design system</Link>
-        </Button>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
