@@ -2,28 +2,22 @@
 
 import { redirect } from "next/navigation";
 import { createDemoChurch } from "@hearth/db";
-import { supabaseServer } from "@/lib/supabase/server";
-import { t } from "@hearth/i18n";
+import { issueDemoPass, newDemoUserId } from "@/lib/demo-pass";
 
 /**
- * R19.7 and R22.1. A church to look around, without an account.
+ * R19.7 and R22.1. A church to look around, asking for nothing.
  *
- * The visitor signs in anonymously and gets a church of their own, filled with
- * invented people and thrown away tomorrow. Nothing they press can reach a real
- * church, because a demo is a separate tenant and row-level security is the
- * boundary between it and everything else.
+ * No email, no password, no account. A demo that starts with a sign-up form is
+ * a demo for the people who were going to sign up anyway.
  *
- * Anonymous sign-ins have to be turned on for the Supabase project. Where they
- * are not, this says so plainly rather than passing a Supabase message through.
+ * The visitor gets a throwaway church of their own, filled with invented people
+ * and thrown away tomorrow, and a signed cookie naming it. Nothing they press
+ * can reach a real church: the cookie is signed, and the session layer refuses
+ * any church without a demo expiry in the future.
  */
 export async function startDemo() {
-  const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.signInAnonymously();
-
-  if (error || !data.user) {
-    redirect(`/sign-in?error=${encodeURIComponent(t("demo.error.unavailable"))}`);
-  }
-
-  const demo = await createDemoChurch(data.user.id);
+  const userId = newDemoUserId();
+  const demo = await createDemoChurch(userId);
+  await issueDemoPass(demo.tenantId, userId, demo.expiresAt);
   redirect(`/people?church=${demo.slug}`);
 }

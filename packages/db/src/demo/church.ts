@@ -101,3 +101,36 @@ export async function sweepExpiredDemos(): Promise<number> {
     return gone.length;
   });
 }
+
+export interface DemoMembership {
+  tenantId: string;
+  slug: string;
+  name: string;
+  expiresAt: Date;
+}
+
+/**
+ * Confirms that this visitor is in this demo, and that it is still a demo.
+ *
+ * The pass a demo visitor carries is signed, so it cannot be rewritten to name
+ * a different church. This is the second lock: the tenant has to have an expiry
+ * in the future, so a pass naming a real church is refused even if the signing
+ * key ever leaked. A demo can never be a way into somebody's records.
+ */
+export async function demoMembership(
+  tenantId: string,
+  userId: string,
+): Promise<DemoMembership | null> {
+  const rows = await owner()<{ id: string; slug: string; name: string; demo_expires_at: Date }[]>`
+    select t.id, t.slug, t.name, t.demo_expires_at
+    from tenants t
+    join tenant_members m on m.tenant_id = t.id and m.user_id = ${userId}
+    where t.id = ${tenantId}
+      and t.demo_expires_at is not null
+      and t.demo_expires_at > now()
+    limit 1`;
+
+  const row = rows[0];
+  if (!row) return null;
+  return { tenantId: row.id, slug: row.slug, name: row.name, expiresAt: row.demo_expires_at };
+}

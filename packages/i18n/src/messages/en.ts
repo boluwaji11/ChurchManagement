@@ -35,6 +35,16 @@ export const en = {
   // Landing
   "home.tagline": "Church management software.",
   "home.signIn": "Sign in",
+  "home.headline": "Church software that costs nothing.",
+  "home.sub": "People, households, giving, check-in and Sunday planning. Free for every church, funded by donations and grants.",
+  "home.point.free.title": "No pay, no tiers, no modules",
+  "home.point.free.body": "Every feature, every church, always. Giving runs on your own Stripe account and we take nothing from it.",
+  "home.point.simple.title": "Run by a volunteer",
+  "home.point.simple.body": "Built for a church of 50 to 500 with one person who gives a few hours a week.",
+  "home.point.yours.title": "Your data stays yours",
+  "home.point.yours.body": "Export everything at any time, in open formats, with nothing to ask for. The source is public under AGPL-3.0.",
+  "home.point.sunday.title": "The whole of Sunday",
+  "home.point.sunday.body": "The service plan, the volunteers, the songs and the check-in desk, in one place that knows about the others.",
 
   // Sign in
   "signIn.lede": "Sign in to your church.",
@@ -161,7 +171,6 @@ export const en = {
   "nav.account": "Account",
   "demo.start": "See a demo",
   "demo.starting": "Building a church",
-  "demo.error.unavailable": "The demo is unavailable right now.",
   "demo.banner.title": "This is a demo church",
   "demo.banner.body": "Everyone in it is invented. It disappears {when}.",
   "demo.banner.signUp": "Create a church account",

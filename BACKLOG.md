@@ -384,10 +384,10 @@ that reads membership from our own tables, so a user can only write into their o
 
 ### HRT-46, how to test it
 
-**Turn on anonymous sign-ins first**: Supabase dashboard, Authentication, Sign In / Providers,
-"Allow anonymous sign-ins". Without it the button says the demo is unavailable rather than failing.
+It asks for nothing. No email, no password, no account, and no Supabase setting to turn on. A demo
+that starts with a sign-up form is a demo for the people who were going to sign up anyway.
 
-1. **Sign out.** On the sign-in page, press "See a demo".
+1. **Sign out.** On the landing page, press "See a demo" in the top right.
 2. **A church of your own arrives**, named Grace Community Church, with twenty-one people,
    households, tags, milestones and relationships. It takes a few seconds to build, and the button
    says so while it works.
@@ -396,8 +396,12 @@ that reads membership from our own tables, so a user can only write into their o
 4. **Press everything.** Archive people, merge them, remove the lot. It is your church and nobody
    else's, so nothing here can reach a real one.
 5. **Press it twice**, from two browsers. Two separate churches, each with one member.
-6. **It goes away.** Demo churches are swept when they run out, which happens on the way in to the
-   next one. Four tests cover expiry, including that a real church is never swept.
+6. **The pass cannot be turned into a way in.** It is a signed cookie naming the throwaway church.
+   Rewriting it fails the signature, and even a correctly signed pass naming a real church is
+   refused, because the lookup takes only a church with a demo expiry in the future. Four tests
+   cover that, including the expired case.
+7. **It goes away.** Demo churches are swept when they run out, which happens on the way in to the
+   next one, and a church without an expiry is never swept.
 
 This is where the sample data lives now. It is reachable from nowhere inside a real church.
 

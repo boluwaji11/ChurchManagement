@@ -90,3 +90,47 @@ describe("expiry", () => {
     expect(after[0]!.n).toBe(before[0]!.n);
   });
 });
+
+describe("a demo pass", () => {
+  it("is accepted for the demo it names", async () => {
+    const userId = randomUUID();
+    const demo = await createDemoChurch(userId);
+    made.push(demo.tenantId);
+
+    const { demoMembership } = await import("../src/demo/church");
+    expect(await demoMembership(demo.tenantId, userId)).not.toBeNull();
+  });
+
+  it("is refused for a real church, even with a real user id", async () => {
+    const { demoMembership } = await import("../src/demo/church");
+    const [riverside] = await owner()<{ id: string }[]>`
+      select id from tenants where slug = 'riverside'`;
+    const [member] = await owner()<{ user_id: string }[]>`
+      select user_id from tenant_members where tenant_id = ${riverside!.id} limit 1`;
+
+    // The signature would be valid. The church is not a demo, so it is refused
+    // anyway. That second lock is the point: a demo is never a way in.
+    expect(await demoMembership(riverside!.id, member!.user_id)).toBeNull();
+  });
+
+  it("is refused once the demo has run out", async () => {
+    const { demoMembership } = await import("../src/demo/church");
+    const userId = randomUUID();
+    const demo = await createDemoChurch(userId);
+    made.push(demo.tenantId);
+
+    await owner()`
+      update tenants set demo_expires_at = now() - interval '1 minute'
+      where id = ${demo.tenantId}`;
+
+    expect(await demoMembership(demo.tenantId, userId)).toBeNull();
+  });
+
+  it("is refused for somebody who is not in that demo", async () => {
+    const { demoMembership } = await import("../src/demo/church");
+    const demo = await createDemoChurch(randomUUID());
+    made.push(demo.tenantId);
+
+    expect(await demoMembership(demo.tenantId, randomUUID())).toBeNull();
+  });
+});

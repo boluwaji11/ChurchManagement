@@ -2,10 +2,11 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import {
-  membershipsForUser, verifyMembership, resolveTenantBySlug,
+  membershipsForUser, verifyMembership, resolveTenantBySlug, demoMembership,
   type Membership, type TenantRole,
 } from "@hearth/db";
 import { supabaseServer } from "./supabase/server";
+import { readDemoPass } from "./demo-pass";
 
 export interface Session {
   userId: string;
@@ -46,9 +47,39 @@ export const currentUser = cache(async () => {
  * A church the user does not belong to is reported exactly like a church that
  * does not exist, so a URL cannot be used to discover who is on the platform.
  */
+/**
+ * R19.7. The session a demo visitor gets, built from their signed pass.
+ *
+ * Owner of one throwaway church and nothing else. The pass is signed, and the
+ * lookup refuses any tenant without a demo expiry in the future, so this can
+ * never hand somebody a way into a real church.
+ */
+const demoVisitorSession = cache(async (): Promise<Session | null> => {
+  const pass = await readDemoPass();
+  if (!pass) return null;
+
+  const demo = await demoMembership(pass.tenantId, pass.userId);
+  if (!demo) return null;
+
+  return {
+    userId: pass.userId,
+    email: "",
+    displayName: "Visitor",
+    tenantId: demo.tenantId,
+    tenantName: demo.name,
+    tenantSlug: demo.slug,
+    role: "owner",
+    memberships: [],
+  };
+});
+
 export const requireSession = cache(async (slug?: string): Promise<Session> => {
   const user = await currentUser();
-  if (!user) redirect("/sign-in");
+  if (!user) {
+    const demo = await demoVisitorSession();
+    if (demo) return demo;
+    redirect("/sign-in");
+  }
 
   const memberships = await membershipsForUser(user.id);
   if (memberships.length === 0) redirect("/choose-church?reason=none");

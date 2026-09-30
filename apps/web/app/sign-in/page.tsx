@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { Banner } from "@hearth/ui";
 import { currentUser } from "@/lib/session";
 import { SignInForm } from "./form";
-import { StartDemoButton } from "../demo/start";
 import { Logo } from "@/components/brand";
 import { t } from "@hearth/i18n";
 
@@ -37,10 +36,6 @@ export default async function SignIn({
         ) : null}
 
         <SignInForm next={params.next} />
-
-        <div className="flex justify-center border-t border-line pt-4">
-          <StartDemoButton />
-        </div>
       </div>
     </main>
   );
