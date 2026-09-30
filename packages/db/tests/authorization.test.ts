@@ -10,11 +10,22 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, closeConnections } from "../src/client";
 import { membershipsForUser, verifyMembership, createInvitation, syncUserAndAcceptInvitations } from "../src/repo/membership";
-import { required } from "../src/env";
+import { loadEnv } from "../src/env";
 
-const SUPABASE_URL = required("NEXT_PUBLIC_SUPABASE_URL");
-const ANON = required("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
-const PASSWORD = required("SEED_USER_PASSWORD");
+/**
+ * This suite signs in for real, over HTTP, against a live Supabase project. It
+ * cannot run against a bare Postgres container, so in CI it skips rather than
+ * fails. A skipped test says "not checked here"; a failing one would say "this
+ * is broken", and only one of those is true.
+ *
+ * It runs on every developer machine, where .env.local points at the project.
+ */
+loadEnv();
+const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"] ?? "";
+const ANON = process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?? "";
+const PASSWORD = process.env["SEED_USER_PASSWORD"] ?? "";
+const live = Boolean(SUPABASE_URL && ANON && PASSWORD);
+const whenLive = live ? describe : describe.skip;
 
 /** Signs in for real, through Supabase, exactly as the browser does. */
 async function signIn(email: string) {
@@ -34,6 +45,7 @@ let riversideId: string;
 let northgateId: string;
 
 beforeAll(async () => {
+  if (!live) return;
   const tenants = await owner()<{ id: string; slug: string }[]>`
     select id, slug from tenants where slug in ('riverside', 'northgate')`;
   riversideId = tenants.find((t) => t.slug === "riverside")!.id;
@@ -48,7 +60,7 @@ afterAll(async () => {
   await closeConnections();
 });
 
-describe("sign-in", () => {
+whenLive("sign-in", () => {
   it("authenticates a seeded account and returns a stable user id", () => {
     expect(riversidePastor.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(riversidePastor.email).toBe("pastor@riverside.example.org");
@@ -64,7 +76,7 @@ describe("sign-in", () => {
   });
 });
 
-describe("a user can only reach churches they belong to", () => {
+whenLive("a user can only reach churches they belong to", () => {
   it("lists exactly one church for each pastor", async () => {
     const riverside = await membershipsForUser(riversidePastor.id);
     const northgate = await membershipsForUser(northgatePastor.id);
@@ -93,7 +105,7 @@ describe("a user can only reach churches they belong to", () => {
   });
 });
 
-describe("invitations (R1.7)", () => {
+whenLive("invitations (R1.7)", () => {
   const email = "invite-test-one@example.org";
 
   it("joins a user to a church on first verified sign-in", async () => {

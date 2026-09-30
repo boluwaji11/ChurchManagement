@@ -80,7 +80,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota display with a warning at 80% | R1.16 | New |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Resolved |
-| HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | New |
+| HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Resolved |
 
 ### F2. People
 
@@ -142,16 +142,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** custom fields, **HRT-32** create a church, **HRT-36** externalised strings |
-| **Next** | HRT-37 CI, then HRT-28 the import wizard |
-
-### Debt, and why it is listed here
-
-One 0.1 requirement is still being carried rather than met. HRT-36 was the other, and it is done.
-
-**HRT-37, CI (R22.7, N7).** There is no pipeline. The test suite, the typecheck and the contrast
-audit all run because somebody remembers to run them. The 0.1 exit criteria say the contrast audit
-passes in CI, which cannot be true while there is no CI.
+| **Waiting on a test** | **HRT-16** custom fields, **HRT-32** create a church, **HRT-36** strings, **HRT-37** CI |
+| **Next** | HRT-28 the import wizard, then HRT-30 export, then the rest of R2.x |
 
 ### HRT-16, how to test it
 
@@ -170,6 +162,18 @@ passes in CI, which cannot be true while there is no CI.
    the one thing here that is not reversible.
 6. **Roles.** `staff` can fill fields in but cannot define them. `pastoral` and `member` can do
    neither.
+
+### HRT-37, how to test it
+
+Nothing to click. Open the Actions tab on GitHub after this push and watch three jobs run.
+
+- **Types, catalogue, contrast.** Typecheck, the contrast audit, the externalised-strings scan, a
+  check that the generated `tokens.css` matches its source, and a grep for em dashes.
+- **Build.** The production build, with no database reachable.
+- **Tenant isolation and authorization.** A real Postgres, migrated and seeded from scratch, then
+  the adversarial suite. This is the 0.1 exit criterion running on every push.
+
+The audit found four real defects the first time it ran, listed in the commit.
 
 ### HRT-32, how to test it
 

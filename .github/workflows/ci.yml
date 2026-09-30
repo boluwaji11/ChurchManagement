@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A second push to the same branch cancels the first. Nobody reads a run that is
+# already out of date, and the minutes are not free.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  # Everything that needs no database. Fast, so a typo is caught in under a
+  # minute rather than after Postgres has finished starting.
+  static:
+    name: Types, catalogue, contrast
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # tokens.css is generated. If it is stale, a component is being styled
+      # against colours that no longer exist in the source.
+      - name: Design tokens are up to date
+        run: |
+          pnpm --filter @hearth/ui run tokens
+          git diff --exit-code packages/ui/src/tokens.css
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Contrast audit (R22.7)
+        run: pnpm --filter @hearth/ui test
+
+      - name: Strings are externalised (R22.8)
+        run: pnpm --filter @hearth/i18n test
+
+      - name: No em dashes
+        run: |
+          if grep -rn --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git \
+               --include='*.ts' --include='*.tsx' --include='*.md' --include='*.sql' \
+               --include='*.json' --include='*.mjs' -P '\x{2014}|\x{2013}' .; then
+            echo "::error::Em dashes and en dashes are not used in this project."
+            exit 1
+          fi
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          # The build does not connect to anything. These exist so module-level
+          # reads do not throw during prerendering.
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: build-only-placeholder
+
+  # The 0.1 exit criterion: cross-tenant reads and writes on every table, through
+  # both the ORM and raw SQL, all refused. It runs against a real Postgres on
+  # every push, because an isolation guarantee nobody re-checks is a claim.
+  database:
+    name: Tenant isolation and authorization
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: hearth
+          POSTGRES_DB: hearth
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports: ["5432:5432"]
+    env:
+      DATABASE_URL: postgresql://postgres:hearth@localhost:5432/hearth
+      APP_DATABASE_URL: postgresql://hearth_app:hearth-app-ci@localhost:5432/hearth
+      # A throwaway key for a throwaway database. Real keys are never in a repo.
+      NOTE_ENCRYPTION_KEY: AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=
+      HEARTH_APP_PASSWORD: hearth-app-ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Supabase creates these. Plain Postgres does not, and security.sql revokes
+      # privileges from them, so they have to exist for that step to mean
+      # anything here.
+      - name: Create the roles Supabase would have created
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "create role anon nologin;"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "create role authenticated nologin;"
+
+      - name: Migrate and seed
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+
+      # The suite that signs in through Supabase Auth skips itself here, because
+      # it needs a live project rather than a Postgres container. Everything
+      # else, including the whole adversarial isolation suite, runs.
+      - name: Isolation, writes, tags, fields, hardening
+        run: pnpm --filter @hearth/db test
