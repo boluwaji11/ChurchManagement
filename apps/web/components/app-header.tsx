@@ -4,6 +4,7 @@ import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
+import { DemoBanner } from "./demo-banner";
 import type { Session } from "@/lib/session";
 
 /**
@@ -24,6 +25,8 @@ export async function AppHeader({ session }: { session: Session }) {
   );
 
   return (
+    <>
+    <DemoBanner tenantId={session.tenantId} />
     <header className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
@@ -69,5 +72,6 @@ export async function AppHeader({ session }: { session: Session }) {
         </div>
       </div>
     </header>
+    </>
   );
 }

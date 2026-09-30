@@ -1,0 +1,32 @@
+import Link from "next/link";
+import { Banner, Button } from "@hearth/ui";
+import { demoChurchInfo } from "@hearth/db";
+import { t } from "@hearth/i18n";
+
+/**
+ * R19.7. Says, on every page of a demo, that it is one.
+ *
+ * In the header rather than on one screen, because somebody who lands three
+ * pages deep should never have to wonder whether these people are real. The
+ * whole reason the demo is a separate church is that nobody can mistake it for
+ * their own, and saying so is the cheap half of that.
+ */
+export async function DemoBanner({ tenantId }: { tenantId: string }) {
+  const info = await demoChurchInfo(tenantId);
+  if (!info.isDemo || !info.expiresAt) return null;
+
+  const when = info.expiresAt.toLocaleString(undefined, {
+    weekday: "long", hour: "numeric", minute: "2-digit",
+  });
+
+  return (
+    <Banner tone="warning" title={t("demo.banner.title")} className="rounded-none border-x-0 border-t-0">
+      <div className="flex flex-wrap items-center gap-3">
+        <span>{t("demo.banner.body", { when })}</span>
+        <Button asChild variant="secondary">
+          <Link href="/create-church">{t("demo.banner.signUp")}</Link>
+        </Button>
+      </div>
+    </Banner>
+  );
+}

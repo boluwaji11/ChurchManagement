@@ -111,7 +111,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Resolved |
-| HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | New |
+| HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Resolved |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
 ---
@@ -150,8 +150,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs |
-| **Next** | HRT-46 demo experience, then HRT-34 household tags. HRT-13 MFA stays deferred at the user's request. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo |
+| **Next** | 0.1 is complete apart from HRT-13 MFA, deferred at the user's request. Next release is 0.2. |
 
 ### HRT-16, how to test it
 
@@ -381,6 +381,25 @@ Settings, the Storage card at the top.
 The bucket is private. The logo is served through a signed URL that lasts an hour, so a leaked path
 expires. Writes are checked twice: our query layer for the quota and the rules, and a bucket policy
 that reads membership from our own tables, so a user can only write into their own church's folder.
+
+### HRT-46, how to test it
+
+**Turn on anonymous sign-ins first**: Supabase dashboard, Authentication, Sign In / Providers,
+"Allow anonymous sign-ins". Without it the button says the demo is unavailable rather than failing.
+
+1. **Sign out.** On the sign-in page, press "See a demo".
+2. **A church of your own arrives**, named Grace Community Church, with twenty-one people,
+   households, tags, milestones and relationships. It takes a few seconds to build, and the button
+   says so while it works.
+3. **Every page says it is a demo**, in a strip above the header, with when it disappears and a way
+   to create a real account.
+4. **Press everything.** Archive people, merge them, remove the lot. It is your church and nobody
+   else's, so nothing here can reach a real one.
+5. **Press it twice**, from two browsers. Two separate churches, each with one member.
+6. **It goes away.** Demo churches are swept when they run out, which happens on the way in to the
+   next one. Four tests cover expiry, including that a real church is never swept.
+
+This is where the sample data lives now. It is reachable from nowhere inside a real church.
 
 ### HRT-31, what it is now
 

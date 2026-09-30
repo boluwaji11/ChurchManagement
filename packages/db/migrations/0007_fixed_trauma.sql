@@ -1,0 +1,1 @@
+ALTER TABLE "tenants" ADD COLUMN "demo_expires_at" timestamp with time zone;

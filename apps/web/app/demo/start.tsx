@@ -1,0 +1,26 @@
+"use client";
+
+import * as React from "react";
+import { Sparkles } from "lucide-react";
+import { Button } from "@hearth/ui";
+import { t } from "@hearth/i18n";
+import { startDemo } from "./actions";
+
+/**
+ * Building a church takes a few seconds, so the press says so while it works.
+ * A button that looks unpressed for four seconds gets pressed four times.
+ */
+export function StartDemoButton() {
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      disabled={pending}
+      onClick={() => startTransition(async () => { await startDemo(); })}
+    >
+      <Sparkles /> {pending ? t("demo.starting") : t("demo.start")}
+    </Button>
+  );
+}

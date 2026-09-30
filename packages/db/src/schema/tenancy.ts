@@ -30,6 +30,14 @@ export const tenants = pgTable(
     /** R1.1. The key of the logo in the church bucket. */
     logoKey: text("logo_key"),
     /**
+     * R19.7. Set only on a demo church, to the moment it stops existing.
+     *
+     * A demo is a whole church of its own rather than a mode inside a real one,
+     * because the only safe place for invented people is somewhere nobody could
+     * mistake for their own records.
+     */
+    demoExpiresAt: timestamp("demo_expires_at", { withTimezone: true }),
+    /**
      * R1.16. Hard, enforced, visible. Two gibibytes, which is a logo, a few
      * hundred photos and the documents a church of this size actually keeps.
      * Sermon video is a non-goal: link to YouTube.
