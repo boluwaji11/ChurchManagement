@@ -130,6 +130,12 @@ export const en = {
   "directory.noResults.title": "Nobody matches that",
   "directory.noResults.body": "Try fewer words, or clear the filters.",
   "directory.apply": "Apply",
+  "directory.range": "{first} to {upto} of {matching}",
+  "directory.matching.one": "{count} person",
+  "directory.matching.other": "{count} people",
+  "directory.page": "Page {page} of {last}",
+  "directory.previous": "Previous",
+  "directory.next": "Next",
 
   // One person
   "person.details": "Details",

@@ -93,7 +93,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | New |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Resolved |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Resolved |
-| HRT-40 | Directory search, filtering and sorting | R2.x | Resolved |
+| HRT-40 | Directory search, filtering, sorting and pagination | R2.x | Resolved |
 | HRT-26 | Background check status and expiry tracking | R2.10 | New |
 | HRT-27 | Birthdays and anniversaries list | R2.9 | New |
 
@@ -216,10 +216,14 @@ The directory now has a toolbar.
 3. **Sort.** Press a column heading. Press it again to reverse it.
 4. **Select.** Tick rows, or the box in the heading. A bar appears above the table with add a tag,
    remove a tag, set status, and archive. Archive confirms and says how many.
-5. **Export.** With no filter it downloads the whole archive, the zip. With a filter it downloads
+5. **Pages.** Fifty at a time. Changing a filter or a sort returns you to page one, so narrowing
+   the list while on page four cannot look like "no results". The selection clears when you move
+   pages, because it only ever held what was on screen. An export still exports every matching
+   person rather than the page you were on.
+6. **Export.** With no filter it downloads the whole archive, the zip. With a filter it downloads
    just those people as one CSV, and the file matches exactly what is on screen because the server
    ran the same query the URL describes.
-6. **Roles.** `staff` can select, tag and set status, but the archive button is not there.
+7. **Roles.** `staff` can select, tag and set status, and has no archive button.
    `pastoral` sees no checkboxes and no export.
 
 ### HRT-24, how to test it

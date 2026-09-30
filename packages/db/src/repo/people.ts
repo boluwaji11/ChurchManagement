@@ -35,7 +35,13 @@ export interface DirectoryQuery {
   dir?: "asc" | "desc";
   /** Restricts to a set of ids, for acting on a selection. */
   ids?: string[];
+  /** One-based. Omitted means every matching row, which is what an export wants. */
+  page?: number;
+  perPage?: number;
 }
+
+/** How many rows a directory page holds. */
+export const PER_PAGE = 50;
 
 const ORDERS = {
   name: [people.lastName, people.firstName],
@@ -57,7 +63,7 @@ const ORDERS = {
  * and so a filtered export exports what the filter says rather than what one
  * page of it said.
  */
-export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<PersonRow[]> {
+function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   const where: (SQL | undefined)[] = [];
 
   if (!opts.includeArchived) where.push(isNull(people.archivedAt));
@@ -101,11 +107,20 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
     where.push(opts.has.startsWith("no") ? sql`not ${present}` : present);
   }
 
-  if (opts.ids) {
-    if (opts.ids.length === 0) return [];
-    where.push(inArray(people.id, opts.ids));
-  }
+  if (opts.ids) where.push(opts.ids.length === 0 ? sql`false` : inArray(people.id, opts.ids));
 
+  return where;
+}
+
+/**
+ * The directory query.
+ *
+ * No tenant filter appears here on purpose: row-level security supplies it from
+ * the transaction's app.tenant_id, so forgetting one returns nothing rather than
+ * returning another church's members.
+ */
+export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<PersonRow[]> {
+  const where = directoryWhere(opts);
   const columns = ORDERS[opts.sort ?? "name"] ?? ORDERS.name;
   const direction = opts.dir === "desc" ? desc : asc;
 
@@ -137,7 +152,9 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
     )
     .leftJoin(households, eq(households.id, householdMemberships.householdId))
     .where(where.length > 0 ? and(...where) : undefined)
-    .orderBy(...columns.map((c) => direction(c)));
+    .orderBy(...columns.map((c) => direction(c)))
+    .limit(opts.page ? (opts.perPage ?? PER_PAGE) : Number.MAX_SAFE_INTEGER)
+    .offset(opts.page ? (opts.page - 1) * (opts.perPage ?? PER_PAGE) : 0);
 
   return rows.map((r) => ({
     ...r,
@@ -525,4 +542,20 @@ export async function bulkSetStatus(
     .returning({ id: people.id });
 
   return changed.length;
+}
+
+/**
+ * How many people match, ignoring the page.
+ *
+ * A separate count rather than a window function on the page query, because the
+ * page query joins households to sort by them and a count over that join would
+ * have to be made distinct. Two simple queries beat one clever one here.
+ */
+export async function countPeople(db: Tx, opts: DirectoryQuery = {}): Promise<number> {
+  const where = directoryWhere(opts);
+  const rows = await db
+    .select({ n: count() })
+    .from(people)
+    .where(where.length > 0 ? and(...where) : undefined);
+  return Number(rows[0]?.n ?? 0);
 }

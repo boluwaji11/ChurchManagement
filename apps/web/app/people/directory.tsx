@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, ArrowUp, ArrowDown, Search, X, Archive, Upload } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload } from "lucide-react";
 import {
   Avatar, Badge, Button, Card, Input, Checkbox, Banner, HueDot,
   Table, Thead, Th, Tr, Td, EmptyState,
@@ -57,12 +57,19 @@ export function Directory({
   tags,
   canEdit,
   canArchive,
+  page,
+  perPage,
+  matching,
 }: {
   church: string;
   rows: Row[];
   tags: TagOption[];
   canEdit: boolean;
   canArchive: boolean;
+  page: number;
+  perPage: number;
+  /** How many people match the filters, across every page. */
+  matching: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -71,6 +78,9 @@ export function Directory({
   const [selected, setSelected] = React.useState<string[]>([]);
   const [result, setResult] = React.useState<BulkResult>();
   const [pending, startTransition] = React.useTransition();
+
+  // The selection only ever held rows on screen, so leaving the page drops it.
+  React.useEffect(() => setSelected([]), [page]);
 
   const q = params.get("q") ?? "";
   const [search, setSearch] = React.useState(q);
@@ -87,6 +97,9 @@ export function Directory({
         if (!value || value === ANY) next.delete(key);
         else next.set(key, value);
       }
+      // Narrowing the list while standing on page four would otherwise show
+      // nothing, which reads as "no results" rather than "you moved".
+      if (!("page" in changes)) next.delete("page");
       router.replace(`${pathname}?${next.toString()}`, { scroll: false });
     },
     [params, pathname, router],
@@ -240,6 +253,59 @@ export function Directory({
         </Table>
       )}
 
+      <Pages page={page} perPage={perPage} matching={matching} setParam={setParam} />
+    </div>
+  );
+}
+
+/**
+ * Page controls, shown only when there is more than one page.
+ *
+ * The count is of everything matching rather than of this page, because that is
+ * the number somebody is asking about when they glance down here.
+ */
+function Pages({
+  page,
+  perPage,
+  matching,
+  setParam,
+}: {
+  page: number;
+  perPage: number;
+  matching: number;
+  setParam: (c: Record<string, string | undefined>) => void;
+}) {
+  if (matching === 0) return null;
+
+  const last = Math.max(1, Math.ceil(matching / perPage));
+  const first = (page - 1) * perPage + 1;
+  const upto = Math.min(page * perPage, matching);
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="text-caption text-fg-muted">
+        {last > 1 ? t("directory.range", { first, upto, matching }) : plural("directory.matching", matching)}
+      </span>
+
+      {last > 1 ? (
+        <span className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() => setParam({ page: page - 1 <= 1 ? undefined : String(page - 1) })}
+          >
+            <ChevronLeft /> {t("directory.previous")}
+          </Button>
+          <span className="text-caption text-fg-muted">{t("directory.page", { page, last })}</span>
+          <Button
+            variant="secondary"
+            disabled={page >= last}
+            onClick={() => setParam({ page: String(page + 1) })}
+          >
+            {t("directory.next")} <ChevronRight />
+          </Button>
+        </span>
+      ) : null}
     </div>
   );
 }

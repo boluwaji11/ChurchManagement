@@ -7,7 +7,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { listPeople, createPerson, bulkSetArchived, bulkSetStatus } from "../src/repo/people";
+import { listPeople, countPeople, createPerson, bulkSetArchived, bulkSetStatus } from "../src/repo/people";
 import { createTag, bulkSetPersonTag, setPersonTag } from "../src/repo/tags";
 import { listTagsForPerson } from "../src/repo/people";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -223,5 +223,51 @@ describe("acting on a selection (R2.12)", () => {
   it("does nothing, safely, when nothing is selected", async () => {
     expect(await run(riverside, "owner", (tx) => bulkSetArchived(tx, as(riverside), [], true))).toBe(0);
     expect(await run(riverside, "owner", (tx) => bulkSetStatus(tx, as(riverside), [], "member"))).toBe(0);
+  });
+});
+
+describe("pages", () => {
+  beforeAll(async () => {
+    // Enough to need more than one page of fifty.
+    for (let i = 0; i < 12; i++) {
+      await run(riverside, "owner", (tx) =>
+        createPerson(tx, as(riverside), {
+          firstName: `Page${String(i).padStart(2, "0")}`,
+          lastName: SUR,
+          lifecycleStatus: "visitor",
+        }),
+      );
+    }
+  });
+
+  it("returns a page, and counts everything matching", async () => {
+    const opts = { q: SUR, sort: "firstName" as const, perPage: 5 };
+    const first = await run(riverside, "owner", (tx) => listPeople(tx, { ...opts, page: 1 }));
+    const second = await run(riverside, "owner", (tx) => listPeople(tx, { ...opts, page: 2 }));
+    const matching = await run(riverside, "owner", (tx) => countPeople(tx, { q: SUR }));
+
+    expect(first).toHaveLength(5);
+    expect(second).toHaveLength(5);
+    // No row appears on two pages, which an unstable sort would cause.
+    expect(first.map((p) => p.id).some((id) => second.map((p) => p.id).includes(id))).toBe(false);
+    expect(matching).toBeGreaterThan(10);
+  });
+
+  it("counts what the filter matches, not what the page shows", async () => {
+    const all = await run(riverside, "owner", (tx) => countPeople(tx, { q: SUR }));
+    const page = await run(riverside, "owner", (tx) => listPeople(tx, { q: SUR, page: 1, perPage: 3 }));
+    expect(page).toHaveLength(3);
+    expect(all).toBeGreaterThan(3);
+  });
+
+  it("returns everything when no page is asked for, which is what an export wants", async () => {
+    const everything = await run(riverside, "owner", (tx) => listPeople(tx, { q: SUR }));
+    const matching = await run(riverside, "owner", (tx) => countPeople(tx, { q: SUR }));
+    expect(everything).toHaveLength(matching);
+  });
+
+  it("gives an empty page past the end rather than an error", async () => {
+    const rows = await run(riverside, "owner", (tx) => listPeople(tx, { q: SUR, page: 99, perPage: 5 }));
+    expect(rows).toEqual([]);
   });
 });

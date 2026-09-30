@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Users, UserPlus, HeartHandshake, Plus, Download } from "lucide-react";
 import {
-  withTenant, listPeople, countPeopleByStatus, listTagsWithCounts, findDuplicatePairs,
-  canEditPeople, canArchivePeople,
+  withTenant, listPeople, countPeople, countPeopleByStatus, listTagsWithCounts, findDuplicatePairs,
+  canEditPeople, canArchivePeople, PER_PAGE,
 } from "@hearth/db";
 import { StatTile, Button, Banner } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -10,7 +10,7 @@ import { PageTitle, Section } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Directory } from "./directory";
-import { queryFromParams, type DirectoryParams } from "@/lib/directory-query";
+import { queryFromParams, pageFromParams, type DirectoryParams } from "@/lib/directory-query";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +22,14 @@ export default async function PeoplePage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  const { people, counts, tags, total, duplicates } = await withTenant(
+  const query = queryFromParams(params);
+  const page = pageFromParams(params);
+
+  const { people, counts, tags, total, duplicates, matching } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
-      people: await listPeople(tx, queryFromParams(params)),
+      people: await listPeople(tx, { ...query, page, perPage: PER_PAGE }),
+      matching: await countPeople(tx, query),
       counts: await countPeopleByStatus(tx),
       tags: await listTagsWithCounts(tx),
       total: (await listPeople(tx)).length,
@@ -99,6 +103,9 @@ export default async function PeoplePage({
           church={session.tenantSlug}
           canEdit={canEdit}
           canArchive={canArchivePeople(session.role)}
+          page={page}
+          perPage={PER_PAGE}
+          matching={matching}
           tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
           rows={people.map((p) => ({
             id: p.id,

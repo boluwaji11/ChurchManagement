@@ -11,7 +11,7 @@ export {
   listPeople, getPerson, countPeopleByStatus, listTags, listTagsForPerson,
   resolveTenantBySlug, listChurches, type PersonRow,
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listHouseholds,
-  bulkSetArchived, bulkSetStatus, type DirectoryQuery,
+  bulkSetArchived, bulkSetStatus, countPeople, PER_PAGE, type DirectoryQuery,
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
 } from "./repo/people";

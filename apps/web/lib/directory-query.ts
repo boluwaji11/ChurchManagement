@@ -1,6 +1,7 @@
 import type { DirectoryQuery } from "@hearth/db";
 
 export interface DirectoryParams {
+  page?: string;
   church?: string;
   q?: string;
   status?: string;
@@ -22,6 +23,10 @@ export interface DirectoryParams {
  *
  * Unknown values are dropped rather than passed through, so a hand-edited URL
  * cannot reach a sort column or a filter that was never offered.
+ *
+ * The page is deliberately absent. Only the screen paginates. An export built
+ * from the same URL would otherwise hand somebody page three of their directory
+ * and call it the whole thing.
  */
 export function queryFromParams(params: DirectoryParams): DirectoryQuery {
   const has = ["email", "phone", "noEmail", "noPhone"].includes(params.has ?? "")
@@ -41,6 +46,12 @@ export function queryFromParams(params: DirectoryParams): DirectoryQuery {
     dir: params.dir === "desc" ? "desc" : "asc",
   };
 }
+
+/** The page being viewed, one-based. */
+export const pageFromParams = (params: DirectoryParams): number => {
+  const n = Number(params.page ?? 1);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+};
 
 /** True when the URL narrows the directory, rather than showing all of it. */
 export const isFiltered = (params: DirectoryParams): boolean =>
