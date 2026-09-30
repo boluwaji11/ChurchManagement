@@ -1,4 +1,6 @@
-import { pgTable, uuid, text, boolean, integer, timestamp, uniqueIndex, index } from "drizzle-orm/pg-core";
+import {
+  pgTable, uuid, text, boolean, integer, bigint, timestamp, uniqueIndex, index,
+} from "drizzle-orm/pg-core";
 import { hue, tenantRole } from "./enums";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
@@ -25,8 +27,15 @@ export const tenants = pgTable(
     website: text("website"),
     /** R1.1. One of the twelve hues, used wherever the church brands a page. */
     brandHue: hue("brand_hue").notNull().default("indigo"),
-    /** R1.1. The storage key, filled by the upload in R1.18. */
+    /** R1.1. The key of the logo in the church bucket. */
     logoKey: text("logo_key"),
+    /**
+     * R1.16. Hard, enforced, visible. Two gibibytes, which is a logo, a few
+     * hundred photos and the documents a church of this size actually keeps.
+     * Sermon video is a non-goal: link to YouTube.
+     */
+    storageQuotaBytes: bigint("storage_quota_bytes", { mode: "number" })
+      .notNull().default(2147483648),
     createdAt: created(),
     updatedAt: updated(),
   },
@@ -139,4 +148,33 @@ export const tenantMembers = pgTable(
     createdAt: created(),
   },
   (t) => [uniqueIndex("tenant_members_unique").on(t.tenantId, t.userId)],
+);
+
+/**
+ * R1.16. Every object this church has stored, and how big it is.
+ *
+ * A ledger of our own rather than asking the storage service, because the quota
+ * has to be checked before an upload rather than found out afterwards, and
+ * because a row here is what makes an orphaned object visible. The object store
+ * holds the bytes; this table is the record that they exist.
+ */
+export const storedFiles = pgTable(
+  "stored_files",
+  {
+    id: pk(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    bucket: text("bucket").notNull().default("church"),
+    /** The path inside the bucket, which begins with the church's slug. */
+    key: text("key").notNull(),
+    /** What it is for: "logo", "person_photo". Drives where it may be shown. */
+    purpose: text("purpose").notNull(),
+    contentType: text("content_type").notNull(),
+    bytes: bigint("bytes", { mode: "number" }).notNull(),
+    uploadedByUserId: uuid("uploaded_by_user_id").references(() => appUsers.id, { onDelete: "set null" }),
+    createdAt: created(),
+  },
+  (t) => [
+    index("stored_files_tenant_idx").on(t.tenantId),
+    uniqueIndex("stored_files_key").on(t.bucket, t.key),
+  ],
 );

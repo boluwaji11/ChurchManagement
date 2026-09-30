@@ -352,3 +352,73 @@ begin
   execute 'grant execute on function public.my_sessions() to hearth_app';
   execute 'grant execute on function public.revoke_session(uuid) to hearth_app';
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- R1.16. The church bucket, and who may write into it.
+--
+-- Objects are laid out as <church-slug>/<purpose>/<id>.<ext>, so one string
+-- comparison answers which church an object belongs to. The policies read
+-- membership from our own tables through a security-definer helper, because
+-- storage.objects cannot see app.tenant_id: it is reached with the user's own
+-- Supabase session rather than through our pooled connection.
+--
+-- The bucket is private. Everything is served through a signed URL with a short
+-- life, so a leaked path is not a permanent hole.
+--
+-- Conditional, because the storage schema belongs to Supabase.
+-- ---------------------------------------------------------------------------
+
+do $$
+begin
+  if to_regclass('storage.objects') is null then
+    raise notice 'storage.objects not present, skipping bucket policies';
+    return;
+  end if;
+
+  execute $fn$
+    create or replace function public.user_in_church(p_slug text)
+    returns boolean
+    language sql
+    security definer
+    set search_path = public, pg_catalog
+    stable
+    as $body$
+      select exists (
+        select 1
+        from public.tenant_members m
+        join public.tenants t on t.id = m.tenant_id
+        where m.user_id = auth.uid() and t.slug = p_slug
+      )
+    $body$;
+  $fn$;
+
+  execute 'revoke all on function public.user_in_church(text) from public';
+  execute 'grant execute on function public.user_in_church(text) to authenticated';
+
+  insert into storage.buckets (id, name, public)
+  values ('church', 'church', false)
+  on conflict (id) do update set public = false;
+
+  execute 'drop policy if exists church_read on storage.objects';
+  execute 'drop policy if exists church_write on storage.objects';
+  execute 'drop policy if exists church_update on storage.objects';
+  execute 'drop policy if exists church_delete on storage.objects';
+
+  execute $pol$
+    create policy church_read on storage.objects for select to authenticated
+    using (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+  $pol$;
+  execute $pol$
+    create policy church_write on storage.objects for insert to authenticated
+    with check (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+  $pol$;
+  execute $pol$
+    create policy church_update on storage.objects for update to authenticated
+    using (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+    with check (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+  $pol$;
+  execute $pol$
+    create policy church_delete on storage.objects for delete to authenticated
+    using (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+  $pol$;
+end $$;

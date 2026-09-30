@@ -21,15 +21,24 @@ export const Spinner = ({ className, label = "Loading" }: { className?: string; 
   </span>
 );
 
+const PROGRESS_TONE = {
+  primary: "bg-primary",
+  warning: "bg-warning",
+  danger: "bg-danger",
+} as const;
+
 export function Progress({
   value,
   max = 100,
   label,
+  tone = "primary",
   className,
 }: {
   value: number;
   max?: number;
   label?: string;
+  /** A quota bar that is nearly full says so in colour as well as in words. */
+  tone?: keyof typeof PROGRESS_TONE;
   className?: string;
 }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
@@ -43,7 +52,7 @@ export function Progress({
       className={cn("h-2 w-full overflow-hidden rounded-full bg-sunken", className)}
     >
       <div
-        className="h-full rounded-full bg-primary transition-[width] duration-slow ease-out"
+        className={cn("h-full rounded-full transition-[width] duration-slow ease-out", PROGRESS_TONE[tone])}
         style={{ width: `${pct}%` }}
       />
     </div>

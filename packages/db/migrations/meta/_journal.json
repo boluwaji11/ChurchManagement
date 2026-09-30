@@ -36,6 +36,13 @@
       "when": 1790791865280,
       "tag": "0004_smiling_reptil",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790795805853,
+      "tag": "0005_organic_rockslide",
+      "breakpoints": true
     }
   ]
 }

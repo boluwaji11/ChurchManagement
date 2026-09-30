@@ -69,12 +69,25 @@ describe("nothing is reachable over the auto-generated REST API", () => {
     expect(grants).toEqual([]);
   });
 
-  it("grants them no function privileges either", async () => {
+  /**
+   * One function is granted to `authenticated`, and only one.
+   *
+   * The storage bucket policies are evaluated as that role, so the membership
+   * check they call has to be callable by it. It answers one question about the
+   * caller's own account: am I in this church. A user can already answer that,
+   * and it says nothing about anybody else. Every other function stays out of
+   * reach, which is what the assertion below is for.
+   */
+  const ALLOWED_FOR_AUTHENTICATED = new Set(["user_in_church"]);
+
+  it("grants them no function privileges beyond the storage membership check", async () => {
     const grants = await owner()<{ grantee: string; routine_name: string }[]>`
       select grantee, routine_name
       from information_schema.role_routine_grants
       where specific_schema = 'public' and grantee in ('anon', 'authenticated')`;
-    expect(grants).toEqual([]);
+
+    expect(grants.filter((g) => g.grantee === "anon")).toEqual([]);
+    expect(grants.filter((g) => !ALLOWED_FOR_AUTHENTICATED.has(g.routine_name))).toEqual([]);
   });
 });
 

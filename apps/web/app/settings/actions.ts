@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { withTenant, updateChurch, addServiceTime, removeServiceTime } from "@hearth/db";
+import {
+  withTenant, updateChurch, addServiceTime, removeServiceTime, setChurchLogo,
+} from "@hearth/db";
 import { requireSession } from "@/lib/session";
+import { supabaseServer } from "@/lib/supabase/server";
 import { t } from "@hearth/i18n";
 import { explain } from "@/lib/explain";
 
@@ -89,6 +92,26 @@ export async function removeService(data: FormData): Promise<SettingsResult> {
     await withTenant(ctx, (tx) =>
       removeServiceTime(tx, { tenantId: session.tenantId, role: session.role }, text(data, "id")),
     );
+  } catch (error) {
+    return { error: explain(error) };
+  }
+
+  revalidatePath("/settings");
+  return { saved: true };
+}
+
+export async function clearLogo(data: FormData): Promise<SettingsResult> {
+  const slug = text(data, "church") || undefined;
+  const { session, ctx } = await writeContext(slug);
+
+  try {
+    const { removed } = await withTenant(ctx, (tx) =>
+      setChurchLogo(tx, { tenantId: session.tenantId, role: session.role }, null),
+    );
+    if (removed) {
+      const supabase = await supabaseServer();
+      await supabase.storage.from("church").remove([removed]);
+    }
   } catch (error) {
     return { error: explain(error) };
   }

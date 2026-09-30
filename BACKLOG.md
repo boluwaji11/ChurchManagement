@@ -79,7 +79,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
-| HRT-18 | Storage quota display with a warning at 80% | R1.16 | New |
+| HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Resolved |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
 
@@ -147,8 +147,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | Nothing |
-| **Next** | HRT-18 storage quota, then HRT-31 sample data, then HRT-13 MFA |
+| **Waiting on a test** | **HRT-18** storage and logo |
+| **Next** | HRT-13 MFA, then HRT-31 sample data |
 
 ### HRT-16, how to test it
 
@@ -302,9 +302,8 @@ A Settings link appears in the header for Owner and Admin.
 4. **Roles.** Owner and Admin. Staff edit people and do not rename the church. The link is hidden
    for everyone else, and the write is refused even if the URL is typed in.
 
-Two parts of R1.1 are left out. The logo needs file storage (HRT-18). The brand colour is stored
-but no screen reads it, so the picker is off the settings page until one does (HRT-43). Putting it
-back is one component and one line.
+The logo arrived with HRT-18. The brand colour is stored but no screen reads it, so the picker is
+off the settings page until one does (HRT-43). Putting it back is one component and one line.
 
 ### HRT-42, how to test it
 
@@ -340,6 +339,24 @@ with the service role key would put that key in a request path, which it may nev
 security-definer functions stand at that boundary instead, both narrowed by the verified user id.
 
 On a database without Supabase Auth, including CI, the functions are absent and the card says so.
+
+### HRT-18, how to test it
+
+Settings, the Storage card at the top.
+
+1. **Add a logo.** A PNG, JPEG or WebP under 2 MB. The bar and the file count move.
+2. **Replace it.** Upload a different one. The count stays at one, because the old file is forgotten
+   and removed from the bucket. Changing a logo ten times costs one logo.
+3. **Things that are refused.** An SVG, an empty file, anything over 2 MB. Each says which rule it
+   broke, and nothing is written.
+4. **The quota is real.** It is checked in the query layer before the bytes are sent, rather than
+   found out afterwards. Nine tests cover it, including the warning at 80% and the refusal that
+   takes a church over the line.
+5. **Roles.** Owner and Admin. The route refuses a staff upload even with the button hidden.
+
+The bucket is private. The logo is served through a signed URL that lasts an hour, so a leaked path
+expires. Writes are checked twice: our query layer for the quota and the rules, and a bucket policy
+that reads membership from our own tables, so a user can only write into their own church's folder.
 
 ### HRT-32, how to test it
 
