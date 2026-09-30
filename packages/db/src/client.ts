@@ -30,14 +30,43 @@ function isLoopback(url: string): boolean {
   }
 }
 
-const connect = (url: string) =>
-  postgres(url, {
+/**
+ * Supabase's direct database host, db.<ref>.supabase.co, publishes an AAAA
+ * record and no A record. On a network without IPv6 it fails as ENOTFOUND, which
+ * reads like a typo in the hostname and sent a whole afternoon in the wrong
+ * direction once already.
+ *
+ * Warned rather than refused, because the direct host is correct on a network
+ * that has IPv6, and on Supabase's own infrastructure. The pooler is the answer
+ * everywhere else.
+ */
+let warnedAboutDirectHost = false;
+function warnIfDirectHost(url: string): void {
+  if (warnedAboutDirectHost) return;
+  try {
+    const host = new URL(url).hostname;
+    if (!/^db\..+\.supabase\.co$/.test(host)) return;
+    warnedAboutDirectHost = true;
+    console.warn(
+      `[hearth/db] ${host} resolves over IPv6 only. On a network without IPv6 this fails as ` +
+        "ENOTFOUND. Use the Supabase connection pooler instead: " +
+        "postgresql://<role>.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres",
+    );
+  } catch {
+    // An unparseable URL is a different problem, and postgres will say so.
+  }
+}
+
+const connect = (url: string) => {
+  warnIfDirectHost(url);
+  return postgres(url, {
     max: 8,
     idle_timeout: 20,
     connect_timeout: 30,
     prepare: false,
     ssl: isLoopback(url) ? false : "require",
   });
+};
 
 /**
  * The owner connection. Migrations, seeding, and genuinely cross-tenant platform

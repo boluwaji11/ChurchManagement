@@ -68,6 +68,13 @@ migrations, seeds, exports, and genuinely cross-tenant platform jobs. Forcing it
 impossible and push the work into a `BYPASSRLS` role instead, which is strictly worse: it swaps a
 narrow, auditable exception for a blanket one.
 
+**Both connections go through the Supabase pooler.** `db.<project-ref>.supabase.co` publishes an
+AAAA record and no A record, so on a network without IPv6 it fails as `ENOTFOUND`, which reads like a
+mistyped hostname rather than like a routing problem. The pooler hostname carries the region and the
+username carries the project ref: `postgresql://<role>.<ref>@aws-0-<region>.pooler.supabase.com:5432`.
+Session mode, port 5432, because migrations take advisory locks. The client warns once if it is
+pointed at the direct host.
+
 Exactly three operations run before a tenant context exists, because they cannot do otherwise, and
 each is named in the code:
 
