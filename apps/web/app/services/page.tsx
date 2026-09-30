@@ -66,23 +66,6 @@ export default async function ServicesPage({
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageTitle title={t("services.title")} lede={session.tenantName} />
 
-        <div className="mb-6">
-          <FollowUp
-            church={session.tenantSlug}
-            newcomers={newcomers.map((v) => ({
-              personId: v.personId,
-              name: `${v.preferredName ?? v.firstName} ${v.lastName}`,
-              detail: t("newcomers.first", { date: readableDate(v.occursOn) }),
-            }))}
-            absent={absent.map((a) => ({
-              personId: a.personId,
-              name: `${a.preferredName ?? a.firstName} ${a.lastName}`,
-              badge: plural("absent.missed", a.missed),
-              detail: t("absent.lastSeen", { date: readableDate(a.lastSeenOn) }),
-            }))}
-          />
-        </div>
-
         <Calendar
           church={session.tenantSlug}
           canEdit={canManageServices(session.role)}
@@ -108,6 +91,24 @@ export default async function ServicesPage({
             readableTime: readableTime(r.startsAt),
           }))}
         />
+
+        <div className="mt-8">
+          <FollowUp
+            church={session.tenantSlug}
+            newcomers={newcomers.map((v) => ({
+              personId: v.personId,
+              name: `${v.preferredName ?? v.firstName} ${v.lastName}`,
+              detail: t("newcomers.first", { date: readableDate(v.occursOn) }),
+            }))}
+            absent={absent.map((a) => ({
+              personId: a.personId,
+              name: `${a.preferredName ?? a.firstName} ${a.lastName}`,
+              note: plural("absent.missed", a.missed),
+              detail: t("absent.lastSeen", { date: readableDate(a.lastSeenOn) }),
+            }))}
+          />
+        </div>
+
       </main>
     </>
   );

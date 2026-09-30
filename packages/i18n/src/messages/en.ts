@@ -620,6 +620,7 @@ export const en = {
   "services.visitors": "Visitors",
   "services.attendance": "Attendance",
   "roster.title": "Who was here",
+  "followUp.title": "Worth a word",
   "absent.title": "Not seen lately",
   "absent.missed.one": "Missed {count} service",
   "absent.missed.other": "Missed {count} services",
