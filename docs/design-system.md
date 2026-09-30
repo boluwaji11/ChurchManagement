@@ -265,6 +265,12 @@ hinting.
 --shadow-lg: 0 4px 8px oklch(0 0 0 / 0.04), 0 12px 32px oklch(0 0 0 / 0.10);
 ```
 
+**A dialog's content is portaled.** It is rendered at the end of the body, so a submit button
+inside a dialog is outside its own form in the DOM and submits nothing. Either put the form inside
+the dialog, or give the button `form="<id>"`. And never wrap a submit in `DialogClose`: closing
+tears the form down before React runs the action. Close the dialog from state, after the action
+returns. A test walks the screens and fails on the second shape.
+
 **Never the sparkle.** `Sparkles`, wands and star bursts are refused everywhere, for everything. It
 is the mark every product reaches for when it wants a thing to feel magic, and reaching for it makes
 this look like every other product. An icon names what the thing does, or there is no icon.

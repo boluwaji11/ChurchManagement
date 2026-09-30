@@ -161,36 +161,11 @@ export function Calendar({
                               <Undo2 /> {t("services.restore")}
                             </Button>
                           ) : (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="ghost"><X /> {t("services.cancel")}</Button>
-                              </DialogTrigger>
-                              <DialogContent
-                                title={t("services.cancelTitle", { name: row.name, date: row.readableDate })}
-                                closeLabel={t("common.close")}
-                              >
-                                <form
-                                  action={(data) => {
-                                    data.set("id", row.id);
-                                    data.set("cancelled", "1");
-                                    act(setCancelled, data);
-                                  }}
-                                  className="flex flex-col gap-4"
-                                >
-                                  <Field label={t("services.note")}>
-                                    <Input name="note" autoComplete="off" />
-                                  </Field>
-                                  <div className="flex flex-wrap items-center gap-3">
-                                    <DialogClose asChild>
-                                      <Button type="submit" variant="danger">{t("services.cancel")}</Button>
-                                    </DialogClose>
-                                    <DialogClose asChild>
-                                      <Button type="button" variant="ghost">{t("action.cancel")}</Button>
-                                    </DialogClose>
-                                  </div>
-                                </form>
-                              </DialogContent>
-                            </Dialog>
+                            <CancelDialog
+                              row={row}
+                              pending={pending}
+                              onConfirm={(note) => simple(setCancelled, { id: row.id, cancelled: "1", note })}
+                            />
                           )}
                           {row.special ? (
                             <Button
@@ -240,5 +215,58 @@ export function Calendar({
         </Card>
       )}
     </div>
+  );
+}
+
+/**
+ * Cancelling one week.
+ *
+ * The confirm button is a plain press rather than a DialogClose wrapping a
+ * submit. DialogContent is portaled, so a submit button inside it sits outside
+ * its own form in the DOM and submits nothing, and DialogClose tears the form
+ * down before React runs the action either way. Both were true here, and the
+ * button did nothing at all.
+ */
+function CancelDialog({
+  row,
+  pending,
+  onConfirm,
+}: {
+  row: GatheringRow;
+  pending: boolean;
+  onConfirm: (note: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [note, setNote] = React.useState("");
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost"><X /> {t("services.cancel")}</Button>
+      </DialogTrigger>
+      <DialogContent
+        title={t("services.cancelTitle", { name: row.name, date: row.readableDate })}
+        closeLabel={t("common.close")}
+      >
+        <div className="flex flex-col gap-4">
+          <Field label={t("services.note")}>
+            <Input value={note} onChange={(e) => setNote(e.target.value)} autoComplete="off" />
+          </Field>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                onConfirm(note);
+                setOpen(false);
+              }}
+            >
+              {t("services.cancel")}
+            </Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

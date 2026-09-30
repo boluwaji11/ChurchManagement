@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Merge, Undo2, ArrowRight } from "lucide-react";
 import {
   Avatar, Badge, Button, Card, CardTitle, Separator, Banner, EmptyState,
-  RadioGroup, RadioItem, Dialog, DialogTrigger, DialogContent, DialogClose, cn,
+  RadioGroup, RadioItem, Dialog, DialogTrigger, DialogContent, cn,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { merge, undo, type MergeOutcome } from "./actions";
@@ -96,6 +96,8 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
   const [take, setTake] = React.useState<Partial<Record<FieldKey, "winner" | "loser">>>({});
   const [outcome, setOutcome] = React.useState<MergeOutcome>();
   const [pending, setPending] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
+  const formId = React.useId();
 
   const winner = winnerId === pair.a.id ? pair.a : pair.b;
   const loser = winnerId === pair.a.id ? pair.b : pair.a;
@@ -161,7 +163,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
         ))}
       </div>
 
-      <form action={submit} className="flex flex-col gap-4">
+      <form id={formId} action={submit} className="flex flex-col gap-4">
         <input type="hidden" name="church" value={church} />
         <input type="hidden" name="winnerId" value={winner.id} />
         <input type="hidden" name="loserId" value={loser.id} />
@@ -189,7 +191,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3">
-          <Dialog>
+          <Dialog open={confirming} onOpenChange={setConfirming}>
             <DialogTrigger asChild>
               <Button type="button" loading={pending}>
                 <Merge /> {t("merge.merge")}
@@ -204,14 +206,15 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
                 {t("merge.confirmBody", { loser: loser.name })}
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <DialogClose asChild>
-                  <Button type="submit">
-                    <Merge /> {t("merge.merge")}
-                  </Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button type="button" variant="ghost">{t("action.cancel")}</Button>
-                </DialogClose>
+                {/* form= reaches the form across the portal. DialogContent is
+                    portaled to the body, so a submit button inside it is
+                    outside its own form in the DOM and submits nothing. */}
+                <Button type="submit" form={formId} disabled={pending} onClick={() => setConfirming(false)}>
+                  <Merge /> {t("merge.merge")}
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
+                  {t("action.cancel")}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
