@@ -160,6 +160,8 @@ export const en = {
   "settings.tab.tags": "Tags",
   "settings.tab.fields": "Fields",
   "nav.account": "Account",
+  "signOut.confirmTitle": "Sign out?",
+  "signOut.confirmBody": "You will need your email and password to get back in.",
   "account.title": "Account",
   "storage.warning": "Storage is {percent}% full.",
   "storage.full": "Storage is full.",
