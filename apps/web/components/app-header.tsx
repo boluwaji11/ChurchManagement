@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Church, ChevronDown } from "lucide-react";
-import { Avatar, Badge, Separator } from "@hearth/ui";
+import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
@@ -61,7 +61,6 @@ export async function AppHeader({ session }: { session: Session }) {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Badge tone="neutral">{t(`role.${session.role}`)}</Badge>
           {/* Their name, and everything they administer, in one place. Signing
               out lives there too rather than next to it, since a press beside
               the name somebody aims for is a press they make by accident. */}

@@ -110,7 +110,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | Closed |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
-| HRT-31 | Sample and demo data, loadable and removable | R19.7 | Resolved |
+| HRT-31 | Sample data set, with its loader and tests | R19.7 | Resolved |
+| HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | New |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
 ---
@@ -149,8 +150,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-31** sample church, **HRT-45** settings tabs |
-| **Next** | HRT-34 household tags, then HRT-39 streaming export. HRT-13 MFA stays deferred at the user's request. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs |
+| **Next** | HRT-46 demo experience, then HRT-34 household tags. HRT-13 MFA stays deferred at the user's request. |
 
 ### HRT-16, how to test it
 
@@ -354,7 +355,8 @@ Press your name in the top right.
 3. **Each tab is a real page.** Reload on Tags and you stay on Tags. The links can be shared and
    opened in a new tab, which a widget that swaps panels cannot do.
 4. **Your name, not your email.** The header shows the name on your account, falling back to the
-   email address when there is none.
+   email address when there is none. The role badge came off: it is on the Account tab, and the
+   header is not where somebody checks what they are allowed to do.
 5. **Signing out moved** into the Account tab. It used to sit beside the name people aim for, which
    is a press somebody makes by accident.
 6. **Devices are named.** Sign-in happens on the server, so Supabase was recording the Node fetch
@@ -380,24 +382,16 @@ The bucket is private. The logo is served through a signed URL that lasts an hou
 expires. Writes are checked twice: our query layer for the quota and the rules, and a bucket policy
 that reads membership from our own tables, so a user can only write into their own church's folder.
 
-### HRT-31, how to test it
+### HRT-31, what it is now
 
-Settings, the Sample church card.
+The data set and its loader exist, with five tests. **Nothing in the product calls them.**
 
-1. **Load it.** The offer is on the directory, when the directory is empty, which is the moment
-   somebody needs it. Twenty-one people arrive: six households, five tags, milestones, and
-   relationships that already point both ways.
-2. **Look for the untidy parts.** A household with no phone number, three visitors at different
-   stages, two people who have drifted to inactive, a widower on his own, a record with a death on
-   it. A demo of perfect records teaches nothing about your own list.
-3. **It says so while it is loaded**, in a line above the list, with the way out beside it. A demo
-   somebody cannot tell apart from their own records ends up in a giving statement.
-4. **Add somebody of your own**, then remove the sample church. Yours stays. The twenty-one go, with
-   their households, tags, milestones and relationships.
-5. **Load it again.** It comes back, so a church can try this as often as they like.
+A church that signs up has real records, and a button that pours twenty-one invented people into
+their directory is one press away from a giving statement addressed to somebody who does not exist.
+Fake data belongs somewhere obviously not theirs.
 
-Removal is a real delete. This is the one place the archive rule does not apply: these are not the
-church's records, and a demo you cannot get rid of is worse than no demo.
+So the way in is HRT-46: a demo somebody can look at before they have an account at all. Until that
+exists the loader is reachable only from a script.
 
 ### HRT-32, how to test it
 
