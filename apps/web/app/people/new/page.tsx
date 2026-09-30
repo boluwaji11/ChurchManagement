@@ -36,16 +36,13 @@ export default async function NewPersonPage({
           <ArrowLeft className="size-4" /> Directory
         </Link>
 
-        <PageTitle
-          title="Add someone"
-          lede="First name and surname are all that is needed. Everything else can wait until you know it."
-        />
+        <PageTitle title="Add someone" lede="A name is enough to start." />
 
         {permitted ? (
           <PersonForm church={session.tenantSlug} households={households} />
         ) : (
           <Banner tone="info" title="Your role cannot add people">
-            The {session.role} role can read the directory. Ask an Owner or an Admin to add someone.
+            Ask an Owner or an Admin.
           </Banner>
         )}
       </main>

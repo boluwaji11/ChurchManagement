@@ -57,13 +57,9 @@ export function ArchiveButton({
           <Archive /> Archive
         </Button>
       </DialogTrigger>
-      <DialogContent
-        title={`Archive ${name}?`}
-        description="Reversible at any time, from this same page."
-      >
+      <DialogContent title={`Archive ${name}?`} description="Reversible from this page.">
         <p className="text-[length:var(--d-text-body)] text-fg-muted mb-5">
-          They leave the directory, every list, and every report. Nothing is deleted. Their giving
-          history, their attendance, and every note stay exactly as they are.
+          They leave every list. Nothing is deleted.
         </p>
 
         {error ? (

@@ -12,11 +12,11 @@ import type { PersonInput, LifecycleStatus, HouseholdRole } from "@hearth/db";
  */
 
 export const LIFECYCLE_OPTIONS = [
-  { value: "visitor", label: "Visitor", hint: "Has been once or twice." },
-  { value: "regular_attender", label: "Regular attender", hint: "Comes often, has not joined." },
-  { value: "member", label: "Member", hint: "Formally joined the church." },
-  { value: "inactive", label: "Inactive", hint: "Has stopped coming." },
-  { value: "deceased", label: "Deceased", hint: "Kept on the record, out of every list." },
+  { value: "visitor", label: "Visitor" },
+  { value: "regular_attender", label: "Regular attender" },
+  { value: "member", label: "Member" },
+  { value: "inactive", label: "Inactive" },
+  { value: "deceased", label: "Deceased" },
 ] as const;
 
 export const HOUSEHOLD_ROLE_OPTIONS = [

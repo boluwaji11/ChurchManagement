@@ -409,6 +409,8 @@ Explicitly refused, so the conversation happens once:
 | Hover-only affordances | Half the product is touch |
 | Pure black or pure white backgrounds | Harsh, and kills the warmth the palette exists for |
 | Toast-only error reporting | Toasts vanish. Errors must persist near their cause |
+| Hint text explaining what a field is for | A label and an error are enough. Hints make a short form look long |
+| Reassurance copy in banners and ledes | If the title says it, the sentence under it is padding |
 | Spinners for long operations | Use skeletons, or a real progress indicator |
 | Scroll-triggered animation on functional screens | Delays work, breaks find-in-page |
 | Modal stacking | If a dialog opens a dialog, the flow is wrong |

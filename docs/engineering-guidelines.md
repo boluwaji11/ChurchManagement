@@ -153,6 +153,9 @@ These rules apply to code comments, docs, UI copy, commit messages, error messag
 - **Do not repeat the pricing as a slogan.** The cost argument is made once, where it is evidence, and
   then the product is described by what it does. A word repeated becomes noise, and a product that
   keeps insisting it is cheap sounds like it has nothing else to say.
+- **On screen, less. A field gets a label and, when it is wrong, an error. No hint text explaining
+  what the field is for, no reassurance under a banner title, no lede restating the heading. Only a
+  destructive confirmation earns a sentence, and it says what happens.**
 - **The copy must be good.** Plain, confident, concrete. No filler, no marketing mush, no hedging.
   Write as though the reader is a busy pastor, not a procurement committee.
 - Error messages tell the user what happened and what to do next. Never expose a stack trace to

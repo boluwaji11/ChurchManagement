@@ -42,11 +42,11 @@ export default async function EditPersonPage({
           <ArrowLeft className="size-4" /> {display}
         </Link>
 
-        <PageTitle title={`Edit ${display}`} lede="Every change is recorded in the audit log with who made it and when." />
+        <PageTitle title={`Edit ${display}`} lede={session.tenantName} />
 
         {person.archivedAt ? (
-          <Banner tone="warning" title="This person is archived" className="mb-6">
-            They are out of every list until they are restored. Their records are untouched.
+          <Banner tone="warning" title="Archived" className="mb-6">
+            Out of every list until restored. Nothing was deleted.
           </Banner>
         ) : null}
 
@@ -71,7 +71,7 @@ export default async function EditPersonPage({
           />
         ) : (
           <Banner tone="info" title="Your role cannot edit people">
-            The {session.role} role can read this record. Ask an Owner or an Admin to change it.
+            Ask an Owner or an Admin.
           </Banner>
         )}
       </main>

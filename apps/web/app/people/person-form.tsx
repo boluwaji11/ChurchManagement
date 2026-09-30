@@ -95,9 +95,7 @@ export function PersonForm({
       {values?.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {formError ? (
-        <Banner tone="danger" title="That change was not saved">
-          {formError}
-        </Banner>
+        <Banner tone="danger" title="Not saved">{formError}</Banner>
       ) : null}
 
       <Card>
@@ -110,11 +108,7 @@ export function PersonForm({
           <Field label="Surname" error={errors.lastName} required>
             <Input name="lastName" defaultValue={values?.lastName ?? ""} autoComplete="off" />
           </Field>
-          <Field
-            label="Goes by"
-            hint="Used everywhere the person is shown. Leave it blank to use the first name."
-            className="sm:col-span-2"
-          >
+          <Field label="Goes by" className="sm:col-span-2">
             <Input name="preferredName" defaultValue={values?.preferredName ?? ""} autoComplete="off" />
           </Field>
         </div>
@@ -124,10 +118,10 @@ export function PersonForm({
         <CardTitle>Contact</CardTitle>
         <Separator className="my-4" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Email" hint="Optional. A child may not have one." error={errors.email}>
+          <Field label="Email" error={errors.email}>
             <Input name="email" type="email" defaultValue={values?.email ?? ""} placeholder="name@example.org" />
           </Field>
-          <Field label="Phone" hint="Optional. Any format." error={errors.phone}>
+          <Field label="Phone" error={errors.phone}>
             <Input name="phone" type="tel" defaultValue={values?.phone ?? ""} placeholder="(512) 555 0148" />
           </Field>
         </div>
@@ -137,7 +131,7 @@ export function PersonForm({
         <CardTitle>Household</CardTitle>
         <Separator className="my-4" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Household" hint="Families are addressed and checked in together.">
+          <Field label="Household">
             <Select name="householdId" value={household} onValueChange={setHousehold}>
               <SelectTrigger>
                 <SelectValue />
@@ -179,7 +173,7 @@ export function PersonForm({
         <CardTitle>Status and dates</CardTitle>
         <Separator className="my-4" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Status" hint={LIFECYCLE_OPTIONS.find((o) => o.value === (values?.lifecycleStatus ?? "visitor"))?.hint}>
+          <Field label="Status">
             <Select name="lifecycleStatus" defaultValue={values?.lifecycleStatus ?? "visitor"}>
               <SelectTrigger>
                 <SelectValue />
@@ -191,7 +185,7 @@ export function PersonForm({
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Date of birth" hint="Drives the check-in room, so it matters." error={errors.dateOfBirth}>
+          <Field label="Date of birth" error={errors.dateOfBirth}>
             <Input name="dateOfBirth" type="date" defaultValue={values?.dateOfBirth ?? ""} />
           </Field>
           <Field label="First visit" error={errors.firstVisitOn}>
