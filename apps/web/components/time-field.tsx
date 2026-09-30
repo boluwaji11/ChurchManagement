@@ -10,21 +10,28 @@ const LABELS = { open: t("time.open"), clear: t("time.clear") };
 export function TimeField({
   name,
   defaultValue,
+  onValueChange,
   ...rest
 }: {
   name: string;
   defaultValue?: string;
+  onValueChange?: (value: string) => void;
   id?: string;
+  min?: string;
   required?: boolean;
   disabled?: boolean;
   "aria-label"?: string;
 }) {
   const [value, setValue] = React.useState(defaultValue ?? "");
+  const set = (next: string) => {
+    setValue(next);
+    onValueChange?.(next);
+  };
   return (
     <TimePicker
       name={name}
       value={value}
-      onChange={setValue}
+      onChange={set}
       placeholder={t("time.placeholder")}
       labels={LABELS}
       {...rest}

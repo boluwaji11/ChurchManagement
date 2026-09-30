@@ -34,6 +34,8 @@ export interface TimePickerProps {
   placeholder?: string;
   /** Minutes between the offered times. Fifteen covers how services are set. */
   step?: number;
+  /** The earliest time this field accepts, as 24-hour HH:MM. */
+  min?: string;
   labels: TimePickerLabels;
   className?: string;
   "aria-label"?: string;
@@ -106,6 +108,7 @@ export function TimePicker({
   required,
   placeholder,
   step = 15,
+  min,
   labels,
   className,
   ...rest
@@ -125,10 +128,11 @@ export function TimePicker({
   const options = React.useMemo(() => {
     const out: string[] = [];
     for (let m = 0; m < 24 * 60; m += step) {
-      out.push(`${pad(Math.floor(m / 60))}:${pad(m % 60)}`);
+      const time = `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+      if (!min || time >= min) out.push(time);
     }
     return out;
-  }, [step]);
+  }, [step, min]);
 
   const matches = React.useMemo(() => {
     const q = (typed ?? "").trim();
@@ -162,8 +166,10 @@ export function TimePicker({
 
   const commit = (raw: string) => {
     const parsed = parseTime(raw);
-    // Unreadable, so put back what was there rather than emptying the field.
+    // Unreadable, or before the floor this field was given, so put back what
+    // was there rather than emptying the field or taking a time it refuses.
     if (parsed === null) return setTyped(null);
+    if (parsed && min && parsed < min) return setTyped(null);
     onChange(parsed);
     setTyped(null);
   };
@@ -198,7 +204,7 @@ export function TimePicker({
   React.useEffect(() => {
     if (!open) return;
     if (typed === null) {
-      const at = matches.indexOf(value || "09:00");
+      const at = matches.indexOf(value || (min && min > "09:00" ? matches[0] ?? "" : "09:00"));
       if (at >= 0) setActive(at);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

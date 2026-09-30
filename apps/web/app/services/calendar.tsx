@@ -56,6 +56,7 @@ export function Calendar({
   view,
   month,
   today,
+  nowTime,
 }: {
   church: string;
   rows: GatheringRow[];
@@ -65,6 +66,8 @@ export function Calendar({
   month: string;
   /** The church's own today, as ISO. */
   today: string;
+  /** The church's own clock, as HH:MM. */
+  nowTime: string;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -73,16 +76,21 @@ export function Calendar({
   const [adding, setAdding] = React.useState(false);
   // Which day was pressed in the calendar, so the dialog opens on it.
   const [addOn, setAddOn] = React.useState<string>("");
+  const [addError, setAddError] = React.useState<string>();
+  // Which day the dialog is on, so the time field can refuse a time that has
+  // already gone when that day is today.
+  const [addDate, setAddDate] = React.useState<string>("");
 
   const act = (
     fn: (d: FormData) => Promise<{ error?: string }>,
     data: FormData,
     after?: () => void,
+    report: (error: string | undefined) => void = setError,
   ) => {
     data.set("church", church);
     startTransition(async () => {
       const result = await fn(data);
-      setError(result.error);
+      report(result.error);
       if (!result.error) {
         after?.();
         router.refresh();
@@ -181,14 +189,25 @@ export function Calendar({
         <div>
           <Dialog open={adding} onOpenChange={setAdding}>
             <DialogTrigger asChild>
-              <Button onClick={() => setAddOn("")}><Plus /> {t("services.add")}</Button>
+              <Button
+                onClick={() => { setAddOn(""); setAddDate(""); setAddError(undefined); }}
+              >
+                <Plus /> {t("services.add")}
+              </Button>
             </DialogTrigger>
             <DialogContent title={t("services.add")} closeLabel={t("common.close")}>
+              {addError ? (
+                <div className="mb-4">
+                  <Banner tone="danger" title={t("services.add")}>{addError}</Banner>
+                </div>
+              ) : null}
               <form
                 key={addOn}
                 action={(data) => {
                   data.set("repeat", repeat);
-                  act(addGathering, data, () => setAdding(false));
+                  // The error belongs where the form is, so it is read without
+                  // closing the dialog to look for it.
+                  act(addGathering, data, () => setAdding(false), setAddError);
                 }}
                 noValidate
                 className="flex flex-col gap-4"
@@ -198,10 +217,21 @@ export function Calendar({
                 </Field>
                 <div className="flex flex-wrap gap-4">
                   <Field label={t("services.date")} required className="flex-1">
-                    <DateField name="occursOn" defaultValue={addOn} />
+                    <DateField
+                      name="occursOn"
+                      defaultValue={addOn}
+                      min={today}
+                      onValueChange={setAddDate}
+                    />
                   </Field>
                   <Field label={t("services.time")} required className="flex-1">
-                    <TimeField name="startsAt" />
+                    {/* A service is planned. A day that has gone is not a day to
+                        plan, and on today the hours that have gone are not
+                        hours to plan either. */}
+                    <TimeField
+                      name="startsAt"
+                      min={(addDate || addOn) === today ? nowTime : undefined}
+                    />
                   </Field>
                 </div>
                 <div className="flex flex-wrap gap-4">
@@ -225,7 +255,7 @@ export function Calendar({
                       question about something that cannot happen. */}
                   {repeat === "never" ? null : (
                     <Field label={t("services.until")} className="flex-1">
-                      <DateField name="untilOn" />
+                      <DateField name="untilOn" min={addDate || addOn || today} />
                     </Field>
                   )}
                 </div>
@@ -249,7 +279,7 @@ export function Calendar({
           rows={rows}
           today={today}
           actions={actionsFor}
-          onCreate={canEdit ? (day) => { setAddOn(day); setAdding(true); } : null}
+          onCreate={canEdit ? (day) => { setAddOn(day); setAddDate(day); setAddError(undefined); setAdding(true); } : null}
         />
       ) : view === "tiles" ? (
         <Tiles rows={rows} actions={actionsFor} />

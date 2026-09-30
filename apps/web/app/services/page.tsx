@@ -103,6 +103,7 @@ export default async function ServicesPage({
           view={view}
           month={month}
           today={now.date}
+          nowTime={now.time}
           rows={rows.map((r) => ({
             id: r.id,
             name: r.name,

@@ -25,10 +25,12 @@ const LABELS = {
 export function DateField({
   name,
   defaultValue,
+  onValueChange,
   ...rest
 }: {
   name: string;
   defaultValue?: string;
+  onValueChange?: (value: string) => void;
   id?: string;
   min?: string;
   max?: string;
@@ -39,11 +41,15 @@ export function DateField({
   "aria-describedby"?: string;
 }) {
   const [value, setValue] = React.useState(defaultValue ?? "");
+  const set = (next: string) => {
+    setValue(next);
+    onValueChange?.(next);
+  };
   return (
     <DatePicker
       name={name}
       value={value}
-      onChange={setValue}
+      onChange={set}
       placeholder={t("date.placeholder")}
       labels={LABELS}
       {...rest}

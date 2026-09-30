@@ -95,8 +95,12 @@ export function MonthGrid({
             {/* The day itself is the button. A church looking at an empty
                 Wednesday and wanting a service there should be able to press
                 the Wednesday. The chips sit above it and take their own
-                presses. */}
-            {onCreate ? (
+                presses.
+
+                Today and after. A day that has been and gone is not somewhere
+                to plan, and a church correcting its history does that through
+                the dialog, deliberately. */}
+            {onCreate && cell.iso >= today ? (
               <button
                 type="button"
                 aria-label={t("services.addOn", { date: readable(cell.iso, locale) })}
