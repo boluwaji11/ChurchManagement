@@ -3,36 +3,31 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, X } from "lucide-react";
-import { Banner, Button, Progress } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { Banner, Button } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 import { clearLogo } from "./actions";
 
 /**
- * R1.1 and R1.16. The logo, and what the church has used.
+ * R1.1. The church logo.
  *
- * The bar is here rather than on a page of its own because this is where files
- * arrive. A quota is a number somebody should meet at the moment they are about
- * to spend against it.
+ * The quota from R1.16 is enforced on the way in and stays out of sight. A
+ * church of this size will not come near two gibibytes with a logo and some
+ * photographs, so a bar reading 282 kB of 2.1 GB only asks somebody to worry
+ * about a number that will never move. The warning appears if it ever does.
  */
 export function LogoAndStorage({
   church,
   churchName,
   logoUrl,
-  used,
-  quota,
   fraction,
   warning,
-  files,
   canEdit,
 }: {
   church: string;
   churchName: string;
   logoUrl: string | null;
-  used: string;
-  quota: string;
   fraction: number;
   warning: boolean;
-  files: number;
   canEdit: boolean;
 }) {
   const router = useRouter();
@@ -76,7 +71,7 @@ export function LogoAndStorage({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={busy}>
-      {error ? <Banner tone="danger" title={t("storage.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("church.logo")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-4">
         {logoUrl ? (
@@ -118,16 +113,6 @@ export function LogoAndStorage({
             ) : null}
           </div>
         ) : null}
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <Progress value={percent} tone={warning ? "warning" : "primary"} />
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-caption text-fg-muted">
-            {t("storage.used", { used, quota })}
-          </span>
-          <span className="text-caption text-fg-muted">{plural("storage.files", files)}</span>
-        </div>
       </div>
 
       {warning ? (

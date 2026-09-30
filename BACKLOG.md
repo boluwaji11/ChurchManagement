@@ -80,6 +80,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Resolved |
+| HRT-44 | Show usage against the quota, once a church can approach it | R1.16 | Deferred |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
 
@@ -148,7 +149,7 @@ The presenter. Separate PRD written at build time.
 |---|---|
 | **Active** | Nothing |
 | **Waiting on a test** | **HRT-18** storage and logo |
-| **Next** | HRT-13 MFA, then HRT-31 sample data |
+| **Next** | HRT-31 sample data, then HRT-34 household tags. HRT-13 MFA stays deferred at the user's request. |
 
 ### HRT-16, how to test it
 
@@ -344,14 +345,15 @@ On a database without Supabase Auth, including CI, the functions are absent and 
 
 Settings, the Storage card at the top.
 
-1. **Add a logo.** A PNG, JPEG or WebP under 2 MB. The bar and the file count move.
-2. **Replace it.** Upload a different one. The count stays at one, because the old file is forgotten
-   and removed from the bucket. Changing a logo ten times costs one logo.
+1. **Add a logo.** A PNG, JPEG or WebP under 2 MB.
+2. **Replace it.** Upload a different one. The old file is forgotten and removed from the bucket,
+   so changing a logo ten times costs one logo.
 3. **Things that are refused.** An SVG, an empty file, anything over 2 MB. Each says which rule it
    broke, and nothing is written.
-4. **The quota is real.** It is checked in the query layer before the bytes are sent, rather than
-   found out afterwards. Nine tests cover it, including the warning at 80% and the refusal that
-   takes a church over the line.
+4. **The quota is real, and out of sight.** It is checked in the query layer before the bytes are
+   sent. Nine tests cover it, including the refusal that takes a church over the line. Nothing on
+   screen reports usage until a church passes 80%, since a bar reading 282 kB of 2.1 GB only asks
+   somebody to worry about a number that will never move. Showing usage properly is HRT-44.
 5. **Roles.** Owner and Admin. The route refuses a staff upload even with the button hidden.
 
 The bucket is private. The logo is served through a signed URL that lasts an hour, so a leaked path

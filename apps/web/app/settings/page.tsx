@@ -1,6 +1,6 @@
 import {
   withTenant, getChurch, listServiceTimes, canManageChurch,
-  getStorageUsage, humanBytes,
+  getStorageUsage,
 } from "@hearth/db";
 import { Card, CardTitle, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -46,17 +46,14 @@ export default async function SettingsPage({
         <PageTitle title={t("church.title")} lede={session.tenantName} />
         {profile ? (
           <Card className="mb-6">
-            <CardTitle>{t("storage.title")}</CardTitle>
+            <CardTitle>{t("church.logo")}</CardTitle>
             <Separator className="my-4" />
             <LogoAndStorage
               church={session.tenantSlug}
               churchName={session.tenantName}
               logoUrl={logoUrl}
-              used={humanBytes(usage.usedBytes)}
-              quota={humanBytes(usage.quotaBytes)}
               fraction={usage.fraction}
               warning={usage.warning}
-              files={usage.files}
               canEdit={canManageChurch(session.role)}
             />
           </Card>
