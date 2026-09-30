@@ -116,14 +116,51 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 
 ---
 
-## E2. Sunday Core (0.2)
+## E2. Gatherings (0.2)
 
-The first release real churches run. Stories are written at the start of the release, not now.
-Features in scope: F3 Directory, F5 Follow-up, F7 Attendance, **F8 Check-in**, F9 Groups,
-F22 Onboarding, plus the Planning Center, Breeze and ChurchTrac importers (R19.5).
+The first release real churches run. Attendance, check-in, groups and follow-up.
 
-F8 is safety-critical. Its stories get acceptance criteria written before any code, including the
-offline case, because a defect there can cause physical harm to a child.
+Renamed from "Sunday core". Church is a Tuesday hospital visit and a Thursday small group as much as
+a Sunday service, and a release name that says otherwise shapes what gets built.
+
+### F7. Attendance
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-47 | Service occurrences generated from the church's service times, with cancellation | R7.1 | New |
+| HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | New |
+| HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | New |
+| HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | New |
+| HRT-51 | Absence detection against a configurable threshold | R7.6 | New |
+| HRT-52 | Attendance against groups and events | R7.4 | New |
+| HRT-53 | Trends: week over week, year over year, rolling average | R7.9 | New |
+
+### F8. Check-in, safety-critical
+
+**No story here starts until its acceptance criteria are written and agreed.** A defect here can
+cause physical harm to a child. The design case is 09:58 on a Sunday, forty families queuing, the
+wifi down, and a volunteer who has done this twice.
+
+The criteria are written: [docs/checkin-acceptance.md](docs/checkin-acceptance.md). Read them before
+starting any story below. They are the definition of done, ahead of anything the story says.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | New |
+| HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | New |
+| HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | New |
+| HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | New |
+| HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | New |
+| HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | New |
+| HRT-60 | The station keeps working with no network | R8.20 to R8.24 | New |
+| HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
+| HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
+| HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
+
+### F5, F9, F3, F22
+
+Follow-up pipelines, groups, the member-facing directory and onboarding. Stories are written once
+attendance and check-in are in, because all four read from them.
 
 ## E3. Money (0.3)
 

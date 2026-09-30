@@ -59,9 +59,8 @@ export const en = {
   "home.price.giving": "Giving runs on the church's own Stripe account. Our platform fee is zero.",
   "home.price.messaging": "Email and SMS run on the church's own credentials, at cost.",
   "home.free.title": "Why it costs nothing",
-  "home.free.body": "Free church software already exists and churches cannot use it. Hearth is funded by donations and grants so it can be free and usable at the same time. The source is public under AGPL-3.0, and a church can export every record it holds at any moment.",
+  "home.free.body": "Free church software already exists and churches cannot use it. Hearth is funded by donations and grants so it can be free and usable at the same time.",
   "home.end.title": "Look around first.",
-  "home.end.body": "The demo asks for nothing. No email, no card, no account.",
 
   // Sign in
   "signIn.lede": "Sign in to your church.",

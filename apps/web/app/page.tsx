@@ -113,7 +113,6 @@ export default function Home() {
         <section className="border-t border-line">
           <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-5 px-6 py-20">
             <h2 className="font-display text-heading text-fg">{t("home.end.title")}</h2>
-            <p className="text-body-lg text-fg-muted">{t("home.end.body")}</p>
             <div className="flex flex-wrap items-center gap-3">
               <StartDemoButton />
               <Button variant="secondary" asChild>
