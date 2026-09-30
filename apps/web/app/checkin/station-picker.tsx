@@ -4,6 +4,7 @@ import * as React from "react";
 import { Badge, Button, Card, EmptyState, HueDot, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { claim } from "./actions";
+import { Desk, type DeskRoom, type DeskService } from "./desk";
 
 const REMEMBERED = "hearth_station";
 
@@ -12,7 +13,8 @@ export interface StationOption {
   name: string;
   mode: string;
   printer: string;
-  rooms: { id: string; name: string; hue: string }[];
+  rooms: DeskRoom[];
+  services: DeskService[];
 }
 
 /**
@@ -72,7 +74,15 @@ export function StationPicker({
 
   if (station) {
     return (
-      <Card className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
+        <Desk
+          church={church}
+          stationId={station.id}
+          rooms={station.rooms}
+          services={station.services}
+        />
+
+        <Card className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-heading text-fg">{station.name}</span>
           <Badge tone="neutral">{t(`stations.mode.${station.mode}` as never)}</Badge>
@@ -91,12 +101,13 @@ export function StationPicker({
           ))}
         </div>
 
-        <div>
-          <Button variant="ghost" disabled={pending} onClick={() => remember(null)}>
-            {t("checkin.change")}
-          </Button>
-        </div>
-      </Card>
+          <div>
+            <Button variant="ghost" disabled={pending} onClick={() => remember(null)}>
+              {t("checkin.change")}
+            </Button>
+          </div>
+        </Card>
+      </div>
     );
   }
 

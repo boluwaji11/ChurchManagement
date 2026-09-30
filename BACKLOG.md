@@ -153,7 +153,7 @@ starting any story below. They are the definition of done, ahead of anything the
 |---|---|---|---|
 | HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Closed |
 | HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Closed |
-| HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | New |
+| HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Resolved |
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | New |
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | New |
 | HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | New |
@@ -217,9 +217,9 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | **HRT-56** family lookup |
-| **Waiting on a test** | Nothing |
-| **Next** | **HRT-56** family lookup and several children in one flow. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Active** | Nothing |
+| **Waiting on a test** | **HRT-56** the desk |
+| **Next** | **HRT-57** the label pair and its per-visit code. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -669,3 +669,25 @@ The landing page, then "See a demo".
    visitor's.
 3. **Press it a third time.** The pool is empty by then, so that one is built while you wait, which
    is the old behaviour and the reason the pool exists. The one after that is quick again.
+
+### HRT-56, how to test it
+
+Check-in in the header, with a station claimed and a service on today.
+
+1. **Find a family.** Type a surname, a first name, what a child is called, or the last four digits
+   of a phone number. Punctuation in the stored number makes no difference.
+2. **The whole household comes back**, children first, youngest first, which is the order the desk
+   works in. Typing a parent's number gets their children, because the children are what the
+   station is for.
+3. **Rooms are filled in** from each child's date of birth, and every one of them can be changed.
+   An adult takes a name badge and no room.
+4. **One press.** Everybody ticked goes in together. Press it again and nothing doubles: the room
+   a child was sent to first stands, since somebody has already been told where to find them.
+5. **Undo.** A child checked in by mistake comes off in one press, and the attendance mark goes
+   with them.
+6. **The room fills.** Set a room capacity of one in Settings, check two children into it, and the
+   second shows the room as full.
+
+The label, the security code and the checkout are HRT-57 and HRT-59. **This station cannot run a
+real Sunday until those are in**, because no child should be released on anything weaker than a
+code.

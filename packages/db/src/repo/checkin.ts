@@ -1,0 +1,211 @@
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import type { Tx } from "../client";
+import { checkinVisits, checkinRooms } from "../schema/checkin";
+import { serviceOccurrences, attendanceRecords } from "../schema/gatherings";
+import { people } from "../schema/people";
+import { PermissionError, type TenantRole } from "../roles";
+import { InvalidInputError } from "../errors";
+import type { WriteActor } from "./people";
+
+/**
+ * R8.4, R8.5. Checking a family in.
+ *
+ * One press for the whole family, because a parent at the desk with three
+ * children and a queue behind them is the case this has to serve. Each child
+ * carries the room they were sent to, which is the room a volunteer can be
+ * pointed at when somebody comes to collect them.
+ *
+ * Adults go through the same flow and take no room. They are checked in for
+ * attendance and a name badge (R8.5).
+ */
+
+/** Running a station is the volunteer's job, so this is wider than managing one. */
+export const CAN_CHECK_IN: readonly TenantRole[] = [
+  "owner", "admin", "staff", "checkin_volunteer",
+];
+export const canCheckIn = (role: TenantRole): boolean => CAN_CHECK_IN.includes(role);
+
+export interface CheckinEntry {
+  personId: string;
+  /** Null for an adult, or for a child the volunteer sent to no room. */
+  roomId: string | null;
+}
+
+export interface Visit {
+  id: string;
+  personId: string;
+  name: string;
+  roomId: string | null;
+  roomName: string | null;
+  roomHue: string | null;
+  code: string | null;
+  checkedInAt: Date;
+  checkedOutAt: Date | null;
+}
+
+const COLUMNS = {
+  id: checkinVisits.id,
+  personId: checkinVisits.personId,
+  roomId: checkinVisits.roomId,
+  code: checkinVisits.code,
+  checkedInAt: checkinVisits.checkedInAt,
+  checkedOutAt: checkinVisits.checkedOutAt,
+};
+
+/**
+ * Checks a family in, and marks them present.
+ *
+ * The attendance record is the same one the roster writes, so a church reading
+ * its attendance sees Sunday morning whether it was taken at a desk or ticked
+ * off a list afterwards.
+ *
+ * Pressing twice is the same press: a person already checked in keeps the visit
+ * they have, rather than taking a second one with a second code.
+ */
+export async function checkInFamily(
+  db: Tx,
+  actor: WriteActor,
+  input: {
+    occurrenceId: string;
+    stationId?: string | null;
+    /** The volunteer running the station, where one is signed in. */
+    userId?: string | null;
+    entries: CheckinEntry[];
+  },
+): Promise<Visit[]> {
+  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (input.entries.length === 0) return [];
+
+  const [occurrence] = await db
+    .select({ id: serviceOccurrences.id, status: serviceOccurrences.status })
+    .from(serviceOccurrences)
+    .where(eq(serviceOccurrences.id, input.occurrenceId))
+    .limit(1);
+  if (!occurrence) throw new InvalidInputError("checkin.error.service");
+  if (occurrence.status === "cancelled") throw new InvalidInputError("checkin.error.cancelled");
+
+  await db
+    .insert(checkinVisits)
+    .values(
+      input.entries.map((entry) => ({
+        tenantId: actor.tenantId,
+        occurrenceId: input.occurrenceId,
+        personId: entry.personId,
+        roomId: entry.roomId,
+        stationId: input.stationId ?? null,
+        checkedInBy: input.userId ?? null,
+      })),
+    )
+    .onConflictDoNothing();
+
+  await db
+    .insert(attendanceRecords)
+    .values(
+      input.entries.map((entry) => ({
+        tenantId: actor.tenantId,
+        occurrenceId: input.occurrenceId,
+        personId: entry.personId,
+        source: "checkin",
+      })),
+    )
+    .onConflictDoNothing();
+
+  const ids = input.entries.map((e) => e.personId);
+  return (await visitsFor(db, input.occurrenceId)).filter((v) => ids.includes(v.personId));
+}
+
+/** Everybody checked in to one service, with the room they went to. */
+export async function visitsFor(db: Tx, occurrenceId: string): Promise<Visit[]> {
+  const rows = await db
+    .select({
+      ...COLUMNS,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
+      roomName: checkinRooms.name,
+      roomHue: checkinRooms.hue,
+    })
+    .from(checkinVisits)
+    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .leftJoin(checkinRooms, eq(checkinRooms.id, checkinVisits.roomId))
+    .where(eq(checkinVisits.occurrenceId, occurrenceId))
+    .orderBy(asc(checkinVisits.checkedInAt));
+
+  return rows.map((r) => ({
+    id: r.id,
+    personId: r.personId,
+    name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
+    roomId: r.roomId,
+    roomName: r.roomName,
+    roomHue: r.roomHue,
+    code: r.code,
+    checkedInAt: r.checkedInAt,
+    checkedOutAt: r.checkedOutAt,
+  }));
+}
+
+/** Which of these people are already checked in, so the desk does not ask twice. */
+export async function visitsForPeople(
+  db: Tx,
+  occurrenceId: string,
+  personIds: string[],
+): Promise<Visit[]> {
+  if (personIds.length === 0) return [];
+  const all = await visitsFor(db, occurrenceId);
+  return all.filter((v) => personIds.includes(v.personId));
+}
+
+/**
+ * Undoing a check-in.
+ *
+ * A volunteer who checks in the wrong child needs that gone in one press, and
+ * the attendance mark goes with it. A child who has already been collected is
+ * not undone: that is a checkout, and it is a record of what happened.
+ */
+export async function undoCheckIn(
+  db: Tx,
+  actor: WriteActor,
+  occurrenceId: string,
+  personId: string,
+): Promise<void> {
+  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+
+  const removed = await db
+    .delete(checkinVisits)
+    .where(
+      and(
+        eq(checkinVisits.occurrenceId, occurrenceId),
+        eq(checkinVisits.personId, personId),
+        isNull(checkinVisits.checkedOutAt),
+      ),
+    )
+    .returning({ id: checkinVisits.id });
+
+  if (removed.length === 0) throw new InvalidInputError("checkin.error.collected");
+
+  await db
+    .delete(attendanceRecords)
+    .where(
+      and(
+        eq(attendanceRecords.occurrenceId, occurrenceId),
+        eq(attendanceRecords.personId, personId),
+        eq(attendanceRecords.source, "checkin"),
+      ),
+    );
+}
+
+/** How full each room is right now, for the capacity rules the station applies. */
+export async function roomCounts(
+  db: Tx,
+  occurrenceId: string,
+): Promise<Record<string, number>> {
+  const rows = await db
+    .select({ roomId: checkinVisits.roomId, n: sql<string>`count(*)` })
+    .from(checkinVisits)
+    .where(and(eq(checkinVisits.occurrenceId, occurrenceId), isNull(checkinVisits.checkedOutAt)))
+    .groupBy(checkinVisits.roomId);
+
+  const out: Record<string, number> = {};
+  for (const row of rows) if (row.roomId) out[row.roomId] = Number(row.n);
+  return out;
+}
