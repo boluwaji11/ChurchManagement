@@ -24,7 +24,10 @@ export default async function SettingsLayout({ children }: { children: React.Rea
       ? [{ href: "/settings/church", label: t("settings.tab.church") }]
       : []),
     ...(canManageRooms(session.role)
-      ? [{ href: "/settings/rooms", label: t("settings.tab.rooms") }]
+      ? [
+          { href: "/settings/rooms", label: t("settings.tab.rooms") },
+          { href: "/settings/stations", label: t("settings.tab.stations") },
+        ]
       : []),
     ...(canEditPeople(session.role)
       ? [{ href: "/settings/tags", label: t("settings.tab.tags") }]

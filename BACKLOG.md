@@ -150,7 +150,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Resolved |
-| HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | New |
+| HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Resolved |
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | New |
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | New |
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | New |
@@ -216,8 +216,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views, **HRT-54** rooms |
-| **Next** | **HRT-55** stations and their four modes, then HRT-56 family lookup. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views, **HRT-54** rooms, **HRT-55** stations |
+| **Next** | **HRT-56** family lookup and several children in one flow. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -639,3 +639,20 @@ Settings, then Rooms. Owner or Admin only.
 The suggestion itself has no screen yet, because there is no station yet. It is covered by tests:
 inclusive at the youngest age, exclusive at the oldest, so 0 to 24 months and 24 to 48 months tile
 with no month belonging to both rooms or to neither, and an overlap goes to the narrower room.
+
+### HRT-55, how to test it
+
+Settings, then Stations. Owner or Admin only.
+
+1. **Create one for each device.** A foyer desk a volunteer runs, a kiosk families use themselves,
+   a tablet carried around, and the family's own phone. There is one phone station a church, since
+   there is one household flow and two configurations of it would be two answers to one question.
+2. **What it may touch.** Tick rooms and services, or tick none, which is every room and every
+   service. A church with one desk never has to think about it.
+3. **The device.** Open Check-in in the header. The device asks which station it is, once, and
+   remembers. It is stored on the device, so two tablets signed in as the same volunteer are two
+   stations.
+4. **Retire one.** Archive the station, then reload Check-in on the device pointed at it. It asks
+   again rather than carrying on against a configuration nobody maintains.
+
+The check-in flow itself is HRT-56 onward. This story is the configuration those read.

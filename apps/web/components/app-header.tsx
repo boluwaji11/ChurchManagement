@@ -48,6 +48,7 @@ export async function AppHeader({ session }: { session: Session }) {
           {[
             [t("nav.directory"), "/people"],
             [t("nav.services"), "/services"],
+            [t("nav.checkin"), "/checkin"],
           ].map(([label, href]) => (
             <Link
               key={href}

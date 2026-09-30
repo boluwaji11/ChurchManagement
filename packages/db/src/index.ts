@@ -36,6 +36,7 @@ export * from "./repo/church";
 export * from "./repo/services";
 export * from "./repo/attendance";
 export * from "./repo/rooms";
+export * from "./repo/stations";
 export * from "./repo/sessions";
 export * from "./repo/storage";
 export * from "./demo/load";

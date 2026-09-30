@@ -65,4 +65,4 @@ export type PermissionAction =
   | "editRelationship" | "liftDoNotContact"
   | "addMilestone" | "removeMilestone"
   | "editChurch" | "manageDemoData" | "manageServices" | "recordAttendance"
-  | "manageRooms";
+  | "manageRooms" | "manageStations";
