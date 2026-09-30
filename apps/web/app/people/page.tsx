@@ -104,11 +104,16 @@ export default async function PeoplePage({
             title={t("people.empty.title")}
             body={t("people.empty.body")}
             action={
-              <Button asChild>
-                <Link href={`/people/new?church=${session.tenantSlug}`}>
-                  <Plus /> {t("people.add")}
-                </Link>
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button asChild>
+                  <Link href={`/people/new?church=${session.tenantSlug}`}>
+                    <Plus /> {t("people.add")}
+                  </Link>
+                </Button>
+                <Button variant="secondary" asChild>
+                  <Link href={`/import?church=${session.tenantSlug}`}>{t("import.title")}</Link>
+                </Button>
+              </div>
             }
           />
         ) : (

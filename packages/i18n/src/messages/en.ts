@@ -281,6 +281,7 @@ export const en = {
   "import.outcome.fail": "Cannot import",
   "import.done.title": "Imported",
   "import.done.body": "{created} added, {updated} updated, {skipped} left alone, {failed} could not be imported.",
+  "import.emptyFile": "That file has no rows in it.",
   "import.noFirstName": "Match a column to First name and one to Surname before continuing.",
   "import.nothingToDo": "Nothing in this file can be imported.",
   "import.failed": "Not imported",

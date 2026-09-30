@@ -39,6 +39,7 @@ export function AppHeader({ session }: { session: Session }) {
             [t("nav.directory"), "/people"],
             [t("nav.tags"), "/tags"],
             [t("nav.fields"), "/fields"],
+            [t("import.title"), "/import"],
           ].map(([label, href]) => (
             <Link
               key={href}

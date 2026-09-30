@@ -91,7 +91,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-21 | **Add, edit and archive a person. Households and contact methods.** | R2.1 to R2.3, R2.5, R2.13 | Closed |
 | HRT-22 | Relationships, independent of household | R2.4 | New |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | New |
-| HRT-24 | Duplicate detection and merge, reversible for 30 days | R2.8 | New |
+| HRT-24 | Duplicate **merge**, reversible for 30 days. Detection shipped with HRT-28. | R2.8 | New |
 | HRT-25 | Bulk edit across a selection | R2.12 | New |
 | HRT-26 | Background check status and expiry tracking | R2.10 | New |
 | HRT-27 | Birthdays and anniversaries list | R2.9 | New |
@@ -100,7 +100,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-28 | CSV and Excel import wizard: column mapping, dry run, duplicate handling | R19.1 to R19.3 | New |
+| HRT-28 | CSV import wizard: column mapping, dry run, duplicate handling | R19.1 to R19.3 | Resolved |
+| HRT-38 | Excel (.xlsx) files, as well as CSV. Split out of HRT-28. | R19.1 | New |
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | New |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | New |
 | HRT-31 | Sample and demo data | R19.7 | New |
@@ -142,8 +143,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** custom fields, **HRT-32** create a church, **HRT-36** strings, **HRT-37** CI |
-| **Next** | HRT-28 the import wizard, then HRT-30 export, then the rest of R2.x |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** create a church, **HRT-36** strings, **HRT-37** CI, **HRT-28** import |
+| **Next** | HRT-29 import rollback, then HRT-30 export, then the rest of R2.x |
 
 ### HRT-16, how to test it
 
@@ -174,6 +175,24 @@ Nothing to click. Open the Actions tab on GitHub after this push and watch three
   the adversarial suite. This is the 0.1 exit criterion running on every push.
 
 The audit found four real defects the first time it ran, listed in the commit.
+
+### HRT-28, how to test it
+
+"Import" is in the header, and on the directory next to "Add someone".
+
+1. **Export from anywhere.** Any CSV with a first name and a surname column works. Columns called
+   "First Name", "DOB", "Membership Status", "Mobile Phone" and so on are matched for you. The guess
+   is always shown and always editable.
+2. **The preview writes nothing.** It lists what will be added, updated and left alone, with the
+   rows that are not simply additions at the top, because those are the ones worth reading.
+3. **Duplicates.** Import the same file twice. The second run leaves everyone alone and says why,
+   naming the person it matched and how. Switch to "Update them from the file" and it fills in what
+   the first file did not carry, without blanking anything.
+4. **A file with a person on it twice** catches the second one and names the line.
+5. **Bad data.** A row with no name, or a date like 13/04/1990, is reported against its own line
+   number in your file rather than being imported wrong.
+6. **Roles.** `staff` can import. `pastoral` and `member` cannot, and the server refuses even if the
+   page is bypassed.
 
 ### HRT-32, how to test it
 

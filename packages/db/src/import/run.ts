@@ -6,7 +6,7 @@ import { canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { createPerson, updatePerson, getPersonForEdit, type PersonInput, type LifecycleStatus, type HouseholdRole } from "../repo/people";
 import { listCustomFields, setCustomValues, coerceCustomValue, type CustomFieldDef } from "../repo/custom-fields";
 import { readSheet } from "./csv";
-import { PERSON_FIELDS, IGNORE, parseImportedDate, parseLifecycle, parseHouseholdRole } from "./columns";
+import { PERSON_FIELDS, parseImportedDate, parseLifecycle, parseHouseholdRole } from "./columns";
 import { buildMatchIndex, findMatches, indexNewPerson, type Match, type MatchIndex } from "./match";
 
 /**
