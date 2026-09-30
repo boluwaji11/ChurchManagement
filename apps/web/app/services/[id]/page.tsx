@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, getOccurrence, listRoster, canManageServices } from "@hearth/db";
+import {
+  withTenant, getOccurrence, listRoster, visitNumbers, canManageServices,
+} from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -29,11 +31,18 @@ export default async function RosterPage({
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     const occurrence = await getOccurrence(tx, id);
     if (!occurrence) return null;
-    return { occurrence, roster: await listRoster(tx, id) };
+    return {
+      occurrence,
+      roster: await listRoster(tx, id),
+      visits: await visitNumbers(tx, id),
+    };
   });
 
   if (!result) notFound();
-  const { occurrence, roster } = result;
+  const { occurrence, roster, visits } = result;
+  // R7.5. Counted from the record every time it is asked, rather than a flag
+  // written once and wrong the moment somebody corrects a mistake.
+  const visitOf = new Map(visits.map((v) => [v.personId, v.visit]));
 
   return (
     <>
@@ -60,6 +69,7 @@ export default async function RosterPage({
             name: `${r.preferredName ?? r.firstName} ${r.lastName}`,
             surname: r.lastName,
             present: r.present,
+            visit: visitOf.get(r.personId) ?? 0,
           }))}
         />
       </main>

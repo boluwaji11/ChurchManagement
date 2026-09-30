@@ -10,6 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   listRoster, setPresent, setPresentMany, countPresent, attendanceForPerson, countsFor,
+  visitNumbers, visitorsBetween,
 } from "../src/repo/attendance";
 import { addService, listOccurrences, setOccurrenceCancelled } from "../src/repo/services";
 import { createPerson } from "../src/repo/people";
@@ -124,5 +125,73 @@ describe("history", () => {
     const counts = await run((tx) => countsFor(tx, [sunday, easter]));
     expect(counts[sunday]).toBe(2);
     expect(counts[easter]).toBe(1);
+  });
+});
+
+describe("first and second visits (R7.5)", () => {
+  let gatheringA: string;
+  let gatheringB: string;
+  let gatheringC: string;
+  let evening: string;
+
+  beforeAll(async () => {
+    await owner()`delete from attendance_records where tenant_id = ${tenant}`;
+    await owner()`delete from service_occurrences where tenant_id = ${tenant}`;
+
+    for (const [name, on, at] of [
+      ["Week one", "2026-06-07", "09:00"],
+      ["Week one evening", "2026-06-07", "18:00"],
+      ["Week two", "2026-06-14", "09:00"],
+      ["Week three", "2026-06-21", "09:00"],
+    ] as const) {
+      await run((tx) => addService(tx, as(), { name, occursOn: on, startsAt: at }));
+    }
+    const rows = await run((tx) => listOccurrences(tx));
+    gatheringA = rows.find((r) => r.name === "Week one")!.id;
+    evening = rows.find((r) => r.name === "Week one evening")!.id;
+    gatheringB = rows.find((r) => r.name === "Week two")!.id;
+    gatheringC = rows.find((r) => r.name === "Week three")!.id;
+  });
+
+  it("counts a first visit, then a second", async () => {
+    await run((tx) => setPresent(tx, as(), gatheringA, ids["Abigail"]!, true));
+    expect((await run((tx) => visitNumbers(tx, gatheringA)))[0]!.visit).toBe(1);
+
+    await run((tx) => setPresent(tx, as(), gatheringB, ids["Abigail"]!, true));
+    expect((await run((tx) => visitNumbers(tx, gatheringB)))[0]!.visit).toBe(2);
+
+    await run((tx) => setPresent(tx, as(), gatheringC, ids["Abigail"]!, true));
+    expect((await run((tx) => visitNumbers(tx, gatheringC)))[0]!.visit).toBe(3);
+  });
+
+  it("counts two services on one day as one visit", async () => {
+    await run((tx) => setPresent(tx, as(), evening, ids["Abigail"]!, true));
+
+    // She was at both services on her first Sunday. She turned up once.
+    const morning = await run((tx) => visitNumbers(tx, gatheringA));
+    const night = await run((tx) => visitNumbers(tx, evening));
+    expect(morning.find((v) => v.personId === ids["Abigail"])!.visit).toBe(1);
+    expect(night.find((v) => v.personId === ids["Abigail"])!.visit).toBe(1);
+  });
+
+  it("recounts after a correction rather than keeping a stale flag", async () => {
+    // Her first Sunday is deleted, so week two becomes the first visit.
+    await run((tx) => setPresent(tx, as(), gatheringA, ids["Abigail"]!, false));
+    await run((tx) => setPresent(tx, as(), evening, ids["Abigail"]!, false));
+
+    expect((await run((tx) => visitNumbers(tx, gatheringB)))[0]!.visit).toBe(1);
+  });
+
+  it("lists who was new in a window, once each, in a stable order", async () => {
+    await run((tx) => setPresent(tx, as(), gatheringB, ids["Benjamin"]!, true));
+    await run((tx) => setPresent(tx, as(), gatheringC, ids["Caroline"]!, true));
+
+    // Caroline came first on the 21st. Abigail and Benjamin both on the 14th,
+    // so the name breaks the tie and the order is the same on every load.
+    const first = await run((tx) => visitorsBetween(tx, "2026-06-01", "2026-06-30", 1));
+    expect(first.map((v) => v.firstName)).toEqual(["Caroline", "Abigail", "Benjamin"]);
+
+    const second = await run((tx) => visitorsBetween(tx, "2026-06-01", "2026-06-30", 2));
+    expect(second.map((v) => v.firstName)).toEqual(["Abigail"]);
   });
 });

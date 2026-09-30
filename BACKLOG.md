@@ -130,7 +130,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 | HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Resolved |
-| HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | New |
+| HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Resolved |
 | HRT-51 | Absence detection against a configurable threshold | R7.6 | New |
 | HRT-52 | Attendance against groups and events | R7.4 | New |
 | HRT-53 | Trends: week over week, year over year, rolling average | R7.9 | New |
@@ -187,8 +187,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster |
-| **Next** | HRT-50 visitor flagging, then HRT-51 absence detection. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags |
+| **Next** | HRT-51 absence detection, then HRT-53 trends. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -439,6 +439,22 @@ A Services tab sits beside Directory. One concept, one button.
 
 An earlier build of this had three ideas (a weekly pattern in Settings, a Fill the calendar button,
 and the services themselves) and two setup steps before any value. It is one idea now.
+
+### HRT-50, how to test it
+
+On a service's "Who was here" screen.
+
+1. **Tick somebody who has never been.** A "First time" badge appears beside them, and a count of
+   how many are new shows at the top.
+2. **Tick them at the next service.** "Second time".
+3. **Untick their first visit.** The badge on the second service becomes "First time". Nothing is
+   stored on the person: the number is counted from the record every time it is asked, so a
+   correction, a missed service added later, or a year of imported history all give the right
+   answer. A flag written at the time would be wrong at all three.
+4. **Two services on one Sunday count as one visit.** Somebody at the 09:00 and the 11:00 on their
+   first Sunday is first-time at both. They turned up once.
+
+The Monday morning list, and the pipelines in R5.3 that read it, use the same query.
 
 ### HRT-49, how to test it
 

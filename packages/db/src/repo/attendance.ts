@@ -190,3 +190,107 @@ export async function countsFor(
 
   return Object.fromEntries(rows.map((r) => [r.occurrenceId, Number(r.n)]));
 }
+
+export interface VisitNumber {
+  personId: string;
+  /** 1 on their first ever gathering, 2 on their second. */
+  visit: number;
+}
+
+/**
+ * R7.5. Which of these people are here for the first or second time.
+ *
+ * Counted from the record rather than stored on the person, because a flag
+ * written at the time is wrong the moment somebody corrects a mistake, adds a
+ * gathering that was missed, or imports a year of history. This is the same
+ * answer every time it is asked.
+ *
+ * Ties on a date count together, so a person at both services on their first
+ * Sunday is first-time at both rather than second-time at the later one. They
+ * turned up once.
+ */
+export async function visitNumbers(db: Tx, occurrenceId: string): Promise<VisitNumber[]> {
+  const rows = await db.execute<{ person_id: string; visit: string }>(sql`
+    select a.person_id,
+           (select count(distinct o2.occurs_on)
+              from attendance_records a2
+              join service_occurrences o2 on o2.id = a2.occurrence_id
+             where a2.person_id = a.person_id
+               and o2.occurs_on <= o.occurs_on) as visit
+      from attendance_records a
+      join service_occurrences o on o.id = a.occurrence_id
+     where a.occurrence_id = ${occurrenceId}
+  `);
+
+  return (rows as unknown as { person_id: string; visit: string }[]).map((r) => ({
+    personId: r.person_id,
+    visit: Number(r.visit),
+  }));
+}
+
+export interface Visitor {
+  personId: string;
+  firstName: string;
+  preferredName: string | null;
+  lastName: string;
+  occursOn: string;
+  serviceName: string;
+  visit: number;
+}
+
+/**
+ * R7.5. Everyone whose first or second visit falls in a window.
+ *
+ * This is the list somebody works through on a Monday morning, and the one the
+ * first-visit and second-visit pipelines in R5.3 will read.
+ */
+export async function visitorsBetween(
+  db: Tx,
+  from: string,
+  to: string,
+  visit: 1 | 2,
+): Promise<Visitor[]> {
+  const rows = await db.execute<Record<string, unknown>>(sql`
+    with numbered as (
+      select a.person_id,
+             o.occurs_on,
+             o.name as service_name,
+             (select count(distinct o2.occurs_on)
+                from attendance_records a2
+                join service_occurrences o2 on o2.id = a2.occurrence_id
+               where a2.person_id = a.person_id
+                 and o2.occurs_on <= o.occurs_on) as visit
+        from attendance_records a
+        join service_occurrences o on o.id = a.occurrence_id
+       where o.occurs_on between ${from} and ${to}
+    )
+    select distinct on (n.person_id)
+           n.person_id, n.occurs_on, n.service_name, n.visit,
+           p.first_name, p.preferred_name, p.last_name
+      from numbered n
+      join people p on p.id = n.person_id
+     where n.visit = ${visit}
+       and p.archived_at is null
+     order by n.person_id, n.occurs_on
+  `);
+
+  return (rows as unknown as Record<string, string>[])
+    .map((r) => ({
+      personId: String(r["person_id"]),
+      firstName: String(r["first_name"]),
+      preferredName: (r["preferred_name"] as string | null) ?? null,
+      lastName: String(r["last_name"]),
+      occursOn: String(r["occurs_on"]).slice(0, 10),
+      serviceName: String(r["service_name"]),
+      visit: Number(r["visit"]),
+    }))
+    // Most recent first, then by name. Without the second key, two people whose
+    // first visit was the same Sunday swap places between loads, and a list that
+    // reorders itself is a list somebody loses their place in.
+    .sort(
+      (a, b) =>
+        b.occursOn.localeCompare(a.occursOn) ||
+        a.lastName.localeCompare(b.lastName) ||
+        a.firstName.localeCompare(b.firstName),
+    );
+}

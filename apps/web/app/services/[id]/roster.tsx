@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Search, Check } from "lucide-react";
-import { Banner, Button, Input, cn } from "@hearth/ui";
+import { Badge, Banner, Button, Input, cn } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { markPresent, markManyPresent } from "./actions";
 
@@ -11,6 +11,8 @@ export interface RosterPerson {
   name: string;
   surname: string;
   present: boolean;
+  /** 1 if this is their first ever visit, 2 their second, 0 if not marked. */
+  visit: number;
 }
 
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -42,6 +44,13 @@ export function Roster({
   );
   const [query, setQuery] = React.useState("");
   const [error, setError] = React.useState<string>();
+
+  // Only the people still marked count, so unticking somebody entered by
+  // mistake takes them out of the number as well as off the list.
+  const newcomers = React.useMemo(
+    () => people.filter((p) => p.visit === 1 && present.has(p.personId)).length,
+    [people, present],
+  );
 
   const shown = React.useMemo(() => {
     const q = fold(query.trim());
@@ -123,6 +132,9 @@ export function Roster({
           />
         </div>
         <span className="text-label text-fg-muted">{plural("roster.present", present.size)}</span>
+        {newcomers > 0 ? (
+          <Badge tone="accent">{plural("roster.newCount", newcomers)}</Badge>
+        ) : null}
       </div>
 
       {canEdit && shown.length > 0 ? (
@@ -163,7 +175,15 @@ export function Roster({
                   >
                     {on ? <Check className="size-4" aria-hidden /> : null}
                   </span>
-                  {person.name}
+                  <span className="flex flex-wrap items-center gap-2">
+                    {person.name}
+                    {on && person.visit === 1 ? (
+                      <Badge tone="accent">{t("roster.firstTime")}</Badge>
+                    ) : null}
+                    {on && person.visit === 2 ? (
+                      <Badge tone="info">{t("roster.secondTime")}</Badge>
+                    ) : null}
+                  </span>
                 </button>
               </li>
             );
