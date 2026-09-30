@@ -5,10 +5,13 @@
  * real church's directory. The tests that matter are the ones proving the demo
  * is a separate church, and that it goes away.
  */
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { randomUUID } from "node:crypto";
 import { owner, withTenant, closeConnections } from "../src/client";
-import { createDemoChurch, demoChurchInfo, sweepExpiredDemos } from "../src/demo/church";
+import {
+  createDemoChurch, demoChurchInfo, sweepExpiredDemos, topUpDemoPool,
+  demoMembership, DEMO_LIFETIME_HOURS,
+} from "../src/demo/church";
 import { DEMO_PEOPLE } from "../src/demo/people";
 import { listPeople } from "../src/repo/people";
 import { withAuditTriggersOff } from "../src/maintenance";
@@ -132,5 +135,108 @@ describe("a demo pass", () => {
     made.push(demo.tenantId);
 
     expect(await demoMembership(demo.tenantId, randomUUID())).toBeNull();
+  });
+});
+
+/**
+ * HRT-72. The pool.
+ *
+ * Building a church takes long enough that a visitor watching a blank page
+ * decides against us before it finishes, so they are built in advance and
+ * handed over. These tests live in this file rather than their own because they
+ * work on every demo church at once, and a second file doing that at the same
+ * time would be pulling the rug out from under this one.
+ *
+ * Most of them stand up empty churches directly. What is being tested is which
+ * church a visitor gets, and building real ones would put a quarter of an hour
+ * on the suite.
+ */
+describe("the pool", () => {
+  const WEEK = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  // Deleting a tenant cascades, and the audit trigger would write rows
+  // pointing at the tenant being deleted, which is what this switch is for.
+  const clearPool = () =>
+    withAuditTriggersOff(async () => {
+      await owner()`
+        delete from tenants
+         where demo_expires_at is not null and demo_claimed_at is null`;
+    });
+
+  const unclaimed = async (): Promise<number> => {
+    const [row] = await owner()<{ n: string }[]>`
+      select count(*)::text as n from tenants
+       where demo_expires_at is not null and demo_claimed_at is null`;
+    return Number(row!.n);
+  };
+
+  /** A church waiting in the pool, without the cost of filling it. */
+  const waiting = async (slug: string): Promise<string> => {
+    const [row] = await owner()<{ id: string }[]>`
+      insert into tenants (slug, name, timezone, demo_expires_at)
+      values (${slug}, 'Grace Community Church', 'America/Chicago', ${WEEK()})
+      returning id`;
+    return row!.id;
+  };
+
+  beforeAll(clearPool);
+  afterAll(clearPool);
+
+  it("gives the visitor the church that was waiting, and starts its clock", async () => {
+    const id = await waiting("demo-pool-1");
+    const userId = randomUUID();
+
+    const demo = await createDemoChurch(userId);
+    made.push(demo.tenantId);
+
+    expect(demo.tenantId).toBe(id);
+    expect(await unclaimed()).toBe(0);
+    expect(await demoMembership(demo.tenantId, userId)).not.toBeNull();
+
+    // The day starts when it is taken rather than when it was built.
+    const hours = (demo.expiresAt.getTime() - Date.now()) / 3_600_000;
+    expect(hours).toBeGreaterThan(DEMO_LIFETIME_HOURS - 1);
+    expect(hours).toBeLessThanOrEqual(DEMO_LIFETIME_HOURS);
+  });
+
+  it("gives two visitors two different churches", async () => {
+    await waiting("demo-pool-2");
+    await waiting("demo-pool-3");
+
+    const first = await createDemoChurch(randomUUID());
+    const second = await createDemoChurch(randomUUID());
+    made.push(first.tenantId, second.tenantId);
+
+    expect(first.tenantId).not.toBe(second.tenantId);
+    expect(await unclaimed()).toBe(0);
+  });
+
+  it("builds what is missing, stops at the number asked for, and fills it", async () => {
+    await clearPool();
+
+    expect(await topUpDemoPool(1)).toBe(1);
+    expect(await unclaimed()).toBe(1);
+
+    expect(await topUpDemoPool(1)).toBe(0);
+    expect(await unclaimed()).toBe(1);
+
+    const [row] = await owner()<{ n: string }[]>`
+      select count(*)::text as n from people
+       where tenant_id = (
+         select id from tenants
+          where demo_expires_at is not null and demo_claimed_at is null
+          limit 1
+       )`;
+    expect(Number(row!.n)).toBe(DEMO_PEOPLE.length);
+  }, 180_000);
+
+  it("leaves the audit triggers alone when there is nothing expired", async () => {
+    await clearPool();
+    await waiting("demo-pool-4");
+
+    // Taking the triggers off locks every audited table, so the sweep asks
+    // first. The answer here is that there is nothing to sweep.
+    expect(await sweepExpiredDemos()).toBe(0);
+    expect(await unclaimed()).toBe(1);
   });
 });

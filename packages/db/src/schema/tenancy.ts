@@ -42,6 +42,8 @@ export const tenants = pgTable(
      * mistake for their own records.
      */
     demoExpiresAt: timestamp("demo_expires_at", { withTimezone: true }),
+    /** When a visitor took this demo church. Null while it waits in the pool. */
+    demoClaimedAt: timestamp("demo_claimed_at", { withTimezone: true }),
     /**
      * R1.16. Hard, enforced, visible. Two gibibytes, which is a logo, a few
      * hundred photos and the documents a church of this size actually keeps.

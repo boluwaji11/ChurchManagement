@@ -113,7 +113,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Resolved |
 | HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Resolved |
 | HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Resolved |
-| HRT-72 | Build the demo church faster than a visitor will wait | R22.1 | New |
+| HRT-72 | Build the demo church faster than a visitor will wait | R22.1 | Resolved |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
 ---
@@ -218,7 +218,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views, **HRT-54** rooms, **HRT-55** stations |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views, **HRT-54** rooms, **HRT-55** stations, **HRT-72** demo speed |
 | **Next** | **HRT-56** family lookup and several children in one flow. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -658,3 +658,14 @@ Settings, then Stations. Owner or Admin only.
    again rather than carrying on against a configuration nobody maintains.
 
 The check-in flow itself is HRT-56 onward. This story is the configuration those read.
+
+### HRT-72, how to test it
+
+The landing page, then "See a demo".
+
+1. **It opens.** The wait used to be the time it takes to build a church. Two are now built and
+   waiting, so pressing the button is a lookup.
+2. **Press it again in another browser.** A second visitor gets a second church, never the first
+   visitor's.
+3. **Press it a third time.** The pool is empty by then, so that one is built while you wait, which
+   is the old behaviour and the reason the pool exists. The one after that is quick again.
