@@ -25,9 +25,6 @@ export function SignOutButton({ label }: { label?: string }) {
         </Button>
       </DialogTrigger>
       <DialogContent title={t("signOut.confirmTitle")} closeLabel={t("common.close")}>
-        <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
-          {t("signOut.confirmBody")}
-        </p>
         <div className="flex flex-wrap items-center gap-3">
           <form action="/auth/sign-out" method="post">
             <Button type="submit" variant="danger">

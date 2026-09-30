@@ -86,9 +86,7 @@ export default async function PeoplePage({
         ) : null}
 
         {session.role === "staff" || session.role === "member" ? (
-          <Banner tone="info" title={t("people.restricted.title")} className="mb-8">
-            {t("people.restricted.body")}
-          </Banner>
+          <Banner tone="info" title={t("people.restricted.title")} className="mb-8" />
         ) : null}
 
         <Section title={t("people.glance")}>

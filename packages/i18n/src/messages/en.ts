@@ -98,8 +98,7 @@ export const en = {
   "people.empty.body": "Add someone by hand, or import your directory from a spreadsheet.",
   "people.open": "Open {name}",
   "people.archivedBadge": "Archived",
-  "people.restricted.title": "Some things are hidden from your role",
-  "people.restricted.body": "Confidential pastoral notes are restricted. You will see that they exist and cannot read them.",
+  "people.restricted.title": "Confidential pastoral notes are hidden from your role",
 
   "directory.search": "Search",
   "directory.searchPlaceholder": "Name, email, or phone",
@@ -167,7 +166,6 @@ export const en = {
   "demo.banner.body": "Everyone in it is invented. It disappears {when}.",
   "demo.banner.signUp": "Create a church account",
   "signOut.confirmTitle": "Sign out?",
-  "signOut.confirmBody": "You will need your email and password to get back in.",
   "account.title": "Account",
   "storage.warning": "Storage is {percent}% full.",
   "storage.full": "Storage is full.",
@@ -322,7 +320,6 @@ export const en = {
   "notes.restricted": "Restricted. Your role cannot read this note.",
   "notes.restrictedCount.one": "{count} note restricted",
   "notes.restrictedCount.other": "{count} notes restricted",
-  "notes.restricted.body": "The {role} role can see that these notes exist, who wrote them, and when. It cannot read them. The body is encrypted with a key the database never holds, and the field is absent from the response rather than blank.",
 
   // The person form
   "personForm.addTitle": "Add someone",

@@ -214,9 +214,7 @@ export default async function PersonPage({
         <Separator className="my-4" />
 
         {restricted > 0 ? (
-          <Banner tone="info" title={plural("notes.restrictedCount", restricted)} className="mb-4">
-            {t("notes.restricted.body", { role: t(`role.${session.role}`) })}
-          </Banner>
+          <Banner tone="info" title={plural("notes.restrictedCount", restricted)} className="mb-4" />
         ) : null}
 
         <ul className="flex flex-col gap-3">
