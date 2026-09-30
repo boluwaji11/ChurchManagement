@@ -164,7 +164,6 @@ export const en = {
   "church.timezone": "Timezone",
   "church.chooseTimezone": "Search for a timezone",
   "church.noTimezone": "No timezone by that name",
-  "church.brandHue": "Colour",
   "church.slug": "Web address",
   "church.saved": "Saved.",
   "church.services": "Service times",

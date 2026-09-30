@@ -47,7 +47,6 @@ export async function saveChurch(data: FormData): Promise<SettingsResult> {
         country: text(data, "country") || "US",
         phone: text(data, "phone"),
         website: text(data, "website"),
-        brandHue: text(data, "brandHue") || undefined,
       }),
     );
   } catch (error) {

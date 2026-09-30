@@ -3,8 +3,8 @@
 import * as React from "react";
 import { Plus, X } from "lucide-react";
 import {
-  Banner, Button, Card, CardTitle, Combobox, Field, Input, Separator, HueDot,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, ALL_HUES, type Hue,
+  Banner, Button, Card, CardTitle, Combobox, Field, Input, Separator,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { saveChurch, addService, removeService } from "./actions";
@@ -57,7 +57,6 @@ export function ChurchForm({
   canEdit: boolean;
 }) {
   const [timezone, setTimezone] = React.useState(values.timezone);
-  const [hue, setHue] = React.useState(values.brandHue);
   const [day, setDay] = React.useState("0");
   const [error, setError] = React.useState<string>();
   const [saved, setSaved] = React.useState(false);
@@ -68,7 +67,6 @@ export function ChurchForm({
   const save = (data: FormData) => {
     data.set("church", values.slug);
     data.set("timezone", timezone);
-    data.set("brandHue", hue);
     startTransition(async () => {
       const result = await saveChurch(data);
       setError(result.error);
@@ -148,23 +146,6 @@ export function ChurchForm({
                 clearLabel={t("action.cancel")}
                 disabled={!canEdit}
               />
-            </Field>
-
-            <Field label={t("church.brandHue")}>
-              <Select value={hue} onValueChange={setHue} disabled={!canEdit}>
-                <SelectTrigger aria-label={t("church.brandHue")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ALL_HUES.map((h) => (
-                    <SelectItem key={h} value={h}>
-                      <span className="flex items-center gap-2">
-                        <HueDot hue={h as Hue} /> {h}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </Field>
           </div>
 

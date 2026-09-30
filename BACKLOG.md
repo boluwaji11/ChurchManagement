@@ -73,6 +73,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | New |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Resolved |
+| HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Resolved |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Resolved |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -301,7 +302,9 @@ A Settings link appears in the header for Owner and Admin.
 4. **Roles.** Owner and Admin. Staff edit people and do not rename the church. The link is hidden
    for everyone else, and the write is refused even if the URL is typed in.
 
-The logo is the one part of R1.1 left out. It needs file storage, which is HRT-18.
+Two parts of R1.1 are left out. The logo needs file storage (HRT-18). The brand colour is stored
+but no screen reads it, so the picker is off the settings page until one does (HRT-43). Putting it
+back is one component and one line.
 
 ### HRT-42, how to test it
 
