@@ -5,13 +5,26 @@ import { SignOutButton } from "./sign-out-button";
 import { Logo } from "./brand";
 import { t } from "@hearth/i18n";
 import { canManageChurch } from "@hearth/db";
+import { churchLogoUrl } from "@/lib/church-logo";
 import type { Session } from "@/lib/session";
 
 /**
  * The role shown here comes from tenant_members, not from anything the browser
  * sent. It is the same value the data layer used to answer the request.
  */
-export function AppHeader({ session }: { session: Session }) {
+export async function AppHeader({ session }: { session: Session }) {
+  const logo = await churchLogoUrl(session.tenantId, session.role);
+
+  const mark = logo ? (
+    <img
+      src={logo}
+      alt=""
+      className="size-5 shrink-0 rounded-sm object-contain"
+    />
+  ) : (
+    <Church className="size-4 text-fg-muted" aria-hidden />
+  );
+
   return (
     <header className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -23,13 +36,13 @@ export function AppHeader({ session }: { session: Session }) {
               href="/choose-church"
               className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-label text-fg hover:bg-sunken"
             >
-              <Church className="size-4 text-fg-muted" aria-hidden />
+              {mark}
               {session.tenantName}
               <ChevronDown className="size-3.5 text-fg-subtle" aria-hidden />
             </Link>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-2 py-1 text-label text-fg">
-              <Church className="size-4 text-fg-muted" aria-hidden />
+              {mark}
               {session.tenantName}
             </span>
           )}

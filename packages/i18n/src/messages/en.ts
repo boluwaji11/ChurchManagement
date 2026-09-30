@@ -164,6 +164,7 @@ export const en = {
   "church.logo.upload": "Choose an image",
   "church.logo.remove": "Remove",
   "church.logo.alt": "{church} logo",
+  "church.logo.view": "See the logo",
   "account.email": "Email",
   "account.role": "Role",
   "session.title": "Signed in on",

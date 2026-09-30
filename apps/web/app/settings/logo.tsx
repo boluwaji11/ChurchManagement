@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, X } from "lucide-react";
-import { Banner, Button } from "@hearth/ui";
+import { Banner, Button, Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearLogo } from "./actions";
 
@@ -75,11 +75,28 @@ export function LogoAndStorage({
 
       <div className="flex flex-wrap items-center gap-4">
         {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={t("church.logo.alt", { church: churchName })}
-            className="h-16 w-auto max-w-48 rounded-md border border-line bg-canvas object-contain p-1"
-          />
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                aria-label={t("church.logo.view")}
+                className="rounded-md border border-line bg-canvas p-1 hover:border-fg-subtle"
+              >
+                <img
+                  src={logoUrl}
+                  alt={t("church.logo.alt", { church: churchName })}
+                  className="h-16 w-auto max-w-48 object-contain"
+                />
+              </button>
+            </DialogTrigger>
+            <DialogContent title={t("church.logo")} closeLabel={t("common.close")}>
+              <img
+                src={logoUrl}
+                alt={t("church.logo.alt", { church: churchName })}
+                className="max-h-[70vh] w-full rounded-md bg-canvas object-contain"
+              />
+            </DialogContent>
+          </Dialog>
         ) : (
           <div className="flex h-16 w-24 items-center justify-center rounded-md border border-dashed border-line-strong text-fg-subtle">
             <ImagePlus className="size-5" aria-hidden />
