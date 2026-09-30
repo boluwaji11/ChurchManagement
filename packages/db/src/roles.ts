@@ -60,4 +60,5 @@ export class PermissionError extends Error {
 export type PermissionAction =
   | "addPerson" | "editPerson" | "archivePerson" | "restorePerson"
   | "createTag" | "renameTag" | "recolourTag" | "deleteTag" | "mergeTags" | "tagPerson"
-  | "addField" | "editField" | "deleteField" | "setFieldValue";
+  | "addField" | "editField" | "deleteField" | "setFieldValue"
+  | "rollbackImport";

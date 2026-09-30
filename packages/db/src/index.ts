@@ -45,5 +45,9 @@ export {
 export {
   plan, commit, type Plan, type PlannedRow, type DuplicateStrategy, type CommitResult,
 } from "./import/run";
+export {
+  listImports, rollbackImport, ROLLBACK_WINDOW_DAYS,
+  type BatchSummary, type RollbackResult,
+} from "./import/rollback";
 export { withAuditTriggersOff, deleteTenants, deleteTenantsLike } from "./maintenance";
 export { loadEnv } from "./env";

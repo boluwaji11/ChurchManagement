@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, readImportFile, guessMapping, listCustomFields, PERSON_FIELDS,
-  plan, commit, canEditPeople,
+  plan, commit, rollbackImport, canEditPeople,
   type DuplicateStrategy, type PlannedRow, type Sheet,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -191,6 +191,42 @@ export async function runImport(input: {
 
     revalidatePath("/people");
     return { created: result.created, updated: result.updated, skipped: result.skipped, failed: result.failed };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface RollbackOutcome {
+  error?: string;
+  removed?: number;
+  restored?: number;
+  archived?: number;
+}
+
+/** R19.4. Undoes a completed import, as one operation. */
+export async function undoImport(data: FormData): Promise<RollbackOutcome> {
+  const slug = String(data.get("church") ?? "") || undefined;
+  const batchId = String(data.get("batchId") ?? "");
+  if (!batchId) return { error: t("error.notFound.import") };
+
+  const session = await requireSession(slug);
+  const h = await headers();
+  const forwarded = h.get("x-forwarded-for");
+
+  try {
+    const result = await withTenant(
+      {
+        tenantId: session.tenantId,
+        role: session.role,
+        userId: session.userId,
+        ip: forwarded?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? undefined,
+      },
+      (tx) => rollbackImport(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId }, batchId),
+    );
+
+    revalidatePath("/people");
+    revalidatePath("/import");
+    return result;
   } catch (error) {
     return { error: explain(error) };
   }
