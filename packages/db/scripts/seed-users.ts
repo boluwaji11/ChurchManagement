@@ -15,6 +15,19 @@ import { required } from "../src/env";
 
 const INSTANCE = "00000000-0000-0000-0000-000000000000";
 
+/**
+ * An account that belongs to no church, for testing the way in.
+ *
+ * Every other seeded account is already an owner or an admin somewhere, so none
+ * of them can reach the "start a church" path. The id is fixed rather than
+ * random so re-seeding produces the same person rather than a new one each time.
+ */
+const NEWCOMER = {
+  id: "11111111-2222-4333-8444-555555555555",
+  email: "founder@newchurch.example.org",
+  fullName: "No Church Yet",
+};
+
 async function main() {
   const sql = owner();
   const password = required("SEED_USER_PASSWORD");
@@ -26,20 +39,27 @@ async function main() {
   // fails in ways that are very hard to read from the outside.
   await sql`
     delete from auth.users
-    where email like ${"%@riverside.example.org"} or email like ${"%@northgate.example.org"}`;
+    where email like ${"%@riverside.example.org"}
+       or email like ${"%@northgate.example.org"}
+       or email = ${NEWCOMER.email}`;
 
-  const members = await sql<{ email: string; full_name: string | null; tenant: string; role: string }[]>`
-    select u.email, u.full_name, t.name as tenant, m.role::text as role
+  const rows = await sql<{ id: string; email: string; full_name: string | null; tenant: string; role: string }[]>`
+    select u.id, u.email, u.full_name, t.name as tenant, m.role::text as role
     from app_users u
     join tenant_members m on m.user_id = u.id
     join tenants t on t.id = m.tenant_id
     where u.email like ${"%@riverside.example.org"} or u.email like ${"%@northgate.example.org"}
     order by t.name, m.role`;
 
+  // No app_users row for the newcomer. They get one the first time they sign in,
+  // which is exactly what a real new account does.
+  const members = [
+    ...rows,
+    { id: NEWCOMER.id, email: NEWCOMER.email, full_name: NEWCOMER.fullName, tenant: "No church", role: "none" },
+  ];
+
   for (const m of members) {
-    // Reuse the app_users id so the mirror and the auth user stay the same person.
-    const [existing] = await sql<{ id: string }[]>`select id from app_users where email = ${m.email}`;
-    if (!existing) continue;
+    const existing = { id: m.id };
 
     // The token columns must be empty strings, not null. GoTrue scans them into
     // Go strings, and a null there fails the whole query with the unhelpful
