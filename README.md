@@ -1,6 +1,8 @@
 # Hearth
 
-**Church management software a volunteer can run.**
+[![CI](https://github.com/boluwaji11/ChurchManagement/actions/workflows/ci.yml/badge.svg)](https://github.com/boluwaji11/ChurchManagement/actions/workflows/ci.yml)
+
+**Church management software.**
 
 Hearth is a complete church management platform for small churches, given to them at no cost. Every
 feature, every church, every time. No modules, no tiers, no upsell.

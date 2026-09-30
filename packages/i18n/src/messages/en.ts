@@ -33,7 +33,7 @@ export const en = {
   "action.manage": "Manage",
 
   // Landing
-  "home.tagline": "Church management software a volunteer can run.",
+  "home.tagline": "Church management software.",
   "home.signIn": "Sign in",
 
   // Sign in

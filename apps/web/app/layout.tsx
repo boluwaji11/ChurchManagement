@@ -15,7 +15,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", 
 
 export const metadata: Metadata = {
   title: "Hearth",
-  description: "Church management software a volunteer can run.",
+  description: "Church management software.",
 };
 
 export const viewport: Viewport = {
