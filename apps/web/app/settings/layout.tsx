@@ -1,4 +1,4 @@
-import { canManageChurch, canManageCustomFields, canEditPeople } from "@hearth/db";
+import { canManageChurch, canManageCustomFields, canEditPeople, canManageRooms } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { Avatar } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
@@ -22,6 +22,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     { href: "/settings/security", label: t("settings.tab.security") },
     ...(canManageChurch(session.role)
       ? [{ href: "/settings/church", label: t("settings.tab.church") }]
+      : []),
+    ...(canManageRooms(session.role)
+      ? [{ href: "/settings/rooms", label: t("settings.tab.rooms") }]
       : []),
     ...(canEditPeople(session.role)
       ? [{ href: "/settings/tags", label: t("settings.tab.tags") }]

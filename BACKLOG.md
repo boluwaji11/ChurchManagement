@@ -149,7 +149,7 @@ starting any story below. They are the definition of done, ahead of anything the
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | New |
+| HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Resolved |
 | HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | New |
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | New |
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | New |
@@ -216,8 +216,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views |
-| **Next** | **HRT-54** rooms, the first check-in story, then HRT-55 stations. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views, **HRT-54** rooms |
+| **Next** | **HRT-55** stations and their four modes, then HRT-56 family lookup. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -619,3 +619,23 @@ Services, with a month showing.
 7. **The month and the year.** Press "September 2026" in the calendar header. A grid of months
    appears in the same panel, and pressing the year again gives twelve years at a time. Nothing
    opens an operating system menu, and nothing leaves the window.
+
+### HRT-54, how to test it
+
+Settings, then Rooms. Owner or Admin only.
+
+1. **Create one.** Nursery, birth to 2 years, holds 12, one volunteer per 4. The age boxes take
+   months or years, so a nursery can be written in months and a kids room in years.
+2. **What it refuses.** An oldest age below the youngest. A capacity of zero. A second room called
+   "nursery" when "Nursery" exists.
+3. **What it allows.** A room with no ages, no capacity and no ratio. A church that has not decided
+   is not made to.
+4. **The colour.** It prints on the child's label and the guardian's, so a volunteer can send a
+   parent to the right door by colour. Pick one per room and keep them apart.
+5. **Order.** Move a room up and down. The station shows them in this order.
+6. **Archive.** The room leaves the list and comes back with Restore. Nothing that points at it
+   moves.
+
+The suggestion itself has no screen yet, because there is no station yet. It is covered by tests:
+inclusive at the youngest age, exclusive at the oldest, so 0 to 24 months and 24 to 48 months tile
+with no month belonging to both rooms or to neither, and an overlap goes to the narrower room.

@@ -8,3 +8,4 @@ export * from "./imports";
 export * from "./merges";
 export * from "./audit";
 export * from "./gatherings";
+export * from "./checkin";
