@@ -34,6 +34,21 @@ export function AppHeader({ session }: { session: Session }) {
           )}
         </div>
 
+        <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label="Sections">
+          {[
+            ["Directory", "/people"],
+            ["Tags", "/tags"],
+          ].map(([label, href]) => (
+            <Link
+              key={href}
+              href={`${href}?church=${session.tenantSlug}`}
+              className="rounded-md px-2.5 py-1 text-label text-fg-muted hover:bg-sunken hover:text-fg"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
         <div className="flex items-center gap-3">
           <Badge tone="neutral">{session.role.replace(/_/g, " ")}</Badge>
           <span className="hidden items-center gap-2 sm:flex">

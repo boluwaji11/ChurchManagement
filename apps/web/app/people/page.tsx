@@ -64,11 +64,7 @@ export default async function PeoplePage({
         ) : null}
       </div>
 
-      {archived ? (
-        <Banner tone="success" title="Archived" className="mb-8">
-          They are out of every list. Open them from the archived view to put them back.
-        </Banner>
-      ) : null}
+      {archived ? <Banner tone="success" title="Archived" className="mb-8" /> : null}
 
       {session.role === "staff" || session.role === "member" ? (
         <Banner tone="info" title="Some things are hidden from your role" className="mb-8">
@@ -160,7 +156,17 @@ export default async function PeoplePage({
       </Section>
 
       {tags.length > 0 ? (
-        <Section title="Tags" note="Every tag owns a hue, so a list of them is scannable rather than a wall of text.">
+        <Section
+          title="Tags"
+          action={
+            <Link
+              href={`/tags?church=${session.tenantSlug}`}
+              className="text-label text-fg-muted hover:text-fg"
+            >
+              Manage
+            </Link>
+          }
+        >
           <div className="flex flex-wrap gap-2">
             {tags.map((t) => (
               <HueTag key={t.id} hue={t.hue}>{t.name}</HueTag>

@@ -75,7 +75,9 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-15 | Church profile settings: name, address, timezone, service times, logo | R1.1 | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | New |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | New |
-| HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | New |
+| HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Resolved |
+| HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
+| HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Resolved |
 | HRT-18 | Storage quota display with a warning at 80% | R1.16 | New |
 
 ### F2. People
@@ -138,8 +140,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-21**, add, edit and archive a person. **HRT-33**, US names in the seed data. |
-| **Next** | HRT-17 tags, then HRT-16 custom fields, then HRT-32 create a church, then HRT-28 import |
+| **Waiting on a test** | **HRT-21** people writes, **HRT-17** tags, **HRT-35** audit coverage, **HRT-33** US seed names |
+| **Next** | HRT-16 custom fields, then HRT-32 create a church, then HRT-28 import |
 
 ### HRT-21, how to test it
 
@@ -160,3 +162,20 @@ Sign in as `pastor@riverside.example.org` and open the directory.
    edit but not archive.
 6. **The audit log.** Every change above is in `audit_entries` with your user id, your role, your
    IP, and the before and after values.
+
+### HRT-17, how to test it
+
+"Tags" is now in the header, next to Directory.
+
+1. **Make one.** Add a tag. Add a second one called the same thing in different capitals: refused.
+   Each new tag gets a different colour, drawn from the least-used one.
+2. **Edit one.** Press Edit. Rename, recolour, merge and delete are all in that one dialog. Delete
+   confirms in place rather than opening a second dialog, and it tells you how many people lose the
+   tag.
+3. **Merge.** Tag two people with "Greeters", tag one of them with "Greeting" as well, then merge
+   Greeters into Greeting. Both people end up with Greeting, the one who had both does not end up
+   with a duplicate, and Greeters is gone.
+4. **Tag a person.** Open anyone. Every tag is a chip, one press to apply or remove, saved
+   immediately. "New tag" creates and applies in one step. Past eight tags a filter box appears.
+5. **Roles.** `staff` can create and apply tags but cannot rename, recolour, merge or delete.
+   `pastoral` and `member` can see tags and change nothing.

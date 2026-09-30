@@ -13,6 +13,11 @@ export {
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
 } from "./repo/people";
+export {
+  listTagsWithCounts, createTag, renameTag, setTagHue, deleteTag, mergeTags, setPersonTag,
+  canManageTags, CAN_MANAGE_TAGS, NameTakenError, normaliseTagName, TAG_HUES,
+  type TagRow, type TagHue,
+} from "./repo/tags";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,

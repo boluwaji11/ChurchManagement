@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Lock, FileText, Pencil, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Lock, FileText, Pencil } from "lucide-react";
 import {
   withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson,
-  canEditPeople, canArchivePeople,
+  listTagsWithCounts, canEditPeople, canArchivePeople,
 } from "@hearth/db";
-import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner, HueTag } from "@hearth/ui";
+import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { ArchiveButton } from "../archive-button";
+import { TagEditor } from "../tag-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +32,14 @@ export default async function PersonPage({
       notes: await listNotesForPerson(tx, id, session.role, { tenantId: session.tenantId }),
       tags: await listTagsForPerson(tx, id),
       contact: await getPersonForEdit(tx, id),
+      allTags: await listTagsWithCounts(tx),
     };
   });
 
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, notes, tags, contact } = result;
+  const { person, notes, tags, contact, allTags } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
 
@@ -58,26 +60,13 @@ export default async function PersonPage({
           <h1 className="font-display text-display text-fg">{display}</h1>
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="primary">{person.lifecycleStatus.replace(/_/g, " ")}</Badge>
-            {tags.map((t) => (
-              <HueTag key={t.id} hue={t.hue}>{t.name}</HueTag>
-            ))}
           </div>
         </div>
       </div>
 
-      {saved ? (
-        <Banner tone="success" title="Saved" className="mb-6">
-          <span className="inline-flex items-center gap-1.5">
-            <CheckCircle2 className="size-4" /> The change is recorded in the audit log with your name on it.
-          </span>
-        </Banner>
-      ) : null}
+      {saved ? <Banner tone="success" title="Saved" className="mb-6" /> : null}
 
-      {restored ? (
-        <Banner tone="success" title="Restored" className="mb-6">
-          {display} is back in the directory and in every list.
-        </Banner>
-      ) : null}
+      {restored ? <Banner tone="success" title="Restored" className="mb-6" /> : null}
 
       {person.archivedAt ? (
         <Banner tone="warning" title="Archived" className="mb-6">
@@ -129,6 +118,18 @@ export default async function PersonPage({
             </div>
           ))}
         </dl>
+      </Card>
+
+      <Card className="mb-6">
+        <CardTitle>Tags</CardTitle>
+        <Separator className="my-4" />
+        <TagEditor
+          church={session.tenantSlug}
+          personId={person.id}
+          all={allTags.map((t) => ({ id: t.id, name: t.name, hue: t.hue }))}
+          assigned={tags.map((t) => t.id)}
+          canEdit={canEditPeople(session.role)}
+        />
       </Card>
 
       <Card>
