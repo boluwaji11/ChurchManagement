@@ -72,23 +72,56 @@ async function assertRecordable(db: Tx, occurrenceId: string): Promise<string> {
 }
 
 /**
- * R2.1 and R7.5. Fills a visitor's first visit date from the service they were
- * marked at.
+ * R2.1 and R7.5. Keeps a person's first visit date in step with the attendance
+ * record, in both directions.
  *
- * Only for somebody the church has recorded as a visitor, and only when the
- * date is blank. A member ticked on the first Sunday a church uses Hearth did
- * not first visit that Sunday; they have been coming for years and the record
- * simply starts here. Writing today's date on them would be a lie the product
- * told itself and then reported back.
+ * Set from the earliest service the church has them at, rather than from the
+ * service being edited, so back-filling last February puts February on the
+ * record and not today. A date somebody typed is left alone: the church knows
+ * something the attendance record does not.
+ *
+ * Taking a mark off runs the same calculation, so a tick in the wrong row does
+ * not leave a first visit behind it. Where nothing is left, the date goes back
+ * to blank.
+ *
+ * It fills for everyone rather than for visitors only. What it writes is the
+ * earliest attendance the church holds, which for a member whose record starts
+ * this year is the earliest attendance the church holds. The lists of who is
+ * new read lifecycle status as well as this date, so a member never appears
+ * among them.
  */
-async function fillFirstVisit(db: Tx, personIds: string[], occursOn: string): Promise<void> {
+async function syncFirstVisit(db: Tx, personIds: string[]): Promise<void> {
   if (personIds.length === 0) return;
+  const ids = sql.raw(`array[${personIds.map((id) => `'${id}'`).join(",")}]::uuid[]`);
+
   await db.execute(sql`
-    update people
-       set first_visit_on = ${occursOn}, updated_at = now()
-     where id = any(${sql.raw(`array[${personIds.map((id) => `'${id}'`).join(",")}]::uuid[]`)})
-       and first_visit_on is null
-       and lifecycle_status = 'visitor'
+    update people p
+       set first_visit_on = seen.first_on, updated_at = now()
+      from (
+        select ar.person_id,
+               min(o.occurs_on) as first_on
+          from attendance_records ar
+          join service_occurrences o on o.id = ar.occurrence_id
+         where ar.person_id = any(${ids})
+           and o.status = 'scheduled'
+         group by ar.person_id
+      ) seen
+     where p.id = seen.person_id
+       and (p.first_visit_on is null or p.first_visit_on > seen.first_on)
+  `);
+
+  // Nobody left at any service, so the date this produced goes with it.
+  await db.execute(sql`
+    update people p
+       set first_visit_on = null, updated_at = now()
+     where p.id = any(${ids})
+       and p.first_visit_on is not null
+       and not exists (
+         select 1
+           from attendance_records ar
+           join service_occurrences o on o.id = ar.occurrence_id
+          where ar.person_id = p.id and o.status = 'scheduled'
+       )
   `);
 }
 
@@ -106,14 +139,13 @@ export async function setPresent(
   present: boolean,
 ): Promise<{ present: boolean }> {
   if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
-  const occursOn = await assertRecordable(db, occurrenceId);
+  await assertRecordable(db, occurrenceId);
 
   if (present) {
     await db
       .insert(attendanceRecords)
       .values({ tenantId: actor.tenantId, occurrenceId, personId, source: "roster" })
       .onConflictDoNothing();
-    await fillFirstVisit(db, [personId], occursOn);
   } else {
     await db
       .delete(attendanceRecords)
@@ -123,6 +155,7 @@ export async function setPresent(
       ));
   }
 
+  await syncFirstVisit(db, [personId]);
   return { present };
 }
 
@@ -136,10 +169,9 @@ export async function setPresentMany(
 ): Promise<{ changed: number }> {
   if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
   if (personIds.length === 0) return { changed: 0 };
-  const occursOn = await assertRecordable(db, occurrenceId);
+  await assertRecordable(db, occurrenceId);
 
   if (present) {
-    await fillFirstVisit(db, personIds, occursOn);
     const written = await db
       .insert(attendanceRecords)
       .values(personIds.map((personId) => ({
@@ -147,6 +179,7 @@ export async function setPresentMany(
       })))
       .onConflictDoNothing()
       .returning({ id: attendanceRecords.id });
+    await syncFirstVisit(db, personIds);
     return { changed: written.length };
   }
 
@@ -158,6 +191,7 @@ export async function setPresentMany(
     ))
     .returning({ id: attendanceRecords.id });
 
+  await syncFirstVisit(db, personIds);
   return { changed: gone.length };
 }
 

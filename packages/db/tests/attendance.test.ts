@@ -287,7 +287,7 @@ describe("absence (R7.6)", () => {
 });
 
 describe("the first visit date", () => {
-  it("is filled from the service a visitor is marked at, and only for a visitor", async () => {
+  it("is filled from the service anybody is marked at", async () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
     await owner()`
       update people set first_visit_on = null, lifecycle_status = 'visitor'
@@ -308,10 +308,47 @@ describe("the first visit date", () => {
     const visitor = after.find((r) => r.id === ids["Abigail"]);
     const member = after.find((r) => r.id === ids["Benjamin"]);
 
+    // Whoever is ticked, and whatever their status. A blank field beside a
+    // person the church has at four services says less than the date of the
+    // first of them.
     expect(visitor!.first_visit_on).toBe(first.occursOn);
-    // A member ticked on the first Sunday a church uses Hearth did not first
-    // visit that Sunday. The record began there. They did not.
-    expect(member!.first_visit_on).toBeNull();
+    expect(member!.first_visit_on).toBe(first.occursOn);
+  });
+
+  it("moves back when an earlier service is filled in afterwards", async () => {
+    await owner()`delete from attendance_records where tenant_id = ${tenant}`;
+    await owner()`update people set first_visit_on = null where id = ${ids["Abigail"]!}`;
+
+    const rows = await run((tx) => listOccurrences(tx));
+    const recent = rows[0]!;
+    const earliest = rows[rows.length - 1]!;
+
+    await run((tx) => setPresent(tx, as(), recent.id, ids["Abigail"]!, true));
+    const [afterRecent] = await owner()<{ first_visit_on: string }[]>`
+      select first_visit_on::text from people where id = ${ids["Abigail"]!}`;
+    expect(afterRecent!.first_visit_on).toBe(recent.occursOn);
+
+    // A church back-filling last February gets February, rather than the day
+    // it happened to type it in.
+    await run((tx) => setPresent(tx, as(), earliest.id, ids["Abigail"]!, true));
+    const [afterEarlier] = await owner()<{ first_visit_on: string }[]>`
+      select first_visit_on::text from people where id = ${ids["Abigail"]!}`;
+    expect(afterEarlier!.first_visit_on).toBe(earliest.occursOn);
+  });
+
+  it("goes back to blank when the last mark is taken off", async () => {
+    await owner()`delete from attendance_records where tenant_id = ${tenant}`;
+    await owner()`update people set first_visit_on = null where id = ${ids["Benjamin"]!}`;
+
+    const rows = await run((tx) => listOccurrences(tx));
+    const one = rows[0]!;
+
+    await run((tx) => setPresent(tx, as(), one.id, ids["Benjamin"]!, true));
+    await run((tx) => setPresent(tx, as(), one.id, ids["Benjamin"]!, false));
+
+    const [after] = await owner()<{ first_visit_on: string | null }[]>`
+      select first_visit_on::text from people where id = ${ids["Benjamin"]!}`;
+    expect(after!.first_visit_on).toBeNull();
   });
 
   it("never overwrites a date the church already recorded", async () => {
