@@ -1,0 +1,26 @@
+{
+  "$comment": "One system, three densities. Office is a desk. Station is a Sunday kiosk. Portal is a phone. A component is written once and resolves these at runtime.",
+  "modes": {
+    "office": {
+      "$use": "Maria at a desk on a Tuesday. Dense, keyboard-first, calm.",
+      "text-body": "0.875rem", "leading-body": "1.25rem",
+      "tap": "2rem", "tap-touch": "2.75rem", "row-h": "2.25rem",
+      "gutter": "1rem", "pad-card": "1rem", "pad-control-x": "0.75rem",
+      "icon": "1.25rem", "radius-control": "10px", "content-max": "90rem"
+    },
+    "station": {
+      "$use": "Ruth at check-in, Sunday 09:58, forty families queuing. Unmissable, fast, zero ambiguity.",
+      "text-body": "1.25rem", "leading-body": "1.75rem",
+      "tap": "3.5rem", "tap-touch": "3.5rem", "row-h": "4.5rem",
+      "gutter": "2rem", "pad-card": "1.5rem", "pad-control-x": "1.5rem",
+      "icon": "2rem", "radius-control": "14px", "content-max": "45rem"
+    },
+    "portal": {
+      "$use": "A member on a phone for four minutes a week. Warm, simple, app-like.",
+      "text-body": "1rem", "leading-body": "1.5rem",
+      "tap": "2.75rem", "tap-touch": "2.75rem", "row-h": "3.5rem",
+      "gutter": "1rem", "pad-card": "1.25rem", "pad-control-x": "1rem",
+      "icon": "1.5rem", "radius-control": "12px", "content-max": "35rem"
+    }
+  }
+}

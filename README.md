@@ -115,6 +115,27 @@ row-level security as the tenant isolation boundary. Drizzle, Tailwind CSS v4, s
 Lucide icons, Motion. Stripe Connect at a zero platform fee. A PWA for members now, native later.
 Phase 2's presenter is Electron sharing the song library code with the web app.
 
+## Running it
+
+Nothing but the design system exists yet, and that is the point: it is the only thing reviewable
+before any feature is built, and three density modes cannot be retrofitted onto finished screens.
+
+```bash
+pnpm install
+pnpm dev          # then open http://localhost:3000/design
+```
+
+No database, no keys, no accounts. Supabase arrives with the next step.
+
+```
+apps/web              Next.js app. The /design gallery lives here.
+packages/ui           Design tokens, components, the token generator.
+packages/ui/tokens    Platform-neutral token source. Web CSS is generated from it.
+```
+
+`pnpm tokens` regenerates `packages/ui/src/tokens.css` from the JSON in `packages/ui/tokens`. Colours,
+type sizes, and motion durations are edited there and nowhere else.
+
 ## Documentation
 
 | | |
@@ -125,7 +146,7 @@ Phase 2's presenter is Electron sharing the song library code with the web app.
 | [docs/data-model.md](docs/data-model.md) | Entities, and the song schema in full |
 | [docs/design-system.md](docs/design-system.md) | Tokens, colour, type, motion, components, station rules |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to help |
-| [CLAUDE.md](CLAUDE.md) | Instructions for AI coding agents in this repo |
+| [docs/engineering-guidelines.md](docs/engineering-guidelines.md) | Decisions, constraints, and rules for every change |
 
 ## Licence
 

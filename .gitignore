@@ -41,6 +41,9 @@ apps/stage/out/
 npm-debug.log*
 pnpm-debug.log*
 
+# Local agent instructions, not part of the public repo
+CLAUDE.md
+
 # Editors
 .vscode/*
 !.vscode/extensions.json

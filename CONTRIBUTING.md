@@ -9,8 +9,8 @@ Hearth is free church management software, funded by donations and licensed
 ## Start here
 
 Read [PRD.md](PRD.md). It is the full specification: 23 domains, numbered requirements, acceptance
-criteria. Then read [CLAUDE.md](CLAUDE.md), which is the short version of how this project makes
-decisions, and applies to humans as much as to coding agents.
+criteria. Then read [docs/engineering-guidelines.md](docs/engineering-guidelines.md), the short
+version of how this project makes decisions and the rules that apply to every change.
 
 Requirement IDs (`R8.6`, `R12.4`, `S2`) are the shared vocabulary. Use them in issues, branches, and
 commits.
