@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql, count } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql, count, type SQL } from "drizzle-orm";
 import type { Tx } from "../client";
 import { people, households, householdMemberships, contactMethods, tags, personTags } from "../schema/people";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
@@ -22,7 +22,93 @@ export interface PersonRow {
  * security supplies it from the transaction's app.tenant_id, so forgetting one
  * returns nothing rather than returning another church's members.
  */
-export async function listPeople(db: Tx, opts: { includeArchived?: boolean } = {}): Promise<PersonRow[]> {
+/** How a directory query can be narrowed and ordered. */
+export interface DirectoryQuery {
+  includeArchived?: boolean;
+  /** Matches a name, an email, or a phone number. */
+  q?: string;
+  status?: string;
+  tagId?: string;
+  /** "any" means no filter. */
+  has?: "email" | "phone" | "noEmail" | "noPhone";
+  sort?: "name" | "firstName" | "household" | "status" | "added";
+  dir?: "asc" | "desc";
+  /** Restricts to a set of ids, for acting on a selection. */
+  ids?: string[];
+}
+
+const ORDERS = {
+  name: [people.lastName, people.firstName],
+  firstName: [people.firstName, people.lastName],
+  household: [households.name, people.lastName],
+  status: [people.lifecycleStatus, people.lastName],
+  added: [people.createdAt],
+} as const;
+
+/**
+ * The directory query.
+ *
+ * No tenant filter appears here on purpose: row-level security supplies it from
+ * the transaction's app.tenant_id, so forgetting one returns nothing rather than
+ * returning another church's members.
+ *
+ * Searching, filtering and ordering happen in Postgres rather than in the page,
+ * so the answer is the same whether a church has fifty people or five thousand,
+ * and so a filtered export exports what the filter says rather than what one
+ * page of it said.
+ */
+export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<PersonRow[]> {
+  const where: (SQL | undefined)[] = [];
+
+  if (!opts.includeArchived) where.push(isNull(people.archivedAt));
+
+  const q = (opts.q ?? "").trim();
+  if (q) {
+    // One box, because a volunteer types what they remember and does not know
+    // which field it was. Digits are matched against phone numbers with their
+    // punctuation stripped, so "5550148" finds "(512) 555-0148".
+    const like = `%${q.toLowerCase()}%`;
+    const digits = q.replace(/\D/g, "");
+    where.push(sql`(
+      lower(${people.firstName}) like ${like}
+      or lower(${people.lastName}) like ${like}
+      or lower(coalesce(${people.preferredName}, '')) like ${like}
+      or lower(${people.firstName} || ' ' || ${people.lastName}) like ${like}
+      or exists (
+        select 1 from contact_methods cm
+        where cm.person_id = ${people.id}
+          and (
+            lower(cm.value) like ${like}
+            ${digits.length >= 3 ? sql`or regexp_replace(cm.value, '[^0-9]', '', 'g') like ${`%${digits}%`}` : sql``}
+          )
+      )
+    )`);
+  }
+
+  if (opts.status) where.push(eq(people.lifecycleStatus, opts.status as never));
+
+  if (opts.tagId) {
+    where.push(sql`exists (
+      select 1 from person_tags pt where pt.person_id = ${people.id} and pt.tag_id = ${opts.tagId}::uuid
+    )`);
+  }
+
+  if (opts.has) {
+    const kind = opts.has === "email" || opts.has === "noEmail" ? "email" : "phone";
+    const present = sql`exists (
+      select 1 from contact_methods cm where cm.person_id = ${people.id} and cm.kind = ${kind}
+    )`;
+    where.push(opts.has.startsWith("no") ? sql`not ${present}` : present);
+  }
+
+  if (opts.ids) {
+    if (opts.ids.length === 0) return [];
+    where.push(inArray(people.id, opts.ids));
+  }
+
+  const columns = ORDERS[opts.sort ?? "name"] ?? ORDERS.name;
+  const direction = opts.dir === "desc" ? desc : asc;
+
   const rows = await db
     .select({
       id: people.id,
@@ -50,8 +136,8 @@ export async function listPeople(db: Tx, opts: { includeArchived?: boolean } = {
       and(eq(householdMemberships.personId, people.id), isNull(householdMemberships.endedOn)),
     )
     .leftJoin(households, eq(households.id, householdMemberships.householdId))
-    .where(opts.includeArchived ? undefined : isNull(people.archivedAt))
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .where(where.length > 0 ? and(...where) : undefined)
+    .orderBy(...columns.map((c) => direction(c)));
 
   return rows.map((r) => ({
     ...r,
@@ -389,4 +475,54 @@ export async function listHouseholds(db: Tx): Promise<{ id: string; name: string
     .from(households)
     .where(isNull(households.archivedAt))
     .orderBy(asc(households.name));
+}
+
+/**
+ * R2.12. Acting on a selection.
+ *
+ * Every one of these takes explicit ids rather than a filter. A bulk action
+ * driven by "whatever the filter matched" does something different from what the
+ * person was looking at the moment anything changes underneath them, and the
+ * thing they were looking at is the thing they meant.
+ *
+ * The count of rows actually changed is returned, not the count asked for. An id
+ * belonging to another church updates nothing, and the caller is told the truth
+ * about that rather than a number that flatters it.
+ */
+export async function bulkSetArchived(
+  db: Tx,
+  actor: WriteActor,
+  ids: string[],
+  archived: boolean,
+): Promise<number> {
+  if (!canArchivePeople(actor.role)) {
+    throw new PermissionError(actor.role, archived ? "archivePerson" : "restorePerson");
+  }
+  if (ids.length === 0) return 0;
+
+  const changed = await db
+    .update(people)
+    .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
+    .where(inArray(people.id, ids))
+    .returning({ id: people.id });
+
+  return changed.length;
+}
+
+export async function bulkSetStatus(
+  db: Tx,
+  actor: WriteActor,
+  ids: string[],
+  status: LifecycleStatus,
+): Promise<number> {
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (ids.length === 0) return 0;
+
+  const changed = await db
+    .update(people)
+    .set({ lifecycleStatus: status, updatedAt: new Date() })
+    .where(inArray(people.id, ids))
+    .returning({ id: people.id });
+
+  return changed.length;
 }

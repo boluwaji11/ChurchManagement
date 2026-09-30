@@ -1,6 +1,9 @@
 import type { NextRequest } from "next/server";
-import { withTenant, buildArchive, zipArchive, PermissionError } from "@hearth/db";
+import {
+  withTenant, buildArchive, zipArchive, listPeople, toCsv, PermissionError,
+} from "@hearth/db";
 import { requireSession } from "@/lib/session";
+import { queryFromParams, isFiltered, type DirectoryParams } from "@/lib/directory-query";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +19,13 @@ export const dynamic = "force-dynamic";
  * it on a Tuesday afternoon without asking anybody.
  */
 export async function GET(request: NextRequest) {
-  const church = request.nextUrl.searchParams.get("church") ?? undefined;
-  const session = await requireSession(church);
+  const params = Object.fromEntries(request.nextUrl.searchParams) as DirectoryParams;
+  const session = await requireSession(params.church);
+
+  // A filtered directory exports what the filter says. The same URL that drew
+  // the screen draws the file, so the two cannot disagree about what "these
+  // people" meant.
+  if (isFiltered(params)) return exportView(session, params);
 
   let zip: Buffer;
   try {
@@ -47,6 +55,48 @@ export async function GET(request: NextRequest) {
       "Content-Disposition": `attachment; filename="${filename}"`,
       "Content-Length": String(zip.byteLength),
       // A church's entire directory must not sit in a proxy cache.
+      "Cache-Control": "no-store, private",
+    },
+  });
+}
+
+/**
+ * The people currently on screen, as one CSV.
+ *
+ * Not a zip and not every table: somebody filtering the directory and pressing
+ * export wants a list they can print, mail merge, or hand to a volunteer. The
+ * whole archive is one click away without a filter, and that is the one that
+ * matters for leaving.
+ */
+async function exportView(
+  session: { tenantId: string; role: import("@hearth/db").TenantRole; tenantSlug: string; userId: string },
+  params: DirectoryParams,
+) {
+  const rows = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    (tx) => listPeople(tx, queryFromParams(params)),
+  );
+
+  const csv = toCsv(
+    rows.map((p) => ({
+      name: p.displayName,
+      first_name: p.firstName,
+      last_name: p.lastName,
+      household: p.householdName ?? "",
+      status: p.lifecycleStatus,
+      email: p.primaryEmail ?? "",
+      phone: p.primaryPhone ?? "",
+      date_of_birth: p.dateOfBirth ?? "",
+      archived: p.archivedAt ? "yes" : "no",
+    })),
+    ["name", "first_name", "last_name", "household", "status", "email", "phone", "date_of_birth", "archived"],
+  );
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  return new Response(csv, {
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="hearth-${session.tenantSlug}-directory-${stamp}.csv"`,
       "Cache-Control": "no-store, private",
     },
   });

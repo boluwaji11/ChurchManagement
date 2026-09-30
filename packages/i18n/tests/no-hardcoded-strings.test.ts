@@ -83,6 +83,10 @@ function scan(file: string): Offence[] {
       const value = m[1]!.trim();
       if (!value || NOT_COPY.test(value)) continue;
       if (!/[A-Za-z]{2}/.test(value)) continue;
+      // Copy is words. A colon, a bracket or a leading comma means this is the
+      // tail of a type annotation that happens to sit between two angle
+      // brackets, such as `Promise<T>, extra: Record<...>`.
+      if (/[:(),=[\]]/.test(value)) continue;
       found.push({ file, line: i + 1, text: value });
     }
   });

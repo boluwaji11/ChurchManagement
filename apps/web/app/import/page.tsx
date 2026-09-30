@@ -1,6 +1,5 @@
 import { withTenant, listImports, canEditPeople, canArchivePeople } from "@hearth/db";
-import { Banner, Button, Card, CardTitle, Separator } from "@hearth/ui";
-import { Upload } from "lucide-react";
+import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -49,18 +48,6 @@ export default async function ImportPage({
                 canRollBack: b.canRollBack,
               }))}
             />
-            {canArchivePeople(session.role) ? (
-              <Card>
-                <CardTitle>{t("export.title")}</CardTitle>
-                <Separator className="my-4" />
-                <p className="mb-4 text-[length:var(--d-text-body)] text-fg-muted">{t("export.body")}</p>
-                <Button asChild variant="secondary">
-                  <a href={`/api/export?church=${session.tenantSlug}`} download>
-                    <Upload /> {t("export.download")}
-                  </a>
-                </Button>
-              </Card>
-            ) : null}
           </div>
         ) : (
           <Banner tone="info" title={t("forbidden.addPeople")}>{t("forbidden.askAdmin")}</Banner>

@@ -1,6 +1,6 @@
-import { and, asc, eq, sql, count, ne } from "drizzle-orm";
+import { and, asc, eq, inArray, sql, count, ne } from "drizzle-orm";
 import type { Tx } from "../client";
-import { tags, personTags } from "../schema/people";
+import { tags, personTags, people } from "../schema/people";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
@@ -216,4 +216,51 @@ export async function setPersonTag(
     insert into person_tags (tenant_id, person_id, tag_id)
     values (${actor.tenantId}::uuid, ${personId}::uuid, ${tagId}::uuid)
     on conflict do nothing`);
+}
+
+/**
+ * Applies or removes one tag across a selection.
+ *
+ * Applying is an insert that skips what is already there, so tagging fifty
+ * people where thirty already carry the tag does what a person expects rather
+ * than failing on the first one.
+ */
+export async function bulkSetPersonTag(
+  db: Tx,
+  actor: WriteActor,
+  personIds: string[],
+  tagId: string,
+  on: boolean,
+): Promise<number> {
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "tagPerson");
+  if (personIds.length === 0) return 0;
+
+  const [tag] = await db.select({ id: tags.id }).from(tags).where(eq(tags.id, tagId)).limit(1);
+  if (!tag) throw new InvalidInputError("error.notFound.tag");
+
+  if (!on) {
+    const removed = await db
+      .delete(personTags)
+      .where(and(eq(personTags.tagId, tagId), inArray(personTags.personId, personIds)))
+      .returning({ personId: personTags.personId });
+    return removed.length;
+  }
+
+  // Only people this church can see. An id from elsewhere is filtered out by the
+  // policy on the select rather than rejected by a constraint on the insert.
+  const visible = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(inArray(people.id, personIds));
+
+  let applied = 0;
+  for (const person of visible) {
+    const inserted = await db.execute(sql`
+      insert into person_tags (tenant_id, person_id, tag_id)
+      values (${actor.tenantId}::uuid, ${person.id}::uuid, ${tagId}::uuid)
+      on conflict do nothing
+      returning person_id`);
+    applied += (inserted as unknown as unknown[]).length;
+  }
+  return applied;
 }

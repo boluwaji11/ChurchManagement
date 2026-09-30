@@ -11,12 +11,13 @@ export {
   listPeople, getPerson, countPeopleByStatus, listTags, listTagsForPerson,
   resolveTenantBySlug, listChurches, type PersonRow,
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listHouseholds,
+  bulkSetArchived, bulkSetStatus, type DirectoryQuery,
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
 } from "./repo/people";
 export {
   listTagsWithCounts, createTag, renameTag, setTagHue, deleteTag, mergeTags, setPersonTag,
-  canManageTags, CAN_MANAGE_TAGS, normaliseTagName, TAG_HUES,
+  canManageTags, CAN_MANAGE_TAGS, normaliseTagName, TAG_HUES, bulkSetPersonTag,
   type TagRow, type TagHue,
 } from "./repo/tags";
 export {

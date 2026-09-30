@@ -92,7 +92,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-22 | Relationships, independent of household | R2.4 | New |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | New |
 | HRT-24 | Duplicate **merge**, reversible for 30 days. Detection shipped with HRT-28. | R2.8 | New |
-| HRT-25 | Bulk edit across a selection | R2.12 | New |
+| HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Resolved |
+| HRT-40 | Directory search, filtering and sorting | R2.x | Resolved |
 | HRT-26 | Background check status and expiry tracking | R2.10 | New |
 | HRT-27 | Birthdays and anniversaries list | R2.9 | New |
 
@@ -144,7 +145,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory |
 | **Next** | HRT-24 duplicate merge, then HRT-22 relationships and HRT-23 milestones |
 
 ### HRT-16, how to test it
@@ -195,7 +196,7 @@ The audit found four real defects the first time it ran, listed in the commit.
    number in your file rather than being imported wrong.
 6. **Roles.** `staff` can import. `pastoral` and `member` cannot, and the server refuses even if the
    page is bypassed.
-7. **Export everything.** At the bottom of the import page. One click, a zip with a CSV per table,
+7. **Export everything.** On the directory toolbar, on the right. One click, a zip with a CSV per table,
    the whole thing as JSON, and a README. Open it in Excel. Sign in as `admin@riverside.example.org`
    and export again: the confidential note bodies are absent and the README says they were withheld.
    `staff` and `pastoral` cannot export at all.
@@ -203,6 +204,23 @@ The audit found four real defects the first time it ran, listed in the commit.
    added and puts back the ones it changed. Edit somebody the import created first, then undo: they
    are archived rather than removed, because that edit was not part of the mistake. Undoing is Owner
    and Admin only, since one press can remove hundreds of people.
+
+### HRT-40 and HRT-25, how to test it
+
+The directory now has a toolbar.
+
+1. **Search.** One box. Type a first name, a surname, part of an email, or a phone number with no
+   punctuation: `5557431` finds `(512) 555 7431`. It waits until you stop typing.
+2. **Filter.** Status, tag, and whether there is an email or a phone. They combine, and they land in
+   the URL, so "everyone with no email address" is a link you can send to someone.
+3. **Sort.** Press a column heading. Press it again to reverse it.
+4. **Select.** Tick rows, or the box in the heading. A bar appears above the table with add a tag,
+   remove a tag, set status, and archive. Archive confirms and says how many.
+5. **Export.** With no filter it downloads the whole archive, the zip. With a filter it downloads
+   just those people as one CSV, and the file matches exactly what is on screen because the server
+   ran the same query the URL describes.
+6. **Roles.** `staff` can select, tag and set status, but the archive button is not there.
+   `pastoral` sees no checkboxes and no export.
 
 ### HRT-32, how to test it
 
