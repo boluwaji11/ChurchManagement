@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Users, UserPlus, HeartHandshake, ShieldCheck, Archive, Plus } from "lucide-react";
+import { ArrowRight, Users, UserPlus, HeartHandshake, Archive, Plus } from "lucide-react";
 import {
-  withTenant, listPeople, countPeopleByStatus, listTags, canEditPeople, type PersonRow,
+  withTenant, listPeople, countPeopleByStatus, canEditPeople, type PersonRow,
 } from "@hearth/db";
 import {
-  Avatar, Badge, Table, Thead, Th, Tr, Td, StatTile, EmptyState, Button, HueTag, Banner,
+  Avatar, Badge, Table, Thead, Th, Tr, Td, StatTile, EmptyState, Button, Banner,
 } from "@hearth/ui";
 import { PageTitle, Section } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -35,12 +35,11 @@ export default async function PeoplePage({
    * queries below: row-level security supplies it, so forgetting one returns
    * nothing rather than another church's members.
    */
-  const { people, counts, tags } = await withTenant(
+  const { people, counts } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       people: await listPeople(tx, { includeArchived: show === "archived" }),
       counts: await countPeopleByStatus(tx),
-      tags: await listTags(tx),
     }),
   );
 
@@ -73,11 +72,10 @@ export default async function PeoplePage({
       ) : null}
 
       <Section title="At a glance">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           <StatTile label="People" value={String(total)} hue="indigo" icon={<Users className="size-4" />} />
           <StatTile label="Members" value={String(members)} hue="fern" icon={<HeartHandshake className="size-4" />} />
           <StatTile label="Visitors" value={String(visitors)} hue="amber" icon={<UserPlus className="size-4" />} />
-          <StatTile label="Tags" value={String(tags.length)} hue="teal" icon={<ShieldCheck className="size-4" />} />
         </div>
       </Section>
 
@@ -155,25 +153,6 @@ export default async function PeoplePage({
         )}
       </Section>
 
-      {tags.length > 0 ? (
-        <Section
-          title="Tags"
-          action={
-            <Link
-              href={`/tags?church=${session.tenantSlug}`}
-              className="text-label text-fg-muted hover:text-fg"
-            >
-              Manage
-            </Link>
-          }
-        >
-          <div className="flex flex-wrap gap-2">
-            {tags.map((t) => (
-              <HueTag key={t.id} hue={t.hue}>{t.name}</HueTag>
-            ))}
-          </div>
-        </Section>
-      ) : null}
       </main>
     </>
   );
