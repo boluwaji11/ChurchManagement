@@ -6,7 +6,8 @@ import {
   Banner, Button, Card, CardTitle, Combobox, Field, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
+import { TimeField } from "@/components/time-field";
 import { saveChurch, addService, removeService } from "./actions";
 
 export interface ChurchValues {
@@ -58,15 +59,23 @@ export function ChurchForm({
 }) {
   const [timezone, setTimezone] = React.useState(values.timezone);
   const [day, setDay] = React.useState("0");
+  const [country, setCountry] = React.useState(values.country || "US");
+  const [region, setRegion] = React.useState(values.region ?? "");
   const [error, setError] = React.useState<string>();
   const [saved, setSaved] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
   const zones = React.useMemo(timezones, []);
+  // Named in the reader's language, sorted the way that language sorts.
+  const countries = React.useMemo(() => countryList(), []);
+  const regions = subdivisionsFor(country);
+  const regionLabel = REGION_LABEL[country] ?? t("church.region");
   const serviceForm = React.useRef<HTMLFormElement>(null);
 
   const save = (data: FormData) => {
     data.set("church", values.slug);
     data.set("timezone", timezone);
+    data.set("country", country);
+    data.set("region", region);
     startTransition(async () => {
       const result = await saveChurch(data);
       setError(result.error);
@@ -120,14 +129,44 @@ export function ChurchForm({
             <Field label={t("church.city")}>
               <Input name="city" defaultValue={values.city ?? ""} disabled={!canEdit} />
             </Field>
-            <Field label={t("church.region")}>
-              <Input name="region" defaultValue={values.region ?? ""} disabled={!canEdit} />
+            <Field label={regionLabel}>
+              {hasSubdivisions(country) ? (
+                <Combobox
+                  options={regions.map((r) => ({ value: r.code, label: r.name, keywords: r.code }))}
+                  value={region}
+                  onChange={setRegion}
+                  placeholder={t("church.chooseRegion")}
+                  emptyLabel={t("church.noRegion")}
+                  clearLabel={t("action.cancel")}
+                  disabled={!canEdit}
+                />
+              ) : (
+                // A country whose regions we do not list gets a text field.
+                // Half a list is worse than asking.
+                <Input
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  disabled={!canEdit}
+                />
+              )}
             </Field>
             <Field label={t("church.postalCode")}>
               <Input name="postalCode" defaultValue={values.postalCode ?? ""} disabled={!canEdit} />
             </Field>
             <Field label={t("church.country")}>
-              <Input name="country" defaultValue={values.country} disabled={!canEdit} />
+              <Combobox
+                options={countries.map((c) => ({ value: c.code, label: c.name, keywords: c.code }))}
+                value={country}
+                onChange={(next) => {
+                  setCountry(next);
+                  // A state from the country you just left is wrong everywhere.
+                  setRegion("");
+                }}
+                placeholder={t("church.chooseCountry")}
+                emptyLabel={t("church.noCountry")}
+                clearLabel={t("action.cancel")}
+                disabled={!canEdit}
+              />
             </Field>
             <Field label={t("church.phone")}>
               <Input name="phone" type="tel" defaultValue={values.phone ?? ""} disabled={!canEdit} />
@@ -206,8 +245,8 @@ export function ChurchForm({
               </Select>
             </div>
 
-            <Field label={t("church.services.startsAt")} className="max-w-36">
-              <Input name="startsAt" type="time" />
+            <Field label={t("church.services.startsAt")} className="max-w-40">
+              <TimeField name="startsAt" />
             </Field>
 
             <Button type="submit" disabled={pending}>

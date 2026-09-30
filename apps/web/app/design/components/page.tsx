@@ -5,7 +5,7 @@ import { Plus, Search, Printer, Check, MoreHorizontal, Download } from "lucide-r
 import {
   Button, IconButton, Input, Textarea, Field, Badge, Chip, Avatar, Card, CardTitle,
   CardDescription, Separator, Skeleton, Spinner, Progress, Checkbox, Switch, RadioGroup,
-  RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, DatePicker, Tooltip,
+  RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, DatePicker, TimePicker, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
   TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
 } from "@hearth/ui";
@@ -114,6 +114,9 @@ export default function Components() {
           </Field>
           <Field label="Date of birth" htmlFor="c-dob">
             <DateDemo />
+          </Field>
+          <Field label="Starts at" htmlFor="c-time">
+            <TimeDemo />
           </Field>
           <Field label="Disabled" htmlFor="c-dis">
             <Input defaultValue="Locked" disabled />
@@ -338,6 +341,21 @@ function DateDemo() {
         year: "Year",
         today: "Today",
       }}
+    />
+  );
+}
+
+/** The time field, same shape as the date one. */
+function TimeDemo() {
+  const [value, setValue] = React.useState("09:00");
+  return (
+    <TimePicker
+      id="c-time"
+      name="demo-time"
+      value={value}
+      onChange={setValue}
+      placeholder="9:00 AM"
+      labels={{ open: "Open the times", clear: "Clear" }}
     />
   );
 }

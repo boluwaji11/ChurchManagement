@@ -86,3 +86,4 @@ type StemOf<K> = K extends `${infer Stem}.${PluralCategory}` ? Stem : never;
 export type PluralKey = StemOf<MessageKey>;
 
 export { en };
+export * from "./regions";

@@ -16,6 +16,7 @@ export { RadioGroup, RadioItem } from "./components/radio-group";
 export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./components/combobox";
 export { DatePicker, parseTyped, type DatePickerProps, type DatePickerLabels } from "./components/date-picker";
+export { TimePicker, parseTime, formatTime, type TimePickerProps, type TimePickerLabels } from "./components/time-picker";
 export { Tooltip, TooltipProvider } from "./components/tooltip";
 export { Dialog, DialogTrigger, DialogClose, DialogContent } from "./components/dialog";
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/tabs";
