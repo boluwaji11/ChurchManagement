@@ -57,6 +57,8 @@ export function Calendar({
   month,
   today,
   nowTime,
+  monthBar,
+  viewBar,
 }: {
   church: string;
   rows: GatheringRow[];
@@ -68,6 +70,10 @@ export function Calendar({
   today: string;
   /** The church's own clock, as HH:MM. */
   nowTime: string;
+  /** The month arrows, rendered by the page. */
+  monthBar: React.ReactNode;
+  /** List, calendar or tiles. */
+  viewBar: React.ReactNode;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -185,9 +191,13 @@ export function Calendar({
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("services.title")}>{error}</Banner> : null}
 
-      {canEdit ? (
-        <div>
-          <Dialog open={adding} onOpenChange={setAdding}>
+      {/* The month on the left, and on the right the thing a church came to do
+          with it above the thing that changes how it is drawn. */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        {monthBar}
+        <div className="flex flex-col items-end gap-2">
+          {canEdit ? (
+            <Dialog open={adding} onOpenChange={setAdding}>
             <DialogTrigger asChild>
               <Button
                 onClick={() => { setAddOn(""); setAddDate(""); setAddError(undefined); }}
@@ -267,9 +277,11 @@ export function Calendar({
                 </div>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          ) : null}
+          {viewBar}
         </div>
-      ) : null}
+      </div>
 
       {rows.length === 0 && view !== "calendar" ? (
         <EmptyState title={t("services.none.title")} body={t("services.none.body")} />

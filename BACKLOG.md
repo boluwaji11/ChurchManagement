@@ -74,13 +74,13 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-14 | Active session list with remote revoke | R1.10 | Closed |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
-| HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Resolved |
+| HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
-| HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Resolved |
+| HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Closed |
 | HRT-44 | Show usage against the quota, once a church can approach it | R1.16 | Deferred |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
@@ -110,10 +110,10 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | Closed |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
-| HRT-31 | Sample data set, with its loader and tests | R19.7 | Resolved |
-| HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Resolved |
-| HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Resolved |
-| HRT-72 | Build the demo church faster than a visitor will wait | R22.1 | Resolved |
+| HRT-31 | Sample data set, with its loader and tests | R19.7 | Closed |
+| HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Closed |
+| HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Closed |
+| HRT-72 | Build the demo church faster than a visitor will wait | R22.1 | Closed |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
 ---
@@ -129,14 +129,14 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
-| HRT-68 | Repeats: a frequency and an end date, rather than weekly forever | R7.1 | Resolved |
-| HRT-69 | A month at a time, rather than every service ever | R7.1 | Resolved |
-| HRT-70 | Three views of a month: list, calendar grid and tiles | R7.1 | Resolved |
-| HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
-| HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Resolved |
-| HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Resolved |
-| HRT-51 | Absence detection against a configurable threshold | R7.6 | Resolved |
+| HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Closed |
+| HRT-68 | Repeats: a frequency and an end date, rather than weekly forever | R7.1 | Closed |
+| HRT-69 | A month at a time, rather than every service ever | R7.1 | Closed |
+| HRT-70 | Three views of a month: list, calendar grid and tiles | R7.1 | Closed |
+| HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Closed |
+| HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Closed |
+| HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Closed |
+| HRT-51 | Absence detection against a configurable threshold | R7.6 | Closed |
 | HRT-52 | Attendance against groups and events | R7.4 | New |
 | HRT-53 | Trends: week over week, year over year, rolling average | R7.9 | Moved to HRT-66 |
 
@@ -151,8 +151,8 @@ starting any story below. They are the definition of done, ahead of anything the
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Resolved |
-| HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Resolved |
+| HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Closed |
+| HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Closed |
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | New |
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | New |
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | New |
@@ -217,8 +217,8 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views, **HRT-54** rooms, **HRT-55** stations, **HRT-72** demo speed |
+| **Active** | **HRT-56** family lookup |
+| **Waiting on a test** | Nothing |
 | **Next** | **HRT-56** family lookup and several children in one flow. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it

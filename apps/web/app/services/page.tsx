@@ -82,21 +82,6 @@ export default async function ServicesPage({
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageTitle title={t("services.title")} lede={session.tenantName} />
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <MonthBar
-            church={session.tenantSlug}
-            month={month}
-            label={new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
-              month: "long", year: "numeric",
-            })}
-            previous={shiftMonth(month, -1)}
-            next={shiftMonth(month, 1)}
-            isThisMonth={month === thisMonth}
-            view={view}
-          />
-          <ViewBar church={session.tenantSlug} month={month} view={view} />
-        </div>
-
         <Calendar
           church={session.tenantSlug}
           canEdit={canManageServices(session.role)}
@@ -104,6 +89,20 @@ export default async function ServicesPage({
           month={month}
           today={now.date}
           nowTime={now.time}
+          monthBar={
+            <MonthBar
+              church={session.tenantSlug}
+              month={month}
+              label={new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
+                month: "long", year: "numeric",
+              })}
+              previous={shiftMonth(month, -1)}
+              next={shiftMonth(month, 1)}
+              isThisMonth={month === thisMonth}
+              view={view}
+            />
+          }
+          viewBar={<ViewBar church={session.tenantSlug} month={month} view={view} />}
           rows={rows.map((r) => ({
             id: r.id,
             name: r.name,
