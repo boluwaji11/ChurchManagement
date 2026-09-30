@@ -62,4 +62,5 @@ export type PermissionAction =
   | "createTag" | "renameTag" | "recolourTag" | "deleteTag" | "mergeTags" | "tagPerson"
   | "addField" | "editField" | "deleteField" | "setFieldValue"
   | "rollbackImport" | "exportEverything" | "mergePeople"
-  | "editRelationship" | "liftDoNotContact";
+  | "editRelationship" | "liftDoNotContact"
+  | "addMilestone" | "removeMilestone";

@@ -31,6 +31,7 @@ export {
   type MergePlan, type MergeResult, type MergeSummary, type DuplicatePair,
 } from "./repo/merge";
 export * from "./repo/relationships";
+export * from "./repo/milestones";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
