@@ -3,11 +3,15 @@ export { owner, appDb, withTenant, closeConnections, sql, type Db, type Tx, type
 export {
   TENANT_ROLES, type TenantRole, canReadConfidentialNotes, canReadGivingAmounts,
   CAN_READ_CONFIDENTIAL_NOTES, CAN_READ_GIVING_AMOUNTS,
+  canEditPeople, canArchivePeople, CAN_EDIT_PEOPLE, CAN_ARCHIVE_PEOPLE, PermissionError,
 } from "./roles";
 export { encryptNote, decryptNote } from "./crypto";
 export {
   listPeople, getPerson, countPeopleByStatus, listTags, listTagsForPerson,
   resolveTenantBySlug, listChurches, type PersonRow,
+  createPerson, updatePerson, setPersonArchived, getPersonForEdit, listHouseholds,
+  LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
+  type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
 } from "./repo/people";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {

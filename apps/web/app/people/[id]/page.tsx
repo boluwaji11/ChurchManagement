@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Lock, FileText } from "lucide-react";
-import { withTenant, getPerson, listNotesForPerson, listTagsForPerson } from "@hearth/db";
-import { Avatar, Badge, Card, CardTitle, Separator, Banner, HueTag } from "@hearth/ui";
+import { ArrowLeft, Lock, FileText, Pencil, CheckCircle2 } from "lucide-react";
+import {
+  withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson,
+  canEditPeople, canArchivePeople,
+} from "@hearth/db";
+import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner, HueTag } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
+import { ArchiveButton } from "../archive-button";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +17,10 @@ export default async function PersonPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; saved?: string; restored?: string }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
+  const { church, saved, restored } = await searchParams;
   const session = await requireSession(church);
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
@@ -26,13 +30,14 @@ export default async function PersonPage({
       person,
       notes: await listNotesForPerson(tx, id, session.role, { tenantId: session.tenantId }),
       tags: await listTagsForPerson(tx, id),
+      contact: await getPersonForEdit(tx, id),
     };
   });
 
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, notes, tags } = result;
+  const { person, notes, tags, contact } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
 
@@ -60,6 +65,50 @@ export default async function PersonPage({
         </div>
       </div>
 
+      {saved ? (
+        <Banner tone="success" title="Saved" className="mb-6">
+          <span className="inline-flex items-center gap-1.5">
+            <CheckCircle2 className="size-4" /> The change is recorded in the audit log with your name on it.
+          </span>
+        </Banner>
+      ) : null}
+
+      {restored ? (
+        <Banner tone="success" title="Restored" className="mb-6">
+          {display} is back in the directory and in every list.
+        </Banner>
+      ) : null}
+
+      {person.archivedAt ? (
+        <Banner tone="warning" title="Archived" className="mb-6">
+          Out of every list since{" "}
+          {new Date(person.archivedAt).toLocaleDateString("en-GB", {
+            day: "numeric", month: "long", year: "numeric",
+          })}
+          . Nothing was deleted.
+        </Banner>
+      ) : null}
+
+      {canEditPeople(session.role) || canArchivePeople(session.role) ? (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          {canEditPeople(session.role) ? (
+            <Button asChild variant="secondary">
+              <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
+                <Pencil /> Edit
+              </Link>
+            </Button>
+          ) : null}
+          {canArchivePeople(session.role) ? (
+            <ArchiveButton
+              church={session.tenantSlug}
+              id={person.id}
+              name={display}
+              archived={Boolean(person.archivedAt)}
+            />
+          ) : null}
+        </div>
+      ) : null}
+
       <Card className="mb-6">
         <CardTitle>Details</CardTitle>
         <Separator className="my-4" />
@@ -67,6 +116,8 @@ export default async function PersonPage({
           {[
             ["Legal first name", person.firstName],
             ["Surname", person.lastName],
+            ["Email", contact?.email ?? "Not recorded"],
+            ["Phone", contact?.phone ?? "Not recorded"],
             ["Date of birth", person.dateOfBirth ?? "Not recorded"],
             ["First visit", person.firstVisitOn ?? "Not recorded"],
             ["Membership date", person.membershipDate ?? "Not a member"],

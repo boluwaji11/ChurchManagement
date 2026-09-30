@@ -21,3 +21,33 @@ export const canReadConfidentialNotes = (role: TenantRole): boolean =>
 
 export const canReadGivingAmounts = (role: TenantRole): boolean =>
   CAN_READ_GIVING_AMOUNTS.includes(role);
+
+/**
+ * R2.x writes. Who may change a person's record.
+ *
+ * Staff can edit, because a church with two paid staff cannot route every
+ * correction through the Owner. Archiving is narrower: it removes someone from
+ * every list at once, so it stays with Owner and Admin.
+ */
+export const CAN_EDIT_PEOPLE: readonly TenantRole[] = ["owner", "admin", "staff"];
+export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = ["owner", "admin"];
+
+export const canEditPeople = (role: TenantRole): boolean => CAN_EDIT_PEOPLE.includes(role);
+export const canArchivePeople = (role: TenantRole): boolean => CAN_ARCHIVE_PEOPLE.includes(role);
+
+/**
+ * Thrown when a role is not permitted to perform a write.
+ *
+ * Writes are refused in the repository, not in the page, for the same reason
+ * reads are filtered there: a check that lives in a template is a check that the
+ * next caller forgets. A page hiding the edit button is courtesy. This is the
+ * control.
+ */
+export class PermissionError extends Error {
+  readonly role: TenantRole;
+  constructor(role: TenantRole, action: string) {
+    super(`The ${role} role cannot ${action}.`);
+    this.name = "PermissionError";
+    this.role = role;
+  }
+}

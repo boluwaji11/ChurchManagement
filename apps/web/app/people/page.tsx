@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Users, UserPlus, HeartHandshake, ShieldCheck } from "lucide-react";
+import { ArrowRight, Users, UserPlus, HeartHandshake, ShieldCheck, Archive, Plus } from "lucide-react";
 import {
-  withTenant, listPeople, countPeopleByStatus, listTags, type PersonRow,
+  withTenant, listPeople, countPeopleByStatus, listTags, canEditPeople, type PersonRow,
 } from "@hearth/db";
 import {
   Avatar, Badge, Table, Thead, Th, Tr, Td, StatTile, EmptyState, Button, HueTag, Banner,
@@ -24,9 +24,9 @@ const label = (status: string) => status.replace(/_/g, " ");
 export default async function PeoplePage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; archived?: string; show?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, archived, show } = await searchParams;
   // Redirects to sign-in, or to the church chooser if this user is not a member.
   const session = await requireSession(church);
 
@@ -38,12 +38,13 @@ export default async function PeoplePage({
   const { people, counts, tags } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
-      people: await listPeople(tx),
+      people: await listPeople(tx, { includeArchived: show === "archived" }),
       counts: await countPeopleByStatus(tx),
       tags: await listTags(tx),
     }),
   );
 
+  const showArchived = show === "archived";
   const total = people.length;
   const members = counts["member"] ?? 0;
   const visitors = counts["visitor"] ?? 0;
@@ -52,7 +53,22 @@ export default async function PeoplePage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <PageTitle title="Directory" lede={`${session.tenantName}, read through the tenant-scoped connection.`} />
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <PageTitle title="Directory" lede={session.tenantName} className="mb-0" />
+        {canEditPeople(session.role) ? (
+          <Button asChild>
+            <Link href={`/people/new?church=${session.tenantSlug}`}>
+              <Plus /> Add someone
+            </Link>
+          </Button>
+        ) : null}
+      </div>
+
+      {archived ? (
+        <Banner tone="success" title="Archived" className="mb-8">
+          They are out of every list. Open them from the archived view to put them back.
+        </Banner>
+      ) : null}
 
       {session.role === "staff" || session.role === "member" ? (
         <Banner tone="info" title="Some things are hidden from your role" className="mb-8">
@@ -69,12 +85,30 @@ export default async function PeoplePage({
         </div>
       </Section>
 
-      <Section title="Directory" note={`${total} people, ordered by surname. Archived people are excluded.`}>
+      <Section
+        title={showArchived ? "Directory, including archived" : "Directory"}
+        note={`${total} people, ordered by surname.`}
+        action={
+          <Link
+            href={`/people?church=${session.tenantSlug}${showArchived ? "" : "&show=archived"}`}
+            className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+          >
+            <Archive className="size-4" />
+            {showArchived ? "Hide archived" : "Show archived"}
+          </Link>
+        }
+      >
         {total === 0 ? (
           <EmptyState
             title="No one here yet"
-            body="Import your directory from a spreadsheet, or from Planning Center, Breeze, or ChurchTrac."
-            action={<Button>Import a directory</Button>}
+            body="Add someone by hand, or import your directory from a spreadsheet."
+            action={
+              <Button asChild>
+                <Link href={`/people/new?church=${session.tenantSlug}`}>
+                  <Plus /> Add someone
+                </Link>
+              </Button>
+            }
           />
         ) : (
           <Table>
@@ -97,7 +131,10 @@ export default async function PeoplePage({
                       className="flex items-center gap-2.5 hover:underline"
                     >
                       <Avatar name={p.displayName} id={p.id} size="sm" />
-                      {p.displayName}
+                      <span className={p.archivedAt ? "text-fg-muted line-through" : undefined}>
+                        {p.displayName}
+                      </span>
+                      {p.archivedAt ? <Badge tone="neutral">Archived</Badge> : null}
                     </Link>
                   </Td>
                   <Td className="text-fg-muted">{p.householdName ?? "Not in a household"}</Td>
