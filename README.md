@@ -122,8 +122,10 @@ before any feature is built, and three density modes cannot be retrofitted onto 
 
 ```bash
 pnpm install
-pnpm dev          # then open http://localhost:3000/design
+pnpm dev          # then open http://localhost:4488/design
 ```
+
+Port 4488, because 3000 and 3001 are crowded. Override it with `PORT=5000 pnpm dev`.
 
 No database, no keys, no accounts. Supabase arrives with the next step.
 
