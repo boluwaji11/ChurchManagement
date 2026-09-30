@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Users, UserPlus, HeartHandshake, Archive, Plus } from "lucide-react";
+import { ArrowRight, Users, UserPlus, HeartHandshake, Archive, Plus, Upload } from "lucide-react";
 import {
   withTenant, listPeople, countPeopleByStatus, canEditPeople, type PersonRow,
 } from "@hearth/db";
@@ -56,11 +56,18 @@ export default async function PeoplePage({
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <PageTitle title={t("people.title")} lede={session.tenantName} className="mb-0" />
         {canEditPeople(session.role) ? (
-          <Button asChild>
-            <Link href={`/people/new?church=${session.tenantSlug}`}>
-              <Plus /> {t("people.add")}
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button asChild>
+              <Link href={`/people/new?church=${session.tenantSlug}`}>
+                <Plus /> {t("people.add")}
+              </Link>
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link href={`/import?church=${session.tenantSlug}`}>
+                <Upload /> {t("import.title")}
+              </Link>
+            </Button>
+          </div>
         ) : null}
       </div>
 
@@ -104,16 +111,11 @@ export default async function PeoplePage({
             title={t("people.empty.title")}
             body={t("people.empty.body")}
             action={
-              <div className="flex flex-wrap items-center gap-3">
-                <Button asChild>
-                  <Link href={`/people/new?church=${session.tenantSlug}`}>
-                    <Plus /> {t("people.add")}
-                  </Link>
-                </Button>
-                <Button variant="secondary" asChild>
-                  <Link href={`/import?church=${session.tenantSlug}`}>{t("import.title")}</Link>
-                </Button>
-              </div>
+              <Button asChild>
+                <Link href={`/import?church=${session.tenantSlug}`}>
+                  <Upload /> {t("import.title")}
+                </Link>
+              </Button>
             }
           />
         ) : (
