@@ -12,7 +12,7 @@ import {
   generateOccurrences, listOccurrences, addSpecialService, updateOccurrence,
   setOccurrenceCancelled, removeSpecialService, upcomingOccurrences, canManageServices,
   addService, topUpCalendar, stopRepeating, HORIZON_WEEKS,
-  setHeadcount, listForAttendance,
+  setHeadcount, listForAttendance, datesFor,
 } from "../src/repo/services";
 import { addServiceTime } from "../src/repo/church";
 import { InvalidInputError } from "../src/errors";
@@ -187,7 +187,7 @@ describe("one concept, with a repeat", () => {
 
     const result = await run((tx) =>
       addService(tx, as(), {
-        name: "Sunday morning", occursOn: "2026-04-05", startsAt: "09:00", repeatsWeekly: true,
+        name: "Sunday morning", occursOn: "2026-04-05", startsAt: "09:00", frequency: "weekly",
       }),
     );
 
@@ -223,7 +223,7 @@ describe("one concept, with a repeat", () => {
 
     const { serviceTimeId } = await run((tx) =>
       addService(tx, as(), {
-        name: "Midweek", occursOn: "2020-01-01", startsAt: "19:00", repeatsWeekly: true,
+        name: "Midweek", occursOn: "2020-01-01", startsAt: "19:00", frequency: "weekly",
       }),
     );
 
@@ -335,5 +335,81 @@ describe("editing a service", () => {
       await expect(run((tx) => updateOccurrence(tx, as(), row!.id, bad)), JSON.stringify(bad))
         .rejects.toBeInstanceOf(InvalidInputError);
     }
+  });
+});
+
+describe("how often it repeats (R7.1)", () => {
+  const monday = "2026-03-02"; // a Monday
+
+  it("every week", () => {
+    const dates = datesFor("2026-03-01", "2026-03-31", {
+      dayOfWeek: 1, frequency: "weekly", anchorOn: monday, untilOn: null,
+    });
+    expect(dates).toEqual(["2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30"]);
+  });
+
+  it("every two weeks, counted from the first date however far ahead you look", () => {
+    const repeat = { dayOfWeek: 1, frequency: "fortnightly" as const, anchorOn: monday, untilOn: null };
+    expect(datesFor("2026-03-01", "2026-03-31", repeat))
+      .toEqual(["2026-03-02", "2026-03-16", "2026-03-30"]);
+
+    // A window starting later keeps the same parity rather than restarting.
+    expect(datesFor("2026-03-10", "2026-04-15", repeat))
+      .toEqual(["2026-03-16", "2026-03-30", "2026-04-13"]);
+  });
+
+  it("every month, on the same weekday of the month", () => {
+    // 2026-03-10 is the second Tuesday of March.
+    const dates = datesFor("2026-03-01", "2026-06-30", {
+      dayOfWeek: 2, frequency: "monthly", anchorOn: "2026-03-10", untilOn: null,
+    });
+    expect(dates).toEqual(["2026-03-10", "2026-04-14", "2026-05-12", "2026-06-09"]);
+  });
+
+  it("skips a month with no fifth of that weekday", () => {
+    // The fifth Sunday. February 2027 has four, so it has none.
+    const dates = datesFor("2027-01-01", "2027-04-30", {
+      dayOfWeek: 0, frequency: "monthly", anchorOn: "2026-11-29", untilOn: null,
+    });
+    // Inventing one in the fourth week, or in the next month, would be a
+    // service the church never said it holds.
+    expect(dates).toEqual(["2027-01-31", "2027-05-30"].filter((d) => d <= "2027-04-30"));
+  });
+
+  it("stops on the end date", () => {
+    const dates = datesFor("2026-03-01", "2026-12-31", {
+      dayOfWeek: 1, frequency: "weekly", anchorOn: monday, untilOn: "2026-03-16",
+    });
+    expect(dates).toEqual(["2026-03-02", "2026-03-09", "2026-03-16"]);
+  });
+
+  it("writes the end date onto the series, and refuses one before the start", async () => {
+    await clear();
+    await owner()`delete from service_times where tenant_id = ${tenant}`;
+
+    await run((tx) =>
+      addService(tx, as(), {
+        name: "Lent course", occursOn: "2026-02-18", startsAt: "19:30",
+        frequency: "weekly", untilOn: "2026-03-25",
+      }),
+    );
+    const rows = await run((tx) => listOccurrences(tx));
+    expect(rows[0]!.occursOn).toBe("2026-03-25");
+    expect(rows.length).toBe(6);
+
+    await expect(
+      run((tx) =>
+        addService(tx, as(), {
+          name: "Backwards", occursOn: "2026-05-01", startsAt: "09:00",
+          frequency: "weekly", untilOn: "2026-04-01",
+        }),
+      ),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+
+  it("does not top up past the end date", async () => {
+    const before = (await run((tx) => listOccurrences(tx))).length;
+    await run((tx) => topUpCalendar(tx, as()));
+    expect((await run((tx) => listOccurrences(tx))).length).toBe(before);
   });
 });

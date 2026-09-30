@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, Checkbox, EmptyState, Field, Input,
+  Badge, Banner, Button, Card, EmptyState, Field, Input,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogClose,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
 import { addGathering, setCancelled, stopRepeat, editGathering, recordHeadcount } from "./actions";
+
+const REPEATS = ["never", "weekly", "fortnightly", "monthly"] as const;
 
 export interface GatheringRow {
   id: string;
@@ -22,6 +25,8 @@ export interface GatheringRow {
   note: string | null;
   special: boolean;
   serviceTimeId: string | null;
+  /** "weekly", "fortnightly" or "monthly" when it repeats. */
+  frequency: string | null;
   adults: number | null;
   children: number | null;
   visitors: number | null;
@@ -53,7 +58,7 @@ export function Calendar({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
-  const [repeats, setRepeats] = React.useState(true);
+  const [repeat, setRepeat] = React.useState("weekly");
   const [adding, setAdding] = React.useState(false);
 
   const act = (
@@ -91,7 +96,7 @@ export function Calendar({
             <DialogContent title={t("services.add")} closeLabel={t("common.close")}>
               <form
                 action={(data) => {
-                  data.set("repeats", repeats ? "1" : "0");
+                  data.set("repeat", repeat);
                   act(addGathering, data, () => setAdding(false));
                 }}
                 noValidate
@@ -108,10 +113,31 @@ export function Calendar({
                     <TimeField name="startsAt" />
                   </Field>
                 </div>
-                <label className="flex items-center gap-2.5 text-[length:var(--d-text-body)] text-fg">
-                  <Checkbox checked={repeats} onCheckedChange={(v) => setRepeats(v === true)} />
-                  {t("services.repeatsLabel")}
-                </label>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex min-w-48 flex-1 flex-col gap-1.5">
+                    <span className="text-label text-fg">{t("services.repeat")}</span>
+                    <Select value={repeat} onValueChange={setRepeat}>
+                      <SelectTrigger aria-label={t("services.repeat")}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REPEATS.map((r) => (
+                          <SelectItem key={r} value={r}>
+                            {t(`services.repeat.${r}` as never)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Only once it repeats. An end date on a one-off is a
+                      question about something that cannot happen. */}
+                  {repeat === "never" ? null : (
+                    <Field label={t("services.until")} className="flex-1">
+                      <DateField name="untilOn" />
+                    </Field>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button type="submit" disabled={pending}>{t("action.add")}</Button>
                   <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
@@ -148,7 +174,12 @@ export function Calendar({
                     <Td className={cancelled ? "text-fg-subtle" : undefined}>
                       <span className="flex flex-wrap items-center gap-2">
                         {row.name}
-                        {row.special ? null : <Badge tone="neutral"><Repeat className="size-3" /> {t("services.repeats")}</Badge>}
+                        {row.special || !row.frequency ? null : (
+                          <Badge tone="neutral">
+                            <Repeat className="size-3" />
+                            {t(`services.repeatBadge.${row.frequency}` as never)}
+                          </Badge>
+                        )}
                         {row.note ? <span className="text-caption text-fg-muted">{row.note}</span> : null}
                       </span>
                     </Td>

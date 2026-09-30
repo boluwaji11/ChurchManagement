@@ -1,5 +1,5 @@
 import {
-  pgTable, uuid, text, boolean, integer, bigint, timestamp, uniqueIndex, index,
+  pgTable, uuid, text, boolean, integer, bigint, date, timestamp, uniqueIndex, index,
 } from "drizzle-orm/pg-core";
 import { hue, tenantRole } from "./enums";
 
@@ -74,6 +74,19 @@ export const serviceTimes = pgTable(
     dayOfWeek: integer("day_of_week").notNull(),
     /** Local to the church's timezone, as HH:MM. */
     startsAt: text("starts_at").notNull(),
+    /**
+     * R7.1. "weekly", "fortnightly" or "monthly". Monthly means the same
+     * weekday of the month, so a second Tuesday stays a second Tuesday rather
+     * than drifting to a date that lands on a Saturday.
+     */
+    frequency: text("frequency").notNull().default("weekly"),
+    /**
+     * The first date, which fixes the pattern. Fortnightly counts from it, and
+     * monthly takes its place in the month from it.
+     */
+    anchorOn: date("anchor_on"),
+    /** R7.1. When it stops. Null means it carries on. */
+    untilOn: date("until_on"),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: created(),
   },

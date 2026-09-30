@@ -7,6 +7,7 @@ import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Calendar } from "./calendar";
 import { churchNow, hasHappened } from "@/lib/church-now";
+import { MonthBar } from "./month";
 
 export const dynamic = "force-dynamic";
 
@@ -22,15 +23,30 @@ const readableTime = (hhmm: string) => {
   return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 };
 
+/** "2026-09" to the first and last day of that month. */
+function monthRange(month: string): { from: string; to: string } {
+  const [y, m] = month.split("-").map(Number);
+  const last = new Date(y!, m!, 0).getDate();
+  return { from: `${month}-01`, to: `${month}-${String(last).padStart(2, "0")}` };
+}
+
+const shiftMonth = (month: string, by: number): string => {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(y!, m! - 1 + by, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+
+const isMonth = (value: string | undefined): value is string => /^\d{4}-\d{2}$/.test(value ?? "");
+
 export default async function ServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; month?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, month: asked } = await searchParams;
   const session = await requireSession(church);
 
-  const { rows, present, timezone } = await withTenant(
+  const { rows, present, timezone, month, thisMonth } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // Keeps a repeating service six months ahead without anybody maintaining
@@ -38,13 +54,19 @@ export default async function ServicesPage({
       if (canManageServices(session.role)) {
         await topUpCalendar(tx, { tenantId: session.tenantId, role: session.role });
       }
-      const list = await listOccurrences(tx, { includeCancelled: true });
-      const church = await getChurch(tx, session.tenantId);
-      const zone = church?.timezone ?? "America/Chicago";
+      const profile = await getChurch(tx, session.tenantId);
+      const zone = profile?.timezone ?? "America/Chicago";
+      const zoneNow = churchNow(zone);
+      const month = isMonth(asked) ? asked : zoneNow.date.slice(0, 7);
+      const range = monthRange(month);
+      const list = await listOccurrences(tx, { ...range, includeCancelled: true });
+
       return {
         rows: list,
         present: await countsFor(tx, list.map((r) => r.id)),
         timezone: zone,
+        month,
+        thisMonth: zoneNow.date.slice(0, 7),
       };
     },
   );
@@ -56,6 +78,19 @@ export default async function ServicesPage({
       <AppHeader session={session} />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageTitle title={t("services.title")} lede={session.tenantName} />
+
+        <div className="mb-4">
+          <MonthBar
+            church={session.tenantSlug}
+            month={month}
+            label={new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
+              month: "long", year: "numeric",
+            })}
+            previous={shiftMonth(month, -1)}
+            next={shiftMonth(month, 1)}
+            isThisMonth={month === thisMonth}
+          />
+        </div>
 
         <Calendar
           church={session.tenantSlug}
@@ -78,6 +113,7 @@ export default async function ServicesPage({
             past: hasHappened(now, r.occursOn, r.startsAt),
             present: present[r.id] ?? 0,
             serviceTimeId: r.serviceTimeId,
+            frequency: r.frequency,
             readableDate: readableDate(r.occursOn),
             readableTime: readableTime(r.startsAt),
           }))}

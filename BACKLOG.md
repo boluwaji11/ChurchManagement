@@ -128,8 +128,9 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
-| HRT-68 | Repeats: a frequency and an end date, rather than weekly forever | R7.1 | New |
-| HRT-69 | A month at a time, with a calendar view | R7.1 | New |
+| HRT-68 | Repeats: a frequency and an end date, rather than weekly forever | R7.1 | Resolved |
+| HRT-69 | A month at a time, rather than every service ever | R7.1 | Resolved |
+| HRT-70 | A month grid, as well as the list | R7.1 | New |
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Resolved |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Resolved |
@@ -209,8 +210,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence |
-| **Next** | HRT-53 trends, then HRT-52 group and event attendance. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months |
+| **Next** | HRT-64 the Insights page, then HRT-52 group and event attendance. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -461,6 +462,22 @@ A Services tab sits beside Directory. One concept, one button.
 
 An earlier build of this had three ideas (a weekly pattern in Settings, a Fill the calendar button,
 and the services themselves) and two setup steps before any value. It is one idea now.
+
+### HRT-68 and HRT-69, how to test them
+
+1. **Repeats are a choice now.** Add a service and pick: does not repeat, every week, every two
+   weeks, every month. Monthly means the same weekday of the month, so a second Tuesday stays a
+   second Tuesday rather than drifting onto a Saturday.
+2. **A month with no fifth Sunday simply has none.** Moving it to the fourth, or to the next month,
+   would invent a service the church never said it holds.
+3. **An end date.** A Lent course that runs six Wednesdays stops on its own. The end date only
+   appears once something repeats, because an end date on a one-off asks about something that
+   cannot happen. An end date before the first date is refused.
+4. **Fortnightly counts from the first date**, however far ahead you look, so the parity never
+   slips when you page forward a year.
+5. **One month at a time.** Arrows move a month, and "This month" comes back. The list used to be
+   every service the church had ever held or scheduled, which is fine in week one and thousands of
+   rows in year three.
 
 ### HRT-51, how to test it
 

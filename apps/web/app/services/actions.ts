@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, addService, setOccurrenceCancelled, updateOccurrence, stopRepeating,
-  setHeadcount,
+  setHeadcount, isFrequency,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 
@@ -40,6 +40,7 @@ const done = () => {
 export async function addGathering(data: FormData): Promise<ServiceResult> {
   const { session, ctx } = await writeContext(text(data, "church") || undefined);
   const actor = { tenantId: session.tenantId, role: session.role };
+  const repeat = text(data, "repeat");
 
   try {
     const result = await withTenant(ctx, (tx) =>
@@ -47,7 +48,8 @@ export async function addGathering(data: FormData): Promise<ServiceResult> {
         name: text(data, "name"),
         occursOn: text(data, "occursOn"),
         startsAt: text(data, "startsAt"),
-        repeatsWeekly: text(data, "repeats") === "1",
+        frequency: repeat && isFrequency(repeat) ? repeat : undefined,
+        untilOn: text(data, "untilOn") || null,
       }),
     );
     done();

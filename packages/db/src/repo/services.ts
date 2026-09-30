@@ -29,6 +29,8 @@ export type OccurrenceStatus = "scheduled" | "cancelled";
 export interface Occurrence {
   id: string;
   serviceTimeId: string | null;
+  /** The repeat this came from, when it came from one. */
+  frequency: string | null;
   name: string;
   occursOn: string;
   startsAt: string;
@@ -39,9 +41,20 @@ export interface Occurrence {
   countVisitors: number | null;
 }
 
+/**
+ * The columns a write can hand back.
+ *
+ * `returning` can only name the table being written, and the frequency lives on
+ * the series, so a write returns its id and the row is read back through
+ * getOccurrence. Three infrequent operations pay one extra query rather than
+ * every read carrying a shape that does not match the screen.
+ */
+const WRITTEN = { id: serviceOccurrences.id };
+
 const COLUMNS = {
   id: serviceOccurrences.id,
   serviceTimeId: serviceOccurrences.serviceTimeId,
+  frequency: serviceTimes.frequency,
   name: serviceOccurrences.name,
   occursOn: serviceOccurrences.occursOn,
   startsAt: serviceOccurrences.startsAt,
@@ -55,20 +68,90 @@ const COLUMNS = {
 const isDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 const isTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 
-/** Every date in the range falling on this weekday. 0 is Sunday. */
-function datesFor(from: string, to: string, dayOfWeek: number): string[] {
+const PATTERN = {
+  id: serviceTimes.id,
+  name: serviceTimes.name,
+  dayOfWeek: serviceTimes.dayOfWeek,
+  startsAt: serviceTimes.startsAt,
+  frequency: serviceTimes.frequency,
+  anchorOn: serviceTimes.anchorOn,
+  untilOn: serviceTimes.untilOn,
+};
+
+export const FREQUENCIES = ["weekly", "fortnightly", "monthly"] as const;
+export type Frequency = (typeof FREQUENCIES)[number];
+
+export const isFrequency = (value: string): value is Frequency =>
+  (FREQUENCIES as readonly string[]).includes(value);
+
+const iso = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** Which one of that weekday it is in its month. The 2nd Tuesday returns 2. */
+const weekOfMonth = (d: Date) => Math.ceil(d.getDate() / 7);
+
+const asRepeat = (row: {
+  dayOfWeek: number; frequency: string; anchorOn: string | null; untilOn: string | null;
+}): Repeat => ({
+  dayOfWeek: row.dayOfWeek,
+  frequency: isFrequency(row.frequency) ? row.frequency : "weekly",
+  anchorOn: row.anchorOn,
+  untilOn: row.untilOn,
+});
+
+export interface Repeat {
+  dayOfWeek: number;
+  frequency: Frequency;
+  /** The first date, which fixes the pattern. */
+  anchorOn: string | null;
+  /** When it stops, or null to carry on. */
+  untilOn: string | null;
+}
+
+/**
+ * Every date in a range that this repeat lands on.
+ *
+ * Built from local dates rather than UTC instants, because "Sunday" is a local
+ * idea and an offset slides it by a day either side of midnight.
+ *
+ * Monthly means the same weekday of the month, so the second Tuesday stays the
+ * second Tuesday. A month with no fifth Sunday simply has none: moving it to
+ * the fourth or the first of the next month would invent a service the church
+ * did not say it holds.
+ */
+export function datesFor(from: string, to: string, repeat: Repeat): string[] {
   const out: string[] = [];
+  const end = new Date(`${(repeat.untilOn && repeat.untilOn < to ? repeat.untilOn : to)}T00:00:00`);
+  const anchor = repeat.anchorOn ? new Date(`${repeat.anchorOn}T00:00:00`) : null;
   const start = new Date(`${from}T00:00:00`);
-  const end = new Date(`${to}T00:00:00`);
-  // Built from a local date rather than from a UTC instant, because "Sunday" is
-  // a local idea and an offset would slide it by a day either side of midnight.
+
+  if (repeat.frequency === "monthly") {
+    const nth = anchor ? weekOfMonth(anchor) : 1;
+    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+    while (cursor <= end) {
+      const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+      const offset = (repeat.dayOfWeek - first.getDay() + 7) % 7;
+      const day = new Date(cursor.getFullYear(), cursor.getMonth(), 1 + offset + (nth - 1) * 7);
+      if (day.getMonth() === cursor.getMonth() && day >= start && day <= end) out.push(iso(day));
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    return out;
+  }
+
+  const step = repeat.frequency === "fortnightly" ? 14 : 7;
   const cursor = new Date(start);
-  cursor.setDate(cursor.getDate() + ((dayOfWeek - cursor.getDay() + 7) % 7));
+  cursor.setDate(cursor.getDate() + ((repeat.dayOfWeek - cursor.getDay() + 7) % 7));
+
+  // Fortnightly counts from the first date, so the parity holds however far
+  // into the future somebody looks.
+  if (step === 14 && anchor) {
+    const days = Math.round((cursor.getTime() - anchor.getTime()) / 86_400_000);
+    if (((days / 7) % 2 + 2) % 2 !== 0) cursor.setDate(cursor.getDate() + 7);
+  }
+
   while (cursor <= end) {
-    out.push(
-      `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`,
-    );
-    cursor.setDate(cursor.getDate() + 7);
+    if (cursor >= start) out.push(iso(cursor));
+    cursor.setDate(cursor.getDate() + step);
   }
   return out;
 }
@@ -95,19 +178,12 @@ export async function generateOccurrences(
   if (!isDate(range.from) || !isDate(range.to)) throw new InvalidInputError("service.error.range");
   if (range.to < range.from) throw new InvalidInputError("service.error.range");
 
-  const pattern = await db
-    .select({
-      id: serviceTimes.id,
-      name: serviceTimes.name,
-      dayOfWeek: serviceTimes.dayOfWeek,
-      startsAt: serviceTimes.startsAt,
-    })
-    .from(serviceTimes);
+  const pattern = await db.select(PATTERN).from(serviceTimes);
 
   if (pattern.length === 0) throw new InvalidInputError("service.error.noPattern");
 
   const rows = pattern.flatMap((service) =>
-    datesFor(range.from, range.to, service.dayOfWeek).map((occursOn) => ({
+    datesFor(range.from, range.to, asRepeat(service)).map((occursOn) => ({
       tenantId: actor.tenantId,
       serviceTimeId: service.id,
       name: service.name,
@@ -144,6 +220,7 @@ export async function listOccurrences(db: Tx, opts: ListOccurrences = {}): Promi
   const rows = await db
     .select(COLUMNS)
     .from(serviceOccurrences)
+    .leftJoin(serviceTimes, eq(serviceTimes.id, serviceOccurrences.serviceTimeId))
     .where(where.length ? and(...where) : undefined)
     .orderBy(desc(serviceOccurrences.occursOn), asc(serviceOccurrences.startsAt));
 
@@ -151,7 +228,12 @@ export async function listOccurrences(db: Tx, opts: ListOccurrences = {}): Promi
 }
 
 export async function getOccurrence(db: Tx, id: string): Promise<Occurrence | null> {
-  const [row] = await db.select(COLUMNS).from(serviceOccurrences).where(eq(serviceOccurrences.id, id)).limit(1);
+  const [row] = await db
+    .select(COLUMNS)
+    .from(serviceOccurrences)
+    .leftJoin(serviceTimes, eq(serviceTimes.id, serviceOccurrences.serviceTimeId))
+    .where(eq(serviceOccurrences.id, id))
+    .limit(1);
   return row ? { ...row, status: row.status as OccurrenceStatus } : null;
 }
 
@@ -190,9 +272,9 @@ export async function addSpecialService(
       startsAt: input.startsAt,
       note: input.note?.trim() || null,
     })
-    .returning(COLUMNS);
+    .returning(WRITTEN);
 
-  return { ...row!, status: row!.status as OccurrenceStatus };
+  return (await getOccurrence(db, row!.id))!;
 }
 
 export interface OccurrenceEdit {
@@ -226,10 +308,10 @@ export async function updateOccurrence(
       updatedAt: new Date(),
     })
     .where(eq(serviceOccurrences.id, id))
-    .returning(COLUMNS);
+    .returning(WRITTEN);
 
   if (!row) throw new InvalidInputError("service.error.notFound");
-  return { ...row, status: row.status as OccurrenceStatus };
+  return (await getOccurrence(db, row.id))!;
 }
 
 /**
@@ -256,10 +338,10 @@ export async function setOccurrenceCancelled(
       updatedAt: new Date(),
     })
     .where(eq(serviceOccurrences.id, id))
-    .returning(COLUMNS);
+    .returning(WRITTEN);
 
   if (!row) throw new InvalidInputError("service.error.notFound");
-  return { ...row, status: row.status as OccurrenceStatus };
+  return (await getOccurrence(db, row.id))!;
 }
 
 /** Removes a one-off. A generated occurrence is cancelled rather than deleted. */
@@ -285,6 +367,7 @@ export async function upcomingOccurrences(db: Tx, limit = 5): Promise<Occurrence
   const rows = await db
     .select(COLUMNS)
     .from(serviceOccurrences)
+    .leftJoin(serviceTimes, eq(serviceTimes.id, serviceOccurrences.serviceTimeId))
     .where(and(gte(serviceOccurrences.occursOn, today), eq(serviceOccurrences.status, "scheduled")))
     .orderBy(asc(serviceOccurrences.occursOn), asc(serviceOccurrences.startsAt))
     .limit(limit);
@@ -315,8 +398,10 @@ export interface AddServiceInput {
   name: string;
   occursOn: string;
   startsAt: string;
-  /** Weekly, on the same weekday as the first date. */
-  repeatsWeekly?: boolean;
+  /** Omitted for a one-off. */
+  frequency?: Frequency;
+  /** The last date it can fall on. Null or omitted means it carries on. */
+  untilOn?: string | null;
 }
 
 /**
@@ -340,19 +425,37 @@ export async function addService(
   if (!isDate(input.occursOn)) throw new InvalidInputError("service.error.date");
   if (!isTime(input.startsAt)) throw new InvalidInputError("service.error.time");
 
-  if (!input.repeatsWeekly) {
+  if (!input.frequency) {
     await addSpecialService(db, actor, input);
     return { created: 1, serviceTimeId: null };
   }
+  if (!isFrequency(input.frequency)) throw new InvalidInputError("service.error.frequency");
+
+  const untilOn = input.untilOn || null;
+  if (untilOn && !isDate(untilOn)) throw new InvalidInputError("service.error.date");
+  if (untilOn && untilOn < input.occursOn) throw new InvalidInputError("service.error.until");
 
   const dayOfWeek = new Date(`${input.occursOn}T00:00:00`).getDay();
+  const repeat: Repeat = {
+    dayOfWeek,
+    frequency: input.frequency,
+    anchorOn: input.occursOn,
+    untilOn,
+  };
 
   const [series] = await db
     .insert(serviceTimes)
-    .values({ tenantId: actor.tenantId, name, dayOfWeek, startsAt: input.startsAt })
+    .values({
+      tenantId: actor.tenantId, name, dayOfWeek, startsAt: input.startsAt,
+      frequency: input.frequency, anchorOn: input.occursOn, untilOn,
+    })
     .returning({ id: serviceTimes.id });
 
-  const rows = datesFor(input.occursOn, plusWeeks(input.occursOn, HORIZON_WEEKS), dayOfWeek).map(
+  // A monthly service needs a longer look ahead to reach the same number of
+  // dates, so the horizon is measured in occurrences rather than in weeks.
+  const horizon = input.frequency === "monthly" ? HORIZON_WEEKS * 4 : HORIZON_WEEKS;
+
+  const rows = datesFor(input.occursOn, plusWeeks(input.occursOn, horizon), repeat).map(
     (occursOn) => ({
       tenantId: actor.tenantId,
       serviceTimeId: series!.id,
@@ -379,21 +482,14 @@ export async function addService(
  * nothing at all for a church with no repeating service.
  */
 export async function topUpCalendar(db: Tx, actor: WriteActor): Promise<number> {
-  const pattern = await db
-    .select({
-      id: serviceTimes.id,
-      name: serviceTimes.name,
-      dayOfWeek: serviceTimes.dayOfWeek,
-      startsAt: serviceTimes.startsAt,
-    })
-    .from(serviceTimes);
+  const pattern = await db.select(PATTERN).from(serviceTimes);
 
   if (pattern.length === 0) return 0;
 
   const from = today();
   const to = plusWeeks(from, HORIZON_WEEKS);
   const rows = pattern.flatMap((service) =>
-    datesFor(from, to, service.dayOfWeek).map((occursOn) => ({
+    datesFor(from, to, asRepeat(service)).map((occursOn) => ({
       tenantId: actor.tenantId,
       serviceTimeId: service.id,
       name: service.name,
@@ -534,6 +630,7 @@ export async function listForAttendance(
   const rows = await db
     .select(COLUMNS)
     .from(serviceOccurrences)
+    .leftJoin(serviceTimes, eq(serviceTimes.id, serviceOccurrences.serviceTimeId))
     .where(and(...where))
     .orderBy(desc(serviceOccurrences.occursOn), asc(serviceOccurrences.startsAt))
     .limit(opts.limit ?? 26);
