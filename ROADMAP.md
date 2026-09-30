@@ -27,8 +27,12 @@ contrast audit passes in CI.
 **Progress.** The design system and the `/design` gallery are built. The data foundation is built:
 20 tables, RLS enabled with an isolation policy on every one, an append-only audit log written by
 trigger, application-level encryption for confidential pastoral notes, and a 24-test adversarial
-suite that passes against a real Postgres. Still to come in 0.1: Supabase Auth and MFA, custom
-fields and tags in the UI, duplicate detection and merge, the import wizard, and full export.
+suite that passes against a real Postgres. Authentication is built, with membership-verified
+sessions and invitations. People can now be added, edited and archived, with the write refused at
+the query layer rather than in the page. Still to come in 0.1: multi-factor, tags and custom fields
+in the UI, church creation, duplicate detection and merge, the import wizard, and full export.
+
+Story by story, with current state, in [BACKLOG.md](BACKLOG.md).
 
 Requirements: R24.x, R1.x, R2.x, R19.1 to R19.4, R19.7, R19.8, R21.1 to R21.6, R21.12, R21.15, R22.8
 

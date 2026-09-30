@@ -129,6 +129,13 @@ Hearth replaces software churches pay for, so it has to look better than that so
 **One step at a time.** The user tests each deliverable before the next begins. Do not run ahead into
 the next release. Finish a step, say plainly what to test and how, and stop.
 
+**Work is tracked on the board in [BACKLOG.md](../BACKLOG.md).** Every deliverable is a story with an
+ID. Pick it up by moving it to Active, and exactly one story is Active at a time. When the build is
+done and its own tests pass, move it to Resolved, never to Closed. Resolved means "built, waiting to
+be tested by a person". Only the person who tested it closes it. Update the board in the same commit
+as the work, and put `Work item: HRT-n` in the commit footer. Nothing gets built that has no story;
+scope found mid-build becomes a new row rather than a bigger one.
+
 **Never build into a directory a running dev server is serving from.** Deleting or rebuilding `.next`
 underneath `next dev` leaves its manifest pointing at chunks that no longer exist, and the page loads
 with no CSS and no JS, which looks like a catastrophic bug and is not one. Scripted verification uses

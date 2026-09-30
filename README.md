@@ -152,6 +152,7 @@ type sizes, and motion durations are edited there and nowhere else.
 |---|---|
 | [PRD.md](PRD.md) | Full specification, 23 domains with numbered requirements |
 | [ROADMAP.md](ROADMAP.md) | Release plan, 0.1 through 1.0, then Phase 2 |
+| [BACKLOG.md](BACKLOG.md) | The board: what is being built right now, and what is done |
 | [docs/architecture.md](docs/architecture.md) | Stack, tenancy, offline check-in, presenter sync |
 | [docs/data-model.md](docs/data-model.md) | Entities, and the song schema in full |
 | [docs/design-system.md](docs/design-system.md) | Tokens, colour, type, motion, components, station rules |
