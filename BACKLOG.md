@@ -100,8 +100,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-28 | CSV import wizard: column mapping, dry run, duplicate handling | R19.1 to R19.3 | Resolved |
-| HRT-38 | Excel (.xlsx) files, as well as CSV. Split out of HRT-28. | R19.1 | New |
+| HRT-28 | Import wizard: column mapping, dry run, duplicate handling | R19.1 to R19.3 | Resolved |
+| HRT-38 | Excel (.xlsx) files, as well as CSV | R19.1 | Resolved |
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | New |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | New |
 | HRT-31 | Sample and demo data | R19.7 | New |
@@ -143,7 +143,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** create a church, **HRT-36** strings, **HRT-37** CI, **HRT-28** import |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** create a church, **HRT-36** strings, **HRT-37** CI, **HRT-28** and **HRT-38** import |
 | **Next** | HRT-29 import rollback, then HRT-30 export, then the rest of R2.x |
 
 ### HRT-16, how to test it
@@ -180,7 +180,8 @@ The audit found four real defects the first time it ran, listed in the commit.
 
 "Import" is in the header, and on the directory next to "Add someone".
 
-1. **Export from anywhere.** Any CSV with a first name and a surname column works. Columns called
+1. **Export from anywhere.** An .xlsx workbook or a CSV, with a first name and a surname column.
+   A birthday formatted as a date in Excel comes across as a date, not as the number 31514. Columns called
    "First Name", "DOB", "Membership Status", "Mobile Phone" and so on are matched for you. The guess
    is always shown and always editable.
 2. **The preview writes nothing.** It lists what will be added, updated and left alone, with the

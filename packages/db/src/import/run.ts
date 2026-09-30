@@ -5,7 +5,7 @@ import { importBatches, importRows } from "../schema/imports";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { createPerson, updatePerson, getPersonForEdit, type PersonInput, type LifecycleStatus, type HouseholdRole } from "../repo/people";
 import { listCustomFields, setCustomValues, coerceCustomValue, type CustomFieldDef } from "../repo/custom-fields";
-import { readSheet } from "./csv";
+import type { Sheet } from "./csv";
 import { PERSON_FIELDS, parseImportedDate, parseLifecycle, parseHouseholdRole } from "./columns";
 import { buildMatchIndex, findMatches, indexNewPerson, type Match, type MatchIndex } from "./match";
 
@@ -64,12 +64,13 @@ export async function plan(
   db: Tx,
   input: {
     filename: string;
-    text: string;
+    /** Already read, because a CSV and a workbook arrive differently. */
+    sheet: Sheet;
     mapping: Record<string, string>;
     strategy: DuplicateStrategy;
   },
 ): Promise<Plan> {
-  const sheet = readSheet(input.text);
+  const sheet = input.sheet;
   const custom = await listCustomFields(db, "person");
   const customById = new Map(custom.map((f) => [f.id, f]));
   const index = await buildMatchIndex(db);

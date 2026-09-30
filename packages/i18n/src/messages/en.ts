@@ -246,12 +246,11 @@ export const en = {
 
   // Import
   "import.title": "Import",
-  "import.lede": "Bring a spreadsheet across from wherever your directory lives now.",
+  "import.lede": "Bring your directory across from wherever it lives now. Excel or CSV.",
   "import.step.file": "Choose a file",
   "import.step.map": "Match the columns",
   "import.step.preview": "Check what will happen",
-  "import.file": "CSV or tab separated file",
-  "import.fileHint": "Export from your current system as CSV. Nothing is saved until you say so.",
+  "import.file": "Spreadsheet",
   "import.rowsFound.one": "{count} row found",
   "import.rowsFound.other": "{count} rows found",
   "import.column": "Column in your file",

@@ -31,7 +31,8 @@ export {
   createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone,
   RESERVED_SLUGS, type Membership,
 } from "./repo/membership";
-export { readSheet, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";
+export { readSheet, readImportFile, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";
+export { readWorkbook, isWorkbookName } from "./import/xlsx";
 export {
   PERSON_FIELDS, IGNORE, guessMapping, parseImportedDate, parseLifecycle, parseHouseholdRole,
   type TargetField,

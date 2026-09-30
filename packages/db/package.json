@@ -18,6 +18,7 @@
   "dependencies": {
     "@hearth/i18n": "workspace:*",
     "drizzle-orm": "^0.38.3",
+    "exceljs": "^4.4.0",
     "postgres": "^3.4.5"
   },
   "devDependencies": {

@@ -13,6 +13,23 @@ import { t, plural } from "@hearth/i18n";
 import { inspectFile, previewImport, runImport, type Inspection, type Preview, type ImportResult } from "./actions";
 
 const IGNORE = "";
+const WORKBOOK = /\.xlsx?$/i;
+
+/**
+ * Bytes to base64 in a browser.
+ *
+ * In chunks, because spreading a megabyte of bytes into String.fromCharCode in
+ * one call overflows the argument limit and throws, and a church's directory is
+ * exactly the size where that starts happening.
+ */
+function toBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 8192) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  }
+  return btoa(binary);
+}
 /** The picker needs a value, and an empty string is not one Radix will accept. */
 const IGNORE_VALUE = "__ignore";
 
@@ -31,8 +48,7 @@ export function ImportWizard({ church }: { church: string }) {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string>();
 
-  const [filename, setFilename] = React.useState("");
-  const [text, setText] = React.useState("");
+  const [file, setFile] = React.useState<{ filename: string; text?: string; base64?: string }>({ filename: "" });
   const [inspection, setInspection] = React.useState<Inspection>();
   const [mapping, setMapping] = React.useState<Record<string, string>>({});
   const [strategy, setStrategy] = React.useState("skip");
@@ -42,26 +58,29 @@ export function ImportWizard({ church }: { church: string }) {
   const reset = () => {
     setStep("file");
     setError(undefined);
-    setFilename("");
-    setText("");
+    setFile({ filename: "" });
     setInspection(undefined);
     setMapping({});
     setPreview(undefined);
     setResult(undefined);
   };
 
-  const onFile = async (file: File) => {
+  const onFile = async (chosen: File) => {
     setBusy(true);
     setError(undefined);
     try {
-      const content = await file.text();
-      const found = await inspectFile({ church, filename: file.name, text: content });
+      // A workbook is binary, so it travels as base64. A text file travels as
+      // text, because turning it into bytes and back would only risk the encoding.
+      const payload = WORKBOOK.test(chosen.name)
+        ? { filename: chosen.name, base64: toBase64(await chosen.arrayBuffer()) }
+        : { filename: chosen.name, text: await chosen.text() };
+
+      const found = await inspectFile({ church, ...payload });
       if (found.error) {
         setError(found.error);
         return;
       }
-      setFilename(file.name);
-      setText(content);
+      setFile(payload);
       setInspection(found);
       setMapping(found.mapping ?? {});
       setStep("map");
@@ -74,7 +93,7 @@ export function ImportWizard({ church }: { church: string }) {
     setBusy(true);
     setError(undefined);
     try {
-      const found = await previewImport({ church, filename, text, mapping, strategy: strategy as never });
+      const found = await previewImport({ church, ...file, mapping, strategy: strategy as never });
       if (found.error) {
         setError(found.error);
         return;
@@ -90,7 +109,7 @@ export function ImportWizard({ church }: { church: string }) {
     setBusy(true);
     setError(undefined);
     try {
-      const done = await runImport({ church, filename, text, mapping, strategy: strategy as never });
+      const done = await runImport({ church, ...file, mapping, strategy: strategy as never });
       if (done.error) {
         setError(done.error);
         return;
@@ -177,11 +196,11 @@ function ChooseFile({ busy, onFile }: { busy: boolean; onFile: (f: File) => void
     <Card>
       <CardTitle>{t("import.step.file")}</CardTitle>
       <Separator className="my-4" />
-      <Field label={t("import.file")} hint={t("import.fileHint")}>
+      <Field label={t("import.file")}>
         <input
           ref={inputRef}
           type="file"
-          accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain"
+          accept=".xlsx,.xls,.csv,.tsv,.txt"
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) onFile(file);

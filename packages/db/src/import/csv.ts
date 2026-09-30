@@ -133,3 +133,22 @@ export function readSheet(text: string, delimiter?: string): Sheet {
 
   return { headers, rows, lineNumbers: bodyLines.slice(1) };
 }
+
+/**
+ * Reads whatever the person chose.
+ *
+ * A workbook arrives as bytes, a text file as text. The rest of the import
+ * pipeline sees one shape either way, so nothing downstream has to know which
+ * button somebody pressed in their old system.
+ */
+export async function readImportFile(input: {
+  filename: string;
+  text?: string;
+  bytes?: Buffer | ArrayBuffer;
+}): Promise<Sheet> {
+  const { isWorkbookName, readWorkbook } = await import("./xlsx");
+  if (input.bytes && isWorkbookName(input.filename)) return readWorkbook(input.bytes);
+  if (input.text !== undefined) return readSheet(input.text);
+  if (input.bytes) return readSheet(Buffer.from(input.bytes as ArrayBuffer).toString("utf8"));
+  return { headers: [], rows: [], lineNumbers: [] };
+}

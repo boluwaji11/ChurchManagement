@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, readSheet, guessMapping, listCustomFields, PERSON_FIELDS,
+  withTenant, readImportFile, guessMapping, listCustomFields, PERSON_FIELDS,
   plan, commit, canEditPeople,
-  type DuplicateStrategy, type PlannedRow,
+  type DuplicateStrategy, type PlannedRow, type Sheet,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
@@ -35,12 +35,32 @@ export interface Inspection {
   fields?: FieldChoice[];
 }
 
+/**
+ * What the browser sends.
+ *
+ * A text file travels as text. A workbook is a zip and travels as base64, which
+ * is a third larger on the wire and is still the simplest thing that cannot
+ * corrupt bytes on the way.
+ */
+export interface FilePayload {
+  filename: string;
+  text?: string;
+  base64?: string;
+}
+
+const read = (file: FilePayload): Promise<Sheet> =>
+  readImportFile({
+    filename: file.filename,
+    text: file.text,
+    bytes: file.base64 ? Buffer.from(file.base64, "base64") : undefined,
+  });
+
 /** Reads the file and guesses the mapping. Touches no data. */
-export async function inspectFile(input: { church?: string; filename: string; text: string }): Promise<Inspection> {
+export async function inspectFile(input: { church?: string } & FilePayload): Promise<Inspection> {
   const session = await requireSession(input.church);
   if (!canEditPeople(session.role)) return { error: t("forbidden.addPeople") };
 
-  const sheet = readSheet(input.text);
+  const sheet = await read(input);
   if (sheet.headers.length === 0 || sheet.rows.length === 0) {
     return { error: t("import.emptyFile") };
   }
@@ -86,11 +106,9 @@ const PREVIEW_ROWS = 60;
 
 export async function previewImport(input: {
   church?: string;
-  filename: string;
-  text: string;
   mapping: Record<string, string>;
   strategy: DuplicateStrategy;
-}): Promise<Preview> {
+} & FilePayload): Promise<Preview> {
   const session = await requireSession(input.church);
   if (!canEditPeople(session.role)) return { error: t("forbidden.addPeople") };
 
@@ -99,8 +117,9 @@ export async function previewImport(input: {
     return { error: t("import.noFirstName") };
   }
 
+  const sheet = await read(input);
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
-    plan(tx, { filename: input.filename, text: input.text, mapping: input.mapping, strategy: input.strategy }),
+    plan(tx, { filename: input.filename, sheet, mapping: input.mapping, strategy: input.strategy }),
   );
 
   // Anything that will not simply be added comes first, because that is what a
@@ -141,12 +160,11 @@ export interface ImportResult {
 
 export async function runImport(input: {
   church?: string;
-  filename: string;
-  text: string;
   mapping: Record<string, string>;
   strategy: DuplicateStrategy;
-}): Promise<ImportResult> {
+} & FilePayload): Promise<ImportResult> {
   const session = await requireSession(input.church);
+  const sheet = await read(input);
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
 
@@ -163,7 +181,7 @@ export async function runImport(input: {
         // cannot be acted on against a church that has changed underneath it.
         const fresh = await plan(tx, {
           filename: input.filename,
-          text: input.text,
+          sheet,
           mapping: input.mapping,
           strategy: input.strategy,
         });
