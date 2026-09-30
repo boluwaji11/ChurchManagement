@@ -1,5 +1,5 @@
 import {
-  withTenant, getChurch, listServiceTimes, canManageChurch,
+  withTenant, getChurch, canManageChurch,
   getStorageUsage,
 } from "@hearth/db";
 import { Card, CardTitle, Separator } from "@hearth/ui";
@@ -19,11 +19,10 @@ export default async function SettingsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { profile, services, usage } = await withTenant(
+  const { profile, usage } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       profile: await getChurch(tx, session.tenantId),
-      services: await listServiceTimes(tx),
       usage: await getStorageUsage(tx, session.tenantId),
     }),
   );
@@ -57,7 +56,6 @@ export default async function SettingsPage({
         {profile ? (
           <ChurchForm
             values={profile}
-            services={services}
             canEdit={canManageChurch(session.role)}
           />
         ) : null}

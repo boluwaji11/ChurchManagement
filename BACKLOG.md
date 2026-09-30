@@ -421,21 +421,24 @@ that reads membership from our own tables, so a user can only write into their o
 
 ### HRT-47, how to test it
 
-A Gatherings tab sits beside Directory. It needs at least one service time in Settings, Church.
+A Gatherings tab sits beside Directory. Everything about when the church meets is on it.
 
-1. **Fill the calendar.** Choose a range. One gathering per service time per matching day, so a
+1. **Say when the church meets.** The weekly pattern is at the top of the page. It used to be in
+   Settings, which meant setting up attendance was: find a settings tab, add a service time, come
+   back, fill the calendar. That is four hours a week somebody does not have.
+2. **Fill the calendar.** Choose a range. One gathering per service time per matching day, so a
    church with a 09:00, an 11:00 and a Wednesday gets three a week.
-2. **Fill it again over the same range.** Nothing changes and nothing is duplicated.
-3. **Cancel one**, with a note like "Snow". It stays on the list, greyed and marked cancelled,
+3. **Fill it again over the same range.** Nothing changes and nothing is duplicated.
+4. **Cancel one**, with a note like "Snow". It stays on the list, greyed and marked cancelled,
    because a Sunday that vanished leaves a gap in the attendance record that reads as a collapse.
    Put it back with one press.
-4. **Rename a week, then fill the calendar again.** Your name survives, and so does the
+5. **Rename a week, then fill the calendar again.** Your name survives, and so does the
    cancellation. Regenerating never undoes a decision somebody made about a particular week.
-5. **Add a one-off.** Carols by candlelight, 24 December, 18:30. Add a second at 23:00 the same
+6. **Add a one-off.** Carols by candlelight, 24 December, 18:30. Add a second at 23:00 the same
    evening, which churches do. Both are marked as one-offs and both survive a regeneration, because
    they belong to no weekly pattern.
-6. **Remove a one-off.** A generated gathering refuses to be removed and says to cancel it instead.
-7. **Roles.** Owner, Admin and Staff. Staff plan services, and cancelling a service is not renaming
+7. **Remove a one-off.** A generated gathering refuses to be removed and says to cancel it instead.
+8. **Roles.** Owner, Admin and Staff. Staff plan services, and cancelling a service is not renaming
    the church.
 
 ### HRT-46, how to test it

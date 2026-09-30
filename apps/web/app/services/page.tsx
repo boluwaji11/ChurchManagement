@@ -1,9 +1,12 @@
-import { withTenant, listOccurrences, canManageServices } from "@hearth/db";
+import {
+  withTenant, listOccurrences, listServiceTimes, canManageServices, canManageChurch,
+} from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Calendar } from "./calendar";
+import { WeeklyPattern } from "./pattern";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +30,12 @@ export default async function ServicesPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const rows = await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
-    listOccurrences(tx, { includeCancelled: true }),
+  const { rows, pattern } = await withTenant(
+    { tenantId: session.tenantId, role: session.role },
+    async (tx) => ({
+      rows: await listOccurrences(tx, { includeCancelled: true }),
+      pattern: await listServiceTimes(tx),
+    }),
   );
 
   return (
@@ -36,6 +43,15 @@ export default async function ServicesPage({
       <AppHeader session={session} />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageTitle title={t("services.title")} lede={session.tenantName} />
+
+        <div className="mb-6">
+          <WeeklyPattern
+            church={session.tenantSlug}
+            rows={pattern}
+            canEdit={canManageChurch(session.role)}
+          />
+        </div>
+
         <Calendar
           church={session.tenantSlug}
           canEdit={canManageServices(session.role)}

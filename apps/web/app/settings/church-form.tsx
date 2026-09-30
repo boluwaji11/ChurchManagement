@@ -1,14 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Plus, X } from "lucide-react";
-import {
-  Banner, Button, Card, CardTitle, Combobox, Field, Input, Separator,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
+import { Banner, Button, Card, CardTitle, Combobox, Field, Input, Separator } from "@hearth/ui";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
-import { TimeField } from "@/components/time-field";
-import { saveChurch, addService, removeService } from "./actions";
+import { saveChurch } from "./actions";
 
 export interface ChurchValues {
   slug: string;
@@ -26,39 +21,21 @@ export interface ChurchValues {
   brandHue: string;
 }
 
-export interface ServiceRow {
-  id: string;
-  name: string;
-  dayOfWeek: number;
-  startsAt: string;
-}
-
-const DAYS = [0, 1, 2, 3, 4, 5, 6];
-
 /** Every zone the browser knows, which is the list the server checks against. */
 function timezones(): string[] {
   const all = (Intl as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf;
   return all ? all("timeZone") : ["America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"];
 }
 
-const clock = (hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h ?? 0, m ?? 0, 0, 0);
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-};
 
 export function ChurchForm({
   values,
-  services,
   canEdit,
 }: {
   values: ChurchValues;
-  services: ServiceRow[];
   canEdit: boolean;
 }) {
   const [timezone, setTimezone] = React.useState(values.timezone);
-  const [day, setDay] = React.useState("0");
   const [country, setCountry] = React.useState(values.country || "US");
   const [region, setRegion] = React.useState(values.region ?? "");
   const [error, setError] = React.useState<string>();
@@ -69,7 +46,6 @@ export function ChurchForm({
   const countries = React.useMemo(() => countryList(), []);
   const regions = subdivisionsFor(country);
   const regionLabel = REGION_LABEL[country] ?? t("church.region");
-  const serviceForm = React.useRef<HTMLFormElement>(null);
 
   const save = (data: FormData) => {
     data.set("church", values.slug);
@@ -83,25 +59,7 @@ export function ChurchForm({
     });
   };
 
-  const add = (data: FormData) => {
-    data.set("church", values.slug);
-    data.set("dayOfWeek", day);
-    startTransition(async () => {
-      const result = await addService(data);
-      setError(result.error);
-      if (!result.error) serviceForm.current?.reset();
-    });
-  };
 
-  const drop = (id: string) => {
-    const data = new FormData();
-    data.set("church", values.slug);
-    data.set("id", id);
-    startTransition(async () => {
-      const result = await removeService(data);
-      setError(result.error);
-    });
-  };
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
@@ -196,65 +154,6 @@ export function ChurchForm({
         </form>
       </Card>
 
-      <Card>
-        <CardTitle>{t("church.services")}</CardTitle>
-        <Separator className="my-4" />
-
-        <ul className="mb-4 flex flex-col gap-2">
-          {services.length === 0 ? (
-            <li className="text-[length:var(--d-text-body)] text-fg-muted">
-              {t("church.services.none")}
-            </li>
-          ) : null}
-
-          {services.map((s) => (
-            <li
-              key={s.id}
-              className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-canvas p-2.5"
-            >
-              <span className="text-[length:var(--d-text-body)] text-fg">{s.name}</span>
-              <span className="text-caption text-fg-muted">
-                {t(`day.${s.dayOfWeek}` as never)} {clock(s.startsAt)}
-              </span>
-              {canEdit ? (
-                <Button variant="ghost" className="ml-auto" onClick={() => drop(s.id)}>
-                  <X /> {t("church.services.remove")}
-                </Button>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-
-        {canEdit ? (
-          <form ref={serviceForm} action={add} noValidate className="flex flex-wrap items-end gap-3">
-            <Field label={t("church.services.name")} className="min-w-48 flex-1">
-              <Input name="name" autoComplete="off" />
-            </Field>
-
-            <div className="flex min-w-40 flex-col gap-1.5">
-              <span className="text-label text-fg">{t("church.services.day")}</span>
-              <Select value={day} onValueChange={setDay}>
-                <SelectTrigger aria-label={t("church.services.day")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DAYS.map((d) => (
-                    <SelectItem key={d} value={String(d)}>{t(`day.${d}` as never)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Field label={t("church.services.startsAt")} className="max-w-40">
-              <TimeField name="startsAt" />
-            </Field>
-
-            <Button type="submit" disabled={pending}>
-              <Plus /> {t("action.add")}
-            </Button>
-          </form>
-        ) : null}
-      </Card>
     </div>
   );
 }
