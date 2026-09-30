@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "visit_code_unique" ON "checkin_visits" USING btree ("tenant_id","code");

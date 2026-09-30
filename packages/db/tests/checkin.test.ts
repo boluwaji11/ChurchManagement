@@ -8,7 +8,10 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { checkInFamily, visitsFor, undoCheckIn, roomCounts, canCheckIn } from "../src/repo/checkin";
+import {
+  checkInFamily, visitsFor, undoCheckIn, roomCounts, canCheckIn, labelsFor,
+} from "../src/repo/checkin";
+import { looksLikeCode } from "../src/repo/codes";
 import { addRoom } from "../src/repo/rooms";
 import { addSpecialService, setOccurrenceCancelled } from "../src/repo/services";
 import { createPerson } from "../src/repo/people";
@@ -69,9 +72,9 @@ describe("one press for the family", () => {
     const visits = await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
       entries: [
-        { personId: mia, roomId: nursery },
-        { personId: danny, roomId: kids },
-        { personId: elena, roomId: null },
+        { personId: mia, roomId: nursery, child: true },
+        { personId: danny, roomId: kids, child: true },
+        { personId: elena, roomId: null, child: false },
       ],
     }));
 
@@ -189,5 +192,50 @@ describe("another church", () => {
     await withAuditTriggersOff(async () => {
       await owner()`delete from tenants where id = ${other!.id}`;
     });
+  });
+});
+
+describe("the label pair (R8.6, R8.11)", () => {
+  it("gives every child a code, and an adult none", async () => {
+    const visits = await run((tx) => visitsFor(tx, service));
+    const byName = Object.fromEntries(visits.map((v) => [v.name, v]));
+
+    expect(looksLikeCode(byName["Mia Ochoa"]!.code ?? "")).toBe(true);
+    // An adult takes a name badge, and a badge is not a claim on anybody.
+    expect(byName["Elena Ochoa"]?.code ?? null).toBeNull();
+  });
+
+  it("never gives two children the same code", async () => {
+    const visits = await run((tx) => visitsFor(tx, service));
+    const codes = visits.map((v) => v.code).filter(Boolean);
+    expect(new Set(codes).size).toBe(codes.length);
+  });
+
+  it("puts on the label what the room and the desk both need", async () => {
+    const [label] = await run((tx) => labelsFor(tx, service, [mia], "Check-in Test Church"));
+
+    expect(label!.childName).toBe("Mia Ochoa");
+    expect(label!.roomName).toBe("Nursery");
+    expect(label!.serviceName).toBe("Sunday");
+    expect(label!.churchName).toBe("Check-in Test Church");
+    expect(looksLikeCode(label!.code)).toBe(true);
+  });
+
+  it("prints no label pair for somebody taking a name badge", async () => {
+    const labels = await run((tx) => labelsFor(tx, service, [elena], "Check-in Test Church"));
+    expect(labels).toEqual([]);
+  });
+
+  it("keeps the code a child already has when the desk presses again", async () => {
+    const before = (await run((tx) => visitsFor(tx, service))).find((v) => v.personId === mia);
+
+    await run((tx) => checkInFamily(tx, as(), {
+      occurrenceId: service,
+      entries: [{ personId: mia, roomId: nursery, child: true }],
+    }));
+
+    const after = (await run((tx) => visitsFor(tx, service))).find((v) => v.personId === mia);
+    // Two codes for one child is two labels that do not match each other.
+    expect(after!.code).toBe(before!.code);
   });
 });

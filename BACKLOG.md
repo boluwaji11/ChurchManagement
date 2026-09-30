@@ -154,7 +154,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Closed |
 | HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Closed |
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Resolved |
-| HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | New |
+| HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | Resolved |
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | New |
 | HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | New |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | New |
@@ -218,8 +218,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk |
-| **Next** | **HRT-57** the label pair and its per-visit code. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair |
+| **Next** | **HRT-58** allergies on the screen and on the label. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -691,3 +691,23 @@ Check-in in the header, with a station claimed and a service on today.
 The label, the security code and the checkout are HRT-57 and HRT-59. **This station cannot run a
 real Sunday until those are in**, because no child should be released on anything weaker than a
 code.
+
+### HRT-57, how to test it
+
+The desk, with a child checked in.
+
+1. **Two labels a child.** One for the child, one for whoever collects them, carrying the same code.
+   The code is the biggest thing on both, because it is what two people who have never met compare
+   across a counter.
+2. **The code is readable.** No O beside 0, no I or L beside 1, no S beside 5. Whatever is printed
+   is what somebody types back.
+3. **Codes do not count up.** Check in several children and compare. One code says nothing about the
+   next, which matters because anybody in the queue can see a label.
+4. **An adult gets no code.** A name badge is not a claim on a child.
+5. **Press check in twice.** The child keeps the code they already have. Two codes for one child is
+   two labels that do not match each other.
+6. **Say the labels did not print.** The check-in goes back, because a child marked present with no
+   label in a parent's hand cannot be proved to belong to whoever comes for them.
+
+Brother QL and Dymo are HRT-61. This prints through the browser, which is every printer a church
+already owns.

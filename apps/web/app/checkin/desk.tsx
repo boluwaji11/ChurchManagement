@@ -51,6 +51,9 @@ export function Desk({
   const [counts, setCounts] = React.useState<Record<string, number>>({});
   const [error, setError] = React.useState<string>();
   const [done, setDone] = React.useState<string[]>([]);
+  // Who is waiting on a label. Until the volunteer says the labels are in the
+  // parent's hand, the check-in is not finished. (R8.6)
+  const [printing, setPrinting] = React.useState<string[]>([]);
   const [pending, startTransition] = React.useTransition();
 
   // Typing is the whole interaction, so the search runs as they type and the
@@ -73,6 +76,7 @@ export function Desk({
   const start = (household: FoundHousehold) => {
     setOpen(household.id);
     setDone([]);
+    setPrinting([]);
     const rooms: Record<string, string | null> = {};
     const people: Record<string, boolean> = {};
     for (const person of household.people) {
@@ -89,7 +93,11 @@ export function Desk({
     if (!household) return;
     const entries = household.people
       .filter((p) => picked[p.id] && !p.checkedIn)
-      .map((p) => ({ personId: p.id, roomId: p.isChild ? (chosen[p.id] ?? null) : null }));
+      .map((p) => ({
+        personId: p.id,
+        roomId: p.isChild ? (chosen[p.id] ?? null) : null,
+        child: p.isChild,
+      }));
     if (entries.length === 0) return;
 
     startTransition(async () => {
@@ -98,8 +106,41 @@ export function Desk({
       if (result.error) return;
       setCounts(result.counts ?? {});
       setDone(entries.map((e) => e.personId));
+
+      // The children on this press are the ones whose labels have to come out
+      // of the printer before anybody walks away.
+      const children = entries.filter((e) => e.child).map((e) => e.personId);
+      setPrinting(children);
+      if (children.length > 0) {
+        window.open(
+          `/checkin/labels?church=${church}&service=${service}&people=${children.join(",")}`,
+          "hearth-labels",
+          "width=520,height=720",
+        );
+      }
+
       const refreshed = await find(query, service, church);
       setHouseholds(refreshed.households ?? []);
+    });
+  };
+
+  /**
+   * R8.6. A label that did not print takes the check-in with it.
+   *
+   * A child marked present with no label in a parent's hand is a child nobody
+   * can prove belongs to the person who comes to collect them, so the answer to
+   * a printer that jammed is to put the check-in back rather than carry on.
+   */
+  const settle = (printed: boolean) => {
+    const waiting = printing;
+    setPrinting([]);
+    if (printed) return;
+
+    startTransition(async () => {
+      for (const personId of waiting) await undo(service, personId, church);
+      const refreshed = await find(query, service, church);
+      setHouseholds(refreshed.households ?? []);
+      setDone([]);
     });
   };
 
@@ -170,11 +211,22 @@ export function Desk({
             ))}
           </ul>
 
-          <div>
-            <Button onClick={send} disabled={pending}>
-              <Check /> {t("checkin.check")}
-            </Button>
-          </div>
+          {printing.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <Button onClick={() => settle(true)}>
+                <Check /> {t("checkin.printed")}
+              </Button>
+              <Button variant="danger" disabled={pending} onClick={() => settle(false)}>
+                {t("checkin.notPrinted")}
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <Button onClick={send} disabled={pending}>
+                <Check /> {t("checkin.check")}
+              </Button>
+            </div>
+          )}
         </Card>
       ) : households.length > 0 ? (
         <div className="flex flex-col gap-2">

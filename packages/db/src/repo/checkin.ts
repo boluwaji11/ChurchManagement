@@ -6,6 +6,7 @@ import { people } from "../schema/people";
 import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
+import { newCode, CODE_ATTEMPTS } from "./codes";
 
 /**
  * R8.4, R8.5. Checking a family in.
@@ -29,6 +30,11 @@ export interface CheckinEntry {
   personId: string;
   /** Null for an adult, or for a child the volunteer sent to no room. */
   roomId: string | null;
+  /**
+   * R8.6. Whether this person needs a label pair and a code. A child does. An
+   * adult takes a name badge, and a badge is not a claim on anybody.
+   */
+  child?: boolean;
 }
 
 export interface Visit {
@@ -84,19 +90,12 @@ export async function checkInFamily(
   if (!occurrence) throw new InvalidInputError("checkin.error.service");
   if (occurrence.status === "cancelled") throw new InvalidInputError("checkin.error.cancelled");
 
-  await db
-    .insert(checkinVisits)
-    .values(
-      input.entries.map((entry) => ({
-        tenantId: actor.tenantId,
-        occurrenceId: input.occurrenceId,
-        personId: entry.personId,
-        roomId: entry.roomId,
-        stationId: input.stationId ?? null,
-        checkedInBy: input.userId ?? null,
-      })),
-    )
-    .onConflictDoNothing();
+  // One at a time, because a child's code has to be unique for the church and
+  // the only way to be sure of that with two stations running is to let the
+  // database say no and ask again. A family is a handful of rows.
+  for (const entry of input.entries) {
+    await writeVisit(db, actor, input, entry);
+  }
 
   await db
     .insert(attendanceRecords)
@@ -112,6 +111,54 @@ export async function checkInFamily(
 
   const ids = input.entries.map((e) => e.personId);
   return (await visitsFor(db, input.occurrenceId)).filter((v) => ids.includes(v.personId));
+}
+
+/**
+ * One visit, with a code where the person is a child.
+ *
+ * A candidate code is checked against the church's own before it is used, and
+ * the unique index is the backstop. The index cannot be the first line here:
+ * this runs inside one transaction for the whole family, and a statement
+ * Postgres refuses aborts that transaction rather than handing back something
+ * to retry. So a collision that got past the check fails the check-in, loudly,
+ * and the volunteer presses again. A refused check-in is a queue waiting ten
+ * seconds. A silent one is a child with no label.
+ */
+async function writeVisit(
+  db: Tx,
+  actor: WriteActor,
+  input: { occurrenceId: string; stationId?: string | null; userId?: string | null },
+  entry: CheckinEntry,
+): Promise<void> {
+  const row = {
+    tenantId: actor.tenantId,
+    occurrenceId: input.occurrenceId,
+    personId: entry.personId,
+    roomId: entry.roomId,
+    stationId: input.stationId ?? null,
+    checkedInBy: input.userId ?? null,
+  };
+
+  const code = entry.child === false ? null : await freeCode(db);
+
+  await db
+    .insert(checkinVisits)
+    .values({ ...row, code })
+    .onConflictDoNothing({ target: [checkinVisits.occurrenceId, checkinVisits.personId] });
+}
+
+/** A code this church has not issued before. */
+async function freeCode(db: Tx): Promise<string> {
+  for (let attempt = 0; attempt < CODE_ATTEMPTS; attempt += 1) {
+    const candidate = newCode();
+    const [taken] = await db
+      .select({ id: checkinVisits.id })
+      .from(checkinVisits)
+      .where(eq(checkinVisits.code, candidate))
+      .limit(1);
+    if (!taken) return candidate;
+  }
+  throw new InvalidInputError("checkin.error.code");
 }
 
 /** Everybody checked in to one service, with the room they went to. */
@@ -208,4 +255,70 @@ export async function roomCounts(
   const out: Record<string, number> = {};
   for (const row of rows) if (row.roomId) out[row.roomId] = Number(row.n);
   return out;
+}
+
+/**
+ * R8.11. What goes on the two labels.
+ *
+ * The child's label carries everything a volunteer in the room needs without
+ * asking anybody: who this is, where they belong, which service, and the code.
+ * The guardian's carries the child's name, the room, and the same code, because
+ * a parent coming back at 10:45 needs to know which door to stand at and what
+ * to say when they get there.
+ *
+ * Built here rather than in the browser so that a station printing offline
+ * prints the same labels as one printing online.
+ */
+export interface LabelPair {
+  personId: string;
+  childName: string;
+  roomName: string | null;
+  roomHue: string | null;
+  serviceName: string;
+  churchName: string;
+  code: string;
+  /** R8.10. Filled once allergies are recorded, in HRT-58. */
+  allergy: string | null;
+}
+
+export async function labelsFor(
+  db: Tx,
+  occurrenceId: string,
+  personIds: string[],
+  churchName: string,
+): Promise<LabelPair[]> {
+  if (personIds.length === 0) return [];
+
+  const rows = await db
+    .select({
+      personId: checkinVisits.personId,
+      code: checkinVisits.code,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
+      roomName: checkinRooms.name,
+      roomHue: checkinRooms.hue,
+      serviceName: serviceOccurrences.name,
+    })
+    .from(checkinVisits)
+    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, checkinVisits.occurrenceId))
+    .leftJoin(checkinRooms, eq(checkinRooms.id, checkinVisits.roomId))
+    .where(eq(checkinVisits.occurrenceId, occurrenceId))
+    .orderBy(asc(people.firstName));
+
+  // A person with no code takes a name badge rather than a label pair, and a
+  // name badge is not a claim on anybody.
+  return rows
+    .filter((r) => personIds.includes(r.personId) && r.code !== null)
+    .map((r) => ({
+      personId: r.personId,
+      childName: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
+      roomName: r.roomName,
+      roomHue: r.roomHue,
+      serviceName: r.serviceName,
+      churchName,
+      code: r.code!,
+      allergy: null,
+    }));
 }

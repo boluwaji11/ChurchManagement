@@ -30,6 +30,7 @@ const TABLES = [
   "checkin_stations",
   "checkin_station_rooms",
   "checkin_station_services",
+  "checkin_visits",
   "stored_files",
   "demo_records",
   "tenant_members",

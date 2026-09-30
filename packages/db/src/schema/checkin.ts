@@ -172,5 +172,10 @@ export const checkinVisits = pgTable(
     // One live visit per person per service. Checking a child in twice is the
     // same child, and two rows would be two codes for one label pair.
     uniqueIndex("visit_unique").on(t.occurrenceId, t.personId),
+    // R8.6. A code is a church's own and is never handed out twice, which is
+    // stronger than the twelve months the requirement asks for and simpler to
+    // be sure of. The database is what enforces it, rather than a check that
+    // two stations could both pass at the same moment.
+    uniqueIndex("visit_code_unique").on(t.tenantId, t.code),
   ],
 );
