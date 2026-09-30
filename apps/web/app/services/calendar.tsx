@@ -8,7 +8,7 @@ import {
   Badge, Banner, Button, Card, Checkbox, EmptyState, Field, Input,
   Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogClose,
 } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
 import { addGathering, setCancelled, stopRepeat, editGathering, recordHeadcount } from "./actions";
@@ -27,6 +27,7 @@ export interface GatheringRow {
   visitors: number | null;
   total: number | null;
   past: boolean;
+  present: number;
   readableDate: string;
   readableTime: string;
 }
@@ -153,10 +154,15 @@ export function Calendar({
                     </Td>
                     <Td className={cancelled ? "text-fg-subtle" : undefined}>{row.readableTime}</Td>
                     <Td>
-                      {cancelled ? null : row.total === null ? (
-                        <span className="text-fg-subtle">{t("services.notCounted")}</span>
-                      ) : (
+                      {/* The headcount is the church's own number, so it wins.
+                          Otherwise the names ticked on the roster stand in, and
+                          a service with neither says so. */}
+                      {cancelled ? null : row.total !== null ? (
                         <span className="text-fg">{row.total}</span>
+                      ) : row.present > 0 ? (
+                        <span className="text-fg">{plural("roster.present", row.present)}</span>
+                      ) : (
+                        <span className="text-fg-subtle">{t("services.notCounted")}</span>
                       )}
                     </Td>
                     <Td>

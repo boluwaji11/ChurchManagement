@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { withTenant, setPresent, setPresentMany } from "@hearth/db";
 import { requireSession } from "@/lib/session";
@@ -27,10 +28,11 @@ async function writeContext(slug: string | undefined) {
 /**
  * One tick.
  *
- * Deliberately without revalidatePath. The roster is held in the page and the
- * tick is already drawn; refetching the whole list on every press is what makes
- * a tablet feel like it is thinking, and 120 of those is the three minutes the
- * acceptance criterion gives us.
+ * The roster page is never revalidated: it holds its own state and the tick is
+ * already drawn, so refetching it on every press is what makes a tablet feel
+ * like it is thinking. The services list is, because it shows how many were
+ * marked and somebody pressing back expects to see their work. That costs a
+ * cache invalidation rather than a query.
  */
 export async function markPresent(data: FormData): Promise<RosterResult> {
   const slug = String(data.get("church") ?? "") || undefined;
@@ -46,6 +48,7 @@ export async function markPresent(data: FormData): Promise<RosterResult> {
         String(data.get("present") ?? "") === "1",
       ),
     );
+    revalidatePath("/services");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -66,6 +69,7 @@ export async function markManyPresent(data: FormData): Promise<RosterResult> {
         String(data.get("present") ?? "") === "1",
       ),
     );
+    revalidatePath("/services");
     return {};
   } catch (error) {
     return { error: explain(error) };

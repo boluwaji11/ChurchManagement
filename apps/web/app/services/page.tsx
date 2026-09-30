@@ -1,5 +1,5 @@
 import {
-  withTenant, listOccurrences, topUpCalendar, canManageServices,
+  withTenant, listOccurrences, topUpCalendar, countsFor, canManageServices,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
@@ -29,7 +29,7 @@ export default async function ServicesPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const rows = await withTenant(
+  const { rows, present } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // Keeps a repeating service six months ahead without anybody maintaining
@@ -37,7 +37,8 @@ export default async function ServicesPage({
       if (canManageServices(session.role)) {
         await topUpCalendar(tx, { tenantId: session.tenantId, role: session.role });
       }
-      return listOccurrences(tx, { includeCancelled: true });
+      const list = await listOccurrences(tx, { includeCancelled: true });
+      return { rows: list, present: await countsFor(tx, list.map((r) => r.id)) };
     },
   );
 
@@ -66,6 +67,7 @@ export default async function ServicesPage({
                 ? null
                 : (r.countAdults ?? 0) + (r.countChildren ?? 0) + (r.countVisitors ?? 0),
             past: r.occursOn <= new Date().toISOString().slice(0, 10),
+            present: present[r.id] ?? 0,
             serviceTimeId: r.serviceTimeId,
             readableDate: readableDate(r.occursOn),
             readableTime: readableTime(r.startsAt),
