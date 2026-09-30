@@ -71,17 +71,17 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.x | Closed |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
-| HRT-14 | Active session list with remote revoke | R1.10 | Resolved |
-| HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Resolved |
+| HRT-14 | Active session list with remote revoke | R1.10 | Closed |
+| HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
-| HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Resolved |
-| HRT-16 | Custom field definitions and values, in the UI | R1.12 | Resolved |
+| HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
+| HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota display with a warning at 80% | R1.16 | New |
-| HRT-36 | **Externalise every user-facing string.** | R22.8 | Resolved |
-| HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Resolved |
+| HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
+| HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
 
 ### F2. People
 
@@ -91,11 +91,11 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-20 | Notes in two classes, confidential ones encrypted and separately gated | R2.7 | Closed |
 | HRT-21 | **Add, edit and archive a person. Households and contact methods.** | R2.1 to R2.3, R2.5, R2.13 | Closed |
 | HRT-22 | Relationships, independent of household | R2.4 | Closed |
-| HRT-23 | Milestones, with the extensible kind list | R2.6 | Resolved |
-| HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Resolved |
-| HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Resolved |
-| HRT-40 | Directory search, filtering, sorting and pagination | R2.x | Resolved |
-| HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Resolved |
+| HRT-23 | Milestones, with the extensible kind list | R2.6 | Closed |
+| HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
+| HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Closed |
+| HRT-40 | Directory search, filtering, sorting and pagination | R2.x | Closed |
+| HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Closed |
 | HRT-26 | Background check status and expiry tracking | R2.10 | New |
 | HRT-27 | Birthdays and anniversaries list | R2.9 | New |
 
@@ -103,10 +103,10 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-28 | Import wizard: column mapping, dry run, duplicate handling | R19.1 to R19.3 | Resolved |
-| HRT-38 | Excel (.xlsx) files, as well as CSV | R19.1 | Resolved |
-| HRT-29 | Import rollback, reversible for 30 days | R19.4 | Resolved |
-| HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Resolved |
+| HRT-28 | Import wizard: column mapping, dry run, duplicate handling | R19.1 to R19.3 | Closed |
+| HRT-38 | Excel (.xlsx) files, as well as CSV | R19.1 | Closed |
+| HRT-29 | Import rollback, reversible for 30 days | R19.4 | Closed |
+| HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
 | HRT-31 | Sample and demo data | R19.7 | New |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
@@ -147,7 +147,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-23** milestones, **HRT-15** settings, **HRT-42** date field, **HRT-14** sessions |
+| **Waiting on a test** | Nothing |
 | **Next** | HRT-18 storage quota, then HRT-31 sample data, then HRT-13 MFA |
 
 ### HRT-16, how to test it
