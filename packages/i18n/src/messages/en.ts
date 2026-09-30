@@ -178,7 +178,6 @@ export const en = {
   "date.placeholder": "MM/DD/YYYY",
   "time.open": "Open the times",
   "time.clear": "Clear",
-  "time.placeholder": "9:00 AM",
   "nav.settings": "Settings",
   "settings.sections": "Settings sections",
   "settings.tab.account": "Account",

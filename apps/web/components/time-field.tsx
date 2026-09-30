@@ -32,7 +32,6 @@ export function TimeField({
       name={name}
       value={value}
       onChange={set}
-      placeholder={t("time.placeholder")}
       labels={LABELS}
       {...rest}
     />
