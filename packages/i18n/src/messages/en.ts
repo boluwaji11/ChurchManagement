@@ -606,7 +606,6 @@ export const en = {
   "services.restore": "Put back",
   "services.remove": "Remove",
   "services.cancelTitle": "Cancel {name} on {date}?",
-  "services.cancelBody": "It stays on the record, marked cancelled, so the gap in attendance is explained.",
   "services.note": "Note",
   "services.special": "One-off",
   "services.repeats": "Repeats weekly",

@@ -169,9 +169,6 @@ export function Calendar({
                                 title={t("services.cancelTitle", { name: row.name, date: row.readableDate })}
                                 closeLabel={t("common.close")}
                               >
-                                <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
-                                  {t("services.cancelBody")}
-                                </p>
                                 <form
                                   action={(data) => {
                                     data.set("id", row.id);
