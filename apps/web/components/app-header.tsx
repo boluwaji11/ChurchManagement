@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Church, ChevronDown } from "lucide-react";
+import { Church } from "lucide-react";
 import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
 import { t } from "@hearth/i18n";
@@ -27,23 +27,18 @@ export async function AppHeader({ session }: { session: Session }) {
     <header className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <Logo href="/people" />
+          {/* The two marks go to the two places somebody means by them. Hearth
+              is the platform, so it goes to the lobby, where the churches are.
+              The church's own name is the church, so it goes to its directory. */}
+          <Logo href="/choose-church" />
           <Separator orientation="vertical" className="h-5" />
-          {session.memberships.length > 1 ? (
-            <Link
-              href="/choose-church"
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-label text-fg hover:bg-sunken"
-            >
-              {mark}
-              {session.tenantName}
-              <ChevronDown className="size-3.5 text-fg-subtle" aria-hidden />
-            </Link>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-2 py-1 text-label text-fg">
-              {mark}
-              {session.tenantName}
-            </span>
-          )}
+          <Link
+            href={`/people?church=${session.tenantSlug}`}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-label text-fg hover:bg-sunken"
+          >
+            {mark}
+            {session.tenantName}
+          </Link>
         </div>
 
         <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label={t("nav.sections")}>
