@@ -122,7 +122,11 @@ before any feature is built, and three density modes cannot be retrofitted onto 
 
 ```bash
 pnpm install
-pnpm dev          # then open http://localhost:4488/design
+cp .env.example .env.local     # fill in your Supabase project
+pnpm db:migrate                # tables, RLS policies, audit triggers
+pnpm db:seed                   # two churches, so isolation is demonstrable
+pnpm dev                       # http://localhost:4488
+pnpm test                      # the cross-tenant isolation suite
 ```
 
 Port 4488, because 3000 and 3001 are crowded. Override it with `PORT=5000 pnpm dev`.
@@ -130,9 +134,11 @@ Port 4488, because 3000 and 3001 are crowded. Override it with `PORT=5000 pnpm d
 No database, no keys, no accounts. Supabase arrives with the next step.
 
 ```
-apps/web              Next.js app. The /design gallery lives here.
+apps/web              Next.js app. The /design gallery and /people live here.
 packages/ui           Design tokens, components, the token generator.
 packages/ui/tokens    Platform-neutral token source. Web CSS is generated from it.
+packages/db           Drizzle schema, RLS policies, repositories, isolation tests.
+packages/db/sql       The security layer: app role, policies, grants, audit triggers.
 ```
 
 `pnpm tokens` regenerates `packages/ui/src/tokens.css` from the JSON in `packages/ui/tokens`. Colours,

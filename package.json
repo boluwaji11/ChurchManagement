@@ -7,11 +7,22 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "tokens": "pnpm --filter @hearth/ui run tokens"
+    "tokens": "pnpm --filter @hearth/ui run tokens",
+    "db:generate": "pnpm --filter @hearth/db run generate",
+    "db:migrate": "pnpm --filter @hearth/db run migrate",
+    "db:seed": "pnpm --filter @hearth/db run seed",
+    "test": "turbo run test"
   },
   "devDependencies": {
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
 }

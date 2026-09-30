@@ -23,15 +23,23 @@ export default function Home() {
         </p>
 
         <p className="text-[length:var(--d-text-body)] text-fg-subtle">
-          Nothing is built yet. The design system is, and that is what there is to look at.
+          Two things work so far: the design system, and the data foundation behind the directory.
         </p>
 
-        <Button asChild>
-          <Link href="/design">
-            Open the design gallery
-            <ArrowRight />
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild>
+            <Link href="/design">
+              Open the design gallery
+              <ArrowRight />
+            </Link>
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href="/people">
+              See the directory
+              <ArrowRight />
+            </Link>
+          </Button>
+        </div>
       </div>
     </main>
   );

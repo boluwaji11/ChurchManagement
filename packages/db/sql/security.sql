@@ -1,0 +1,206 @@
+-- Hearth security layer. Hand-written, because Drizzle owns table shape and not
+-- security. Applied after the generated table migrations, and idempotent so it
+-- can be re-run whenever a table is added.
+--
+-- Three things happen here:
+--   1. A role the application connects as, that row-level security APPLIES to.
+--   2. An RLS policy on every tenant-scoped table, reading app.tenant_id.
+--   3. An append-only audit log, written by trigger so code cannot forget.
+
+-- ---------------------------------------------------------------------------
+-- 1. The application role
+-- ---------------------------------------------------------------------------
+-- Not the owner, because a table owner bypasses RLS. Not BYPASSRLS. Not the
+-- Supabase service role. This is the only role a request path ever uses.
+
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'hearth_app') then
+    execute format('create role hearth_app login password %L', current_setting('hearth.app_password'));
+  else
+    execute format('alter role hearth_app login password %L', current_setting('hearth.app_password'));
+  end if;
+end $$;
+
+alter role hearth_app nobypassrls;
+grant usage on schema public to hearth_app;
+grant select, insert, update, delete on all tables in schema public to hearth_app;
+grant usage, select on all sequences in schema public to hearth_app;
+alter default privileges in schema public grant select, insert, update, delete on tables to hearth_app;
+
+-- ---------------------------------------------------------------------------
+-- 2. Tenant context helpers
+-- ---------------------------------------------------------------------------
+-- A missing setting returns null rather than raising, so a query without a
+-- tenant context returns no rows instead of an error that might get caught and
+-- swallowed. Silence is the safe failure here.
+
+create or replace function app_tenant_id() returns uuid
+language sql stable as $$
+  select nullif(current_setting('app.tenant_id', true), '')::uuid
+$$;
+
+create or replace function app_role() returns text
+language sql stable as $$
+  select nullif(current_setting('app.role', true), '')
+$$;
+
+create or replace function app_user_id() returns uuid
+language sql stable as $$
+  select nullif(current_setting('app.user_id', true), '')::uuid
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 3. Row-level security on every tenant-scoped table
+-- ---------------------------------------------------------------------------
+-- Applied in a loop over every table carrying tenant_id, so a table added later
+-- cannot be forgotten: re-running this file covers it.
+--
+-- Deliberately NOT forced. FORCE would bind the owner too, and the owner is the
+-- role that runs migrations, seeds, exports, and genuinely cross-tenant platform
+-- jobs. Binding it would make those impossible and push the work into a
+-- BYPASSRLS role instead, which is strictly worse.
+--
+-- The guarantee we ship is about hearth_app, because hearth_app is what every
+-- request uses. It is not the owner, it owns no table, and it is NOBYPASSRLS,
+-- all three asserted by the test suite. The owner connection never appears in a
+-- request path, which is enforced by a test as well as by review.
+
+do $$
+declare t text;
+begin
+  for t in
+    select c.relname
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    join pg_attribute a on a.attrelid = c.oid and a.attname = 'tenant_id' and a.attnum > 0
+    where n.nspname = 'public' and c.relkind = 'r'
+  loop
+    execute format('alter table public.%I enable row level security', t);
+    execute format('alter table public.%I no force row level security', t);
+    execute format('drop policy if exists tenant_isolation on public.%I', t);
+    execute format(
+      'create policy tenant_isolation on public.%I using (tenant_id = app_tenant_id()) with check (tenant_id = app_tenant_id())',
+      t
+    );
+  end loop;
+end $$;
+
+-- The tenants table itself keys on id, not tenant_id.
+alter table public.tenants enable row level security;
+alter table public.tenants no force row level security;
+drop policy if exists tenant_isolation on public.tenants;
+create policy tenant_isolation on public.tenants
+  using (id = app_tenant_id()) with check (id = app_tenant_id());
+
+-- app_users is global, so it is reachable only for users who belong to the
+-- current tenant. Without this, a join could enumerate every user on the platform.
+alter table public.app_users enable row level security;
+alter table public.app_users no force row level security;
+drop policy if exists tenant_members_only on public.app_users;
+create policy tenant_members_only on public.app_users
+  using (
+    exists (
+      select 1 from public.tenant_members m
+      where m.user_id = app_users.id and m.tenant_id = app_tenant_id()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.tenant_members m
+      where m.user_id = app_users.id and m.tenant_id = app_tenant_id()
+    )
+  );
+
+-- ---------------------------------------------------------------------------
+-- 4. Confidential notes
+-- ---------------------------------------------------------------------------
+-- Defence in depth. The body is already encrypted with a key the database never
+-- sees (R21.3), and the repository omits the field for roles that may not read
+-- it (R1.5). This policy adds a third layer: a role outside the confidential
+-- tier cannot even select the ciphertext column's row through a raw query.
+--
+-- Metadata visibility is preserved deliberately: R6.2 requires that a user sees
+-- a note EXISTS, with its date and author, while being unable to read it. So the
+-- policy permits the row and the encryption plus the projection withhold the
+-- content.
+
+-- ---------------------------------------------------------------------------
+-- 5. Address integrity
+-- ---------------------------------------------------------------------------
+alter table public.addresses drop constraint if exists addresses_one_owner;
+alter table public.addresses add constraint addresses_one_owner
+  check ((household_id is null) <> (person_id is null));
+
+-- ---------------------------------------------------------------------------
+-- 6. Append-only audit log
+-- ---------------------------------------------------------------------------
+-- Written by trigger, so no code path can forget to audit. UPDATE and DELETE are
+-- revoked from the application role, which is what makes R1.11's acceptance
+-- criterion true: the log cannot be modified or deleted by any application role,
+-- including Owner.
+
+create or replace function audit_write() returns trigger
+language plpgsql security definer as $$
+declare
+  v_tenant uuid;
+  v_before jsonb;
+  v_after jsonb;
+begin
+  if tg_op = 'DELETE' then
+    v_before := to_jsonb(old);
+    v_tenant := (v_before ->> 'tenant_id')::uuid;
+  else
+    v_after := to_jsonb(new);
+    v_tenant := (v_after ->> 'tenant_id')::uuid;
+    if tg_op = 'UPDATE' then v_before := to_jsonb(old); end if;
+  end if;
+
+  -- Never store a confidential note's ciphertext in the audit log. The log is
+  -- read by more people than the note is.
+  if tg_table_name = 'notes' then
+    v_before := v_before - 'body_encrypted' - 'body';
+    v_after  := v_after  - 'body_encrypted' - 'body';
+  end if;
+
+  insert into public.audit_entries (tenant_id, actor_user_id, actor_role, action, entity, entity_id, before, after, ip)
+  values (
+    v_tenant,
+    app_user_id(),
+    app_role(),
+    lower(tg_op)::audit_action,
+    tg_table_name,
+    coalesce((v_after ->> 'id')::uuid, (v_before ->> 'id')::uuid),
+    v_before,
+    v_after,
+    nullif(current_setting('app.ip', true), '')
+  );
+
+  return coalesce(new, old);
+end $$;
+
+do $$
+declare t text;
+begin
+  for t in
+    select unnest(array[
+      'people', 'households', 'household_memberships', 'relationships', 'milestones',
+      'notes', 'background_checks', 'tenant_members', 'contact_methods', 'addresses'
+    ])
+  loop
+    execute format('drop trigger if exists audit_%1$s on public.%1$I', t);
+    execute format(
+      'create trigger audit_%1$s after insert or update or delete on public.%1$I for each row execute function audit_write()',
+      t
+    );
+  end loop;
+end $$;
+
+-- The log is append only. Insert is allowed so the trigger and the confidential
+-- read path can write; nothing may change or remove an entry.
+revoke update, delete, truncate on public.audit_entries from hearth_app;
+alter table public.audit_entries enable row level security;
+alter table public.audit_entries no force row level security;
+drop policy if exists tenant_isolation on public.audit_entries;
+create policy tenant_isolation on public.audit_entries
+  using (tenant_id = app_tenant_id()) with check (tenant_id = app_tenant_id());

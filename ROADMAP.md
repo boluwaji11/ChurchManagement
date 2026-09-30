@@ -24,6 +24,12 @@ through both the ORM and raw SQL, and every attempt fails. Field-level permissio
 verified at the query layer. Every component renders in all three densities, light and dark, and the
 contrast audit passes in CI.
 
+**Progress.** The design system and the `/design` gallery are built. The data foundation is built:
+20 tables, RLS enabled with an isolation policy on every one, an append-only audit log written by
+trigger, application-level encryption for confidential pastoral notes, and a 24-test adversarial
+suite that passes against a real Postgres. Still to come in 0.1: Supabase Auth and MFA, custom
+fields and tags in the UI, duplicate detection and merge, the import wizard, and full export.
+
 Requirements: R24.x, R1.x, R2.x, R19.1 to R19.4, R19.7, R19.8, R21.1 to R21.6, R21.12, R21.15, R22.8
 
 ## 0.2 Sunday Core

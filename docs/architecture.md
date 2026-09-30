@@ -59,6 +59,20 @@ isolation boundary. Four integrations become one, which matters when one person 
   subscription. Adding a socket dependency to the one screen that must work without a network would be
   backwards.
 
+### Enabled, not forced
+
+Row-level security is **enabled** on every tenant-scoped table and deliberately **not forced**.
+
+`FORCE ROW LEVEL SECURITY` binds the table owner as well, and the owner is the role that runs
+migrations, seeds, exports, and genuinely cross-tenant platform jobs. Forcing it would make those
+impossible and push the work into a `BYPASSRLS` role instead, which is strictly worse: it swaps a
+narrow, auditable exception for a blanket one.
+
+The guarantee we ship is about `hearth_app`, because `hearth_app` is what every request uses. It is
+not the owner, it owns no table, and it is `NOBYPASSRLS`. All three are asserted by the test suite,
+and a further test asserts that the owner connection is never imported by the web app, so the rule is
+a build failure rather than a review habit.
+
 ### The connection rule
 
 This is the detail that decides whether RLS actually protects anything.
@@ -73,9 +87,36 @@ set local app.tenant_id = '<tenant uuid>';
 RLS policies read `current_setting('app.tenant_id')`. A query that forgets its tenant filter returns
 nothing, rather than returning another church's members.
 
+The third argument to `set_config` is `true`, meaning transaction-local. That is the whole safety
+property on a pooled connection: without it, one church's context would survive into the next
+request on the same connection. Removing it would be a silent cross-tenant bug rather than an error.
+
+`withTenant` uses **Drizzle's own transaction API** rather than passing a postgres.js transaction
+handle into `drizzle()`. Drizzle installs date parser overrides on `client.options` at construction,
+and a postgres.js transaction handle carries no `options`, so constructing per transaction both
+repeats that work and throws. The Drizzle instance is therefore built once from the pooled client and
+`db.transaction()` supplies the per-request scope.
+
 **The service role key never appears in a request path.** It is used only by the job worker, only for
 operations that are genuinely cross-tenant, such as scheduled exports and platform metrics. A service
 role connection bypasses RLS, which is precisely why it is confined to one process and audited.
+
+### Confidential notes: three layers
+
+R6.2 requires that a user without the confidential tier sees a note **exists**, with its date and
+author, and cannot read its content through the UI, the API, an export, or a report. Three
+independent mechanisms, so no single mistake exposes anything:
+
+1. **Encryption.** The body is AES-256-GCM encrypted with a key held in the application environment,
+   never in the database. A database dump does not contain readable pastoral notes.
+2. **Projection.** The repository omits the `body` key entirely for roles that may not read it,
+   rather than setting it to null or an empty string, so a consumer that forgets to check renders
+   nothing instead of leaking a blank.
+3. **Audit on read.** Every confidential read writes an audit entry naming the reader, so the
+   boundary is observable rather than merely asserted.
+
+The audit trigger strips `body` and `body_encrypted` before writing, because the log is read by more
+people than the note is.
 
 ### Cost line to watch
 
