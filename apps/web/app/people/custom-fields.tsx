@@ -5,6 +5,7 @@ import {
   Input, Field, Checkbox,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { DateField } from "@/components/date-field";
 import { t } from "@hearth/i18n";
 
 export interface FieldDef {
@@ -77,7 +78,7 @@ function CustomFieldInput({
     case "date":
       return (
         <Field label={field.label} error={error}>
-          <Input name={name} type="date" defaultValue={typeof value === "string" ? value : ""} />
+          <DateField name={name} defaultValue={typeof value === "string" ? value : ""} />
         </Field>
       );
 

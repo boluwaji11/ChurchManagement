@@ -5,7 +5,7 @@ import { Plus, Search, Printer, Check, MoreHorizontal, Download } from "lucide-r
 import {
   Button, IconButton, Input, Textarea, Field, Badge, Chip, Avatar, Card, CardTitle,
   CardDescription, Separator, Skeleton, Spinner, Progress, Checkbox, Switch, RadioGroup,
-  RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, Tooltip,
+  RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, DatePicker, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
   TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
 } from "@hearth/ui";
@@ -111,6 +111,9 @@ export default function Components() {
           </Field>
           <Field label="Person" htmlFor="c-person">
             <ComboboxDemo />
+          </Field>
+          <Field label="Date of birth" htmlFor="c-dob">
+            <DateDemo />
           </Field>
           <Field label="Disabled" htmlFor="c-dis">
             <Input defaultValue="Locked" disabled />
@@ -312,6 +315,29 @@ function ComboboxDemo() {
       placeholder="Search for someone"
       emptyLabel="No one by that name"
       clearLabel="Clear"
+    />
+  );
+}
+
+/** The date field holds its own value too. */
+function DateDemo() {
+  const [value, setValue] = React.useState("1954-06-14");
+  return (
+    <DatePicker
+      id="c-dob"
+      name="demo-date"
+      value={value}
+      onChange={setValue}
+      placeholder="MM/DD/YYYY"
+      labels={{
+        open: "Open the calendar",
+        clear: "Clear",
+        previousMonth: "Previous month",
+        nextMonth: "Next month",
+        month: "Month",
+        year: "Year",
+        today: "Today",
+      }}
     />
   );
 }

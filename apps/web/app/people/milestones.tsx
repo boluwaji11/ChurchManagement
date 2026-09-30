@@ -7,6 +7,7 @@ import {
   Badge, Banner, Button, Input, Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { DateField } from "@/components/date-field";
 import { t } from "@hearth/i18n";
 import { addPersonMilestone, removePersonMilestone } from "./milestone-actions";
 
@@ -154,7 +155,7 @@ export function Milestones({
                 <label htmlFor="milestone-date" className="text-label text-fg">
                   {t("milestone.date")}
                 </label>
-                <Input id="milestone-date" name="occurredOn" type="date" max={TODAY} required />
+                <DateField id="milestone-date" name="occurredOn" max={TODAY} required />
               </div>
 
               <div className="flex flex-col gap-1.5">

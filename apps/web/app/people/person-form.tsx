@@ -7,6 +7,7 @@ import {
   Button, Input, Field, Card, CardTitle, Separator, Banner,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { DateField } from "@/components/date-field";
 import { t } from "@hearth/i18n";
 import {
   parsePerson, personErrors, hasErrors,
@@ -192,13 +193,13 @@ export function PersonForm({
             </Select>
           </Field>
           <Field label={t("personForm.dateOfBirth")} error={errors.dateOfBirth}>
-            <Input name="dateOfBirth" type="date" defaultValue={values?.dateOfBirth ?? ""} />
+            <DateField name="dateOfBirth" defaultValue={values?.dateOfBirth ?? ""} />
           </Field>
           <Field label={t("personForm.firstVisit")} error={errors.firstVisitOn}>
-            <Input name="firstVisitOn" type="date" defaultValue={values?.firstVisitOn ?? ""} />
+            <DateField name="firstVisitOn" defaultValue={values?.firstVisitOn ?? ""} />
           </Field>
           <Field label={t("personForm.membershipDate")} error={errors.membershipDate}>
-            <Input name="membershipDate" type="date" defaultValue={values?.membershipDate ?? ""} />
+            <DateField name="membershipDate" defaultValue={values?.membershipDate ?? ""} />
           </Field>
         </div>
       </Card>

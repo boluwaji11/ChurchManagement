@@ -94,6 +94,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Resolved |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Resolved |
 | HRT-40 | Directory search, filtering, sorting and pagination | R2.x | Resolved |
+| HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Resolved |
 | HRT-26 | Background check status and expiry tracking | R2.10 | New |
 | HRT-27 | Birthdays and anniversaries list | R2.9 | New |
 
@@ -145,7 +146,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-23** milestones, **HRT-15** settings |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-23** milestones, **HRT-15** settings, **HRT-42** date field |
 | **Next** | HRT-14 session list, then HRT-26 background checks, then HRT-27 birthdays |
 
 ### HRT-16, how to test it
@@ -301,6 +302,22 @@ A Settings link appears in the header for Owner and Admin.
    for everyone else, and the write is refused even if the URL is typed in.
 
 The logo is the one part of R1.1 left out. It needs file storage, which is HRT-18.
+
+### HRT-42, how to test it
+
+Every date on a person's record, a milestone and a custom field.
+
+1. **It is ours now.** The panel uses the product's own colours, corners and type, in light and
+   dark, and it looks the same in Safari, Chrome and Firefox.
+2. **Type it.** A date of birth in 1954 is typed, not paged to. The field accepts 06/14/1954,
+   6/14/54, 06-14-1954 and the ISO form. A typo puts back the date that was there rather than
+   emptying the field.
+3. **Or point at it.** Month and year are dropdowns, so a birthday is two presses and a date rather
+   than eight hundred month presses.
+4. **Keyboard.** Arrows move a day, PageUp and PageDown move a month, Home and End go to the ends of
+   the week, Enter chooses, Escape closes. The grid is one tab stop.
+5. **Limits.** A milestone cannot be given a future date, and those days are greyed and refuse the
+   press.
 
 ### HRT-32, how to test it
 
