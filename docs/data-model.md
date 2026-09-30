@@ -34,7 +34,7 @@ Tenant ──┬── Campus ── Location ── Room
 
 ## The song schema
 
-This is the spine. It ships in 0.4, in Phase 1, because Sanctuary Stage renders directly from these
+This is the spine. It ships in 0.4, in Phase 1, because Hearth Stage renders directly from these
 records with no transformation and no import step. Deleting the import step is the whole product idea,
 and a convenient song list now is a rewrite later.
 
@@ -82,7 +82,7 @@ SongUsage                         drives CCLI reporting in R12.10
 
 **1. Lyrics are structured, not a blob (R12.4).** Stage renders one slide group per section (S2). A
 blob would force a parser, a parser would force an import step, and an import step is exactly the
-ProPresenter handoff Sanctuary exists to delete.
+ProPresenter handoff Hearth exists to delete.
 
 **2. Sequence is data (R12.5).** The arrangement says `V1 C V2 C B C C`, so Stage builds the slide
 order with no human step, and the same sequence drives the printed chart and the music stand view

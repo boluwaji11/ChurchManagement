@@ -1,6 +1,6 @@
 # Contributing
 
-Sanctuary is free church management software, funded by donations and licensed
+Hearth is free church management software, funded by donations and licensed
 [AGPL-3.0](LICENSE). Help is welcome.
 
 > **Status: pre-alpha.** The specification is complete, the code is not started. The most useful
@@ -26,8 +26,10 @@ The highest value contributions today:
 - **Review the giving spec (PRD section 8.13)** if you are a church treasurer or a CPA. Year end
   statements have to satisfy IRS Publication 1771, and getting that wrong in January is not
   recoverable.
-- **Answer an open question (PRD section 13).** Bible text licensing and the current CCLI reporting
-  format both need someone who actually knows.
+- **Check the CCLI export columns (R12.10)** if you handle CCLI reporting for a church. The decision
+  in PRD section 13.6 needs confirming against what CCLI actually accepts.
+- **Review the design system** ([docs/design-system.md](docs/design-system.md)) if you design. The
+  station rules in particular are written from the outside.
 
 ## What gets accepted
 
@@ -40,7 +42,8 @@ general ledger accounting, a website builder, native mobile apps, livestreaming,
 automation engine, and a custom report builder. Each has a reason listed.
 
 Settled decisions, not open for relitigation: free forever with no paid tier, hosted SaaS only in v1,
-Stripe Connect at a zero platform fee, bring-your-own email and SMS credentials, AGPL-3.0.
+Stripe Connect at a zero platform fee, bring-your-own email and SMS credentials, AGPL-3.0, and
+Supabase as the platform. All recorded with reasoning in [PRD section 13](PRD.md).
 
 ## Non-negotiables
 

@@ -7,15 +7,17 @@ Decisions that are expensive to change later. Requirement IDs refer to [../PRD.m
 | Layer | Choice | Why |
 |---|---|---|
 | Language | TypeScript, end to end | One language across web, API, jobs, and the Phase 2 desktop app, so song and plan logic is written once and shared. |
-| Repo | pnpm workspaces plus Turborepo | Sanctuary Stage must import the same packages the web app uses. A monorepo is a Phase 2 requirement, not a preference. |
+| Repo | pnpm workspaces plus Turborepo | Hearth Stage must import the same packages the web app uses. A monorepo is a Phase 2 requirement, not a preference. |
 | Web and API | Next.js App Router, server actions plus a versioned REST surface | One deployable, fast to build, good defaults. REST exists for the public API (R20.1) and the Stage sync client. |
+| Platform | **Supabase** | Postgres, auth, and object storage from one vendor, built around row-level security, which is the model we already committed to. See section "Supabase" below. |
 | Database | PostgreSQL | Row-level security is the tenant isolation mechanism. This is the one item on the list that is not negotiable. |
 | ORM | Drizzle | Explicit SQL, predictable query shapes, and it does not fight RLS. |
 | Jobs | Durable queue | Imports, statement generation, bulk sends, and offline reconciliation are long running and must survive a deploy. |
 | Files | S3-compatible object storage, per-tenant key prefixes, hard quotas | Cost control. See PRD section 5.3. |
 | Payments | Stripe Connect, application fee zero | See PRD section 5.1. |
 | Email and SMS | Church-supplied Resend, SMTP, and Twilio credentials | See PRD section 5.2. |
-| Member app | PWA | Native apps are an explicit non-goal. |
+| Front end | Tailwind CSS v4, shadcn/ui on Radix, Lucide, Motion | See [design-system.md](design-system.md). |
+| Member app | PWA | Native apps are an explicit non-goal in v1. |
 | Presenter | Electron plus shared core, SQLite cache | See PRD section 8.23. |
 | Licence | AGPL-3.0 | Free forever as a property of the licence, not a promise. |
 
@@ -28,15 +30,66 @@ apps/
   stage          Phase 2: Electron presenter
 packages/
   db             Drizzle schema, migrations, RLS policies
+  ui             Design tokens, components, the /design gallery
   songs          Song model, section and sequence resolution, ChordPro transposition
   core           Shared domain logic, permissions, validation
   sync           Stage sync client and server contract
-  ui             Shared components
 ```
 
 `packages/songs` is the reason this is a monorepo. Phase 1 and Phase 2 resolve arrangement sequences
 and transpose charts with the same code, so a slide in Stage and a chart in the music stand view can
 never disagree.
+
+## Supabase
+
+The platform decision, closed in [PRD section 13.9](../PRD.md). Postgres, auth, and storage from one
+vendor, chosen because Supabase is built around row-level security and RLS is already our tenant
+isolation boundary. Four integrations become one, which matters when one person maintains all of them.
+
+### How we use it
+
+- **Drizzle against the Postgres connection directly.** We do **not** use the auto-generated PostgREST
+  API. Field-level permissions must be enforced in our own query layer (R1.5, R21.2), and our public
+  API is a designed surface (R20.1) rather than a database projection.
+- **Supabase Auth for authentication, our own tables for authorization.** Auth gives us magic links
+  for members (R17.1), TOTP MFA (R1.8), and Google SSO (R1.9), all of which are weeks of work to get
+  right and dangerous to get subtly wrong. Roles, scoping, and field-level rules stay ours.
+- **Supabase Storage** with per-tenant key prefixes and enforced quotas.
+- **Realtime is not used in v1.** The station's offline design is a local event log, not a live
+  subscription. Adding a socket dependency to the one screen that must work without a network would be
+  backwards.
+
+### The connection rule
+
+This is the detail that decides whether RLS actually protects anything.
+
+The request path connects as a Postgres role that **RLS applies to**, and sets the tenant per
+transaction:
+
+```sql
+set local app.tenant_id = '<tenant uuid>';
+```
+
+RLS policies read `current_setting('app.tenant_id')`. A query that forgets its tenant filter returns
+nothing, rather than returning another church's members.
+
+**The service role key never appears in a request path.** It is used only by the job worker, only for
+operations that are genuinely cross-tenant, such as scheduled exports and platform metrics. A service
+role connection bypasses RLS, which is precisely why it is confined to one process and audited.
+
+### Cost line to watch
+
+Supabase Auth prices on monthly active users, the only cost in the stack that scales with **member**
+count rather than church count. Free tier covers the pilot phase, Pro is $25 a month with 100,000 MAU,
+which covers several hundred churches at our segment size. Tracked under N10.
+
+If MAU ever becomes the dominant cost line, the exit is a self-hosted auth library on the same
+Postgres. Contained, because authorization was never Supabase's job.
+
+### No data-layer lock-in
+
+It is Postgres. If Supabase becomes the wrong answer, the exit is `pg_dump`. Section 5.5 of the PRD
+promises churches an exit, and we hold ourselves to the same standard.
 
 ## Tenancy
 
@@ -101,7 +154,7 @@ the network failing (R8.24).
 
 **Connection state is always visible.** The station never silently fails (R8.22).
 
-## Sanctuary Stage sync contract
+## Hearth Stage sync contract
 
 Stage is a client of a versioned sync API, not a second application with a second database.
 

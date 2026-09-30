@@ -1,11 +1,11 @@
-# Sanctuary
+# Hearth
 
 **Church management software. No pay, always free.**
 
-Sanctuary is a complete church management platform given to churches at no cost. Not a trial, not a
+Hearth is a complete church management platform given to churches at no cost. Not a trial, not a
 free tier, not a loss leader for an upsell. Every feature, every church, every time.
 
-Phase 2 adds **Sanctuary Stage**, a worship presenter that replaces ProPresenter and already knows
+Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and already knows
 what is happening on Sunday, because it reads the same service plan and the same song library.
 
 > **Status: pre-alpha.** The specification is complete, the code is not started. Read
@@ -33,7 +33,7 @@ church does not have.
 
 **Free software for churches exists. Easy software for churches exists. Nothing is both.**
 
-Sanctuary is Rock RMS's price with Breeze's usability.
+Hearth is Rock RMS's price with Breeze's usability.
 
 ## Who it is for
 
@@ -71,7 +71,7 @@ So the model is part of the design.
 
 - **Funded by donations and grants.** No paid tier. No enterprise edition. No per-seat anything.
 - **We never touch your money.** Giving runs through your own Stripe account with a platform fee of
-  zero. Funds go from the giver to your Stripe account to your bank. Giving through Sanctuary costs
+  zero. Funds go from the giver to your Stripe account to your bank. Giving through Hearth costs
   less than Tithe.ly, because there is no margin stacked on top.
 - **Bring your own email and SMS.** You supply your Resend, SMTP, or Twilio credentials and we send
   through them. This is why we can afford to be free.
@@ -89,6 +89,32 @@ Promises are cheap, so these are structural instead.
 - **We never train models on your data.** Contractual, and no processor is permitted to either.
 - **Nonprofit governance** for the hosted service.
 
+## What it looks like
+
+Every competitor is a blue SaaS dashboard, grey on grey, one accent colour, no joy. Hearth is a warm
+canvas carrying a full spectrum, and the colour does real work: every room, team, group type, fund,
+and ministry owns a hue, so a calendar, a check-in floor, and a giving chart are readable at a glance
+instead of after reading. Your check-in room's colour prints on the child's label, so a volunteer can
+point a parent to the teal room without reading a word.
+
+One design system, three densities. **Office** is dense and keyboard-first for the admin at a desk.
+**Station** is a Sunday kiosk with 56px targets, 20px text, and 7:1 contrast, because 09:58 on a
+Sunday with forty families queuing is the hardest screen in church software. **Portal** is app-like on
+a phone for members.
+
+And it is accessible because volunteers span every age and ability, not because a standard says so.
+Body text never under 400 weight, a focus ring that is never removed, and reduced motion means no
+motion. WCAG 2.2 AA is the floor.
+
+Details in [docs/design-system.md](docs/design-system.md).
+
+## Built with
+
+TypeScript end to end. Next.js App Router, **Supabase** for Postgres, auth, and storage, with Postgres
+row-level security as the tenant isolation boundary. Drizzle, Tailwind CSS v4, shadcn/ui on Radix,
+Lucide icons, Motion. Stripe Connect at a zero platform fee. A PWA for members now, native later.
+Phase 2's presenter is Electron sharing the song library code with the web app.
+
 ## Documentation
 
 | | |
@@ -97,6 +123,7 @@ Promises are cheap, so these are structural instead.
 | [ROADMAP.md](ROADMAP.md) | Release plan, 0.1 through 1.0, then Phase 2 |
 | [docs/architecture.md](docs/architecture.md) | Stack, tenancy, offline check-in, presenter sync |
 | [docs/data-model.md](docs/data-model.md) | Entities, and the song schema in full |
+| [docs/design-system.md](docs/design-system.md) | Tokens, colour, type, motion, components, station rules |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to help |
 | [CLAUDE.md](CLAUDE.md) | Instructions for AI coding agents in this repo |
 

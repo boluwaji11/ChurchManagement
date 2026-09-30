@@ -3,19 +3,28 @@
 Five releases to GA, then Phase 2. Each release is defined by what a church can do with it, not by a
 feature count. Requirement IDs refer to [PRD.md](PRD.md).
 
+**Built one step at a time, tested after each deliverable.** The steps inside a release are shipped and
+reviewed individually rather than as a batch, and the first step of all is the design gallery, because
+that is what can be judged before any feature exists.
+
 ## 0.1 Foundation
 
 Internal only. No church touches this.
 
-Multi-tenancy with Postgres row-level security, authentication and MFA, roles with field-level
-permissions, people and households, relationships, milestones, custom fields, tags, the audit log,
-CSV and Excel import with dry-run and rollback, and complete export.
+**The design system comes first**, because it is the thing that is reviewable before any feature
+exists, and because retrofitting three density modes onto built screens does not work. Tokens,
+the twelve-hue spectrum, type, motion, and the component library, all rendered in a `/design` gallery.
+
+Then the platform: Supabase with multi-tenancy on Postgres row-level security, authentication and MFA,
+roles with field-level permissions, people and households, relationships, milestones, custom fields,
+tags, the audit log, CSV and Excel import with dry-run and rollback, and complete export.
 
 **Exit criteria:** an adversarial test suite attempts cross-tenant reads and writes on every table
 through both the ORM and raw SQL, and every attempt fails. Field-level permission enforcement is
-verified at the query layer.
+verified at the query layer. Every component renders in all three densities, light and dark, and the
+contrast audit passes in CI.
 
-Requirements: R1.x, R2.x, R19.1 to R19.4, R19.7, R19.8, R21.1 to R21.6, R21.12, R21.15, R22.8
+Requirements: R24.x, R1.x, R2.x, R19.1 to R19.4, R19.7, R19.8, R21.1 to R21.6, R21.12, R21.15, R22.8
 
 ## 0.2 Sunday Core
 
@@ -54,7 +63,7 @@ and CCLI usage export, plus volunteer teams, scheduling with conflict detection,
 accept and decline without login, substitute swaps, the background check gate, and the coverage gap
 dashboard.
 
-**Exit criteria:** one pilot church plans and staffs four consecutive services entirely in Sanctuary.
+**Exit criteria:** one pilot church plans and staffs four consecutive services entirely in Hearth.
 A song's lyrics round-trip through export and import with section types and labels intact.
 
 Requirements: R10.1 to R10.9, R10.12, R11.1 to R11.12, R12.1 to R12.7, R12.9, R12.10, R12.12
@@ -81,11 +90,11 @@ R21.14, R22.4 to R22.6, R22.9
 Configurable pipeline builder, scheduled reports, Google and Outlook calendar sync, Zapier, CCLI
 SongSelect import, background check provider integration, Mailchimp sync, barcode household cards.
 
-## Phase 2: Sanctuary Stage
+## Phase 2: Hearth Stage
 
 A separate PRD before build. Outline in [PRD.md section 8.23](PRD.md).
 
-An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@sanctuary/songs` package
+An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@hearth/songs` package
 with the web platform and a local SQLite cache. Offline first. It renders slides directly from the
 song sections and arrangement sequences that Phase 1 already stores, which is the entire reason the
 two products are one platform.

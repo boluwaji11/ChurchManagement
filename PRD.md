@@ -1,25 +1,25 @@
-# Sanctuary
+# Hearth
 
 **Product Requirements Document**
 
 | | |
 |---|---|
-| **Product** | Sanctuary, a church management platform. Phase 2 adds Sanctuary Stage, a worship presenter. |
+| **Product** | Hearth, a church management platform. Phase 2 adds Hearth Stage, a worship presenter. |
 | **Version** | 1.0 (draft) |
 | **Date** | 29 September 2026 |
 | **Status** | Approved for build |
 | **Owner** | Boluwaji Oyewumi |
-| **Name** | "Sanctuary" is provisional, pending a trademark and domain check. |
+| **Name** | "Hearth" chosen after "Sanctuary" was found in use by three competing products. A formal trademark search is a pre-launch task. The name lives in configuration, not in code. |
 
 ---
 
 ## 1. Summary
 
-Sanctuary is a church management platform given to churches at no cost. Not a trial, not a free
+Hearth is a church management platform given to churches at no cost. Not a trial, not a free
 tier, not a loss leader for an upsell. No pay, always free.
 
 It starts as the system a church runs its week on: people, families, attendance, children's
-check-in, giving, groups, volunteers, and the Sunday service plan. Phase 2 adds Sanctuary Stage, a
+check-in, giving, groups, volunteers, and the Sunday service plan. Phase 2 adds Hearth Stage, a
 worship presenter that replaces ProPresenter and, crucially, already knows what is happening on
 Sunday because it reads the same service plan and the same song library.
 
@@ -28,7 +28,7 @@ forever" is a property of the license and not a promise in a blog post.
 
 ### 1.1 The one-sentence thesis
 
-Free church software already exists and churches cannot use it. Sanctuary is the first one that is
+Free church software already exists and churches cannot use it. Hearth is the first one that is
 both free and usable by a volunteer who gives four hours a week.
 
 ---
@@ -81,7 +81,7 @@ job and will not be installing IIS.
 
 > Free software for churches exists. Easy software for churches exists. Nothing is both.
 
-Sanctuary's target is Rock RMS's price with Breeze's usability. That sentence is the product
+Hearth's target is Rock RMS's price with Breeze's usability. That sentence is the product
 strategy, and every scoping decision in this document comes from it: if a feature makes the product
 more powerful but less usable by a volunteer, it is cut or deferred, no matter how much the
 competition markets it.
@@ -100,7 +100,7 @@ Churches of **50 to 500 weekly attendance**, with **zero to two paid staff**, ad
 Multi-site churches. Congregations over 2,000. Denominational or diocesan rollups. Churches with an
 IT staff member.
 
-This exclusion is not modesty, it is what buys us the ability to ship. It is why Sanctuary has no
+This exclusion is not modesty, it is what buys us the ability to ship. It is why Hearth has no
 workflow automation engine, no engagement scoring model, and no custom report builder. Those three
 features are the reason Rock RMS is unusable for everyone else, and a 180 member church has never
 once needed any of them.
@@ -113,16 +113,16 @@ boundaries is the one mistake you cannot undo cheaply. The UI simply does not ex
 **Maria, volunteer administrator.** In the office two mornings a week. Adds new families, keeps
 contact details current, prints the directory, prepares Sunday's check-in labels, chases the people
 who have gone quiet. She is the daily user and the product's real judge. Her enemy is retyping
-things she has already typed. If Sanctuary makes her do double entry, she goes back to the
+things she has already typed. If Hearth makes her do double entry, she goes back to the
 spreadsheet, and the church goes with her.
 
 **Pastor Dave, lead pastor.** Wants to know who is new, who is slipping away, and whether Sunday
 will run smoothly. Not a software person, and not interested in becoming one. He evaluates
-Sanctuary with exactly one question: can Maria use it?
+Hearth with exactly one question: can Maria use it?
 
 **Grace, treasurer, volunteer.** Records the cash and cheques from Sunday, reconciles the deposit,
 and every January produces year end giving statements that must satisfy the IRS. That is a legal
-deadline, not a nice to have. If Sanctuary cannot produce compliant statements in January, Sanctuary
+deadline, not a nice to have. If Hearth cannot produce compliant statements in January, Hearth
 is not a giving system.
 
 **Ruth, children's ministry lead.** Runs check-in on Sunday with a rotating team of volunteers. Her
@@ -133,10 +133,10 @@ a first-time volunteer, and to keep working when the church wifi drops. Which it
 **James, worship and tech lead, volunteer.** Plans the set, schedules the band, runs the slides.
 Today he is paying for ProPresenter personally, or the church runs a copy from 2016, or he is
 building slides in PowerPoint on Saturday night. He is the Phase 2 user, and he is the one who will
-tell four other churches about Sanctuary.
+tell four other churches about Hearth.
 
 **Members and attendees.** Want the directory, a way to give, to sign their kids in from the car
-park, and to find a small group. They will use Sanctuary for four minutes a week and should never
+park, and to find a small group. They will use Hearth for four minutes a week and should never
 need to be taught how.
 
 ---
@@ -144,7 +144,7 @@ need to be taught how.
 ## 4. Positioning
 
 **For** small and mid-size churches, **who** cannot justify $150 a month in software,
-**Sanctuary is** a complete church management platform **that** is free forever and built for a
+**Hearth is** a complete church management platform **that** is free forever and built for a
 volunteer, **unlike** Planning Center and Breeze, which charge per module, **and unlike** Rock RMS,
 which is free but needs a developer.
 
@@ -157,7 +157,7 @@ Messaging, in the product's own voice:
 
 ### 4.1 What makes this more than one more ChMS
 
-Sanctuary owns the whole Sunday loop:
+Hearth owns the whole Sunday loop:
 
 ```
   Service plan            order of service, songs, who is serving
@@ -166,7 +166,7 @@ Sanctuary owns the whole Sunday loop:
   Volunteer scheduling    invitations, accept/decline, reminders
         |
         v
-  Sanctuary Stage         renders THAT plan from THAT song library, live
+  Hearth Stage         renders THAT plan from THAT song library, live
         |
         v
   Check-in + attendance   who actually came, which room, which child
@@ -210,7 +210,7 @@ Four things fall out of that, and all four are good:
    never afford to enter.
 3. Our PCI scope stays at SAQ-A, because card data never touches our servers. Stripe-hosted elements
    only, always.
-4. Giving through Sanctuary costs the church less than Tithe.ly, because there is no platform margin
+4. Giving through Hearth costs the church less than Tithe.ly, because there is no platform margin
    stacked on top of Stripe's rate.
 
 Manual entry of cash and cheques is a first-class feature, not an afterthought, because most churches
@@ -219,7 +219,7 @@ in this segment still take most of their giving in a plate.
 ### 5.2 Messaging: bring your own credentials
 
 Churches supply their own Resend or SMTP credentials for bulk email, and their own Twilio credentials
-for SMS. Sanctuary sends through them.
+for SMS. Hearth sends through them.
 
 This looks like a limitation. It is survival. Reselling messaging credits is the line item that
 bankrupts donation funded platforms, because cost scales linearly with the thing you cannot control.
@@ -298,9 +298,9 @@ feature count.
 | **0.1** | Foundation | Nothing yet, internal only | Tenancy, auth, roles, people, households, import, export, audit log all working with RLS verified by test |
 | **0.2** | Sunday Core | Run Sunday and know who came | 3 pilot churches complete four consecutive Sundays of check-in with zero safety incidents |
 | **0.3** | Money | Take and record giving, and file statements | One pilot church issues compliant year end statements from real data |
-| **0.4** | Service Ops | Plan and staff the service | One pilot church plans and staffs four consecutive services entirely in Sanctuary |
+| **0.4** | Service Ops | Plan and staff the service | One pilot church plans and staffs four consecutive services entirely in Hearth |
 | **1.0** | GA | Replace their existing ChMS entirely | 10 churches migrated off a paid product, 12 week retention above 80%, donation coverage ratio at 1.0 |
-| **P2** | Sanctuary Stage | Run slides from the service plan | Separate PRD at build time. Outline in section 8.23. |
+| **P2** | Hearth Stage | Run slides from the service plan | Separate PRD at build time. Outline in section 8.23. |
 
 Release tags used in section 8: **0.1**, **0.2**, **0.3**, **0.4**, **1.0**, **1.x** (post-GA),
 **P2** (presenter phase).
@@ -454,7 +454,7 @@ and cannot read its content through the UI, the API, an export, or a report.
 
 ### 8.7 Attendance
 
-Most churches in this segment count heads on a clipboard. Sanctuary has to be better than the
+Most churches in this segment count heads on a clipboard. Hearth has to be better than the
 clipboard on the first Sunday, or it does not get a second.
 
 | ID | Rel | Requirement |
@@ -601,7 +601,7 @@ by the API.
 ### 8.11 Service planning
 
 Half of the Sunday loop. This is the Planning Center Services job, and it is also the input to
-Sanctuary Stage, which means the plan is a data structure and not a document.
+Hearth Stage, which means the plan is a data structure and not a document.
 
 | ID | Rel | Requirement |
 |---|---|---|
@@ -618,7 +618,7 @@ Sanctuary Stage, which means the plan is a data structure and not a document.
 | R11.11 | 0.4 | **Live mode**: a phone view showing the current item, the next item, elapsed versus planned, and a tap to advance. Read-only for the team, controllable by the leader. |
 | R11.12 | 0.4 | Plan revision history, with who changed what and when. Worship leaders change plans on Saturday night and need to know it happened. |
 | R11.13 | 1.0 | **Music stand view**: swipe through charts, per-person and shared annotations, attached practice audio with a rehearsal playlist. |
-| R11.14 | P2 | Plan is readable by Sanctuary Stage over the sync API, including arrangement, sequence, key, and resolved scripture text. |
+| R11.14 | P2 | Plan is readable by Hearth Stage over the sync API, including arrangement, sequence, key, and resolved scripture text. |
 
 *Accept R11.3:* changing one item's duration updates the projected end time with no page reload.
 *Accept R11.6:* a volunteer viewing the plan sees global notes plus notes addressed to their own
@@ -628,7 +628,7 @@ shows as unfilled on the plan.
 
 ### 8.12 Song library
 
-**The spine.** Every field here exists so that Sanctuary Stage can render from this record with no
+**The spine.** Every field here exists so that Hearth Stage can render from this record with no
 transformation and no import step. This is the whole reason the management system and the presenter
 are one platform, and it is why this schema ships in 0.4 and not in Phase 2.
 
@@ -646,7 +646,7 @@ are one platform, and it is why this schema ships in 0.4 and not in Phase 2.
 | R12.10 | 0.4 | **CCLI usage report export** for the reporting period, in the format CCLI accepts. Small churches get fined for failing this, and no free tool does it. |
 | R12.11 | 1.x | SongSelect import by CCLI number, pulling lyrics and chord charts. |
 | R12.12 | 0.4 | Manual song entry and bulk import from plain text, ChordPro, and OpenLyrics. |
-| R12.13 | P2 | Rendered by Sanctuary Stage directly from these records, over the sync API. |
+| R12.13 | P2 | Rendered by Hearth Stage directly from these records, over the sync API. |
 
 *Accept R12.4:* a song's lyrics round-trip through export and import with section types and labels
 intact, and a sequence referencing `V1 C B` resolves to exactly those sections in that order.
@@ -658,7 +658,7 @@ CCLI number, and validates against CCLI's required columns.
 ### 8.13 Giving
 
 Where the money is, and where the mission is. A church of two hundred pays roughly $1,200 a month in
-processing fees on Tithe.ly-class platforms. Sanctuary's giving is not just free, it is cheaper to
+processing fees on Tithe.ly-class platforms. Hearth's giving is not just free, it is cheaper to
 operate, because we take nothing.
 
 #### Online giving
@@ -670,7 +670,7 @@ operate, because we take nothing.
 | R13.3 | 0.3 | One-time and **recurring gifts**, with the giver able to change amount, fund, frequency, and payment method, and to cancel, without contacting the church. |
 | R13.4 | 0.3 | Fund selection at the point of giving, and split gifts across multiple funds. |
 | R13.5 | 0.3 | **Optional fee coverage**: the giver may choose to add the processing fee. Displayed honestly, never defaulted on. |
-| R13.6 | 0.3 | Giving page hosted at the church's Sanctuary subdomain, brandable, mobile first, working with no login. |
+| R13.6 | 0.3 | Giving page hosted at the church's Hearth subdomain, brandable, mobile first, working with no login. |
 | R13.7 | 1.0 | Text-to-give and a printable QR code for the foyer and the bulletin. |
 | R13.8 | 0.3 | Failed payment handling: retry schedule, giver notification, and a staff report of failed recurring gifts. |
 
@@ -708,10 +708,10 @@ operate, because we take nothing.
 | R13.26 | 1.0 | Budget versus actual at fund level. Not a general ledger, a single comparison the treasurer needs. |
 
 *Accept R13.1:* the Stripe Connect account is owned by the church, payouts settle to the church's bank
-without passing through any Sanctuary-controlled account, and the application fee on every charge is
+without passing through any Hearth-controlled account, and the application fee on every charge is
 verifiably zero.
 *Accept R13.2:* a full PCI scan and SAQ-A self-assessment confirms no cardholder data touches
-Sanctuary infrastructure.
+Hearth infrastructure.
 *Accept R13.10:* a batch cannot be closed while the entered total differs from the declared total,
 unless a variance note is recorded.
 *Accept R13.17:* a sample statement is reviewed against IRS Publication 1771 by a CPA before 0.3 ships.
@@ -757,7 +757,7 @@ named.
 
 ### 8.16 Communication
 
-Constrained by section 5.2. Churches bring their own sending credentials, and Sanctuary is a very good
+Constrained by section 5.2. Churches bring their own sending credentials, and Hearth is a very good
 front end for them.
 
 | ID | Rel | Requirement |
@@ -823,8 +823,8 @@ lists the people it refers to.
 
 ### 8.19 Data portability and migration
 
-The trust mechanism, and the adoption mechanism. A church will not move to Sanctuary if moving is
-hard, and will not trust Sanctuary if leaving is hard.
+The trust mechanism, and the adoption mechanism. A church will not move to Hearth if moving is
+hard, and will not trust Hearth if leaving is hard.
 
 | ID | Rel | Requirement |
 |---|---|---|
@@ -841,7 +841,7 @@ hard, and will not trust Sanctuary if leaving is hard.
 *Accept R19.5:* a Planning Center export of 800 people with households, 2,000 giving records, and 30
 groups imports with zero manual field mapping and under 2% requiring review.
 *Accept R19.8:* the export completes for a 5,000 person church within ten minutes and reimports into a
-clean Sanctuary instance with no data loss.
+clean Hearth instance with no data loss.
 
 ### 8.20 Integrations and API
 
@@ -908,18 +908,18 @@ not need to have is what keeps the platform free.
 contrast ratios verified by automated audit in CI plus one manual audit per release.
 *Accept R22.3:* measured for real pilot churches, not in a demo.
 
-### 8.23 Sanctuary Stage, Phase 2
+### 8.23 Hearth Stage, Phase 2
 
 Outline depth here. Stage gets its own PRD before build. What follows is the shape of it and the
 contract it has with Phase 1.
 
 **The competitive position is the important part.** OpenLP, FreeShow, Quelea, and Church Presenter are
-already free and already good. Sanctuary Stage does not win by being a better standalone presenter.
+already free and already good. Hearth Stage does not win by being a better standalone presenter.
 It wins by being the only presenter that already knows this Sunday's plan, this Sunday's songs, the
 keys they are in, and who is on the team, because it reads the same database that Maria and James
 already use.
 
-**Delivery:** Electron desktop for macOS, Windows, and Linux, sharing a `@sanctuary/songs` package
+**Delivery:** Electron desktop for macOS, Windows, and Linux, sharing a `@hearth/songs` package
 with the web platform, with a local SQLite cache. **Offline first.** The building's internet is not a
 dependency for Sunday morning.
 
@@ -947,6 +947,43 @@ dependency for Sunday morning.
 Non-goals for Stage: audio mixing, lighting control, video switching, and Ableton or MultiTracks
 session playback. Those are separate products with separate hardware, and pretending otherwise is how
 Stage never ships.
+
+
+### 8.24 Design system and front end
+
+Cross-cutting, and a requirement rather than a preference. Hearth replaces software churches pay for,
+so it has to look better than that software, not merely cost less. Free should not look free.
+
+Full specification in [docs/design-system.md](docs/design-system.md). The requirements that belong in
+a PRD are here.
+
+| ID | Rel | Requirement |
+|---|---|---|
+| R24.1 | 0.1 | **Three density modes from one system**: `office` (dense, desk, keyboard), `station` (Sunday kiosk, 56px targets, 20px text), `portal` (phone, app-like). Set on the root element, resolved through tokens, so a component is written once. |
+| R24.2 | 0.1 | **Design tokens in a platform-neutral source** (`packages/ui/tokens`), generated to CSS custom properties. Mobile comes later and must inherit the palette, scale, and motion rather than reinvent them. |
+| R24.3 | 0.1 | OKLCH colour throughout: warm stone neutrals, ink primary, ember accent, plus a **twelve-hue spectrum at matched lightness and chroma**. |
+| R24.4 | 0.2 | **Colour is assigned to things, not sprinkled on them.** Rooms, teams, group types, funds, ministries, and pipeline stages each own a hue, auto-assigned on creation for maximum separation and editable by the church. |
+| R24.5 | 0.2 | **Check-in room colour prints on the child label** and tints the room card and the supervisor dashboard, so a volunteer can direct a parent by colour. Faster and more accurate than reading a room name. |
+| R24.6 | 1.0 | Master calendar, schedule grids, and all charts are colour-coded from the spectrum, with a categorical series keeping the same colour across every view of the same data. |
+| R24.7 | 0.1 | Type: a display serif (Fraunces) with a UI sans (Inter) and a mono for codes (JetBrains Mono), chosen because a volunteer reads a pickup code aloud and must not confuse 0 with O. Self-hosted, no layout shift. |
+| R24.8 | 0.1 | **Body text never lighter than 400 weight.** Contrast minimums 4.5:1 body, 3:1 UI boundaries, and **7:1 on any station screen**. Verified in CI. |
+| R24.9 | 0.1 | **Colour is never the only signal.** Every status carries an icon or a label as well. |
+| R24.10 | 0.1 | **Dark mode is a first-class target**, not an inversion, including dark pairs for every spectrum hue. Tech booths and stage areas are dark on purpose. |
+| R24.11 | 0.1 | Lucide icons, consistent stroke per size, one concept to one glyph in a single registry. **Icon-only controls carry accessible labels, and are not permitted at all at station density.** |
+| R24.12 | 0.2 | **Motion clarifies, never decorates**: route transitions through the View Transitions API, list insert and reorder animated, optimistic state settling or reverting, skeletons rather than spinners above 300ms, and nothing animated on page load. |
+| R24.13 | 0.1 | `prefers-reduced-motion: reduce` means **no motion**, not less, enforced through a single token override so no component can forget. |
+| R24.14 | 0.2 | **Station layout makes the safety information impossible to miss**: allergies as a full-width critical banner that cannot be scrolled past, blocking warnings as full-screen interrupts rather than dismissible dialogs, offline state as persistent chrome rather than a toast. |
+| R24.15 | 0.1 | **Every component ships with all states** (default, hover, focus-visible, active, disabled, loading, error, empty), a **visible focus ring that is never removed**, full keyboard operation, all three densities, and light and dark. |
+| R24.16 | 0.1 | **A `/design` gallery route** rendering every component in every state and density. This is how design gets reviewed, and it is the first thing built. |
+| R24.17 | 0.2 | **Illustrated empty states** in spectrum hues, not a grey icon and an apology. A church's first week should feel like an invitation. |
+| R24.18 | 0.1 | No glassmorphism, no hover-only affordances, no toast-only errors, no placeholder-as-label, no modal stacking, no emoji as iconography. The full list is in the design system document. |
+
+*Accept R24.8:* an automated contrast audit runs in CI over the gallery route and fails the build on
+any violation, with station-density screens held to 7:1.
+*Accept R24.16:* the gallery is reachable in a pilot church's own instance, so design review happens on
+real data and real devices rather than in a mockup.
+*Accept R24.1:* one component implementation renders correctly in all three densities with no
+density-specific branches in its own code.
 
 ---
 
@@ -1071,7 +1108,7 @@ deliberate design rather than a general sync framework.
 - Replay conflicts, for example the same child checked in at two stations, are surfaced to a human.
   Nothing auto-merges a child's location.
 
-### 9.6 Sanctuary Stage sync contract
+### 9.6 Hearth Stage sync contract
 
 Stage is a client of a versioned sync API, not a second application with a second database. It pulls
 plans, plan items, songs, sections, arrangements, and resolved scripture text, and it pushes back
@@ -1131,31 +1168,166 @@ whether the product works. The second tells us whether it survives.
 | **A data breach of counselling notes or minors' records** | High | Field-level enforcement at the query layer, separate encryption for confidential notes, audit on read, MFA for privileged roles, annual penetration test. |
 | **Feature comparison against Planning Center loses deals** | Medium | We are not competing on the comparison table. Positioning is section 4, and the non-goals in section 6 are the strategy. Losing a 2,000 member church is the intended outcome. |
 | **Stripe Connect onboarding friction blocks giving adoption** | Medium | In-app guided flow, and manual batch giving fully usable without Stripe so a church gets value before it connects anything. |
-| **The name "Sanctuary" is unavailable** | Low | Trademark and domain check before any public use. The name appears in configuration, not hardcoded. |
+| **The name "Hearth" is unavailable** | Low | A formal search by a trademark attorney before any brand spend. The name lives in configuration, so a rename is a find and replace, not a refactor. Fallbacks held in reserve: Vestry, Ember. |
 
 ---
 
-## 13. Open questions
+## 13. Decisions
 
-1. **Name and trademark.** Is "Sanctuary" clear for use, and is a domain available? Stage depends on
-   the same answer.
-2. **Nonprofit structure.** Which jurisdiction and which entity type, and does it need to exist before
-   accepting the first donation?
-3. **Pilot churches.** Which three churches for 0.2, and are any of them willing to run children's
-   check-in on a pre-1.0 product? This needs an answer before 0.2 starts, because the safety gate
-   depends on real Sundays.
-4. **Licence, final call.** AGPL-3.0 is recommended for fork protection. Apache-2.0 would attract more
-   contributors. This is decidable now and expensive to change after the first outside contribution.
-5. **Bible text licensing.** Which translations can be served, and which require a licence? ESV, NIV,
-   and NLT all have terms. This affects R11.5 and S5.
-6. **CCLI reporting format.** Confirm the current required columns directly with CCLI before building
-   R12.10.
-7. **Denominational data requirements.** Some denominations mandate specific annual returns. Worth one
-   round of research before 1.0, since it may be a cheap differentiator.
-8. **Non-US giving statements.** UK Gift Aid and Canadian CRA receipts are different documents. Out of
-   scope for v1, but the statement generator should not be built in a way that assumes the IRS.
+These were open questions. All eight are now closed, with the reasoning recorded so they do not get
+reopened without new information.
 
----
+### 13.1 Name: Hearth
+
+**"Sanctuary" is unusable.** It is in active use by at least three church management products,
+including [SanctuaryOS](https://sanctuaryos.app/), a direct competitor covering member management,
+giving, volunteers, and pastoral care.
+
+**Decision: Hearth.** The presenter is **Hearth Stage**. A hearth is the warm centre of a house,
+where people gather, and it is plain English rather than liturgical vocabulary, which matters for a
+US market of largely non-denominational churches. Short, spellable, sayable, and not in use in this
+category. It also gives the palette its story, which the design system uses directly.
+
+A formal trademark search by an attorney is required before any brand spend, but not before building.
+The name lives in configuration. Fallbacks held in reserve: **Vestry**, **Ember**.
+
+### 13.2 Nonprofit structure: defer incorporation, use a fiscal host
+
+**Decision: do not incorporate before the first donation.** Take donations through a fiscal host,
+Open Collective being the obvious choice, which provides a transparent public ledger, handles receipts
+through the host entity, and needs no legal entity of our own. The transparent ledger is also a trust
+asset, because churches can see exactly what their donations pay for.
+
+Incorporate a nonprofit entity when either trigger fires: annual donations pass roughly $25,000, or
+the platform passes fifty churches. Before either, incorporation is cost and paperwork with no
+benefit. After either, it is necessary for governance, liability, and grant eligibility.
+
+### 13.3 Pilot churches: shadow mode removes the blocker
+
+The real problem was never recruitment, it was that no responsible church will let a pre-1.0 product
+be the source of truth for where their children are.
+
+**Decision: 0.2 pilots run check-in in shadow mode.** Hearth runs alongside the church's existing
+paper or software process for four Sundays. The church's existing process stays authoritative. Hearth
+prints its labels, generates its codes, and records its events, and every discrepancy is compared
+afterwards. Nothing about a child's safety depends on Hearth during the pilot.
+
+That makes the ask to a pilot church nearly free, and it makes the 0.2 exit criteria stronger rather
+than weaker, because four shadow Sundays produce a measured discrepancy rate rather than an absence
+of complaints. Hearth becomes authoritative only when a church chooses to switch after shadow mode.
+
+Pilot criteria: 80 to 400 attendance, an active children's ministry, a named volunteer administrator,
+and currently paying for software. Recruitment is a tracked task, not an open specification question.
+
+### 13.4 Licence: AGPL-3.0, final
+
+**Decision: AGPL-3.0.** The argument that matters is not developer preference, it is the trust
+argument in section 5.5. "Free forever" has to be a property of the licence rather than a promise,
+and AGPL makes a closed commercial fork of a hosted service impossible. Apache-2.0 would attract more
+outside contributors and give up the only structural guarantee we have. For a platform whose entire
+proposition is that it will not become expensive later, that is the wrong trade.
+
+Settled before the first outside contribution, which is when it becomes expensive to change.
+
+### 13.5 Bible text: free translations by default, licensed ones by the church's own key
+
+This resolves cleanly by reusing the bring-your-own-credentials pattern from section 5.2.
+
+**Bundled and always available, no key, no cost:**
+
+| Translation | Basis |
+|---|---|
+| **BSB**, Berean Standard Bible | Dedicated to the public domain in 2023. Modern, readable, and the sensible default. |
+| **WEB**, World English Bible | Public domain. |
+| **KJV** and **ASV** | Public domain. |
+| **NET** | Free web service access with attribution. |
+
+Served through the Free Use Bible API, whose source is MIT licensed and whose terms explicitly permit
+commercial use, with a self-hosted copy of the public domain texts as a fallback so scripture lookup
+never depends on a third party being up on a Sunday.
+
+**ESV:** supported through a **church-supplied API key** from api.esv.org. Free for non-commercial use
+at 5,000 queries a day, which every church in our segment qualifies for and no church will exceed. We
+never hold the key.
+
+**NIV: not supported, and we say so plainly.** Biblica licensing is restrictive, there is no free API,
+and pretending otherwise wastes a church's time. Churches wanting NIV, NLT, or similar can licence
+individually through API.Bible from around $10 a month per translation and supply that key, using the
+same mechanism as ESV.
+
+**Default shipped: BSB.** Requirements affected: R11.5, R20.3, S5.
+
+### 13.6 CCLI reporting: export the columns, confirm the detail in build
+
+CCLI reporting is submitted through CCLI's own portal. There is no public API to submit against, so
+there is nothing to integrate with.
+
+**Decision: R12.10 ships a CSV export and a printable report** containing song title, CCLI song
+number, author, dates used, and number of uses in the period, which is the data a human transcribes
+or uploads. Exact column names are confirmed directly with CCLI during 0.4 rather than blocking the
+design now. The underlying `SongUsage` data (section 9.4) is complete regardless of format, so a
+format change is a report template edit.
+
+Small churches genuinely get penalised for failing to report, and no free tool does this. It stays in
+0.4.
+
+### 13.7 Denominational returns: out of scope, handled generically
+
+**Decision: not built.** Some denominations mandate specific annual returns, and building even three
+of them means maintaining forms that change annually, for a differentiator that only matters to
+churches inside those denominations.
+
+The canned reports and CSV export (R18.x) give a church everything needed to complete a return by
+hand, which is what they do today. Revisited after 1.0 only if a denomination arrives with churches
+attached.
+
+### 13.8 Non-US giving statements: pluggable from day one, US only in 0.3
+
+**Decision: the statement generator takes a jurisdiction rule set and a receipt template, and 0.3
+ships exactly one, the IRS Publication 1771 implementation.**
+
+No IRS assumption is hardcoded: not the required disclosure text, not the $250 contemporaneous
+acknowledgment threshold, not the non-cash valuation rule, not the tax year boundary, not the currency.
+UK Gift Aid and Canadian CRA receipts are genuinely different documents with different legal content,
+and they are out of scope for v1. Adding one later must be a new rule set and template, never a change
+to the generator.
+
+This is a small amount of work now and the difference between a market and a rewrite later.
+
+### 13.9 Database and platform: Supabase
+
+Not one of the original eight, and it needed answering before any code.
+
+**Decision: Supabase.**
+
+| Reason | Detail |
+|---|---|
+| **RLS is the native idiom** | Our tenant isolation boundary is Postgres row-level security (section 9.2). Supabase is built around RLS, so its tooling, docs, and client libraries assume the model we already committed to, instead of fighting it. |
+| **Four vendors collapse into one** | Postgres, auth, object storage, and realtime. For a solo maintainer, vendor count is a real cost, and every integration is a thing that can break on a Sunday. |
+| **Auth we do not have to build** | Magic links for members (R17.1), TOTP MFA (R1.8), and Google SSO (R1.9) are weeks of work done correctly, and getting auth subtly wrong is how a church's data leaks. |
+| **Cost fits the funding model** | The free tier covers the pilot phase outright. Pro is $25 a month with 100,000 monthly active users, which covers several hundred churches at our segment size. |
+| **Open source and self-hostable** | Consistent with the AGPL story and the wind-down commitment in section 5.5. |
+| **No data-layer lock-in** | It is Postgres. If Supabase ever becomes the wrong answer, the exit is `pg_dump`, which matters because section 5.5 promises churches an exit and we should hold ourselves to the same standard. |
+
+**How we use it, and how we do not:**
+
+- **Drizzle against the Postgres connection directly.** We do not use the auto-generated PostgREST
+  API, because field-level permissions have to be enforced in our own query layer (R1.5, R21.2) and
+  our public API is a designed surface (R20.1), not a database projection.
+- **Connect as a role that RLS applies to**, with the tenant set per transaction via a session
+  variable. The service role key is used only by the job worker for operations that are genuinely
+  cross-tenant, and never from a request path.
+- **Supabase Auth for authentication, our own tables for authorization.** Roles, scoping, and
+  field-level rules are ours.
+- **Supabase Storage with per-tenant prefixes and enforced quotas** (section 5.3).
+- **Realtime is not used in v1.** The check-in station's offline design (section 9.5) is a local event
+  log, not a live subscription, and adding a socket dependency to the one screen that must work
+  without a network would be backwards.
+
+**The one line to watch:** Supabase Auth prices on monthly active users, which is the only cost in our
+stack that scales with member count rather than church count. It is tracked under N10. If it ever
+becomes the dominant cost line, the exit is a self-hosted auth library on the same Postgres, which is
+a contained change because authorization was never Supabase's job.
 
 ## Appendix: pricing sources
 
