@@ -24,6 +24,7 @@ const TABLES = [
   "locations",
   "rooms",
   "service_times",
+  "service_occurrences",
   "stored_files",
   "demo_records",
   "tenant_members",

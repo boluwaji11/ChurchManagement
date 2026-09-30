@@ -64,4 +64,4 @@ export type PermissionAction =
   | "rollbackImport" | "exportEverything" | "mergePeople"
   | "editRelationship" | "liftDoNotContact"
   | "addMilestone" | "removeMilestone"
-  | "editChurch" | "manageDemoData";
+  | "editChurch" | "manageDemoData" | "manageServices";

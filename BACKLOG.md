@@ -127,7 +127,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-47 | Service occurrences generated from the church's service times, with cancellation | R7.1 | New |
+| HRT-47 | Service occurrences generated from the church's service times, with cancellation | R7.1 | Resolved |
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | New |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | New |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | New |
@@ -187,8 +187,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo |
-| **Next** | 0.1 is complete apart from HRT-13 MFA, deferred at the user's request. Next release is 0.2. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** gatherings |
+| **Next** | HRT-48 headcounts, then HRT-49 individual attendance. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -418,6 +418,25 @@ Settings, the Storage card at the top.
 The bucket is private. The logo is served through a signed URL that lasts an hour, so a leaked path
 expires. Writes are checked twice: our query layer for the quota and the rules, and a bucket policy
 that reads membership from our own tables, so a user can only write into their own church's folder.
+
+### HRT-47, how to test it
+
+A Gatherings tab sits beside Directory. It needs at least one service time in Settings, Church.
+
+1. **Fill the calendar.** Choose a range. One gathering per service time per matching day, so a
+   church with a 09:00, an 11:00 and a Wednesday gets three a week.
+2. **Fill it again over the same range.** Nothing changes and nothing is duplicated.
+3. **Cancel one**, with a note like "Snow". It stays on the list, greyed and marked cancelled,
+   because a Sunday that vanished leaves a gap in the attendance record that reads as a collapse.
+   Put it back with one press.
+4. **Rename a week, then fill the calendar again.** Your name survives, and so does the
+   cancellation. Regenerating never undoes a decision somebody made about a particular week.
+5. **Add a one-off.** Carols by candlelight, 24 December, 18:30. Add a second at 23:00 the same
+   evening, which churches do. Both are marked as one-offs and both survive a regeneration, because
+   they belong to no weekly pattern.
+6. **Remove a one-off.** A generated gathering refuses to be removed and says to cancel it instead.
+7. **Roles.** Owner, Admin and Staff. Staff plan services, and cancelling a service is not renaming
+   the church.
 
 ### HRT-46, how to test it
 
