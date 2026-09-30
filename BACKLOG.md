@@ -72,7 +72,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.x | Closed |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | New |
-| HRT-15 | Church profile settings: name, address, timezone, service times, logo | R1.1 | New |
+| HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Resolved |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Resolved |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -145,8 +145,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-23** milestones |
-| **Next** | HRT-15 church settings |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-23** milestones, **HRT-15** settings |
+| **Next** | HRT-14 session list, then HRT-26 background checks, then HRT-27 birthdays |
 
 ### HRT-16, how to test it
 
@@ -284,6 +284,23 @@ Open anyone's record. A Milestones card sits above Relationships.
    alone, because someone corrected it on the record for a reason.
 5. **Removing one leaves the person alone.** Deleting a death record does not decide that somebody
    is alive. Change the status on the record itself.
+
+### HRT-15, how to test it
+
+A Settings link appears in the header for Owner and Admin.
+
+1. **The profile.** Name, legal name, address, phone, website, timezone and colour. The legal name
+   is separate because it is what goes on a giving statement under IRS Pub. 1771 (R13.14), and it is
+   rarely what the church calls itself.
+2. **The timezone is searchable.** Type "Chicago" or "Denver". An invented zone is refused by the
+   server as well as the form, because an unknown zone breaks every date in the product.
+3. **Service times.** Add "First service", Sunday, 09:00. They list Sunday first, then by the clock.
+   A separate record per service, because a church with a 09:00 and an 11:00 counts them
+   separately and a free-text "Sundays 9 and 11" cannot be counted. Attendance in 0.2 reads these.
+4. **Roles.** Owner and Admin. Staff edit people and do not rename the church. The link is hidden
+   for everyone else, and the write is refused even if the URL is typed in.
+
+The logo is the one part of R1.1 left out. It needs file storage, which is HRT-18.
 
 ### HRT-32, how to test it
 

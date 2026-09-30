@@ -23,6 +23,7 @@ const TABLES = [
   "campuses",
   "locations",
   "rooms",
+  "service_times",
   "tenant_members",
   "invitations",
   "households",

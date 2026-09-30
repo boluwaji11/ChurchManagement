@@ -14,10 +14,48 @@ export const tenants = pgTable(
     name: text("name").notNull(),
     legalName: text("legal_name"),
     timezone: text("timezone").notNull().default("America/Chicago"),
+    /** R1.1. One address. A church with two buildings has two campuses (R1.2). */
+    addressLine1: text("address_line1"),
+    addressLine2: text("address_line2"),
+    city: text("city"),
+    region: text("region"),
+    postalCode: text("postal_code"),
+    country: text("country").notNull().default("US"),
+    phone: text("phone"),
+    website: text("website"),
+    /** R1.1. One of the twelve hues, used wherever the church brands a page. */
+    brandHue: hue("brand_hue").notNull().default("indigo"),
+    /** R1.1. The storage key, filled by the upload in R1.18. */
+    logoKey: text("logo_key"),
     createdAt: created(),
     updatedAt: updated(),
   },
   (t) => [uniqueIndex("tenants_slug_key").on(t.slug)],
+);
+
+/**
+ * R1.1. When the church gathers.
+ *
+ * A table rather than a text field, because attendance (R7.3), check-in (R8.x)
+ * and the service plans in R11 all hang off a specific service on a specific
+ * day. A church with an 09:00 and an 11:00 counts them separately, always has,
+ * and a free-text "Sundays 9 & 11" cannot be counted.
+ */
+export const serviceTimes = pgTable(
+  "service_times",
+  {
+    id: pk(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** 0 is Sunday, matching JavaScript and Postgres `dow`. */
+    dayOfWeek: integer("day_of_week").notNull(),
+    /** Local to the church's timezone, as HH:MM. */
+    startsAt: text("starts_at").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: created(),
+  },
+  (t) => [index("service_times_tenant_idx").on(t.tenantId)],
 );
 
 /**

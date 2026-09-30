@@ -4,6 +4,7 @@ import { Avatar, Badge, Separator } from "@hearth/ui";
 import { SignOutButton } from "./sign-out-button";
 import { Logo } from "./brand";
 import { t } from "@hearth/i18n";
+import { canManageChurch } from "@hearth/db";
 import type { Session } from "@/lib/session";
 
 /**
@@ -39,6 +40,9 @@ export function AppHeader({ session }: { session: Session }) {
             [t("nav.directory"), "/people"],
             [t("nav.tags"), "/tags"],
             [t("nav.fields"), "/fields"],
+            // Settings rename the church for everyone in it, so the link is
+            // shown to the roles that can act on it.
+            ...(canManageChurch(session.role) ? [[t("nav.settings"), "/settings"]] : []),
           ].map(([label, href]) => (
             <Link
               key={href}

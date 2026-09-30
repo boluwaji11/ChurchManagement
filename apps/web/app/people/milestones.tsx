@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import {
-  Badge, Banner, Button, Input,
+  Badge, Banner, Button, Input, Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -23,6 +23,9 @@ const KINDS = [
 ] as const;
 
 const label = (kind: string) => t(`milestone.kind.${kind}` as never);
+
+/** The browser refuses a later date itself, so the picker greys them out. */
+const TODAY = new Date().toISOString().slice(0, 10);
 
 const readable = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
@@ -123,48 +126,53 @@ export function Milestones({
       </ul>
 
       {canEdit ? (
-        adding ? (
-          <form ref={form} action={submit} className="flex flex-wrap items-end gap-3">
-            <div className="flex min-w-48 flex-col gap-1.5">
-              <span className="text-label text-fg">{t("milestone.kind")}</span>
-              <Select value={kind} onValueChange={setKind}>
-                <SelectTrigger aria-label={t("milestone.kind")}>
-                  <SelectValue placeholder={t("milestone.chooseKind")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {KINDS.map((k) => (
-                    <SelectItem key={k} value={k}>{label(k)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="milestone-date" className="text-label text-fg">
-                {t("milestone.date")}
-              </label>
-              <Input id="milestone-date" name="occurredOn" type="date" required className="max-w-44" />
-            </div>
-
-            <div className="flex min-w-48 flex-1 flex-col gap-1.5">
-              <label htmlFor="milestone-notes" className="text-label text-fg">
-                {t("milestone.notes")}
-              </label>
-              <Input id="milestone-notes" name="notes" autoComplete="off" />
-            </div>
-
-            <Button type="submit" disabled={!kind || pending}>{t("action.add")}</Button>
-            <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
-              {t("action.cancel")}
-            </Button>
-          </form>
-        ) : (
-          <div>
-            <Button variant="ghost" onClick={() => { setAdding(true); setFollowed(undefined); }}>
+        <Dialog open={adding} onOpenChange={(next) => { setAdding(next); if (next) setFollowed(undefined); }}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" className="self-start">
               <Plus /> {t("milestone.add")}
             </Button>
-          </div>
-        )
+          </DialogTrigger>
+          {/* In a dialog rather than inline on the card, so the date field's own
+              calendar has room to open without landing on the rows below it. */}
+          <DialogContent title={t("milestone.add")} closeLabel={t("common.close")}>
+            <form ref={form} action={submit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-label text-fg">{t("milestone.kind")}</span>
+                <Select value={kind} onValueChange={setKind}>
+                  <SelectTrigger aria-label={t("milestone.kind")}>
+                    <SelectValue placeholder={t("milestone.chooseKind")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {KINDS.map((k) => (
+                      <SelectItem key={k} value={k}>{label(k)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="milestone-date" className="text-label text-fg">
+                  {t("milestone.date")}
+                </label>
+                <Input id="milestone-date" name="occurredOn" type="date" max={TODAY} required />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="milestone-notes" className="text-label text-fg">
+                  {t("milestone.notes")}
+                </label>
+                <Input id="milestone-notes" name="notes" autoComplete="off" />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="submit" disabled={!kind || pending}>{t("action.add")}</Button>
+                <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
+                  {t("action.cancel")}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       ) : null}
     </div>
   );

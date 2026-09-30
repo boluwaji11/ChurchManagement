@@ -63,4 +63,5 @@ export type PermissionAction =
   | "addField" | "editField" | "deleteField" | "setFieldValue"
   | "rollbackImport" | "exportEverything" | "mergePeople"
   | "editRelationship" | "liftDoNotContact"
-  | "addMilestone" | "removeMilestone";
+  | "addMilestone" | "removeMilestone"
+  | "editChurch";
