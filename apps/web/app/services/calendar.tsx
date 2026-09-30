@@ -2,15 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, CalendarRange, X, Undo2 } from "lucide-react";
+import { Plus, X, Undo2, Repeat } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, EmptyState, Field, Input,
+  Badge, Banner, Button, Card, Checkbox, EmptyState, Field, Input,
   Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogClose,
 } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
-import { fillCalendar, addGathering, setCancelled, removeGathering } from "./actions";
+import { addGathering, setCancelled, removeGathering, stopRepeat } from "./actions";
 
 export interface GatheringRow {
   id: string;
@@ -20,16 +20,19 @@ export interface GatheringRow {
   status: string;
   note: string | null;
   special: boolean;
+  serviceTimeId: string | null;
   readableDate: string;
   readableTime: string;
 }
 
 /**
- * R7.1. The calendar, and the three things a church does to it.
+ * R7.1. The services a church holds, and the two things it does to them.
  *
- * Fill it from the weekly pattern, add the one-offs, and say which weeks did
- * not happen. A cancelled gathering stays on the list, greyed, because a Sunday
- * that vanished leaves a gap in the attendance record that reads as a collapse.
+ * Add one, and say which weeks did not happen. There is no calendar to
+ * maintain: a service that repeats keeps itself six months ahead, topped up
+ * whenever this page is read. A cancelled service stays on the list, greyed,
+ * because a Sunday that vanished leaves a gap in the attendance record that
+ * reads as a collapse.
  */
 export function Calendar({
   church,
@@ -42,13 +45,12 @@ export function Calendar({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
-  const [added, setAdded] = React.useState<number>();
   const [pending, startTransition] = React.useTransition();
-  const [filling, setFilling] = React.useState(false);
+  const [repeats, setRepeats] = React.useState(true);
   const [adding, setAdding] = React.useState(false);
 
   const act = (
-    fn: (d: FormData) => Promise<{ error?: string; added?: number }>,
+    fn: (d: FormData) => Promise<{ error?: string }>,
     data: FormData,
     after?: () => void,
   ) => {
@@ -56,7 +58,6 @@ export function Calendar({
     startTransition(async () => {
       const result = await fn(data);
       setError(result.error);
-      setAdded(result.added);
       if (!result.error) {
         after?.();
         router.refresh();
@@ -73,63 +74,40 @@ export function Calendar({
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("services.title")}>{error}</Banner> : null}
-      {added !== undefined && !error ? (
-        <Banner tone="success" title={plural("services.filled", added)} />
-      ) : null}
 
       {canEdit ? (
-        <div className="flex flex-wrap items-center gap-3">
+        <div>
           <Dialog open={adding} onOpenChange={setAdding}>
             <DialogTrigger asChild>
               <Button><Plus /> {t("services.add")}</Button>
             </DialogTrigger>
             <DialogContent title={t("services.add")} closeLabel={t("common.close")}>
               <form
-                action={(data) => act(addGathering, data, () => setAdding(false))}
+                action={(data) => {
+                  data.set("repeats", repeats ? "1" : "0");
+                  act(addGathering, data, () => setAdding(false));
+                }}
                 noValidate
                 className="flex flex-col gap-4"
               >
                 <Field label={t("services.name")} required>
                   <Input name="name" autoComplete="off" />
                 </Field>
-                <Field label={t("services.date")} required>
-                  <DateField name="occursOn" />
-                </Field>
-                <Field label={t("services.time")} required>
-                  <TimeField name="startsAt" />
-                </Field>
-                <Field label={t("services.note")}>
-                  <Input name="note" autoComplete="off" />
-                </Field>
+                <div className="flex flex-wrap gap-4">
+                  <Field label={t("services.date")} required className="flex-1">
+                    <DateField name="occursOn" />
+                  </Field>
+                  <Field label={t("services.time")} required className="flex-1">
+                    <TimeField name="startsAt" />
+                  </Field>
+                </div>
+                <label className="flex items-center gap-2.5 text-[length:var(--d-text-body)] text-fg">
+                  <Checkbox checked={repeats} onCheckedChange={(v) => setRepeats(v === true)} />
+                  {t("services.repeatsLabel")}
+                </label>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button type="submit" disabled={pending}>{t("action.add")}</Button>
                   <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
-                    {t("action.cancel")}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={filling} onOpenChange={setFilling}>
-            <DialogTrigger asChild>
-              <Button variant="secondary"><CalendarRange /> {t("services.fill")}</Button>
-            </DialogTrigger>
-            <DialogContent title={t("services.fillTitle")} closeLabel={t("common.close")}>
-              <form
-                action={(data) => act(fillCalendar, data, () => setFilling(false))}
-                noValidate
-                className="flex flex-col gap-4"
-              >
-                <Field label={t("services.from")} required>
-                  <DateField name="from" />
-                </Field>
-                <Field label={t("services.to")} required>
-                  <DateField name="to" />
-                </Field>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={pending}>{t("services.fill")}</Button>
-                  <Button type="button" variant="ghost" onClick={() => setFilling(false)}>
                     {t("action.cancel")}
                   </Button>
                 </div>
@@ -162,7 +140,7 @@ export function Calendar({
                     <Td className={cancelled ? "text-fg-subtle" : undefined}>
                       <span className="flex flex-wrap items-center gap-2">
                         {row.name}
-                        {row.special ? <Badge tone="neutral">{t("services.special")}</Badge> : null}
+                        {row.special ? null : <Badge tone="neutral"><Repeat className="size-3" /> {t("services.repeats")}</Badge>}
                         {row.note ? <span className="text-caption text-fg-muted">{row.note}</span> : null}
                       </span>
                     </Td>
@@ -224,7 +202,36 @@ export function Calendar({
                             >
                               {t("services.remove")}
                             </Button>
-                          ) : null}
+                          ) : (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost">{t("services.stopRepeat")}</Button>
+                              </DialogTrigger>
+                              <DialogContent
+                                title={t("services.stopRepeatTitle", { name: row.name })}
+                                closeLabel={t("common.close")}
+                              >
+                                <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
+                                  {t("services.stopRepeatBody")}
+                                </p>
+                                <div className="flex flex-wrap items-center gap-3">
+                                  <DialogClose asChild>
+                                    <Button
+                                      variant="danger"
+                                      onClick={() =>
+                                        simple(stopRepeat, { serviceTimeId: row.serviceTimeId ?? "" })
+                                      }
+                                    >
+                                      {t("services.stopRepeat")}
+                                    </Button>
+                                  </DialogClose>
+                                  <DialogClose asChild>
+                                    <Button variant="ghost">{t("action.cancel")}</Button>
+                                  </DialogClose>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
                         </span>
                       ) : null}
                     </Td>

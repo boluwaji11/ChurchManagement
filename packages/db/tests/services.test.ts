@@ -11,6 +11,7 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   generateOccurrences, listOccurrences, addSpecialService, updateOccurrence,
   setOccurrenceCancelled, removeSpecialService, upcomingOccurrences, canManageServices,
+  addService, topUpCalendar, stopRepeating, HORIZON_WEEKS,
 } from "../src/repo/services";
 import { addServiceTime } from "../src/repo/church";
 import { InvalidInputError } from "../src/errors";
@@ -175,5 +176,66 @@ describe("permissions", () => {
     await expect(
       run((tx) => generateOccurrences(tx, as("member"), { from: "2026-03-01", to: "2026-03-14" }), "member"),
     ).rejects.toBeInstanceOf(PermissionError);
+  });
+});
+
+describe("one concept, with a repeat", () => {
+  it("a repeating service fills the calendar ahead on its own", async () => {
+    await clear();
+    await owner()`delete from service_times where tenant_id = ${tenant}`;
+
+    const result = await run((tx) =>
+      addService(tx, as(), {
+        name: "Sunday morning", occursOn: "2026-04-05", startsAt: "09:00", repeatsWeekly: true,
+      }),
+    );
+
+    // 26 weeks from the first date, inclusive of it.
+    expect(result.created).toBe(HORIZON_WEEKS + 1);
+    expect(result.serviceTimeId).not.toBeNull();
+
+    const rows = await run((tx) => listOccurrences(tx, { from: "2026-04-05", to: "2026-04-19" }));
+    expect(rows.map((r) => r.occursOn)).toEqual(["2026-04-19", "2026-04-12", "2026-04-05"]);
+  });
+
+  it("a service that does not repeat is a single date", async () => {
+    const before = (await run((tx) => listOccurrences(tx))).length;
+    const result = await run((tx) =>
+      addService(tx, as(), { name: "Good Friday", occursOn: "2026-04-03", startsAt: "19:00" }),
+    );
+
+    expect(result.created).toBe(1);
+    expect(result.serviceTimeId).toBeNull();
+    expect((await run((tx) => listOccurrences(tx))).length).toBe(before + 1);
+  });
+
+  it("tops up quietly, and adds nothing on a second read", async () => {
+    const first = await run((tx) => topUpCalendar(tx, as()));
+    const second = await run((tx) => topUpCalendar(tx, as()));
+    expect(second).toBe(0);
+    expect(first).toBeGreaterThanOrEqual(0);
+  });
+
+  it("stopping a repeat takes the future and leaves the past", async () => {
+    await clear();
+    await owner()`delete from service_times where tenant_id = ${tenant}`;
+
+    const { serviceTimeId } = await run((tx) =>
+      addService(tx, as(), {
+        name: "Midweek", occursOn: "2020-01-01", startsAt: "19:00", repeatsWeekly: true,
+      }),
+    );
+
+    // Past dates from 2020, and the top-up writes the ones from today onward.
+    await run((tx) => topUpCalendar(tx, as()));
+    const before = await run((tx) => listOccurrences(tx, { includeCancelled: true }));
+    const past = before.filter((r) => r.occursOn < new Date().toISOString().slice(0, 10)).length;
+    expect(past).toBeGreaterThan(0);
+
+    await run((tx) => stopRepeating(tx, as(), serviceTimeId!));
+
+    const after = await run((tx) => listOccurrences(tx, { includeCancelled: true }));
+    expect(after.length).toBe(past);
+    expect(after.every((r) => r.occursOn < new Date().toISOString().slice(0, 10))).toBe(true);
   });
 });

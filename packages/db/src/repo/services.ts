@@ -287,3 +287,150 @@ export async function upcomingOccurrences(db: Tx, limit = 5): Promise<Occurrence
   return rows.map((r) => ({ ...r, status: r.status as OccurrenceStatus }));
 }
 
+
+/**
+ * How far ahead a repeating service is written into the calendar.
+ *
+ * Six months is long enough that nobody meets the edge in normal use, and short
+ * enough that a church changing its service time is not correcting two years of
+ * rows. The calendar tops itself up whenever the page is opened, so the horizon
+ * moves without anybody pressing anything.
+ */
+export const HORIZON_WEEKS = 26;
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+const plusWeeks = (from: string, weeks: number): string => {
+  const d = new Date(`${from}T00:00:00`);
+  d.setDate(d.getDate() + weeks * 7);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+export interface AddServiceInput {
+  name: string;
+  occursOn: string;
+  startsAt: string;
+  /** Weekly, on the same weekday as the first date. */
+  repeatsWeekly?: boolean;
+}
+
+/**
+ * Adds a service, and keeps it coming if it repeats.
+ *
+ * One idea rather than three. A church that meets at 09:00 and 11:00 on a
+ * Sunday adds two services once and never thinks about a calendar again. The
+ * weekly pattern still exists underneath, because check-in stations and service
+ * plans need to name a recurring service, and it is no longer something a
+ * volunteer has to know about.
+ */
+export async function addService(
+  db: Tx,
+  actor: WriteActor,
+  input: AddServiceInput,
+): Promise<{ created: number; serviceTimeId: string | null }> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+
+  const name = input.name.trim();
+  if (!name) throw new InvalidInputError("service.error.name");
+  if (!isDate(input.occursOn)) throw new InvalidInputError("service.error.date");
+  if (!isTime(input.startsAt)) throw new InvalidInputError("service.error.time");
+
+  if (!input.repeatsWeekly) {
+    await addSpecialService(db, actor, input);
+    return { created: 1, serviceTimeId: null };
+  }
+
+  const dayOfWeek = new Date(`${input.occursOn}T00:00:00`).getDay();
+
+  const [series] = await db
+    .insert(serviceTimes)
+    .values({ tenantId: actor.tenantId, name, dayOfWeek, startsAt: input.startsAt })
+    .returning({ id: serviceTimes.id });
+
+  const rows = datesFor(input.occursOn, plusWeeks(input.occursOn, HORIZON_WEEKS), dayOfWeek).map(
+    (occursOn) => ({
+      tenantId: actor.tenantId,
+      serviceTimeId: series!.id,
+      name,
+      occursOn,
+      startsAt: input.startsAt,
+    }),
+  );
+
+  const written = await db
+    .insert(serviceOccurrences)
+    .values(rows)
+    .onConflictDoNothing()
+    .returning({ id: serviceOccurrences.id });
+
+  return { created: written.length, serviceTimeId: series!.id };
+}
+
+/**
+ * Keeps the horizon moving, quietly.
+ *
+ * Called when the page is read, so the calendar is always full six months out
+ * without a button that asks somebody to maintain it. Idempotent, and it does
+ * nothing at all for a church with no repeating service.
+ */
+export async function topUpCalendar(db: Tx, actor: WriteActor): Promise<number> {
+  const pattern = await db
+    .select({
+      id: serviceTimes.id,
+      name: serviceTimes.name,
+      dayOfWeek: serviceTimes.dayOfWeek,
+      startsAt: serviceTimes.startsAt,
+    })
+    .from(serviceTimes);
+
+  if (pattern.length === 0) return 0;
+
+  const from = today();
+  const to = plusWeeks(from, HORIZON_WEEKS);
+  const rows = pattern.flatMap((service) =>
+    datesFor(from, to, service.dayOfWeek).map((occursOn) => ({
+      tenantId: actor.tenantId,
+      serviceTimeId: service.id,
+      name: service.name,
+      occursOn,
+      startsAt: service.startsAt,
+    })),
+  );
+
+  if (rows.length === 0) return 0;
+
+  const written = await db
+    .insert(serviceOccurrences)
+    .values(rows)
+    .onConflictDoNothing()
+    .returning({ id: serviceOccurrences.id });
+
+  return written.length;
+}
+
+/**
+ * Stops a service repeating.
+ *
+ * Future dates go. Everything already held stays, because attendance was
+ * recorded against it and a church deciding to stop meeting on a Wednesday has
+ * not decided that the last two years of Wednesdays did not happen.
+ */
+export async function stopRepeating(
+  db: Tx,
+  actor: WriteActor,
+  serviceTimeId: string,
+): Promise<{ removed: number }> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+
+  const gone = await db
+    .delete(serviceOccurrences)
+    .where(and(
+      eq(serviceOccurrences.serviceTimeId, serviceTimeId),
+      gte(serviceOccurrences.occursOn, today()),
+    ))
+    .returning({ id: serviceOccurrences.id });
+
+  await db.delete(serviceTimes).where(eq(serviceTimes.id, serviceTimeId));
+
+  return { removed: gone.length };
+}

@@ -47,7 +47,7 @@ export async function AppHeader({ session }: { session: Session }) {
         <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label={t("nav.sections")}>
           {[
             [t("nav.directory"), "/people"],
-            [t("nav.gatherings"), "/services"],
+            [t("nav.services"), "/services"],
           ].map(([label, href]) => (
             <Link
               key={href}

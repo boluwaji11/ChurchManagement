@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, generateOccurrences, addSpecialService, setOccurrenceCancelled,
-  removeSpecialService, updateOccurrence,
+  withTenant, addService, setOccurrenceCancelled, removeSpecialService,
+  updateOccurrence, stopRepeating,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 
@@ -36,13 +36,19 @@ const done = () => {
   revalidatePath("/services");
 };
 
-export async function fillCalendar(data: FormData): Promise<ServiceResult> {
+
+export async function addGathering(data: FormData): Promise<ServiceResult> {
   const { session, ctx } = await writeContext(text(data, "church") || undefined);
   const actor = { tenantId: session.tenantId, role: session.role };
 
   try {
     const result = await withTenant(ctx, (tx) =>
-      generateOccurrences(tx, actor, { from: text(data, "from"), to: text(data, "to") }),
+      addService(tx, actor, {
+        name: text(data, "name"),
+        occursOn: text(data, "occursOn"),
+        startsAt: text(data, "startsAt"),
+        repeatsWeekly: text(data, "repeats") === "1",
+      }),
     );
     done();
     return { added: result.created };
@@ -51,19 +57,12 @@ export async function fillCalendar(data: FormData): Promise<ServiceResult> {
   }
 }
 
-export async function addGathering(data: FormData): Promise<ServiceResult> {
+export async function stopRepeat(data: FormData): Promise<ServiceResult> {
   const { session, ctx } = await writeContext(text(data, "church") || undefined);
   const actor = { tenantId: session.tenantId, role: session.role };
 
   try {
-    await withTenant(ctx, (tx) =>
-      addSpecialService(tx, actor, {
-        name: text(data, "name"),
-        occursOn: text(data, "occursOn"),
-        startsAt: text(data, "startsAt"),
-        note: text(data, "note"),
-      }),
-    );
+    await withTenant(ctx, (tx) => stopRepeating(tx, actor, text(data, "serviceTimeId")));
     done();
     return {};
   } catch (error) {

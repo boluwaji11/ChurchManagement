@@ -1,12 +1,11 @@
 import {
-  withTenant, listOccurrences, listServiceTimes, canManageServices, canManageChurch,
+  withTenant, listOccurrences, topUpCalendar, canManageServices,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Calendar } from "./calendar";
-import { WeeklyPattern } from "./pattern";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +29,16 @@ export default async function ServicesPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { rows, pattern } = await withTenant(
+  const rows = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    async (tx) => ({
-      rows: await listOccurrences(tx, { includeCancelled: true }),
-      pattern: await listServiceTimes(tx),
-    }),
+    async (tx) => {
+      // Keeps a repeating service six months ahead without anybody maintaining
+      // a calendar. Idempotent, and it does nothing for a church with none.
+      if (canManageServices(session.role)) {
+        await topUpCalendar(tx, { tenantId: session.tenantId, role: session.role });
+      }
+      return listOccurrences(tx, { includeCancelled: true });
+    },
   );
 
   return (
@@ -43,14 +46,6 @@ export default async function ServicesPage({
       <AppHeader session={session} />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageTitle title={t("services.title")} lede={session.tenantName} />
-
-        <div className="mb-6">
-          <WeeklyPattern
-            church={session.tenantSlug}
-            rows={pattern}
-            canEdit={canManageChurch(session.role)}
-          />
-        </div>
 
         <Calendar
           church={session.tenantSlug}
@@ -63,6 +58,7 @@ export default async function ServicesPage({
             status: r.status,
             note: r.note,
             special: r.serviceTimeId === null,
+            serviceTimeId: r.serviceTimeId,
             readableDate: readableDate(r.occursOn),
             readableTime: readableTime(r.startsAt),
           }))}

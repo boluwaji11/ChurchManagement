@@ -116,7 +116,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 
 ---
 
-## E2. Gatherings (0.2)
+## E2. Services and check-in (0.2)
 
 The first release real churches run. Attendance, check-in, groups and follow-up.
 
@@ -127,7 +127,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-47 | Service occurrences generated from the church's service times, with cancellation | R7.1 | Resolved |
+| HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | New |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | New |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | New |
@@ -421,25 +421,24 @@ that reads membership from our own tables, so a user can only write into their o
 
 ### HRT-47, how to test it
 
-A Gatherings tab sits beside Directory. Everything about when the church meets is on it.
+A Services tab sits beside Directory. One concept, one button.
 
-1. **Say when the church meets.** The weekly pattern is at the top of the page. It used to be in
-   Settings, which meant setting up attendance was: find a settings tab, add a service time, come
-   back, fill the calendar. That is four hours a week somebody does not have.
-2. **Fill the calendar.** Choose a range. One gathering per service time per matching day, so a
-   church with a 09:00, an 11:00 and a Wednesday gets three a week.
-3. **Fill it again over the same range.** Nothing changes and nothing is duplicated.
-4. **Cancel one**, with a note like "Snow". It stays on the list, greyed and marked cancelled,
-   because a Sunday that vanished leaves a gap in the attendance record that reads as a collapse.
-   Put it back with one press.
-5. **Rename a week, then fill the calendar again.** Your name survives, and so does the
-   cancellation. Regenerating never undoes a decision somebody made about a particular week.
-6. **Add a one-off.** Carols by candlelight, 24 December, 18:30. Add a second at 23:00 the same
-   evening, which churches do. Both are marked as one-offs and both survive a regeneration, because
-   they belong to no weekly pattern.
-7. **Remove a one-off.** A generated gathering refuses to be removed and says to cancel it instead.
-8. **Roles.** Owner, Admin and Staff. Staff plan services, and cancelling a service is not renaming
-   the church.
+1. **Add a service.** Name, date, time, and "Repeats every week". A church meeting at 09:00 and
+   11:00 on a Sunday adds two, once, and never touches a calendar again.
+2. **The repeat keeps itself going.** Six months of dates appear at once, and the horizon moves on
+   its own each time the page is read. There is no calendar to fill and no button asking you to
+   maintain one.
+3. **Leave the box unticked** for a one-off: Carols by candlelight, Good Friday, a funeral.
+4. **Cancel a week**, with a note like "Snow". It stays on the list, greyed, because a Sunday that
+   vanished leaves a gap in the attendance record that reads as a collapse. Put it back with one
+   press.
+5. **Stop a repeat.** Future dates come off. Everything already recorded stays, because deciding to
+   stop meeting on a Wednesday is not deciding that two years of Wednesdays did not happen.
+6. **Roles.** Owner, Admin and Staff. Staff plan services, and cancelling one is not renaming the
+   church.
+
+An earlier build of this had three ideas (a weekly pattern in Settings, a Fill the calendar button,
+and the services themselves) and two setup steps before any value. It is one idea now.
 
 ### HRT-46, how to test it
 
