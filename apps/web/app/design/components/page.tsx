@@ -5,7 +5,7 @@ import { Plus, Search, Printer, Check, MoreHorizontal, Download } from "lucide-r
 import {
   Button, IconButton, Input, Textarea, Field, Badge, Chip, Avatar, Card, CardTitle,
   CardDescription, Separator, Skeleton, Spinner, Progress, Checkbox, Switch, RadioGroup,
-  RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Tooltip,
+  RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
   TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
 } from "@hearth/ui";
@@ -108,6 +108,9 @@ export default function Components() {
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
+          </Field>
+          <Field label="Person" htmlFor="c-person">
+            <ComboboxDemo />
           </Field>
           <Field label="Disabled" htmlFor="c-dis">
             <Input defaultValue="Locked" disabled />
@@ -287,5 +290,28 @@ export default function Components() {
         />
       </Section>
     </>
+  );
+}
+
+/** A combobox holds its own answer, so the gallery needs somewhere to keep it. */
+function ComboboxDemo() {
+  const [value, setValue] = React.useState("");
+  return (
+    <Combobox
+      id="c-person"
+      aria-label="Person"
+      options={[
+        { value: "1", label: "Emma Bennett", keywords: "emma.bennett@example.org" },
+        { value: "2", label: "Michael Bennett", keywords: "michael.bennett@example.org" },
+        { value: "3", label: "Sophie Carter" },
+        { value: "4", label: "Gregory Hall" },
+        { value: "5", label: "Rachel Nguyen" },
+      ]}
+      value={value}
+      onChange={setValue}
+      placeholder="Search for someone"
+      emptyLabel="No one by that name"
+      clearLabel="Clear"
+    />
   );
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, X, ShieldAlert } from "lucide-react";
 import {
-  Badge, Banner, Button, Dialog, DialogTrigger, DialogContent, DialogClose,
+  Badge, Banner, Button, Combobox, Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -175,16 +175,15 @@ export function Relationships({
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex min-w-56 flex-col gap-1.5">
               <span className="text-label text-fg">{t("relationship.person")}</span>
-              <Select value={related} onValueChange={setRelated}>
-                <SelectTrigger aria-label={t("relationship.person")}>
-                  <SelectValue placeholder={t("relationship.choosePerson")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {candidates.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                aria-label={t("relationship.person")}
+                options={candidates.map((c) => ({ value: c.id, label: c.name }))}
+                value={related}
+                onChange={setRelated}
+                placeholder={t("relationship.choosePerson")}
+                emptyLabel={t("relationship.noMatch")}
+                clearLabel={t("relationship.clearPerson")}
+              />
             </div>
 
             <div className="flex min-w-44 flex-col gap-1.5">

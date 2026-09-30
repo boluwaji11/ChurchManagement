@@ -89,7 +89,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-19 | People and households, read-only directory | R2.1, R2.2 | Closed |
 | HRT-20 | Notes in two classes, confidential ones encrypted and separately gated | R2.7 | Closed |
 | HRT-21 | **Add, edit and archive a person. Households and contact methods.** | R2.1 to R2.3, R2.5, R2.13 | Closed |
-| HRT-22 | Relationships, independent of household | R2.4 | Resolved |
+| HRT-22 | Relationships, independent of household | R2.4 | Closed |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | New |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Resolved |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Resolved |
@@ -145,7 +145,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-22** relationships |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge |
 | **Next** | HRT-23 milestones, then HRT-15 church settings |
 
 ### HRT-16, how to test it
@@ -263,6 +263,8 @@ Open anyone's record. A Relationships card sits above Tags.
 5. **Who may lift it.** Anyone who can edit a person can record a do-not-contact order, since the
    person who hears about a custody arrangement on a Sunday is rarely the Owner. Lifting one asks
    for confirmation and is Owner and Admin only.
+6. **Finding the person.** The picker is a combobox. Type any part of a name and the list narrows.
+   Arrow keys move, Enter chooses, Escape puts back what was there.
 
 Check-in enforcement of these orders is R8.9, in 0.2. This story records them.
 
