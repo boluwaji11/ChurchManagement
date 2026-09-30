@@ -79,7 +79,7 @@ function cleanOptions(type: CustomFieldType, raw: string[] | undefined | null): 
     seen.add(k);
     return true;
   });
-  if (unique.length === 0) throw new InvalidInputError("A choice field needs at least one choice.");
+  if (unique.length === 0) throw new InvalidInputError("error.fieldNoChoices");
   return unique;
 }
 
@@ -88,17 +88,17 @@ export async function createCustomField(
   actor: WriteActor,
   input: { entity: CustomFieldEntity; label: string; type: CustomFieldType; options?: string[] },
 ): Promise<CustomFieldDef> {
-  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "add a field");
+  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "addField");
 
   const label = input.label.trim().replace(/\s+/g, " ");
-  if (!label) throw new InvalidInputError("Enter a name for the field.");
+  if (!label) throw new InvalidInputError("error.fieldNameBlank");
 
   const clash = await db
     .select({ id: customFields.id })
     .from(customFields)
     .where(and(eq(customFields.entity, input.entity), sql`lower(${customFields.label}) = lower(${label})`))
     .limit(1);
-  if (clash[0]) throw new NameTakenError(`a field called "${label}"`, clash[0].id);
+  if (clash[0]) throw new NameTakenError("error.nameTaken.field", label, clash[0].id);
 
   // The key is derived but must stay unique, because exports and the import
   // wizard address a field by key rather than by label.
@@ -149,10 +149,10 @@ export async function updateCustomField(
   id: string,
   input: { label: string; options?: string[] },
 ): Promise<void> {
-  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "edit a field");
+  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "editField");
 
   const label = input.label.trim().replace(/\s+/g, " ");
-  if (!label) throw new InvalidInputError("Enter a name for the field.");
+  if (!label) throw new InvalidInputError("error.fieldNameBlank");
 
   const [current] = await db
     .select({ entity: customFields.entity, type: customFields.type })
@@ -172,7 +172,7 @@ export async function updateCustomField(
       ),
     )
     .limit(1);
-  if (clash[0]) throw new NameTakenError(`a field called "${label}"`, clash[0].id);
+  if (clash[0]) throw new NameTakenError("error.nameTaken.field", label, clash[0].id);
 
   await db
     .update(customFields)
@@ -186,7 +186,7 @@ export async function deleteCustomField(
   actor: WriteActor,
   id: string,
 ): Promise<{ valuesRemoved: number }> {
-  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "delete a field");
+  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "deleteField");
 
   const values = await db
     .select({ id: customFieldValues.id })
@@ -284,7 +284,7 @@ export async function setCustomValues(
   entityId: string,
   values: Record<string, CustomValue>,
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "change a field value");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "setFieldValue");
 
   const ids = Object.keys(values);
   if (ids.length === 0) return;

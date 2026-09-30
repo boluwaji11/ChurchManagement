@@ -8,8 +8,8 @@ import {
   RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
   TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
-  check, email,
 } from "@hearth/ui";
+import { check, email } from "@/lib/validate";
 import { PageTitle, Section, Row } from "@/components/section";
 
 function ValidationDemo() {

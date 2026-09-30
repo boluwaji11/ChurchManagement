@@ -7,6 +7,7 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 import { addField, saveField, removeField } from "./actions";
 
 export interface FieldItem {
@@ -18,15 +19,20 @@ export interface FieldItem {
 }
 
 const TYPES = [
-  { value: "text", label: "Text", icon: Type },
-  { value: "number", label: "Number", icon: Hash },
-  { value: "date", label: "Date", icon: Calendar },
-  { value: "select", label: "One choice", icon: List },
-  { value: "multi_select", label: "Several choices", icon: ListChecks },
-  { value: "boolean", label: "Yes or no", icon: ToggleLeft },
+  { value: "text", icon: Type },
+  { value: "number", icon: Hash },
+  { value: "date", icon: Calendar },
+  { value: "select", icon: List },
+  { value: "multi_select", icon: ListChecks },
+  { value: "boolean", icon: ToggleLeft },
 ] as const;
 
-const typeLabel = (type: string) => TYPES.find((t) => t.value === type)?.label ?? type;
+type FieldTypeValue = (typeof TYPES)[number]["value"];
+const isKnownType = (type: string): type is FieldTypeValue =>
+  TYPES.some((x) => x.value === type);
+
+/** An unknown type renders itself, so a new one is ugly rather than blank. */
+const typeLabel = (type: string): string => (isKnownType(type) ? t(`fieldType.${type}`) : type);
 const hasChoices = (type: string) => type === "select" || type === "multi_select";
 
 export function FieldManager({
@@ -93,17 +99,17 @@ function NewField({ church }: { church: string }) {
       <form ref={formRef} action={action} noValidate className="flex flex-col gap-4">
         <input type="hidden" name="church" value={church} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="New field" error={error}>
-            <Input name="label" autoComplete="off" placeholder="Dietary notes" />
+          <Field label={t("fields.new")} error={error}>
+            <Input name="label" autoComplete="off" placeholder={t("fields.newPlaceholder")} />
           </Field>
-          <Field label="Type">
+          <Field label={t("fields.type")}>
             <Select name="type" value={type} onValueChange={setType}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                {TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>{typeLabel(type.value)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -114,7 +120,7 @@ function NewField({ church }: { church: string }) {
 
         <div>
           <Button type="submit" loading={pending}>
-            <Plus /> Add
+            <Plus /> {t("action.add")}
           </Button>
         </div>
       </form>
@@ -125,8 +131,8 @@ function NewField({ church }: { church: string }) {
 /** One choice per line. A textarea beats a repeating row builder for six items. */
 function Choices({ defaultValue }: { defaultValue?: string }) {
   return (
-    <Field label="Choices, one per line">
-      <Textarea name="options" rows={4} defaultValue={defaultValue} placeholder={"Vegetarian\nGluten free\nNut allergy"} />
+    <Field label={t("fields.choices")}>
+      <Textarea name="options" rows={4} defaultValue={defaultValue} placeholder={t("fields.choicesPlaceholder")} />
     </Field>
   );
 }
@@ -161,27 +167,27 @@ function EditField({ church, field }: { church: string; field: FieldItem }) {
     <Dialog open={open} onOpenChange={reset}>
       <DialogTrigger asChild>
         <Button variant="ghost">
-          <Pencil /> Edit
+          <Pencil /> {t("action.edit")}
         </Button>
       </DialogTrigger>
 
-      <DialogContent title={field.label} description={typeLabel(field.type)}>
-        {error ? <Banner tone="danger" title="Not saved" className="mb-4">{error}</Banner> : null}
+      <DialogContent title={field.label} description={typeLabel(field.type)} closeLabel={t("common.close")}>
+        {error ? <Banner tone="danger" title={t("fields.failed")} className="mb-4">{error}</Banner> : null}
 
         <form action={(d) => run(saveField, d)} className="flex flex-col gap-4">
           <input type="hidden" name="church" value={church} />
           <input type="hidden" name="id" value={field.id} />
 
-          <Field label="Name">
+          <Field label={t("fields.name")}>
             <Input name="label" defaultValue={field.label} autoComplete="off" />
           </Field>
 
           {hasChoices(field.type) ? <Choices defaultValue={(field.options ?? []).join("\n")} /> : null}
 
           <div className="flex items-center gap-3">
-            <Button type="submit" loading={pending}>Save</Button>
+            <Button type="submit" loading={pending}>{t("action.save")}</Button>
             <DialogClose asChild>
-              <Button type="button" variant="ghost">Cancel</Button>
+              <Button type="button" variant="ghost">{t("action.cancel")}</Button>
             </DialogClose>
           </div>
         </form>
@@ -192,19 +198,17 @@ function EditField({ church, field }: { church: string; field: FieldItem }) {
           <form action={(d) => run(removeField, d)} className="flex flex-col gap-3">
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="id" value={field.id} />
-            <p className="text-[length:var(--d-text-body)] text-fg">
-              Deletes the field and everything recorded in it. This cannot be undone.
-            </p>
+            <p className="text-[length:var(--d-text-body)] text-fg">{t("fields.deleteBody")}</p>
             <div className="flex items-center gap-3">
               <Button type="submit" variant="danger" loading={pending}>
-                <Trash2 /> Delete {field.label}
+                <Trash2 /> {t("fields.deleteAction", { name: field.label })}
               </Button>
-              <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>Keep it</Button>
+              <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>{t("fields.keep")}</Button>
             </div>
           </form>
         ) : (
           <Button type="button" variant="ghost" onClick={() => setConfirming(true)}>
-            <Trash2 /> Delete
+            <Trash2 /> {t("action.delete")}
           </Button>
         )}
       </DialogContent>

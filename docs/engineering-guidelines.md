@@ -92,7 +92,11 @@ See [architecture.md](architecture.md), [data-model.md](data-model.md), and
 - **Every destructive action is reversible or confirmed.** Merges reversible 30 days, imports
   rollback-able 30 days.
 - **Audit log is append only** and cannot be modified by any application role, including Owner.
-- **Externalise every user-facing string** from the first commit, even though v1 ships English only.
+- **Externalise every user-facing string** into `packages/i18n`, from the first commit, even though
+  v1 ships English only. `t("key")` and `plural("stem", n)`. Keys are typed against the catalogue, so
+  a typo is a compile error rather than a blank space on a screen. A test walks the screens and fails
+  on copy written inline. The `/design` gallery is exempt: it is a tool for us, not a screen a church
+  sees.
 - **Accessibility is WCAG 2.2 AA**, audited in CI. A check-in station has to work for someone with a
   tremor and reading glasses.
 - **No deploys during Sunday 07:00 to 14:00 local windows.** Enforced by tooling.

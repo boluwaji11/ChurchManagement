@@ -5,6 +5,7 @@ import { currentUser } from "@/lib/session";
 import { CreateChurchForm } from "./form";
 import { BrandBar } from "@/components/brand";
 import { SignOutButton } from "@/components/sign-out-button";
+import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -21,12 +22,12 @@ export default async function StartPage() {
         href="/choose-church"
         className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
       >
-        <ArrowLeft className="size-4" /> Back
+        <ArrowLeft className="size-4" /> {t("action.back")}
       </Link>
 
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-display text-fg">Create a church account</h1>
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">You will be the owner.</p>
+        <h1 className="font-display text-display text-fg">{t("createChurch.title")}</h1>
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("createChurch.lede")}</p>
       </div>
 
       <CreateChurchForm />

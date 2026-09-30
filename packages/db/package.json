@@ -16,6 +16,7 @@
     "seed:users": "tsx scripts/seed-users.ts"
   },
   "dependencies": {
+    "@hearth/i18n": "workspace:*",
     "drizzle-orm": "^0.38.3",
     "postgres": "^3.4.5"
   },

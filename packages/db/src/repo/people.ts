@@ -155,7 +155,7 @@ const trimmed = (v: string | null | undefined): string | null => {
  * how the row gets one at all.
  */
 export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput): Promise<{ id: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "add a person");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "addPerson");
 
   const [row] = await db
     .insert(people)
@@ -194,7 +194,7 @@ export async function updatePerson(
   id: string,
   input: PersonInput,
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "edit a person");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
 
   const changed = await db
     .update(people)
@@ -233,7 +233,7 @@ export async function setPersonArchived(
   archived: boolean,
 ): Promise<void> {
   if (!canArchivePeople(actor.role)) {
-    throw new PermissionError(actor.role, archived ? "archive a person" : "restore a person");
+    throw new PermissionError(actor.role, archived ? "archivePerson" : "restorePerson");
   }
 
   const changed = await db

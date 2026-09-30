@@ -6,6 +6,7 @@ import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { PersonForm } from "../person-form";
+import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +37,10 @@ export default async function NewPersonPage({
           href={`/people?church=${session.tenantSlug}`}
           className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
         >
-          <ArrowLeft className="size-4" /> Directory
+          <ArrowLeft className="size-4" /> {t("people.title")}
         </Link>
 
-        <PageTitle title="Add someone" lede="A name is enough to start." />
+        <PageTitle title={t("personForm.addTitle")} lede={t("personForm.addLede")} />
 
         {permitted ? (
           <PersonForm
@@ -48,9 +49,7 @@ export default async function NewPersonPage({
             customFields={data.customFields}
           />
         ) : (
-          <Banner tone="info" title="Your role cannot add people">
-            Ask an Owner or an Admin.
-          </Banner>
+          <Banner tone="info" title={t("forbidden.addPeople")}>{t("forbidden.askAdmin")}</Banner>
         )}
       </main>
     </>

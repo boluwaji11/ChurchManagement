@@ -92,13 +92,13 @@ export async function createTag(
   actor: WriteActor,
   input: { name: string; hue?: TagHue },
 ): Promise<{ id: string; name: string; hue: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "create a tag");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "createTag");
 
   const name = normaliseTagName(input.name);
-  if (!name) throw new InvalidInputError("Enter a name for the tag.");
+  if (!name) throw new InvalidInputError("error.tagNameBlank");
 
   const existing = await findByName(db, name);
-  if (existing) throw new NameTakenError(`a tag called "${name}"`, existing.id);
+  if (existing) throw new NameTakenError("error.nameTaken.tag", name, existing.id);
 
   const hue = input.hue ?? (await nextHue(db));
   const [row] = await db
@@ -111,24 +111,24 @@ export async function createTag(
 }
 
 export async function renameTag(db: Tx, actor: WriteActor, id: string, rawName: string): Promise<void> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "rename a tag");
+  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "renameTag");
 
   const name = normaliseTagName(rawName);
-  if (!name) throw new InvalidInputError("Enter a name for the tag.");
+  if (!name) throw new InvalidInputError("error.tagNameBlank");
 
   const clash = await db
     .select({ id: tags.id })
     .from(tags)
     .where(and(sql`lower(${tags.name}) = lower(${name})`, ne(tags.id, id)))
     .limit(1);
-  if (clash[0]) throw new NameTakenError(`a tag called "${name}"`, clash[0].id);
+  if (clash[0]) throw new NameTakenError("error.nameTaken.tag", name, clash[0].id);
 
   const changed = await db.update(tags).set({ name }).where(eq(tags.id, id)).returning({ id: tags.id });
   if (changed.length === 0) throw new Error("No such tag.");
 }
 
 export async function setTagHue(db: Tx, actor: WriteActor, id: string, hue: TagHue): Promise<void> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "recolour a tag");
+  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "recolourTag");
 
   const changed = await db.update(tags).set({ hue }).where(eq(tags.id, id)).returning({ id: tags.id });
   if (changed.length === 0) throw new Error("No such tag.");
@@ -144,7 +144,7 @@ export async function setTagHue(db: Tx, actor: WriteActor, id: string, hue: TagH
  * label the church says it does not want. Nothing about a person is lost.
  */
 export async function deleteTag(db: Tx, actor: WriteActor, id: string): Promise<{ removedFrom: number }> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "delete a tag");
+  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "deleteTag");
 
   const [{ n } = { n: 0 }] = await db
     .select({ n: count() })
@@ -170,8 +170,8 @@ export async function mergeTags(
   actor: WriteActor,
   input: { fromId: string; intoId: string },
 ): Promise<{ moved: number }> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "merge tags");
-  if (input.fromId === input.intoId) throw new InvalidInputError("A tag cannot be merged into itself.");
+  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "mergeTags");
+  if (input.fromId === input.intoId) throw new InvalidInputError("error.tagMergeSelf");
 
   const found = await db
     .select({ id: tags.id })
@@ -197,7 +197,7 @@ export async function setPersonTag(
   tagId: string,
   on: boolean,
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "tag a person");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "tagPerson");
 
   if (!on) {
     await db

@@ -1,7 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createChurch, InvalidInputError } from "@hearth/db";
+import { createChurch } from "@hearth/db";
+import { explain } from "@/lib/explain";
 import { currentUser } from "@/lib/session";
 
 export interface CreateResult {
@@ -36,8 +37,7 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
     });
     slug = church.slug;
   } catch (error) {
-    if (error instanceof InvalidInputError) return { error: error.message };
-    throw error;
+    return { error: explain(error) };
   }
 
   redirect(`/people?church=${slug}&welcome=1`);

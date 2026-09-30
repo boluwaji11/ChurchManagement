@@ -3,6 +3,7 @@ import { Banner } from "@hearth/ui";
 import { currentUser } from "@/lib/session";
 import { SignInForm } from "./form";
 import { Logo } from "@/components/brand";
+import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -19,18 +20,18 @@ export default async function SignIn({
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-2">
           <Logo size="lg" />
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">Sign in to your church.</p>
+          <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("signIn.lede")}</p>
         </div>
 
         {params.error ? (
-          <Banner tone="danger" title="That did not work">
+          <Banner tone="danger" title={t("signIn.failed")}>
             {params.error}
           </Banner>
         ) : null}
 
         {params.sent ? (
-          <Banner tone="success" title="Check your email">
-            We sent a sign-in link to {params.sent}. It is good for one hour.
+          <Banner tone="success" title={t("signIn.sent.title")}>
+            {t("signIn.sent.body", { email: params.sent })}
           </Banner>
         ) : null}
 

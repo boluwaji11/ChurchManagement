@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import { Mail, KeyRound } from "lucide-react";
-import {
-  Button, Input, Field, Tabs, TabsList, TabsTrigger, TabsContent,
-  check, email as validEmail, requiredValue,
-} from "@hearth/ui";
+import { Button, Input, Field, Tabs, TabsList, TabsTrigger, TabsContent } from "@hearth/ui";
+import { t } from "@hearth/i18n";
+import { check, email as validEmail, requiredValue } from "@/lib/validate";
 import { sendMagicLink, signInWithPassword } from "./actions";
 
 type Errors = Record<string, string | undefined>;
@@ -26,8 +25,8 @@ export function SignInForm({ next }: { next?: string }) {
   return (
     <Tabs defaultValue="link">
       <TabsList>
-        <TabsTrigger value="link">Email link</TabsTrigger>
-        <TabsTrigger value="password">Password</TabsTrigger>
+        <TabsTrigger value="link">{t("signIn.tab.link")}</TabsTrigger>
+        <TabsTrigger value="password">{t("signIn.tab.password")}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="link">
@@ -85,17 +84,11 @@ function MagicLinkForm({ next }: { next?: string }) {
   return (
     <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next ?? ""} />
-      <Field
-        label="Email"
-        htmlFor="email-link"
-        hint="We send a link. No password to remember."
-        error={errors["email"]}
-        required
-      >
-        <Input name="email" type="email" autoComplete="email" placeholder="you@church.org" />
+      <Field label={t("signIn.email")} htmlFor="email-link" error={errors["email"]} required>
+        <Input name="email" type="email" autoComplete="email" placeholder={t("signIn.emailPlaceholder")} />
       </Field>
       <Button type="submit" full loading={pending}>
-        <Mail /> Send me a link
+        <Mail /> {t("signIn.sendLink")}
       </Button>
     </form>
   );
@@ -105,7 +98,7 @@ function PasswordForm({ next }: { next?: string }) {
   const validate = React.useCallback(
     (data: FormData): Errors => ({
       email: check(String(data.get("email") ?? ""), validEmail),
-      password: check(String(data.get("password") ?? ""), requiredValue("your password")),
+      password: check(String(data.get("password") ?? ""), requiredValue(t("validate.password"))),
     }),
     [],
   );
@@ -114,14 +107,14 @@ function PasswordForm({ next }: { next?: string }) {
   return (
     <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next ?? ""} />
-      <Field label="Email" htmlFor="email-pw" error={errors["email"]} required>
-        <Input name="email" type="email" autoComplete="email" placeholder="you@church.org" />
+      <Field label={t("signIn.email")} htmlFor="email-pw" error={errors["email"]} required>
+        <Input name="email" type="email" autoComplete="email" placeholder={t("signIn.emailPlaceholder")} />
       </Field>
-      <Field label="Password" htmlFor="password" error={errors["password"]} required>
+      <Field label={t("signIn.password")} htmlFor="password" error={errors["password"]} required>
         <Input name="password" type="password" autoComplete="current-password" />
       </Field>
       <Button type="submit" full loading={pending}>
-        <KeyRound /> Sign in
+        <KeyRound /> {t("signIn.submit")}
       </Button>
     </form>
   );

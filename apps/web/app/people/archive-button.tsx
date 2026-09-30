@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Archive, ArchiveRestore } from "lucide-react";
 import { Button, Dialog, DialogTrigger, DialogContent, DialogClose, Banner } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 import { setArchived } from "./actions";
 
 /**
@@ -44,7 +45,7 @@ export function ArchiveButton({
         <input type="hidden" name="id" value={id} />
         <input type="hidden" name="archived" value="0" />
         <Button type="submit" variant="secondary" loading={pending}>
-          <ArchiveRestore /> Restore
+          <ArchiveRestore /> {t("person.restore")}
         </Button>
       </form>
     );
@@ -54,18 +55,20 @@ export function ArchiveButton({
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost">
-          <Archive /> Archive
+          <Archive /> {t("person.archive")}
         </Button>
       </DialogTrigger>
-      <DialogContent title={`Archive ${name}?`} description="Reversible from this page.">
+      <DialogContent
+        title={t("person.archive.confirmTitle", { name })}
+        description={t("person.archive.confirmLede")}
+        closeLabel={t("common.close")}
+      >
         <p className="text-[length:var(--d-text-body)] text-fg-muted mb-5">
-          They leave every list. Nothing is deleted.
+          {t("person.archive.confirmBody")}
         </p>
 
         {error ? (
-          <Banner tone="danger" title="Not archived" className="mb-4">
-            {error}
-          </Banner>
+          <Banner tone="danger" title={t("person.archive.failed")} className="mb-4">{error}</Banner>
         ) : null}
 
         <form action={submit} className="flex flex-wrap items-center gap-3">
@@ -73,10 +76,10 @@ export function ArchiveButton({
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="archived" value="1" />
           <Button type="submit" variant="danger" loading={pending}>
-            <Archive /> Archive {name}
+            <Archive /> {t("person.archive.confirmAction", { name })}
           </Button>
           <DialogClose asChild>
-            <Button variant="ghost" type="button">Keep them</Button>
+            <Button variant="ghost" type="button">{t("person.archive.keep")}</Button>
           </DialogClose>
         </form>
       </DialogContent>

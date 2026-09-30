@@ -197,14 +197,14 @@ export async function createChurch(input: {
   user: { id: string; email: string; fullName?: string | null; emailVerified: boolean };
 }): Promise<{ tenantId: string; slug: string; name: string }> {
   const name = input.name.trim().replace(/\s+/g, " ");
-  if (name.length < 2) throw new InvalidInputError("Enter the name of your church.");
-  if (name.length > 120) throw new InvalidInputError("That name is too long. 120 characters at most.");
+  if (name.length < 2) throw new InvalidInputError("error.churchNameShort");
+  if (name.length > 120) throw new InvalidInputError("error.churchNameLong");
 
   // An unverified address must never become an Owner. Everything else in the
   // product trusts that a membership was granted to somebody who proved the
   // address, and this is the one path that grants one without an invitation.
   if (!input.user.emailVerified) {
-    throw new InvalidInputError("Confirm your email address first, then start your church.");
+    throw new InvalidInputError("error.emailUnverified");
   }
 
   const timezone = isKnownTimezone(input.timezone) ? input.timezone : "America/Chicago";
@@ -221,7 +221,7 @@ export async function createChurch(input: {
       const clash = await tx`select 1 from tenants where slug = ${slug} limit 1`;
       if (clash.length === 0) break;
       slug = `${base}-${n}`;
-      if (n > 200) throw new InvalidInputError("Try a slightly different name.");
+      if (n > 200) throw new InvalidInputError("error.churchNameCollides");
     }
 
     const [tenant] = await tx<{ id: string }[]>`

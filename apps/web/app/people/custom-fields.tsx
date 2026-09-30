@@ -5,6 +5,7 @@ import {
   Input, Field, Checkbox,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 
 export interface FieldDef {
   id: string;
@@ -85,7 +86,7 @@ function CustomFieldInput({
         <Field label={field.label} error={error}>
           <Select name={name} defaultValue={typeof value === "string" ? value : ""}>
             <SelectTrigger>
-              <SelectValue placeholder="Not set" />
+              <SelectValue placeholder={t("value.notSet")} />
             </SelectTrigger>
             <SelectContent>
               {options.map((o) => (

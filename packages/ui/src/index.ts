@@ -4,7 +4,6 @@ export { Button, type ButtonProps } from "./components/button";
 export { IconButton, type IconButtonProps } from "./components/icon-button";
 export { Input, Textarea } from "./components/input";
 export { Field } from "./components/field";
-export { check, email, requiredValue, minLength, type Validator } from "./lib/validate";
 export { Badge, Chip, type BadgeProps } from "./components/badge";
 export { Avatar } from "./components/avatar";
 export { HUES, ALL_HUES, HueDot, HueTag, hueForId, type Hue, type PaletteHue } from "./components/hue";

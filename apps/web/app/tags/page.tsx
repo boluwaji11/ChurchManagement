@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { TagManager } from "./tag-manager";
+import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -26,19 +27,17 @@ export default async function TagsPage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <PageTitle title="Tags" lede={session.tenantName} />
+        <PageTitle title={t("tags.title")} lede={session.tenantName} />
 
         {!canCreate && !canManage ? (
-          <Banner tone="info" title="Your role cannot change tags">
-            Ask an Owner or an Admin.
-          </Banner>
+          <Banner tone="info" title={t("tags.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
         ) : (
           <TagManager church={session.tenantSlug} tags={tags} canManage={canManage} canCreate={canCreate} />
         )}
 
         {tags.length === 0 && canCreate ? (
           <div className="mt-8">
-            <EmptyState title="No tags yet" body="Choir. Greeter. Needs a ride. Anything the church sorts people by." />
+            <EmptyState title={t("tags.empty.title")} body={t("tags.empty.body")} />
           </div>
         ) : null}
       </main>

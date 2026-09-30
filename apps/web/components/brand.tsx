@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { cn } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 
 /**
  * Three rising embers. The same mark as the favicon and the app icon.
@@ -37,7 +38,7 @@ export function Logo({
     <>
       <Mark className={size === "lg" ? "text-[2rem]" : "text-[1.35rem]"} />
       <span className={cn("font-display text-fg", size === "lg" ? "text-display" : "text-title")}>
-        Hearth
+        {t("app.name")}
       </span>
     </>
   );

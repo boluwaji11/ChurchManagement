@@ -1,3 +1,4 @@
+import { t } from "@hearth/i18n";
 /** R1.4. Built-in roles. */
 export const TENANT_ROLES = [
   "owner", "admin", "staff", "finance", "pastoral",
@@ -45,9 +46,18 @@ export const canArchivePeople = (role: TenantRole): boolean => CAN_ARCHIVE_PEOPL
  */
 export class PermissionError extends Error {
   readonly role: TenantRole;
-  constructor(role: TenantRole, action: string) {
-    super(`The ${role} role cannot ${action}.`);
+  /** The catalogue key naming the refused action, such as "archivePerson". */
+  readonly action: PermissionAction;
+  constructor(role: TenantRole, action: PermissionAction) {
+    super(t("error.permission", { role, action: t(`error.permission.${action}`) }));
     this.name = "PermissionError";
     this.role = role;
+    this.action = action;
   }
 }
+
+/** Every action a role can be refused. Adding one without a message will not compile. */
+export type PermissionAction =
+  | "addPerson" | "editPerson" | "archivePerson" | "restorePerson"
+  | "createTag" | "renameTag" | "recolourTag" | "deleteTag" | "mergeTags" | "tagPerson"
+  | "addField" | "editField" | "deleteField" | "setFieldValue";

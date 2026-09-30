@@ -6,6 +6,7 @@ import {
   Button, Input, Field, Banner,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 import { createChurchAccount } from "./actions";
 
 /**
@@ -14,13 +15,8 @@ import { createChurchAccount } from "./actions";
  * filled in and shown rather than asked for.
  */
 const ZONES = [
-  ["America/New_York", "Eastern"],
-  ["America/Chicago", "Central"],
-  ["America/Denver", "Mountain"],
-  ["America/Phoenix", "Arizona"],
-  ["America/Los_Angeles", "Pacific"],
-  ["America/Anchorage", "Alaska"],
-  ["Pacific/Honolulu", "Hawaii"],
+  "America/New_York", "America/Chicago", "America/Denver", "America/Phoenix",
+  "America/Los_Angeles", "America/Anchorage", "Pacific/Honolulu",
 ] as const;
 
 function detect(): string {
@@ -41,12 +37,14 @@ export function CreateChurchForm() {
   // Runs after hydration, so the server and the client render the same thing.
   React.useEffect(() => setZone(detect()), []);
 
-  const zones = ZONES.some(([v]) => v === zone) ? ZONES : [...ZONES, [zone, zone.replace(/_/g, " ")] as const];
+  const zones: [string, string][] = ZONES.map((z) => [z, t(`tz.${z}`)]);
+  // A church outside the listed zones keeps the one the browser reported.
+  if (!ZONES.some((z) => z === zone)) zones.push([zone, zone.replace(/_/g, " ")]);
 
   const action = async (data: FormData) => {
     setError(undefined);
     if (name.trim().length < 2) {
-      setNameError("Enter the name of your church.");
+      setNameError(t("validate.churchName"));
       return;
     }
     setNameError(undefined);
@@ -61,20 +59,20 @@ export function CreateChurchForm() {
 
   return (
     <form action={action} noValidate className="flex flex-col gap-5">
-      {error ? <Banner tone="danger" title="Not created">{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("createChurch.failed")}>{error}</Banner> : null}
 
-      <Field label="Church name" error={nameError} required>
+      <Field label={t("createChurch.name")} error={nameError} required>
         <Input
           name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoComplete="organization"
           autoFocus
-          placeholder="Riverside Fellowship"
+          placeholder={t("createChurch.namePlaceholder")}
         />
       </Field>
 
-      <Field label="Timezone">
+      <Field label={t("createChurch.timezone")}>
         <Select name="timezone" value={zone} onValueChange={setZone}>
           <SelectTrigger>
             <SelectValue />
@@ -88,7 +86,7 @@ export function CreateChurchForm() {
       </Field>
 
       <Button type="submit" full loading={pending}>
-        <Church /> Create it
+        <Church /> {t("createChurch.submit")}
       </Button>
     </form>
   );

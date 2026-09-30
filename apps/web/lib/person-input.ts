@@ -1,4 +1,5 @@
-import { check, email as validEmail, requiredValue } from "@hearth/ui";
+import { t } from "@hearth/i18n";
+import { check, email as validEmail, requiredValue } from "./validate";
 import type { PersonInput, LifecycleStatus, HouseholdRole } from "@hearth/db";
 
 /**
@@ -11,20 +12,32 @@ import type { PersonInput, LifecycleStatus, HouseholdRole } from "@hearth/db";
  * mode where a field is rejected with a message nobody can act on.
  */
 
-export const LIFECYCLE_OPTIONS = [
-  { value: "visitor", label: "Visitor" },
-  { value: "regular_attender", label: "Regular attender" },
-  { value: "member", label: "Member" },
-  { value: "inactive", label: "Inactive" },
-  { value: "deceased", label: "Deceased" },
+export const LIFECYCLE_VALUES = [
+  "visitor", "regular_attender", "member", "inactive", "deceased",
 ] as const;
 
-export const HOUSEHOLD_ROLE_OPTIONS = [
-  { value: "head", label: "Head of household" },
-  { value: "spouse", label: "Spouse" },
-  { value: "child", label: "Child" },
-  { value: "other", label: "Other" },
-] as const;
+export const lifecycleOptions = () =>
+  LIFECYCLE_VALUES.map((value) => ({ value, label: t(`lifecycle.${value}`) }));
+
+/** Every status the database can hold, including the ones the form does not offer. */
+const LIFECYCLE_LABELLED = [...LIFECYCLE_VALUES, "archived"] as const;
+type LabelledStatus = (typeof LIFECYCLE_LABELLED)[number];
+
+const isLabelled = (status: string): status is LabelledStatus =>
+  (LIFECYCLE_LABELLED as readonly string[]).includes(status);
+
+/**
+ * The label for a status that arrived as a plain string from the database.
+ * An unknown value renders itself rather than a blank, so a new enum member
+ * shows up as a slightly ugly word instead of an empty cell.
+ */
+export const lifecycleLabel = (status: string): string =>
+  isLabelled(status) ? t(`lifecycle.${status}`) : status;
+
+export const HOUSEHOLD_ROLE_VALUES = ["head", "spouse", "child", "other"] as const;
+
+export const householdRoleOptions = () =>
+  HOUSEHOLD_ROLE_VALUES.map((value) => ({ value, label: t(`householdRole.${value}`) }));
 
 /** The value the household picker uses to mean "start a new one". */
 export const HOUSEHOLD_NEW = "__new";
@@ -68,9 +81,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 function dateProblem(value: string | null, what: string, allowFuture = false): string | undefined {
   if (!value) return undefined;
   const parsed = Date.parse(value);
-  if (Number.isNaN(parsed)) return `Check ${what}. Use the date picker or type it as YYYY-MM-DD.`;
-  if (!allowFuture && value > today()) return `${what} cannot be in the future.`;
-  if (value < "1900-01-01") return `Check ${what}. That year looks like a typo.`;
+  if (Number.isNaN(parsed)) return t("validate.date.malformed", { what });
+  if (!allowFuture && value > today()) return t("validate.date.future", { what });
+  if (value < "1900-01-01") return t("validate.date.tooEarly", { what });
   return undefined;
 }
 
@@ -78,18 +91,18 @@ function dateProblem(value: string | null, what: string, allowFuture = false): s
 function phoneProblem(value: string | null): string | undefined {
   if (!value) return undefined;
   const digits = value.replace(/\D/g, "");
-  if (digits.length < 7) return "That phone number looks too short. Include the area code.";
-  if (!/^[\d\s()+.\-]+$/.test(value)) return "Phone numbers take digits, spaces, and + ( ) . - only.";
+  if (digits.length < 7) return t("validate.phone.short");
+  if (!/^[\d\s()+.\-]+$/.test(value)) return t("validate.phone.characters");
   return undefined;
 }
 
 export function personErrors(input: PersonInput & { householdChoice?: string }): PersonErrors {
   const errors: PersonErrors = {};
 
-  const first = check(input.firstName, requiredValue("a first name"));
+  const first = check(input.firstName, requiredValue(t("validate.firstName")));
   if (first) errors.firstName = first;
 
-  const last = check(input.lastName, requiredValue("a surname"));
+  const last = check(input.lastName, requiredValue(t("validate.lastName")));
   if (last) errors.lastName = last;
 
   // Email is optional here, unlike at sign-in. A child has no email address.
@@ -101,17 +114,17 @@ export function personErrors(input: PersonInput & { householdChoice?: string }):
   const phone = phoneProblem(input.phone ?? null);
   if (phone) errors.phone = phone;
 
-  const dob = dateProblem(input.dateOfBirth ?? null, "the date of birth");
+  const dob = dateProblem(input.dateOfBirth ?? null, t("validate.date.dateOfBirth"));
   if (dob) errors.dateOfBirth = dob;
 
-  const joined = dateProblem(input.membershipDate ?? null, "the membership date");
+  const joined = dateProblem(input.membershipDate ?? null, t("validate.date.membershipDate"));
   if (joined) errors.membershipDate = joined;
 
-  const visit = dateProblem(input.firstVisitOn ?? null, "the first visit");
+  const visit = dateProblem(input.firstVisitOn ?? null, t("validate.date.firstVisit"));
   if (visit) errors.firstVisitOn = visit;
 
   if (input.householdChoice === HOUSEHOLD_NEW && !(input.householdName ?? "").trim()) {
-    errors.householdName = "Name the household, for example \"The Bennett family\".";
+    errors.householdName = t("validate.householdName");
   }
 
   return errors;

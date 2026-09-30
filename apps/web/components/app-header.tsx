@@ -3,6 +3,7 @@ import { Church, ChevronDown } from "lucide-react";
 import { Avatar, Badge, Separator } from "@hearth/ui";
 import { SignOutButton } from "./sign-out-button";
 import { Logo } from "./brand";
+import { t } from "@hearth/i18n";
 import type { Session } from "@/lib/session";
 
 /**
@@ -33,11 +34,11 @@ export function AppHeader({ session }: { session: Session }) {
           )}
         </div>
 
-        <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label="Sections">
+        <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label={t("nav.sections")}>
           {[
-            ["Directory", "/people"],
-            ["Tags", "/tags"],
-            ["Fields", "/fields"],
+            [t("nav.directory"), "/people"],
+            [t("nav.tags"), "/tags"],
+            [t("nav.fields"), "/fields"],
           ].map(([label, href]) => (
             <Link
               key={href}
@@ -50,7 +51,7 @@ export function AppHeader({ session }: { session: Session }) {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Badge tone="neutral">{session.role.replace(/_/g, " ")}</Badge>
+          <Badge tone="neutral">{t(`role.${session.role}`)}</Badge>
           <span className="hidden items-center gap-2 sm:flex">
             <Avatar name={session.email} id={session.userId} size="sm" />
             <span className="text-caption text-fg-muted">{session.email}</span>

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Plus, X } from "lucide-react";
 import { Button, Input, Banner, HueTag, HueDot, cn, type Hue } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 import { togglePersonTag, addTagToPerson } from "../tags/actions";
 
 export interface TagOption {
@@ -44,7 +45,7 @@ export function TagEditor({
   if (!canEdit) {
     return (
       <div className="flex flex-wrap gap-2">
-        {on.length === 0 ? <span className="text-[length:var(--d-text-body)] text-fg-muted">None</span> : null}
+        {on.length === 0 ? <span className="text-[length:var(--d-text-body)] text-fg-muted">{t("common.none")}</span> : null}
         {on.map((id) => {
           const tag = byId.get(id);
           return tag ? <HueTag key={id} hue={tag.hue as Hue}>{tag.name}</HueTag> : null;
@@ -97,7 +98,7 @@ export function TagEditor({
 
   return (
     <div className="flex flex-col gap-3">
-      {error ? <Banner tone="danger" title="Not saved">{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("tags.failed")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap gap-1.5" aria-busy={pending}>
         {shown.map((tag) => {
@@ -133,7 +134,7 @@ export function TagEditor({
         })}
 
         {options.length > 0 && shown.length === 0 ? (
-          <span className="text-[length:var(--d-text-body)] text-fg-muted">No tag matches that.</span>
+          <span className="text-[length:var(--d-text-body)] text-fg-muted">{t("tags.noMatch")}</span>
         ) : null}
       </div>
 
@@ -142,21 +143,21 @@ export function TagEditor({
           <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter tags"
-            aria-label="Filter tags"
+            placeholder={t("tags.filter")}
+            aria-label={t("tags.filter")}
             className="max-w-48"
           />
         ) : null}
 
         {creating ? (
           <form action={create} className="flex items-center gap-2">
-            <Input name="name" autoFocus autoComplete="off" placeholder="New tag" aria-label="New tag" className="max-w-48" />
-            <Button type="submit" variant="secondary">Add</Button>
-            <Button type="button" variant="ghost" onClick={() => setCreating(false)}>Cancel</Button>
+            <Input name="name" autoFocus autoComplete="off" placeholder={t("tags.new")} aria-label={t("tags.new")} className="max-w-48" />
+            <Button type="submit" variant="secondary">{t("action.add")}</Button>
+            <Button type="button" variant="ghost" onClick={() => setCreating(false)}>{t("action.cancel")}</Button>
           </form>
         ) : (
           <Button type="button" variant="ghost" onClick={() => setCreating(true)}>
-            <Plus /> New tag
+            <Plus /> {t("tags.new")}
           </Button>
         )}
       </div>

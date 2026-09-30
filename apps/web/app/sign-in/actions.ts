@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { syncUserAndAcceptInvitations } from "@hearth/db";
+import { t } from "@hearth/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 
 /** Returns never, so callers use `return fail(...)` and control flow narrows. */
@@ -19,7 +20,7 @@ async function origin() {
 export async function sendMagicLink(data: FormData) {
   const email = String(data.get("email") ?? "").trim();
   const next = String(data.get("next") ?? "") || undefined;
-  if (!email) return fail("Enter an email address.", next);
+  if (!email) return fail(t("signIn.error.noEmail"), next);
 
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.signInWithOtp({
@@ -44,7 +45,7 @@ export async function signInWithPassword(data: FormData) {
 
   // One message for a wrong password and for an address with no account, so the
   // form cannot be used to find out who has an account.
-  if (error || !result.user) return fail("That email and password do not match an account.", next);
+  if (error || !result.user) return fail(t("signIn.error.noMatch"), next);
 
   await syncUserAndAcceptInvitations({
     id: result.user.id,

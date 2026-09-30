@@ -7,9 +7,10 @@ import {
   Button, Input, Field, Card, CardTitle, Separator, Banner,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { t } from "@hearth/i18n";
 import {
   parsePerson, personErrors, hasErrors,
-  LIFECYCLE_OPTIONS, HOUSEHOLD_ROLE_OPTIONS, HOUSEHOLD_NEW, HOUSEHOLD_NONE,
+  lifecycleOptions, householdRoleOptions, HOUSEHOLD_NEW, HOUSEHOLD_NONE,
   type PersonErrors,
 } from "@/lib/person-input";
 import { savePerson } from "./actions";
@@ -100,50 +101,50 @@ export function PersonForm({
       {values?.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {formError ? (
-        <Banner tone="danger" title="Not saved">{formError}</Banner>
+        <Banner tone="danger" title={t("personForm.failed")}>{formError}</Banner>
       ) : null}
 
       <Card>
-        <CardTitle>Name</CardTitle>
+        <CardTitle>{t("personForm.section.name")}</CardTitle>
         <Separator className="my-4" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="First name" error={errors.firstName} required>
+          <Field label={t("personForm.firstName")} error={errors.firstName} required>
             <Input name="firstName" defaultValue={values?.firstName ?? ""} autoComplete="off" autoFocus={!editing} />
           </Field>
-          <Field label="Surname" error={errors.lastName} required>
+          <Field label={t("personForm.lastName")} error={errors.lastName} required>
             <Input name="lastName" defaultValue={values?.lastName ?? ""} autoComplete="off" />
           </Field>
-          <Field label="Goes by" className="sm:col-span-2">
+          <Field label={t("personForm.preferredName")} className="sm:col-span-2">
             <Input name="preferredName" defaultValue={values?.preferredName ?? ""} autoComplete="off" />
           </Field>
         </div>
       </Card>
 
       <Card>
-        <CardTitle>Contact</CardTitle>
+        <CardTitle>{t("personForm.section.contact")}</CardTitle>
         <Separator className="my-4" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Email" error={errors.email}>
-            <Input name="email" type="email" defaultValue={values?.email ?? ""} placeholder="name@example.org" />
+          <Field label={t("personForm.email")} error={errors.email}>
+            <Input name="email" type="email" defaultValue={values?.email ?? ""} placeholder={t("personForm.emailPlaceholder")} />
           </Field>
-          <Field label="Phone" error={errors.phone}>
-            <Input name="phone" type="tel" defaultValue={values?.phone ?? ""} placeholder="(512) 555 0148" />
+          <Field label={t("personForm.phone")} error={errors.phone}>
+            <Input name="phone" type="tel" defaultValue={values?.phone ?? ""} placeholder={t("personForm.phonePlaceholder")} />
           </Field>
         </div>
       </Card>
 
       <Card>
-        <CardTitle>Household</CardTitle>
+        <CardTitle>{t("personForm.section.household")}</CardTitle>
         <Separator className="my-4" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Household">
+          <Field label={t("personForm.household")}>
             <Select name="householdId" value={household} onValueChange={setHousehold}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={HOUSEHOLD_NONE}>Not in a household</SelectItem>
-                <SelectItem value={HOUSEHOLD_NEW}>Start a new household</SelectItem>
+                <SelectItem value={HOUSEHOLD_NONE}>{t("personForm.householdNone")}</SelectItem>
+                <SelectItem value={HOUSEHOLD_NEW}>{t("personForm.householdNew")}</SelectItem>
                 {households.map((h) => (
                   <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
                 ))}
@@ -152,19 +153,19 @@ export function PersonForm({
           </Field>
 
           {household === HOUSEHOLD_NEW ? (
-            <Field label="Household name" error={errors.householdName} required>
-              <Input name="householdName" placeholder="The Bennett family" autoComplete="off" />
+            <Field label={t("personForm.householdName")} error={errors.householdName} required>
+              <Input name="householdName" placeholder={t("personForm.householdNamePlaceholder")} autoComplete="off" />
             </Field>
           ) : null}
 
           {household !== HOUSEHOLD_NONE ? (
-            <Field label="Role in the household">
+            <Field label={t("personForm.householdRole")}>
               <Select name="householdRole" defaultValue={values?.householdRole ?? "other"}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {HOUSEHOLD_ROLE_OPTIONS.map((o) => (
+                  {householdRoleOptions().map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -175,28 +176,28 @@ export function PersonForm({
       </Card>
 
       <Card>
-        <CardTitle>Status and dates</CardTitle>
+        <CardTitle>{t("personForm.section.status")}</CardTitle>
         <Separator className="my-4" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Status">
+          <Field label={t("personForm.status")}>
             <Select name="lifecycleStatus" defaultValue={values?.lifecycleStatus ?? "visitor"}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {LIFECYCLE_OPTIONS.map((o) => (
+                {lifecycleOptions().map((o) => (
                   <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Date of birth" error={errors.dateOfBirth}>
+          <Field label={t("personForm.dateOfBirth")} error={errors.dateOfBirth}>
             <Input name="dateOfBirth" type="date" defaultValue={values?.dateOfBirth ?? ""} />
           </Field>
-          <Field label="First visit" error={errors.firstVisitOn}>
+          <Field label={t("personForm.firstVisit")} error={errors.firstVisitOn}>
             <Input name="firstVisitOn" type="date" defaultValue={values?.firstVisitOn ?? ""} />
           </Field>
-          <Field label="Became a member" error={errors.membershipDate}>
+          <Field label={t("personForm.membershipDate")} error={errors.membershipDate}>
             <Input name="membershipDate" type="date" defaultValue={values?.membershipDate ?? ""} />
           </Field>
         </div>
@@ -204,7 +205,7 @@ export function PersonForm({
 
       {customFields.length > 0 ? (
         <Card>
-          <CardTitle>More</CardTitle>
+          <CardTitle>{t("person.more")}</CardTitle>
           <Separator className="my-4" />
           <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
         </Card>
@@ -212,11 +213,11 @@ export function PersonForm({
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" loading={pending}>
-          <Save /> {editing ? "Save changes" : "Add person"}
+          <Save /> {editing ? t("personForm.submitEdit") : t("personForm.submitAdd")}
         </Button>
         <Button asChild variant="ghost">
           <Link href={values?.id ? `/people/${values.id}?church=${church}` : `/people?church=${church}`}>
-            <X /> Cancel
+            <X /> {t("action.cancel")}
           </Link>
         </Button>
       </div>

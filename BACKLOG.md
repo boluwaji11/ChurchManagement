@@ -79,7 +79,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota display with a warning at 80% | R1.16 | New |
-| HRT-36 | **Externalise every user-facing string.** Overdue: the rule says from the first commit. | R22.8 | New |
+| HRT-36 | **Externalise every user-facing string.** | R22.8 | Resolved |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | New |
 
 ### F2. People
@@ -142,17 +142,12 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** custom fields, **HRT-32** create a church |
-| **Next** | HRT-36 externalise strings, then HRT-37 CI, then HRT-28 the import wizard |
+| **Waiting on a test** | **HRT-16** custom fields, **HRT-32** create a church, **HRT-36** externalised strings |
+| **Next** | HRT-37 CI, then HRT-28 the import wizard |
 
 ### Debt, and why it is listed here
 
-Two 0.1 requirements are being carried rather than met, and both get more expensive with every
-screen built on top of them.
-
-**HRT-36, externalised strings (R22.8).** The rule is "from the first commit". Every string written
-so far is inline in JSX instead. Nothing is broken, and v1 ships English only, but the cost of this
-is proportional to the number of screens, so it should be paid before the import wizard adds more.
+One 0.1 requirement is still being carried rather than met. HRT-36 was the other, and it is done.
 
 **HRT-37, CI (R22.7, N7).** There is no pipeline. The test suite, the typecheck and the contrast
 audit all run because somebody remembers to run them. The 0.1 exit criteria say the contrast audit

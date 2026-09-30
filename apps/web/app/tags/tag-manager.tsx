@@ -8,6 +8,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
+import { t, plural } from "@hearth/i18n";
 import { addTag, saveTag, removeTag, foldTag } from "./actions";
 
 export interface TagItem {
@@ -44,7 +45,7 @@ export function TagManager({
                   <div className="flex items-center gap-3">
                     <HueTag hue={tag.hue as Hue}>{tag.name}</HueTag>
                     <span className="text-caption text-fg-muted">
-                      {tag.people} {tag.people === 1 ? "person" : "people"}
+                      {plural("tags.peopleCount", tag.people)}
                     </span>
                   </div>
                   {canManage ? <EditTag church={church} tag={tag} others={tags.filter((t) => t.id !== tag.id)} /> : null}
@@ -78,11 +79,11 @@ function NewTag({ church }: { church: string }) {
   return (
     <form ref={formRef} action={action} noValidate className="flex flex-wrap items-end gap-3">
       <input type="hidden" name="church" value={church} />
-      <Field label="New tag" error={error} className="min-w-64 flex-1">
-        <Input name="name" autoComplete="off" placeholder="Choir" />
+      <Field label={t("tags.new")} error={error} className="min-w-64 flex-1">
+        <Input name="name" autoComplete="off" placeholder={t("tags.newPlaceholder")} />
       </Field>
       <Button type="submit" loading={pending}>
-        <Plus /> Add
+        <Plus /> {t("action.add")}
       </Button>
     </form>
   );
@@ -130,24 +131,24 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
     <Dialog open={open} onOpenChange={reset}>
       <DialogTrigger asChild>
         <Button variant="ghost">
-          <Pencil /> Edit
+          <Pencil /> {t("action.edit")}
         </Button>
       </DialogTrigger>
 
-      <DialogContent title={tag.name}>
-        {error ? <Banner tone="danger" title="Not saved" className="mb-4">{error}</Banner> : null}
+      <DialogContent title={tag.name} closeLabel={t("common.close")}>
+        {error ? <Banner tone="danger" title={t("tags.failed")} className="mb-4">{error}</Banner> : null}
 
         <form action={(d) => run(saveTag, d)} className="flex flex-col gap-4">
           <input type="hidden" name="church" value={church} />
           <input type="hidden" name="id" value={tag.id} />
           <input type="hidden" name="hue" value={hue} />
 
-          <Field label="Name">
+          <Field label={t("tags.name")}>
             <Input name="name" defaultValue={tag.name} autoComplete="off" />
           </Field>
 
           <fieldset className="flex flex-col gap-1.5">
-            <legend className="text-label text-fg">Colour</legend>
+            <legend className="text-label text-fg">{t("tags.colour")}</legend>
             <div className="flex flex-wrap gap-1.5">
               {HUES.map((h) => (
                 <button
@@ -170,9 +171,9 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
           </fieldset>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" loading={pending}>Save</Button>
+            <Button type="submit" loading={pending}>{t("action.save")}</Button>
             <DialogClose asChild>
-              <Button type="button" variant="ghost">Cancel</Button>
+              <Button type="button" variant="ghost">{t("action.cancel")}</Button>
             </DialogClose>
           </div>
         </form>
@@ -183,10 +184,10 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
             <form action={(d) => run(foldTag, d)} className="flex flex-col gap-3">
               <input type="hidden" name="church" value={church} />
               <input type="hidden" name="fromId" value={tag.id} />
-              <Field label="Merge into">
+              <Field label={t("tags.mergeInto")}>
                 <Select name="intoId" value={mergeInto} onValueChange={setMergeInto}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a tag" />
+                    <SelectValue placeholder={t("tags.mergeChoose")} />
                   </SelectTrigger>
                   <SelectContent>
                     {others.map((t) => (
@@ -196,7 +197,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
                 </Select>
               </Field>
               <Button type="submit" variant="secondary" disabled={!mergeInto} loading={pending}>
-                <Merge /> Merge and remove {tag.name}
+                <Merge /> {t("tags.mergeAction", { name: tag.name })}
               </Button>
             </form>
           </>
@@ -209,21 +210,20 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="id" value={tag.id} />
             <p className="text-[length:var(--d-text-body)] text-fg">
-              Removes the tag from {tag.people} {tag.people === 1 ? "person" : "people"}. Nothing else
-              changes.
+              {plural("tags.deleteBody", tag.people)}
             </p>
             <div className="flex items-center gap-3">
               <Button type="submit" variant="danger" loading={pending}>
-                <Trash2 /> Delete {tag.name}
+                <Trash2 /> {t("tags.deleteAction", { name: tag.name })}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setConfirmingDelete(false)}>
-                Keep it
+                {t("tags.keep")}
               </Button>
             </div>
           </form>
         ) : (
           <Button type="button" variant="ghost" onClick={() => setConfirmingDelete(true)}>
-            <Trash2 /> Delete
+            <Trash2 /> {t("action.delete")}
           </Button>
         )}
       </DialogContent>

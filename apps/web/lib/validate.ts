@@ -1,6 +1,11 @@
+import { t } from "@hearth/i18n";
+
 /**
- * Small, shared validators so two forms cannot disagree about what a valid email
- * is, and so the messages stay in one voice.
+ * Shared validators, so two forms cannot disagree about what a valid email is.
+ *
+ * These live here rather than in @hearth/ui because they are copy, and a design
+ * system should not own the product's sentences. A Field renders a message; it
+ * does not decide what the message says.
  *
  * Messages say what is wrong and what to do about it. They never blame the
  * person, never shout, and never say "invalid".
@@ -10,21 +15,21 @@ export type Validator = (value: string) => string | undefined;
 export const requiredValue =
   (what: string): Validator =>
   (value) =>
-    value.trim() ? undefined : `Enter ${what}.`;
+    value.trim() ? undefined : t("validate.required", { what });
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export const email: Validator = (value) => {
   const v = value.trim();
-  if (!v) return "Enter your email address.";
-  if (!EMAIL.test(v)) return "That does not look like an email address. Check for a typo.";
+  if (!v) return t("validate.email.blank");
+  if (!EMAIL.test(v)) return t("validate.email.malformed");
   return undefined;
 };
 
 export const minLength =
-  (n: number, what = "This"): Validator =>
+  (count: number, what: string): Validator =>
   (value) =>
-    value.length >= n ? undefined : `${what} needs at least ${n} characters.`;
+    value.length >= count ? undefined : t("validate.minLength", { what, count });
 
 /** Runs validators in order and returns the first message, or undefined. */
 export const check = (value: string, ...validators: Validator[]): string | undefined => {

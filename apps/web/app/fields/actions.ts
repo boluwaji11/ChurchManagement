@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, createCustomField, updateCustomField, deleteCustomField,
-  PermissionError, NameTakenError, InvalidInputError, type CustomFieldType,
+  type CustomFieldType,
 } from "@hearth/db";
+import { t } from "@hearth/i18n";
+import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
 export interface FieldResult {
@@ -28,12 +30,6 @@ async function context(slug: string | undefined) {
   };
 }
 
-function explain(error: unknown): FieldResult {
-  if (error instanceof PermissionError) return { error: error.message };
-  if (error instanceof NameTakenError) return { error: error.message };
-  if (error instanceof InvalidInputError) return { error: error.message };
-  throw error;
-}
 
 const field = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 const choices = (data: FormData) =>
@@ -51,8 +47,8 @@ export async function addField(data: FormData): Promise<FieldResult> {
   const slug = field(data, "church") || undefined;
   const label = field(data, "label");
   const type = field(data, "type") as CustomFieldType;
-  if (!label) return { error: "Enter a name." };
-  if (!type) return { error: "Choose a type." };
+  if (!label) return { error: t("error.enterName") };
+  if (!type) return { error: t("error.chooseType") };
 
   const { actor, ctx } = await context(slug);
   try {
@@ -62,7 +58,7 @@ export async function addField(data: FormData): Promise<FieldResult> {
     done();
     return { id: made.id };
   } catch (error) {
-    return explain(error);
+    return { error: explain(error) };
   }
 }
 
@@ -70,8 +66,8 @@ export async function saveField(data: FormData): Promise<FieldResult> {
   const slug = field(data, "church") || undefined;
   const id = field(data, "id");
   const label = field(data, "label");
-  if (!id) return { error: "That field could not be found. Reload and try again." };
-  if (!label) return { error: "Enter a name." };
+  if (!id) return { error: t("error.notFound.field") };
+  if (!label) return { error: t("error.enterName") };
 
   const { actor, ctx } = await context(slug);
   try {
@@ -79,14 +75,14 @@ export async function saveField(data: FormData): Promise<FieldResult> {
     done();
     return {};
   } catch (error) {
-    return explain(error);
+    return { error: explain(error) };
   }
 }
 
 export async function removeField(data: FormData): Promise<FieldResult> {
   const slug = field(data, "church") || undefined;
   const id = field(data, "id");
-  if (!id) return { error: "That field could not be found. Reload and try again." };
+  if (!id) return { error: t("error.notFound.field") };
 
   const { actor, ctx } = await context(slug);
   try {
@@ -94,6 +90,6 @@ export async function removeField(data: FormData): Promise<FieldResult> {
     done();
     return {};
   } catch (error) {
-    return explain(error);
+    return { error: explain(error) };
   }
 }

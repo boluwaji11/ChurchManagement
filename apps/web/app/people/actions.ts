@@ -4,11 +4,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, createPerson, updatePerson, setPersonArchived, PermissionError,
+  withTenant, createPerson, updatePerson, setPersonArchived,
   listCustomFields, setCustomValues, coerceCustomValue,
   type CustomFieldDef, type CustomValue,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
+import { t } from "@hearth/i18n";
+import { explain } from "@/lib/explain";
 import { parsePerson, personErrors, hasErrors, type PersonErrors } from "@/lib/person-input";
 
 export interface SaveResult {
@@ -106,8 +108,7 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
 
     if (failed) return { errors: failed };
   } catch (error) {
-    if (error instanceof PermissionError) return { formError: error.message };
-    throw error;
+    return { formError: explain(error) };
   }
 
   revalidatePath("/people");
@@ -118,7 +119,7 @@ export async function setArchived(data: FormData): Promise<SaveResult> {
   const slug = String(data.get("church") ?? "") || undefined;
   const id = String(data.get("id") ?? "");
   const archived = String(data.get("archived") ?? "") === "1";
-  if (!id) return { formError: "That person could not be found. Reload and try again." };
+  if (!id) return { formError: t("error.notFound.person") };
 
   const { session, ctx } = await writeContext(slug);
 
@@ -127,8 +128,7 @@ export async function setArchived(data: FormData): Promise<SaveResult> {
       setPersonArchived(tx, { tenantId: session.tenantId, role: session.role }, id, archived),
     );
   } catch (error) {
-    if (error instanceof PermissionError) return { formError: error.message };
-    throw error;
+    return { formError: explain(error) };
   }
 
   revalidatePath("/people");

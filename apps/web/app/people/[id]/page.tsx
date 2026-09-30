@@ -10,6 +10,8 @@ import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
+import { t, plural } from "@hearth/i18n";
+import { lifecycleLabel } from "@/lib/person-input";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +20,9 @@ export const dynamic = "force-dynamic";
  * answered still reads "No", because that is what the checkbox said.
  */
 function showValue(type: string, value: unknown): string {
-  if (type === "boolean") return value === true ? "Yes" : "No";
-  if (value === null || value === undefined || value === "") return "Not recorded";
-  if (Array.isArray(value)) return value.length > 0 ? value.join(", ") : "Not recorded";
+  if (type === "boolean") return value === true ? t("value.yes") : t("value.no");
+  if (value === null || value === undefined || value === "") return t("person.notRecorded");
+  if (Array.isArray(value)) return value.length > 0 ? value.join(", ") : t("person.notRecorded");
   return String(value);
 }
 
@@ -64,7 +66,7 @@ export default async function PersonPage({
         href={`/people?church=${session.tenantSlug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
       >
-        <ArrowLeft className="size-4" /> Directory
+        <ArrowLeft className="size-4" /> {t("people.title")}
       </Link>
 
       <div className="mb-8 flex items-center gap-4">
@@ -72,22 +74,22 @@ export default async function PersonPage({
         <div className="flex flex-col gap-1.5">
           <h1 className="font-display text-display text-fg">{display}</h1>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="primary">{person.lifecycleStatus.replace(/_/g, " ")}</Badge>
+            <Badge tone="primary">{lifecycleLabel(person.lifecycleStatus)}</Badge>
           </div>
         </div>
       </div>
 
-      {saved ? <Banner tone="success" title="Saved" className="mb-6" /> : null}
+      {saved ? <Banner tone="success" title={t("person.saved")} className="mb-6" /> : null}
 
-      {restored ? <Banner tone="success" title="Restored" className="mb-6" /> : null}
+      {restored ? <Banner tone="success" title={t("person.restored")} className="mb-6" /> : null}
 
       {person.archivedAt ? (
-        <Banner tone="warning" title="Archived" className="mb-6">
-          Out of every list since{" "}
-          {new Date(person.archivedAt).toLocaleDateString("en-GB", {
-            day: "numeric", month: "long", year: "numeric",
+        <Banner tone="warning" title={t("person.archived.title")} className="mb-6">
+          {t("person.archived.body", {
+            date: new Date(person.archivedAt).toLocaleDateString(undefined, {
+              day: "numeric", month: "long", year: "numeric",
+            }),
           })}
-          . Nothing was deleted.
         </Banner>
       ) : null}
 
@@ -96,7 +98,7 @@ export default async function PersonPage({
           {canEditPeople(session.role) ? (
             <Button asChild variant="secondary">
               <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
-                <Pencil /> Edit
+                <Pencil /> {t("action.edit")}
               </Link>
             </Button>
           ) : null}
@@ -112,18 +114,18 @@ export default async function PersonPage({
       ) : null}
 
       <Card className="mb-6">
-        <CardTitle>Details</CardTitle>
+        <CardTitle>{t("person.details")}</CardTitle>
         <Separator className="my-4" />
         <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
           {[
-            ["Legal first name", person.firstName],
-            ["Surname", person.lastName],
-            ["Email", contact?.email ?? "Not recorded"],
-            ["Phone", contact?.phone ?? "Not recorded"],
-            ["Date of birth", person.dateOfBirth ?? "Not recorded"],
-            ["First visit", person.firstVisitOn ?? "Not recorded"],
-            ["Membership date", person.membershipDate ?? "Not a member"],
-            ["Status", person.lifecycleStatus.replace(/_/g, " ")],
+            [t("person.firstName"), person.firstName],
+            [t("person.lastName"), person.lastName],
+            [t("person.email"), contact?.email ?? t("person.notRecorded")],
+            [t("person.phone"), contact?.phone ?? t("person.notRecorded")],
+            [t("person.dateOfBirth"), person.dateOfBirth ?? t("person.notRecorded")],
+            [t("person.firstVisit"), person.firstVisitOn ?? t("person.notRecorded")],
+            [t("person.membershipDate"), person.membershipDate ?? t("person.notAMember")],
+            [t("person.status"), lifecycleLabel(person.lifecycleStatus)],
           ].map(([k, v]) => (
             <div key={k} className="flex flex-col">
               <dt className="text-label text-fg-muted">{k}</dt>
@@ -135,7 +137,7 @@ export default async function PersonPage({
 
       {fields.length > 0 ? (
         <Card className="mb-6">
-          <CardTitle>More</CardTitle>
+          <CardTitle>{t("person.more")}</CardTitle>
           <Separator className="my-4" />
           <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
             {fields.map((f) => (
@@ -151,7 +153,7 @@ export default async function PersonPage({
       ) : null}
 
       <Card className="mb-6">
-        <CardTitle>Tags</CardTitle>
+        <CardTitle>{t("person.tags")}</CardTitle>
         <Separator className="my-4" />
         <TagEditor
           church={session.tenantSlug}
@@ -164,22 +166,20 @@ export default async function PersonPage({
 
       <Card>
         <div className="flex items-center justify-between gap-4">
-          <CardTitle>Notes</CardTitle>
-          <Badge tone="neutral">{session.role}</Badge>
+          <CardTitle>{t("person.notes")}</CardTitle>
+          <Badge tone="neutral">{t(`role.${session.role}`)}</Badge>
         </div>
         <Separator className="my-4" />
 
         {restricted > 0 ? (
-          <Banner tone="info" title={`${restricted} note${restricted === 1 ? "" : "s"} restricted`} className="mb-4">
-            The {session.role} role can see that these notes exist, who wrote them, and when. It cannot
-            read them. The body is encrypted with a key the database never holds, and the field is absent
-            from the response rather than blank.
+          <Banner tone="info" title={plural("notes.restrictedCount", restricted)} className="mb-4">
+            {t("notes.restricted.body", { role: t(`role.${session.role}`) })}
           </Banner>
         ) : null}
 
         <ul className="flex flex-col gap-3">
           {notes.length === 0 ? (
-            <li className="text-[length:var(--d-text-body)] text-fg-muted">No notes yet.</li>
+            <li className="text-[length:var(--d-text-body)] text-fg-muted">{t("notes.none")}</li>
           ) : null}
 
           {notes.map((note) => (
@@ -193,20 +193,22 @@ export default async function PersonPage({
             >
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
                 {note.classification === "confidential" ? (
-                  <Badge tone="danger"><Lock className="size-3" /> Confidential</Badge>
+                  <Badge tone="danger"><Lock className="size-3" /> {t("notes.confidential")}</Badge>
                 ) : (
-                  <Badge tone="neutral"><FileText className="size-3" /> General</Badge>
+                  <Badge tone="neutral"><FileText className="size-3" /> {t("notes.general")}</Badge>
                 )}
                 <span className="text-caption text-fg-muted">
-                  {note.authorName ?? "Unattributed"} on{" "}
-                  {new Date(note.createdAt).toLocaleDateString("en-GB", {
-                    day: "numeric", month: "long", year: "numeric",
+                  {t("notes.by", {
+                    author: note.authorName ?? t("notes.unattributed"),
+                    date: new Date(note.createdAt).toLocaleDateString(undefined, {
+                      day: "numeric", month: "long", year: "numeric",
+                    }),
                   })}
                 </span>
               </div>
               {note.restricted ? (
                 <p className="text-[length:var(--d-text-body)] italic text-fg-subtle">
-                  Restricted. Your role cannot read this note.
+                  {t("notes.restricted")}
                 </p>
               ) : (
                 <p className="text-[length:var(--d-text-body)] text-fg">{note.body}</p>

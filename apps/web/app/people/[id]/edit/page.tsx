@@ -9,6 +9,7 @@ import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { PersonForm } from "../../person-form";
+import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -46,11 +47,11 @@ export default async function EditPersonPage({
           <ArrowLeft className="size-4" /> {display}
         </Link>
 
-        <PageTitle title={`Edit ${display}`} lede={session.tenantName} />
+        <PageTitle title={t("personForm.editTitle", { name: display })} lede={session.tenantName} />
 
         {person.archivedAt ? (
-          <Banner tone="warning" title="Archived" className="mb-6">
-            Out of every list until restored. Nothing was deleted.
+          <Banner tone="warning" title={t("personForm.archivedNotice.title")} className="mb-6">
+            {t("personForm.archivedNotice.body")}
           </Banner>
         ) : null}
 
@@ -76,9 +77,7 @@ export default async function EditPersonPage({
             }}
           />
         ) : (
-          <Banner tone="info" title="Your role cannot edit people">
-            Ask an Owner or an Admin.
-          </Banner>
+          <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
         )}
       </main>
     </>

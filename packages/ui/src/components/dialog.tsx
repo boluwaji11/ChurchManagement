@@ -10,8 +10,8 @@ export const DialogClose = P.Close;
 
 export const DialogContent = React.forwardRef<
   React.ComponentRef<typeof P.Content>,
-  React.ComponentPropsWithoutRef<typeof P.Content> & { title: string; description?: string }
->(({ className, children, title, description, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof P.Content> & { title: string; description?: string; closeLabel?: string }
+>(({ className, children, title, description, closeLabel = "Close", ...props }, ref) => (
   <P.Portal>
     <P.Overlay
       className={cn(
@@ -37,7 +37,7 @@ export const DialogContent = React.forwardRef<
           ) : null}
         </div>
         <P.Close
-          aria-label="Close"
+          aria-label={closeLabel}
           className="shrink-0 rounded-md p-1 text-fg-muted hover:bg-sunken hover:text-fg transition-colors duration-instant"
         >
           <X className="size-4" />
