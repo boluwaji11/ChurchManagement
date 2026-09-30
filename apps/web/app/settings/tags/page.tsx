@@ -1,8 +1,6 @@
 import { withTenant, listTagsWithCounts, canManageTags, canEditPeople } from "@hearth/db";
 import { Banner, EmptyState } from "@hearth/ui";
-import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
 import { TagManager } from "./tag-manager";
 import { t } from "@hearth/i18n";
 
@@ -24,10 +22,7 @@ export default async function TagsPage({
   const canManage = canManageTags(session.role);
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("tags.title")} lede={session.tenantName} />
+    <div className="flex flex-col gap-6">
 
         {!canCreate && !canManage ? (
           <Banner tone="info" title={t("tags.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
@@ -40,7 +35,6 @@ export default async function TagsPage({
             <EmptyState title={t("tags.empty.title")} body={t("tags.empty.body")} />
           </div>
         ) : null}
-      </main>
-    </>
+    </div>
   );
 }

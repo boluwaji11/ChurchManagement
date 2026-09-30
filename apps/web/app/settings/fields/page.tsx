@@ -1,8 +1,6 @@
 import { withTenant, listCustomFields, canManageCustomFields } from "@hearth/db";
 import { Banner, EmptyState } from "@hearth/ui";
-import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
 import { FieldManager } from "./field-manager";
 import { t } from "@hearth/i18n";
 
@@ -23,10 +21,7 @@ export default async function FieldsPage({
   const canManage = canManageCustomFields(session.role);
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("fields.title")} lede={t("fields.lede")} />
+    <div className="flex flex-col gap-6">
 
         {!canManage ? (
           <Banner tone="info" title={t("fields.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
@@ -39,7 +34,6 @@ export default async function FieldsPage({
             <EmptyState title={t("fields.empty.title")} body={t("fields.empty.body")} />
           </div>
         ) : null}
-      </main>
-    </>
+    </div>
   );
 }

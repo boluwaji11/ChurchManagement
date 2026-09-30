@@ -4,7 +4,7 @@ import * as React from "react";
 import { LogOut, Monitor } from "lucide-react";
 import { Badge, Banner, Button } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
-import { endSession, endOtherSessions } from "./actions";
+import { endSession, endOtherSessions } from "./session-actions";
 
 export interface SessionRow {
   id: string;

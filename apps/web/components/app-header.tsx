@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { Church, ChevronDown } from "lucide-react";
 import { Avatar, Badge, Separator } from "@hearth/ui";
-import { SignOutButton } from "./sign-out-button";
 import { Logo } from "./brand";
 import { t } from "@hearth/i18n";
-import { canManageChurch } from "@hearth/db";
 import { churchLogoUrl } from "@/lib/church-logo";
 import type { Session } from "@/lib/session";
 
@@ -51,11 +49,6 @@ export async function AppHeader({ session }: { session: Session }) {
         <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label={t("nav.sections")}>
           {[
             [t("nav.directory"), "/people"],
-            [t("nav.tags"), "/tags"],
-            [t("nav.fields"), "/fields"],
-            // Settings rename the church for everyone in it, so the link is
-            // shown to the roles that can act on it.
-            ...(canManageChurch(session.role) ? [[t("nav.settings"), "/settings"]] : []),
           ].map(([label, href]) => (
             <Link
               key={href}
@@ -69,15 +62,16 @@ export async function AppHeader({ session }: { session: Session }) {
 
         <div className="flex items-center gap-3">
           <Badge tone="neutral">{t(`role.${session.role}`)}</Badge>
+          {/* Their name, and everything they administer, in one place. Signing
+              out lives there too rather than next to it, since a press beside
+              the name somebody aims for is a press they make by accident. */}
           <Link
-            href={`/account?church=${session.tenantSlug}`}
-            aria-label={t("nav.account")}
-            className="hidden items-center gap-2 rounded-md px-1.5 py-1 hover:bg-sunken sm:flex"
+            href={`/settings?church=${session.tenantSlug}`}
+            className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-sunken"
           >
-            <Avatar name={session.email} id={session.userId} size="sm" />
-            <span className="text-caption text-fg-muted">{session.email}</span>
+            <Avatar name={session.displayName} id={session.userId} size="sm" />
+            <span className="text-label text-fg">{session.displayName}</span>
           </Link>
-          <SignOutButton />
         </div>
       </div>
     </header>

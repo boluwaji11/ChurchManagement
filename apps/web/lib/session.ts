@@ -10,6 +10,8 @@ import { supabaseServer } from "./supabase/server";
 export interface Session {
   userId: string;
   email: string;
+  /** What to call them on screen. Their email address if they gave no name. */
+  displayName: string;
   tenantId: string;
   tenantName: string;
   tenantSlug: string;
@@ -68,6 +70,7 @@ export const requireSession = cache(async (slug?: string): Promise<Session> => {
   return {
     userId: user.id,
     email: user.email,
+    displayName: user.fullName?.trim() || user.email,
     tenantId: m.tenantId,
     tenantName: m.tenantName,
     tenantSlug: m.tenantSlug,

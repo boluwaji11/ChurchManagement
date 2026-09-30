@@ -1,85 +1,70 @@
-import {
-  withTenant, getChurch, listServiceTimes, canManageChurch,
-  getStorageUsage, demoState,
-} from "@hearth/db";
-import { Card, CardTitle, Separator } from "@hearth/ui";
+import { withTenant, listSessions, describeDevice } from "@hearth/db";
+import { Badge, Banner, Card, CardTitle, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
-import { ChurchForm } from "./church-form";
-import { LogoAndStorage } from "./logo";
-import { DemoData } from "./demo";
-import { supabaseServer } from "@/lib/supabase/server";
+import { requireSession, currentSessionId } from "@/lib/session";
+import { SignOutButton } from "@/components/sign-out-button";
+import { Sessions } from "./sessions";
 
 export const dynamic = "force-dynamic";
 
-export default async function SettingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ church?: string }>;
-}) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+const when = (date: Date) =>
+  date.toLocaleString(undefined, {
+    day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit",
+  });
 
-  const { profile, services, usage, demo } = await withTenant(
-    { tenantId: session.tenantId, role: session.role },
-    async (tx) => ({
-      profile: await getChurch(tx, session.tenantId),
-      services: await listServiceTimes(tx),
-      usage: await getStorageUsage(tx, session.tenantId),
-      demo: await demoState(tx),
-    }),
+export default async function AccountPage() {
+  const session = await requireSession();
+  const currentId = await currentSessionId();
+
+  const sessions = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    (tx) => listSessions(tx),
   );
 
-  // The bucket is private, so the logo is served through a short-lived signed
-  // URL. A leaked path is then a leak with an expiry rather than a permanent one.
-  let logoUrl: string | null = null;
-  if (profile?.logoKey) {
-    const supabase = await supabaseServer();
-    const signed = await supabase.storage.from("church").createSignedUrl(profile.logoKey, 3600);
-    logoUrl = signed.data?.signedUrl ?? null;
-  }
-
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("church.title")} lede={session.tenantName} />
-        {profile ? (
-          <Card className="mb-6">
-            <CardTitle>{t("church.logo")}</CardTitle>
-            <Separator className="my-4" />
-            <LogoAndStorage
-              church={session.tenantSlug}
-              churchName={session.tenantName}
-              logoUrl={logoUrl}
-              fraction={usage.fraction}
-              warning={usage.warning}
-              canEdit={canManageChurch(session.role)}
-            />
-          </Card>
-        ) : null}
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardTitle>{t("account.title")}</CardTitle>
+        <Separator className="my-4" />
+        <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+          <div className="flex flex-col">
+            <dt className="text-label text-fg-muted">{t("account.email")}</dt>
+            <dd className="text-[length:var(--d-text-body)] text-fg">{session.email}</dd>
+          </div>
+          <div className="flex flex-col">
+            <dt className="text-label text-fg-muted">{t("account.role")}</dt>
+            <dd><Badge tone="neutral">{t(`role.${session.role}`)}</Badge></dd>
+          </div>
+        </dl>
+      </Card>
 
-        <Card className="mb-6">
-          <CardTitle>{t("demo.title")}</CardTitle>
-          <Separator className="my-4" />
-          <DemoData
+      <Card>
+        <CardTitle>{t("session.title")}</CardTitle>
+        <Separator className="my-4" />
+
+        {sessions === null ? (
+          <Banner tone="info" title={t("session.unavailable")} />
+        ) : (
+          <Sessions
             church={session.tenantSlug}
-            loaded={demo.loaded}
-            people={demo.people}
-            canEdit={canManageChurch(session.role)}
+            rows={sessions.map((s) => {
+              const device = describeDevice(s.userAgent);
+              return {
+                id: s.id,
+                browser: device.browser,
+                platform: device.platform,
+                ip: s.ip,
+                createdAt: when(s.createdAt),
+                lastSeenAt: when(s.lastSeenAt),
+                current: s.id === currentId,
+              };
+            })}
           />
-        </Card>
+        )}
 
-        {profile ? (
-          <ChurchForm
-            values={profile}
-            services={services}
-            canEdit={canManageChurch(session.role)}
-          />
-        ) : null}
-      </main>
-    </>
+        <Separator className="my-4" />
+        <SignOutButton />
+      </Card>
+    </div>
   );
 }

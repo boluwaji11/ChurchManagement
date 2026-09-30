@@ -74,6 +74,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-14 | Active session list with remote revoke | R1.10 | Closed |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
+| HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -148,7 +149,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-31** sample church |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-31** sample church, **HRT-45** settings tabs |
 | **Next** | HRT-34 household tags, then HRT-39 streaming export. HRT-13 MFA stays deferred at the user's request. |
 
 ### HRT-16, how to test it
@@ -340,6 +341,22 @@ with the service role key would put that key in a request path, which it may nev
 security-definer functions stand at that boundary instead, both narrowed by the verified user id.
 
 On a database without Supabase Auth, including CI, the functions are absent and the card says so.
+
+### HRT-45, how to test it
+
+Press your name in the top right.
+
+1. **The navigation is one item now.** Directory. Tags, Fields and Settings were beside it, which
+   put the two things a volunteer touches every day next to two they touch twice a year.
+2. **Four tabs, by role.** Account for everyone. Church for Owner and Admin. Tags for anyone who can
+   edit people. Fields for Owner and Admin. Sign in as staff and the Church and Fields tabs are
+   absent, and typing the URL is still refused by the query layer.
+3. **Each tab is a real page.** Reload on Tags and you stay on Tags. The links can be shared and
+   opened in a new tab, which a widget that swaps panels cannot do.
+4. **Your name, not your email.** The header shows the name on your account, falling back to the
+   email address when there is none.
+5. **Signing out moved** into the Account tab. It used to sit beside the name people aim for, which
+   is a press somebody makes by accident.
 
 ### HRT-18, how to test it
 

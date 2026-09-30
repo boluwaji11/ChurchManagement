@@ -8,7 +8,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { addField, saveField, removeField } from "./actions";
+import { addField, saveField, removeField } from "../../fields/actions";
 
 export interface FieldItem {
   id: string;

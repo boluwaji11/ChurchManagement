@@ -9,7 +9,7 @@ import {
   type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
-import { addTag, saveTag, removeTag, foldTag } from "./actions";
+import { addTag, saveTag, removeTag, foldTag } from "../../tags/actions";
 
 export interface TagItem {
   id: string;
