@@ -228,19 +228,22 @@ The directory now has a toolbar.
 
 ### HRT-24, how to test it
 
-A banner appears on the directory when anything looks like a duplicate, linking to the review queue.
-
-1. **Make one.** Add two people with the same email address, or import a file twice choosing "Add
-   them again anyway". Both appear as a pair, marked by how sure the match is.
-2. **Choose which survives.** Press either card. Where the two records disagree, you pick which
+1. **Pick two yourself.** Tick two people in the directory. A Merge button appears in the selection
+   bar. The review screen opens with your pair at the top, badged "You picked these". This is the
+   path for records the detector cannot spot, like Mike Bennett and Michael Bennett on two different
+   email addresses.
+2. **Or let it find them.** Add two people with the same email address, or import a file twice
+   choosing "Add them again anyway". A banner appears on the directory linking to the queue, and the
+   pair is marked by how sure the match is.
+3. **Choose which survives.** Press either card. Where the two records disagree, you pick which
    value wins, field by field. Switching which record survives resets those choices rather than
    inverting them.
-3. **Merge.** Contact details, notes, tags, milestones and history move across. The other record is
-   archived, never deleted.
-4. **Undo it.** Past merges are listed underneath. Undo puts both records back, returns exactly the
+4. **Merge.** Contact details, notes, tags, milestones and history move across. The other record is
+   archived and you have 30 days to undo.
+5. **Undo it.** Past merges are listed underneath. Undo puts both records back, returns exactly the
    rows that moved, and restores any field that was written over. A note written *after* the merge
    stays with the surviving person, because it was never part of it.
-5. **Roles.** Owner and Admin only. `staff` can edit people but cannot merge them, since one press
+6. **Roles.** Owner and Admin only. `staff` can edit people but cannot merge them, since one press
    moves every note off one record and onto another.
 
 ### HRT-32, how to test it

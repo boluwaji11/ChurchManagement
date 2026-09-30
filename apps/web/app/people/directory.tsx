@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Merge } from "lucide-react";
 import {
   Avatar, Badge, Button, Card, Input, Checkbox, Banner, HueDot,
   Table, Thead, Th, Tr, Td, EmptyState,
@@ -165,6 +165,11 @@ export function Directory({
           count={selected.length}
           tags={tags}
           canArchive={canArchive}
+          mergeHref={
+            canArchive && selected.length === 2
+              ? `/duplicates?church=${church}&a=${selected[0]}&b=${selected[1]}`
+              : null
+          }
           pending={pending}
           onClear={() => setSelected([])}
           onTag={(tagId, on) => act(bulkTag, { tagId, on: on ? "1" : "0" })}
@@ -483,6 +488,7 @@ function SelectionBar({
   count,
   tags,
   canArchive,
+  mergeHref,
   pending,
   onClear,
   onTag,
@@ -492,6 +498,7 @@ function SelectionBar({
   count: number;
   tags: TagOption[];
   canArchive: boolean;
+  mergeHref: string | null;
   pending: boolean;
   onClear: () => void;
   onTag: (tagId: string, on: boolean) => void;
@@ -520,6 +527,14 @@ function SelectionBar({
         options={LIFECYCLE_VALUES.map((v) => ({ value: v, label: lifecycleLabel(v) }))}
         onPick={onStatus}
       />
+
+      {mergeHref ? (
+        <Button variant="ghost" asChild>
+          <Link href={mergeHref}>
+            <Merge /> {t("directory.merge")}
+          </Link>
+        </Button>
+      ) : null}
 
       {canArchive ? (
         <Dialog>

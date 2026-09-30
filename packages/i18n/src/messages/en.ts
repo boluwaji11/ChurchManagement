@@ -117,6 +117,7 @@ export const en = {
   "directory.selected.other": "{count} selected",
   "directory.selectAll": "Select every row",
   "directory.select": "Select {name}",
+  "directory.merge": "Merge",
   "directory.clearSelection": "Clear",
   "directory.bulkTag": "Add a tag",
   "directory.bulkUntag": "Remove a tag",
@@ -355,10 +356,10 @@ export const en = {
 
   // Merging duplicates
   "merge.title": "Possible duplicates",
-  "merge.lede": "Two records that look like one person.",
   "merge.none.title": "No duplicates found",
   "merge.none.body": "Everyone in the directory looks like one person.",
   "merge.review": "Review",
+  "merge.youPicked": "You picked these",
   "merge.pending.one": "{count} pair of records looks like one person. Review it.",
   "merge.pending.other": "{count} pairs of records look like one person. Review them.",
   "merge.keep": "Keep this one",

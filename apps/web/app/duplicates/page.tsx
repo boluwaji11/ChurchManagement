@@ -13,9 +13,9 @@ export const dynamic = "force-dynamic";
 export default async function DuplicatesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; a?: string; b?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, a, b } = await searchParams;
   const session = await requireSession(church);
 
   // Merging moves every note and every record off one person and onto another,
@@ -25,7 +25,7 @@ export default async function DuplicatesPage({
       <>
         <AppHeader session={session} />
         <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-          <PageTitle title={t("merge.title")} lede={t("merge.lede")} />
+          <PageTitle title={t("merge.title")} lede={session.tenantName} />
           <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
         </main>
       </>
@@ -37,9 +37,16 @@ export default async function DuplicatesPage({
     async (tx) => {
       const found = await findDuplicatePairs(tx);
 
+      // A pair chosen by hand in the directory. The detector misses real
+      // duplicates that share no email, no phone and no spelling of a name.
+      const picked = a && b && a !== b ? { a, b } : null;
+
       // One read per person rather than per pair, because the same record shows
       // up in several pairs when a church has three copies of somebody.
-      const ids = [...new Set(found.flatMap((p) => [p.a.id, p.b.id]))];
+      const ids = [...new Set([
+        ...(picked ? [picked.a, picked.b] : []),
+        ...found.flatMap((p) => [p.a.id, p.b.id]),
+      ])];
       const sides = new Map<string, PersonSide>();
       for (const id of ids) {
         const person = await getPersonForEdit(tx, id);
@@ -60,14 +67,26 @@ export default async function DuplicatesPage({
       }
 
       return {
-        pairs: found
-          .filter((p) => sides.has(p.a.id) && sides.has(p.b.id))
-          .map((p) => ({
-            a: sides.get(p.a.id)!,
-            b: sides.get(p.b.id)!,
-            confidence: p.confidence,
-            reason: p.reason,
-          })),
+        pairs: [
+          ...(picked && sides.has(picked.a) && sides.has(picked.b)
+            ? [{
+                a: sides.get(picked.a)!,
+                b: sides.get(picked.b)!,
+                confidence: "possible",
+                reason: "merge.youPicked",
+              }]
+            : []),
+          ...found
+            // The picked pair is already at the top, in either order.
+            .filter((p) => !picked || ![p.a.id, p.b.id].every((id) => id === picked.a || id === picked.b))
+            .filter((p) => sides.has(p.a.id) && sides.has(p.b.id))
+            .map((p) => ({
+              a: sides.get(p.a.id)!,
+              b: sides.get(p.b.id)!,
+              confidence: p.confidence as string,
+              reason: p.reason as string,
+            })),
+        ],
         history: await listMerges(tx),
       };
     },
@@ -77,7 +96,7 @@ export default async function DuplicatesPage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("merge.title")} lede={t("merge.lede")} />
+        <PageTitle title={t("merge.title")} lede={session.tenantName} />
         <Review
           church={session.tenantSlug}
           pairs={pairs}
