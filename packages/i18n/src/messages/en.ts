@@ -703,7 +703,6 @@ export const en = {
   "stations.rooms": "Rooms",
   "stations.services": "Services",
   "stations.allRooms": "Every room",
-  "stations.allServices": "Every service",
   "stations.archive": "Archive",
   "stations.archiveTitle": "Archive {name}?",
   "stations.archiveBody": "A device pointed at it is asked to choose another station.",

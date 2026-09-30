@@ -112,6 +112,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Resolved |
 | HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Resolved |
+| HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Resolved |
+| HRT-72 | Build the demo church faster than a visitor will wait | R22.1 | New |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
 ---

@@ -248,7 +248,6 @@ function StationDialog({
               church with one desk wants and never has to think about. */}
           <Picker
             label={t("stations.rooms")}
-            empty={t("stations.allRooms")}
             options={rooms.map((r) => ({
               id: r.id,
               label: r.name,
@@ -260,7 +259,6 @@ function StationDialog({
 
           <Picker
             label={t("stations.services")}
-            empty={t("stations.allServices")}
             options={services.map((s) => ({ id: s.id, label: s.name }))}
             chosen={serviceIds}
             onToggle={(id, on) => toggle(serviceIds, setServiceIds, id, on)}
@@ -280,13 +278,11 @@ function StationDialog({
 
 function Picker({
   label,
-  empty,
   options,
   chosen,
   onToggle,
 }: {
   label: string;
-  empty: string;
   options: { id: string; label: string; icon?: React.ReactNode }[];
   chosen: string[];
   onToggle: (id: string, on: boolean) => void;
@@ -310,7 +306,6 @@ function Picker({
             {option.label}
           </label>
         ))}
-        {chosen.length === 0 ? <span className="text-caption text-fg-muted">{empty}</span> : null}
       </div>
     </div>
   );
