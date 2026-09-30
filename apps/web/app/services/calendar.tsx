@@ -71,6 +71,8 @@ export function Calendar({
   const [pending, startTransition] = React.useTransition();
   const [repeat, setRepeat] = React.useState("never");
   const [adding, setAdding] = React.useState(false);
+  // Which day was pressed in the calendar, so the dialog opens on it.
+  const [addOn, setAddOn] = React.useState<string>("");
 
   const act = (
     fn: (d: FormData) => Promise<{ error?: string }>,
@@ -179,10 +181,11 @@ export function Calendar({
         <div>
           <Dialog open={adding} onOpenChange={setAdding}>
             <DialogTrigger asChild>
-              <Button><Plus /> {t("services.add")}</Button>
+              <Button onClick={() => setAddOn("")}><Plus /> {t("services.add")}</Button>
             </DialogTrigger>
             <DialogContent title={t("services.add")} closeLabel={t("common.close")}>
               <form
+                key={addOn}
                 action={(data) => {
                   data.set("repeat", repeat);
                   act(addGathering, data, () => setAdding(false));
@@ -195,7 +198,7 @@ export function Calendar({
                 </Field>
                 <div className="flex flex-wrap gap-4">
                   <Field label={t("services.date")} required className="flex-1">
-                    <DateField name="occursOn" />
+                    <DateField name="occursOn" defaultValue={addOn} />
                   </Field>
                   <Field label={t("services.time")} required className="flex-1">
                     <TimeField name="startsAt" />
@@ -241,7 +244,13 @@ export function Calendar({
       {rows.length === 0 && view !== "calendar" ? (
         <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
       ) : view === "calendar" ? (
-        <MonthGrid month={month} rows={rows} today={today} actions={actionsFor} />
+        <MonthGrid
+          month={month}
+          rows={rows}
+          today={today}
+          actions={actionsFor}
+          onCreate={canEdit ? (day) => { setAddOn(day); setAdding(true); } : null}
+        />
       ) : view === "tiles" ? (
         <Tiles rows={rows} actions={actionsFor} />
       ) : (

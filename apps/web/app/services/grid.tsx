@@ -15,11 +15,17 @@ import type { GatheringRow } from "./calendar";
  * figures look wrong. Every service is a chip, and a chip opens the same
  * actions the list row has.
  */
+const readable = (iso: string, locale: string | undefined) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString(locale, {
+    weekday: "long", day: "numeric", month: "long",
+  });
+
 export function MonthGrid({
   month,
   rows,
   today,
   actions,
+  onCreate,
 }: {
   /** "2026-09". */
   month: string;
@@ -27,6 +33,8 @@ export function MonthGrid({
   /** The church's own today, as ISO. Marks the cell when the month holds it. */
   today: string;
   actions: (row: GatheringRow) => React.ReactNode;
+  /** Pressing an empty part of a day. Null when this church may not add one. */
+  onCreate: ((occursOn: string) => void) | null;
 }) {
   const [locale, setLocale] = React.useState<string | undefined>(undefined);
   React.useEffect(() => setLocale(navigator.language), []);
@@ -80,23 +88,38 @@ export function MonthGrid({
           <div
             key={cell.iso}
             className={cn(
-              "min-h-24 border-b border-r border-line p-1.5 last:border-r-0",
+              "relative min-h-24 border-b border-r border-line p-1.5 last:border-r-0",
               cell.outside && "bg-sunken/40",
             )}
           >
-            <div
-              className={cn(
-                "mb-1 flex size-6 items-center justify-center rounded-full text-caption",
-                cell.outside ? "text-fg-subtle" : "text-fg-muted",
-                cell.iso === today && "bg-primary text-primary-fg",
-              )}
-            >
-              {cell.day}
-            </div>
-            <div className="flex flex-col gap-1">
-              {(byDay.get(cell.iso) ?? []).map((row) => (
-                <Chip key={row.id} row={row} actions={actions} />
-              ))}
+            {/* The day itself is the button. A church looking at an empty
+                Wednesday and wanting a service there should be able to press
+                the Wednesday. The chips sit above it and take their own
+                presses. */}
+            {onCreate ? (
+              <button
+                type="button"
+                aria-label={t("services.addOn", { date: readable(cell.iso, locale) })}
+                onClick={() => onCreate(cell.iso)}
+                className="absolute inset-0 transition-colors duration-instant hover:bg-sunken/60"
+              />
+            ) : null}
+
+            <div className="pointer-events-none relative">
+              <div
+                className={cn(
+                  "mb-1 flex size-6 items-center justify-center rounded-full text-caption",
+                  cell.outside ? "text-fg-subtle" : "text-fg-muted",
+                  cell.iso === today && "bg-primary text-primary-fg",
+                )}
+              >
+                {cell.day}
+              </div>
+              <div className="pointer-events-auto flex flex-col gap-1">
+                {(byDay.get(cell.iso) ?? []).map((row) => (
+                  <Chip key={row.id} row={row} actions={actions} />
+                ))}
+              </div>
             </div>
           </div>
         ))}

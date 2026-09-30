@@ -46,7 +46,7 @@ export default async function ServicesPage({
   searchParams: Promise<{ church?: string; month?: string; view?: string }>;
 }) {
   const { church, month: asked, view: askedView } = await searchParams;
-  const view = isView(askedView) ? askedView : "list";
+  const view = isView(askedView) ? askedView : "calendar";
   const session = await requireSession(church);
 
   const { rows, present, timezone, month, thisMonth } = await withTenant(
