@@ -31,5 +31,18 @@ export {
   createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone,
   RESERVED_SLUGS, type Membership,
 } from "./repo/membership";
+export { readSheet, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";
+export {
+  PERSON_FIELDS, IGNORE, guessMapping, parseImportedDate, parseLifecycle, parseHouseholdRole,
+  type TargetField,
+} from "./import/columns";
+export {
+  buildMatchIndex, indexPeople, findMatches, indexNewPerson,
+  normaliseName, normaliseEmail, normalisePhone, type ExistingPerson,
+  type Match, type MatchIndex, type Candidate, type Confidence,
+} from "./import/match";
+export {
+  plan, commit, type Plan, type PlannedRow, type DuplicateStrategy, type CommitResult,
+} from "./import/run";
 export { withAuditTriggersOff, deleteTenants, deleteTenantsLike } from "./maintenance";
 export { loadEnv } from "./env";

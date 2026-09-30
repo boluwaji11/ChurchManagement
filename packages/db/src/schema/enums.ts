@@ -65,3 +65,13 @@ export const hue = pgEnum("hue", [
 ]);
 
 export const auditAction = pgEnum("audit_action", ["insert", "update", "delete", "read"]);
+
+/** R19.2 and R19.4. A preview has written nothing. A committed batch can be rolled back. */
+export const importStatus = pgEnum("import_status", [
+  "preview", "committed", "rolled_back", "failed",
+]);
+
+/** What one row of the file did. */
+export const importOutcome = pgEnum("import_outcome", [
+  "create", "update", "skip", "fail",
+]);

@@ -4,4 +4,5 @@ export * from "./people";
 export * from "./notes";
 export * from "./invitations";
 export * from "./custom-fields";
+export * from "./imports";
 export * from "./audit";
