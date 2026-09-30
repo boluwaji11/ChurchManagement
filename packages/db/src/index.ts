@@ -35,6 +35,8 @@ export * from "./repo/milestones";
 export * from "./repo/church";
 export * from "./repo/sessions";
 export * from "./repo/storage";
+export * from "./demo/load";
+export { DEMO_PEOPLE, DEMO_TAGS } from "./demo/people";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,

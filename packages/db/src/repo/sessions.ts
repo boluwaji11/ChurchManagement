@@ -23,10 +23,14 @@ export interface UserSession {
   ip: string | null;
 }
 
-/** Postgres says 42883 when a function does not exist. */
-const isMissingFunction = (error: unknown): boolean =>
-  typeof error === "object" && error !== null && (error as { code?: string }).code === "42883";
-
+/**
+ * Whether this database has the session functions at all.
+ *
+ * Asked before calling them rather than catching the error afterwards. Every
+ * repository call runs inside a transaction, and a statement that fails aborts
+ * it: the catch would return cleanly and the commit would then throw, which is
+ * a failure a long way from its cause.
+ */
 export async function sessionsAvailable(db: Tx): Promise<boolean> {
   const rows = await db.execute<{ present: boolean }>(
     sql`select to_regprocedure('public.my_sessions()') is not null as present`,
@@ -35,23 +39,20 @@ export async function sessionsAvailable(db: Tx): Promise<boolean> {
 }
 
 export async function listSessions(db: Tx): Promise<UserSession[] | null> {
-  try {
-    const rows = await db.execute<{
-      id: string; created_at: string; refreshed_at: string;
-      user_agent: string | null; ip: string | null;
-    }>(sql`select * from public.my_sessions()`);
+  if (!(await sessionsAvailable(db))) return null;
 
-    return (rows as unknown as Record<string, unknown>[]).map((r) => ({
-      id: String(r["id"]),
-      createdAt: new Date(String(r["created_at"])),
-      lastSeenAt: new Date(String(r["refreshed_at"])),
-      userAgent: (r["user_agent"] as string | null) ?? null,
-      ip: (r["ip"] as string | null) ?? null,
-    }));
-  } catch (error) {
-    if (isMissingFunction(error)) return null;
-    throw error;
-  }
+  const rows = await db.execute<{
+    id: string; created_at: string; refreshed_at: string;
+    user_agent: string | null; ip: string | null;
+  }>(sql`select * from public.my_sessions()`);
+
+  return (rows as unknown as Record<string, unknown>[]).map((r) => ({
+    id: String(r["id"]),
+    createdAt: new Date(String(r["created_at"])),
+    lastSeenAt: new Date(String(r["refreshed_at"])),
+    userAgent: (r["user_agent"] as string | null) ?? null,
+    ip: (r["ip"] as string | null) ?? null,
+  }));
 }
 
 /**
@@ -64,6 +65,8 @@ export async function listSessions(db: Tx): Promise<UserSession[] | null> {
  * confirm that a given session id exists.
  */
 export async function revokeSession(db: Tx, sessionId: string): Promise<number> {
+  if (!(await sessionsAvailable(db))) return 0;
+
   const rows = await db.execute<{ revoke_session: number }>(
     sql`select public.revoke_session(${sessionId}::uuid) as revoke_session`,
   );

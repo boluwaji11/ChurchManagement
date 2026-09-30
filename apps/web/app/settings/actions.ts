@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, updateChurch, addServiceTime, removeServiceTime, setChurchLogo,
+  loadDemoData, removeDemoData,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -117,5 +118,39 @@ export async function clearLogo(data: FormData): Promise<SettingsResult> {
   }
 
   revalidatePath("/settings");
+  return { saved: true };
+}
+
+export async function loadDemo(data: FormData): Promise<SettingsResult> {
+  const slug = text(data, "church") || undefined;
+  const { session, ctx } = await writeContext(slug);
+
+  try {
+    await withTenant(ctx, (tx) =>
+      loadDemoData(tx, { tenantId: session.tenantId, role: session.role }),
+    );
+  } catch (error) {
+    return { error: explain(error) };
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/people");
+  return { saved: true };
+}
+
+export async function removeDemo(data: FormData): Promise<SettingsResult> {
+  const slug = text(data, "church") || undefined;
+  const { session, ctx } = await writeContext(slug);
+
+  try {
+    await withTenant(ctx, (tx) =>
+      removeDemoData(tx, { tenantId: session.tenantId, role: session.role }),
+    );
+  } catch (error) {
+    return { error: explain(error) };
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/people");
   return { saved: true };
 }

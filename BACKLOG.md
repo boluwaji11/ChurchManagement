@@ -109,7 +109,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | Closed |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
-| HRT-31 | Sample and demo data | R19.7 | New |
+| HRT-31 | Sample and demo data, loadable and removable | R19.7 | Resolved |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
 ---
@@ -148,8 +148,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo |
-| **Next** | HRT-31 sample data, then HRT-34 household tags. HRT-13 MFA stays deferred at the user's request. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-31** sample church |
+| **Next** | HRT-34 household tags, then HRT-39 streaming export. HRT-13 MFA stays deferred at the user's request. |
 
 ### HRT-16, how to test it
 
@@ -359,6 +359,22 @@ Settings, the Storage card at the top.
 The bucket is private. The logo is served through a signed URL that lasts an hour, so a leaked path
 expires. Writes are checked twice: our query layer for the quota and the rules, and a bucket policy
 that reads membership from our own tables, so a user can only write into their own church's folder.
+
+### HRT-31, how to test it
+
+Settings, the Sample church card.
+
+1. **Load it.** Twenty-one people arrive in the directory: six households, five tags, milestones,
+   and relationships that already point both ways.
+2. **Look for the untidy parts.** A household with no phone number, three visitors at different
+   stages, two people who have drifted to inactive, a widower on his own, a record with a death on
+   it. A demo of perfect records teaches nothing about your own list.
+3. **Add somebody of your own**, then remove the sample church. Yours stays. The twenty-one go, with
+   their households, tags, milestones and relationships.
+4. **Load it again.** It comes back, so a church can try this as often as they like.
+
+Removal is a real delete. This is the one place the archive rule does not apply: these are not the
+church's records, and a demo you cannot get rid of is worse than no demo.
 
 ### HRT-32, how to test it
 

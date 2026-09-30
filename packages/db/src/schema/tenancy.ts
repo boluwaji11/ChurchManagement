@@ -178,3 +178,26 @@ export const storedFiles = pgTable(
     uniqueIndex("stored_files_key").on(t.bucket, t.key),
   ],
 );
+
+/**
+ * R19.7. What the demo data set put here, so removing it is exact.
+ *
+ * A church exploring the product should be able to fill it, look around and
+ * empty it again without wondering what was theirs. Recording the ids is the
+ * only way to answer that without guessing from names or dates.
+ */
+export const demoRecords = pgTable(
+  "demo_records",
+  {
+    id: pk(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    /** "person", "household" or "tag". */
+    entity: text("entity").notNull(),
+    recordId: uuid("record_id").notNull(),
+    createdAt: created(),
+  },
+  (t) => [
+    index("demo_records_tenant_idx").on(t.tenantId),
+    uniqueIndex("demo_records_unique").on(t.tenantId, t.entity, t.recordId),
+  ],
+);

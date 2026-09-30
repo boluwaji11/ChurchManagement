@@ -1,6 +1,6 @@
 import {
   withTenant, getChurch, listServiceTimes, canManageChurch,
-  getStorageUsage,
+  getStorageUsage, demoState,
 } from "@hearth/db";
 import { Card, CardTitle, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -9,6 +9,7 @@ import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { ChurchForm } from "./church-form";
 import { LogoAndStorage } from "./logo";
+import { DemoData } from "./demo";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +22,13 @@ export default async function SettingsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { profile, services, usage } = await withTenant(
+  const { profile, services, usage, demo } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       profile: await getChurch(tx, session.tenantId),
       services: await listServiceTimes(tx),
       usage: await getStorageUsage(tx, session.tenantId),
+      demo: await demoState(tx),
     }),
   );
 
@@ -58,6 +60,17 @@ export default async function SettingsPage({
             />
           </Card>
         ) : null}
+
+        <Card className="mb-6">
+          <CardTitle>{t("demo.title")}</CardTitle>
+          <Separator className="my-4" />
+          <DemoData
+            church={session.tenantSlug}
+            loaded={demo.loaded}
+            people={demo.people}
+            canEdit={canManageChurch(session.role)}
+          />
+        </Card>
 
         {profile ? (
           <ChurchForm
