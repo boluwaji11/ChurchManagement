@@ -20,25 +20,25 @@ const CHURCHES = [
       { name: "Youth", hue: "fern" as Hue, min: 132, max: 215, capacity: 40, ratio: 10 },
     ],
     households: [
-      { name: "Adeyemi", members: [
-        ["Folake", "Adeyemi", "head", "1986-04-12", "member"],
-        ["Chidi", "Adeyemi", "spouse", "1984-11-03", "member"],
-        ["Tola", "Adeyemi", "child", "2022-08-19", "member"],
-        ["Ife", "Adeyemi", "child", "2018-02-27", "member"],
+      { name: "Bennett", members: [
+        ["Sarah", "Bennett", "head", "1986-04-12", "member"],
+        ["Michael", "Bennett", "spouse", "1984-11-03", "member"],
+        ["Emma", "Bennett", "child", "2022-08-19", "member"],
+        ["Noah", "Bennett", "child", "2018-02-27", "member"],
       ]},
-      { name: "Boateng", members: [
-        ["Samuel", "Boateng", "head", "1991-07-22", "regular_attender"],
-        ["Abena", "Boateng", "spouse", "1992-01-15", "regular_attender"],
+      { name: "Ramirez", members: [
+        ["Daniel", "Ramirez", "head", "1991-07-22", "regular_attender"],
+        ["Alyssa", "Ramirez", "spouse", "1992-01-15", "regular_attender"],
       ]},
-      { name: "Nkemdirim", members: [
-        ["Ruth", "Nkemdirim", "head", "1968-09-30", "member"],
+      { name: "Whitfield", members: [
+        ["Ruth", "Whitfield", "head", "1968-09-30", "member"],
       ]},
-      { name: "Okonkwo", members: [
-        ["Daniel", "Okonkwo", "head", "1999-03-08", "visitor"],
+      { name: "Carter", members: [
+        ["Tyler", "Carter", "head", "1999-03-08", "visitor"],
       ]},
-      { name: "Mensah", members: [
-        ["Grace", "Mensah", "head", "1975-12-01", "member"],
-        ["Kofi", "Mensah", "child", "2011-06-14", "member"],
+      { name: "Nguyen", members: [
+        ["Grace", "Nguyen", "head", "1975-12-01", "member"],
+        ["Caleb", "Nguyen", "child", "2011-06-14", "member"],
       ]},
     ],
     tags: [["Choir", "amber"], ["Greeter", "sky"], ["New in 2026", "rose"]] as [string, Hue][],
@@ -70,7 +70,38 @@ async function main() {
 
   await sql.unsafe("set client_min_messages = warning");
   console.log("Clearing existing seed data");
-  await sql`delete from tenants where slug in ('riverside', 'northgate')`;
+
+  /**
+   * The audit trigger has to be off while the reset runs.
+   *
+   * Deleting a tenant cascades to its people, the trigger records each of those
+   * deletions, and the new audit row points at the tenant that is being deleted
+   * in the same statement. Postgres refuses it, correctly. Turning the triggers
+   * off is honest about what a reset is: it is not a user action, so there is
+   * nobody to attribute it to. Only the owner connection can do this, only this
+   * script uses the owner connection, and they go straight back on.
+   */
+  const audited = (
+    await sql<{ relname: string }[]>`
+      select c.relname
+        from pg_trigger t
+        join pg_class c on c.oid = t.tgrelid
+        join pg_namespace n on n.oid = c.relnamespace
+       where n.nspname = 'public' and t.tgname like 'audit_%'`
+  ).map((r) => r.relname);
+
+  const setTriggers = async (state: "disable" | "enable") => {
+    for (const table of audited) {
+      await sql.unsafe(`alter table public.${table} ${state} trigger audit_${table}`);
+    }
+  };
+
+  await setTriggers("disable");
+  try {
+    await sql`delete from tenants where slug in ('riverside', 'northgate')`;
+  } finally {
+    await setTriggers("enable");
+  }
   await sql`delete from app_users where email like ${"%@riverside.example.org"} or email like ${"%@northgate.example.org"}`;
 
   for (const church of CHURCHES) {

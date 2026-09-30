@@ -101,10 +101,10 @@ describe("cross-tenant reads through the ORM", () => {
 
     const riversideNames = riversidePeople.map((p) => p.lastName);
     const northgateNames = northgatePeople.map((p) => p.lastName);
-    expect(riversideNames).toContain("Adeyemi");
+    expect(riversideNames).toContain("Bennett");
     expect(riversideNames).not.toContain("Halvorsen");
     expect(northgateNames).toContain("Halvorsen");
-    expect(northgateNames).not.toContain("Adeyemi");
+    expect(northgateNames).not.toContain("Bennett");
   });
 
   it("cannot fetch another tenant's person by its exact id", async () => {

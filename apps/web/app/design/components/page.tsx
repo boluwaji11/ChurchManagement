@@ -42,10 +42,10 @@ function ValidationDemo() {
 }
 
 const PEOPLE = [
-  ["Folake Adeyemi", "Member", "teal", "5 Oct", "Monthly"],
-  ["Samuel Boateng", "Regular", "violet", "5 Oct", "One-off"],
-  ["Ruth Nkemdirim", "Member", "rose", "28 Sep", "Monthly"],
-  ["Daniel Okonkwo", "Visitor", "amber", "5 Oct", "None"],
+  ["Sarah Bennett", "Member", "teal", "5 Oct", "Monthly"],
+  ["Daniel Ramirez", "Regular", "violet", "5 Oct", "One-off"],
+  ["Ruth Whitfield", "Member", "rose", "28 Sep", "Monthly"],
+  ["Tyler Carter", "Visitor", "amber", "5 Oct", "None"],
 ];
 
 export default function Components() {
@@ -93,7 +93,7 @@ export default function Components() {
       <Section title="Form controls" note="The label is always a label. Placeholder text disappears exactly when it is needed.">
         <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
           <Field label="Preferred name" htmlFor="c-name" hint="What people actually call them.">
-            <Input placeholder="Folake" />
+            <Input placeholder="Sarah" />
           </Field>
           <Field label="Phone" htmlFor="c-phone" error="That number needs an area code." required>
             <Input defaultValue="555 0148" />
@@ -176,7 +176,7 @@ export default function Components() {
           <Chip>Worship team</Chip>
         </Row>
         <Row>
-          {["Folake Adeyemi", "Samuel Boateng", "Ruth Nkemdirim", "Daniel Okonkwo", "Grace Mensah"].map((n, i) => (
+          {["Sarah Bennett", "Daniel Ramirez", "Ruth Whitfield", "Tyler Carter", "Grace Nguyen"].map((n, i) => (
             <Avatar key={n} name={n} id={String(i)} size="lg" />
           ))}
         </Row>
@@ -238,7 +238,7 @@ export default function Components() {
           <Dialog>
             <DialogTrigger asChild><Button variant="secondary">Open a dialog</Button></DialogTrigger>
             <DialogContent
-              title="Archive Daniel Okonkwo?"
+              title="Archive Tyler Carter?"
               description="Archiving removes someone from lists and counts. Giving and attendance history is kept."
             >
               <Banner tone="info">Hearth archives rather than deletes. This is reversible.</Banner>

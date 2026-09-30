@@ -17,9 +17,9 @@ let nextId = 4;
 
 export default function Motion() {
   const [people, setPeople] = React.useState([
-    { id: 1, name: "Folake Adeyemi" },
-    { id: 2, name: "Samuel Boateng" },
-    { id: 3, name: "Ruth Nkemdirim" },
+    { id: 1, name: "Sarah Bennett" },
+    { id: 2, name: "Daniel Ramirez" },
+    { id: 3, name: "Ruth Whitfield" },
   ]);
   const [loading, setLoading] = React.useState(false);
   const [saved, setSaved] = React.useState<"idle" | "saving" | "ok" | "fail">("idle");

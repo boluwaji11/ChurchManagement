@@ -54,16 +54,16 @@ export default function StationPage() {
           <div className="flex flex-col gap-[var(--d-gutter)] p-[var(--d-gutter)]">
             <div className="flex flex-col gap-2">
               <p className="text-label uppercase tracking-wide text-fg-muted">Household</p>
-              <h2 className="font-display text-display text-fg">Adeyemi</h2>
+              <h2 className="font-display text-display text-fg">Bennett</h2>
             </div>
 
             <CriticalBanner heading="Allergies and medical" items={["Peanuts, severe", "Inhaler in bag"]} />
 
             <div className="flex flex-col gap-3">
               {[
-                ["Tola Adeyemi", "3 years", "Under fives", "teal", true],
-                ["Ife Adeyemi", "7 years", "Primary", "violet", true],
-                ["Bisi Adeyemi", "12 years", "Youth", "fern", false],
+                ["Emma Bennett", "3 years", "Under fives", "teal", true],
+                ["Noah Bennett", "7 years", "Primary", "violet", true],
+                ["Chloe Bennett", "12 years", "Youth", "fern", false],
               ].map(([name, age, room, hue, selected]) => (
                 <button
                   key={name as string}
@@ -102,8 +102,8 @@ export default function StationPage() {
             <CodeDisplay code="4B07" label="Pickup code" />
             <div className="grid w-full gap-3 sm:grid-cols-2">
               {[
-                ["Tola Adeyemi", "Under fives", "teal", true],
-                ["Ife Adeyemi", "Primary", "violet", false],
+                ["Emma Bennett", "Under fives", "teal", true],
+                ["Noah Bennett", "Primary", "violet", false],
               ].map(([name, room, hue, allergy]) => (
                 <Card key={name as string} className="flex flex-col gap-2 border-dashed">
                   <p className="text-label uppercase tracking-wide text-fg-subtle">Child label</p>
@@ -126,7 +126,7 @@ export default function StationPage() {
         <div data-density="station">
           <BlockingInterrupt
             heading="Do not release this child"
-            detail="Bisi Adeyemi has a custody restriction on file. Only Folake Adeyemi may collect. Find a supervisor before continuing."
+            detail="Chloe Bennett has a custody restriction on file. Only Sarah Bennett may collect. Find a supervisor before continuing."
             action={
               <Button variant="secondary" className="bg-white text-critical">
                 Get a supervisor

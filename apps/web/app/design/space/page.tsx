@@ -49,10 +49,10 @@ export default function Space() {
 
       <Section title="Density in practice" note="Switch density in the header. The card padding, the row height, and the body size all move together, and this card does not know which mode it is in.">
         <Card>
-          <CardTitle>Household: Adeyemi</CardTitle>
+          <CardTitle>Household: Bennett</CardTitle>
           <CardDescription>Four members, joined March 2023. Two children in the under-fives room.</CardDescription>
           <dl className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-            {[["Primary contact", "Folake Adeyemi"], ["Phone", "(512) 555 0148"], ["Last attended", "Sunday, 5 October"], ["Giving", "Monthly, general fund"]].map(([k, v]) => (
+            {[["Primary contact", "Sarah Bennett"], ["Phone", "(512) 555 0148"], ["Last attended", "Sunday, 5 October"], ["Giving", "Monthly, general fund"]].map(([k, v]) => (
               <div key={k as string} className="flex flex-col">
                 <dt className="text-label text-fg-muted">{k}</dt>
                 <dd className="text-[length:var(--d-text-body)] text-fg">{v}</dd>
