@@ -128,12 +128,14 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
+| HRT-68 | Repeats: a frequency and an end date, rather than weekly forever | R7.1 | New |
+| HRT-69 | A month at a time, with a calendar view | R7.1 | New |
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Resolved |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Resolved |
 | HRT-51 | Absence detection against a configurable threshold | R7.6 | Resolved |
 | HRT-52 | Attendance against groups and events | R7.4 | New |
-| HRT-53 | Trends: week over week, year over year, rolling average | R7.9 | New |
+| HRT-53 | Trends: week over week, year over year, rolling average | R7.9 | Moved to HRT-66 |
 
 ### F8. Check-in, safety-critical
 
@@ -156,6 +158,26 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
+
+### F18. Insights
+
+Everything derived from the record, in one place, rather than sprinkled over the screens people use
+to do the work. Attendance trends, who is new, who has stopped coming, growth and retention.
+
+Two lists were briefly on the Services page and were wrong there twice over: they pushed the day's
+work down the screen, and they were unbounded, so a church of two hundred got a wall. The queries
+behind them are built and tested. They need a home.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-64 | An Insights page: the shape, the navigation, and what belongs on it | R18.1 | New |
+| HRT-65 | Who is new, and who has stopped coming, as bounded lists that link into the directory | R18.4, R7.5, R7.6 | New |
+| HRT-66 | Attendance trends: week over week, year over year, rolling four-week average | R18.2, R7.9 | New |
+| HRT-67 | Growth and retention, and the first-time-visitor conversion funnel | R18.3 | New |
+
+HRT-65 gives the directory a filter driven by those queries, so Insights links into a list that
+already searches, sorts, pages, selects, bulk tags and exports. None of that gets rebuilt. The
+filter is not there yet, because a filter nothing links to is a filter nobody finds.
 
 ### F5, F9, F3, F22
 

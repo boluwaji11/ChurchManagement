@@ -23,6 +23,7 @@ export interface DirectoryParams {
  *
  * Unknown values are dropped rather than passed through, so a hand-edited URL
  * cannot reach a sort column or a filter that was never offered.
+
  *
  * The page is deliberately absent. Only the screen paginates. An export built
  * from the same URL would otherwise hand somebody page three of their directory

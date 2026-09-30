@@ -137,6 +137,10 @@ describe("first and second visits (R7.5)", () => {
   beforeAll(async () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
     await owner()`delete from service_occurrences where tenant_id = ${tenant}`;
+    // R7.5 is about people the church has recorded as visitors.
+    await owner()`
+      update people set lifecycle_status = 'visitor', first_visit_on = null
+      where tenant_id = ${tenant}`;
 
     for (const [name, on, at] of [
       ["Week one", "2026-06-07", "09:00"],
@@ -200,6 +204,8 @@ describe("absence (R7.6)", () => {
   beforeAll(async () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
     await owner()`delete from service_occurrences where tenant_id = ${tenant}`;
+    // R7.6 is about members and regular attenders drifting away.
+    await owner()`update people set lifecycle_status = 'member' where tenant_id = ${tenant}`;
 
     for (const [name, on] of [
       ["S1", "2026-03-01"], ["S2", "2026-03-08"], ["S3", "2026-03-15"],
@@ -256,6 +262,19 @@ describe("absence (R7.6)", () => {
     await run((tx) => setOccurrenceCancelled(tx, as(), s5, false));
   });
 
+  it("leaves out a visitor, who was never a regular", async () => {
+    const rows = await run((tx) => listOccurrences(tx));
+    await owner()`
+      update people set lifecycle_status = 'visitor'
+      where id = ${ids["Benjamin"]!}`;
+
+    const absent = await run((tx) => absentPeople(tx, { threshold: 3, asOf: "2026-03-29" }));
+    expect(absent.map((a) => a.firstName)).not.toContain("Benjamin");
+    expect(rows.length).toBeGreaterThan(0);
+
+    await owner()`update people set lifecycle_status = 'member' where id = ${ids["Benjamin"]!}`;
+  });
+
   it("leaves out somebody who has never been", async () => {
     const never = await run((tx) =>
       createPerson(tx, as(), {
@@ -264,5 +283,47 @@ describe("absence (R7.6)", () => {
     );
     const absent = await run((tx) => absentPeople(tx, { threshold: 1, asOf: "2026-03-29" }));
     expect(absent.some((a) => a.personId === never.id)).toBe(false);
+  });
+});
+
+describe("the first visit date", () => {
+  it("is filled from the service a visitor is marked at, and only for a visitor", async () => {
+    await owner()`delete from attendance_records where tenant_id = ${tenant}`;
+    await owner()`
+      update people set first_visit_on = null, lifecycle_status = 'visitor'
+      where id = ${ids["Abigail"]!}`;
+    await owner()`
+      update people set first_visit_on = null, lifecycle_status = 'member'
+      where id = ${ids["Benjamin"]!}`;
+
+    const rows = await run((tx) => listOccurrences(tx));
+    const first = rows[rows.length - 1]!;
+
+    await run((tx) => setPresentMany(tx, as(), first.id, [ids["Abigail"]!, ids["Benjamin"]!], true));
+
+    const after = await owner()<{ id: string; first_visit_on: string | null }[]>`
+      select id, first_visit_on::text from people
+      where id in (${ids["Abigail"]!}, ${ids["Benjamin"]!})`;
+
+    const visitor = after.find((r) => r.id === ids["Abigail"]);
+    const member = after.find((r) => r.id === ids["Benjamin"]);
+
+    expect(visitor!.first_visit_on).toBe(first.occursOn);
+    // A member ticked on the first Sunday a church uses Hearth did not first
+    // visit that Sunday. The record began there. They did not.
+    expect(member!.first_visit_on).toBeNull();
+  });
+
+  it("never overwrites a date the church already recorded", async () => {
+    await owner()`
+      update people set first_visit_on = '2019-04-07', lifecycle_status = 'visitor'
+      where id = ${ids["Caroline"]!}`;
+
+    const rows = await run((tx) => listOccurrences(tx));
+    await run((tx) => setPresent(tx, as(), rows[0]!.id, ids["Caroline"]!, true));
+
+    const [row] = await owner()<{ first_visit_on: string }[]>`
+      select first_visit_on::text from people where id = ${ids["Caroline"]!}`;
+    expect(row!.first_visit_on).toBe("2019-04-07");
   });
 });

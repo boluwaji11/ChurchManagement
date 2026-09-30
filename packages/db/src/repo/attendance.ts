@@ -59,15 +59,37 @@ export async function listRoster(db: Tx, occurrenceId: string): Promise<RosterEn
   return rows.map((r) => ({ ...r, householdName: null, present: Boolean(r.present) }));
 }
 
-async function assertRecordable(db: Tx, occurrenceId: string): Promise<void> {
+async function assertRecordable(db: Tx, occurrenceId: string): Promise<string> {
   const [occurrence] = await db
-    .select({ status: serviceOccurrences.status })
+    .select({ status: serviceOccurrences.status, occursOn: serviceOccurrences.occursOn })
     .from(serviceOccurrences)
     .where(eq(serviceOccurrences.id, occurrenceId))
     .limit(1);
 
   if (!occurrence) throw new InvalidInputError("service.error.notFound");
   if (occurrence.status === "cancelled") throw new InvalidInputError("attendance.error.cancelled");
+  return occurrence.occursOn;
+}
+
+/**
+ * R2.1 and R7.5. Fills a visitor's first visit date from the service they were
+ * marked at.
+ *
+ * Only for somebody the church has recorded as a visitor, and only when the
+ * date is blank. A member ticked on the first Sunday a church uses Hearth did
+ * not first visit that Sunday; they have been coming for years and the record
+ * simply starts here. Writing today's date on them would be a lie the product
+ * told itself and then reported back.
+ */
+async function fillFirstVisit(db: Tx, personIds: string[], occursOn: string): Promise<void> {
+  if (personIds.length === 0) return;
+  await db.execute(sql`
+    update people
+       set first_visit_on = ${occursOn}, updated_at = now()
+     where id = any(${sql.raw(`array[${personIds.map((id) => `'${id}'`).join(",")}]::uuid[]`)})
+       and first_visit_on is null
+       and lifecycle_status = 'visitor'
+  `);
 }
 
 /**
@@ -84,13 +106,14 @@ export async function setPresent(
   present: boolean,
 ): Promise<{ present: boolean }> {
   if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
-  await assertRecordable(db, occurrenceId);
+  const occursOn = await assertRecordable(db, occurrenceId);
 
   if (present) {
     await db
       .insert(attendanceRecords)
       .values({ tenantId: actor.tenantId, occurrenceId, personId, source: "roster" })
       .onConflictDoNothing();
+    await fillFirstVisit(db, [personId], occursOn);
   } else {
     await db
       .delete(attendanceRecords)
@@ -113,9 +136,10 @@ export async function setPresentMany(
 ): Promise<{ changed: number }> {
   if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
   if (personIds.length === 0) return { changed: 0 };
-  await assertRecordable(db, occurrenceId);
+  const occursOn = await assertRecordable(db, occurrenceId);
 
   if (present) {
+    await fillFirstVisit(db, personIds, occursOn);
     const written = await db
       .insert(attendanceRecords)
       .values(personIds.map((personId) => ({
@@ -202,8 +226,12 @@ export interface VisitNumber {
  *
  * Counted from the record rather than stored on the person, because a flag
  * written at the time is wrong the moment somebody corrects a mistake, adds a
- * gathering that was missed, or imports a year of history. This is the same
- * answer every time it is asked.
+ * gathering that was missed, or imports a year of history.
+ *
+ * Only people the church has recorded as visitors. A church of two hundred
+ * starts using Hearth on a Sunday and marks two hundred regulars present: the
+ * attendance record says every one of them is here for the first time, and it
+ * is wrong about all two hundred. The record began that day. They did not.
  *
  * Ties on a date count together, so a person at both services on their first
  * Sunday is first-time at both rather than second-time at the later one. They
@@ -219,7 +247,9 @@ export async function visitNumbers(db: Tx, occurrenceId: string): Promise<VisitN
                and o2.occurs_on <= o.occurs_on) as visit
       from attendance_records a
       join service_occurrences o on o.id = a.occurrence_id
+      join people p on p.id = a.person_id
      where a.occurrence_id = ${occurrenceId}
+       and p.lifecycle_status = 'visitor'
   `);
 
   return (rows as unknown as { person_id: string; visit: string }[]).map((r) => ({
@@ -271,6 +301,7 @@ export async function visitorsBetween(
       join people p on p.id = n.person_id
      where n.visit = ${visit}
        and p.archived_at is null
+       and p.lifecycle_status = 'visitor'
      order by n.person_id, n.occurs_on
   `);
 
@@ -316,9 +347,11 @@ export const DEFAULT_ABSENCE_THRESHOLD = 3;
  * congregation of drifting the following week. Two services on one day count
  * once, for the same reason a visit does.
  *
- * Only people who have been at least once are here. Somebody who has never
- * attended has not stopped coming, and putting them in this list buries the
- * people who have.
+ * Members and regular attenders only. A visitor who came once and never came
+ * back is a follow-up that did not land, which is the other list. Somebody
+ * already marked inactive is somebody the church has already noticed. And
+ * anybody who has never attended has not stopped coming: putting them here
+ * buries the people who have.
  */
 export async function absentPeople(
   db: Tx,
@@ -345,7 +378,7 @@ export async function absentPeople(
       from last_seen l
       join people p on p.id = l.person_id
      where p.archived_at is null
-       and p.lifecycle_status not in ('deceased', 'archived')
+       and p.lifecycle_status in ('member', 'regular_attender')
   `);
 
   return (rows as unknown as Record<string, string>[])

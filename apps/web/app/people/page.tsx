@@ -27,14 +27,16 @@ export default async function PeoplePage({
 
   const { people, counts, tags, total, duplicates, matching } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    async (tx) => ({
-      people: await listPeople(tx, { ...query, page, perPage: PER_PAGE }),
-      matching: await countPeople(tx, query),
-      counts: await countPeopleByStatus(tx),
-      tags: await listTagsWithCounts(tx),
-      total: (await listPeople(tx)).length,
-      duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
-    }),
+    async (tx) => {
+      return {
+        people: await listPeople(tx, { ...query, page, perPage: PER_PAGE }),
+        matching: await countPeople(tx, query),
+        counts: await countPeopleByStatus(tx),
+        tags: await listTagsWithCounts(tx),
+        total: (await listPeople(tx)).length,
+        duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
+      };
+    },
   );
 
   const members = counts["member"] ?? 0;
@@ -62,6 +64,7 @@ export default async function PeoplePage({
             </div>
           ) : null}
         </div>
+
 
         {duplicates > 0 ? (
           <Banner tone="warning" title={t("merge.title")} className="mb-8">

@@ -1,14 +1,12 @@
 import {
   withTenant, listOccurrences, topUpCalendar, countsFor, getChurch, canManageServices,
-  visitorsBetween, absentPeople,
 } from "@hearth/db";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Calendar } from "./calendar";
 import { churchNow, hasHappened } from "@/lib/church-now";
-import { FollowUp } from "./follow-up";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +30,7 @@ export default async function ServicesPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { rows, present, timezone, newcomers, absent } = await withTenant(
+  const { rows, present, timezone } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // Keeps a repeating service six months ahead without anybody maintaining
@@ -43,17 +41,10 @@ export default async function ServicesPage({
       const list = await listOccurrences(tx, { includeCancelled: true });
       const church = await getChurch(tx, session.tenantId);
       const zone = church?.timezone ?? "America/Chicago";
-      const today = churchNow(zone).date;
-      const sixWeeksAgo = new Date(`${today}T00:00:00`);
-      sixWeeksAgo.setDate(sixWeeksAgo.getDate() - 42);
-      const from = sixWeeksAgo.toISOString().slice(0, 10);
-
       return {
         rows: list,
         present: await countsFor(tx, list.map((r) => r.id)),
         timezone: zone,
-        newcomers: await visitorsBetween(tx, from, today, 1),
-        absent: await absentPeople(tx, { threshold: 3, asOf: today }),
       };
     },
   );
@@ -91,23 +82,6 @@ export default async function ServicesPage({
             readableTime: readableTime(r.startsAt),
           }))}
         />
-
-        <div className="mt-8">
-          <FollowUp
-            church={session.tenantSlug}
-            newcomers={newcomers.map((v) => ({
-              personId: v.personId,
-              name: `${v.preferredName ?? v.firstName} ${v.lastName}`,
-              detail: t("newcomers.first", { date: readableDate(v.occursOn) }),
-            }))}
-            absent={absent.map((a) => ({
-              personId: a.personId,
-              name: `${a.preferredName ?? a.firstName} ${a.lastName}`,
-              note: plural("absent.missed", a.missed),
-              detail: t("absent.lastSeen", { date: readableDate(a.lastSeenOn) }),
-            }))}
-          />
-        </div>
 
       </main>
     </>
