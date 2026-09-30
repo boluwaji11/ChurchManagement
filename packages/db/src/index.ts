@@ -49,5 +49,8 @@ export {
   listImports, rollbackImport, ROLLBACK_WINDOW_DAYS,
   type BatchSummary, type RollbackResult,
 } from "./import/rollback";
+export { buildArchive, ARCHIVE_FORMAT, EXPORT_TABLES, type Archive, type ExportTable } from "./export/archive";
+export { zipArchive } from "./export/zip";
+export { toCsv, CSV_BOM } from "./export/csv";
 export { withAuditTriggersOff, deleteTenants, deleteTenantsLike } from "./maintenance";
 export { loadEnv } from "./env";

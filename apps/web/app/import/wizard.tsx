@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Upload, ArrowRight, ArrowLeft, CheckCircle2, RotateCcw } from "lucide-react";
+import { Download, ArrowRight, ArrowLeft, CheckCircle2, RotateCcw } from "lucide-react";
 import {
   Button, Card, CardTitle, Separator, Banner, Badge, Field, Table, Thead, Th, Tr, Td,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -371,7 +371,7 @@ function PreviewStep({
 
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={onConfirm} loading={busy} disabled={willWrite === 0}>
-          <Upload /> {t("import.commit", { count: willWrite })}
+          <Download /> {t("import.commit", { count: willWrite })}
         </Button>
         <Button variant="ghost" onClick={onBack}>
           <ArrowLeft /> {t("import.back")}

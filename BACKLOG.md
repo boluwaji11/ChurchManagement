@@ -103,7 +103,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-28 | Import wizard: column mapping, dry run, duplicate handling | R19.1 to R19.3 | Resolved |
 | HRT-38 | Excel (.xlsx) files, as well as CSV | R19.1 | Resolved |
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | Resolved |
-| HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | New |
+| HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Resolved |
+| HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
 | HRT-31 | Sample and demo data | R19.7 | New |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
@@ -143,8 +144,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38** and **HRT-29** import |
-| **Next** | HRT-30 complete export, then HRT-24 merge, then the rest of R2.x |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export |
+| **Next** | HRT-24 duplicate merge, then HRT-22 relationships and HRT-23 milestones |
 
 ### HRT-16, how to test it
 
@@ -194,7 +195,11 @@ The audit found four real defects the first time it ran, listed in the commit.
    number in your file rather than being imported wrong.
 6. **Roles.** `staff` can import. `pastoral` and `member` cannot, and the server refuses even if the
    page is bypassed.
-7. **Undo it.** Past imports are listed under the wizard. "Undo this import" removes the people it
+7. **Export everything.** At the bottom of the import page. One click, a zip with a CSV per table,
+   the whole thing as JSON, and a README. Open it in Excel. Sign in as `admin@riverside.example.org`
+   and export again: the confidential note bodies are absent and the README says they were withheld.
+   `staff` and `pastoral` cannot export at all.
+8. **Undo it.** Past imports are listed under the wizard. "Undo this import" removes the people it
    added and puts back the ones it changed. Edit somebody the import created first, then undo: they
    are archived rather than removed, because that edit was not part of the mistake. Undoing is Owner
    and Admin only, since one press can remove hundreds of people.

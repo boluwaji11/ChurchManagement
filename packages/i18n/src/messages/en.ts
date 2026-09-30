@@ -299,6 +299,7 @@ export const en = {
   "import.noHistory": "No imports yet.",
   "error.notFound.import": "That import could not be found. Reload and try again.",
   "error.permission.rollbackImport": "undo an import",
+  "error.permission.exportEverything": "export everything",
   "import.match.email": "Same email address",
   "import.match.nameAndBirth": "Same name and date of birth",
   "import.match.nameAndPhone": "Same name and phone number",
@@ -312,6 +313,11 @@ export const en = {
   "import.skip.unsure": "Looks like someone already here, but not certainly. Left alone.",
   "import.skip.duplicateInFile": "Same person as line {line} of this file.",
   "import.skip.vanished": "That person was removed while the preview was open.",
+
+  // Export
+  "export.title": "Export everything",
+  "export.body": "Every record this church holds, as a spreadsheet and as a data file. No limits, no waiting.",
+  "export.download": "Download",
 
   // Permissions
   "forbidden.addPeople": "Your role cannot add people",

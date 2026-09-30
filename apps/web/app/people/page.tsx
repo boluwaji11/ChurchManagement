@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Users, UserPlus, HeartHandshake, Archive, Plus, Upload } from "lucide-react";
+import { ArrowRight, Users, UserPlus, HeartHandshake, Archive, Plus, Download } from "lucide-react";
 import {
   withTenant, listPeople, countPeopleByStatus, canEditPeople, type PersonRow,
 } from "@hearth/db";
@@ -64,7 +64,7 @@ export default async function PeoplePage({
             </Button>
             <Button variant="secondary" asChild>
               <Link href={`/import?church=${session.tenantSlug}`}>
-                <Upload /> {t("import.title")}
+                <Download /> {t("import.title")}
               </Link>
             </Button>
           </div>
@@ -113,7 +113,7 @@ export default async function PeoplePage({
             action={
               <Button asChild>
                 <Link href={`/import?church=${session.tenantSlug}`}>
-                  <Upload /> {t("import.title")}
+                  <Download /> {t("import.title")}
                 </Link>
               </Button>
             }
