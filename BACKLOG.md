@@ -89,7 +89,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-19 | People and households, read-only directory | R2.1, R2.2 | Closed |
 | HRT-20 | Notes in two classes, confidential ones encrypted and separately gated | R2.7 | Closed |
 | HRT-21 | **Add, edit and archive a person. Households and contact methods.** | R2.1 to R2.3, R2.5, R2.13 | Closed |
-| HRT-22 | Relationships, independent of household | R2.4 | New |
+| HRT-22 | Relationships, independent of household | R2.4 | Resolved |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | New |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Resolved |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Resolved |
@@ -145,8 +145,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge |
-| **Next** | HRT-22 relationships, then HRT-23 milestones, then HRT-15 church settings |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-22** relationships |
+| **Next** | HRT-23 milestones, then HRT-15 church settings |
 
 ### HRT-16, how to test it
 
@@ -245,6 +245,26 @@ The directory now has a toolbar.
    stays with the surviving person, because it was never part of it.
 6. **Roles.** Owner and Admin only. `staff` can edit people but cannot merge them, since one press
    moves every note off one record and onto another.
+
+### HRT-22, how to test it
+
+Open anyone's record. A Relationships card sits above Tags.
+
+1. **Add one.** Choose a person and a relationship, then Add. Open the other person: the matching
+   relationship is already there. Spouse pairs with spouse, parent pairs with child.
+2. **One-way on purpose.** Guardian and emergency contact are recorded on one record only. Being
+   someone's emergency contact does not make them yours.
+3. **Do not contact.** Record it between two people. It appears in red, at the top of both records.
+   Now try to add either as the other's emergency contact: refused.
+4. **Order of entry does not matter.** Record Gregory as a child's emergency contact first, then
+   record a do-not-contact order between them. The order is accepted and the emergency contact is
+   removed, with a line saying so. A safeguarding instruction that waits for tidying up is an
+   instruction that does not take effect.
+5. **Who may lift it.** Anyone who can edit a person can record a do-not-contact order, since the
+   person who hears about a custody arrangement on a Sunday is rarely the Owner. Lifting one asks
+   for confirmation and is Owner and Admin only.
+
+Check-in enforcement of these orders is R8.9, in 0.2. This story records them.
 
 ### HRT-32, how to test it
 

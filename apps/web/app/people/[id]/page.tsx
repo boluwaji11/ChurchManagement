@@ -4,12 +4,14 @@ import { ArrowLeft, Lock, FileText, Pencil } from "lucide-react";
 import {
   withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
+  listRelationships, listPeople,
 } from "@hearth/db";
 import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
+import { Relationships } from "../relationships";
 import { t, plural } from "@hearth/i18n";
 import { lifecycleLabel } from "@/lib/person-input";
 
@@ -48,13 +50,17 @@ export default async function PersonPage({
       allTags: await listTagsWithCounts(tx),
       fields: await listCustomFields(tx, "person"),
       fieldValues: await getCustomValues(tx, "person", id),
+      relationships: await listRelationships(tx, id),
+      // Everyone in the church, for the picker. A church of 50 to 500 fits in a
+      // list; the search this will need at five thousand is R2.14's job.
+      everyone: await listPeople(tx),
     };
   });
 
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, notes, tags, contact, allTags, fields, fieldValues } = result;
+  const { person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
 
@@ -151,6 +157,29 @@ export default async function PersonPage({
           </dl>
         </Card>
       ) : null}
+
+      <Card className="mb-6">
+        <CardTitle>{t("person.relationships")}</CardTitle>
+        <Separator className="my-4" />
+        <Relationships
+          church={session.tenantSlug}
+          personId={person.id}
+          rows={relationships.map((r) => ({
+            id: r.id,
+            kind: r.kind,
+            relatedPersonId: r.relatedPersonId,
+            relatedName: r.relatedName,
+          }))}
+          candidates={everyone
+            .filter((p) => p.id !== person.id)
+            .map((p) => ({
+              id: p.id,
+              name: `${p.preferredName ?? p.firstName} ${p.lastName}`,
+            }))}
+          canEdit={canEditPeople(session.role)}
+          canLift={canArchivePeople(session.role)}
+        />
+      </Card>
 
       <Card className="mb-6">
         <CardTitle>{t("person.tags")}</CardTitle>

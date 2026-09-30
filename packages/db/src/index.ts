@@ -30,6 +30,7 @@ export {
   mergePeople, undoMerge, listMerges, findDuplicatePairs, MERGE_UNDO_WINDOW_DAYS,
   type MergePlan, type MergeResult, type MergeSummary, type DuplicatePair,
 } from "./repo/merge";
+export * from "./repo/relationships";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
