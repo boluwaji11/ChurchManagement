@@ -3,6 +3,7 @@
  * suite is proving that one cannot see the other, and a single-tenant seed
  * cannot demonstrate that.
  */
+import { deleteTenants } from "../src/maintenance";
 import { owner, closeConnections } from "../src/client";
 import { encryptNote } from "../src/crypto";
 
@@ -70,38 +71,7 @@ async function main() {
 
   await sql.unsafe("set client_min_messages = warning");
   console.log("Clearing existing seed data");
-
-  /**
-   * The audit trigger has to be off while the reset runs.
-   *
-   * Deleting a tenant cascades to its people, the trigger records each of those
-   * deletions, and the new audit row points at the tenant that is being deleted
-   * in the same statement. Postgres refuses it, correctly. Turning the triggers
-   * off is honest about what a reset is: it is not a user action, so there is
-   * nobody to attribute it to. Only the owner connection can do this, only this
-   * script uses the owner connection, and they go straight back on.
-   */
-  const audited = (
-    await sql<{ relname: string }[]>`
-      select c.relname
-        from pg_trigger t
-        join pg_class c on c.oid = t.tgrelid
-        join pg_namespace n on n.oid = c.relnamespace
-       where n.nspname = 'public' and t.tgname like 'audit_%'`
-  ).map((r) => r.relname);
-
-  const setTriggers = async (state: "disable" | "enable") => {
-    for (const table of audited) {
-      await sql.unsafe(`alter table public.${table} ${state} trigger audit_${table}`);
-    }
-  };
-
-  await setTriggers("disable");
-  try {
-    await sql`delete from tenants where slug in ('riverside', 'northgate')`;
-  } finally {
-    await setTriggers("enable");
-  }
+  await deleteTenants(["riverside", "northgate"]);
   await sql`delete from app_users where email like ${"%@riverside.example.org"} or email like ${"%@northgate.example.org"}`;
 
   for (const church of CHURCHES) {
