@@ -1,6 +1,5 @@
-import { and, eq, isNull, or, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people, households, householdMemberships, contactMethods } from "../schema/people";
 import { ageInMonths } from "./rooms";
 
 /**
@@ -55,42 +54,46 @@ const called = (row: { firstName: string; preferredName: string | null }) =>
 export async function lookupHouseholds(
   db: Tx,
   query: string,
-  opts: { asOf: string; limit?: number } = { asOf: new Date().toISOString().slice(0, 10) },
+  opts: { asOf: string; limit?: number },
 ): Promise<HouseholdMatch[]> {
   const text = query.trim();
   if (text.length < 2) return [];
 
   const limit = opts.limit ?? 12;
   const numeric = digits(text);
-  const byPhone = numeric.length >= 4;
+  const like = `%${text.toLowerCase()}%`;
 
-  // The people who match, then everybody who lives with them. A parent typing
-  // their own number expects their children, and the children are what the
-  // station is for.
-  const seeds = byPhone
-    ? sql`
-        select distinct c.person_id
-          from contact_methods c
-         where c.kind = 'phone'
-           and regexp_replace(c.value, '\\D', '', 'g') like ${"%" + numeric}`
-    : sql`
-        select p.id as person_id
-          from people p
-          left join household_memberships hm
-            on hm.person_id = p.id and hm.ended_on is null
-          left join households h on h.id = hm.household_id
-         where p.archived_at is null
-           and (
-             unaccent_lower(p.first_name) like ${sql.raw("$$")}
-             or unaccent_lower(coalesce(p.preferred_name, '')) like ${sql.raw("$$")}
-             or unaccent_lower(p.last_name) like ${sql.raw("$$")}
-             or unaccent_lower(coalesce(h.name, '')) like ${sql.raw("$$")}
-           )`;
+  // Four or more digits is a phone number. Anything else is a name, of a person
+  // or of a household, matched anywhere inside it so "ochoa" and "mia" both
+  // find the same family.
+  const seeds =
+    numeric.length >= 4
+      ? sql`
+          select distinct c.person_id as person_id
+            from contact_methods c
+           where c.kind = 'phone'
+             and regexp_replace(c.value, '[^0-9]', '', 'g') like ${"%" + numeric}`
+      : sql`
+          select p.id as person_id
+            from people p
+            left join household_memberships hm
+              on hm.person_id = p.id and hm.ended_on is null
+            left join households h on h.id = hm.household_id
+           where p.archived_at is null
+             and (
+               lower(p.first_name) like ${like}
+               or lower(coalesce(p.preferred_name, '')) like ${like}
+               or lower(p.last_name) like ${like}
+               or lower(p.first_name || ' ' || p.last_name) like ${like}
+               or lower(coalesce(h.name, '')) like ${like}
+             )`;
 
+  // Everybody who lives with whoever matched. A parent typing their own number
+  // expects their children, and the children are what the station is for.
   const rows = await db.execute(sql`
     with seed as (${seeds}),
     household_ids as (
-      select distinct hm.household_id
+      select distinct hm.household_id as household_id
         from household_memberships hm
         join seed on seed.person_id = hm.person_id
        where hm.ended_on is null

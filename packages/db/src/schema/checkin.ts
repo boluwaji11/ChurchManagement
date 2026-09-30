@@ -1,5 +1,7 @@
 import { pgTable, uuid, text, integer, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { tenants, campuses, serviceTimes } from "./tenancy";
+import { serviceOccurrences } from "./gatherings";
+import { people } from "./people";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -128,5 +130,47 @@ export const checkinStationServices = pgTable(
   (t) => [
     index("station_service_tenant_idx").on(t.tenantId),
     uniqueIndex("station_service_unique").on(t.stationId, t.serviceTimeId),
+  ],
+);
+
+/**
+ * R8.4, R8.6. One person, checked in to one room, at one service.
+ *
+ * The row a volunteer creates when a family reaches the desk, and the row a
+ * checkout has to find before anybody is released. A visit carries its own
+ * security code, which is what the guardian's label shows and what is asked for
+ * at pickup.
+ *
+ * The code is nullable only because it arrives with the labels in HRT-57.
+ * Checkout refuses a visit without one: a child is never released on anything
+ * weaker than the code or a recorded override.
+ */
+export const checkinVisits = pgTable(
+  "checkin_visits",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    occurrenceId: uuid("occurrence_id").notNull().references(() => serviceOccurrences.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    /** Null for an adult taking a name badge rather than a room. (R8.5) */
+    roomId: uuid("room_id").references(() => checkinRooms.id, { onDelete: "set null" }),
+    stationId: uuid("station_id").references(() => checkinStations.id, { onDelete: "set null" }),
+    /** R8.6. Unique within a service occurrence, and not reused for 12 months. */
+    code: text("code"),
+    checkedInAt: timestamp("checked_in_at", { withTimezone: true }).defaultNow().notNull(),
+    /** Who did the checking in, where a volunteer was driving the station. */
+    checkedInBy: uuid("checked_in_by"),
+    checkedOutAt: timestamp("checked_out_at", { withTimezone: true }),
+    /** The person who collected them, where the church holds a record of them. */
+    checkedOutTo: uuid("checked_out_to").references(() => people.id, { onDelete: "set null" }),
+    createdAt: created(),
+  },
+  (t) => [
+    index("visit_tenant_idx").on(t.tenantId),
+    index("visit_occurrence_idx").on(t.tenantId, t.occurrenceId),
+    index("visit_person_idx").on(t.tenantId, t.personId),
+    // One live visit per person per service. Checking a child in twice is the
+    // same child, and two rows would be two codes for one label pair.
+    uniqueIndex("visit_unique").on(t.occurrenceId, t.personId),
   ],
 );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@hearth/ui";
+import { cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
 /**
@@ -12,6 +12,9 @@ import { t } from "@hearth/i18n";
  * which is fine in week one and thousands of rows in year three. A month is the
  * unit a church already thinks in, it bounds the page without anybody choosing
  * a page size, and it is the same navigation a calendar has.
+ *
+ * Back, here, forward. The middle returns to this month, and it is a dot
+ * because the two arrows beside it already say what it is for.
  */
 export function MonthBar({
   church,
@@ -32,23 +35,38 @@ export function MonthBar({
 }) {
   const href = (m: string) => `/services?church=${church}&month=${m}&view=${view}`;
 
+  const step =
+    "flex min-h-[var(--d-tap)] items-center justify-center px-3 text-fg-muted " +
+    "transition-colors duration-instant ease-out hover:bg-sunken hover:text-fg";
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button variant="ghost" asChild aria-label={t("services.month.previous")}>
-        <Link href={href(previous)}><ChevronLeft /></Link>
-      </Button>
+    <div className="flex flex-wrap items-center gap-3">
+      <span className="text-heading text-fg">{label}</span>
 
-      <span className="min-w-44 text-center text-heading text-fg">{label}</span>
+      <div
+        className={cn(
+          "inline-flex items-center divide-x divide-line overflow-hidden",
+          "rounded-[var(--d-radius-control)] border border-line-strong bg-surface",
+        )}
+      >
+        <Link href={href(previous)} aria-label={t("services.month.previous")} className={step}>
+          <ChevronLeft className="size-4" aria-hidden />
+        </Link>
 
-      <Button variant="ghost" asChild aria-label={t("services.month.next")}>
-        <Link href={href(next)}><ChevronRight /></Link>
-      </Button>
+        <Link
+          href={`/services?church=${church}&view=${view}`}
+          aria-label={t("services.month.today")}
+          aria-current={isThisMonth ? "page" : undefined}
+          className={cn(step, isThisMonth && "text-primary")}
+        >
+          <span className="size-1.5 rounded-full bg-current" aria-hidden />
+        </Link>
 
-      {isThisMonth ? null : (
-        <Button variant="ghost" asChild>
-          <Link href={`/services?church=${church}&view=${view}`}>{t("services.month.today")}</Link>
-        </Button>
-      )}
+        <Link href={href(next)} aria-label={t("services.month.next")} className={step}>
+          <ChevronRight className="size-4" aria-hidden />
+        </Link>
+      </div>
+
       <span className="sr-only">{month}</span>
     </div>
   );
