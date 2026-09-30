@@ -88,7 +88,7 @@ export async function listTagsForPerson(db: Tx, personId: string) {
 /**
  * Resolves a church by slug using the owner connection.
  *
- * This is the one legitimate pre-authorization lookup: you cannot set a tenant
+ * One of the three documented pre-authorization operations: you cannot set a tenant
  * context before you know which tenant it is. In production the tenant comes
  * from the authenticated session and membership is verified before the context
  * is set. It lives here, named and documented, so that the rule "the web app

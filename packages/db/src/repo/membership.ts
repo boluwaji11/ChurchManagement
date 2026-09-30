@@ -1,6 +1,7 @@
 import { and, eq, gt, isNull, sql as raw } from "drizzle-orm";
 import { owner } from "../client";
 import type { TenantRole } from "../roles";
+import { InvalidInputError } from "../errors";
 
 export interface Membership {
   tenantId: string;
@@ -19,8 +20,9 @@ export interface Membership {
  *
  * This runs on the owner connection because it is inherently cross-tenant: the
  * question is "which churches does this user belong to", which cannot be answered
- * from inside one church's context. It is the second and last legitimate
- * pre-authorization lookup, alongside resolveTenantBySlug.
+ * from inside one church's context. It is one of three operations that run
+ * before a tenant context exists, all of them named and documented: this one,
+ * resolveTenantBySlug, and createChurch.
  */
 export async function membershipsForUser(userId: string): Promise<Membership[]> {
   return owner()<Membership[]>`
@@ -139,3 +141,125 @@ export async function revokeInvitation(id: string): Promise<void> {
 }
 
 export { raw, and, eq, gt, isNull };
+
+// ---------------------------------------------------------------------------
+// Creating a church (HRT-32, R1.1, R22.1)
+// ---------------------------------------------------------------------------
+
+/**
+ * Slugs that cannot be a church, because they are routes or would read as one.
+ *
+ * A church whose slug is "sign-in" is not a security hole, since the slug is a
+ * query parameter rather than a path today. It is reserved anyway, because the
+ * day the URL becomes hearth.church/sign-in it would be, and renaming a church
+ * that has been in use for a year is not a fix anybody enjoys.
+ */
+export const RESERVED_SLUGS: readonly string[] = [
+  "about", "account", "admin", "api", "app", "assets", "auth", "billing", "blog",
+  "choose-church", "contact", "dashboard", "design", "docs", "download", "fields",
+  "give", "giving", "help", "home", "hearth", "icon", "images", "index", "invite",
+  "legal", "login", "logout", "new", "people", "portal", "pricing", "privacy",
+  "public", "register", "reset", "root", "security", "settings", "setup", "sign-in",
+  "sign-out", "sign-up", "static", "status", "stage", "support", "system", "tags",
+  "terms", "test", "user", "users", "www",
+];
+
+/** "St. Mark's Riverside" becomes "st-marks-riverside". */
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/['']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40)
+    .replace(/-+$/, "");
+}
+
+/**
+ * Creates a church and makes the signed-in person its Owner.
+ *
+ * This runs on the owner connection, which is the third and last documented
+ * pre-authorization write. It has to: there is no tenant context to set, because
+ * the tenant does not exist until the first statement of this transaction. The
+ * exception is narrow and the shape of it is the safety. Nothing here reads
+ * anything the caller could point at. It inserts a tenant, a campus, the caller's
+ * own app_users row, and one membership naming the caller. There is no input that
+ * makes it touch a church that already exists.
+ *
+ * The whole thing is one transaction, so a failure halfway cannot leave a church
+ * nobody can open.
+ */
+export async function createChurch(input: {
+  name: string;
+  timezone: string;
+  user: { id: string; email: string; fullName?: string | null; emailVerified: boolean };
+}): Promise<{ tenantId: string; slug: string; name: string }> {
+  const name = input.name.trim().replace(/\s+/g, " ");
+  if (name.length < 2) throw new InvalidInputError("Enter the name of your church.");
+  if (name.length > 120) throw new InvalidInputError("That name is too long. 120 characters at most.");
+
+  // An unverified address must never become an Owner. Everything else in the
+  // product trusts that a membership was granted to somebody who proved the
+  // address, and this is the one path that grants one without an invitation.
+  if (!input.user.emailVerified) {
+    throw new InvalidInputError("Confirm your email address first, then start your church.");
+  }
+
+  const timezone = isKnownTimezone(input.timezone) ? input.timezone : "America/Chicago";
+
+  const base = slugify(name) || "church";
+  const sql = owner();
+
+  return sql.begin(async (tx) => {
+    // Taken slugs and reserved words are resolved in one place, inside the
+    // transaction, so two people naming their church the same thing in the same
+    // second cannot both win. The unique index is the real arbiter.
+    let slug = RESERVED_SLUGS.includes(base) ? `${base}-church` : base;
+    for (let n = 2; ; n++) {
+      const clash = await tx`select 1 from tenants where slug = ${slug} limit 1`;
+      if (clash.length === 0) break;
+      slug = `${base}-${n}`;
+      if (n > 200) throw new InvalidInputError("Try a slightly different name.");
+    }
+
+    const [tenant] = await tx<{ id: string }[]>`
+      insert into tenants (slug, name, timezone)
+      values (${slug}, ${name}, ${timezone})
+      returning id`;
+    if (!tenant) throw new Error("Tenant insert returned no row.");
+
+    // R1.2. A primary campus from the first moment, even though the UI is
+    // single-campus. Every later feature can assume one exists.
+    await tx`
+      insert into campuses (tenant_id, name, is_primary)
+      values (${tenant.id}, ${name}, true)`;
+
+    await tx`
+      insert into app_users (id, email, full_name)
+      values (${input.user.id}, ${input.user.email.trim().toLowerCase()}, ${input.user.fullName ?? null})
+      on conflict (id) do update set
+        email = excluded.email,
+        full_name = coalesce(excluded.full_name, app_users.full_name)`;
+
+    await tx`
+      insert into tenant_members (tenant_id, user_id, role)
+      values (${tenant.id}, ${input.user.id}, 'owner')`;
+
+    return { tenantId: tenant.id, slug, name };
+  }) as Promise<{ tenantId: string; slug: string; name: string }>;
+}
+
+/**
+ * Timezone matters more here than it looks. Sunday is a local concept, the
+ * no-deploy window is local, and a giving statement's year end is local.
+ */
+export function isKnownTimezone(tz: string): boolean {
+  if (!tz) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}

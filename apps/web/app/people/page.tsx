@@ -24,9 +24,9 @@ const label = (status: string) => status.replace(/_/g, " ");
 export default async function PeoplePage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string; show?: string }>;
+  searchParams: Promise<{ church?: string; archived?: string; show?: string; welcome?: string }>;
 }) {
-  const { church, archived, show } = await searchParams;
+  const { church, archived, show, welcome } = await searchParams;
   // Redirects to sign-in, or to the church chooser if this user is not a member.
   const session = await requireSession(church);
 
@@ -64,6 +64,12 @@ export default async function PeoplePage({
       </div>
 
       {archived ? <Banner tone="success" title="Archived" className="mb-8" /> : null}
+
+      {welcome ? (
+        <Banner tone="success" title={`${session.tenantName} is ready`} className="mb-8">
+          You are the owner. Add someone, or invite the rest of your team.
+        </Banner>
+      ) : null}
 
       {session.role === "staff" || session.role === "member" ? (
         <Banner tone="info" title="Some things are hidden from your role" className="mb-8">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Church } from "lucide-react";
+import { ArrowRight, Church, Plus } from "lucide-react";
 import { membershipsForUser } from "@hearth/db";
 import { Banner, Card, Button } from "@hearth/ui";
 import { currentUser } from "@/lib/session";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const REASONS: Record<string, { title: string; body: string }> = {
   none: {
     title: "Your account is not in a church yet",
-    body: "Someone at your church needs to invite you. Once they do, sign in again with this same email and you will be added automatically.",
+    body: "Start one below, or wait for an invitation. An invitation is accepted automatically the next time you sign in.",
   },
   denied: {
     title: "That church is not available to you",
@@ -66,11 +66,15 @@ export default async function ChooseChurch({
         </ul>
       ) : (
         <Card className="text-center">
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">
-            No churches yet. An invitation will appear here the moment it is accepted.
-          </p>
+          <p className="text-[length:var(--d-text-body)] text-fg-muted">No churches yet.</p>
         </Card>
       )}
+
+      <Button asChild variant={memberships.length > 0 ? "secondary" : "primary"} full>
+        <Link href="/start">
+          <Plus /> Start a church
+        </Link>
+      </Button>
 
       <div className="flex items-center gap-3">
         <SignOutButton />

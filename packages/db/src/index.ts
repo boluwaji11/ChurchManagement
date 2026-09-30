@@ -28,6 +28,8 @@ export {
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
-  createInvitation, revokeInvitation, type Membership,
+  createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone,
+  RESERVED_SLUGS, type Membership,
 } from "./repo/membership";
+export { withAuditTriggersOff, deleteTenants, deleteTenantsLike } from "./maintenance";
 export { loadEnv } from "./env";

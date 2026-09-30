@@ -73,7 +73,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | New |
 | HRT-15 | Church profile settings: name, address, timezone, service times, logo | R1.1 | New |
-| HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | New |
+| HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Resolved |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Resolved |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
@@ -140,8 +140,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16**, custom fields |
-| **Next** | HRT-32 create a church, then HRT-28 the import wizard, then HRT-30 export |
+| **Waiting on a test** | **HRT-16** custom fields, **HRT-32** create a church |
+| **Next** | HRT-28 the import wizard, then HRT-30 export, then HRT-15 church settings |
 
 ### HRT-16, how to test it
 
@@ -160,3 +160,20 @@ The presenter. Separate PRD written at build time.
    the one thing here that is not reversible.
 6. **Roles.** `staff` can fill fields in but cannot define them. `pastoral` and `member` can do
    neither.
+
+### HRT-32, how to test it
+
+Churches used to exist only because the seed script made them. Now anyone signed in can start one.
+
+1. **From nothing.** Sign out. Sign in with an email that is in no church, using the email link.
+   You land on "Choose a church" with a "Start a church" button.
+2. **Create it.** Name it. The timezone is already filled in from your browser. You arrive in your
+   own church as its owner, with an empty directory.
+3. **The slug.** A church called "St. Mark's Riverside" becomes `st-marks-riverside` in the URL.
+   Name a second one the same thing and it gets a `-2`. Call one "Settings" and it becomes
+   `settings-church`, because route words are reserved.
+4. **Isolation.** Add a person to the new church. Sign in as `pastor@riverside.example.org` and
+   confirm they are nowhere in Riverside. Then try `?church=<your new slug>` as the Riverside
+   pastor: refused, exactly like a church that does not exist.
+5. **Existing members.** "Start a church" is also on the chooser for someone already in one, as a
+   secondary button rather than the main action.

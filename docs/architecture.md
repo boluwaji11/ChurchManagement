@@ -68,6 +68,21 @@ migrations, seeds, exports, and genuinely cross-tenant platform jobs. Forcing it
 impossible and push the work into a `BYPASSRLS` role instead, which is strictly worse: it swaps a
 narrow, auditable exception for a blanket one.
 
+Exactly three operations run before a tenant context exists, because they cannot do otherwise, and
+each is named in the code:
+
+| Operation | Why it has no context |
+|---|---|
+| `resolveTenantBySlug` | You cannot set a tenant context before you know which tenant it is |
+| `membershipsForUser` | The question is inherently cross-tenant: which churches is this person in |
+| `createChurch` | The tenant does not exist until the first statement of the transaction |
+
+The first two only read. `createChurch` writes, and the shape of it is the safety: nothing it does
+can touch a church that already exists. It inserts a tenant, a campus, the caller's own `app_users`
+row, and one membership naming the caller. There is no input that redirects it at someone else's
+data. It is also the only path in the product that grants a membership without an invitation, which
+is why it refuses an unverified email address.
+
 The guarantee we ship is about `hearth_app`, because `hearth_app` is what every request uses. It is
 not the owner, it owns no table, and it is `NOBYPASSRLS`. All three are asserted by the test suite,
 and a further test asserts that the owner connection is never imported by the web app, so the rule is
