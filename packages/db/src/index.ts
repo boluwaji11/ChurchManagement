@@ -10,4 +10,8 @@ export {
   resolveTenantBySlug, listChurches, type PersonRow,
 } from "./repo/people";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
+export {
+  membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
+  createInvitation, revokeInvitation, type Membership,
+} from "./repo/membership";
 export { loadEnv } from "./env";

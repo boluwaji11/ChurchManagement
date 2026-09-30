@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Users, HandCoins, Baby, CalendarDays, Music, HeartHandshake } from "lucide-react";
+import { ArrowRight, Users, HandCoins, CalendarDays, HeartHandshake } from "lucide-react";
 import { StatTile, Card, CardTitle, CardDescription, Badge } from "@hearth/ui";
 import { PageTitle, Section } from "@/components/section";
 
@@ -8,7 +8,7 @@ export default function Overview() {
     <>
       <PageTitle
         title="The design system"
-        lede="Hearth replaces software churches pay for, so it has to look better than that software. Free should not look free."
+        lede="Hearth replaces software churches pay for, so it has to look better than that software."
       />
 
       <Section
@@ -18,8 +18,8 @@ export default function Overview() {
         <div className="grid gap-4 sm:grid-cols-3">
           {[
             ["Office", "Maria at a desk on a Tuesday. Dense, keyboard-first, calm.", "indigo"],
-            ["Station", "Ruth at check-in, Sunday 09:58, forty families queuing. Unmissable, zero ambiguity.", "coral"],
-            ["Portal", "A member on a phone for four minutes a week. Warm, simple, app-like.", "jade"],
+            ["Station", "Ruth at check-in, Sunday 09:58, forty families queuing. Unmissable, zero ambiguity.", "rose"],
+            ["Portal", "A member on a phone for four minutes a week. Warm, simple, app-like.", "teal"],
           ].map(([name, use, hue]) => (
             <Card key={name as string}>
               <div className="mb-2 flex items-center gap-2">
@@ -37,16 +37,21 @@ export default function Overview() {
       </Section>
 
       <Section
-        title="Colour does work"
-        note="Every room, team, group type, fund, and ministry owns a hue, so a dashboard reads at a glance instead of after reading. Six tiles, six hues."
+        title="Colour does work, and then it stops"
+        note="Tiles are quiet by default: a plain surface and one small keyed mark. A row of fully tinted tiles reads as decoration and the eye stops sorting them, so at most one is emphasised, and only when it needs to be seen first."
       >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile label="Attendance" value="184" hue="indigo" delta={6} caption="vs last week" icon={<Users className="size-4" />} />
           <StatTile label="Giving this month" value="$18,420" hue="fern" delta={12} caption="vs last month" icon={<HandCoins className="size-4" />} />
-          <StatTile label="Children checked in" value="41" hue="coral" caption="across 5 rooms" icon={<Baby className="size-4" />} />
           <StatTile label="New people" value="7" hue="amber" delta={-14} caption="vs last month" icon={<HeartHandshake className="size-4" />} />
-          <StatTile label="Serving gaps" value="3" hue="orchid" caption="next 6 weeks" icon={<CalendarDays className="size-4" />} />
-          <StatTile label="Songs in library" value="126" hue="teal" caption="18 used this quarter" icon={<Music className="size-4" />} />
+          <StatTile
+            label="Serving gaps"
+            value="3"
+            hue="rose"
+            emphasis="tint"
+            caption="next 6 weeks, needs attention"
+            icon={<CalendarDays className="size-4" />}
+          />
         </div>
       </Section>
 

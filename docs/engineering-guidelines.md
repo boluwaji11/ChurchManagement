@@ -5,8 +5,8 @@ specification is [PRD.md](../PRD.md); this is the part you need in your head whi
 
 ## What this is
 
-**Hearth** is a church management platform given to churches at no cost. Not a trial, not a free
-tier, not a loss leader. No pay, always free.
+**Hearth** is a church management platform for small churches, given to them at no cost and built for
+the volunteer who actually runs it.
 
 Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and reads the same
 service plan and song library as the management system.
@@ -16,11 +16,11 @@ Read [PRD.md](../PRD.md) before proposing features. Requirement IDs from the PRD
 
 ## The thesis, in one line
 
-Free church software already exists and churches cannot use it. Hearth is the first one that is
-both free and usable by a volunteer who gives four hours a week.
+Church software churches can afford already exists and they cannot use it. Hearth is the first that is
+both affordable and usable by a volunteer who gives four hours a week.
 
-Rock RMS is free and needs a developer. Breeze is usable and costs $72 a month. The target is Rock
-RMS's price with Breeze's usability. Every scoping decision follows from that: **if a feature makes
+Rock RMS costs nothing and needs a developer. Breeze is usable and costs $72 a month. The target is
+Rock RMS's price with Breeze's usability. Every scoping decision follows from that: **if a feature makes
 the product more powerful but less usable by a non-technical volunteer, it is cut or deferred**, no
 matter what the competition markets.
 
@@ -29,7 +29,7 @@ matter what the competition markets.
 | Decision | Choice |
 |---|---|
 | Market | US and global first. Stripe, ACH, email-centric, USD. |
-| Funding | Fully free, donation and grant funded. No paid tier, ever. No freemium. |
+| Funding | Donation and grant funded. No paid tier, ever. No freemium. |
 | Delivery | Hosted multi-tenant SaaS only in v1. Source is public, self-hosting is unsupported. |
 | Presenter | Phase 2, separate PRD at build time. Phase 1 owes it the song schema and the sync contract, nothing else. |
 | Licence | AGPL-3.0 |
@@ -40,7 +40,7 @@ matter what the competition markets.
 Anything implying a paid tier, self-hosting in v1, platform-held funds, or platform-paid SMS
 contradicts a settled decision. Say so rather than building it.
 
-## Hard constraints that flow from "free"
+## Hard constraints that flow from the funding model
 
 1. **Never touch the money.** Giving runs on Stripe Connect against the church's own account with a
    platform application fee of **zero**. We are not a money transmitter. PCI scope stays SAQ-A, so
@@ -101,17 +101,18 @@ See [architecture.md](architecture.md), [data-model.md](data-model.md), and
 ## Design
 
 Full specification in [design-system.md](design-system.md). Read it before writing any UI.
-Hearth replaces software churches pay for, so it has to look better than that software. Free should
-not look free.
+Hearth replaces software churches pay for, so it has to look better than that software.
 
 - **Three density modes, one system.** `office` dense and keyboard-first, `station` a Sunday kiosk at
   56px targets and 20px text, `portal` app-like on a phone. Resolved through tokens on the root
   element. A component is written once and must work in all three with no density branches in its own
   code.
-- **Colourful, and the colour does work.** Warm stone canvas, ink primary, ember accent, plus a
-  twelve-hue spectrum at matched lightness and chroma. Hues are assigned to things: rooms, teams,
-  group types, funds, ministries, pipeline stages. Never sprinkled for decoration. Room colour prints
-  on the child's check-in label so a volunteer can direct a parent by colour.
+- **Colour marks identity, and nothing else.** Warm stone canvas, ink primary, ember accent, plus an
+  eight-hue spectrum at matched lightness and chroma. Hues are assigned to things: rooms, teams,
+  group types, funds, ministries, pipeline stages. Room colour prints on the child's check-in label
+  so a volunteer can direct a parent by colour. Everywhere else stays quiet. A tinted tile for every
+  stat, or a rainbow across a header, is decoration: the eye stops sorting it, and the colour that
+  does mean something gets lost in it.
 - **Tokens are platform-neutral** in `packages/ui/tokens`, generated to CSS. Mobile comes later and
   inherits them.
 - **Legible beats fashionable.** Body text never under 400 weight. 4.5:1 body, 3:1 UI, **7:1 on any
@@ -134,8 +135,11 @@ These rules apply to code comments, docs, UI copy, commit messages, error messag
 
 - **No em dashes. Ever.** Use a comma, a period, a colon, parentheses, or restructure the sentence.
   Avoid en dashes too, including in numeric ranges. Write "50 to 500", not "50-500".
-- **Use short comma-separated statement pauses for punch.** "No pay, always free." "Free forever, no
-  modules, no tiers." Short clauses, landing hard.
+- **Use short comma-separated statement pauses for punch.** "Every feature, every church, every time."
+  "It ships, or it does not." Short clauses, landing hard.
+- **Do not repeat the pricing as a slogan.** The cost argument is made once, where it is evidence, and
+  then the product is described by what it does. A word repeated becomes noise, and a product that
+  keeps insisting it is cheap sounds like it has nothing else to say.
 - **The copy must be good.** Plain, confident, concrete. No filler, no marketing mush, no hedging.
   Write as though the reader is a busy pastor, not a procurement committee.
 - Error messages tell the user what happened and what to do next. Never expose a stack trace to

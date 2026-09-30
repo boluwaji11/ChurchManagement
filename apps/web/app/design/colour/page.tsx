@@ -16,10 +16,10 @@ const SEMANTIC = [
 const ASSIGNMENTS: [string, string, string][] = [
   ["Check-in rooms", "teal", "Prints on the child's label. A volunteer says the teal room, which beats reading a name."],
   ["Teams", "violet", "Runs through the schedule grid, the plan, and the coverage dashboard."],
-  ["Group types", "jade", "Drives group finder filters and the calendar."],
+  ["Group types", "sky", "Drives group finder filters and the calendar."],
   ["Funds", "fern", "Every giving chart, so a treasurer reads it without a legend."],
   ["Ministries", "amber", "The only way a shared church calendar is ever legible."],
-  ["Pipeline stages", "coral", "A warm to cool ramp, so progress reads as movement."],
+  ["Pipeline stages", "rose", "A warm to cool ramp, so progress reads as movement."],
 ];
 
 export default function Colour() {
@@ -50,7 +50,7 @@ export default function Colour() {
 
       <Section
         title="The spectrum"
-        note="Twelve hues at matched lightness and chroma, so any two sit together without clashing and none shouts. 100 tints an area, 500 is the identity, 700 is text-safe. Never 500 text on a light canvas."
+        note="Eight hues at matched lightness and chroma, evenly spread, so any two sit together without clashing and none shouts. It was twelve, and twelve read as a paint chart: the extra four sat too close to their neighbours to tell apart at a glance, which is the only thing a hue is for. 100 tints an area, 500 is the identity, 700 is text-safe. Never 500 text on a light canvas."
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {HUES.map((h) => (

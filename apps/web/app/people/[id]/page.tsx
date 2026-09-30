@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Lock, FileText } from "lucide-react";
 import { withTenant, getPerson, listNotesForPerson, listTagsForPerson } from "@hearth/db";
 import { Avatar, Badge, Card, CardTitle, Separator, Banner, HueTag } from "@hearth/ui";
-import { resolveSession, DEMO_ROLES } from "@/lib/session";
-import { Switcher } from "../switcher";
+import { requireSession } from "@/lib/session";
+import { AppHeader } from "@/components/app-header";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +13,11 @@ export default async function PersonPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string; role?: string }>;
+  searchParams: Promise<{ church?: string }>;
 }) {
   const { id } = await params;
-  const query = await searchParams;
-  const { session, churches } = await resolveSession(query);
-  if (!session) notFound();
+  const { church } = await searchParams;
+  const session = await requireSession(church);
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     const person = await getPerson(tx, id);
@@ -38,9 +37,11 @@ export default async function PersonPage({
   const restricted = notes.filter((n) => n.restricted).length;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+    <>
+      <AppHeader session={session} />
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <Link
-        href={`/people?church=${session.slug}&role=${session.role}`}
+        href={`/people?church=${session.tenantSlug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
       >
         <ArrowLeft className="size-4" /> Directory
@@ -57,16 +58,6 @@ export default async function PersonPage({
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="mb-8">
-        <Switcher
-          churches={churches}
-          slug={session.slug}
-          role={session.role}
-          roles={DEMO_ROLES}
-          basePath={`/people/${person.id}`}
-        />
       </div>
 
       <Card className="mb-6">
@@ -100,7 +91,7 @@ export default async function PersonPage({
           <Banner tone="info" title={`${restricted} note${restricted === 1 ? "" : "s"} restricted`} className="mb-4">
             The {session.role} role can see that these notes exist, who wrote them, and when. It cannot
             read them. The body is encrypted with a key the database never holds, and the field is absent
-            from the response rather than blank. Switch to <strong>pastoral</strong> or <strong>owner</strong> above.
+            from the response rather than blank.
           </Banner>
         ) : null}
 
@@ -142,6 +133,7 @@ export default async function PersonPage({
           ))}
         </ul>
       </Card>
-    </main>
+      </main>
+    </>
   );
 }

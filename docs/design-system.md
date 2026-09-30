@@ -1,6 +1,6 @@
 # Design system
 
-Hearth has to look better than the software it replaces. Free should not look free.
+Hearth has to look better than the software it replaces.
 
 Requirement IDs refer to [../PRD.md](../PRD.md). This document is the source of truth for tokens,
 type, motion, and component behaviour. Web first. Native mobile later, which is why tokens are
@@ -13,12 +13,16 @@ with a queue of forty families, run by a volunteer who has done it twice. Design
 Tuesday afternoon office screens take care of themselves. This is why there are three density modes
 (section 2) and not one.
 
-**2. Colourful, not corporate.** Every competitor is a blue SaaS dashboard, grey on grey, with one
-accent colour and no joy. Hearth is a warm canvas carrying a full, vivid spectrum, and that spectrum
-earns its place by doing real work: every ministry, team, room, group type, and fund has its own
+**2. Colourful where it carries meaning, quiet everywhere else.** Every competitor is a blue SaaS
+dashboard, grey on grey, with one accent colour and no joy. Hearth uses a warm canvas and a spectrum
+that earns its place by doing real work: every ministry, team, room, group type, and fund has its own
 colour, so a calendar, a check-in floor, and a giving chart are readable at a glance rather than
-after reading. Colour as data, not colour as decoration. A church is not a CRM and should not feel
-like one.
+after reading.
+
+The discipline is the other half. Colour marks identity, and nothing else. A row of tinted tiles, a
+rainbow header, a swatch for every section: that is decoration, the eye stops sorting it, and the
+colour that does mean something gets lost in it. A church is not a CRM and should not feel like one,
+but it is not a paint chart either.
 
 **3. Legible beats fashionable.** Volunteers span every age and ability. WCAG 2.2 AA is a floor, not
 a goal (R22.7). If a trend costs contrast or tap target size, the trend loses. No exceptions, and no
@@ -143,25 +147,25 @@ component.
 
 ### The spectrum
 
-Twelve hues at matched lightness and chroma, so any two sit together without clashing and no single
-one shouts. This is the palette that makes the product colourful, and it is assigned to things, not
-sprinkled on them.
+Eight hues at matched lightness and chroma, evenly spread around the wheel, so any two sit together
+without clashing and no single one shouts. Assigned to things, not sprinkled on them.
+
+It was twelve, and twelve was wrong. Twelve read as a paint chart, and the extra four sat close
+enough to their neighbours that nobody could tell them apart at a glance, which is the only thing a
+hue is for here. Eight is also closer to what a church actually has: five rooms, six teams, four
+funds.
 
 ```css
 :root {
   /* Matched L and C, hue rotated. 500 is the base, each has 100 / 500 / 700. */
   --hue-rose-100:   oklch(0.938 0.042  10);  --hue-rose-500:   oklch(0.635 0.168  12);  --hue-rose-700:   oklch(0.505 0.152  14);
-  --hue-coral-100:  oklch(0.938 0.042  35);  --hue-coral-500:  oklch(0.648 0.162  38);  --hue-coral-700:  oklch(0.512 0.146  40);
   --hue-amber-100:  oklch(0.942 0.048  72);  --hue-amber-500:  oklch(0.732 0.156  70);  --hue-amber-700:  oklch(0.572 0.132  62);
   --hue-citron-100: oklch(0.944 0.050 105);  --hue-citron-500: oklch(0.742 0.148 110);  --hue-citron-700: oklch(0.582 0.126 108);
   --hue-fern-100:   oklch(0.938 0.044 142);  --hue-fern-500:   oklch(0.662 0.148 145);  --hue-fern-700:   oklch(0.522 0.128 147);
-  --hue-jade-100:   oklch(0.938 0.042 168);  --hue-jade-500:   oklch(0.652 0.128 172);  --hue-jade-700:   oklch(0.512 0.112 174);
   --hue-teal-100:   oklch(0.936 0.040 196);  --hue-teal-500:   oklch(0.648 0.118 200);  --hue-teal-700:   oklch(0.508 0.104 202);
   --hue-sky-100:    oklch(0.936 0.042 232);  --hue-sky-500:    oklch(0.642 0.138 238);  --hue-sky-700:    oklch(0.505 0.128 240);
   --hue-indigo-100: oklch(0.934 0.044 268);  --hue-indigo-500: oklch(0.612 0.156 272);  --hue-indigo-700: oklch(0.478 0.142 274);
   --hue-violet-100: oklch(0.936 0.046 296);  --hue-violet-500: oklch(0.622 0.168 300);  --hue-violet-700: oklch(0.488 0.152 302);
-  --hue-orchid-100: oklch(0.938 0.044 322);  --hue-orchid-500: oklch(0.632 0.162 326);  --hue-orchid-700: oklch(0.498 0.146 328);
-  --hue-clay-100:   oklch(0.934 0.032  52);  --hue-clay-500:   oklch(0.598 0.098  50);  --hue-clay-700:   oklch(0.468 0.086  50);
 }
 ```
 
@@ -187,12 +191,13 @@ Colours are assigned automatically on creation, spread around the wheel for maxi
 
 ### Where the interface is colourful
 
-- **Dashboard tiles** are tinted by domain, each with its `100` background, `700` heading, and a
-  small `500` sparkline. Six tiles, six hues, one glance.
+- **Dashboard tiles** are quiet by default: a plain surface, a hairline, and one small keyed mark in
+  the domain's hue. At most one tile in a row is fully tinted, and only when it genuinely needs to be
+  seen first. A row of six tinted tiles is decoration, not information.
 - **Empty states** get a real illustration, drawn in spectrum hues, not a grey outline icon and an
   apology. A church's first week in the product should feel like an invitation.
-- **Avatars** fall back to initials on a tinted chip, hue derived from the person's id, so a roster
-  is colourful and individuals are recognisable before you read a name.
+- **Avatars** fall back to initials on a tinted chip, hue derived from the person's id, so individuals
+  are recognisable before you read a name.
 - **Calendars and schedule grids** carry the full spectrum. This is the screen the palette exists for.
 - **Charts** use the spectrum in a fixed order, and a categorical series never changes colour between
   two views of the same data.
@@ -201,7 +206,8 @@ Colours are assigned automatically on creation, spread around the wheel for maxi
 ### Restraint, where it belongs
 
 The canvas stays warm and quiet so the colour reads. Chrome, tables, and forms are stone, ink, and
-one accent. **The station is the exception in the other direction**: the only colours on a check-in
+one accent. Marketing and sign-in use the accent alone, never the whole spectrum: a rainbow says
+nothing about the product except that we own a palette. **The station is the exception in the other direction**: the only colours on a check-in
 screen are the room hue and `--critical`, because that screen has exactly two things to communicate
 and adding a third is a safety problem.
 
@@ -365,6 +371,21 @@ OfflineBar, BlockingInterrupt.
 
 **Portal:** BottomTabBar, MobileSheet, GiveForm, ScheduleCard, CheckInCard.
 
+### Form validation
+
+Ours, never the browser's. `noValidate` on the form, messages rendered through `Field`, which wires
+`aria-invalid` and `aria-describedby` and gives the error `role="alert"`.
+
+- **Errors appear on submit**, then follow along as the field is corrected. Nagging someone
+  mid-typing, before they have finished, is not help.
+- **The first invalid control takes focus**, so a keyboard or screen reader user lands on the problem
+  rather than hunting for it.
+- **Messages say what is wrong and what to do.** "That does not look like an email address. Check for
+  a typo." Never "invalid", never blame, never shout.
+- **The error carries an icon as well as colour**, because colour is never the only signal.
+- Shared validators live in `packages/ui/src/lib/validate.ts`, so two forms cannot disagree about
+  what a valid email is and the messages stay in one voice.
+
 ### Every component ships with
 
 1. All states: default, hover, focus-visible, active, disabled, loading, error, empty.
@@ -393,4 +414,7 @@ Explicitly refused, so the conversation happens once:
 | Modal stacking | If a dialog opens a dialog, the flow is wrong |
 | More than one primary button in a view | Then none of them is primary |
 | Placeholder text as the label | It disappears exactly when it is needed |
+| Native browser validation bubbles | Unstyled, unlocalised, vanish on their own, and look like a different product. Put `noValidate` on every form and render the message through `Field`. |
+| Any default browser UI we can replace | Validation bubbles, `alert()`, `confirm()`, the default file input. If the browser drew it, it does not match the system. |
 | Emoji as iconography | Renders differently everywhere, reads as unserious |
+| A spectrum swatch on every element | Colour marks identity. Used everywhere it marks nothing, and the colour that does mean something gets lost |

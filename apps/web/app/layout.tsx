@@ -13,7 +13,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", 
 
 export const metadata: Metadata = {
   title: "Hearth",
-  description: "Church management software. No pay, always free.",
+  description: "Church management software a volunteer can run.",
 };
 
 export const viewport: Viewport = {

@@ -34,21 +34,42 @@ alter default privileges in schema public grant select, insert, update, delete o
 -- A missing setting returns null rather than raising, so a query without a
 -- tenant context returns no rows instead of an error that might get caught and
 -- swallowed. Silence is the safe failure here.
+--
+-- Every function pins `search_path = ''`. Without it, anyone able to create an
+-- object in a schema earlier in the path could shadow something the function
+-- resolves, which is a privilege-escalation path rather than a style issue. With
+-- an empty path, everything outside pg_catalog must be schema-qualified, so the
+-- shadowing has nowhere to happen.
 
-create or replace function app_tenant_id() returns uuid
-language sql stable as $$
+create or replace function public.app_tenant_id() returns uuid
+language sql stable
+set search_path = ''
+as $$
   select nullif(current_setting('app.tenant_id', true), '')::uuid
 $$;
 
-create or replace function app_role() returns text
-language sql stable as $$
+create or replace function public.app_role() returns text
+language sql stable
+set search_path = ''
+as $$
   select nullif(current_setting('app.role', true), '')
 $$;
 
-create or replace function app_user_id() returns uuid
-language sql stable as $$
+create or replace function public.app_user_id() returns uuid
+language sql stable
+set search_path = ''
+as $$
   select nullif(current_setting('app.user_id', true), '')::uuid
 $$;
+
+-- These are called by the RLS policies, so the application role needs them, and
+-- nobody else does. PUBLIC execute would expose them over PostgREST for no reason.
+revoke all on function public.app_tenant_id() from public;
+revoke all on function public.app_role() from public;
+revoke all on function public.app_user_id() from public;
+grant execute on function public.app_tenant_id() to hearth_app;
+grant execute on function public.app_role() to hearth_app;
+grant execute on function public.app_user_id() to hearth_app;
 
 -- ---------------------------------------------------------------------------
 -- 3. Row-level security on every tenant-scoped table
@@ -140,8 +161,17 @@ alter table public.addresses add constraint addresses_one_owner
 -- criterion true: the log cannot be modified or deleted by any application role,
 -- including Owner.
 
-create or replace function audit_write() returns trigger
-language plpgsql security definer as $$
+-- SECURITY INVOKER, not DEFINER.
+--
+-- DEFINER was unnecessary: hearth_app already holds INSERT on audit_entries and
+-- the isolation policy passes, because the row's tenant_id is the tenant in
+-- context. Running as the invoker removes an escalation surface entirely rather
+-- than guarding it, which is the better trade whenever it is available.
+create or replace function public.audit_write() returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
 declare
   v_tenant uuid;
   v_before jsonb;
@@ -166,9 +196,9 @@ begin
   insert into public.audit_entries (tenant_id, actor_user_id, actor_role, action, entity, entity_id, before, after, ip)
   values (
     v_tenant,
-    app_user_id(),
-    app_role(),
-    lower(tg_op)::audit_action,
+    public.app_user_id(),
+    public.app_role(),
+    lower(tg_op)::public.audit_action,
     tg_table_name,
     coalesce((v_after ->> 'id')::uuid, (v_before ->> 'id')::uuid),
     v_before,
@@ -196,6 +226,11 @@ begin
   end loop;
 end $$;
 
+-- Not callable as an API endpoint. It is a trigger function, and a trigger fires
+-- it regardless of EXECUTE privilege, so nothing needs to be able to call it.
+revoke all on function public.audit_write() from public;
+grant execute on function public.audit_write() to hearth_app;
+
 -- The log is append only. Insert is allowed so the trigger and the confidential
 -- read path can write; nothing may change or remove an entry.
 revoke update, delete, truncate on public.audit_entries from hearth_app;
@@ -204,3 +239,32 @@ alter table public.audit_entries no force row level security;
 drop policy if exists tenant_isolation on public.audit_entries;
 create policy tenant_isolation on public.audit_entries
   using (tenant_id = app_tenant_id()) with check (tenant_id = app_tenant_id());
+
+-- ---------------------------------------------------------------------------
+-- 7. Nothing is reachable over the auto-generated REST API
+-- ---------------------------------------------------------------------------
+-- Supabase exposes the public schema through PostgREST to the anon and
+-- authenticated roles. Hearth does not use PostgREST at all: every query goes
+-- through Drizzle on the hearth_app connection, because field-level permissions
+-- belong in our query layer.
+--
+-- Row-level security already reduces those roles to zero rows, since they cannot
+-- set app.tenant_id. This removes the privilege as well, so the guarantee does
+-- not rest on a policy evaluating the way we expect. Two independent reasons a
+-- request over that API returns nothing is better than one.
+
+do $$
+declare r text;
+begin
+  foreach r in array array['anon', 'authenticated']
+  loop
+    if exists (select 1 from pg_roles where rolname = r) then
+      execute format('revoke all on all tables in schema public from %I', r);
+      execute format('revoke all on all sequences in schema public from %I', r);
+      execute format('revoke all on all functions in schema public from %I', r);
+      execute format('alter default privileges in schema public revoke all on tables from %I', r);
+      execute format('alter default privileges in schema public revoke all on sequences from %I', r);
+      execute format('alter default privileges in schema public revoke all on functions from %I', r);
+    end if;
+  end loop;
+end $$;

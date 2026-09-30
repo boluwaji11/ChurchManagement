@@ -11,7 +11,8 @@
     "db:generate": "pnpm --filter @hearth/db run generate",
     "db:migrate": "pnpm --filter @hearth/db run migrate",
     "db:seed": "pnpm --filter @hearth/db run seed",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "db:seed:users": "pnpm --filter @hearth/db run seed:users"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

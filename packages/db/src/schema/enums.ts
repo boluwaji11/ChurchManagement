@@ -50,7 +50,15 @@ export const customFieldEntity = pgEnum("custom_field_entity", [
   "person", "household", "group", "event", "donation",
 ]);
 
-/** The twelve-hue spectrum from the design system. Colour as data (R24.4). */
+/**
+ * Storage for a hue. Colour as data (R24.4).
+ *
+ * The shipped palette is the eight in packages/ui (rose, amber, citron, fern,
+ * teal, sky, indigo, violet), and that is what auto-assignment draws from. This
+ * enum keeps the original twelve as permitted values: storage being a superset
+ * of the palette costs nothing, and it means a church that wants one of the
+ * quieter four is a settings change rather than a migration.
+ */
 export const hue = pgEnum("hue", [
   "rose", "coral", "amber", "citron", "fern", "jade",
   "teal", "sky", "indigo", "violet", "orchid", "clay",

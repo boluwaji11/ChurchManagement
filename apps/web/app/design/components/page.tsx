@@ -8,13 +8,43 @@ import {
   RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
   TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
+  check, email,
 } from "@hearth/ui";
 import { PageTitle, Section, Row } from "@/components/section";
+
+function ValidationDemo() {
+  const [error, setError] = React.useState<string | undefined>();
+  const ref = React.useRef<HTMLFormElement>(null);
+
+  return (
+    <form
+      ref={ref}
+      noValidate
+      className="flex max-w-sm flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const value = String(new FormData(e.currentTarget).get("demo-email") ?? "");
+        const message = check(value, email);
+        setError(message);
+        if (message) (ref.current?.elements.namedItem("demo-email") as HTMLElement | null)?.focus();
+      }}
+      onInput={() => {
+        if (!error || !ref.current) return;
+        setError(check(String(new FormData(ref.current).get("demo-email") ?? ""), email));
+      }}
+    >
+      <Field label="Email" htmlFor="demo-email" error={error} hint="Try submitting it empty." required>
+        <Input name="demo-email" type="email" placeholder="you@church.org" />
+      </Field>
+      <Button type="submit">Submit</Button>
+    </form>
+  );
+}
 
 const PEOPLE = [
   ["Folake Adeyemi", "Member", "teal", "5 Oct", "Monthly"],
   ["Samuel Boateng", "Regular", "violet", "5 Oct", "One-off"],
-  ["Ruth Nkemdirim", "Member", "coral", "28 Sep", "Monthly"],
+  ["Ruth Nkemdirim", "Member", "rose", "28 Sep", "Monthly"],
   ["Daniel Okonkwo", "Visitor", "amber", "5 Oct", "None"],
 ];
 
@@ -63,10 +93,10 @@ export default function Components() {
       <Section title="Form controls" note="The label is always a label. Placeholder text disappears exactly when it is needed.">
         <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
           <Field label="Preferred name" htmlFor="c-name" hint="What people actually call them.">
-            <Input id="c-name" placeholder="Folake" />
+            <Input placeholder="Folake" />
           </Field>
-          <Field label="Phone" htmlFor="c-phone" error="Needs an area code." required>
-            <Input id="c-phone" defaultValue="555 0148" aria-invalid />
+          <Field label="Phone" htmlFor="c-phone" error="That number needs an area code." required>
+            <Input defaultValue="555 0148" />
           </Field>
           <Field label="Lifecycle status" htmlFor="c-status">
             <Select defaultValue="member">
@@ -80,10 +110,10 @@ export default function Components() {
             </Select>
           </Field>
           <Field label="Disabled" htmlFor="c-dis">
-            <Input id="c-dis" defaultValue="Locked" disabled />
+            <Input defaultValue="Locked" disabled />
           </Field>
           <Field label="Pastoral note" htmlFor="c-note" className="sm:col-span-2" hint="General notes are visible to staff. Confidential notes are a separate tier.">
-            <Textarea id="c-note" placeholder="Visited on Tuesday. Recovering well." />
+            <Textarea placeholder="Visited on Tuesday. Recovering well." />
           </Field>
         </div>
 
@@ -121,6 +151,13 @@ export default function Components() {
             <RadioItem value="both" id="r-both">Both</RadioItem>
           </RadioGroup>
         </fieldset>
+      </Section>
+
+      <Section
+        title="Validation is ours, not the browser's"
+        note="Submit this empty. No native bubble appears: the message renders in the field, the control is marked invalid for assistive technology, and focus moves to the problem."
+      >
+        <ValidationDemo />
       </Section>
 
       <Section title="Badges, chips, avatars" note="Avatars fall back to initials on a tinted chip, hue derived from the id, so a roster is colourful and people are recognisable before you read a name.">

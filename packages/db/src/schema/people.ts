@@ -180,7 +180,7 @@ export const tags = pgTable(
     id: pk(),
     tenantId: tenantId(),
     name: text("name").notNull(),
-    hue: hue("hue").notNull().default("clay"),
+    hue: hue("hue").notNull().default("teal"),
     createdAt: created(),
   },
   (t) => [uniqueIndex("tags_unique").on(t.tenantId, t.name)],

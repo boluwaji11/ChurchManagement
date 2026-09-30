@@ -32,14 +32,14 @@ export function EmptyState({
         aria-label="An empty room, waiting"
       >
         {/* A hearth: a warm room waiting to be filled. Drawn in spectrum hues. */}
-        <rect x="14" y="30" width="132" height="54" rx="8" fill="var(--hue-clay-tint)" />
-        <path d="M14 38 L80 8 L146 38" fill="none" stroke="var(--hue-clay-500)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="14" y="30" width="132" height="54" rx="8" fill="var(--hue-amber-tint)" />
+        <path d="M14 38 L80 8 L146 38" fill="none" stroke="var(--hue-amber-700)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         <rect x="58" y="52" width="44" height="32" rx="4" fill="var(--hue-amber-tint)" stroke="var(--hue-amber-500)" strokeWidth="2" />
-        <path d="M80 78 C 72 70, 74 64, 80 58 C 86 64, 88 70, 80 78 Z" fill="var(--hue-coral-500)" />
-        {HUES.slice(0, 5).map((h, i) => (
+        <path d="M80 78 C 72 70, 74 64, 80 58 C 86 64, 88 70, 80 78 Z" fill="var(--hue-rose-500)" />
+        {HUES.slice(0, 4).map((h, i) => (
           <circle key={h} cx={28 + i * 7} cy={72} r={3} fill={`var(--hue-${h}-500)`} opacity={0.75} />
         ))}
-        {HUES.slice(5, 10).map((h, i) => (
+        {HUES.slice(4, 8).map((h, i) => (
           <circle key={h} cx={112 + i * 7} cy={72} r={3} fill={`var(--hue-${h}-500)`} opacity={0.75} />
         ))}
       </svg>

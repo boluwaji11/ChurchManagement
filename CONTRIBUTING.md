@@ -1,6 +1,6 @@
 # Contributing
 
-Hearth is free church management software, funded by donations and licensed
+Hearth is church management software for small churches, funded by donations and licensed
 [AGPL-3.0](LICENSE). Help is welcome.
 
 > **Status: pre-alpha.** The specification is complete, the code is not started. The most useful
@@ -34,16 +34,16 @@ The highest value contributions today:
 ## What gets accepted
 
 The scoping rule, from the PRD: **if a feature makes the product more powerful but less usable by a
-non-technical volunteer, it is cut or deferred.** Rock RMS is free and needs a developer. That is the
-failure we are avoiding, and it is a failure of accumulated features, not of any single one.
+non-technical volunteer, it is cut or deferred.** Rock RMS costs nothing and needs a developer. That
+is the failure we are avoiding, and it is a failure of accumulated features, not of any single one.
 
 Please check [PRD section 6](PRD.md) before proposing a feature. Some things are refused on purpose:
 general ledger accounting, a website builder, native mobile apps, livestreaming, multi-site, a workflow
 automation engine, and a custom report builder. Each has a reason listed.
 
-Settled decisions, not open for relitigation: free forever with no paid tier, hosted SaaS only in v1,
-Stripe Connect at a zero platform fee, bring-your-own email and SMS credentials, AGPL-3.0, and
-Supabase as the platform. All recorded with reasoning in [PRD section 13](PRD.md).
+Settled decisions, not open for relitigation: no paid tier ever, hosted SaaS only in v1, Stripe
+Connect at a zero platform fee, bring-your-own email and SMS credentials, AGPL-3.0, and Supabase as
+the platform. All recorded with reasoning in [PRD section 13](PRD.md).
 
 ## Non-negotiables
 
@@ -65,7 +65,9 @@ This applies to code comments, docs, UI copy, error messages, and commit message
 
 - **No em dashes.** Use a comma, a period, a colon, or restructure. Avoid en dashes too, including in
   numeric ranges. Write "50 to 500", not "50-500".
-- **Short comma-separated statement pauses.** "No pay, always free."
+- **Short comma-separated statement pauses.** "Every feature, every church, every time."
+- **Do not repeat the pricing as a slogan.** Make the cost argument once, then describe the product by
+  what it does.
 - **Plain, confident, concrete.** No filler, no marketing mush, no hedging. Write as though the reader
   is a busy pastor.
 - Error messages say what happened and what to do next. Never show a stack trace to a volunteer.
@@ -79,5 +81,5 @@ This applies to code comments, docs, UI copy, error messages, and commit message
 
 ## Licence
 
-Contributions are made under [AGPL-3.0](LICENSE). There is no CLA. The licence is what makes "free
-forever" true rather than promised, so it will not be changed.
+Contributions are made under [AGPL-3.0](LICENSE). There is no CLA. The licence is what keeps the
+pricing true rather than promised, so it will not be changed.

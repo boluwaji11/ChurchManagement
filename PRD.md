@@ -15,16 +15,16 @@
 
 ## 1. Summary
 
-Hearth is a church management platform given to churches at no cost. Not a trial, not a free
-tier, not a loss leader for an upsell. No pay, always free.
+Hearth is a church management platform for small churches, given to them at no cost and built for
+the volunteer who actually runs it.
 
 It starts as the system a church runs its week on: people, families, attendance, children's
 check-in, giving, groups, volunteers, and the Sunday service plan. Phase 2 adds Hearth Stage, a
 worship presenter that replaces ProPresenter and, crucially, already knows what is happening on
 Sunday because it reads the same service plan and the same song library.
 
-The platform is funded by donations and grants, hosted by us, and licensed AGPL-3.0 so that "free
-forever" is a property of the license and not a promise in a blog post.
+It is funded by donations and grants, hosted by us, and licensed AGPL-3.0, so that staying free is a
+property of the licence rather than a promise in a blog post.
 
 ### 1.1 The one-sentence thesis
 
@@ -144,16 +144,16 @@ need to be taught how.
 ## 4. Positioning
 
 **For** small and mid-size churches, **who** cannot justify $150 a month in software,
-**Hearth is** a complete church management platform **that** is free forever and built for a
+**Hearth is** a complete church management platform **that** costs nothing and is built for a
 volunteer, **unlike** Planning Center and Breeze, which charge per module, **and unlike** Rock RMS,
-which is free but needs a developer.
+which also costs nothing and needs a developer.
 
-Messaging, in the product's own voice:
+Messaging, in the product's own voice. Said once each, not repeated as a refrain:
 
-- No pay, always free.
 - Every feature, every church, every time. No modules, no tiers, no upsell.
 - Your giving goes to your bank, through your own Stripe account. We take nothing.
 - Your data is yours. Export all of it, any time, in one click.
+- Built for the volunteer who comes in on Tuesdays, not for a software buyer.
 
 ### 4.1 What makes this more than one more ChMS
 
@@ -188,11 +188,11 @@ decision in this document.
 
 ---
 
-## 5. How free stays free
+## 5. The funding model, and what it costs us
 
-A free platform without a funding model dies in eighteen months and takes its churches' data with
-it. So the funding model is a product requirement, and it has six consequences that constrain the
-build.
+A platform with no revenue and no funding model dies in eighteen months and takes its churches' data
+with it. So the funding model is a product requirement, and it has six consequences that constrain
+the build.
 
 **Funding:** donations from churches that can afford to give, individual supporters, and grants. No
 paid tier. No enterprise edition. No per-seat anything.
@@ -248,13 +248,13 @@ no support inbox.
 
 ### 5.5 Trust has to be structural
 
-Churches will ask three questions, and they are the right questions. Why is this free. Will you sell
-our data. What happens when you lose interest.
+Churches will ask three questions, and they are the right questions. Why does this cost nothing. Will
+you sell our data. What happens when you lose interest.
 
 Promises do not answer those. Structure does:
 
-- **AGPL-3.0 source.** Anyone can read it, run it, and fork it. The license makes a closed
-  commercial fork impossible, which is the point.
+- **AGPL-3.0 source.** Anyone can read it, run it, and fork it. The licence makes a closed
+  commercial fork impossible, which is what turns the pricing into a property of the licence.
 - **Complete export, always, ungated.** One click, every entity, open formats. The exit is the trust.
 - **A published wind-down commitment.** Ninety days' notice, final exports, and the self-host guide
   released on day one of any shutdown.
@@ -658,8 +658,8 @@ CCLI number, and validates against CCLI's required columns.
 ### 8.13 Giving
 
 Where the money is, and where the mission is. A church of two hundred pays roughly $1,200 a month in
-processing fees on Tithe.ly-class platforms. Hearth's giving is not just free, it is cheaper to
-operate, because we take nothing.
+processing fees on Tithe.ly-class platforms. Hearth's giving is cheaper to operate than that, not
+because of a discount, but because we take nothing at all.
 
 #### Online giving
 
@@ -860,7 +860,7 @@ clean Hearth instance with no data loss.
 
 ### 8.21 Security, privacy, and compliance
 
-A free platform has to be more careful than a paid one, not less, because there is no enterprise
+This platform has to be more careful than a paid one, not less, because there is no enterprise
 security team behind it and the data is unusually sensitive: minors' records, home addresses, giving
 amounts, counselling notes.
 
@@ -890,7 +890,7 @@ only replaced.
 ### 8.22 Onboarding and support
 
 Section 5.4 makes this a survival requirement rather than a courtesy. Every support conversation we do
-not need to have is what keeps the platform free.
+not need to have is what keeps the model viable.
 
 | ID | Rel | Requirement |
 |---|---|---|
@@ -952,7 +952,7 @@ Stage never ships.
 ### 8.24 Design system and front end
 
 Cross-cutting, and a requirement rather than a preference. Hearth replaces software churches pay for,
-so it has to look better than that software, not merely cost less. Free should not look free.
+so it has to look better than that software, not merely cost less.
 
 Full specification in [docs/design-system.md](docs/design-system.md). The requirements that belong in
 a PRD are here.
@@ -961,8 +961,8 @@ a PRD are here.
 |---|---|---|
 | R24.1 | 0.1 | **Three density modes from one system**: `office` (dense, desk, keyboard), `station` (Sunday kiosk, 56px targets, 20px text), `portal` (phone, app-like). Set on the root element, resolved through tokens, so a component is written once. |
 | R24.2 | 0.1 | **Design tokens in a platform-neutral source** (`packages/ui/tokens`), generated to CSS custom properties. Mobile comes later and must inherit the palette, scale, and motion rather than reinvent them. |
-| R24.3 | 0.1 | OKLCH colour throughout: warm stone neutrals, ink primary, ember accent, plus a **twelve-hue spectrum at matched lightness and chroma**. |
-| R24.4 | 0.2 | **Colour is assigned to things, not sprinkled on them.** Rooms, teams, group types, funds, ministries, and pipeline stages each own a hue, auto-assigned on creation for maximum separation and editable by the church. |
+| R24.3 | 0.1 | OKLCH colour throughout: warm stone neutrals, ink primary, ember accent, plus an **eight-hue spectrum at matched lightness and chroma**, evenly spread. Eight, because twelve read as a paint chart and the extra four were too close to their neighbours to tell apart at a glance. |
+| R24.4 | 0.2 | **Colour is assigned to things, not sprinkled on them.** Rooms, teams, group types, funds, ministries, and pipeline stages each own a hue, auto-assigned on creation for maximum separation and editable by the church. Everything else stays quiet: dashboard tiles are plain by default, and at most one in a row is tinted. |
 | R24.5 | 0.2 | **Check-in room colour prints on the child label** and tints the room card and the supervisor dashboard, so a volunteer can direct a parent by colour. Faster and more accurate than reading a room name. |
 | R24.6 | 1.0 | Master calendar, schedule grids, and all charts are colour-coded from the spectrum, with a categorical series keeping the same colour across every view of the same data. |
 | R24.7 | 0.1 | Type: a display serif (Fraunces) with a UI sans (Inter) and a mono for codes (JetBrains Mono), chosen because a volunteer reads a pickup code aloud and must not confuse 0 with O. Self-hosted, no layout shift. |
@@ -1162,7 +1162,7 @@ whether the product works. The second tells us whether it survives.
 | **Donations never cover hosting** | Critical | Section 5.6 gates growth on the coverage ratio. Costs are structurally low by design: no payment fees, no messaging costs, hard storage quotas. Worst case, growth pauses rather than the service degrading. |
 | **Support volume exceeds one person** | High | Community forum instead of an inbox, migration and onboarding as first-class requirements, and a product deliberately smaller than its competitors. If support still swamps us, the answer is narrowing the segment, not hiring. |
 | **Scope creep from the presenter** | High | Stage is Phase 2 with its own PRD, and Phase 1 owes it exactly two things: the song schema in 9.4 and the sync contract in 9.6. Nothing else about Stage may influence Phase 1 scope. |
-| **Churches distrust free** | High | Trust is structural, not promised: AGPL source, ungated export, published wind-down commitment, nonprofit governance, no model training. Pilot churches as references. |
+| **Churches distrust something given away** | High | Trust is structural, not promised: AGPL source, ungated export, published wind-down commitment, nonprofit governance, no model training. Pilot churches as references. |
 | **Solo maintainer bus factor** | High | Public source, documented architecture, a self-host guide committed to release on any shutdown, and no proprietary dependency that cannot be swapped. |
 | **Giving statements are wrong in January** | High | CPA review before 0.3 ships (R13.17), and the first pilot statement season is treated as a release gate. |
 | **A data breach of counselling notes or minors' records** | High | Field-level enforcement at the query layer, separate encryption for confidential notes, audit on read, MFA for privileged roles, annual penetration test. |
@@ -1222,8 +1222,8 @@ and currently paying for software. Recruitment is a tracked task, not an open sp
 ### 13.4 Licence: AGPL-3.0, final
 
 **Decision: AGPL-3.0.** The argument that matters is not developer preference, it is the trust
-argument in section 5.5. "Free forever" has to be a property of the licence rather than a promise,
-and AGPL makes a closed commercial fork of a hosted service impossible. Apache-2.0 would attract more
+argument in section 5.5. Staying free has to be a property of the licence rather than a promise, and
+AGPL makes a closed commercial fork of a hosted service impossible. Apache-2.0 would attract more
 outside contributors and give up the only structural guarantee we have. For a platform whose entire
 proposition is that it will not become expensive later, that is the wrong trade.
 

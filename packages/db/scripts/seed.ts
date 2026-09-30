@@ -6,7 +6,7 @@
 import { owner, closeConnections } from "../src/client";
 import { encryptNote } from "../src/crypto";
 
-type Hue = "rose" | "coral" | "amber" | "citron" | "fern" | "jade" | "teal" | "sky" | "indigo" | "violet" | "orchid" | "clay";
+type Hue = "rose" | "amber" | "citron" | "fern" | "teal" | "sky" | "indigo" | "violet";
 
 const CHURCHES = [
   {
@@ -41,7 +41,7 @@ const CHURCHES = [
         ["Kofi", "Mensah", "child", "2011-06-14", "member"],
       ]},
     ],
-    tags: [["Choir", "amber"], ["Greeter", "sky"], ["New in 2026", "coral"]] as [string, Hue][],
+    tags: [["Choir", "amber"], ["Greeter", "sky"], ["New in 2026", "rose"]] as [string, Hue][],
   },
   {
     slug: "northgate",
@@ -61,7 +61,7 @@ const CHURCHES = [
         ["Mateo", "Duarte", "head", "1995-02-11", "regular_attender"],
       ]},
     ],
-    tags: [["Hospitality", "jade"]] as [string, Hue][],
+    tags: [["Hospitality", "teal"]] as [string, Hue][],
   },
 ];
 

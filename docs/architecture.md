@@ -19,7 +19,7 @@ Decisions that are expensive to change later. Requirement IDs refer to [../PRD.m
 | Front end | Tailwind CSS v4, shadcn/ui on Radix, Lucide, Motion | See [design-system.md](design-system.md). |
 | Member app | PWA | Native apps are an explicit non-goal in v1. |
 | Presenter | Electron plus shared core, SQLite cache | See PRD section 8.23. |
-| Licence | AGPL-3.0 | Free forever as a property of the licence, not a promise. |
+| Licence | AGPL-3.0 | Makes the pricing a property of the licence, not a promise. |
 
 ## Packages
 

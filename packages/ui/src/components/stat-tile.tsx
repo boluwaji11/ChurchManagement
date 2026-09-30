@@ -4,8 +4,12 @@ import { cn } from "../lib/cn";
 import type { Hue } from "./hue";
 
 /**
- * A dashboard tile, tinted by domain: 100 background, keyed heading, one mark.
- * Six tiles, six hues, one glance. (design-system: where the interface is colourful)
+ * A dashboard tile.
+ *
+ * Restrained by default: a plain surface, a hairline, and one small keyed mark.
+ * A row of fully tinted tiles reads as decoration rather than information, and
+ * the eye stops sorting them. Pass `emphasis="tint"` for the one tile that
+ * genuinely needs to be seen first, not for all of them.
  */
 export function StatTile({
   label,
@@ -14,6 +18,7 @@ export function StatTile({
   delta,
   caption,
   icon,
+  emphasis = "quiet",
   className,
 }: {
   label: string;
@@ -22,23 +27,45 @@ export function StatTile({
   delta?: number;
   caption?: string;
   icon?: React.ReactNode;
+  emphasis?: "quiet" | "tint";
   className?: string;
 }) {
   const Trend = delta === undefined ? null : delta > 0 ? TrendingUp : delta < 0 ? TrendingDown : Minus;
+  const tinted = emphasis === "tint";
+
   return (
     <div
-      className={cn("flex flex-col gap-2 rounded-lg p-[var(--d-pad-card)] border", className)}
-      style={{
-        background: `var(--hue-${hue}-tint)`,
-        borderColor: `color-mix(in oklch, var(--hue-${hue}-500) 22%, transparent)`,
-      }}
+      className={cn(
+        "flex flex-col gap-2 rounded-lg border p-[var(--d-pad-card)]",
+        tinted ? "" : "bg-surface border-line shadow-sm",
+        className,
+      )}
+      style={
+        tinted
+          ? {
+              background: `var(--hue-${hue}-tint)`,
+              borderColor: `color-mix(in oklch, var(--hue-${hue}-500) 22%, transparent)`,
+            }
+          : undefined
+      }
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-label font-medium" style={{ color: `var(--hue-${hue}-key)` }}>
+        <span
+          className="text-label font-medium"
+          style={{ color: tinted ? `var(--hue-${hue}-key)` : undefined }}
+        >
           {label}
         </span>
         {icon ? (
-          <span aria-hidden className="opacity-70" style={{ color: `var(--hue-${hue}-key)` }}>
+          <span
+            aria-hidden
+            className={cn("inline-flex items-center justify-center", tinted ? "opacity-70" : "rounded-md p-1")}
+            style={
+              tinted
+                ? { color: `var(--hue-${hue}-key)` }
+                : { background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }
+            }
+          >
             {icon}
           </span>
         ) : null}

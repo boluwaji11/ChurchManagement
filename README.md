@@ -1,9 +1,9 @@
 # Hearth
 
-**Church management software. No pay, always free.**
+**Church management software a volunteer can run.**
 
-Hearth is a complete church management platform given to churches at no cost. Not a trial, not a
-free tier, not a loss leader for an upsell. Every feature, every church, every time.
+Hearth is a complete church management platform for small churches, given to them at no cost. Every
+feature, every church, every time. No modules, no tiers, no upsell.
 
 Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and already knows
 what is happening on Sunday, because it reads the same service plan and the same song library.
@@ -27,11 +27,11 @@ church receiving $40,000 a month online pays about $1,200 a month in processing 
 presenter, a website, a bulk email tool, and a church app, and a two hundred member congregation is
 carrying five subscriptions and a four figure annual software line.
 
-Free options exist. They do not work. Rock RMS is free, open source, and needs a Windows and .NET
-developer. ChurchCRM is free with a dated interface. Both assume a technical person the target
-church does not have.
+Zero-cost options exist. They do not work. Rock RMS is open source and needs a Windows and .NET
+developer. ChurchCRM is self-hostable with a dated interface. Both assume a technical person the
+target church does not have.
 
-**Free software for churches exists. Easy software for churches exists. Nothing is both.**
+**Software churches can afford exists. Software churches can use exists. Nothing is both.**
 
 Hearth is Rock RMS's price with Breeze's usability.
 
@@ -64,17 +64,17 @@ budgets, and excluding them is what makes shipping possible.
 
 Full requirements in [PRD.md](PRD.md). Release order in [ROADMAP.md](ROADMAP.md).
 
-## How free stays free
+## How it is paid for
 
-A free platform without a funding model dies in eighteen months and takes its churches' data with it.
-So the model is part of the design.
+A platform with no revenue and no funding model dies in eighteen months and takes its churches' data
+with it. So the model is part of the design.
 
-- **Funded by donations and grants.** No paid tier. No enterprise edition. No per-seat anything.
+- **Funded by donations and grants.** No paid tier, no enterprise edition, no per-seat anything.
 - **We never touch your money.** Giving runs through your own Stripe account with a platform fee of
-  zero. Funds go from the giver to your Stripe account to your bank. Giving through Hearth costs
-  less than Tithe.ly, because there is no margin stacked on top.
+  zero. Funds go from the giver to your Stripe account to your bank, which costs you less than
+  Tithe.ly, because there is no margin stacked on top.
 - **Bring your own email and SMS.** You supply your Resend, SMTP, or Twilio credentials and we send
-  through them. This is why we can afford to be free.
+  through them. That is what keeps our costs low enough to carry.
 - **Storage quotas are real and visible.** Sermon video belongs on YouTube.
 - **Support is a community forum**, not an inbox. That is what a donation-funded platform can carry.
 
@@ -82,7 +82,8 @@ So the model is part of the design.
 
 Promises are cheap, so these are structural instead.
 
-- **AGPL-3.0.** Read the code, run the code, fork the code. A closed commercial fork is not possible.
+- **AGPL-3.0.** Read the code, run the code, fork the code. A closed commercial fork is not possible,
+  which is what makes the pricing a property of the licence rather than a promise.
 - **Export everything, one click, any time.** No plan gate, no support ticket. The exit is the trust.
 - **A published wind-down commitment.** If we ever stop, you get ninety days' notice, final exports,
   and the self-host guide.
@@ -91,11 +92,12 @@ Promises are cheap, so these are structural instead.
 
 ## What it looks like
 
-Every competitor is a blue SaaS dashboard, grey on grey, one accent colour, no joy. Hearth is a warm
-canvas carrying a full spectrum, and the colour does real work: every room, team, group type, fund,
-and ministry owns a hue, so a calendar, a check-in floor, and a giving chart are readable at a glance
-instead of after reading. Your check-in room's colour prints on the child's label, so a volunteer can
-point a parent to the teal room without reading a word.
+Every competitor is a blue SaaS dashboard, grey on grey, one accent colour, no joy. Hearth uses a
+warm canvas and eight hues that do real work: every room, team, group type, fund, and ministry owns
+one, so a calendar, a check-in floor, and a giving chart are readable at a glance instead of after
+reading. Your check-in room's colour prints on the child's label, so a volunteer can point a parent
+to the teal room without reading a word. Everywhere that colour would not mean anything, there
+isn't any.
 
 One design system, three densities. **Office** is dense and keyboard-first for the admin at a desk.
 **Station** is a Sunday kiosk with 56px targets, 20px text, and 7:1 contrast, because 09:58 on a
@@ -158,4 +160,4 @@ type sizes, and motion durations are edited there and nowhere else.
 
 ## Licence
 
-[AGPL-3.0](LICENSE). Free forever, and the licence is what makes that true.
+[AGPL-3.0](LICENSE).
