@@ -58,6 +58,14 @@ export default async function ServicesPage({
             status: r.status,
             note: r.note,
             special: r.serviceTimeId === null,
+            adults: r.countAdults,
+            children: r.countChildren,
+            visitors: r.countVisitors,
+            total:
+              r.countAdults === null && r.countChildren === null && r.countVisitors === null
+                ? null
+                : (r.countAdults ?? 0) + (r.countChildren ?? 0) + (r.countVisitors ?? 0),
+            past: r.occursOn <= new Date().toISOString().slice(0, 10),
             serviceTimeId: r.serviceTimeId,
             readableDate: readableDate(r.occursOn),
             readableTime: readableTime(r.startsAt),

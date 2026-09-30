@@ -128,7 +128,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
-| HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | New |
+| HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | New |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | New |
 | HRT-51 | Absence detection against a configurable threshold | R7.6 | New |
@@ -187,8 +187,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** gatherings |
-| **Next** | HRT-48 headcounts, then HRT-49 individual attendance. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts |
+| **Next** | HRT-49 individual attendance, then HRT-50 visitor flagging. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -439,6 +439,20 @@ A Services tab sits beside Directory. One concept, one button.
 
 An earlier build of this had three ideas (a weekly pattern in Settings, a Fill the calendar button,
 and the services themselves) and two setup steps before any value. It is one idea now.
+
+### HRT-48, how to test it
+
+On Services, a service that has already happened has a Count button.
+
+1. **Count.** Adults, children, visitors, and a note. The total appears in the Attendance column.
+2. **Leave a box empty.** Empty means nobody counted. Zero means nobody came. They are kept apart,
+   because a year of attendance reports rests on the difference and a clipboard cannot tell them
+   apart.
+3. **A cancelled service has no count**, and the query layer refuses one if you reach for it.
+4. **A service still to come has no Count button.** There is nothing to count yet.
+
+Three numbers and a note is the whole of attendance for most churches this size, and the product
+does not ask them for more.
 
 ### HRT-46, how to test it
 

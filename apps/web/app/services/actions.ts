@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, addService, setOccurrenceCancelled, removeSpecialService,
-  updateOccurrence, stopRepeating,
+  withTenant, addService, setOccurrenceCancelled, updateOccurrence, stopRepeating,
+  setHeadcount,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 
@@ -85,18 +85,6 @@ export async function setCancelled(data: FormData): Promise<ServiceResult> {
   }
 }
 
-export async function removeGathering(data: FormData): Promise<ServiceResult> {
-  const { session, ctx } = await writeContext(text(data, "church") || undefined);
-  const actor = { tenantId: session.tenantId, role: session.role };
-
-  try {
-    await withTenant(ctx, (tx) => removeSpecialService(tx, actor, text(data, "id")));
-    done();
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
 
 export async function editGathering(data: FormData): Promise<ServiceResult> {
   const { session, ctx } = await writeContext(text(data, "church") || undefined);
@@ -118,3 +106,29 @@ export async function editGathering(data: FormData): Promise<ServiceResult> {
   }
 }
 
+export async function recordHeadcount(data: FormData): Promise<ServiceResult> {
+  const { session, ctx } = await writeContext(text(data, "church") || undefined);
+  const actor = { tenantId: session.tenantId, role: session.role };
+
+  // A blank field is nobody counted. A zero is nobody came. They are different
+  // facts, so an empty string becomes null rather than 0.
+  const number = (key: string) => {
+    const raw = text(data, key).trim();
+    return raw === "" ? null : Number(raw);
+  };
+
+  try {
+    await withTenant(ctx, (tx) =>
+      setHeadcount(tx, actor, text(data, "id"), {
+        adults: number("adults"),
+        children: number("children"),
+        visitors: number("visitors"),
+        note: text(data, "note"),
+      }),
+    );
+    done();
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}

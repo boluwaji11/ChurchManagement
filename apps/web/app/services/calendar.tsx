@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Undo2, Repeat, Pencil } from "lucide-react";
+import { Plus, X, Undo2, Repeat, Pencil, Users } from "lucide-react";
 import {
   Badge, Banner, Button, Card, Checkbox, EmptyState, Field, Input,
   Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogClose,
@@ -10,7 +10,7 @@ import {
 import { t } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
-import { addGathering, setCancelled, removeGathering, stopRepeat, editGathering } from "./actions";
+import { addGathering, setCancelled, stopRepeat, editGathering, recordHeadcount } from "./actions";
 
 export interface GatheringRow {
   id: string;
@@ -21,6 +21,11 @@ export interface GatheringRow {
   note: string | null;
   special: boolean;
   serviceTimeId: string | null;
+  adults: number | null;
+  children: number | null;
+  visitors: number | null;
+  total: number | null;
+  past: boolean;
   readableDate: string;
   readableTime: string;
 }
@@ -127,6 +132,7 @@ export function Calendar({
                 <Th>{t("services.date")}</Th>
                 <Th>{t("services.name")}</Th>
                 <Th>{t("services.time")}</Th>
+                <Th>{t("services.attendance")}</Th>
                 <Th>{t("services.status")}</Th>
                 <Th> </Th>
               </tr>
@@ -146,6 +152,13 @@ export function Calendar({
                     </Td>
                     <Td className={cancelled ? "text-fg-subtle" : undefined}>{row.readableTime}</Td>
                     <Td>
+                      {cancelled ? null : row.total === null ? (
+                        <span className="text-fg-subtle">{t("services.notCounted")}</span>
+                      ) : (
+                        <span className="text-fg">{row.total}</span>
+                      )}
+                    </Td>
+                    <Td>
                       <Badge tone={cancelled ? "warning" : "success"}>
                         {cancelled ? t("services.status.cancelled") : t("services.status.scheduled")}
                       </Badge>
@@ -153,6 +166,13 @@ export function Calendar({
                     <Td>
                       {canEdit ? (
                         <span className="flex flex-wrap justify-end gap-1">
+                          {row.past && !cancelled ? (
+                            <CountDialog
+                              row={row}
+                              pending={pending}
+                              onSave={(fields) => simple(recordHeadcount, { id: row.id, ...fields })}
+                            />
+                          ) : null}
                           <EditDialog
                             row={row}
                             pending={pending}
@@ -172,14 +192,7 @@ export function Calendar({
                               onConfirm={(note) => simple(setCancelled, { id: row.id, cancelled: "1", note })}
                             />
                           )}
-                          {row.special ? (
-                            <Button
-                              variant="ghost"
-                              onClick={() => simple(removeGathering, { id: row.id })}
-                            >
-                              {t("services.remove")}
-                            </Button>
-                          ) : (
+                          {row.special ? null : (
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button variant="ghost">{t("services.stopRepeat")}</Button>
@@ -331,6 +344,75 @@ function EditDialog({
           </div>
           <Field label={t("services.note")}>
             <Input name="note" value={note} onChange={(e) => setNote(e.target.value)} autoComplete="off" />
+          </Field>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * R7.2. Counting heads.
+ *
+ * Three boxes and a note, which is the whole of attendance for most churches
+ * this size and always will be. A box left empty means nobody counted, which is
+ * a different fact from a zero and is kept apart from it.
+ */
+function CountDialog({
+  row,
+  pending,
+  onSave,
+}: {
+  row: GatheringRow;
+  pending: boolean;
+  onSave: (fields: Record<string, string>) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const value = (n: number | null) => (n === null ? "" : String(n));
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant={row.total === null ? "secondary" : "ghost"}>
+          <Users /> {t("services.count")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent
+        title={t("services.countTitle", { name: row.name, date: row.readableDate })}
+        closeLabel={t("common.close")}
+      >
+        <form
+          action={(data) => {
+            onSave({
+              adults: String(data.get("adults") ?? ""),
+              children: String(data.get("children") ?? ""),
+              visitors: String(data.get("visitors") ?? ""),
+              note: String(data.get("note") ?? ""),
+            });
+            setOpen(false);
+          }}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-wrap gap-4">
+            <Field label={t("services.adults")} className="flex-1">
+              <Input name="adults" type="number" min={0} inputMode="numeric" defaultValue={value(row.adults)} />
+            </Field>
+            <Field label={t("services.children")} className="flex-1">
+              <Input name="children" type="number" min={0} inputMode="numeric" defaultValue={value(row.children)} />
+            </Field>
+            <Field label={t("services.visitors")} className="flex-1">
+              <Input name="visitors" type="number" min={0} inputMode="numeric" defaultValue={value(row.visitors)} />
+            </Field>
+          </div>
+          <Field label={t("services.note")}>
+            <Input name="note" defaultValue={row.note ?? ""} autoComplete="off" />
           </Field>
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending}>{t("action.save")}</Button>
