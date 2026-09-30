@@ -276,3 +276,79 @@ begin
     end if;
   end loop;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- R1.10. The signed-in user's own sessions, and remote revoke.
+--
+-- Supabase Auth owns the session records, in a schema the application role
+-- cannot read. The alternative is the service role key, and that key never
+-- appears in a request path. So two security-definer functions stand at the
+-- boundary instead, each one narrowed to the caller's own rows by
+-- app_user_id(), which is set from a membership-verified session rather than
+-- from anything the browser sent.
+--
+-- Written conditionally, because the auth schema belongs to Supabase and is
+-- absent in the CI database and in any plain Postgres. Where it is missing the
+-- functions are not created and the repository reports the feature as
+-- unavailable.
+-- ---------------------------------------------------------------------------
+
+do $$
+begin
+  if to_regclass('auth.sessions') is null then
+    raise notice 'auth.sessions not present, skipping session functions';
+    return;
+  end if;
+
+  execute $fn$
+    create or replace function public.my_sessions()
+    returns table (
+      id uuid,
+      created_at timestamptz,
+      refreshed_at timestamptz,
+      user_agent text,
+      ip text
+    )
+    language sql
+    security definer
+    set search_path = auth, pg_catalog
+    stable
+    as $body$
+      select s.id, s.created_at, coalesce(s.refreshed_at, s.updated_at, s.created_at),
+             s.user_agent, host(s.ip)
+      from auth.sessions s
+      where s.user_id = public.app_user_id()
+        and public.app_user_id() is not null
+      order by coalesce(s.refreshed_at, s.updated_at, s.created_at) desc
+    $body$;
+  $fn$;
+
+  -- Deleting the session is what ends it. The refresh tokens go with it through
+  -- their foreign key, so a revoked device cannot mint a new access token when
+  -- the one it holds expires.
+  execute $fn$
+    create or replace function public.revoke_session(p_session_id uuid)
+    returns integer
+    language plpgsql
+    security definer
+    set search_path = auth, pg_catalog
+    as $body$
+    declare
+      v_count integer;
+    begin
+      if public.app_user_id() is null then
+        return 0;
+      end if;
+      delete from auth.sessions
+      where id = p_session_id and user_id = public.app_user_id();
+      get diagnostics v_count = row_count;
+      return v_count;
+    end;
+    $body$;
+  $fn$;
+
+  execute 'revoke all on function public.my_sessions() from public';
+  execute 'revoke all on function public.revoke_session(uuid) from public';
+  execute 'grant execute on function public.my_sessions() to hearth_app';
+  execute 'grant execute on function public.revoke_session(uuid) to hearth_app';
+end $$;

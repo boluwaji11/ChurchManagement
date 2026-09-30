@@ -75,3 +75,28 @@ export const requireSession = cache(async (slug?: string): Promise<Session> => {
     memberships,
   };
 });
+
+/**
+ * The id of the session this request is using, for marking "this device" in the
+ * list and for keeping it when the others are ended.
+ *
+ * Read from the access token's own claim. The token was already verified by
+ * currentUser() through Supabase, and the claim is used only to compare against
+ * session ids the database returned, so a forged one matches nothing.
+ */
+export const currentSessionId = cache(async (): Promise<string | null> => {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const json = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+      session_id?: string;
+    };
+    return json.session_id ?? null;
+  } catch {
+    return null;
+  }
+});

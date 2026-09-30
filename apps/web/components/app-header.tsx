@@ -56,10 +56,14 @@ export function AppHeader({ session }: { session: Session }) {
 
         <div className="flex items-center gap-3">
           <Badge tone="neutral">{t(`role.${session.role}`)}</Badge>
-          <span className="hidden items-center gap-2 sm:flex">
+          <Link
+            href={`/account?church=${session.tenantSlug}`}
+            aria-label={t("nav.account")}
+            className="hidden items-center gap-2 rounded-md px-1.5 py-1 hover:bg-sunken sm:flex"
+          >
             <Avatar name={session.email} id={session.userId} size="sm" />
             <span className="text-caption text-fg-muted">{session.email}</span>
-          </span>
+          </Link>
           <SignOutButton />
         </div>
       </div>

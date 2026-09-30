@@ -71,7 +71,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.x | Closed |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
-| HRT-14 | Active session list with remote revoke | R1.10 | New |
+| HRT-14 | Active session list with remote revoke | R1.10 | Resolved |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Resolved |
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Resolved |
@@ -147,8 +147,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-23** milestones, **HRT-15** settings, **HRT-42** date field |
-| **Next** | HRT-14 session list, then HRT-26 background checks, then HRT-27 birthdays |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge, **HRT-23** milestones, **HRT-15** settings, **HRT-42** date field, **HRT-14** sessions |
+| **Next** | HRT-18 storage quota, then HRT-31 sample data, then HRT-13 MFA |
 
 ### HRT-16, how to test it
 
@@ -321,6 +321,25 @@ Every date on a person's record, a milestone and a custom field.
    the week, Enter chooses, Escape closes. The grid is one tab stop.
 5. **Limits.** A milestone cannot be given a future date, and those days are greyed and refuse the
    press.
+
+### HRT-14, how to test it
+
+Press your email in the top right. Every device holding a live sign-in is listed.
+
+1. **Two devices.** Sign in on your phone as well. Both appear, named by browser and platform, with
+   the address and when each was last used. The one you are reading is marked.
+2. **End one.** Sign out a device from the other device. Reload on the signed-out one: back to the
+   sign-in page. It cannot mint a new token either, because the refresh tokens go with the session.
+3. **End the rest.** "Sign out everywhere else" keeps the device you are on. That is the press
+   somebody makes from a friend's laptop after using the church office computer.
+4. **It is yours only.** The list is narrowed to your own user inside the database function, so
+   another admin's devices never appear, and a session id typed into the form revokes nothing.
+
+The session records belong to Supabase Auth, in a schema the app role cannot read. Reaching them
+with the service role key would put that key in a request path, which it may never be in. Two
+security-definer functions stand at that boundary instead, both narrowed by the verified user id.
+
+On a database without Supabase Auth, including CI, the functions are absent and the card says so.
 
 ### HRT-32, how to test it
 

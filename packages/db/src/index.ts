@@ -33,6 +33,7 @@ export {
 export * from "./repo/relationships";
 export * from "./repo/milestones";
 export * from "./repo/church";
+export * from "./repo/sessions";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
