@@ -57,14 +57,12 @@ export function Directory({
   tags,
   canEdit,
   canArchive,
-  total,
 }: {
   church: string;
   rows: Row[];
   tags: TagOption[];
   canEdit: boolean;
   canArchive: boolean;
-  total: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -242,11 +240,6 @@ export function Directory({
         </Table>
       )}
 
-      <p className="text-caption text-fg-muted">
-        {filtersOn
-          ? `${plural("people.count", rows.length)} ${t("directory.of", { total })}`
-          : plural("people.count", rows.length)}
-      </p>
     </div>
   );
 }

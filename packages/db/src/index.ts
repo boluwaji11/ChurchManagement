@@ -26,6 +26,10 @@ export {
   CAN_MANAGE_CUSTOM_FIELDS, CUSTOM_FIELD_TYPES, CUSTOM_FIELD_ENTITIES,
   type CustomFieldDef, type CustomFieldType, type CustomFieldEntity, type CustomValue,
 } from "./repo/custom-fields";
+export {
+  mergePeople, undoMerge, listMerges, findDuplicatePairs, MERGE_UNDO_WINDOW_DAYS,
+  type MergePlan, type MergeResult, type MergeSummary, type DuplicatePair,
+} from "./repo/merge";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,

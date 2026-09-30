@@ -152,8 +152,13 @@ These rules apply to code comments, docs, UI copy, commit messages, error messag
 
 - **No em dashes. Ever.** Use a comma, a period, a colon, parentheses, or restructure the sentence.
   Avoid en dashes too, including in numeric ranges. Write "50 to 500", not "50-500".
-- **Use short comma-separated statement pauses for punch.** "Every feature, every church, every time."
-  "It ships, or it does not." Short clauses, landing hard.
+- **Never use the contrast construction.** No "X, never Y". No "X, not Y". No "A, always B". No
+  "Nothing is deleted". This includes the whole family: a claim followed by a comma and the negation
+  or opposite of itself, for rhetorical punch. "Archive, never delete." "It ships, or it does not."
+  "They leave every list. Nothing is deleted." All banned, in UI copy, docs, comments and commits.
+  Say the one true thing and stop: "They come off every list. Their records stay."
+  This replaces the earlier guidance asking for comma-separated statement pauses. That guidance
+  produced a tic, the tic spread everywhere, and it grates. Do not reintroduce it.
 - **Do not repeat the pricing as a slogan.** The cost argument is made once, where it is evidence, and
   then the product is described by what it does. A word repeated becomes noise, and a product that
   keeps insisting it is cheap sounds like it has nothing else to say.

@@ -40,6 +40,7 @@ const TABLES = [
   "notes",
   "import_batches",
   "import_rows",
+  "person_merges",
   "audit_entries",
 ] as const;
 

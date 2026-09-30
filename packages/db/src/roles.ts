@@ -61,4 +61,4 @@ export type PermissionAction =
   | "addPerson" | "editPerson" | "archivePerson" | "restorePerson"
   | "createTag" | "renameTag" | "recolourTag" | "deleteTag" | "mergeTags" | "tagPerson"
   | "addField" | "editField" | "deleteField" | "setFieldValue"
-  | "rollbackImport" | "exportEverything";
+  | "rollbackImport" | "exportEverything" | "mergePeople";

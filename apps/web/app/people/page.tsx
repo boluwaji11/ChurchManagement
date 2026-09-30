@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { Users, UserPlus, HeartHandshake, Plus, Download } from "lucide-react";
 import {
-  withTenant, listPeople, countPeopleByStatus, listTagsWithCounts,
+  withTenant, listPeople, countPeopleByStatus, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople,
 } from "@hearth/db";
 import { StatTile, Button, Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import { PageTitle, Section } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
@@ -22,13 +22,14 @@ export default async function PeoplePage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  const { people, counts, tags, total } = await withTenant(
+  const { people, counts, tags, total, duplicates } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       people: await listPeople(tx, queryFromParams(params)),
       counts: await countPeopleByStatus(tx),
       tags: await listTagsWithCounts(tx),
       total: (await listPeople(tx)).length,
+      duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
     }),
   );
 
@@ -57,6 +58,14 @@ export default async function PeoplePage({
             </div>
           ) : null}
         </div>
+
+        {duplicates > 0 ? (
+          <Banner tone="warning" title={t("merge.title")} className="mb-8">
+            <Link href={`/duplicates?church=${session.tenantSlug}`} className="underline hover:text-fg">
+              {plural("merge.pending", duplicates)}
+            </Link>
+          </Banner>
+        ) : null}
 
         {params.archived ? (
           <Banner tone="success" title={t("person.archived.title")} className="mb-8" />
@@ -90,7 +99,6 @@ export default async function PeoplePage({
           church={session.tenantSlug}
           canEdit={canEdit}
           canArchive={canArchivePeople(session.role)}
-          total={total}
           tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
           rows={people.map((p) => ({
             id: p.id,

@@ -34,9 +34,11 @@ describe("lookup", () => {
 
 describe("plurals", () => {
   it("picks the form the locale asks for", () => {
-    expect(plural("people.count", 1)).toBe("1 person, ordered by surname.");
-    expect(plural("people.count", 7)).toBe("7 people, ordered by surname.");
-    expect(plural("people.count", 0)).toBe("0 people, ordered by surname.");
+    expect(plural("tags.peopleCount", 1)).toBe("1 person");
+    expect(plural("tags.peopleCount", 7)).toBe("7 people");
+    // Zero takes the plural in English, which is the case a hand written
+    // ternary on n === 1 gets right by accident and other locales get wrong.
+    expect(plural("tags.peopleCount", 0)).toBe("0 people");
   });
 
   it("always exposes the count without being passed it", () => {

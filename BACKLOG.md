@@ -91,7 +91,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-21 | **Add, edit and archive a person. Households and contact methods.** | R2.1 to R2.3, R2.5, R2.13 | Closed |
 | HRT-22 | Relationships, independent of household | R2.4 | New |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | New |
-| HRT-24 | Duplicate **merge**, reversible for 30 days. Detection shipped with HRT-28. | R2.8 | New |
+| HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Resolved |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Resolved |
 | HRT-40 | Directory search, filtering and sorting | R2.x | Resolved |
 | HRT-26 | Background check status and expiry tracking | R2.10 | New |
@@ -145,8 +145,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory |
-| **Next** | HRT-24 duplicate merge, then HRT-22 relationships and HRT-23 milestones |
+| **Waiting on a test** | **HRT-16** fields, **HRT-32** church, **HRT-36** strings, **HRT-37** CI, **HRT-28**, **HRT-38**, **HRT-29** import, **HRT-30** export, **HRT-40** and **HRT-25** directory, **HRT-24** merge |
+| **Next** | HRT-22 relationships, then HRT-23 milestones, then HRT-15 church settings |
 
 ### HRT-16, how to test it
 
@@ -221,6 +221,23 @@ The directory now has a toolbar.
    ran the same query the URL describes.
 6. **Roles.** `staff` can select, tag and set status, but the archive button is not there.
    `pastoral` sees no checkboxes and no export.
+
+### HRT-24, how to test it
+
+A banner appears on the directory when anything looks like a duplicate, linking to the review queue.
+
+1. **Make one.** Add two people with the same email address, or import a file twice choosing "Add
+   them again anyway". Both appear as a pair, marked by how sure the match is.
+2. **Choose which survives.** Press either card. Where the two records disagree, you pick which
+   value wins, field by field. Switching which record survives resets those choices rather than
+   inverting them.
+3. **Merge.** Contact details, notes, tags, milestones and history move across. The other record is
+   archived, never deleted.
+4. **Undo it.** Past merges are listed underneath. Undo puts both records back, returns exactly the
+   rows that moved, and restores any field that was written over. A note written *after* the merge
+   stays with the surviving person, because it was never part of it.
+5. **Roles.** Owner and Admin only. `staff` can edit people but cannot merge them, since one press
+   moves every note off one record and onto another.
 
 ### HRT-32, how to test it
 
