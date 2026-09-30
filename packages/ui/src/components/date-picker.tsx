@@ -3,6 +3,7 @@
 import * as React from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "../lib/cn";
+import { useDrop } from "../lib/drop";
 
 /**
  * A date field and calendar of our own.
@@ -155,6 +156,7 @@ export function DatePicker({
   const [typed, setTyped] = React.useState<string | null>(null);
   const [locale, setLocale] = React.useState<string | undefined>(undefined);
   const root = React.useRef<HTMLDivElement>(null);
+  const panel = React.useRef<HTMLDivElement>(null);
   const grid = React.useRef<HTMLDivElement>(null);
 
   // Resolved after mount. Reading it during render would make the server and
@@ -179,7 +181,9 @@ export function DatePicker({
   React.useEffect(() => {
     if (!open) return;
     const away = (e: MouseEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (root.current?.contains(target) || panel.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", away);
     return () => document.removeEventListener("mousedown", away);
@@ -277,6 +281,8 @@ export function DatePicker({
     return span;
   }, [min, max]);
 
+  const drop = useDrop(open, root, { height: 392, width: 304 });
+
   const today = todayIso();
   const shown = typed ?? (value ? shortDate(value, locale) : "");
 
@@ -342,10 +348,12 @@ export function DatePicker({
 
       {open ? (
         <div
+          ref={panel}
           role="dialog"
           aria-label={labels.open}
+          style={drop}
           className={cn(
-            "absolute z-50 mt-1 w-[19rem] p-3",
+            "z-50 overflow-y-auto p-3",
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
         >

@@ -130,7 +130,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 | HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
 | HRT-68 | Repeats: a frequency and an end date, rather than weekly forever | R7.1 | Resolved |
 | HRT-69 | A month at a time, rather than every service ever | R7.1 | Resolved |
-| HRT-70 | A month grid, as well as the list | R7.1 | New |
+| HRT-70 | Three views of a month: list, calendar grid and tiles | R7.1 | Resolved |
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Resolved |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Resolved |
@@ -210,7 +210,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster, **HRT-50** visitor flags, **HRT-51** absence, **HRT-68** repeats, **HRT-69** months, **HRT-70** views |
 | **Next** | HRT-64 the Insights page, then HRT-52 group and event attendance. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -595,3 +595,18 @@ Churches used to exist only because the seed script made them. Now anyone signed
    pastor: refused, exactly like a church that does not exist.
 5. **Existing members.** The same button is on the chooser for someone already in a church, as a
    secondary action rather than the main one.
+
+### HRT-70, how to test it
+
+Services, with a month showing.
+
+1. **Three shapes.** The control beside the month name switches between list, calendar and tiles.
+   The month arrows and "This month" keep whichever is showing, and so does a bookmark.
+2. **The grid.** Every service is a chip on its day, coloured by state, and today has a ring.
+   A chip opens the same buttons the list row has: the roster, the count, edit, cancel.
+3. **A month with nothing in it.** The calendar still draws. The list and the tiles say so.
+4. **Add a service.** Repeats starts at "Does not repeat", and the end date appears once it repeats.
+5. **The time field.** It offers 9:00 AM rather than 09:00, opens near nine in the morning rather
+   than midnight, and takes "9", "9am", "9.30pm" or "21:30" typed.
+6. **The date field near the bottom of the screen.** Open the calendar with the dialog low in the
+   window. It opens upward and stays on screen.

@@ -8,6 +8,8 @@ import { AppHeader } from "@/components/app-header";
 import { Calendar } from "./calendar";
 import { churchNow, hasHappened } from "@/lib/church-now";
 import { MonthBar } from "./month";
+import { ViewBar } from "./views";
+import { isView } from "./view";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +22,7 @@ const readableTime = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
   const d = new Date();
   d.setHours(h ?? 0, m ?? 0, 0, 0);
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true });
 };
 
 /** "2026-09" to the first and last day of that month. */
@@ -41,9 +43,10 @@ const isMonth = (value: string | undefined): value is string => /^\d{4}-\d{2}$/.
 export default async function ServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; month?: string }>;
+  searchParams: Promise<{ church?: string; month?: string; view?: string }>;
 }) {
-  const { church, month: asked } = await searchParams;
+  const { church, month: asked, view: askedView } = await searchParams;
+  const view = isView(askedView) ? askedView : "list";
   const session = await requireSession(church);
 
   const { rows, present, timezone, month, thisMonth } = await withTenant(
@@ -79,7 +82,7 @@ export default async function ServicesPage({
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageTitle title={t("services.title")} lede={session.tenantName} />
 
-        <div className="mb-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <MonthBar
             church={session.tenantSlug}
             month={month}
@@ -89,12 +92,17 @@ export default async function ServicesPage({
             previous={shiftMonth(month, -1)}
             next={shiftMonth(month, 1)}
             isThisMonth={month === thisMonth}
+            view={view}
           />
+          <ViewBar church={session.tenantSlug} month={month} view={view} />
         </div>
 
         <Calendar
           church={session.tenantSlug}
           canEdit={canManageServices(session.role)}
+          view={view}
+          month={month}
+          today={now.date}
           rows={rows.map((r) => ({
             id: r.id,
             name: r.name,

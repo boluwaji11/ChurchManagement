@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Clock, X } from "lucide-react";
 import { cn } from "../lib/cn";
+import { useDrop } from "../lib/drop";
 
 /**
  * A time field and a list of times.
@@ -13,8 +14,8 @@ import { cn } from "../lib/cn";
  * times they would rather point at.
  *
  * The value is always 24-hour HH:MM, which is what the database holds. What is
- * shown is the reader's own clock, so an American sees 9:00 AM and a German
- * sees 09:00.
+ * shown is the twelve hour clock with AM or PM, which is how a service time is
+ * said out loud and how it goes on the noticeboard.
  */
 
 export interface TimePickerLabels {
@@ -81,13 +82,19 @@ function build(hour: number, minute: number, suffix?: string): string | null {
   return `${pad(hour)}:${pad(minute)}`;
 }
 
-/** "09:00" as the reader's clock reads it. */
+/**
+ * "09:00" as a church says it: 9:00 AM.
+ *
+ * Twelve hour with a meridiem, whatever the browser's locale would have
+ * chosen. A service time is spoken aloud and printed on a noticeboard, and
+ * "21:00" is not how anybody says the evening service.
+ */
 export function formatTime(value: string, locale?: string): string {
   const match = /^(\d{2}):(\d{2})$/.exec(value);
   if (!match) return value;
   const d = new Date();
   d.setHours(Number(match[1]), Number(match[2]), 0, 0);
-  return d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
 export function TimePicker({
@@ -108,6 +115,7 @@ export function TimePicker({
   const [locale, setLocale] = React.useState<string | undefined>(undefined);
   const [active, setActive] = React.useState(0);
   const root = React.useRef<HTMLDivElement>(null);
+  const list = React.useRef<HTMLUListElement>(null);
   const input = React.useRef<HTMLInputElement>(null);
   const listId = React.useId();
 
@@ -137,7 +145,9 @@ export function TimePicker({
   React.useEffect(() => {
     if (!open) return;
     const away = (e: MouseEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (root.current?.contains(target) || list.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", away);
     return () => document.removeEventListener("mousedown", away);
@@ -180,6 +190,26 @@ export function TimePicker({
       setOpen(false);
     }
   };
+
+  const drop = useDrop(open, root, { height: 288 });
+
+  // Opening on an empty field puts nine in the morning under the cursor rather
+  // than midnight, and opening on a value puts that value there.
+  React.useEffect(() => {
+    if (!open) return;
+    if (typed === null) {
+      const at = matches.indexOf(value || "09:00");
+      if (at >= 0) setActive(at);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    list.current
+      ?.querySelector<HTMLLIElement>(`[data-active="true"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [open, active]);
 
   const shown = typed ?? (value ? formatTime(value, locale) : "");
 
@@ -246,10 +276,12 @@ export function TimePicker({
 
       {open ? (
         <ul
+          ref={list}
           id={listId}
           role="listbox"
+          style={drop}
           className={cn(
-            "absolute z-50 mt-1 max-h-64 w-full min-w-36 overflow-y-auto p-1",
+            "z-50 min-w-36 overflow-y-auto p-1",
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
         >
@@ -259,6 +291,7 @@ export function TimePicker({
               id={`${listId}-${i}`}
               role="option"
               aria-selected={time === value}
+              data-active={i === active}
               onMouseEnter={() => setActive(i)}
               onMouseDown={(e) => { e.preventDefault(); choose(time); }}
               className={cn(

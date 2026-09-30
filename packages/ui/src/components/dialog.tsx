@@ -22,7 +22,10 @@ export const DialogContent = React.forwardRef<
     <P.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2",
+        // Centred by margins rather than a translate. A transform on this box
+        // would become the containing block for anything positioned inside it,
+        // and a date field's calendar has to be placed against the window.
+        "fixed inset-0 z-50 m-auto h-fit w-[calc(100vw-2rem)] max-w-lg",
         "rounded-xl border border-line bg-surface shadow-lg p-6",
         "data-[state=open]:animate-[hearth-pop_var(--duration-base)_var(--ease-out)]",
         className,

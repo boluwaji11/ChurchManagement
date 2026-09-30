@@ -1,6 +1,6 @@
 /** The typed half of the time field. Typing 9am beats three spin columns. */
 import { describe, it, expect } from "vitest";
-import { parseTime } from "../src/components/time-picker";
+import { parseTime, formatTime } from "../src/components/time-picker";
 
 describe("what somebody typed", () => {
   it("takes the ways people write a service time", () => {
@@ -30,5 +30,22 @@ describe("what somebody typed", () => {
       if (typed === "") continue;
       expect(parseTime(typed), typed).toBeNull();
     }
+  });
+});
+
+describe("what the field shows", () => {
+  it("says a service time the way a church says it", () => {
+    expect(formatTime("09:00", "en-US")).toBe("9:00 AM");
+    expect(formatTime("21:30", "en-US")).toBe("9:30 PM");
+  });
+
+  it("keeps the meridiem for a reader whose locale would drop it", () => {
+    for (const locale of ["en-GB", "de-DE", "fr-FR"]) {
+      expect(formatTime("21:30", locale), locale).toMatch(/9[:.]30/);
+    }
+  });
+
+  it("leaves anything that is not a time alone", () => {
+    expect(formatTime("")).toBe("");
   });
 });

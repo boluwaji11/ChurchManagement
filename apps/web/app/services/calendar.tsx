@@ -13,6 +13,9 @@ import { t, plural } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
 import { addGathering, setCancelled, stopRepeat, editGathering, recordHeadcount } from "./actions";
+import { MonthGrid } from "./grid";
+import { Tiles } from "./tiles";
+import type { View } from "./view";
 
 const REPEATS = ["never", "weekly", "fortnightly", "monthly"] as const;
 
@@ -50,15 +53,23 @@ export function Calendar({
   church,
   rows,
   canEdit,
+  view,
+  month,
+  today,
 }: {
   church: string;
   rows: GatheringRow[];
   canEdit: boolean;
+  view: View;
+  /** "2026-09", for the grid. */
+  month: string;
+  /** The church's own today, as ISO. */
+  today: string;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
-  const [repeat, setRepeat] = React.useState("weekly");
+  const [repeat, setRepeat] = React.useState("never");
   const [adding, setAdding] = React.useState(false);
 
   const act = (
@@ -82,6 +93,83 @@ export function Calendar({
     for (const [k, v] of Object.entries(fields)) data.set(k, v);
     act(fn, data);
   };
+
+  /**
+   * What a church can do to one service. The list row, the calendar chip and
+   * the tile all offer the same set, so it is written once.
+   */
+  const rowActions = (row: GatheringRow) => {
+    const cancelled = row.status === "cancelled";
+    return (
+      <>
+                {row.past && !cancelled ? (
+                  <Button variant="ghost" asChild>
+                    <Link href={`/services/${row.id}?church=${church}`}>
+                      <ClipboardList /> {t("roster.title")}
+                    </Link>
+                  </Button>
+                ) : null}
+                {row.past && !cancelled ? (
+                  <CountDialog
+                    row={row}
+                    pending={pending}
+                    onSave={(fields) => simple(recordHeadcount, { id: row.id, ...fields })}
+                  />
+                ) : null}
+                <EditDialog
+                  row={row}
+                  pending={pending}
+                  onSave={(fields) => simple(editGathering, { id: row.id, ...fields })}
+                />
+                {cancelled ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() => simple(setCancelled, { id: row.id, cancelled: "0" })}
+                  >
+                    <Undo2 /> {t("services.restore")}
+                  </Button>
+                ) : (
+                  <CancelDialog
+                    row={row}
+                    pending={pending}
+                    onConfirm={(note) => simple(setCancelled, { id: row.id, cancelled: "1", note })}
+                  />
+                )}
+                {row.special ? null : (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost">{t("services.stopRepeat")}</Button>
+                    </DialogTrigger>
+                    <DialogContent
+                      title={t("services.stopRepeatTitle", { name: row.name })}
+                      closeLabel={t("common.close")}
+                    >
+                      <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
+                        {t("services.stopRepeatBody")}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <DialogClose asChild>
+                          <Button
+                            variant="danger"
+                            onClick={() =>
+                              simple(stopRepeat, { serviceTimeId: row.serviceTimeId ?? "" })
+                            }
+                          >
+                            {t("services.stopRepeat")}
+                          </Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                          <Button variant="ghost">{t("action.cancel")}</Button>
+                        </DialogClose>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+      </>
+    );
+  };
+
+  const actionsFor = canEdit ? rowActions : () => null;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
@@ -150,8 +238,12 @@ export function Calendar({
         </div>
       ) : null}
 
-      {rows.length === 0 ? (
+      {rows.length === 0 && view !== "calendar" ? (
         <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
+      ) : view === "calendar" ? (
+        <MonthGrid month={month} rows={rows} today={today} actions={actionsFor} />
+      ) : view === "tiles" ? (
+        <Tiles rows={rows} actions={actionsFor} />
       ) : (
         <Card className="p-0">
           <Table>
@@ -210,69 +302,7 @@ export function Calendar({
                     <Td>
                       {canEdit ? (
                         <span className="flex flex-wrap justify-end gap-1">
-                          {row.past && !cancelled ? (
-                            <Button variant="ghost" asChild>
-                              <Link href={`/services/${row.id}?church=${church}`}>
-                                <ClipboardList /> {t("roster.title")}
-                              </Link>
-                            </Button>
-                          ) : null}
-                          {row.past && !cancelled ? (
-                            <CountDialog
-                              row={row}
-                              pending={pending}
-                              onSave={(fields) => simple(recordHeadcount, { id: row.id, ...fields })}
-                            />
-                          ) : null}
-                          <EditDialog
-                            row={row}
-                            pending={pending}
-                            onSave={(fields) => simple(editGathering, { id: row.id, ...fields })}
-                          />
-                          {cancelled ? (
-                            <Button
-                              variant="ghost"
-                              onClick={() => simple(setCancelled, { id: row.id, cancelled: "0" })}
-                            >
-                              <Undo2 /> {t("services.restore")}
-                            </Button>
-                          ) : (
-                            <CancelDialog
-                              row={row}
-                              pending={pending}
-                              onConfirm={(note) => simple(setCancelled, { id: row.id, cancelled: "1", note })}
-                            />
-                          )}
-                          {row.special ? null : (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="ghost">{t("services.stopRepeat")}</Button>
-                              </DialogTrigger>
-                              <DialogContent
-                                title={t("services.stopRepeatTitle", { name: row.name })}
-                                closeLabel={t("common.close")}
-                              >
-                                <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
-                                  {t("services.stopRepeatBody")}
-                                </p>
-                                <div className="flex flex-wrap items-center gap-3">
-                                  <DialogClose asChild>
-                                    <Button
-                                      variant="danger"
-                                      onClick={() =>
-                                        simple(stopRepeat, { serviceTimeId: row.serviceTimeId ?? "" })
-                                      }
-                                    >
-                                      {t("services.stopRepeat")}
-                                    </Button>
-                                  </DialogClose>
-                                  <DialogClose asChild>
-                                    <Button variant="ghost">{t("action.cancel")}</Button>
-                                  </DialogClose>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          )}
+                          {rowActions(row)}
                         </span>
                       ) : null}
                     </Td>

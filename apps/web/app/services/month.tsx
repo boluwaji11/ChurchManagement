@@ -20,6 +20,7 @@ export function MonthBar({
   previous,
   next,
   isThisMonth,
+  view,
 }: {
   church: string;
   month: string;
@@ -27,8 +28,9 @@ export function MonthBar({
   previous: string;
   next: string;
   isThisMonth: boolean;
+  view: string;
 }) {
-  const href = (m: string) => `/services?church=${church}&month=${m}`;
+  const href = (m: string) => `/services?church=${church}&month=${m}&view=${view}`;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -44,7 +46,7 @@ export function MonthBar({
 
       {isThisMonth ? null : (
         <Button variant="ghost" asChild>
-          <Link href={`/services?church=${church}`}>{t("services.month.today")}</Link>
+          <Link href={`/services?church=${church}&view=${view}`}>{t("services.month.today")}</Link>
         </Button>
       )}
       <span className="sr-only">{month}</span>
