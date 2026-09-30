@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Three rising embers, the same mark as the sign-in page. Drawn on a warm
+       stone tile so it reads on both a light and a dark browser chrome. -->
+  <rect width="32" height="32" rx="7" fill="oklch(0.198 0.009 75)"/>
+  <rect x="7"  y="17" width="4.5" height="8"  rx="2.25" fill="oklch(0.742 0.162 62)" opacity="0.5"/>
+  <rect x="13.75" y="13" width="4.5" height="12" rx="2.25" fill="oklch(0.742 0.162 62)" opacity="0.75"/>
+  <rect x="20.5" y="8"  width="4.5" height="17" rx="2.25" fill="oklch(0.742 0.162 62)"/>
+</svg>

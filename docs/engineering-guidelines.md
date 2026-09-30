@@ -129,6 +129,12 @@ Hearth replaces software churches pay for, so it has to look better than that so
 **One step at a time.** The user tests each deliverable before the next begins. Do not run ahead into
 the next release. Finish a step, say plainly what to test and how, and stop.
 
+**Never build into a directory a running dev server is serving from.** Deleting or rebuilding `.next`
+underneath `next dev` leaves its manifest pointing at chunks that no longer exist, and the page loads
+with no CSS and no JS, which looks like a catastrophic bug and is not one. Scripted verification uses
+`pnpm build:verify`, which writes to `.next-verify` through the `NEXT_DIST_DIR` env var. The same rule
+applies to a verification dev server: give it its own dist directory and its own port.
+
 ## Writing style, applies to everything
 
 These rules apply to code comments, docs, UI copy, commit messages, error messages, and chat replies.

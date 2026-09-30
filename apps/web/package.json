@@ -6,7 +6,8 @@
     "dev": "next dev --port ${PORT:-4488}",
     "build": "next build",
     "start": "next start --port ${PORT:-4488}",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:verify": "NEXT_DIST_DIR=.next-verify next build"
   },
   "dependencies": {
     "@hearth/db": "workspace:*",

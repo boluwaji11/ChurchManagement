@@ -6,6 +6,8 @@ node_modules/
 dist/
 build/
 .next/
+.next-verify/
+.next-dev-verify/
 out/
 *.tsbuildinfo
 

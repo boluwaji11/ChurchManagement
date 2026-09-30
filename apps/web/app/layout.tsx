@@ -9,7 +9,9 @@ import "./globals.css";
  */
 const display = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
 const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
+// Not used above the fold on most pages, so preloading it only earns a console
+// warning about an unused preload.
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap", preload: false });
 
 export const metadata: Metadata = {
   title: "Hearth",

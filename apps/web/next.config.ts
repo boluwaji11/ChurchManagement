@@ -11,6 +11,14 @@ const rootEnv = resolve(import.meta.dirname, "../../.env.local");
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 const config: NextConfig = {
+  /**
+   * A verification build must never write into the directory a running dev
+   * server is serving from. Deleting or rebuilding .next underneath `next dev`
+   * leaves its manifest pointing at chunks that no longer exist, and the page
+   * loads with no CSS and no JS. Scripted builds set NEXT_DIST_DIR and stay out
+   * of the way.
+   */
+  distDir: process.env["NEXT_DIST_DIR"] || ".next",
   transpilePackages: ["@hearth/ui", "@hearth/db"],
   // postgres.js is a server driver. Keep it out of the bundle entirely.
   serverExternalPackages: ["postgres"],
