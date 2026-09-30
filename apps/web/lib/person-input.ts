@@ -30,10 +30,11 @@ export const HOUSEHOLD_ROLE_OPTIONS = [
 export const HOUSEHOLD_NEW = "__new";
 export const HOUSEHOLD_NONE = "__none";
 
-export type PersonErrors = Partial<Record<
-  "firstName" | "lastName" | "email" | "phone" | "dateOfBirth" | "membershipDate" | "firstVisitOn" | "householdName",
-  string
->>;
+/**
+ * Keyed by the input's name, so a message finds its field without a lookup table.
+ * Custom fields are keyed `cf_<id>`, which is why this is not a closed union.
+ */
+export type PersonErrors = Record<string, string | undefined>;
 
 const str = (data: FormData, key: string): string => String(data.get(key) ?? "").trim();
 
@@ -116,4 +117,5 @@ export function personErrors(input: PersonInput & { householdChoice?: string }):
   return errors;
 }
 
-export const hasErrors = (errors: PersonErrors): boolean => Object.keys(errors).length > 0;
+export const hasErrors = (errors: PersonErrors): boolean =>
+  Object.values(errors).some(Boolean);

@@ -74,10 +74,10 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-14 | Active session list with remote revoke | R1.10 | New |
 | HRT-15 | Church profile settings: name, address, timezone, service times, logo | R1.1 | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | New |
-| HRT-16 | Custom field definitions and values, in the UI | R1.12 | New |
-| HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Resolved |
+| HRT-16 | Custom field definitions and values, in the UI | R1.12 | Resolved |
+| HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
-| HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Resolved |
+| HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota display with a warning at 80% | R1.16 | New |
 
 ### F2. People
@@ -86,7 +86,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 |---|---|---|---|
 | HRT-19 | People and households, read-only directory | R2.1, R2.2 | Closed |
 | HRT-20 | Notes in two classes, confidential ones encrypted and separately gated | R2.7 | Closed |
-| HRT-21 | **Add, edit and archive a person. Households and contact methods.** | R2.1 to R2.3, R2.5, R2.13 | Resolved |
+| HRT-21 | **Add, edit and archive a person. Households and contact methods.** | R2.1 to R2.3, R2.5, R2.13 | Closed |
 | HRT-22 | Relationships, independent of household | R2.4 | New |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | New |
 | HRT-24 | Duplicate detection and merge, reversible for 30 days | R2.8 | New |
@@ -102,7 +102,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | New |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | New |
 | HRT-31 | Sample and demo data | R19.7 | New |
-| HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Resolved |
+| HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
 
 ---
 
@@ -140,42 +140,23 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-21** people writes, **HRT-17** tags, **HRT-35** audit coverage, **HRT-33** US seed names |
-| **Next** | HRT-16 custom fields, then HRT-32 create a church, then HRT-28 import |
+| **Waiting on a test** | **HRT-16**, custom fields |
+| **Next** | HRT-32 create a church, then HRT-28 the import wizard, then HRT-30 export |
 
-### HRT-21, how to test it
+### HRT-16, how to test it
 
-Sign in as `pastor@riverside.example.org` and open the directory.
+"Fields" is in the header. This is the answer to "can it track X", for any X.
 
-1. **Add someone.** Press "Add someone". Submit it empty: the messages appear under the fields, not
-   in a browser bubble, and focus lands on the first name. Fill in a name only and save. That is the
-   whole requirement, one name and nothing else.
-2. **The dates.** Put a date of birth in 2032 and save. It is refused before it reaches the server.
-3. **A household.** Edit that person, choose "Start a new household", name it, save. Reopen the
-   edit form and the household is selected. Move them to a different household and the old
-   membership is ended rather than erased.
-4. **Archive.** Archive them. The dialog says what happens and what does not. They leave the
-   directory. "Show archived" brings them back into view with a struck-through name, and Restore
-   puts them back.
-5. **Roles.** Sign in as `care@riverside.example.org`, the pastoral role. There is no "Add someone"
-   button and no Edit button, and `/people/new` says the role cannot add people. A `staff` role can
-   edit but not archive.
-6. **The audit log.** Every change above is in `audit_entries` with your user id, your role, your
-   IP, and the before and after values.
-
-### HRT-17, how to test it
-
-"Tags" is now in the header, next to Directory.
-
-1. **Make one.** Add a tag. Add a second one called the same thing in different capitals: refused.
-   Each new tag gets a different colour, drawn from the least-used one.
-2. **Edit one.** Press Edit. Rename, recolour, merge and delete are all in that one dialog. Delete
-   confirms in place rather than opening a second dialog, and it tells you how many people lose the
-   tag.
-3. **Merge.** Tag two people with "Greeters", tag one of them with "Greeting" as well, then merge
-   Greeters into Greeting. Both people end up with Greeting, the one who had both does not end up
-   with a duplicate, and Greeters is gone.
-4. **Tag a person.** Open anyone. Every tag is a chip, one press to apply or remove, saved
-   immediately. "New tag" creates and applies in one step. Past eight tags a filter box appears.
-5. **Roles.** `staff` can create and apply tags but cannot rename, recolour, merge or delete.
-   `pastoral` and `member` can see tags and change nothing.
+1. **Define some.** Add one of each type. A choice field asks for its choices, one per line, and
+   refuses to save with none. Blank and duplicate choices are dropped.
+2. **Fill them in.** Add or edit a person. The fields appear under "More", in the order they were
+   defined, each rendered for its type. They save with the rest of the form and show on the record.
+3. **Bad input.** Type letters into a number field, or `01/05/2024` into a date field. Refused, with
+   the message next to the field.
+4. **Rename.** Rename a field. Values already recorded stay attached. The type cannot be changed,
+   deliberately: turning a date into a number would leave every recorded value unreadable with no
+   honest way to convert it.
+5. **Delete.** Deleting says it removes everything recorded in the field, and it means it. That is
+   the one thing here that is not reversible.
+6. **Roles.** `staff` can fill fields in but cannot define them. `pastoral` and `member` can do
+   neither.

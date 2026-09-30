@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Lock, FileText, Pencil } from "lucide-react";
 import {
   withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson,
-  listTagsWithCounts, canEditPeople, canArchivePeople,
+  listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
 } from "@hearth/db";
 import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
@@ -12,6 +12,17 @@ import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * A recorded value, as a person reads it. A yes-or-no field that was never
+ * answered still reads "No", because that is what the checkbox said.
+ */
+function showValue(type: string, value: unknown): string {
+  if (type === "boolean") return value === true ? "Yes" : "No";
+  if (value === null || value === undefined || value === "") return "Not recorded";
+  if (Array.isArray(value)) return value.length > 0 ? value.join(", ") : "Not recorded";
+  return String(value);
+}
 
 export default async function PersonPage({
   params,
@@ -33,13 +44,15 @@ export default async function PersonPage({
       tags: await listTagsForPerson(tx, id),
       contact: await getPersonForEdit(tx, id),
       allTags: await listTagsWithCounts(tx),
+      fields: await listCustomFields(tx, "person"),
+      fieldValues: await getCustomValues(tx, "person", id),
     };
   });
 
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, notes, tags, contact, allTags } = result;
+  const { person, notes, tags, contact, allTags, fields, fieldValues } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
 
@@ -119,6 +132,23 @@ export default async function PersonPage({
           ))}
         </dl>
       </Card>
+
+      {fields.length > 0 ? (
+        <Card className="mb-6">
+          <CardTitle>More</CardTitle>
+          <Separator className="my-4" />
+          <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+            {fields.map((f) => (
+              <div key={f.id} className="flex flex-col">
+                <dt className="text-label text-fg-muted">{f.label}</dt>
+                <dd className="text-[length:var(--d-text-body)] text-fg">
+                  {showValue(f.type, fieldValues[f.id])}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      ) : null}
 
       <Card className="mb-6">
         <CardTitle>Tags</CardTitle>

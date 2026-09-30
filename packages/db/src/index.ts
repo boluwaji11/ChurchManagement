@@ -5,6 +5,7 @@ export {
   CAN_READ_CONFIDENTIAL_NOTES, CAN_READ_GIVING_AMOUNTS,
   canEditPeople, canArchivePeople, CAN_EDIT_PEOPLE, CAN_ARCHIVE_PEOPLE, PermissionError,
 } from "./roles";
+export { InvalidInputError, NameTakenError } from "./errors";
 export { encryptNote, decryptNote } from "./crypto";
 export {
   listPeople, getPerson, countPeopleByStatus, listTags, listTagsForPerson,
@@ -15,9 +16,15 @@ export {
 } from "./repo/people";
 export {
   listTagsWithCounts, createTag, renameTag, setTagHue, deleteTag, mergeTags, setPersonTag,
-  canManageTags, CAN_MANAGE_TAGS, NameTakenError, normaliseTagName, TAG_HUES,
+  canManageTags, CAN_MANAGE_TAGS, normaliseTagName, TAG_HUES,
   type TagRow, type TagHue,
 } from "./repo/tags";
+export {
+  listCustomFields, createCustomField, updateCustomField, deleteCustomField,
+  getCustomValues, setCustomValues, coerceCustomValue, canManageCustomFields, keyFor,
+  CAN_MANAGE_CUSTOM_FIELDS, CUSTOM_FIELD_TYPES, CUSTOM_FIELD_ENTITIES,
+  type CustomFieldDef, type CustomFieldType, type CustomFieldEntity, type CustomValue,
+} from "./repo/custom-fields";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,

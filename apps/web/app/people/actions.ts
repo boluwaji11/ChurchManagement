@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, createPerson, updatePerson, setPersonArchived, PermissionError,
+  listCustomFields, setCustomValues, coerceCustomValue,
+  type CustomFieldDef, type CustomValue,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { parsePerson, personErrors, hasErrors, type PersonErrors } from "@/lib/person-input";
@@ -38,6 +40,38 @@ async function writeContext(slug: string | undefined) {
   };
 }
 
+/**
+ * Reads the custom field inputs off the form and checks each one against its
+ * definition.
+ *
+ * A checkbox that is off sends nothing at all, so booleans are read from
+ * presence rather than from a value. Every other type reads what is there, and a
+ * blank of any kind clears the field.
+ */
+function readCustomValues(
+  data: FormData,
+  fields: CustomFieldDef[],
+): { values: Record<string, CustomValue>; errors: PersonErrors } {
+  const values: Record<string, CustomValue> = {};
+  const errors: PersonErrors = {};
+
+  for (const field of fields) {
+    const name = `cf_${field.id}`;
+    const raw: CustomValue =
+      field.type === "boolean"
+        ? data.get(name) !== null
+        : field.type === "multi_select"
+          ? data.getAll(name).map(String)
+          : (data.get(name) as string | null);
+
+    const result = coerceCustomValue(field, raw);
+    if ("error" in result) errors[name] = result.error;
+    else values[field.id] = result.value;
+  }
+
+  return { values, errors };
+}
+
 /** Creates or updates, depending on whether the form carried an id. */
 export async function savePerson(data: FormData): Promise<SaveResult> {
   const slug = String(data.get("church") ?? "") || undefined;
@@ -54,14 +88,23 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
 
   let personId = id;
   try {
-    await withTenant(ctx, async (tx) => {
+    const failed = await withTenant(ctx, async (tx) => {
       const actor = { tenantId: session.tenantId, role: session.role };
+      const fields = await listCustomFields(tx, "person");
+      const custom = readCustomValues(data, fields);
+      if (hasErrors(custom.errors)) return custom.errors;
+
       if (id) {
         await updatePerson(tx, actor, id, input);
       } else {
         personId = (await createPerson(tx, actor, input)).id;
       }
+
+      await setCustomValues(tx, actor, "person", personId!, custom.values);
+      return null;
     });
+
+    if (failed) return { errors: failed };
   } catch (error) {
     if (error instanceof PermissionError) return { formError: error.message };
     throw error;

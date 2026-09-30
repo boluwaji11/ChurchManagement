@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, getPersonForEdit, listHouseholds, canEditPeople } from "@hearth/db";
+import {
+  withTenant, getPersonForEdit, listHouseholds, listCustomFields, getCustomValues, canEditPeople,
+} from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -24,11 +26,13 @@ export default async function EditPersonPage({
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => ({
     person: await getPersonForEdit(tx, id),
     households: await listHouseholds(tx),
+    customFields: await listCustomFields(tx, "person"),
+    customValues: await getCustomValues(tx, "person", id),
   }));
 
   // Another church's person is reported exactly like a person who does not exist.
   if (!result.person) notFound();
-  const { person, households } = result;
+  const { person, households, customFields, customValues } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
 
   return (
@@ -54,6 +58,8 @@ export default async function EditPersonPage({
           <PersonForm
             church={session.tenantSlug}
             households={households}
+            customFields={customFields}
+            customValues={customValues}
             values={{
               id: person.id,
               firstName: person.firstName,

@@ -13,6 +13,7 @@ import {
   type PersonErrors,
 } from "@/lib/person-input";
 import { savePerson } from "./actions";
+import { CustomFieldInputs, type FieldDef, type FieldValues } from "./custom-fields";
 
 export interface PersonFormValues {
   id?: string;
@@ -45,10 +46,14 @@ export function PersonForm({
   church,
   values,
   households,
+  customFields = [],
+  customValues = {},
 }: {
   church: string;
   values?: PersonFormValues;
   households: { id: string; name: string }[];
+  customFields?: FieldDef[];
+  customValues?: FieldValues;
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [errors, setErrors] = React.useState<PersonErrors>({});
@@ -196,6 +201,14 @@ export function PersonForm({
           </Field>
         </div>
       </Card>
+
+      {customFields.length > 0 ? (
+        <Card>
+          <CardTitle>More</CardTitle>
+          <Separator className="my-4" />
+          <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
+        </Card>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" loading={pending}>

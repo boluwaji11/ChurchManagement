@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, listHouseholds, canEditPeople } from "@hearth/db";
+import { withTenant, listHouseholds, listCustomFields, canEditPeople } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -21,9 +21,12 @@ export default async function NewPersonPage({
   // is in the repository, which rejects the write even if this page is bypassed.
   const permitted = canEditPeople(session.role);
 
-  const households = permitted
-    ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) => listHouseholds(tx))
-    : [];
+  const data = permitted
+    ? await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => ({
+        households: await listHouseholds(tx),
+        customFields: await listCustomFields(tx, "person"),
+      }))
+    : { households: [], customFields: [] };
 
   return (
     <>
@@ -39,7 +42,11 @@ export default async function NewPersonPage({
         <PageTitle title="Add someone" lede="A name is enough to start." />
 
         {permitted ? (
-          <PersonForm church={session.tenantSlug} households={households} />
+          <PersonForm
+            church={session.tenantSlug}
+            households={data.households}
+            customFields={data.customFields}
+          />
         ) : (
           <Banner tone="info" title="Your role cannot add people">
             Ask an Owner or an Admin.
