@@ -129,7 +129,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 |---|---|---|---|
 | HRT-47 | Services, repeating or one-off, with cancellation | R7.1 | Resolved |
 | HRT-48 | Headcount-only attendance, with a note per occurrence | R7.2, R7.8 | Resolved |
-| HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | New |
+| HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Resolved |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | New |
 | HRT-51 | Absence detection against a configurable threshold | R7.6 | New |
 | HRT-52 | Attendance against groups and events | R7.4 | New |
@@ -187,8 +187,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts |
-| **Next** | HRT-49 individual attendance, then HRT-50 visitor flagging. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-18** storage and logo, **HRT-45** settings tabs, **HRT-46** demo, **HRT-47** services, **HRT-48** headcounts, **HRT-49** roster |
+| **Next** | HRT-50 visitor flagging, then HRT-51 absence detection. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -439,6 +439,26 @@ A Services tab sits beside Directory. One concept, one button.
 
 An earlier build of this had three ideas (a weekly pattern in Settings, a Fill the calendar button,
 and the services themselves) and two setup steps before any value. It is one idea now.
+
+### HRT-49, how to test it
+
+On Services, a past service has a "Who was here" button.
+
+1. **Tick names.** The tick appears the moment you press, and the write goes behind it. A press that
+   fails puts the tick back and says so, because showing it saved when it did not is worse than
+   being slow. No page reloads at any point.
+2. **The acceptance criterion is 120 people in under three minutes on a tablet.** Rows are large,
+   because this is done standing up by somebody holding a tablet in one hand.
+3. **Search narrows the list**, and "Mark everyone shown" acts on what the search left. That is how
+   a whole household or a whole surname goes in one press.
+4. **Press the same name twice quickly.** Nothing breaks, because the write is idempotent in both
+   directions.
+5. **Untick to correct a mistake.** There is no absent record: absence is the lack of a record, so
+   a correction is a delete and the audit log catches it like any other write.
+6. **A cancelled service refuses ticks.**
+
+Headcounts and named attendance are separate on purpose. A church that only ever counts heads is
+finished at HRT-48 and is never asked for names.
 
 ### HRT-48, how to test it
 

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Undo2, Repeat, Pencil, Users } from "lucide-react";
+import Link from "next/link";
+import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList } from "lucide-react";
 import {
   Badge, Banner, Button, Card, Checkbox, EmptyState, Field, Input,
   Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogClose,
@@ -166,6 +167,13 @@ export function Calendar({
                     <Td>
                       {canEdit ? (
                         <span className="flex flex-wrap justify-end gap-1">
+                          {row.past && !cancelled ? (
+                            <Button variant="ghost" asChild>
+                              <Link href={`/services/${row.id}?church=${church}`}>
+                                <ClipboardList /> {t("roster.title")}
+                              </Link>
+                            </Button>
+                          ) : null}
                           {row.past && !cancelled ? (
                             <CountDialog
                               row={row}

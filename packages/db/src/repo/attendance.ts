@@ -1,0 +1,192 @@
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import type { Tx } from "../client";
+import { attendanceRecords, serviceOccurrences } from "../schema/gatherings";
+import { people } from "../schema/people";
+import { canManageServices } from "./services";
+import { PermissionError } from "../roles";
+import { InvalidInputError } from "../errors";
+import type { WriteActor } from "./people";
+
+/**
+ * R7.3 and R7.7. Who was at a gathering.
+ *
+ * A row means present. There is no absent row: absence is the lack of a record
+ * rather than something anybody asserts, and R7.6 reads it from the gaps. That
+ * also makes correcting a mistake a delete, which the audit trigger records
+ * like any other write, so R7.7 comes free rather than needing its own log.
+ *
+ * The acceptance criterion is 120 people ticked in under three minutes on a
+ * tablet with no page reloads, so every write here is one row and the roster is
+ * one query.
+ */
+
+export interface RosterEntry {
+  personId: string;
+  firstName: string;
+  preferredName: string | null;
+  lastName: string;
+  householdName: string | null;
+  present: boolean;
+}
+
+/**
+ * Everyone who could be marked present, and who already is.
+ *
+ * One query, left joined against the records for this gathering, because two
+ * queries and a merge in the page is the version that goes wrong when somebody
+ * is added between them.
+ */
+export async function listRoster(db: Tx, occurrenceId: string): Promise<RosterEntry[]> {
+  const rows = await db
+    .select({
+      personId: people.id,
+      firstName: people.firstName,
+      preferredName: people.preferredName,
+      lastName: people.lastName,
+      present: sql<boolean>`${attendanceRecords.id} is not null`,
+    })
+    .from(people)
+    .leftJoin(
+      attendanceRecords,
+      and(
+        eq(attendanceRecords.personId, people.id),
+        eq(attendanceRecords.occurrenceId, occurrenceId),
+      ),
+    )
+    .where(isNull(people.archivedAt))
+    .orderBy(asc(people.lastName), asc(people.firstName));
+
+  return rows.map((r) => ({ ...r, householdName: null, present: Boolean(r.present) }));
+}
+
+async function assertRecordable(db: Tx, occurrenceId: string): Promise<void> {
+  const [occurrence] = await db
+    .select({ status: serviceOccurrences.status })
+    .from(serviceOccurrences)
+    .where(eq(serviceOccurrences.id, occurrenceId))
+    .limit(1);
+
+  if (!occurrence) throw new InvalidInputError("service.error.notFound");
+  if (occurrence.status === "cancelled") throw new InvalidInputError("attendance.error.cancelled");
+}
+
+/**
+ * Marks one person present, or takes the mark off.
+ *
+ * Idempotent in both directions, because a tablet under a thumb sends the same
+ * press twice and the second one must not undo the first.
+ */
+export async function setPresent(
+  db: Tx,
+  actor: WriteActor,
+  occurrenceId: string,
+  personId: string,
+  present: boolean,
+): Promise<{ present: boolean }> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
+  await assertRecordable(db, occurrenceId);
+
+  if (present) {
+    await db
+      .insert(attendanceRecords)
+      .values({ tenantId: actor.tenantId, occurrenceId, personId, source: "roster" })
+      .onConflictDoNothing();
+  } else {
+    await db
+      .delete(attendanceRecords)
+      .where(and(
+        eq(attendanceRecords.occurrenceId, occurrenceId),
+        eq(attendanceRecords.personId, personId),
+      ));
+  }
+
+  return { present };
+}
+
+/** The same, for a selection. One statement rather than one per person. */
+export async function setPresentMany(
+  db: Tx,
+  actor: WriteActor,
+  occurrenceId: string,
+  personIds: string[],
+  present: boolean,
+): Promise<{ changed: number }> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
+  if (personIds.length === 0) return { changed: 0 };
+  await assertRecordable(db, occurrenceId);
+
+  if (present) {
+    const written = await db
+      .insert(attendanceRecords)
+      .values(personIds.map((personId) => ({
+        tenantId: actor.tenantId, occurrenceId, personId, source: "roster",
+      })))
+      .onConflictDoNothing()
+      .returning({ id: attendanceRecords.id });
+    return { changed: written.length };
+  }
+
+  const gone = await db
+    .delete(attendanceRecords)
+    .where(and(
+      eq(attendanceRecords.occurrenceId, occurrenceId),
+      inArray(attendanceRecords.personId, personIds),
+    ))
+    .returning({ id: attendanceRecords.id });
+
+  return { changed: gone.length };
+}
+
+export async function countPresent(db: Tx, occurrenceId: string): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<string>`count(*)` })
+    .from(attendanceRecords)
+    .where(eq(attendanceRecords.occurrenceId, occurrenceId));
+  return Number(row?.n ?? 0);
+}
+
+export interface PersonAttendance {
+  occurrenceId: string;
+  occursOn: string;
+  name: string;
+}
+
+/**
+ * One person's history, most recent first.
+ *
+ * R7.5 counts the first two of these to flag a visitor, and R7.6 reads the
+ * gaps. Both want the same query, so it lives here once.
+ */
+export async function attendanceForPerson(
+  db: Tx,
+  personId: string,
+  limit = 100,
+): Promise<PersonAttendance[]> {
+  return db
+    .select({
+      occurrenceId: serviceOccurrences.id,
+      occursOn: serviceOccurrences.occursOn,
+      name: serviceOccurrences.name,
+    })
+    .from(attendanceRecords)
+    .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, attendanceRecords.occurrenceId))
+    .where(eq(attendanceRecords.personId, personId))
+    .orderBy(desc(serviceOccurrences.occursOn))
+    .limit(limit);
+}
+
+/** How many were marked present at each of these gatherings. */
+export async function countsFor(
+  db: Tx,
+  occurrenceIds: string[],
+): Promise<Record<string, number>> {
+  if (occurrenceIds.length === 0) return {};
+
+  const rows = await db
+    .select({ occurrenceId: attendanceRecords.occurrenceId, n: sql<string>`count(*)` })
+    .from(attendanceRecords)
+    .where(inArray(attendanceRecords.occurrenceId, occurrenceIds))
+    .groupBy(attendanceRecords.occurrenceId);
+
+  return Object.fromEntries(rows.map((r) => [r.occurrenceId, Number(r.n)]));
+}

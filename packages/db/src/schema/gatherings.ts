@@ -1,5 +1,6 @@
 import { pgTable, uuid, text, date, integer, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { tenants, campuses, serviceTimes } from "./tenancy";
+import { people } from "./people";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -48,5 +49,32 @@ export const serviceOccurrences = pgTable(
     // time, and Postgres treats those nulls as distinct, which is what we want:
     // a church can hold two carol services on the same evening.
     uniqueIndex("occ_unique").on(t.tenantId, t.serviceTimeId, t.occursOn),
+  ],
+);
+
+/**
+ * R7.3. One person, at one gathering.
+ *
+ * A row means present. There is no absent row, because absence is the lack of a
+ * record rather than a fact somebody asserts, and a table holding a row per
+ * person per service for everyone who did not come is a table nobody can read.
+ * R7.6 derives absence from the gaps.
+ */
+export const attendanceRecords = pgTable(
+  "attendance_records",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    occurrenceId: uuid("occurrence_id").notNull().references(() => serviceOccurrences.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    /** How it was recorded: "roster", "checkin", "import". */
+    source: text("source").notNull().default("roster"),
+    createdAt: created(),
+  },
+  (t) => [
+    index("att_tenant_idx").on(t.tenantId),
+    index("att_occurrence_idx").on(t.tenantId, t.occurrenceId),
+    index("att_person_idx").on(t.tenantId, t.personId),
+    uniqueIndex("att_unique").on(t.occurrenceId, t.personId),
   ],
 );
