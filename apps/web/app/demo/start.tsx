@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
 import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { startDemo } from "./actions";
@@ -16,11 +15,11 @@ export function StartDemoButton() {
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="secondary"
       disabled={pending}
       onClick={() => startTransition(async () => { await startDemo(); })}
     >
-      <Sparkles /> {pending ? t("demo.starting") : t("demo.start")}
+      {pending ? t("demo.starting") : t("demo.start")}
     </Button>
   );
 }

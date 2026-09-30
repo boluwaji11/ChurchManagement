@@ -1,7 +1,7 @@
 import {
   Users, UserPlus, Baby, HandCoins, CalendarDays, Music, ClipboardList, Church,
   HeartHandshake, Mail, MessageSquare, Printer, Search, Settings, Bell, FileDown,
-  ShieldCheck, WifiOff, AlertTriangle, CheckCircle2, Clock, MapPin, Tag, Sparkles,
+  ShieldCheck, WifiOff, AlertTriangle, CheckCircle2, Clock, MapPin, Tag, Award,
 } from "lucide-react";
 import { PageTitle, Section } from "@/components/section";
 
@@ -12,7 +12,7 @@ const CORE: [string, React.ElementType][] = [
   ["Search", Search], ["Settings", Settings], ["Notifications", Bell], ["Export", FileDown],
   ["Background check", ShieldCheck], ["Offline", WifiOff], ["Warning", AlertTriangle],
   ["Confirmed", CheckCircle2], ["Pending", Clock], ["Location", MapPin], ["Tag", Tag],
-  ["Milestone", Sparkles],
+  ["Milestone", Award],
 ];
 
 export default function Icons() {
@@ -52,7 +52,7 @@ export default function Icons() {
             <span className="text-label">Not this</span>
           </div>
           <div className="flex items-center gap-2 rounded-md border border-success/25 bg-success-soft p-3 text-success-text">
-            <Sparkles className="size-5" aria-hidden />
+            <Award className="size-5" aria-hidden />
             <span className="text-label">This</span>
           </div>
         </div>

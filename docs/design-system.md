@@ -265,6 +265,10 @@ hinting.
 --shadow-lg: 0 4px 8px oklch(0 0 0 / 0.04), 0 12px 32px oklch(0 0 0 / 0.10);
 ```
 
+**Never the sparkle.** `Sparkles`, wands and star bursts are refused everywhere, for everything. It
+is the mark every product reaches for when it wants a thing to feel magic, and reaching for it makes
+this look like every other product. An icon names what the thing does, or there is no icon.
+
 **No glassmorphism.** Backdrop blur reads as 2021, costs contrast, and costs frame rate on the
 seven year old tablet running check-in. One exception: a sticky table header may use a solid
 background with a hairline, not a blur.
