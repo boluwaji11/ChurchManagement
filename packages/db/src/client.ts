@@ -13,8 +13,31 @@ let ownerSql: postgres.Sql | undefined;
 let appSql: postgres.Sql | undefined;
 let appDrizzle: Db | undefined;
 
+/**
+ * TLS is required everywhere except a database on this machine.
+ *
+ * The exception is written as "the host is loopback" rather than as a flag,
+ * because a flag is something that gets set in the wrong environment once and
+ * then never noticed. A remote host cannot reach this branch, so there is no
+ * configuration that turns encryption off against a real database.
+ */
+function isLoopback(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  } catch {
+    return false;
+  }
+}
+
 const connect = (url: string) =>
-  postgres(url, { max: 8, idle_timeout: 20, connect_timeout: 30, prepare: false, ssl: "require" });
+  postgres(url, {
+    max: 8,
+    idle_timeout: 20,
+    connect_timeout: 30,
+    prepare: false,
+    ssl: isLoopback(url) ? false : "require",
+  });
 
 /**
  * The owner connection. Migrations, seeding, and genuinely cross-tenant platform

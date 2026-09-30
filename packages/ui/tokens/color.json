@@ -56,25 +56,25 @@
     "amber": {
       "100": "oklch(0.942 0.048 72)",
       "500": "oklch(0.732 0.156 70)",
-      "700": "oklch(0.572 0.132 62)",
+      "700": "oklch(0.524 0.132 62)",
       "900": "oklch(0.312 0.078 62)"
     },
     "citron": {
       "100": "oklch(0.944 0.050 105)",
       "500": "oklch(0.742 0.148 110)",
-      "700": "oklch(0.582 0.126 108)",
+      "700": "oklch(0.518 0.126 108)",
       "900": "oklch(0.318 0.074 108)"
     },
     "fern": {
       "100": "oklch(0.938 0.044 142)",
       "500": "oklch(0.662 0.148 145)",
-      "700": "oklch(0.522 0.128 147)",
+      "700": "oklch(0.508 0.128 147)",
       "900": "oklch(0.288 0.078 147)"
     },
     "jade": {
       "100": "oklch(0.938 0.042 168)",
       "500": "oklch(0.652 0.128 172)",
-      "700": "oklch(0.512 0.112 174)",
+      "700": "oklch(0.498 0.112 174)",
       "900": "oklch(0.282 0.068 174)"
     },
     "teal": {
@@ -176,7 +176,7 @@
       "fg-muted": "{stone.600}",
       "fg-subtle": "{stone.500}",
       "line": "{stone.200}",
-      "line-strong": "{stone.300}",
+      "line-strong": "{stone.500}",
       "primary": "{ink.600}",
       "primary-fg": "#ffffff",
       "primary-soft": "{ink.50}",
@@ -192,9 +192,9 @@
       "sunken": "oklch(0.118 0.007 75)",
       "fg": "{stone.100}",
       "fg-muted": "{stone.400}",
-      "fg-subtle": "{stone.500}",
+      "fg-subtle": "{stone.400}",
       "line": "{stone.800}",
-      "line-strong": "{stone.700}",
+      "line-strong": "{stone.500}",
       "primary": "{ink.400}",
       "primary-fg": "{stone.950}",
       "primary-soft": "oklch(0.262 0.048 285)",

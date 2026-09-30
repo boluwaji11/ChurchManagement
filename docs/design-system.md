@@ -134,6 +134,11 @@ component.
 
 ### Rules
 
+- **Audited, not asserted.** `packages/ui/scripts/contrast.mjs` computes every shipped pair from the
+  OKLCH source and runs in CI. It reads the tokens rather than a screenshot, so it proves a pair can
+  never be wrong rather than that one page looked fine the day it ran. It found four real defects the
+  first time it ran: control borders at 1.45:1, dark-mode caption text at 3.84:1, and four hues whose
+  text step was unreadable on its own tint.
 - **Contrast minimums:** 4.5:1 body text, 3:1 large text and UI boundaries, **7:1 for anything on a
   station screen**. Verified in CI, not by eye.
 - **Never pure black or pure white as a background.** `--stone-50` and `--stone-950`.
