@@ -98,13 +98,18 @@ export async function removeGathering(data: FormData): Promise<ServiceResult> {
   }
 }
 
-export async function renameGathering(data: FormData): Promise<ServiceResult> {
+export async function editGathering(data: FormData): Promise<ServiceResult> {
   const { session, ctx } = await writeContext(text(data, "church") || undefined);
   const actor = { tenantId: session.tenantId, role: session.role };
 
   try {
     await withTenant(ctx, (tx) =>
-      updateOccurrence(tx, actor, text(data, "id"), { note: text(data, "note") }),
+      updateOccurrence(tx, actor, text(data, "id"), {
+        name: text(data, "name"),
+        occursOn: text(data, "occursOn"),
+        startsAt: text(data, "startsAt"),
+        note: text(data, "note"),
+      }),
     );
     done();
     return {};

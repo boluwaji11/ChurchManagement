@@ -12,6 +12,7 @@ import {
   generateOccurrences, listOccurrences, addSpecialService, updateOccurrence,
   setOccurrenceCancelled, removeSpecialService, upcomingOccurrences, canManageServices,
   addService, topUpCalendar, stopRepeating, HORIZON_WEEKS,
+  setHeadcount, listForAttendance,
 } from "../src/repo/services";
 import { addServiceTime } from "../src/repo/church";
 import { InvalidInputError } from "../src/errors";
@@ -237,5 +238,102 @@ describe("one concept, with a repeat", () => {
     const after = await run((tx) => listOccurrences(tx, { includeCancelled: true }));
     expect(after.length).toBe(past);
     expect(after.every((r) => r.occursOn < new Date().toISOString().slice(0, 10))).toBe(true);
+  });
+});
+
+describe("headcounts", () => {
+  it("records three numbers and totals them", async () => {
+    await clear();
+    const service = await run((tx) =>
+      addService(tx, as(), { name: "Sunday", occursOn: "2026-02-01", startsAt: "09:00" }),
+    );
+    const [row] = await run((tx) => listOccurrences(tx));
+
+    const counted = await run((tx) =>
+      setHeadcount(tx, as(), row!.id, { adults: 84, children: 23, visitors: 4, note: "Rain" }),
+    );
+
+    expect(counted.total).toBe(111);
+    expect(counted.note).toBe("Rain");
+    expect(service.created).toBe(1);
+  });
+
+  it("tells a blank apart from a zero", async () => {
+    const [row] = await run((tx) => listOccurrences(tx));
+
+    // Nobody counted.
+    const blank = await run((tx) => setHeadcount(tx, as(), row!.id, {}));
+    expect(blank.total).toBeNull();
+
+    // Nobody came, which is a different fact and a real one.
+    const zero = await run((tx) =>
+      setHeadcount(tx, as(), row!.id, { adults: 0, children: 0, visitors: 0 }),
+    );
+    expect(zero.total).toBe(0);
+  });
+
+  it("refuses a count that is not a whole number of people", async () => {
+    const [row] = await run((tx) => listOccurrences(tx));
+    for (const adults of [-1, 2.5]) {
+      await expect(
+        run((tx) => setHeadcount(tx, as(), row!.id, { adults })),
+        String(adults),
+      ).rejects.toBeInstanceOf(InvalidInputError);
+    }
+  });
+
+  it("refuses a count against a service that did not happen", async () => {
+    const [row] = await run((tx) => listOccurrences(tx));
+    await run((tx) => setOccurrenceCancelled(tx, as(), row!.id, true, "Snow"));
+
+    await expect(
+      run((tx) => setHeadcount(tx, as(), row!.id, { adults: 10 })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+
+  it("lists what has happened, most recent first, saying which are counted", async () => {
+    await clear();
+    for (const [name, on] of [["A", "2026-01-04"], ["B", "2026-01-11"]] as const) {
+      await run((tx) => addService(tx, as(), { name, occursOn: on, startsAt: "09:00" }));
+    }
+    // A service still to come is left out: there is nothing to count yet.
+    const year = new Date().getFullYear() + 1;
+    await run((tx) => addService(tx, as(), { name: "Later", occursOn: `${year}-06-07`, startsAt: "09:00" }));
+
+    const rows = await run((tx) => listForAttendance(tx));
+    expect(rows.map((r) => r.name)).toEqual(["B", "A"]);
+    expect(rows.every((r) => r.counted)).toBe(false);
+
+    await run((tx) => setHeadcount(tx, as(), rows[0]!.id, { adults: 90 }));
+    const again = await run((tx) => listForAttendance(tx));
+    expect(again[0]!.counted).toBe(true);
+    expect(again[0]!.total).toBe(90);
+  });
+});
+
+describe("editing a service", () => {
+  it("changes the name, the date, the time and the note", async () => {
+    await clear();
+    await run((tx) => addService(tx, as(), { name: "Sunday", occursOn: "2026-05-03", startsAt: "09:00" }));
+    const [row] = await run((tx) => listOccurrences(tx));
+
+    const edited = await run((tx) =>
+      updateOccurrence(tx, as(), row!.id, {
+        name: "Sunday morning", occursOn: "2026-05-02", startsAt: "18:00", note: "Moved to the Saturday",
+      }),
+    );
+
+    expect(edited.name).toBe("Sunday morning");
+    expect(edited.occursOn).toBe("2026-05-02");
+    expect(edited.startsAt).toBe("18:00");
+    expect(edited.note).toBe("Moved to the Saturday");
+  });
+
+  it("refuses a blank name, a bad date and a bad time", async () => {
+    const [row] = await run((tx) => listOccurrences(tx));
+    for (const bad of [{ name: " " }, { occursOn: "2/5/2026" }, { startsAt: "6pm" }]) {
+      await expect(run((tx) => updateOccurrence(tx, as(), row!.id, bad)), JSON.stringify(bad))
+        .rejects.toBeInstanceOf(InvalidInputError);
+    }
   });
 });

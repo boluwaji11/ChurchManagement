@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Undo2, Repeat } from "lucide-react";
+import { Plus, X, Undo2, Repeat, Pencil } from "lucide-react";
 import {
   Badge, Banner, Button, Card, Checkbox, EmptyState, Field, Input,
   Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogClose,
@@ -10,7 +10,7 @@ import {
 import { t } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
-import { addGathering, setCancelled, removeGathering, stopRepeat } from "./actions";
+import { addGathering, setCancelled, removeGathering, stopRepeat, editGathering } from "./actions";
 
 export interface GatheringRow {
   id: string;
@@ -153,6 +153,11 @@ export function Calendar({
                     <Td>
                       {canEdit ? (
                         <span className="flex flex-wrap justify-end gap-1">
+                          <EditDialog
+                            row={row}
+                            pending={pending}
+                            onSave={(fields) => simple(editGathering, { id: row.id, ...fields })}
+                          />
                           {cancelled ? (
                             <Button
                               variant="ghost"
@@ -266,6 +271,74 @@ function CancelDialog({
             <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
           </div>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Changing a service's own details: what it is called, when it is, and the note. */
+function EditDialog({
+  row,
+  pending,
+  onSave,
+}: {
+  row: GatheringRow;
+  pending: boolean;
+  onSave: (fields: Record<string, string>) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState(row.name);
+  const [note, setNote] = React.useState(row.note ?? "");
+
+  // Reopening after a change elsewhere should show what is there now, rather
+  // than whatever was typed and abandoned last time.
+  React.useEffect(() => {
+    if (!open) {
+      setName(row.name);
+      setNote(row.note ?? "");
+    }
+  }, [open, row.name, row.note]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost"><Pencil /> {t("services.edit")}</Button>
+      </DialogTrigger>
+      <DialogContent title={t("services.editTitle", { name: row.name })} closeLabel={t("common.close")}>
+        <form
+          action={(data) => {
+            onSave({
+              name: String(data.get("name") ?? ""),
+              occursOn: String(data.get("occursOn") ?? ""),
+              startsAt: String(data.get("startsAt") ?? ""),
+              note: String(data.get("note") ?? ""),
+            });
+            setOpen(false);
+          }}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          <Field label={t("services.name")} required>
+            <Input name="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
+          </Field>
+          <div className="flex flex-wrap gap-4">
+            <Field label={t("services.date")} required className="flex-1">
+              <DateField name="occursOn" defaultValue={row.occursOn} />
+            </Field>
+            <Field label={t("services.time")} required className="flex-1">
+              <TimeField name="startsAt" defaultValue={row.startsAt} />
+            </Field>
+          </div>
+          <Field label={t("services.note")}>
+            <Input name="note" value={note} onChange={(e) => setNote(e.target.value)} autoComplete="off" />
+          </Field>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

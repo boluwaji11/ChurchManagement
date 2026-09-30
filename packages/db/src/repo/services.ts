@@ -197,6 +197,9 @@ export async function addSpecialService(
 
 export interface OccurrenceEdit {
   name?: string;
+  /** Moving a date is allowed. A church that shifted a service to the Saturday
+   *  needs to say so, and the attendance recorded against it moves with it. */
+  occursOn?: string;
   startsAt?: string;
   note?: string | null;
 }
@@ -211,11 +214,13 @@ export async function updateOccurrence(
 
   if (edit.name !== undefined && !edit.name.trim()) throw new InvalidInputError("service.error.name");
   if (edit.startsAt !== undefined && !isTime(edit.startsAt)) throw new InvalidInputError("service.error.time");
+  if (edit.occursOn !== undefined && !isDate(edit.occursOn)) throw new InvalidInputError("service.error.date");
 
   const [row] = await db
     .update(serviceOccurrences)
     .set({
       ...(edit.name !== undefined ? { name: edit.name.trim() } : {}),
+      ...(edit.occursOn !== undefined ? { occursOn: edit.occursOn } : {}),
       ...(edit.startsAt !== undefined ? { startsAt: edit.startsAt } : {}),
       ...(edit.note !== undefined ? { note: edit.note?.trim() || null } : {}),
       updatedAt: new Date(),
@@ -433,4 +438,108 @@ export async function stopRepeating(
   await db.delete(serviceTimes).where(eq(serviceTimes.id, serviceTimeId));
 
   return { removed: gone.length };
+}
+
+export interface HeadcountInput {
+  adults?: number | null;
+  children?: number | null;
+  visitors?: number | null;
+  note?: string | null;
+}
+
+export interface Headcount {
+  adults: number | null;
+  children: number | null;
+  visitors: number | null;
+  total: number | null;
+  note: string | null;
+}
+
+const count = (value: number | null | undefined): number | null => {
+  if (value === null || value === undefined) return null;
+  if (!Number.isInteger(value) || value < 0) throw new InvalidInputError("attendance.error.count");
+  if (value > 100_000) throw new InvalidInputError("attendance.error.count");
+  return value;
+};
+
+/**
+ * R7.2. Headcount-only attendance.
+ *
+ * Most churches this size count heads on a clipboard and will never do more.
+ * The product has to be better than the clipboard on the first Sunday, and it
+ * must not nag anybody into naming individuals. Three numbers and a note is a
+ * complete answer here, not a lesser one.
+ *
+ * A blank is different from a zero. Nobody counted is not the same as nobody
+ * came, and a year of reports depends on the difference.
+ */
+export async function setHeadcount(
+  db: Tx,
+  actor: WriteActor,
+  occurrenceId: string,
+  input: HeadcountInput,
+): Promise<Headcount> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
+
+  const [row] = await db
+    .update(serviceOccurrences)
+    .set({
+      countAdults: count(input.adults),
+      countChildren: count(input.children),
+      countVisitors: count(input.visitors),
+      ...(input.note !== undefined ? { note: input.note?.trim() || null } : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(serviceOccurrences.id, occurrenceId))
+    .returning({
+      adults: serviceOccurrences.countAdults,
+      children: serviceOccurrences.countChildren,
+      visitors: serviceOccurrences.countVisitors,
+      note: serviceOccurrences.note,
+      status: serviceOccurrences.status,
+    });
+
+  if (!row) throw new InvalidInputError("service.error.notFound");
+  if (row.status === "cancelled") throw new InvalidInputError("attendance.error.cancelled");
+
+  return { ...row, total: totalOf(row) };
+}
+
+const totalOf = (row: { adults: number | null; children: number | null; visitors: number | null }) =>
+  row.adults === null && row.children === null && row.visitors === null
+    ? null
+    : (row.adults ?? 0) + (row.children ?? 0) + (row.visitors ?? 0);
+
+export interface CountedOccurrence extends Occurrence {
+  total: number | null;
+  counted: boolean;
+}
+
+/**
+ * The services a church has held, with whatever was counted at each.
+ *
+ * Past first, because recording attendance is something done after the fact,
+ * and the Sunday just gone is the one somebody is looking for.
+ */
+export async function listForAttendance(
+  db: Tx,
+  opts: { from?: string; to?: string; limit?: number } = {},
+): Promise<CountedOccurrence[]> {
+  const where = [
+    eq(serviceOccurrences.status, "scheduled"),
+    lte(serviceOccurrences.occursOn, opts.to ?? today()),
+    opts.from ? gte(serviceOccurrences.occursOn, opts.from) : undefined,
+  ].filter(Boolean);
+
+  const rows = await db
+    .select(COLUMNS)
+    .from(serviceOccurrences)
+    .where(and(...where))
+    .orderBy(desc(serviceOccurrences.occursOn), asc(serviceOccurrences.startsAt))
+    .limit(opts.limit ?? 26);
+
+  return rows.map((r) => {
+    const total = totalOf({ adults: r.countAdults, children: r.countChildren, visitors: r.countVisitors });
+    return { ...r, status: r.status as OccurrenceStatus, total, counted: total !== null };
+  });
 }
