@@ -10,8 +10,9 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   listTagsWithCounts, createTag, renameTag, setTagHue, deleteTag, mergeTags, setPersonTag,
-  NameTakenError, normaliseTagName,
+  normaliseTagName,
 } from "../src/repo/tags";
+import { NameTakenError } from "../src/errors";
 import { createPerson, listTagsForPerson } from "../src/repo/people";
 import { PermissionError, type TenantRole } from "../src/roles";
 

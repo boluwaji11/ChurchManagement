@@ -2,6 +2,7 @@ import { and, asc, eq, sql, count, ne } from "drizzle-orm";
 import type { Tx } from "../client";
 import { tags, personTags } from "../schema/people";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
+import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
 
 /**
@@ -36,16 +37,6 @@ export interface TagRow {
  */
 export const CAN_MANAGE_TAGS: readonly TenantRole[] = ["owner", "admin"];
 export const canManageTags = (role: TenantRole): boolean => CAN_MANAGE_TAGS.includes(role);
-
-/** Thrown when a name would collide with a tag that already exists. */
-export class NameTakenError extends Error {
-  readonly existingId: string;
-  constructor(name: string, existingId: string) {
-    super(`There is already a tag called "${name}".`);
-    this.name = "NameTakenError";
-    this.existingId = existingId;
-  }
-}
 
 /** Trimmed, internal whitespace collapsed. "  Youth   choir " becomes "Youth choir". */
 export const normaliseTagName = (raw: string): string => raw.trim().replace(/\s+/g, " ");
@@ -104,10 +95,10 @@ export async function createTag(
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "create a tag");
 
   const name = normaliseTagName(input.name);
-  if (!name) throw new Error("A tag needs a name.");
+  if (!name) throw new InvalidInputError("Enter a name for the tag.");
 
   const existing = await findByName(db, name);
-  if (existing) throw new NameTakenError(name, existing.id);
+  if (existing) throw new NameTakenError(`a tag called "${name}"`, existing.id);
 
   const hue = input.hue ?? (await nextHue(db));
   const [row] = await db
@@ -123,14 +114,14 @@ export async function renameTag(db: Tx, actor: WriteActor, id: string, rawName: 
   if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "rename a tag");
 
   const name = normaliseTagName(rawName);
-  if (!name) throw new Error("A tag needs a name.");
+  if (!name) throw new InvalidInputError("Enter a name for the tag.");
 
   const clash = await db
     .select({ id: tags.id })
     .from(tags)
     .where(and(sql`lower(${tags.name}) = lower(${name})`, ne(tags.id, id)))
     .limit(1);
-  if (clash[0]) throw new NameTakenError(name, clash[0].id);
+  if (clash[0]) throw new NameTakenError(`a tag called "${name}"`, clash[0].id);
 
   const changed = await db.update(tags).set({ name }).where(eq(tags.id, id)).returning({ id: tags.id });
   if (changed.length === 0) throw new Error("No such tag.");
@@ -180,7 +171,7 @@ export async function mergeTags(
   input: { fromId: string; intoId: string },
 ): Promise<{ moved: number }> {
   if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "merge tags");
-  if (input.fromId === input.intoId) throw new Error("A tag cannot be merged into itself.");
+  if (input.fromId === input.intoId) throw new InvalidInputError("A tag cannot be merged into itself.");
 
   const found = await db
     .select({ id: tags.id })

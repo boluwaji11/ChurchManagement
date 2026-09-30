@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, createTag, renameTag, setTagHue, deleteTag, mergeTags, setPersonTag,
-  PermissionError, NameTakenError, type TagHue,
+  PermissionError, NameTakenError, InvalidInputError, type TagHue,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 
@@ -41,6 +41,7 @@ async function context(slug: string | undefined) {
 function explain(error: unknown): TagResult {
   if (error instanceof PermissionError) return { error: error.message };
   if (error instanceof NameTakenError) return { error: error.message };
+  if (error instanceof InvalidInputError) return { error: error.message };
   throw error;
 }
 
