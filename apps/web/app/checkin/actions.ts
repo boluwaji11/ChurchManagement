@@ -120,6 +120,8 @@ export interface CheckinResult {
   error?: string;
   /** Who is in each room now, so the desk can warn before the next family. */
   counts?: Record<string, number>;
+  /** The code each child was given, so the desk can show what was printed. */
+  codes?: Record<string, string>;
 }
 
 export async function checkIn(
@@ -131,13 +133,17 @@ export async function checkIn(
   const { session, actor, ctx } = await context(church);
   try {
     return await withTenant(ctx, async (tx) => {
-      await checkInFamily(tx, actor, {
+      const visits = await checkInFamily(tx, actor, {
         occurrenceId,
         stationId,
         userId: session.userId,
         entries,
       });
-      return { counts: await roomCounts(tx, occurrenceId) };
+
+      const codes: Record<string, string> = {};
+      for (const visit of visits) if (visit.code) codes[visit.personId] = visit.code;
+
+      return { counts: await roomCounts(tx, occurrenceId), codes };
     });
   } catch (error) {
     return { error: explain(error) };

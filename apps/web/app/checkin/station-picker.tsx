@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Badge, Button, Card, EmptyState, HueDot, type Hue } from "@hearth/ui";
+import { Badge, Button, Card, EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { claim } from "./actions";
 import { Desk, type DeskRoom, type DeskService } from "./desk";
@@ -74,7 +74,7 @@ export function StationPicker({
 
   if (station) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <Desk
           church={church}
           stationId={station.id}
@@ -82,31 +82,20 @@ export function StationPicker({
           services={station.services}
         />
 
-        <Card className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-heading text-fg">{station.name}</span>
-          <Badge tone="neutral">{t(`stations.mode.${station.mode}` as never)}</Badge>
-          <Badge tone="neutral">{t(`stations.printer.${station.printer}` as never)}</Badge>
+        {/* Which device this is, kept out of the way. A volunteer checking a
+            family in is not thinking about it, and it is only ever touched when
+            a tablet is swapped. */}
+        <div className="flex flex-wrap items-center gap-2 text-caption text-fg-subtle">
+          <span>{station.name}</span>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => remember(null)}
+            className="underline underline-offset-2 hover:text-fg"
+          >
+            {t("checkin.change")}
+          </button>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          {station.rooms.map((room) => (
-            <span
-              key={room.id}
-              className="flex items-center gap-2 rounded-full border border-line px-3 py-1 text-label text-fg"
-            >
-              <HueDot hue={room.hue as Hue} />
-              {room.name}
-            </span>
-          ))}
-        </div>
-
-          <div>
-            <Button variant="ghost" disabled={pending} onClick={() => remember(null)}>
-              {t("checkin.change")}
-            </Button>
-          </div>
-        </Card>
       </div>
     );
   }

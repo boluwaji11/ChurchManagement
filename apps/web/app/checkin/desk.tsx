@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search, Check, Undo2, UserCheck } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, EmptyState, HueDot, Input, Separator,
+  Badge, Banner, Button, Card, EmptyState, Field, HueDot, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
@@ -54,6 +54,7 @@ export function Desk({
   // Who is waiting on a label. Until the volunteer says the labels are in the
   // parent's hand, the check-in is not finished. (R8.6)
   const [printing, setPrinting] = React.useState<string[]>([]);
+  const [codes, setCodes] = React.useState<Record<string, string>>({});
   const [pending, startTransition] = React.useTransition();
 
   // Typing is the whole interaction, so the search runs as they type and the
@@ -77,6 +78,7 @@ export function Desk({
     setOpen(household.id);
     setDone([]);
     setPrinting([]);
+    setCodes({});
     const rooms: Record<string, string | null> = {};
     const people: Record<string, boolean> = {};
     for (const person of household.people) {
@@ -105,6 +107,7 @@ export function Desk({
       setError(result.error);
       if (result.error) return;
       setCounts(result.counts ?? {});
+      setCodes(result.codes ?? {});
       setDone(entries.map((e) => e.personId));
 
       // The children on this press are the ones whose labels have to come out
@@ -134,7 +137,14 @@ export function Desk({
   const settle = (printed: boolean) => {
     const waiting = printing;
     setPrinting([]);
-    if (printed) return;
+
+    if (printed) {
+      // Back to an empty box, because the next family is already at the desk.
+      setQuery("");
+      setOpen(null);
+      setCodes({});
+      return;
+    }
 
     startTransition(async () => {
       for (const personId of waiting) await undo(service, personId, church);
@@ -174,18 +184,57 @@ export function Desk({
         </Select>
       ) : null}
 
-      <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm">
-        <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
-        <Input
-          value={query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(null); }}
-          aria-label={t("checkin.search")}
-          autoComplete="off"
-          className="border-0 bg-transparent shadow-none"
-        />
-      </div>
+      <Field label={t("checkin.search")}>
+        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm">
+          <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
+          <Input
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(null); }}
+            autoComplete="off"
+            autoFocus
+            className="border-0 bg-transparent shadow-none"
+          />
+        </div>
+      </Field>
 
-      {household ? (
+      {household && printing.length > 0 ? (
+        /* R8.6. Done, and what the parent is holding. The code is here as well
+           as on the label, because a printer that smudged is not a reason for
+           anybody to guess. */
+        <Card className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Check className="size-6 text-success-text" aria-hidden />
+            <span className="text-heading text-fg">{t("checkin.done")}</span>
+          </div>
+
+          <ul className="flex flex-col gap-2">
+            {printing.map((personId) => {
+              const person = household.people.find((p) => p.id === personId);
+              const room = rooms.find((r) => r.id === chosen[personId]);
+              const code = codes[personId];
+              return (
+                <li key={personId} className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-[length:var(--d-text-body)] text-fg">
+                    {room ? <HueDot hue={room.hue as Hue} /> : null}
+                    {person?.name}
+                    {room ? <span className="text-fg-muted">{room.name}</span> : null}
+                  </span>
+                  {code ? (
+                    <span className="font-mono text-title tracking-widest text-fg">{code}</span>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={() => settle(true)}>{t("checkin.printed")}</Button>
+            <Button variant="ghost" disabled={pending} onClick={() => settle(false)}>
+              {t("checkin.notPrinted")}
+            </Button>
+          </div>
+        </Card>
+      ) : household ? (
         <Card className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-heading text-fg">{household.name}</span>
@@ -211,22 +260,11 @@ export function Desk({
             ))}
           </ul>
 
-          {printing.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-3">
-              <Button onClick={() => settle(true)}>
-                <Check /> {t("checkin.printed")}
-              </Button>
-              <Button variant="danger" disabled={pending} onClick={() => settle(false)}>
-                {t("checkin.notPrinted")}
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <Button onClick={send} disabled={pending}>
-                <Check /> {t("checkin.check")}
-              </Button>
-            </div>
-          )}
+          <div>
+            <Button onClick={send} disabled={pending}>
+              <Check /> {t("checkin.check")}
+            </Button>
+          </div>
         </Card>
       ) : households.length > 0 ? (
         <div className="flex flex-col gap-2">
