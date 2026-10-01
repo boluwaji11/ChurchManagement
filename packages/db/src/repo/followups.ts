@@ -147,6 +147,7 @@ export interface PipelineEntry {
   pipelineName: string;
   pipelineHue: string;
   personId: string;
+  personName: string;
   status: string;
   reason: string;
   startedOn: string;
@@ -551,9 +552,13 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
       key: pipelines.key,
       name: pipelines.name,
       hue: pipelines.hue,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
     })
     .from(pipelineEntries)
     .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
+    .innerJoin(people, eq(people.id, pipelineEntries.personId))
     .where(where)
     .orderBy(desc(pipelineEntries.startedOn));
   if (rows.length === 0) return [];
@@ -570,6 +575,7 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
     pipelineName: row.name,
     pipelineHue: row.hue,
     personId: row.personId,
+    personName: called(row),
     status: row.status,
     reason: row.reason,
     startedOn: row.startedOn,

@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Queue } from "./queue";
+import { FollowUpTabs } from "./tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,7 @@ export default async function FollowUpsPage({
       <AppHeader session={session} />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <PageTitle title={t("queue.title")} className="mb-6" />
+        <FollowUpTabs church={session.tenantSlug} />
         <Queue
           church={session.tenantSlug}
           today={today}
