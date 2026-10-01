@@ -111,15 +111,8 @@ export default async function PersonPage({
         </Banner>
       ) : null}
 
-      {canEditPeople(session.role) || canArchivePeople(session.role) ? (
+      {canArchivePeople(session.role) ? (
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          {canEditPeople(session.role) ? (
-            <Button asChild variant="secondary">
-              <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
-                <Pencil /> {t("action.edit")}
-              </Link>
-            </Button>
-          ) : null}
           {canArchivePeople(session.role) ? (
             <ArchiveButton
               church={session.tenantSlug}
@@ -159,6 +152,17 @@ export default async function PersonPage({
             </div>
           ))}
         </dl>
+
+        {canEditPeople(session.role) ? (
+          <>
+            <Separator className="my-4" />
+            <Button asChild variant="secondary">
+              <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
+                <Pencil /> {t("action.edit")}
+              </Link>
+            </Button>
+          </>
+        ) : null}
       </Card>
 
       {fields.length > 0 ? (
