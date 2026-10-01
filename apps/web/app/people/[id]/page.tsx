@@ -6,6 +6,7 @@ import {
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones,
   canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
+  canSeeChecks, checksFor,
 } from "@hearth/db";
 import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
@@ -16,6 +17,7 @@ import { TagEditor } from "../tag-editor";
 import { Relationships } from "../relationships";
 import { Milestones } from "../milestones";
 import { FollowUps, PersonTasks } from "../followups";
+import { Checks } from "../checks";
 import { t, plural } from "@hearth/i18n";
 import { lifecycleLabel } from "@/lib/person-input";
 
@@ -59,6 +61,8 @@ export default async function PersonPage({
       pipelines: canFollowUp(session.role) ? await listPipelines(tx) : [],
       entries: canFollowUp(session.role) ? await entriesFor(tx, id) : [],
       tasks: canFollowUp(session.role) ? await tasksFor(tx, id) : [],
+      // R2.10, R21.11. The safeguarding drawer, for the roles that hold it.
+      checks: canSeeChecks(session.role) ? await checksFor(tx, { role: session.role }, id) : null,
       today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
       // Everyone in the church, for the picker. A church of 50 to 500 fits in a
       // list; the search this will need at five thousand is R2.14's job.
@@ -71,7 +75,7 @@ export default async function PersonPage({
   if (!result) notFound();
   const {
     person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone,
-    milestones, pipelines, entries, tasks, today,
+    milestones, pipelines, entries, tasks, today, checks,
   } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
@@ -334,6 +338,27 @@ export default async function PersonPage({
             }))}
           />
         </Card>
+        ) : null}
+
+        {checks ? (
+          <Card className="mb-6">
+            <CardTitle>{t("checks.title")}</CardTitle>
+            <Separator className="my-4" />
+            <Checks
+              church={session.tenantSlug}
+              personId={person.id}
+              standing={checks.standing}
+              expiresOn={checks.expiresOn}
+              canEdit
+              rows={checks.checks.map((row) => ({
+                id: row.id,
+                provider: row.provider,
+                status: row.status,
+                completedOn: row.completedOn,
+                expiresOn: row.expiresOn,
+              }))}
+            />
+          </Card>
         ) : null}
       </aside>
       </div>

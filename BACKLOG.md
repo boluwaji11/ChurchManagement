@@ -99,7 +99,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Closed |
 | HRT-40 | Directory search, filtering, sorting and pagination | R2.x | Closed |
 | HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Closed |
-| HRT-26 | Background check status and expiry tracking | R2.10 | New |
+| HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Resolved |
 | HRT-27 | Birthdays and anniversaries list | R2.9 | New |
 
 ### F19. Data portability
@@ -319,9 +319,9 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | R3.x the member directory, R19.5 the three importers, R21.10 minors, R21.11 safeguarding retention, R22.1 to R22.3 onboarding, and R2.10 background check status. Everything else in 0.2 is built. |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six |
-| **Next** | **HRT-26** background check status, which 0.2 names and which has sat in New since F2. Then F3 the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **0.2 still owed** | R3.x the member directory, R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks |
+| **Next** | F3 the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1045,6 +1045,27 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-26, how to test it
+
+Open anybody in the **Directory**. **Background check** is in the right column, for owner, admin and
+pastoral only. Sign in as staff and the card is not there.
+
+1. **Record one.** Who did it, what it said, the day it was completed, the day it runs out.
+2. **Where they stand** is worked out rather than stored: Clear, Running out, Run out, Flagged,
+   Waiting, Not checked. Run out and Not checked are deliberately different answers, because
+   "nobody has checked her" and "hers lapsed in March" are two different conversations.
+3. **Running out** starts sixty days before the date, and the volunteer keeps serving through it. A
+   church that stops somebody eight weeks early has lost a volunteer and gained nothing.
+4. **Record another.** The new one decides. The old one stays on the list. There is no edit and no
+   delete anywhere on this card: what the church knew in 2024 has to stay answerable in 2030.
+5. **A flagged check** stands until a later check supersedes it, and never quietly expires into
+   "not checked".
+6. **What is not kept.** No report, no finding, no notes. The provider holds that. A test asserts
+   the table has only the eight columns it should have.
+
+The gate itself, where somebody without a check cannot be scheduled with children, is R10.9 in 0.4.
+The rule it will call is written and tested here.
 
 ### HRT-97, how to test it
 
