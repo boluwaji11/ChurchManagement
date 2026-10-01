@@ -70,7 +70,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-10 | Adversarial isolation suite, cross-tenant reads and writes on every table | R1.3 | Closed |
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.x | Closed |
-| HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Resolved |
+| HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Closed |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
@@ -154,17 +154,17 @@ starting any story below. They are the definition of done, ahead of anything the
 |---|---|---|---|
 | HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Closed |
 | HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Closed |
-| HRT-73 | A screen for the modes a family drives itself, rather than the volunteer's | R8.1, R24.14 | Resolved |
-| HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Resolved |
-| HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | Resolved |
-| HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | Resolved |
-| HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | Resolved |
-| HRT-74 | The station opens on the service that is actually happening now | R8.2 | Resolved |
-| HRT-75 | Station search is a directory lookup, by person, on name prefixes | R8.3, R8.4 | Resolved |
-| HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Resolved |
-| HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Resolved |
-| HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Resolved |
-| HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
+| HRT-73 | A screen for the modes a family drives itself, rather than the volunteer's | R8.1, R24.14 | Closed |
+| HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Closed |
+| HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | Closed |
+| HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | Closed |
+| HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | Closed |
+| HRT-74 | The station opens on the service that is actually happening now | R8.2 | Closed |
+| HRT-75 | Station search is a directory lookup, by person, on name prefixes | R8.3, R8.4 | Closed |
+| HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Closed |
+| HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Closed |
+| HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Closed |
+| HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.17 to R8.19 | Active |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
 
 ### F18. Insights, deferred to 1.0
@@ -222,9 +222,9 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings, **HRT-78** the station setup, **HRT-60** offline, **HRT-61** label printing |
-| **Next** | **HRT-62** supervisor dashboard, live room rosters, two-adult-rule alert. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Active** | **HRT-62** supervisor dashboard, live room rosters, the two-adult rule |
+| **Waiting on a test** | Nothing. The check-in block was tested and closed on 30 September 2026. |
+| **Next** | **HRT-63** incident reports. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -825,3 +825,23 @@ The station's **Labels** setting picks the stock, so set it before printing.
    it is the largest thing on the label.
 5. **The allergy.** A child with an allergy recorded has it on their own label, and not on the
    guardian's.
+
+### HRT-62, how to test it
+
+**Kids rooms** is in the header. It is the person walking the corridor, not the desk.
+
+1. **Counts.** Check two children into the nursery from the desk. The card shows two, and the
+   outstanding count at the top matches.
+2. **Volunteers.** At the desk, an adult now has a **Serving in** picker. Check one adult into the
+   nursery. The card counts them as a volunteer, and the card says one adult in this room.
+3. **The two-adult rule.** Check a second adult into the same room. The alert goes. Check one of
+   them out and it comes back, with the room named in the banner at the top.
+4. **Capacity.** Fill a room to its capacity: it says full. One more: over capacity.
+5. **Ratio.** A room set to one volunteer per four children with five children and one volunteer
+   says there are not enough volunteers.
+6. **Roster.** Press Roster on a card. Who is in the room, who has been collected, their codes, and
+   any allergy. Press Print: every room's roster prints, expanded, one room a block.
+7. **It keeps up.** Leave the board open and check a child in from another device. Within twenty
+   seconds the board moves on its own.
+8. **A volunteer is not a pickup.** Checking an adult out asks for no code, because a name badge is
+   not a claim on anybody. A child still is.

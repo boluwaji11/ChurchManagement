@@ -12,6 +12,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { checkOut, pickupList, overridesFor } from "../src/repo/checkout";
+import { releaseBlock } from "../src/repo/release-rules";
 import { checkInFamily, visitsFor } from "../src/repo/checkin";
 import { addSpecialService } from "../src/repo/services";
 import { addRoom } from "../src/repo/rooms";
@@ -271,5 +272,56 @@ describe("who may run a checkout", () => {
         visitId: visit.id, code: visit.code, collectedBy: mother,
       }), "member"),
     ).rejects.toBeInstanceOf(PermissionError);
+  });
+});
+
+/**
+ * R8.7. The release decision on its own, with no database behind it.
+ *
+ * The station runs this same function with no network, so the one rule that
+ * must never bend is asserted here rather than only through the query layer: a
+ * child is released on a code, and the absence of a code is not a match.
+ */
+describe("the release rule", () => {
+  const base = {
+    kind: "child" as const,
+    expected: "AB3DE",
+    typed: "AB3DE",
+    collectedBy: null,
+    restricted: [],
+    allowed: [],
+    override: null,
+  };
+
+  it("lets a child go on the code that was printed", () => {
+    expect(releaseBlock(base)).toBeNull();
+  });
+
+  it("refuses a child whose visit carries no code at all", () => {
+    expect(releaseBlock({ ...base, expected: null, typed: "" })).toBe("code");
+    expect(releaseBlock({ ...base, expected: null, typed: "AB3DE" })).toBe("code");
+  });
+
+  it("asks an adult for no code, because a badge is not a claim on anybody", () => {
+    expect(releaseBlock({ ...base, kind: "adult", expected: null, typed: "" })).toBeNull();
+  });
+
+  it("stops a restriction before it asks about the code", () => {
+    expect(
+      releaseBlock({ ...base, collectedBy: "x", restricted: ["x"], allowed: ["x"] }),
+    ).toBe("restriction");
+  });
+
+  it("stops somebody who is not on the list", () => {
+    expect(releaseBlock({ ...base, collectedBy: "x", allowed: ["y"] })).toBe("pickup");
+  });
+
+  it("passes what a supervisor decided to pass, and nothing else", () => {
+    expect(
+      releaseBlock({ ...base, typed: "WRONG", override: { kind: "code" } }),
+    ).toBeNull();
+    expect(
+      releaseBlock({ ...base, typed: "WRONG", override: { kind: "pickup" } }),
+    ).toBe("code");
   });
 });

@@ -32,7 +32,10 @@ export interface StationSnapshot {
   codes: string[];
   churchName: string;
   /** R8.7. Who was already in when the station last had a network. */
-  visits: { personId: string; visitId: string; roomId: string | null; code: string | null }[];
+  visits: {
+    personId: string; visitId: string; roomId: string | null;
+    code: string | null; kind: string;
+  }[];
 }
 
 export interface SnapshotRoom {

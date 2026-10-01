@@ -9,10 +9,11 @@ import { createTag, setPersonTag } from "../repo/tags";
 import { addMilestone, type MilestoneKind } from "../repo/milestones";
 import { addRelationship, type RelationshipKind } from "../repo/relationships";
 import { canManageChurch, addServiceTime } from "../repo/church";
-import { generateOccurrences, listOccurrences, setHeadcount } from "../repo/services";
+import { generateOccurrences, listOccurrences, setHeadcount, addSpecialService } from "../repo/services";
 import { setPresentMany } from "../repo/attendance";
-import { addRoom } from "../repo/rooms";
+import { addRoom, ageInMonths } from "../repo/rooms";
 import { addStation } from "../repo/stations";
+import { checkInFamily } from "../repo/checkin";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { DEMO_PEOPLE, DEMO_TAGS } from "./people";
@@ -219,6 +220,72 @@ async function loadSundays(
     name: "Foyer desk", mode: "desk", printer: "paper", roomIds: [], serviceTimeIds: [],
   });
   await remember("station", station.id);
+
+  await loadTodaysService(db, actor, remember, station.id, roomIds, people);
+}
+
+/**
+ * A service happening today, with children in rooms.
+ *
+ * Without it a visitor arriving on a Tuesday opens check-in and the supervisor
+ * board and sees two empty screens with nothing wrong, which reads as the
+ * product not working. The service is written through the same functions a
+ * church uses, so what the demo shows is what a church would get.
+ *
+ * One room is deliberately left with a single volunteer, because the two-adult
+ * alert is the thing on that screen worth seeing. (R8.17)
+ */
+async function loadTodaysService(
+  db: Tx,
+  actor: WriteActor,
+  remember: (entity: string, recordId: string) => Promise<void>,
+  stationId: string,
+  roomIds: string[],
+  everyone: string[],
+): Promise<void> {
+  const today = daysAgo(0);
+  const occurrence = await addSpecialService(db, actor, {
+    name: "Sunday gathering",
+    occursOn: today,
+    startsAt: "09:00",
+    note: null,
+  });
+  await remember("occurrence", occurrence.id);
+
+  const rows = await db
+    .select({ id: people.id, dateOfBirth: sql<string | null>`${people.dateOfBirth}::text` })
+    .from(people)
+    .where(inArray(people.id, everyone));
+
+  const months = (dob: string | null) => (dob ? ageInMonths(dob, today) : null);
+  const children = rows.filter((r) => {
+    const age = months(r.dateOfBirth);
+    return age !== null && age < 18 * 12;
+  });
+  const adults = rows.filter((r) => {
+    const age = months(r.dateOfBirth);
+    return age === null || age >= 18 * 12;
+  });
+
+  const roomFor = (index: number) => roomIds[index % roomIds.length] ?? null;
+
+  const entries = [
+    ...children.slice(0, 8).map((child, i) => ({
+      personId: child.id,
+      roomId: roomFor(i),
+      child: true,
+    })),
+    // Two in the first room, one in the second, which is the alert.
+    ...adults.slice(0, 3).map((adult, i) => ({
+      personId: adult.id,
+      roomId: roomFor(i === 2 ? 1 : 0),
+      child: false,
+    })),
+  ];
+
+  if (entries.length > 0) {
+    await checkInFamily(db, actor, { occurrenceId: occurrence.id, stationId, entries });
+  }
 }
 
 export interface DemoRemoval {
@@ -249,6 +316,7 @@ export async function removeDemoData(db: Tx, actor: WriteActor): Promise<DemoRem
   const householdIds = ids("household");
   const tagIds = ids("tag");
   const serviceTimeIds = ids("serviceTime");
+  const occurrenceIds = ids("occurrence");
   const roomIds = ids("room");
   const stationIds = ids("station");
 
@@ -266,6 +334,11 @@ export async function removeDemoData(db: Tx, actor: WriteActor): Promise<DemoRem
 
   // The calendar and the rooms. Occurrences and attendance go with the service
   // time through the foreign keys, and so do a station's rooms and services.
+  // A one-off service has no service time behind it, so it is named here, and
+  // the check-in visits against it go with it.
+  if (occurrenceIds.length) {
+    await db.delete(serviceOccurrences).where(inArray(serviceOccurrences.id, occurrenceIds));
+  }
   if (stationIds.length) {
     await db.delete(checkinStations).where(inArray(checkinStations.id, stationIds));
   }

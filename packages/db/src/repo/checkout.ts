@@ -159,6 +159,7 @@ export async function checkOut(
       id: checkinVisits.id,
       personId: checkinVisits.personId,
       code: checkinVisits.code,
+      kind: checkinVisits.kind,
       checkedOutAt: checkinVisits.checkedOutAt,
     })
     .from(checkinVisits)
@@ -177,6 +178,7 @@ export async function checkOut(
     : [];
 
   const stopped = releaseBlock({
+    kind: visit.kind === "adult" ? "adult" : "child",
     expected: visit.code,
     typed: readCode(request.code ?? ""),
     collectedBy: request.collectedBy ?? null,

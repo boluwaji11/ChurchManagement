@@ -13,6 +13,12 @@
 export type OverrideKind = "code" | "pickup" | "restriction";
 
 export interface ReleaseQuestion {
+  /**
+   * What the visit is. A child is released on a code. An adult wearing a name
+   * badge is not somebody being collected, so there is no code to ask for and
+   * none is demanded.
+   */
+  kind: "child" | "adult";
   /** The code on the visit, which is what was printed on the guardian's label. */
   expected: string | null;
   /** What was typed at the door. */
@@ -38,6 +44,10 @@ export function releaseBlock(q: ReleaseQuestion): OverrideKind | null {
     }
   }
 
+  if (q.kind === "adult") return null;
+
+  // A child is released on the code, and a child whose visit carries none is
+  // refused until somebody decides otherwise. Silence is not a match.
   const matches = q.expected !== null && q.typed === q.expected;
   if (!matches && q.override?.kind !== "code") return "code";
 

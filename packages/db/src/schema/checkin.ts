@@ -157,6 +157,14 @@ export const checkinVisits = pgTable(
     stationId: uuid("station_id").references(() => checkinStations.id, { onDelete: "set null" }),
     /** R8.6. Unique within a service occurrence, and not reused for 12 months. */
     code: text("code"),
+    /**
+     * R8.17. "child" or "adult", which is what the row is rather than what the
+     * person is. An adult with a room is serving in it, and the two-adult rule
+     * counts those. Stored rather than worked out from a date of birth, because
+     * a church that holds no date of birth for a volunteer still has to be able
+     * to count them.
+     */
+    kind: text("kind").notNull().default("child"),
     checkedInAt: timestamp("checked_in_at", { withTimezone: true }).defaultNow().notNull(),
     /** Who did the checking in, where a volunteer was driving the station. */
     checkedInBy: uuid("checked_in_by"),

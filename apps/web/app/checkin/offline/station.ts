@@ -242,6 +242,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
       const pickup = snapshot?.roster.pickup[input.personId] ?? [];
 
       const stopped = releaseBlock({
+        kind: visit?.kind === "adult" ? "adult" : "child",
         expected,
         typed: readCode(input.typed),
         collectedBy: input.collectedBy,

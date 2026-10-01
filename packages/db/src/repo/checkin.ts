@@ -48,6 +48,8 @@ export interface Visit {
   id: string;
   personId: string;
   name: string;
+  /** "child", who is counted into a room, or "adult", who may be serving in it. */
+  kind: string;
   roomId: string | null;
   roomName: string | null;
   roomHue: string | null;
@@ -61,6 +63,7 @@ const COLUMNS = {
   personId: checkinVisits.personId,
   roomId: checkinVisits.roomId,
   code: checkinVisits.code,
+  kind: checkinVisits.kind,
   checkedInAt: checkinVisits.checkedInAt,
   checkedOutAt: checkinVisits.checkedOutAt,
 };
@@ -146,11 +149,17 @@ async function writeVisit(
     checkedInBy: input.userId ?? null,
   };
 
-  const code = entry.child === false ? null : (entry.code ?? (await freeCode(db)));
+  const child = entry.child !== false;
+  const code = child ? (entry.code ?? (await freeCode(db))) : null;
 
   await db
     .insert(checkinVisits)
-    .values({ ...row, code, ...(entry.at ? { checkedInAt: new Date(entry.at) } : {}) })
+    .values({
+      ...row,
+      code,
+      kind: child ? "child" : "adult",
+      ...(entry.at ? { checkedInAt: new Date(entry.at) } : {}),
+    })
     .onConflictDoNothing({ target: [checkinVisits.occurrenceId, checkinVisits.personId] });
 }
 
@@ -202,6 +211,7 @@ export async function visitsFor(db: Tx, occurrenceId: string): Promise<Visit[]> 
     id: r.id,
     personId: r.personId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
+    kind: r.kind,
     roomId: r.roomId,
     roomName: r.roomName,
     roomHue: r.roomHue,
@@ -269,7 +279,13 @@ export async function roomCounts(
   const rows = await db
     .select({ roomId: checkinVisits.roomId, n: sql<string>`count(*)` })
     .from(checkinVisits)
-    .where(and(eq(checkinVisits.occurrenceId, occurrenceId), isNull(checkinVisits.checkedOutAt)))
+    .where(
+      and(
+        eq(checkinVisits.occurrenceId, occurrenceId),
+        isNull(checkinVisits.checkedOutAt),
+        eq(checkinVisits.kind, "child"),
+      ),
+    )
     .groupBy(checkinVisits.roomId);
 
   const out: Record<string, number> = {};

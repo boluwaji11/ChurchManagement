@@ -268,7 +268,10 @@ export interface SnapshotResult {
     codes: string[];
     churchName: string;
     /** R8.7. Who is already checked in, with the code on their label. */
-    visits: { personId: string; visitId: string; roomId: string | null; code: string | null }[];
+    visits: {
+      personId: string; visitId: string; roomId: string | null;
+      code: string | null; kind: string;
+    }[];
   };
   error?: string;
 }
@@ -320,7 +323,10 @@ export async function snapshot(
           churchName: session.tenantName,
           visits: already
             .filter((v) => v.checkedOutAt === null)
-            .map((v) => ({ personId: v.personId, visitId: v.id, roomId: v.roomId, code: v.code })),
+            .map((v) => ({
+              personId: v.personId, visitId: v.id, roomId: v.roomId,
+              code: v.code, kind: v.kind,
+            })),
         },
       };
     });
