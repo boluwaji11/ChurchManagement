@@ -117,7 +117,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | Closed |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
-| HRT-102 | Planning Center, Breeze and ChurchTrac importers, their own export formats | R19.5 | New |
+| HRT-102 | Planning Center, Breeze and ChurchTrac people and households, their own export formats | R19.5 | Resolved |
+| HRT-116 | Group membership import, for the same three systems | R19.5, R9.5 | New |
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Closed |
 | HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Closed |
 | HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Closed |
@@ -383,11 +384,11 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-102** the three real importers (R19.5), **HRT-110** saved lists (R1.14), **HRT-112** the bag label (R8.12). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **0.2 still owed** | **HRT-116** group membership import (R19.5), **HRT-110** saved lists (R1.14), **HRT-112** the bag label (R8.12). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement in the PRD checked against the board. Three had no story at all: R1.14, R8.12, and R1.2 (which is built in the schema and has no screen). Account creation had no story and no screen: **HRT-109**. |
 | **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
 | **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help, **HRT-107** time to value, **HRT-109** signing up |
-| **Next** | **HRT-102** the three importers, **HRT-110** saved lists, **HRT-112** the bag label. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **Next** | **HRT-116** group membership import, **HRT-110** saved lists, **HRT-112** the bag label. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1111,6 +1112,24 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-102, how to test it
+
+Three sample files are in the scratchpad: `planning-center-sample.csv`, `breeze-sample.csv`,
+`churchtrac-sample.csv`. Import, choose one, and the matching step says which system it came from
+and has every column already matched.
+
+1. **Planning Center.** Membership becomes the status, and Status is left out, because Status is
+   active or inactive and reading it as lifecycle turns every inactive person into a visitor. Mobile
+   Phone is taken, Home Phone is left, Created At is dropped.
+2. **Breeze.** Family and Family Role become the household and the role in it, Joined Date becomes
+   the membership date, and Breeze ID is dropped.
+3. **ChurchTrac.** Headers with no spaces at all, so FamilyPosition has to land on the household
+   role.
+4. **A spreadsheet somebody typed** gets no badge and the ordinary guess, as before.
+5. **A column none of them know about** stays unmapped rather than being guessed into a field.
+
+Giving history is R19.6 and belongs to 0.3. Group membership files are HRT-116.
 
 ### HRT-114, how to test it
 

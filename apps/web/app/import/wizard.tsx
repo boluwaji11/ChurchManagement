@@ -245,8 +245,15 @@ function MapColumns({
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle>{t("import.step.map")}</CardTitle>
-          <span className="text-caption text-fg-muted">
-            {plural("import.rowsFound", inspection.rowCount ?? 0)}
+          <span className="flex flex-wrap items-center gap-2">
+            {/* R19.5. Naming the system it came from is the whole of a dedicated
+                importer: the columns are already matched, and this says why. */}
+            {inspection.source ? (
+              <Badge tone="info">{t("import.detected", { name: inspection.source })}</Badge>
+            ) : null}
+            <span className="text-caption text-fg-muted">
+              {plural("import.rowsFound", inspection.rowCount ?? 0)}
+            </span>
           </span>
         </div>
         <Separator className="my-4" />

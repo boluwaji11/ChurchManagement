@@ -494,6 +494,7 @@ export const en = {
   "import.title": "Import",
   "import.step.file": "Choose a file",
   "import.step.map": "Match the columns",
+  "import.detected": "{name} export",
   "import.step.preview": "Check what will happen",
   "import.file": "Spreadsheet",
   "import.rowsFound.one": "{count} row found",

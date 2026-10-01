@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, readImportFile, guessMapping, listCustomFields, PERSON_FIELDS,
-  plan, commit, rollbackImport, canEditPeople,
+  plan, commit, rollbackImport, canEditPeople, detectSource, sourceMapping, IMPORT_SOURCES,
   type DuplicateStrategy, type PlannedRow, type Sheet,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -33,6 +33,8 @@ export interface Inspection {
   samples?: Record<string, string>;
   rowCount?: number;
   fields?: FieldChoice[];
+  /** R19.5. The system this file came out of, where the headers say so. */
+  source?: string;
 }
 
 /**
@@ -74,9 +76,19 @@ export async function inspectFile(input: { church?: string } & FilePayload): Pro
     samples[header] = sheet.rows.find((r) => (r[header] ?? "").trim() !== "")?.[header] ?? "";
   }
 
+  // R19.5. A Planning Center, Breeze or ChurchTrac export arrives already
+  // matched. Their own column names sit over the generic guess, and anything
+  // they do not name falls through to it, so a church that added its own column
+  // still gets that matched too.
+  const guess = guessMapping(sheet.headers, custom);
+  const source = detectSource(sheet.headers);
+
   return {
     headers: sheet.headers,
-    mapping: guessMapping(sheet.headers, custom),
+    mapping: source ? sourceMapping(source, sheet.headers, guess) : guess,
+    source: source
+      ? t(IMPORT_SOURCES.find((row) => row.key === source)!.label as never)
+      : undefined,
     samples,
     rowCount: sheet.rows.length,
     fields: [
