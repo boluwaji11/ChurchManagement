@@ -111,6 +111,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | Closed |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
+| HRT-102 | Planning Center, Breeze and ChurchTrac importers, their own export formats | R19.5 | New |
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Closed |
 | HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Closed |
 | HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Closed |
@@ -233,9 +234,41 @@ step, changes how many days it gets, says who it lands on, and switches one off.
 is invent a seventh or draw a branch. That is the line, and it is the line that keeps this usable. The engine is the single feature that makes Rock RMS unusable by the person
 this product is for.
 
-### F3, F22
+### F3. The member-facing directory (0.2)
 
-The member-facing directory and onboarding. Stories are written as follow-up lands.
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-98 | The member directory: searchable, by household, with photos | R3.1, R3.4 | New |
+| HRT-99 | Per-field visibility chosen by the member, and whole-record opt out | R3.2, R3.3 | New |
+| HRT-100 | The printed and PDF directory, honouring every setting at generation | R3.5 | New |
+| HRT-101 | The admin view that shows every field, permission gated | R3.6 | New |
+
+The admin directory (F2) exists and is what staff use. This is the other one: what a member sees of
+everybody else, and it is the member who decides what of theirs appears. The default is hidden for
+an address and a date of birth. A child is never shown with contact details.
+
+### F21. Safeguarding and minors (0.2)
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-103 | Minors: no contact details in the member directory, restricted export, consent recorded | R21.10 | New |
+| HRT-104 | Safeguarding records retained permanently with access restricted, audited end to end | R21.11 | New |
+
+**HRT-104** is partly built: incident reports are permanent and restricted (HRT-63). What is missing
+is background checks (HRT-26) and training records (F10, 0.4) under the same retention and the same
+gate, and a test that walks all three.
+
+### F22. Onboarding (0.2)
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-105 | The setup wizard: church, services, roles, import. Resumable and skippable | R22.1 | New |
+| HRT-106 | In-context help on every screen | R22.2 | New |
+| HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | New |
+
+R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
+screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
+roles and invitations, and the import.
 
 ## E3. Money (0.3)
 
@@ -286,8 +319,9 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
+| **0.2 still owed** | R3.x the member directory, R19.5 the three importers, R21.10 minors, R21.11 safeguarding retention, R22.1 to R22.3 onboarding, and R2.10 background check status. Everything else in 0.2 is built. |
 | **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six |
-| **Next** | F3 the member directory, then F22 onboarding. Then F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Next** | **HRT-26** background check status, which 0.2 names and which has sat in New since F2. Then F3 the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
