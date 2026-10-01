@@ -88,6 +88,9 @@ async function main() {
       ["Pastor " + church.name.split(" ")[0], `pastor@${church.slug}.example.org`, "owner"],
       ["Admin " + church.name.split(" ")[0], `admin@${church.slug}.example.org`, "admin"],
       ["Care " + church.name.split(" ")[0], `care@${church.slug}.example.org`, "pastoral"],
+      // R3.x. Somebody with no staff access at all, so the member surfaces can
+      // be seen the way a member sees them rather than guessed at.
+      ["Member " + church.name.split(" ")[0], `member@${church.slug}.example.org`, "member"],
     ] as const) {
       const [user] = await sql<{ id: string }[]>`
         insert into app_users (id, email, full_name)
