@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Check, Undo2, LogOut } from "lucide-react";
 import {
-  Badge, Banner, Button, Field, HueDot, Input, Separator,
+  Badge, Banner, Button, Field, HueDot, HueTag, Input, Separator,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
@@ -55,7 +55,6 @@ export function FollowUps({
   personId,
   today,
   entries,
-  tasks,
   pipelines,
   canEdit,
 }: {
@@ -63,7 +62,6 @@ export function FollowUps({
   personId: string;
   today: string;
   entries: EntryRow[];
-  tasks: StepRow[];
   pipelines: PipelineOption[];
   canEdit: boolean;
 }) {
@@ -82,76 +80,27 @@ export function FollowUps({
   const closed = entries.filter((entry) => entry.status !== "open");
 
   return (
-    <div className="flex flex-col gap-5" aria-busy={pending}>
+    <div className="flex flex-col gap-6" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("followups.title")}>{error}</Banner> : null}
 
       {open.map((entry) => (
-        <div key={entry.id} className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="flex flex-wrap items-center gap-2">
-              <HueDot hue={entry.pipelineHue as Hue} />
-              <span className="text-[length:var(--d-text-body)] text-fg">{entry.pipelineName}</span>
-              <span className="text-caption text-fg-muted">
-                {t("followups.since", { day: readable(entry.startedOn) })}
-              </span>
-            </span>
-            {canEdit ? (
-              <LeaveDialog
-                name={entry.pipelineName}
-                pending={pending}
-                onConfirm={(reason) => run(() => leaveFollowUp(entry.id, reason, church))}
-              />
-            ) : null}
-          </div>
-
-          <ul className="flex flex-col">
-            {entry.steps.map((step, i) => (
-              <li key={step.id}>
-                {i > 0 ? <Separator className="my-2" /> : null}
-                <Step
-                  church={church}
-                  step={step}
-                  today={today}
-                  canEdit={canEdit}
-                  pending={pending}
-                  run={run}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Thread
+          key={entry.id}
+          church={church}
+          entry={entry}
+          today={today}
+          canEdit={canEdit}
+          pending={pending}
+          run={run}
+        />
       ))}
-
-      {tasks.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <span className="text-label text-fg-muted">{t("followups.tasks")}</span>
-          <ul className="flex flex-col">
-            {tasks.map((task, i) => (
-              <li key={task.id}>
-                {i > 0 ? <Separator className="my-2" /> : null}
-                <Step
-                  church={church}
-                  step={task}
-                  today={today}
-                  canEdit={canEdit}
-                  pending={pending}
-                  run={run}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
 
       {closed.length > 0 ? (
         <div className="flex flex-col gap-2">
           <span className="text-label text-fg-muted">{t("followups.closed")}</span>
           {closed.map((entry) => (
             <div key={entry.id} className="flex flex-wrap items-center gap-2">
-              <HueDot hue={entry.pipelineHue as Hue} />
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">
-                {entry.pipelineName}
-              </span>
+              <HueTag hue={entry.pipelineHue as Hue}>{entry.pipelineName}</HueTag>
               <Badge tone="neutral">
                 {entry.status === "done" ? t("followups.done") : t("followups.left")}
               </Badge>
@@ -164,7 +113,7 @@ export function FollowUps({
       ) : null}
 
       {canEdit ? (
-        <div className="flex flex-wrap items-center gap-3">
+        <div>
           <StartDialog
             church={church}
             personId={personId}
@@ -173,6 +122,152 @@ export function FollowUps({
             onDone={() => router.refresh()}
             onError={setError}
           />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * R5.1. One pipeline, as a thread.
+ *
+ * The steps are in order and dated, so they read down the page the way they
+ * happen. The hue is the pipeline's own, on the rail and on the markers, which
+ * is how two open at once stay apart at a glance.
+ */
+function Thread({
+  church,
+  entry,
+  today,
+  canEdit,
+  pending,
+  run,
+}: {
+  church: string;
+  entry: EntryRow;
+  today: string;
+  canEdit: boolean;
+  pending: boolean;
+  run: (work: () => Promise<{ error?: string }>) => void;
+}) {
+  const hue = entry.pipelineHue as Hue;
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="flex flex-wrap items-center gap-2">
+          <HueTag hue={hue}>{entry.pipelineName}</HueTag>
+          <span className="text-caption text-fg-muted">
+            {t("followups.since", { day: readable(entry.startedOn) })}
+          </span>
+        </span>
+        {canEdit ? (
+          <LeaveDialog
+            name={entry.pipelineName}
+            pending={pending}
+            onConfirm={(reason) => run(() => leaveFollowUp(entry.id, reason, church))}
+          />
+        ) : null}
+      </div>
+
+      <ol
+        className="ml-[5px] flex flex-col gap-4 border-l pl-5"
+        style={{ borderColor: `var(--hue-${hue}-tint)` }}
+      >
+        {entry.steps.map((step) => (
+          <li key={step.id} className="relative">
+            <Marker hue={hue} step={step} today={today} />
+            <Step
+              church={church}
+              step={step}
+              today={today}
+              canEdit={canEdit}
+              pending={pending}
+              run={run}
+            />
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/** Where the step sits on the rail: answered, waiting, or late. */
+function Marker({ hue, step, today }: { hue: Hue; step: StepRow; today: string }) {
+  const overdue = step.doneAt === null && step.dueOn !== null && step.dueOn < today;
+
+  return (
+    <span
+      aria-hidden
+      className="absolute -left-[26px] top-1.5 size-3 rounded-full border-2"
+      style={
+        step.doneAt
+          ? { background: `var(--hue-${hue}-500)`, borderColor: `var(--hue-${hue}-500)` }
+          : overdue
+            ? { background: "var(--surface)", borderColor: "var(--danger)" }
+            : { background: "var(--surface)", borderColor: `var(--hue-${hue}-500)` }
+      }
+    />
+  );
+}
+
+/**
+ * R5.6. The things to do about somebody that belong to no pipeline.
+ *
+ * Its own section, because that is what it is: a note to ring the school on
+ * Thursday is not a stage of anything.
+ */
+export function PersonTasks({
+  church,
+  personId,
+  today,
+  tasks,
+  canEdit,
+}: {
+  church: string;
+  personId: string;
+  today: string;
+  tasks: StepRow[];
+  canEdit: boolean;
+}) {
+  const router = useRouter();
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+
+  const run = (work: () => Promise<{ error?: string }>) =>
+    startTransition(async () => {
+      const result = await work();
+      setError(result.error);
+      if (!result.error) router.refresh();
+    });
+
+  const open = tasks.filter((task) => task.doneAt === null);
+  const done = tasks.filter((task) => task.doneAt !== null);
+
+  return (
+    <div className="flex flex-col gap-4" aria-busy={pending}>
+      {error ? <Banner tone="danger" title={t("followups.tasks")}>{error}</Banner> : null}
+
+      {[...open, ...done].length > 0 ? (
+        <ul className="flex flex-col">
+          {[...open, ...done].map((task, i) => (
+            <li key={task.id}>
+              {i > 0 ? <Separator className="my-2" /> : null}
+              <Step
+                church={church}
+                step={task}
+                today={today}
+                canEdit={canEdit}
+                pending={pending}
+                run={run}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {canEdit ? (
+        <div>
           <TaskDialog
             church={church}
             personId={personId}

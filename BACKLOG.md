@@ -223,11 +223,14 @@ it. Both are real, and both are after the rest of F9.
 |---|---|---|---|
 | HRT-93 | The six pipelines, their steps, and a person's follow-up | R5.1, R5.2, R5.4, R5.6 | Resolved |
 | HRT-94 | Entering a pipeline on its own: first visit, second visit, three absences | R5.3 | Resolved |
+| HRT-97 | Editing the six: names, steps, days, who they land on, off | R5.2 | New |
 | HRT-95 | My follow-ups: the queue, overdue first | R5.5 | New |
 | HRT-96 | The board: who is in each pipeline and what is late | R5.7 | New |
 
 No workflow engine. Six pipelines, written down, and a configurable builder deferred to 1.x where
-the PRD puts it (R5.8). The engine is the single feature that makes Rock RMS unusable by the person
+the PRD puts it (R5.8). **HRT-97** is the middle ground: a church renames a pipeline, rewrites a
+step, changes how many days it gets, says who it lands on, and switches one off. What it cannot do
+is invent a seventh or draw a branch. That is the line, and it is the line that keeps this usable. The engine is the single feature that makes Rock RMS unusable by the person
 this product is for.
 
 ### F3, F22

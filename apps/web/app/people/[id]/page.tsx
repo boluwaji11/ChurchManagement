@@ -15,7 +15,7 @@ import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
 import { Relationships } from "../relationships";
 import { Milestones } from "../milestones";
-import { FollowUps } from "../followups";
+import { FollowUps, PersonTasks } from "../followups";
 import { t, plural } from "@hearth/i18n";
 import { lifecycleLabel } from "@/lib/person-input";
 
@@ -79,7 +79,7 @@ export default async function PersonPage({
   return (
     <>
       <AppHeader session={session} />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <Link
         href={`/people?church=${session.tenantSlug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
@@ -131,6 +131,14 @@ export default async function PersonPage({
         </div>
       ) : null}
 
+      {/*
+        * Two columns from large up. The left is the record, the right is what
+        * the church is doing about them. On a phone it is one column and the
+        * record comes first, which is what somebody looking them up came for.
+        */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="flex flex-col">
+
       <Card className="mb-6">
         <CardTitle>{t("person.details")}</CardTitle>
         <Separator className="my-4" />
@@ -167,46 +175,6 @@ export default async function PersonPage({
               </div>
             ))}
           </dl>
-        </Card>
-      ) : null}
-
-      {canFollowUp(session.role) ? (
-        <Card className="mb-6">
-          <CardTitle>{t("person.followups")}</CardTitle>
-          <Separator className="my-4" />
-          <FollowUps
-            church={session.tenantSlug}
-            personId={person.id}
-            today={today}
-            canEdit
-            pipelines={pipelines.map((pipeline) => ({
-              id: pipeline.id, name: pipeline.name, hue: pipeline.hue,
-            }))}
-            entries={entries.map((entry) => ({
-              id: entry.id,
-              pipelineName: entry.pipelineName,
-              pipelineHue: entry.pipelineHue,
-              status: entry.status,
-              startedOn: entry.startedOn,
-              exitReason: entry.exitReason,
-              steps: entry.steps.map((step) => ({
-                id: step.id,
-                title: step.title,
-                dueOn: step.dueOn,
-                doneAt: step.doneAt ? step.doneAt.toISOString() : null,
-                outcome: step.outcome,
-                mine: step.assigneeUserId === session.userId,
-              })),
-            }))}
-            tasks={tasks.map((task) => ({
-              id: task.id,
-              title: task.title,
-              dueOn: task.dueOn,
-              doneAt: task.doneAt ? task.doneAt.toISOString() : null,
-              outcome: task.outcome,
-              mine: task.assigneeUserId === session.userId,
-            }))}
-          />
         </Card>
       ) : null}
 
@@ -307,6 +275,64 @@ export default async function PersonPage({
           ))}
         </ul>
       </Card>
+
+      </div>
+
+      <aside className="flex flex-col">
+        {canFollowUp(session.role) ? (
+        <Card className="mb-6">
+          <CardTitle>{t("person.followups")}</CardTitle>
+          <Separator className="my-4" />
+          <FollowUps
+            church={session.tenantSlug}
+            personId={person.id}
+            today={today}
+            canEdit
+            pipelines={pipelines.map((pipeline) => ({
+              id: pipeline.id, name: pipeline.name, hue: pipeline.hue,
+            }))}
+            entries={entries.map((entry) => ({
+              id: entry.id,
+              pipelineName: entry.pipelineName,
+              pipelineHue: entry.pipelineHue,
+              status: entry.status,
+              startedOn: entry.startedOn,
+              exitReason: entry.exitReason,
+              steps: entry.steps.map((step) => ({
+                id: step.id,
+                title: step.title,
+                dueOn: step.dueOn,
+                doneAt: step.doneAt ? step.doneAt.toISOString() : null,
+                outcome: step.outcome,
+                mine: step.assigneeUserId === session.userId,
+              })),
+            }))}
+          />
+        </Card>
+      ) : null}
+
+        {canFollowUp(session.role) ? (
+        <Card className="mb-6">
+          <CardTitle>{t("followups.tasks")}</CardTitle>
+          <Separator className="my-4" />
+          <PersonTasks
+            church={session.tenantSlug}
+            personId={person.id}
+            today={today}
+            canEdit
+            tasks={tasks.map((task) => ({
+              id: task.id,
+              title: task.title,
+              dueOn: task.dueOn,
+              doneAt: task.doneAt ? task.doneAt.toISOString() : null,
+              outcome: task.outcome,
+              mine: task.assigneeUserId === session.userId,
+            }))}
+          />
+        </Card>
+        ) : null}
+      </aside>
+      </div>
       </main>
     </>
   );
