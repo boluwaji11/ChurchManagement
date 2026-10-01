@@ -1,9 +1,11 @@
 import type { NextRequest } from "next/server";
 import {
-  withTenant, buildArchive, zipArchive, listPeople, toCsv, PermissionError,
+  withTenant, buildArchive, zipArchive, listPeople, resolveList, toCsv, PermissionError,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
-import { queryFromParams, isFiltered, type DirectoryParams } from "@/lib/directory-query";
+import {
+  queryFromParams, isFiltered, paramsFromRule, type DirectoryParams,
+} from "@/lib/directory-query";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +78,17 @@ async function exportView(
     { tenantId: session.tenantId, role: session.role, userId: session.userId },
     // R9.3. An export is the easiest place to leak a scope, so it carries
     // the same viewer the screen does.
-    (tx) => listPeople(tx, { ...queryFromParams(params), viewer: { role: session.role, userId: session.userId } }),
+    async (tx) => {
+      // R1.14. A saved list exports the list. Reading the URL any other way
+      // here would hand somebody a file that is not what the screen showed.
+      const opened = params.list ? await resolveList(tx, params.list) : null;
+      const query = opened?.kind === "rule"
+        ? queryFromParams(paramsFromRule(opened.rule ?? {}))
+        : queryFromParams(params);
+      if (opened?.kind === "static") query.ids = opened.ids ?? [];
+
+      return listPeople(tx, { ...query, viewer: { role: session.role, userId: session.userId } });
+    },
   );
 
   const csv = toCsv(

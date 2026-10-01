@@ -78,7 +78,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
 | HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
-| HRT-110 | Saved lists, static and rule-based | R1.14 | New |
+| HRT-110 | Saved lists, static and rule-based | R1.14 | Resolved |
 | HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.x | Resolved |
 | HRT-114 | Joining a church: its link and code, claiming a person record, the waiting list | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | New |
@@ -117,8 +117,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-29 | Import rollback, reversible for 30 days | R19.4 | Closed |
 | HRT-30 | Complete export of every entity, open formats, no gate | R19.8 | Closed |
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
-| HRT-102 | Planning Center, Breeze and ChurchTrac people and households, their own export formats | R19.5 | Resolved |
-| HRT-116 | Group membership import, for the same three systems | R19.5, R9.5 | Resolved |
+| HRT-102 | Planning Center, Breeze and ChurchTrac people and households, their own export formats | R19.5 | Closed |
+| HRT-116 | Group membership import, for the same three systems | R19.5, R9.5 | Closed |
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Closed |
 | HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Closed |
 | HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Closed |
@@ -384,11 +384,11 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-110** saved lists (R1.14), **HRT-112** the bag label (R8.12). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **0.2 still owed** | **HRT-112** the bag label (R8.12). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement in the PRD checked against the board. Three had no story at all: R1.14, R8.12, and R1.2 (which is built in the schema and has no screen). Account creation had no story and no screen: **HRT-109**. |
 | **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
 | **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help, **HRT-107** time to value, **HRT-109** signing up |
-| **Next** | **HRT-110** saved lists, **HRT-112** the bag label. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **Next** | **HRT-112** the bag label. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1112,6 +1112,28 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-110, how to test it
+
+Two kinds, and the difference is the point. A picked list stays exactly who was picked. A rule list
+is the directory's filters, stored, and answers itself next month.
+
+1. **A list that answers itself.** In the directory, filter down to visitors with no email. "Save as
+   a list" appears under the filters. Name it. It opens, and it is in the sidebar under Lists.
+2. **It moves.** Give one of those people an email address and open the list again. They are gone,
+   with nobody maintaining anything.
+3. **A list somebody picked.** Tick four people and use "Add to a list" in the selection bar. Make a
+   new one, or add them to one you already have.
+4. **It does not move.** Change one of their statuses and open the list. They are still on it.
+5. **Taking somebody off** appears in the selection bar only while a picked list is open, and it
+   leaves their record alone.
+6. **Rename and archive** are on the bar at the top of an open list. Archiving takes the list off the
+   sidebar and touches nobody on it.
+7. **Export.** With a list open, the export button gives you that list, not the whole church.
+8. **A person's record** shows the picked lists they are on, each one a link back.
+
+A rule list offers no way to put somebody on it by hand, and no count in the sidebar, because the
+answer is read when it is opened.
 
 ### HRT-116, how to test it
 

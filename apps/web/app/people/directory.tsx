@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus } from "lucide-react";
+import { ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus, ListFilter, BookmarkPlus, MinusCircle, Pencil } from "lucide-react";
 import {
-  Avatar, Badge, Button, Card, Input, Checkbox, Banner, HueDot,
+  Avatar, Badge, Button, Card, CardTitle, Field, Input, Checkbox, Banner, HueDot,
   Table, Thead, Th, Tr, Td, EmptyState,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
@@ -14,6 +14,14 @@ import {
 import { t, plural } from "@hearth/i18n";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkArchive, bulkStatus, bulkTag, type BulkResult } from "./bulk-actions";
+import { saveSelection, saveView, takeOffList, rename, archiveList } from "./list-actions";
+
+export interface ListOption {
+  id: string;
+  name: string;
+  kind: "static" | "rule";
+  count: number | null;
+}
 
 export interface Row {
   id: string;
@@ -40,6 +48,9 @@ const STATUS_TONE: Record<string, "primary" | "accent" | "neutral" | "success"> 
 
 const ANY = "__any";
 
+/** Radix needs a value, and an empty string is not one. */
+const NEW_LIST = "__new";
+
 /**
  * The directory: searching, filtering, sorting, and acting on a selection.
  *
@@ -60,6 +71,8 @@ export function Directory({
   page,
   perPage,
   matching,
+  lists,
+  viewing,
 }: {
   church: string;
   rows: Row[];
@@ -70,6 +83,10 @@ export function Directory({
   perPage: number;
   /** How many people match the filters, across every page. */
   matching: number;
+  /** R1.14. The church's saved lists. */
+  lists: ListOption[];
+  /** R1.14. The list being looked at, when one was opened. */
+  viewing: { id: string; name: string; kind: "static" | "rule" } | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -157,6 +174,9 @@ export function Directory({
           onClear={() => router.replace(pathname, { scroll: false })}
           exportHref={exportHref}
           canArchive={canArchive}
+          canEdit={canEdit}
+          lists={lists}
+          viewing={viewing}
         />
       </aside>
 
@@ -166,9 +186,19 @@ export function Directory({
         <Banner tone="success" title={t("directory.bulkDone", { count: result.changed })} />
       ) : null}
 
+      {/* R1.14. Which list is being read, what can be done to it, and the way
+          back to everybody. */}
+      {viewing ? (
+        <ListBar church={church} list={viewing} canEdit={canEdit} />
+      ) : null}
+
       {selected.length > 0 && canEdit ? (
         <SelectionBar
+          church={church}
+          lists={lists}
+          viewing={viewing}
           count={selected.length}
+          ids={selected}
           tags={tags}
           canArchive={canArchive}
           mergeHref={
@@ -388,6 +418,9 @@ function Toolbar({
   onClear,
   exportHref,
   canArchive,
+  canEdit,
+  lists,
+  viewing,
 }: {
   church: string;
   search: string;
@@ -399,8 +432,12 @@ function Toolbar({
   onClear: () => void;
   exportHref: string;
   canArchive: boolean;
+  canEdit: boolean;
+  lists: ListOption[];
+  viewing: { id: string; name: string; kind: "static" | "rule" } | null;
 }) {
   return (
+    <div className="flex flex-col gap-4">
     <Card className="flex flex-col gap-4">
       <div className="flex flex-col gap-3">
         <label className="flex flex-col gap-1.5">
@@ -461,6 +498,10 @@ function Toolbar({
           {params.get("show") === "archived" ? t("people.hideArchived") : t("people.showArchived")}
         </Link>
 
+        {/* R1.14. The filters on screen, kept. A list that answers itself is
+            the same question asked again next month. */}
+        {canEdit && filtersOn ? <SaveViewDialog church={church} params={params} /> : null}
+
         {canArchive ? (
           <span className="flex flex-wrap items-center gap-3">
             <Button variant="ghost" asChild>
@@ -472,6 +513,82 @@ function Toolbar({
         ) : null}
       </div>
     </Card>
+
+    {canEdit && lists.length > 0 ? (
+      <Card className="flex flex-col gap-2">
+        <CardTitle>{t("lists.title")}</CardTitle>
+        <ul className="flex flex-col">
+          {lists.map((list) => (
+            <li key={list.id}>
+              <Link
+                href={`/people?church=${church}&list=${list.id}`}
+                aria-current={viewing?.id === list.id ? "page" : undefined}
+                className={cn(
+                  "flex items-center justify-between gap-2 rounded-md px-2 py-2",
+                  "text-[length:var(--d-text-body)] hover:bg-sunken",
+                  viewing?.id === list.id ? "bg-sunken text-fg" : "text-fg-muted",
+                )}
+              >
+                <span className="truncate">{list.name}</span>
+                <span className="shrink-0 text-caption text-fg-subtle">
+                  {list.count === null ? t("lists.kind.rule") : list.count}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    ) : null}
+    </div>
+  );
+}
+
+/** R1.14. Naming the view on screen, so it can be opened again. */
+function SaveViewDialog({ church, params }: { church: string; params: URLSearchParams }) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [failed, setFailed] = React.useState<string>();
+  const [saving, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost">
+          <BookmarkPlus /> {t("lists.save")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent title={t("lists.saveTitle")} closeLabel={t("common.close")}>
+        <form
+          noValidate
+          action={(data) => {
+            data.set("church", church);
+            for (const key of ["q", "status", "tag", "has", "show"]) {
+              data.set(key, params.get(key) ?? "");
+            }
+            startTransition(async () => {
+              const result = await saveView(data);
+              setFailed(result.error);
+              if (!result.error) {
+                setOpen(false);
+                router.push(`/people?church=${church}&list=${result.id}`);
+              }
+            });
+          }}
+          className="flex flex-col gap-4"
+        >
+          {failed ? <Banner tone="danger" title={t("import.failed")}>{failed}</Banner> : null}
+          <Field label={t("lists.name")} required>
+            <Input name="name" autoComplete="off" autoFocus />
+          </Field>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" loading={saving}>{t("action.save")}</Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -516,7 +633,11 @@ function Filter({
  * covers the last row, which is the row somebody is usually trying to read.
  */
 function SelectionBar({
+  church,
+  lists,
+  viewing,
   count,
+  ids,
   tags,
   canArchive,
   mergeHref,
@@ -526,7 +647,11 @@ function SelectionBar({
   onStatus,
   onArchive,
 }: {
+  church: string;
+  lists: ListOption[];
+  viewing: { id: string; name: string; kind: "static" | "rule" } | null;
   count: number;
+  ids: string[];
   tags: TagOption[];
   canArchive: boolean;
   mergeHref: string | null;
@@ -558,6 +683,14 @@ function SelectionBar({
         options={LIFECYCLE_VALUES.map((v) => ({ value: v, label: lifecycleLabel(v) }))}
         onPick={onStatus}
       />
+
+      <AddToListDialog church={church} lists={lists} count={count} ids={ids} />
+
+      {/* R1.14. On a picked list, taking somebody off it. A list that answers
+          itself has nobody to take off. */}
+      {viewing?.kind === "static" ? (
+        <TakeOffButton church={church} list={viewing} count={count} ids={ids} />
+      ) : null}
 
       {mergeHref ? (
         <Button variant="ghost" asChild>
@@ -635,6 +768,223 @@ function Picker({
         ))}
       </SelectContent>
       </Select>
+    </div>
+  );
+}
+
+/** R1.14. Putting the people on screen onto a list, new or one that exists. */
+function AddToListDialog({
+  church,
+  lists,
+  count,
+  ids,
+}: {
+  church: string;
+  lists: ListOption[];
+  count: number;
+  ids: string[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [target, setTarget] = React.useState(NEW_LIST);
+  const [failed, setFailed] = React.useState<string>();
+  const [saving, startTransition] = React.useTransition();
+
+  // A list that answers itself cannot be added to, so it is not offered.
+  const picked = lists.filter((list) => list.kind === "static");
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost">
+          <BookmarkPlus /> {t("lists.addTo")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent title={t("lists.addToTitle", { count })} closeLabel={t("common.close")}>
+        <form
+          noValidate
+          action={(data) => {
+            data.set("church", church);
+            if (target !== NEW_LIST) data.set("listId", target);
+            for (const id of ids) data.append("ids", id);
+            startTransition(async () => {
+              const result = await saveSelection(data);
+              setFailed(result.error);
+              if (!result.error) {
+                setOpen(false);
+                router.push(`/people?church=${church}&list=${result.id}`);
+              }
+            });
+          }}
+          className="flex flex-col gap-4"
+        >
+          {failed ? <Banner tone="danger" title={t("import.failed")}>{failed}</Banner> : null}
+
+          {picked.length > 0 ? (
+            <Field label={t("lists.which")}>
+              <Select value={target} onValueChange={setTarget}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NEW_LIST}>{t("lists.newList")}</SelectItem>
+                  {picked.map((list) => (
+                    <SelectItem key={list.id} value={list.id}>{list.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          ) : null}
+
+          {target === NEW_LIST ? (
+            <Field label={t("lists.name")} required>
+              <Input name="name" autoComplete="off" autoFocus />
+            </Field>
+          ) : null}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" loading={saving}>{t("action.save")}</Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function TakeOffButton({
+  church,
+  list,
+  count,
+  ids,
+}: {
+  church: string;
+  list: { id: string; name: string };
+  count: number;
+  ids: string[];
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Button
+      variant="ghost"
+      loading={pending}
+      onClick={() =>
+        startTransition(async () => {
+          const data = new FormData();
+          data.set("church", church);
+          data.set("listId", list.id);
+          for (const id of ids) data.append("ids", id);
+          await takeOffList(data);
+          router.refresh();
+        })
+      }
+    >
+      <MinusCircle /> {t("lists.remove")}
+    </Button>
+  );
+}
+
+/** R1.14. The list on screen, and the two things a church does to one. */
+function ListBar({
+  church,
+  list,
+  canEdit,
+}: {
+  church: string;
+  list: { id: string; name: string; kind: "static" | "rule" };
+  canEdit: boolean;
+}) {
+  const router = useRouter();
+  const [renaming, setRenaming] = React.useState(false);
+  const [archiving, setArchiving] = React.useState(false);
+  const [failed, setFailed] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-3">
+      {failed ? <Banner tone="danger" title={t("import.failed")}>{failed}</Banner> : null}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="flex items-center gap-2">
+          <ListFilter className="size-4 text-fg-muted" aria-hidden />
+          <span className="text-title text-fg">{list.name}</span>
+          <Badge tone="neutral">{t(`lists.kind.${list.kind}`)}</Badge>
+        </span>
+
+        <span className="flex flex-wrap items-center gap-1">
+          {canEdit ? (
+            <>
+              <Button variant="ghost" onClick={() => setRenaming(true)}>
+                <Pencil /> {t("lists.rename")}
+              </Button>
+              <Button variant="ghost" onClick={() => setArchiving(true)}>
+                <Archive /> {t("lists.archive")}
+              </Button>
+            </>
+          ) : null}
+          <Button variant="ghost" asChild>
+            <Link href={`/people?church=${church}`}>
+              <X /> {t("directory.clear")}
+            </Link>
+          </Button>
+        </span>
+      </div>
+
+      <Dialog open={renaming} onOpenChange={setRenaming}>
+        <DialogContent title={t("lists.renameTitle", { name: list.name })} closeLabel={t("common.close")}>
+          <form
+            noValidate
+            action={(data) =>
+              startTransition(async () => {
+                const result = await rename(list.id, String(data.get("name") ?? ""), church);
+                setFailed(result.error);
+                if (!result.error) {
+                  setRenaming(false);
+                  router.refresh();
+                }
+              })
+            }
+            className="flex flex-col gap-4"
+          >
+            <Field label={t("lists.name")} required>
+              <Input name="name" defaultValue={list.name} autoComplete="off" autoFocus />
+            </Field>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" loading={pending}>{t("action.save")}</Button>
+              <Button type="button" variant="ghost" onClick={() => setRenaming(false)}>
+                {t("action.cancel")}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={archiving} onOpenChange={setArchiving}>
+        <DialogContent alert title={t("lists.archiveTitle", { name: list.name })}>
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("lists.archiveBody")}</p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setArchiving(false)}>
+              {t("lists.archiveKeep")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                setArchiving(false);
+                startTransition(async () => {
+                  const result = await archiveList(list.id, true, church);
+                  setFailed(result.error);
+                  if (!result.error) router.push(`/people?church=${church}`);
+                });
+              }}
+            >
+              <Archive /> {t("lists.archive")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Lock, FileText, Pencil } from "lucide-react";
 import {
-  withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson,
+  withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson, listsForPerson,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones,
   canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
@@ -70,6 +70,9 @@ export default async function PersonPage({
       person,
       notes: await listNotesForPerson(tx, id, session.role, { tenantId: session.tenantId }),
       tags: await listTagsForPerson(tx, id),
+      // R1.14. Which lists this person is on, which is the question somebody
+      // asks when they want to know why she keeps being contacted.
+      onLists: canEditPeople(session.role) ? await listsForPerson(tx, id) : [],
       contact: await getPersonForEdit(tx, id),
       allTags: await listTagsWithCounts(tx),
       fields: await listCustomFields(tx, "person"),
@@ -93,7 +96,7 @@ export default async function PersonPage({
   if (!result) notFound();
   const {
     person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone,
-    milestones, pipelines, entries, tasks, today, checks,
+    milestones, pipelines, entries, tasks, today, checks, onLists,
   } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
@@ -254,6 +257,25 @@ export default async function PersonPage({
           canLift={canArchivePeople(session.role)}
         />
       </Card>
+
+      {onLists.length > 0 ? (
+        <Card className="mb-6">
+          <CardTitle>{t("lists.title")}</CardTitle>
+          <Separator className="my-4" />
+          <ul className="flex flex-wrap gap-2">
+            {onLists.map((list) => (
+              <li key={list.id}>
+                <Link
+                  href={`/people?church=${session.tenantSlug}&list=${list.id}`}
+                  className="inline-flex items-center rounded-full border border-line px-3 py-1 text-caption text-fg-muted hover:border-line-strong hover:text-fg"
+                >
+                  {list.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card className="mb-6">
         <CardTitle>{t("person.tags")}</CardTitle>

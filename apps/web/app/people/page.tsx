@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { Plus, Upload, Printer } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
-  canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress, PER_PAGE,
+  canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
+  listSavedLists, resolveList, PER_PAGE,
 } from "@hearth/db";
 import { Button, Banner } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -12,7 +13,9 @@ import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Directory } from "./directory";
 import { SetupBanner } from "../setup/banner";
-import { queryFromParams, pageFromParams, type DirectoryParams } from "@/lib/directory-query";
+import {
+  queryFromParams, pageFromParams, paramsFromRule, type DirectoryParams,
+} from "@/lib/directory-query";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +27,6 @@ export default async function PeoplePage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  const query = queryFromParams(params);
   const page = pageFromParams(params);
 
   /*
@@ -38,10 +40,20 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { people, tags, duplicates, matching, setup } = await withTenant(
+  const { people, tags, duplicates, matching, setup, lists, viewing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
+      // R1.14. A saved list is either a set of people or the filters it was
+      // saved with. A rule list is read as though somebody had typed them.
+      const opened = params.list ? await resolveList(tx, params.list) : null;
+      const query = opened?.kind === "rule"
+        ? queryFromParams({ ...paramsFromRule(opened.rule ?? {}), church: params.church })
+        : queryFromParams(params);
+      if (opened?.kind === "static") query.ids = opened.ids ?? [];
+
       return {
+        lists: canEditPeople(session.role) ? await listSavedLists(tx) : [],
+        viewing: opened ? { id: params.list!, name: opened.name, kind: opened.kind } : null,
         // R9.3. Who is asking goes to the query layer, which decides what they
         // may see. A group leader gets their own group and nobody else.
         people: await listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
@@ -128,6 +140,8 @@ export default async function PeoplePage({
           page={page}
           perPage={PER_PAGE}
           matching={matching}
+          lists={lists}
+          viewing={viewing}
           tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
           rows={people.map((p) => ({
             id: p.id,

@@ -274,6 +274,13 @@
       "when": 1790886967330,
       "tag": "0038_clumsy_dracula",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1790890932477,
+      "tag": "0039_curly_logan",
+      "breakpoints": true
     }
   ]
 }

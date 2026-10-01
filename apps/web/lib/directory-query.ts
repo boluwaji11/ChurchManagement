@@ -12,6 +12,8 @@ export interface DirectoryParams {
   show?: string;
   archived?: string;
   welcome?: string;
+  /** R1.14. A saved list, which supplies either a set of people or its filters. */
+  list?: string;
 }
 
 /**
@@ -56,4 +58,22 @@ export const pageFromParams = (params: DirectoryParams): number => {
 
 /** True when the URL narrows the directory, rather than showing all of it. */
 export const isFiltered = (params: DirectoryParams): boolean =>
-  Boolean(params.q || params.status || params.tag || params.has || params.show === "archived");
+  Boolean(
+    params.q || params.status || params.tag || params.has || params.show === "archived" || params.list,
+  );
+
+/**
+ * R1.14. The filters a rule list holds, as URL parameters.
+ *
+ * A rule list is the directory's own filters, so opening one is the same as
+ * having typed them. A static list arrives as a set of ids instead.
+ */
+export function paramsFromRule(rule: Record<string, string>): DirectoryParams {
+  return {
+    q: rule["q"],
+    status: rule["status"],
+    tag: rule["tag"],
+    has: rule["has"],
+    show: rule["show"],
+  };
+}

@@ -65,6 +65,12 @@ export * from "./demo/church";
 export { DEMO_PEOPLE, DEMO_TAGS } from "./demo/people";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
+  listSavedLists, getSavedList, createStaticList, createRuleList, renameList,
+  setListArchived, addToList, removeFromList, resolveList, listsForPerson,
+  cleanRule, RULE_KEYS,
+  type SavedList, type ListRule, type RuleKey,
+} from "./repo/lists";
+export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
   createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone,
   listTeam, listInvitations, setMemberRole, removeMember,
