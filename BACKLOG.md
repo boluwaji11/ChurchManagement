@@ -222,7 +222,7 @@ it. Both are real, and both are after the rest of F9.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-93 | The six pipelines, their steps, and a person's follow-up | R5.1, R5.2, R5.4, R5.6 | Resolved |
-| HRT-94 | Entering a pipeline on its own: first visit, second visit, three absences | R5.3 | New |
+| HRT-94 | Entering a pipeline on its own: first visit, second visit, three absences | R5.3 | Resolved |
 | HRT-95 | My follow-ups: the queue, overdue first | R5.5 | New |
 | HRT-96 | The board: who is in each pipeline and what is late | R5.7 | New |
 
@@ -283,8 +283,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines |
-| **Next** | **HRT-94** the triggers, then **HRT-95** the queue and **HRT-96** the board. Then F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers |
+| **Next** | **HRT-95** the queue, then **HRT-96** the board. Then F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1008,6 +1008,31 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-94, how to test it
+
+Nothing to press. Record attendance and the follow-ups raise themselves.
+
+1. **A first visit.** Mark a **visitor** present on a service. Open their record: First visit is
+   open, dated the day they came, with the first step due two days later. That is the acceptance
+   criterion, and the sweep runs off the back of the attendance write.
+2. **Members are left alone.** Mark a member present and nothing happens. A church of two hundred
+   that starts using Hearth on a Sunday is not two hundred first-time visitors. The record began
+   that day; they did not.
+3. **A second visit.** Mark the same visitor present on a later service. Second visit opens
+   alongside, dated that Sunday.
+4. **Twice is still once.** Mark attendance again. Nothing new appears, today or tomorrow.
+5. **Closed stays closed.** Close First visit and record more attendance. It does not come back.
+6. **Three missed.** Somebody who was coming and has missed three held services in a row raises Not
+   seen for a while. Cancelled services do not count, so a Sunday called off for snow does not
+   accuse half the church of drifting. The number is the church's own (Settings, absence threshold).
+7. **One spell, one follow-up.** It is raised once however long they stay away. If they come back
+   and drift again, it raises again.
+8. **A milestone.** Add a **Baptism** milestone and the Baptism pipeline opens with its steps. A
+   membership class does the same. A marriage does not: there is no pipeline behind it.
+
+The sweep runs at most once a minute per church, off the attendance write. When the job queue lands
+it moves there unchanged.
 
 ### HRT-93, how to test it
 

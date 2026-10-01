@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { withTenant, setPresent, setPresentMany } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
+import { sweepAfterAttendance } from "@/lib/sweep";
 
 export interface RosterResult {
   error?: string;
@@ -49,6 +50,7 @@ export async function markPresent(data: FormData): Promise<RosterResult> {
       ),
     );
     revalidatePath("/services");
+    await sweepAfterAttendance(ctx);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -70,6 +72,7 @@ export async function markManyPresent(data: FormData): Promise<RosterResult> {
       ),
     );
     revalidatePath("/services");
+    await sweepAfterAttendance(ctx);
     return {};
   } catch (error) {
     return { error: explain(error) };

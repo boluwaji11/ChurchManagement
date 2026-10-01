@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
 import type { Tx } from "../client";
 import { milestones, people } from "../schema/people";
+import { pipelineForMilestone } from "./followups";
 import { canEditPeople, PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
@@ -165,6 +166,14 @@ export async function addMilestone(
       .where(eq(people.id, input.personId));
     updatedPerson = true;
   }
+
+  // R5.3. A baptism or a membership class raises the pipeline that leads to
+  // it, because recording one is a church saying it is going to happen.
+  await pipelineForMilestone(db, actor.tenantId, {
+    personId: input.personId,
+    kind: input.kind,
+    on: input.occurredOn,
+  });
 
   return { ...row!, kind: row!.kind as MilestoneKind, updatedPerson };
 }

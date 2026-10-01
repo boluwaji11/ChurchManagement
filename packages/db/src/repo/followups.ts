@@ -2,6 +2,8 @@ import { and, asc, desc, eq, isNull, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { pipelines, pipelineSteps, pipelineEntries, followUps } from "../schema/followups";
 import { people } from "../schema/people";
+import { tenants } from "../schema/tenancy";
+import { visitorsBetween, absentPeople, DEFAULT_ABSENCE_THRESHOLD } from "./attendance";
 import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
 
@@ -265,7 +267,28 @@ export async function enterPipeline(
   },
 ): Promise<PipelineEntry | null> {
   if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  return enterPipelineAuto(db, actor.tenantId, input);
+}
 
+/**
+ * R5.3. The same, with nobody asking for it.
+ *
+ * Used by the triggers, which run on behalf of the church rather than on behalf
+ * of a person, so there is no role to check. Everything that reaches it has
+ * already been through a path that did check one.
+ */
+export async function enterPipelineAuto(
+  db: Tx,
+  tenantId: string,
+  input: {
+    pipelineKey?: PipelineKey;
+    pipelineId?: string;
+    personId: string;
+    on: string;
+    reason?: EntryReason;
+    assigneeUserId?: string | null;
+  },
+): Promise<PipelineEntry | null> {
   const startedOn = day(input.on);
 
   const [pipeline] = await db
@@ -305,7 +328,7 @@ export async function enterPipeline(
   const [entry] = await db
     .insert(pipelineEntries)
     .values({
-      tenantId: actor.tenantId,
+      tenantId,
       pipelineId: pipeline.id,
       personId: input.personId,
       startedOn,
@@ -322,7 +345,7 @@ export async function enterPipeline(
   if (steps.length > 0) {
     await db.insert(followUps).values(
       steps.map((step) => ({
-        tenantId: actor.tenantId,
+        tenantId,
         entryId: entry!.id,
         stepId: step.id,
         personId: input.personId,
@@ -695,4 +718,133 @@ export async function isInPipeline(
     )
     .limit(1);
   return row !== undefined;
+}
+
+/**
+ * R5.3. The triggers.
+ *
+ * A church that has to remember to put a visitor on a list will not remember on
+ * the Sunday it matters. So the record itself raises the follow-up: a first
+ * visit, a second visit, and three held services missed in a row.
+ *
+ * Counted from the attendance record each time rather than from a flag written
+ * at the time, for the reason R7.5 gives: a flag is wrong the moment somebody
+ * corrects a mistake or imports a year of history.
+ *
+ * Entering twice is what the skip rules below prevent, and they are the whole
+ * difficulty here. A sweep that runs every day must not raise the same visitor
+ * again tomorrow, and must raise them again if they drift a second time.
+ */
+export interface SweepResult {
+  firstVisit: number;
+  secondVisit: number;
+  absent: number;
+}
+
+/** Whether this person has been in this pipeline since a given day. */
+async function enteredSince(
+  db: Tx,
+  personId: string,
+  key: PipelineKey,
+  since: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: pipelineEntries.id })
+    .from(pipelineEntries)
+    .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
+    .where(
+      and(
+        eq(pipelineEntries.personId, personId),
+        eq(pipelines.key, key),
+        sql`${pipelineEntries.startedOn} >= ${since}::date`,
+      ),
+    )
+    .limit(1);
+  return row !== undefined;
+}
+
+export async function sweepFollowUps(
+  db: Tx,
+  tenantId: string,
+  opts: { today: string; days?: number; threshold?: number },
+): Promise<SweepResult> {
+  const today = day(opts.today);
+  // A fortnight back, so a sweep that did not run for a week still catches up.
+  const from = addDays(today, -(opts.days ?? 14));
+  const result: SweepResult = { firstVisit: 0, secondVisit: 0, absent: 0 };
+
+  const live = await db
+    .select({ key: pipelines.key })
+    .from(pipelines)
+    .where(isNull(pipelines.archivedAt));
+  const running = new Set(live.map((row) => row.key));
+
+  for (const [visit, key] of [[1, "first_visit"], [2, "second_visit"]] as const) {
+    if (!running.has(key)) continue;
+    for (const visitor of await visitorsBetween(db, from, today, visit)) {
+      // Their own visit day, so a sweep tomorrow sees the entry and stops.
+      if (await enteredSince(db, visitor.personId, key, visitor.occursOn)) continue;
+      const entered = await enterPipelineAuto(db, tenantId, {
+        pipelineKey: key,
+        personId: visitor.personId,
+        on: visitor.occursOn,
+        reason: key,
+      });
+      if (entered) result[visit === 1 ? "firstVisit" : "secondVisit"] += 1;
+    }
+  }
+
+  if (running.has("absent")) {
+    // R7.6. The church's own number for how many missed Sundays it wants to
+    // know about, rather than ours.
+    const [church] = await db
+      .select({ threshold: tenants.absenceThreshold })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .limit(1);
+    const threshold = opts.threshold ?? church?.threshold ?? DEFAULT_ABSENCE_THRESHOLD;
+    for (const person of await absentPeople(db, { threshold, asOf: today })) {
+      // Dated from the last Sunday they were here, so one spell raises one
+      // follow-up however long it runs, and coming back then drifting again
+      // raises another.
+      if (await enteredSince(db, person.personId, "absent", person.lastSeenOn)) continue;
+      const entered = await enterPipelineAuto(db, tenantId, {
+        pipelineKey: "absent",
+        personId: person.personId,
+        on: today,
+        reason: "absent",
+      });
+      if (entered) result.absent += 1;
+    }
+  }
+
+  return result;
+}
+
+/** R5.3. The milestones that start a pipeline on their own. */
+export const MILESTONE_PIPELINES: Record<string, PipelineKey> = {
+  baptism: "baptism",
+  membership_class: "membership",
+};
+
+/**
+ * R5.3. A milestone added by hand raises the pipeline that goes with it.
+ *
+ * Recording a baptism is a church saying it is going to happen, so the steps
+ * that lead to it are what the person recording it actually wanted.
+ */
+export async function pipelineForMilestone(
+  db: Tx,
+  tenantId: string,
+  input: { personId: string; kind: string; on: string },
+): Promise<void> {
+  const key = MILESTONE_PIPELINES[input.kind];
+  if (!key) return;
+  if (await isInPipeline(db, input.personId, key)) return;
+  await enterPipelineAuto(db, tenantId, {
+    pipelineKey: key,
+    personId: input.personId,
+    on: input.on,
+    reason: "milestone",
+  });
 }
