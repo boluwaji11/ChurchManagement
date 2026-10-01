@@ -158,6 +158,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | Resolved |
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | Resolved |
 | HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | Resolved |
+| HRT-74 | The station opens on the service that is actually happening now | R8.2 | Resolved |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | New |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
@@ -219,7 +220,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service |
 | **Next** | **HRT-60** the station keeps working with no network. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -763,3 +764,14 @@ Check a child in, then find the family again.
 Record a do-not-contact between a child and an adult in their household to see the custody case.
 The product refuses to record that person as a guardian at all once the order exists, so the
 household is the only way the two facts can sit together.
+
+### HRT-74, how to test it
+
+A day with two services on it, such as Riverside's 30 September.
+
+1. **The dropdown says which is which.** Name and time, since two services called "First" and
+   "Second" tell a volunteer nothing about which one is on.
+2. **It opens on the one happening.** Before the first, the first. During it, that one. After the
+   second has started, the second. A service that finished hours ago is let go of, and the nearest
+   one is offered instead.
+3. **A day with nothing on it** says so, and offers no way to check anybody in.

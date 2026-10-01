@@ -28,9 +28,12 @@ export interface StationOption {
 export function StationPicker({
   church,
   stations,
+  now,
 }: {
   church: string;
   stations: StationOption[];
+  /** The church's own clock, as HH:MM. */
+  now: string;
 }) {
   const [chosen, setChosen] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
@@ -85,6 +88,7 @@ export function StationPicker({
             stationId={station.id}
             rooms={station.rooms}
             services={station.services}
+            now={now}
           />
         ) : (
           <Desk
@@ -92,6 +96,7 @@ export function StationPicker({
             stationId={station.id}
             rooms={station.rooms}
             services={station.services}
+            now={now}
           />
         )}
 

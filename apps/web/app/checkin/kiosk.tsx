@@ -4,6 +4,7 @@ import * as React from "react";
 import { Check, Search } from "lucide-react";
 import { Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { serviceNow } from "@hearth/db";
 import { find, checkIn, type FoundHousehold } from "./actions";
 import { Allergies, warnings } from "./allergies";
 import type { DeskRoom, DeskService } from "./desk";
@@ -27,13 +28,15 @@ export function Kiosk({
   stationId,
   rooms,
   services,
+  now,
 }: {
   church: string;
   stationId: string;
   rooms: DeskRoom[];
   services: DeskService[];
+  now: string;
 }) {
-  const [service, setService] = React.useState(services[0]?.id ?? "");
+  const [service, setService] = React.useState(() => serviceNow(services, now));
   const [query, setQuery] = React.useState("");
   const [households, setHouseholds] = React.useState<FoundHousehold[]>([]);
   const [open, setOpen] = React.useState<string | null>(null);
@@ -182,7 +185,7 @@ export function Kiosk({
               variant={s.id === service ? "primary" : "secondary"}
               onClick={() => setService(s.id)}
             >
-              {s.name}
+              {t("checkin.serviceAt", { name: s.name, time: s.readableTime })}
             </Button>
           ))}
         </div>

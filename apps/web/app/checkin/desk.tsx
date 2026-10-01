@@ -8,6 +8,7 @@ import {
   type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { serviceNow } from "@hearth/db";
 import { find, checkIn, undo, type FoundHousehold, type FoundPerson } from "./actions";
 import { Allergies, warnings } from "./allergies";
 import { Checkout } from "./checkout";
@@ -22,7 +23,10 @@ export interface DeskRoom {
 export interface DeskService {
   id: string;
   name: string;
+  /** 24-hour HH:MM, for working out which one is happening. */
   startsAt: string;
+  /** The same time as a person reads it. */
+  readableTime: string;
 }
 
 /**
@@ -38,13 +42,15 @@ export function Desk({
   stationId,
   rooms,
   services,
+  now,
 }: {
   church: string;
   stationId: string;
   rooms: DeskRoom[];
   services: DeskService[];
+  now: string;
 }) {
-  const [service, setService] = React.useState(services[0]?.id ?? "");
+  const [service, setService] = React.useState(() => serviceNow(services, now));
   const [query, setQuery] = React.useState("");
   const [households, setHouseholds] = React.useState<FoundHousehold[]>([]);
   const [open, setOpen] = React.useState<string | null>(null);
@@ -186,7 +192,9 @@ export function Desk({
           <SelectTrigger aria-label={t("checkin.service")}><SelectValue /></SelectTrigger>
           <SelectContent>
             {services.map((s) => (
-              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              <SelectItem key={s.id} value={s.id}>
+                {t("checkin.serviceAt", { name: s.name, time: s.readableTime })}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

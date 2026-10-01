@@ -40,6 +40,7 @@ export * from "./repo/stations";
 export * from "./repo/lookup";
 export * from "./repo/checkin";
 export * from "./repo/checkout";
+export * from "./repo/which-service";
 export * from "./repo/sessions";
 export * from "./repo/storage";
 export * from "./demo/load";
