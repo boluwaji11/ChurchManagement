@@ -43,10 +43,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <div className="mb-6 flex items-center gap-4">
           <Avatar name={session.displayName} id={session.userId} size="xl" />
-          <div className="flex flex-col gap-0.5">
-            <h1 className="font-display text-display text-fg">{session.displayName}</h1>
-            <p className="text-body-lg text-fg-muted">{session.tenantName}</p>
-          </div>
+          <h1 className="font-display text-display text-fg">{session.displayName}</h1>
         </div>
 
         <SettingsTabs tabs={tabs} church={session.tenantSlug} />

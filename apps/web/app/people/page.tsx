@@ -44,7 +44,7 @@ export default async function PeoplePage({
       <AppHeader session={session} />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <PageTitle title={t("people.title")} lede={session.tenantName} className="mb-0" />
+          <PageTitle title={t("people.title")} className="mb-0" />
           {canEdit ? (
             <div className="flex flex-wrap items-center gap-3">
               <Button asChild>

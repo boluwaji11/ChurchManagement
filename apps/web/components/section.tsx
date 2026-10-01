@@ -6,13 +6,14 @@ export function PageTitle({
   className = "mb-10",
 }: {
   title: string;
-  lede: string;
+  /** Only where the page needs saying. The church's name is in the header. */
+  lede?: string;
   className?: string;
 }) {
   return (
     <div className={`flex max-w-2xl flex-col gap-2 ${className}`}>
       <h1 className="font-display text-display text-fg">{title}</h1>
-      <p className="text-body-lg text-fg-muted">{lede}</p>
+      {lede ? <p className="text-body-lg text-fg-muted">{lede}</p> : null}
     </div>
   );
 }

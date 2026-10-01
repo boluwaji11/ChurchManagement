@@ -25,7 +25,7 @@ export default async function DuplicatesPage({
       <>
         <AppHeader session={session} />
         <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-          <PageTitle title={t("merge.title")} lede={session.tenantName} />
+          <PageTitle title={t("merge.title")} />
           <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
         </main>
       </>
@@ -96,7 +96,7 @@ export default async function DuplicatesPage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("merge.title")} lede={session.tenantName} />
+        <PageTitle title={t("merge.title")} />
         <Review
           church={session.tenantSlug}
           pairs={pairs}

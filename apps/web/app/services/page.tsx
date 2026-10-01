@@ -80,7 +80,7 @@ export default async function ServicesPage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("services.title")} lede={session.tenantName} />
+        <PageTitle title={t("services.title")} />
 
         <Calendar
           church={session.tenantSlug}

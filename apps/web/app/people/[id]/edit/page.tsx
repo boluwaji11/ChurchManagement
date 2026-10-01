@@ -47,7 +47,7 @@ export default async function EditPersonPage({
           <ArrowLeft className="size-4" /> {display}
         </Link>
 
-        <PageTitle title={t("personForm.editTitle", { name: display })} lede={session.tenantName} />
+        <PageTitle title={t("personForm.editTitle", { name: display })} />
 
         {person.archivedAt ? (
           <Banner tone="warning" title={t("personForm.archivedNotice.title")} className="mb-6">
