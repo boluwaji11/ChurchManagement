@@ -51,6 +51,14 @@ export const tenants = pgTable(
      */
     storageQuotaBytes: bigint("storage_quota_bytes", { mode: "number" })
       .notNull().default(2147483648),
+    /**
+     * R22.1. The setup wizard is answered by looking at the church's records,
+     * so there is no progress to store. These two are the things no query can
+     * find out: that a church has no kids' classes and does not want to be
+     * asked again, and that somebody put the whole thing away.
+     */
+    setupDismissedAt: timestamp("setup_dismissed_at", { withTimezone: true }),
+    setupSkipped: text("setup_skipped").array(),
     createdAt: created(),
     updatedAt: updated(),
   },

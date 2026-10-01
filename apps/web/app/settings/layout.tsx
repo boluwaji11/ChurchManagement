@@ -20,11 +20,13 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   const tabs: SettingsTab[] = [
     { href: "/settings", label: t("settings.tab.account") },
     { href: "/settings/security", label: t("settings.tab.security") },
-    // R3.2. What the church may print about this person.
-    { href: "/settings/directory", label: t("settings.tab.directory") },
+    // R3.2. What this person lets the church publish about them.
+    { href: "/settings/privacy", label: t("settings.tab.privacy") },
     ...(canManageChurch(session.role)
       ? [
+          { href: "/setup", label: t("settings.tab.setup") },
           { href: "/settings/church", label: t("settings.tab.church") },
+          { href: "/settings/team", label: t("settings.tab.team") },
           { href: "/settings/followups", label: t("settings.tab.followups") },
         ]
       : []),

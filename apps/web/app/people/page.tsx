@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Plus, Download, Printer } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
-  canEditPeople, canArchivePeople, canReadIncidents, PER_PAGE,
+  canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress, PER_PAGE,
 } from "@hearth/db";
 import { Button, Banner } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -37,7 +37,7 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { people, tags, duplicates, matching } = await withTenant(
+  const { people, tags, duplicates, matching, setup } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       return {
@@ -47,6 +47,11 @@ export default async function PeoplePage({
         matching: await countPeople(tx, { ...query, viewer }),
         tags: await listTagsWithCounts(tx),
         duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
+        // R22.1. Until the church is set up, this is the first thing on the
+        // screen somebody lands on.
+        setup: canManageChurch(session.role)
+          ? await setupProgress(tx, session.tenantId)
+          : null,
       };
     },
   );
@@ -82,6 +87,17 @@ export default async function PeoplePage({
           ) : null}
         </div>
 
+
+        {setup && !setup.complete && !setup.dismissed ? (
+          <Banner tone="info" title={t("setup.title")} className="mb-8">
+            <Link
+              href={`/setup?church=${session.tenantSlug}`}
+              className="underline underline-offset-4"
+            >
+              {t("setup.finish")}
+            </Link>
+          </Banner>
+        ) : null}
 
         {duplicates > 0 ? (
           <Banner tone="warning" title={t("merge.title")} className="mb-8">

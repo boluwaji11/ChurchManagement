@@ -292,3 +292,106 @@ export function isKnownTimezone(tz: string): boolean {
     return false;
   }
 }
+
+// ---------------------------------------------------------------------------
+// The team, and who is waiting to join it (HRT-108, R1.7, R22.1)
+// ---------------------------------------------------------------------------
+
+export interface TeamMember {
+  userId: string;
+  email: string;
+  name: string | null;
+  role: TenantRole;
+  isSelf: boolean;
+}
+
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  role: TenantRole;
+  expiresAt: Date;
+}
+
+/**
+ * R1.4. Who has an account in this church.
+ *
+ * Read on the owner connection, like everything else about membership, because
+ * tenant_members is what decides a tenant context in the first place and cannot
+ * be read through one.
+ */
+export async function listTeam(
+  tenantId: string,
+  selfUserId?: string | null,
+): Promise<TeamMember[]> {
+  const rows = await owner()<
+    { user_id: string; email: string; full_name: string | null; role: string }[]
+  >`
+    select m.user_id, u.email, u.full_name, m.role::text as role
+      from tenant_members m
+      join app_users u on u.id = m.user_id
+     where m.tenant_id = ${tenantId}
+     order by u.email`;
+
+  return rows.map((row) => ({
+    userId: row.user_id,
+    email: row.email,
+    name: row.full_name,
+    role: row.role as TenantRole,
+    isSelf: row.user_id === selfUserId,
+  }));
+}
+
+/** R1.7. Invitations nobody has accepted, and nobody has revoked. */
+export async function listInvitations(tenantId: string): Promise<PendingInvitation[]> {
+  const rows = await owner()<
+    { id: string; email: string; role: string; expires_at: Date }[]
+  >`
+    select id, email, role::text as role, expires_at
+      from invitations
+     where tenant_id = ${tenantId}
+       and accepted_at is null
+       and revoked_at is null
+       and expires_at > now()
+     order by email`;
+
+  return rows.map((row) => ({
+    id: row.id,
+    email: row.email,
+    role: row.role as TenantRole,
+    expiresAt: row.expires_at,
+  }));
+}
+
+/**
+ * R1.4. Changing somebody's role.
+ *
+ * A church cannot remove its last owner, by this or by any other path. A church
+ * with no owner is a church nobody can administer, and the people it belongs to
+ * cannot fix it themselves.
+ */
+export async function setMemberRole(
+  tenantId: string,
+  userId: string,
+  role: TenantRole,
+): Promise<void> {
+  const sql = owner();
+  if (role !== "owner") {
+    const [count] = await sql<{ n: string }[]>`
+      select count(*)::text as n from tenant_members
+       where tenant_id = ${tenantId} and role = 'owner' and user_id <> ${userId}`;
+    if (Number(count?.n ?? 0) === 0) throw new InvalidInputError("team.error.lastOwner");
+  }
+  await sql`
+    update tenant_members set role = ${role}::tenant_role
+     where tenant_id = ${tenantId} and user_id = ${userId}`;
+}
+
+/** R1.4. Taking somebody's access away. Their person record is untouched. */
+export async function removeMember(tenantId: string, userId: string): Promise<void> {
+  const sql = owner();
+  const [count] = await sql<{ n: string }[]>`
+    select count(*)::text as n from tenant_members
+     where tenant_id = ${tenantId} and role = 'owner' and user_id <> ${userId}`;
+  if (Number(count?.n ?? 0) === 0) throw new InvalidInputError("team.error.lastOwner");
+  await sql`delete from tenant_members where tenant_id = ${tenantId} and user_id = ${userId}`;
+}

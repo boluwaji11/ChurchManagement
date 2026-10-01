@@ -47,6 +47,7 @@ export * from "./repo/groups";
 export * from "./repo/followups";
 export * from "./repo/checks";
 export * from "./repo/directory";
+export * from "./repo/setup";
 export * from "./repo/directory-rules";
 export * from "./repo/check-rules";
 export * from "./repo/scope";
@@ -65,7 +66,9 @@ export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
   createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone,
-  RESERVED_SLUGS, type Membership,
+  listTeam, listInvitations, setMemberRole, removeMember,
+  RESERVED_SLUGS,
+  type Membership, type TeamMember, type PendingInvitation,
 } from "./repo/membership";
 export { readSheet, readImportFile, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";
 export { readWorkbook, isWorkbookName } from "./import/xlsx";

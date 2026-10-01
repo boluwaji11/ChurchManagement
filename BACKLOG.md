@@ -271,7 +271,8 @@ gate, and a test that walks all three.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-105 | The setup wizard: church, services, roles, import. Resumable and skippable | R22.1 | New |
+| HRT-105 | The setup wizard: church, services, roles, import. Resumable and skippable | R22.1 | Resolved |
+| HRT-108 | Who can get in: the team, invitations, roles | R1.4, R1.7 | Resolved |
 | HRT-106 | In-context help on every screen | R22.2 | New |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | New |
 
@@ -329,8 +330,8 @@ The presenter. Separate PRD written at build time.
 |---|---|
 | **Active** | Nothing |
 | **0.2 still owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory |
-| **Next** | F22 onboarding (HRT-105 to HRT-107), then the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in |
+| **Next** | **HRT-106** in-context help and **HRT-107** time to value, then the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1054,6 +1055,26 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-105 and HRT-108, how to test them
+
+**Settings**, then **Set up**. On the staff directory there is a line at the top until it is done or
+put away.
+
+1. **Five steps**, each linking to the screen that does it rather than wrapping that screen in a
+   wizard. A church that adds a service time here and another next March is in the same place both
+   times, and learning where things are is most of what the first hour is for.
+2. **Nothing is stored about your progress.** Add a service time and the step is done. Remove it and
+   the step is open again. A wizard that keeps its own tally congratulates a church on importing
+   nobody.
+3. **Not for us.** A church with no kids' classes says so, and the step settles without pretending
+   it was done. It is undone from the same button.
+4. **Put this away** hides the line on the directory. Settings brings it back.
+5. **Who can get in** is a new screen, Settings then that name. Invite somebody by the address they
+   will sign in with, choose what they may do, withdraw an invitation, change somebody's role, or
+   take their access away. Their person record in the church is untouched by any of it.
+6. **The last owner** cannot be demoted or removed, by this screen or any other path. A church with
+   no owner is a church nobody can administer.
 
 ### HRT-99 and HRT-100, how to test them
 
