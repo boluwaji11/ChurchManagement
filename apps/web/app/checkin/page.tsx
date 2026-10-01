@@ -48,12 +48,21 @@ export default async function CheckinPage({
     },
   );
 
+  /*
+   * R8.x, design system section 8. One task, full screen. A family driving a
+   * kiosk themselves must not be handed the church's navigation, and a
+   * volunteer at the desk does not need it either while there is a queue. The
+   * way back to the rest of the product is the station's own control.
+   */
   return (
     <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("checkin.title")} />
         <StationPicker
+          header={
+            <>
+              <AppHeader session={session} />
+              <PageTitle title={t("checkin.title")} />
+            </>
+          }
           church={session.tenantSlug}
           now={now}
           canManage={canManageStations(session.role)}
@@ -79,7 +88,6 @@ export default async function CheckinPage({
               })),
           }))}
         />
-      </main>
     </>
   );
 }

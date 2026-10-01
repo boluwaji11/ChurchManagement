@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { Check, Search } from "lucide-react";
-import { Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
+import {
+  Checkbox, Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { serviceNow } from "@hearth/db/rules";
 import { checkIn, type FoundMatch } from "./actions";
@@ -243,14 +244,12 @@ export function Kiosk({
             {household.people.map((person) => (
               <li key={person.id} className="flex flex-col gap-2">
                 <label className="flex cursor-pointer items-center gap-3">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={Boolean(picked[person.id]) && !person.checkedIn}
                     disabled={person.checkedIn}
-                    onChange={(e) =>
-                      setPicked((p) => ({ ...p, [person.id]: e.target.checked }))
+                    onCheckedChange={(on) =>
+                      setPicked((p) => ({ ...p, [person.id]: on === true }))
                     }
-                    className="size-7 accent-[var(--primary)]"
                   />
                   <span className="text-title text-fg">{person.name}</span>
                   {person.checkedIn ? (

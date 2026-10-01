@@ -31,6 +31,7 @@ export function StationPicker({
   stations,
   now,
   canManage,
+  header,
 }: {
   church: string;
   stations: StationOption[];
@@ -38,6 +39,12 @@ export function StationPicker({
   now: string;
   /** Whether the person reading "an administrator creates these" is one. */
   canManage: boolean;
+  /**
+   * The church's navigation, shown while somebody is choosing a station and
+   * gone once one is claimed. A parent at a kiosk has no business with it, and
+   * a volunteer with a queue has no time for it.
+   */
+  header: React.ReactNode;
 }) {
   const [chosen, setChosen] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
@@ -74,8 +81,17 @@ export function StationPicker({
 
   if (!ready) return null;
 
+  const page = (content: React.ReactNode, chrome: boolean) => (
+    <>
+      {chrome ? header : null}
+      <main id="main" className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+        {content}
+      </main>
+    </>
+  );
+
   if (stations.length === 0) {
-    return (
+    return page(
       <EmptyState
         title={t("checkin.none.title")}
         body={t("checkin.none.body")}
@@ -86,15 +102,16 @@ export function StationPicker({
             </Button>
           ) : undefined
         }
-      />
+      />,
+      true,
     );
   }
 
   const station = stations.find((s) => s.id === chosen);
 
   if (station) {
-    return (
-      <div className="flex flex-col gap-6">
+    return page(
+      <div className="flex flex-col gap-6" data-station="claimed">
         {/* A family driving the screen themselves sees a different one. The
             flow is the same; what a parent has no business touching is not
             there. */}
@@ -121,22 +138,18 @@ export function StationPicker({
         {/* Which device this is, kept out of the way. A volunteer checking a
             family in is not thinking about it, and it is only ever touched when
             a tablet is swapped. */}
-        <div className="flex flex-wrap items-center gap-2 text-caption text-fg-subtle">
-          <span>{station.name}</span>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => remember(null)}
-            className="underline underline-offset-2 hover:text-fg"
-          >
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+          <span className="text-[length:var(--d-text-body)] text-fg-muted">{station.name}</span>
+          <Button variant="ghost" disabled={pending} onClick={() => remember(null)}>
             {t("checkin.change")}
-          </button>
+          </Button>
         </div>
-      </div>
+      </div>,
+      false,
     );
   }
 
-  return (
+  return page(
     <div className="flex flex-col gap-3" aria-busy={pending}>
       <h2 className="text-title text-fg">{t("checkin.choose")}</h2>
       {stations.map((option) => (
@@ -150,6 +163,7 @@ export function StationPicker({
           </Button>
         </Card>
       ))}
-    </div>
+    </div>,
+    true,
   );
 }
