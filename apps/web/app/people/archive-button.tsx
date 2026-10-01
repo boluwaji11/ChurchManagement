@@ -40,7 +40,7 @@ export function ArchiveButton({
 
   if (archived) {
     return (
-      <form action={submit} className="contents">
+      <form noValidate action={submit} className="contents">
         <input type="hidden" name="church" value={church} />
         <input type="hidden" name="id" value={id} />
         <input type="hidden" name="archived" value="0" />
@@ -71,7 +71,7 @@ export function ArchiveButton({
           <Banner tone="danger" title={t("person.archive.failed")} className="mb-4">{error}</Banner>
         ) : null}
 
-        <form action={submit} className="flex flex-wrap items-center gap-3">
+        <form noValidate action={submit} className="flex flex-wrap items-center gap-3">
           <input type="hidden" name="church" value={church} />
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="archived" value="1" />

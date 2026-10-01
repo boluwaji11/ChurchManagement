@@ -53,6 +53,7 @@ export function IncidentDialog({
         closeLabel={t("common.close")}
       >
         <form
+          noValidate
           action={(data) => {
             startTransition(async () => {
               const result = await report(

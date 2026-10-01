@@ -525,6 +525,7 @@ function TaskDialog({
       </DialogTrigger>
       <DialogContent title={t("followups.task")} closeLabel={t("common.close")}>
         <form
+          noValidate
           action={(data) => {
             data.set("church", church);
             data.set("personId", personId);

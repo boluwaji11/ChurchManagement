@@ -178,6 +178,7 @@ function InviteDialog({
       </DialogTrigger>
       <DialogContent title={t("team.invite")} closeLabel={t("common.close")}>
         <form
+          noValidate
           action={(data) => {
             data.set("church", church);
             data.set("role", role);

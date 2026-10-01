@@ -72,6 +72,10 @@ export {
   type Membership, type TeamMember, type PendingInvitation,
 } from "./repo/membership";
 export { readSheet, readImportFile, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";
+export {
+  IMPORT_SOURCES, SOURCE_KEYS, detectSource, sourceMapping,
+  type SourceKey, type ImportSource,
+} from "./import/sources";
 export { readWorkbook, isWorkbookName } from "./import/xlsx";
 export {
   PERSON_FIELDS, IGNORE, guessMapping, parseImportedDate, parseLifecycle, parseHouseholdRole,

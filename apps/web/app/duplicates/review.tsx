@@ -163,7 +163,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
         ))}
       </div>
 
-      <form id={formId} action={submit} className="flex flex-col gap-4">
+      <form noValidate id={formId} action={submit} className="flex flex-col gap-4">
         <input type="hidden" name="church" value={church} />
         <input type="hidden" name="winnerId" value={winner.id} />
         <input type="hidden" name="loserId" value={loser.id} />
@@ -281,7 +281,7 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
               </div>
 
               {m.canUndo ? (
-                <form action={submit}>
+                <form noValidate action={submit}>
                   <input type="hidden" name="church" value={church} />
                   <input type="hidden" name="mergeId" value={m.id} />
                   <Button type="submit" variant="ghost" loading={pending}>

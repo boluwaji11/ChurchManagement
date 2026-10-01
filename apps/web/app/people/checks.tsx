@@ -136,6 +136,7 @@ function AddDialog({
       </DialogTrigger>
       <DialogContent title={t("checks.add")} closeLabel={t("common.close")}>
         <form
+          noValidate
           action={(data) => {
             data.set("church", church);
             data.set("personId", personId);

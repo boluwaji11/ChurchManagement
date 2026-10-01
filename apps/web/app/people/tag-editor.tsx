@@ -150,7 +150,7 @@ export function TagEditor({
         ) : null}
 
         {creating ? (
-          <form action={create} className="flex items-center gap-2">
+          <form noValidate action={create} className="flex items-center gap-2">
             <Input name="name" autoFocus autoComplete="off" placeholder={t("tags.new")} aria-label={t("tags.new")} className="max-w-48" />
             <Button type="submit" variant="secondary">{t("action.add")}</Button>
             <Button type="button" variant="ghost" onClick={() => setCreating(false)}>{t("action.cancel")}</Button>

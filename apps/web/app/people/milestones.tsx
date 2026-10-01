@@ -136,7 +136,7 @@ export function Milestones({
           {/* In a dialog rather than inline on the card, so the date field's own
               calendar has room to open without landing on the rows below it. */}
           <DialogContent title={t("milestone.add")} closeLabel={t("common.close")}>
-            <form ref={form} action={submit} className="flex flex-col gap-4">
+            <form noValidate ref={form} action={submit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-label text-fg">{t("milestone.kind")}</span>
                 <Select value={kind} onValueChange={setKind}>

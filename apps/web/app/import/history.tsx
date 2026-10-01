@@ -114,7 +114,7 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
             {t("import.rollback.confirmBody", { created: batch.rowsCreated, updated: batch.rowsUpdated })}
           </p>
 
-          <form action={submit} className="flex flex-wrap items-center gap-3">
+          <form noValidate action={submit} className="flex flex-wrap items-center gap-3">
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="batchId" value={batch.id} />
             <Button type="submit" variant="danger" loading={pending}>

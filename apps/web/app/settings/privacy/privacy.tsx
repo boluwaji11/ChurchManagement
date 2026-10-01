@@ -57,6 +57,7 @@ export function Privacy({
       {error ? <Banner tone="danger" title={t("privacy.title")} className="mb-4">{error}</Banner> : null}
 
       <form
+        noValidate
         action={(data) => {
           data.set("church", church);
           startTransition(async () => {

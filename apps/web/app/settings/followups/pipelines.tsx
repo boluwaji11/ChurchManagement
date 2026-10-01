@@ -133,6 +133,7 @@ function EditDialog({
       </DialogTrigger>
       <DialogContent title={row.name} closeLabel={t("common.close")} className="max-w-xl">
         <form
+          noValidate
           action={(data) => {
             data.set("church", church);
             data.set("id", row.id);

@@ -90,6 +90,7 @@ export function GroupDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent title={title} closeLabel={t("common.close")}>
         <form
+          noValidate
           action={(data) => {
             data.set("church", church);
             data.set("typeId", typeId);
