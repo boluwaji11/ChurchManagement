@@ -22,6 +22,8 @@ export interface BatchSummary {
   id: string;
   filename: string;
   status: string;
+  /** R19.5. "people" or "groups". A group batch is undone by its own path. */
+  kind: string;
   rowsCreated: number;
   rowsUpdated: number;
   rowsSkipped: number;
@@ -48,6 +50,7 @@ export async function listImports(db: Tx): Promise<BatchSummary[]> {
   return rows.map((b) => ({
     id: b.id,
     filename: b.filename,
+    kind: b.kind,
     status: b.status,
     rowsCreated: b.rowsCreated,
     rowsUpdated: b.rowsUpdated,
@@ -120,6 +123,7 @@ export async function rollbackImport(
 
   const [batch] = await db.select().from(importBatches).where(eq(importBatches.id, batchId)).limit(1);
   if (!batch) throw new InvalidInputError("error.notFound.import");
+  if (batch.kind === "groups") throw new InvalidInputError("import.rollback.wrongKind");
   if (batch.status !== "committed") throw new InvalidInputError("import.rollback.alreadyDone");
   if (!withinWindow(batch.committedAt)) throw new InvalidInputError("import.rollback.tooOld");
 

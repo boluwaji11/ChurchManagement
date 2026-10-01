@@ -36,6 +36,7 @@ export default async function ImportPage({
               batches={batches.map((b) => ({
                 id: b.id,
                 filename: b.filename,
+                kind: b.kind,
                 status: b.status,
                 rowsCreated: b.rowsCreated,
                 rowsUpdated: b.rowsUpdated,

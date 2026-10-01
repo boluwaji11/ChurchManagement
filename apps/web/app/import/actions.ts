@@ -5,7 +5,9 @@ import { headers } from "next/headers";
 import {
   withTenant, readImportFile, guessMapping, listCustomFields, PERSON_FIELDS,
   plan, commit, rollbackImport, canEditPeople, detectSource, sourceMapping, IMPORT_SOURCES,
-  type DuplicateStrategy, type PlannedRow, type Sheet,
+  isGroupSheet, guessGroupMapping, GROUP_FIELDS, planGroups, commitGroups, rollbackGroupImport,
+  canManageGroups,
+  type DuplicateStrategy, type PlannedRow, type PlannedGroupRow, type Sheet,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
@@ -35,6 +37,8 @@ export interface Inspection {
   fields?: FieldChoice[];
   /** R19.5. The system this file came out of, where the headers say so. */
   source?: string;
+  /** R19.5. True when the rows are memberships rather than people. */
+  groups?: boolean;
 }
 
 /**
@@ -67,14 +71,30 @@ export async function inspectFile(input: { church?: string } & FilePayload): Pro
     return { error: t("import.emptyFile") };
   }
 
-  const custom = await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
-    listCustomFields(tx, "person"),
-  );
-
   const samples: Record<string, string> = {};
   for (const header of sheet.headers) {
     samples[header] = sheet.rows.find((r) => (r[header] ?? "").trim() !== "")?.[header] ?? "";
   }
+
+  // R19.5. A file of memberships goes through the same three steps, against a
+  // different set of fields. Which one it is comes from the headers rather than
+  // from asking, because a church exporting its groups knows what it exported.
+  if (isGroupSheet(sheet.headers)) {
+    if (!canManageGroups(session.role)) return { error: t("forbidden.askAdmin") };
+    return {
+      headers: sheet.headers,
+      mapping: guessGroupMapping(sheet.headers),
+      groups: true,
+      source: t("import.group.detected"),
+      samples,
+      rowCount: sheet.rows.length,
+      fields: GROUP_FIELDS.map((f) => ({ key: f.key, label: t(f.label as never) })),
+    };
+  }
+
+  const custom = await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
+    listCustomFields(tx, "person"),
+  );
 
   // R19.5. A Planning Center, Breeze or ChurchTrac export arrives already
   // matched. Their own column names sit over the generic guess, and anything
@@ -111,6 +131,8 @@ export interface Preview {
   rows?: PreviewRow[];
   /** True when more rows exist than are shown. */
   truncated?: boolean;
+  /** R19.5. The groups a membership file would bring into existence. */
+  newGroups?: string[];
 }
 
 /** How many rows of the preview are shown. Enough to judge, not enough to scroll forever. */
@@ -120,8 +142,10 @@ export async function previewImport(input: {
   church?: string;
   mapping: Record<string, string>;
   strategy: DuplicateStrategy;
+  groups?: boolean;
 } & FilePayload): Promise<Preview> {
   const session = await requireSession(input.church);
+  if (input.groups) return previewGroups(session, input);
   if (!canEditPeople(session.role)) return { error: t("forbidden.addPeople") };
 
   const mapped = Object.values(input.mapping);
@@ -153,6 +177,45 @@ export async function previewImport(input: {
   };
 }
 
+/** R19.5. The same dry run, over a file of memberships. */
+async function previewGroups(
+  session: { tenantId: string; role: Parameters<typeof canManageGroups>[0] },
+  input: { mapping: Record<string, string> } & FilePayload,
+): Promise<Preview> {
+  if (!canManageGroups(session.role)) return { error: t("forbidden.askAdmin") };
+  if (!Object.values(input.mapping).includes("groupName")) {
+    return { error: t("import.group.noColumn") };
+  }
+
+  const sheet = await read(input);
+  const result = await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
+    planGroups(tx, { filename: input.filename, sheet, mapping: input.mapping }),
+  );
+
+  const ordered = [...result.rows].sort((a, b) => {
+    const rank = { fail: 0, skip: 1, create: 2 };
+    return rank[a.outcome] - rank[b.outcome] || a.lineNumber - b.lineNumber;
+  });
+
+  return {
+    totals: { ...result.totals, update: 0 },
+    newGroups: result.newGroups,
+    truncated: ordered.length > PREVIEW_ROWS,
+    rows: ordered.slice(0, PREVIEW_ROWS).map((row) => ({
+      lineNumber: row.lineNumber,
+      outcome: row.outcome,
+      name: row.personName || "?",
+      detail: describeGroupRow(row),
+    })),
+  };
+}
+
+function describeGroupRow(row: PlannedGroupRow): string | undefined {
+  if (row.reason) return t(row.reason, row.reasonParams);
+  if (row.outcome === "create") return row.groupName;
+  return undefined;
+}
+
 function describe(row: PlannedRow): string | undefined {
   if (row.reason) return t(row.reason, row.reasonParams);
   const match = row.matches[0];
@@ -174,9 +237,40 @@ export async function runImport(input: {
   church?: string;
   mapping: Record<string, string>;
   strategy: DuplicateStrategy;
+  groups?: boolean;
 } & FilePayload): Promise<ImportResult> {
   const session = await requireSession(input.church);
   const sheet = await read(input);
+
+  if (input.groups) {
+    try {
+      const result = await withTenant(
+        { tenantId: session.tenantId, role: session.role, userId: session.userId },
+        async (tx) => {
+          const fresh = await planGroups(tx, {
+            filename: input.filename,
+            sheet,
+            mapping: input.mapping,
+          });
+          return commitGroups(
+            tx,
+            { tenantId: session.tenantId, role: session.role, userId: session.userId },
+            fresh,
+          );
+        },
+      );
+      revalidatePath("/groups");
+      return {
+        created: result.joined,
+        updated: result.groupsCreated,
+        skipped: result.skipped,
+        failed: result.failed,
+      };
+    } catch (error) {
+      return { error: explain(error) };
+    }
+  }
+
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
 
@@ -219,6 +313,7 @@ export interface RollbackOutcome {
 export async function undoImport(data: FormData): Promise<RollbackOutcome> {
   const slug = String(data.get("church") ?? "") || undefined;
   const batchId = String(data.get("batchId") ?? "");
+  const kind = String(data.get("kind") ?? "people");
   if (!batchId) return { error: t("error.notFound.import") };
 
   const session = await requireSession(slug);
@@ -233,10 +328,28 @@ export async function undoImport(data: FormData): Promise<RollbackOutcome> {
         userId: session.userId,
         ip: forwarded?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? undefined,
       },
-      (tx) => rollbackImport(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId }, batchId),
+      async (tx) => {
+        // R19.5. A group file put people into groups and created some groups.
+        // Undoing it takes them back out, which is a different operation from
+        // taking a person out of the directory.
+        if (kind === "groups") {
+          const undone = await rollbackGroupImport(
+            tx,
+            { tenantId: session.tenantId, role: session.role },
+            batchId,
+          );
+          return { removed: undone.left, restored: 0, archived: undone.groupsArchived };
+        }
+        return rollbackImport(
+          tx,
+          { tenantId: session.tenantId, role: session.role, userId: session.userId },
+          batchId,
+        );
+      },
     );
 
     revalidatePath("/people");
+    revalidatePath("/groups");
     revalidatePath("/import");
     return result;
   } catch (error) {

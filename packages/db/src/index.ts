@@ -78,6 +78,13 @@ export {
 } from "./repo/joining";
 export { readSheet, readImportFile, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";
 export {
+  GROUP_FIELDS, isGroupSheet, guessGroupMapping, parseGroupRole,
+} from "./import/group-columns";
+export {
+  planGroups, commitGroups, rollbackGroupImport,
+  type GroupPlan, type PlannedGroupRow, type GroupCommitResult,
+} from "./import/run-groups";
+export {
   IMPORT_SOURCES, SOURCE_KEYS, detectSource, sourceMapping,
   type SourceKey, type ImportSource,
 } from "./import/sources";

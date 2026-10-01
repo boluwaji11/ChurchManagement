@@ -93,7 +93,9 @@ export function ImportWizard({ church }: { church: string }) {
     setBusy(true);
     setError(undefined);
     try {
-      const found = await previewImport({ church, ...file, mapping, strategy: strategy as never });
+      const found = await previewImport({
+        church, ...file, mapping, strategy: strategy as never, groups: inspection?.groups,
+      });
       if (found.error) {
         setError(found.error);
         return;
@@ -109,7 +111,9 @@ export function ImportWizard({ church }: { church: string }) {
     setBusy(true);
     setError(undefined);
     try {
-      const done = await runImport({ church, ...file, mapping, strategy: strategy as never });
+      const done = await runImport({
+        church, ...file, mapping, strategy: strategy as never, groups: inspection?.groups,
+      });
       if (done.error) {
         setError(done.error);
         return;
@@ -152,7 +156,9 @@ export function ImportWizard({ church }: { church: string }) {
         />
       ) : null}
 
-      {step === "done" && result ? <Done church={church} result={result} onAgain={reset} /> : null}
+      {step === "done" && result ? (
+        <Done church={church} result={result} groups={inspection?.groups} onAgain={reset} />
+      ) : null}
     </div>
   );
 }
@@ -300,15 +306,19 @@ function MapColumns({
         </Table>
       </Card>
 
-      <Card>
-        <CardTitle>{t("import.strategy")}</CardTitle>
-        <Separator className="my-4" />
-        <RadioGroup value={strategy} onValueChange={setStrategy}>
-          <RadioItem value="skip">{t("import.strategy.skip")}</RadioItem>
-          <RadioItem value="update">{t("import.strategy.update")}</RadioItem>
-          <RadioItem value="create">{t("import.strategy.create")}</RadioItem>
-        </RadioGroup>
-      </Card>
+      {/* What to do about somebody already in the directory is a question about
+          a people file. A membership row joins a group or it does not. */}
+      {inspection.groups ? null : (
+        <Card>
+          <CardTitle>{t("import.strategy")}</CardTitle>
+          <Separator className="my-4" />
+          <RadioGroup value={strategy} onValueChange={setStrategy}>
+            <RadioItem value="skip">{t("import.strategy.skip")}</RadioItem>
+            <RadioItem value="update">{t("import.strategy.update")}</RadioItem>
+            <RadioItem value="create">{t("import.strategy.create")}</RadioItem>
+          </RadioGroup>
+        </Card>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={onNext} loading={busy}>
@@ -342,8 +352,22 @@ function PreviewStep({
         <CardTitle>{t("import.step.preview")}</CardTitle>
         <Separator className="my-4" />
         <ul className="flex flex-col gap-1.5">
-          <li className="text-[length:var(--d-text-body)] text-fg">{plural("import.willCreate", totals.create)}</li>
-          <li className="text-[length:var(--d-text-body)] text-fg">{plural("import.willUpdate", totals.update)}</li>
+          {preview.newGroups ? (
+            <>
+              <li className="text-[length:var(--d-text-body)] text-fg">
+                {plural("import.group.joining", totals.create)}
+              </li>
+              <li className="text-[length:var(--d-text-body)] text-fg">
+                {plural("import.group.newGroups", preview.newGroups.length)}
+                {preview.newGroups.length > 0 ? `: ${preview.newGroups.join(", ")}` : ""}
+              </li>
+            </>
+          ) : (
+            <>
+              <li className="text-[length:var(--d-text-body)] text-fg">{plural("import.willCreate", totals.create)}</li>
+              <li className="text-[length:var(--d-text-body)] text-fg">{plural("import.willUpdate", totals.update)}</li>
+            </>
+          )}
           <li className="text-[length:var(--d-text-body)] text-fg-muted">{plural("import.willSkip", totals.skip)}</li>
           {totals.fail > 0 ? (
             <li className="text-[length:var(--d-text-body)] text-danger-text">{plural("import.willFail", totals.fail)}</li>
@@ -392,22 +416,39 @@ function PreviewStep({
   );
 }
 
-function Done({ church, result, onAgain }: { church: string; result: ImportResult; onAgain: () => void }) {
+function Done({
+  church,
+  result,
+  groups,
+  onAgain,
+}: {
+  church: string;
+  result: ImportResult;
+  groups?: boolean;
+  onAgain: () => void;
+}) {
   return (
     <>
       <Banner tone="success" title={t("import.done.title")}>
-        {t("import.done.body", {
-          created: result.created ?? 0,
-          updated: result.updated ?? 0,
-          skipped: result.skipped ?? 0,
-          failed: result.failed ?? 0,
-        })}
+        {groups
+          ? t("import.group.done", {
+              joined: result.created ?? 0,
+              created: result.updated ?? 0,
+              skipped: result.skipped ?? 0,
+              failed: result.failed ?? 0,
+            })
+          : t("import.done.body", {
+              created: result.created ?? 0,
+              updated: result.updated ?? 0,
+              skipped: result.skipped ?? 0,
+              failed: result.failed ?? 0,
+            })}
       </Banner>
 
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild>
-          <Link href={`/people?church=${church}`}>
-            <CheckCircle2 /> {t("people.title")}
+          <Link href={groups ? `/groups?church=${church}` : `/people?church=${church}`}>
+            <CheckCircle2 /> {groups ? t("groups.title") : t("people.title")}
           </Link>
         </Button>
         <Button variant="ghost" onClick={onAgain}>

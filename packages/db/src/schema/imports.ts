@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, jsonb, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, boolean, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { tenants, appUsers } from "./tenancy";
 import { importStatus, importOutcome } from "./enums";
 
@@ -17,6 +17,12 @@ export const importBatches = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     filename: text("filename").notNull(),
+    /**
+     * R19.5. "people" or "groups". A group file's rows are memberships rather
+     * than people, so the preview, the counts and the rollback all read it
+     * differently.
+     */
+    kind: text("kind").notNull().default("people"),
     status: importStatus("status").notNull().default("preview"),
     /** The header-to-field mapping used, kept so it can be offered again (R19.1). */
     mapping: jsonb("mapping").$type<Record<string, string>>(),
@@ -50,6 +56,10 @@ export const importRows = pgTable(
     lineNumber: integer("line_number").notNull(),
     outcome: importOutcome("outcome").notNull(),
     personId: uuid("person_id"),
+    /** R19.5. The group a membership row put that person into. */
+    groupId: uuid("group_id"),
+    /** R19.5. True on the row that brought a group into existence. */
+    groupCreated: boolean("group_created").notNull().default(false),
     /** Why a row was skipped or failed, as a message key with its values. */
     reason: text("reason"),
     before: jsonb("before"),

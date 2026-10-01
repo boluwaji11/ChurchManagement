@@ -12,6 +12,8 @@ import { undoImport, type RollbackOutcome } from "./actions";
 export interface BatchRow {
   id: string;
   filename: string;
+  /** R19.5. "people" or "groups", which decides how it is undone and described. */
+  kind: string;
   status: string;
   rowsCreated: number;
   rowsUpdated: number;
@@ -48,11 +50,17 @@ export function ImportHistory({
                   ) : null}
                 </span>
                 <span className="text-caption text-fg-muted">
-                  {t("import.summary", {
-                    created: batch.rowsCreated,
-                    updated: batch.rowsUpdated,
-                    skipped: batch.rowsSkipped,
-                  })}
+                  {batch.kind === "groups"
+                    ? t("import.group.summary", {
+                        joined: batch.rowsCreated,
+                        created: batch.rowsUpdated,
+                        skipped: batch.rowsSkipped,
+                      })
+                    : t("import.summary", {
+                        created: batch.rowsCreated,
+                        updated: batch.rowsUpdated,
+                        skipped: batch.rowsSkipped,
+                      })}
                   {batch.committedAt ? `. ${batch.committedAt}` : ""}
                 </span>
               </div>
@@ -111,12 +119,21 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
           ) : null}
 
           <p className="mb-5 text-[length:var(--d-text-body)] text-fg">
-            {t("import.rollback.confirmBody", { created: batch.rowsCreated, updated: batch.rowsUpdated })}
+            {batch.kind === "groups"
+              ? t("import.group.rollbackBody", {
+                  joined: batch.rowsCreated,
+                  created: batch.rowsUpdated,
+                })
+              : t("import.rollback.confirmBody", {
+                  created: batch.rowsCreated,
+                  updated: batch.rowsUpdated,
+                })}
           </p>
 
           <form noValidate action={submit}>
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="batchId" value={batch.id} />
+            <input type="hidden" name="kind" value={batch.kind} />
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="ghost" data-dismiss>
