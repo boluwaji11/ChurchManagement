@@ -162,7 +162,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-74 | The station opens on the service that is actually happening now | R8.2 | Resolved |
 | HRT-75 | Station search is a directory lookup, by person, on name prefixes | R8.3, R8.4 | Resolved |
 | HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Resolved |
-| HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Active |
+| HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Resolved |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
@@ -222,9 +222,9 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | **HRT-60** the station keeps working with no network |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings, **HRT-78** the station setup |
-| **Next** | HRT-61 label printers. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Active** | Nothing |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings, **HRT-78** the station setup, **HRT-60** offline |
+| **Next** | **HRT-61** label printers: Brother QL, Dymo, plain paper. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
