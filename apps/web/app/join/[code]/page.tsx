@@ -6,7 +6,7 @@ import { t } from "@hearth/i18n";
 import { BrandBar } from "@/components/brand";
 import { SignOutButton } from "@/components/sign-out-button";
 import { currentUser } from "@/lib/session";
-import { JoinButton } from "./join-button";
+import { JoinNow } from "./join-now";
 
 export const dynamic = "force-dynamic";
 
@@ -58,12 +58,7 @@ export default async function JoinPage({
         {error ? <Banner tone="danger" title={error} /> : null}
 
         {user ? (
-          <>
-            <p className="text-[length:var(--d-text-body)] text-fg-muted">
-              {t("chooseChurch.signedInAs", { email: user.email })}
-            </p>
-            <JoinButton code={value} />
-          </>
+          <JoinNow code={value} />
         ) : (
           <div className="flex flex-col gap-3">
             <Button asChild full>

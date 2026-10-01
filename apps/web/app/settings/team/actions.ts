@@ -2,7 +2,7 @@
 
 import {
   createInvitation, revokeInvitation, setMemberRole, removeMember, canManageChurch,
-  rotateJoinCode, closeJoining, decideJoinRequest, withTenant,
+  rotateJoinCode, closeJoining,
   type TenantRole,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -98,23 +98,6 @@ export async function stopJoining(church?: string): Promise<TeamResult> {
   try {
     const session = await allowed(church);
     await closeJoining(session.tenantId, session.role);
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-/** R1.7. Saying yes or no to somebody at the door. */
-export async function decideJoin(
-  id: string,
-  approve: boolean,
-  church?: string,
-): Promise<TeamResult> {
-  try {
-    const session = await allowed(church);
-    await withTenant(session, (tx) =>
-      decideJoinRequest(tx, { ...session, userId: session.userId }, { id, approve }),
-    );
     return {};
   } catch (error) {
     return { error: explain(error) };

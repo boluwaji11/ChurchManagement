@@ -363,10 +363,14 @@ Three ways in.
 | Door | Who | What happens |
 |---|---|---|
 | Invitation | Staff, leaders, and any member the church invites | Exists (HRT-108). The invitation now carries the person record, so accepting links the account to it. |
-| The church's join link or code | A member the church pointed at it | Their verified email is matched against the contacts on the church's records. A match claims that record and they are a member at once. No match creates a visitor record and the membership waits for an admin. |
+| The church's join link or code | A member the church pointed at it | The code is the gate. They sign up and they are a member. Their address is matched against the contacts on the church's records: a match claims that record, and anything else gets a visitor record written on arrival. |
 | Creating a church | A pastor or administrator starting out | The church is created immediately and is provisional until a human has looked at it (HRT-115). |
 
-A child's record is never claimable.
+A child's record is never claimable, and neither is one somebody else already holds. Both get a new
+record instead, which the church merges (R2.9) if it turns out to be the same person.
+
+An approval queue was built and taken out again on the same day. It put a task on a volunteer every
+time a regular signed up, for a door the church had already chosen to open by handing out the code.
 
 **Provisional** means the church works for the person who made it, capped: a small number of people,
 no join link, no invitations, no outbound email. A real church is unblocked in an hour, which is what
@@ -1110,21 +1114,22 @@ From **Groups**, tap a group's name.
 
 ### HRT-114, how to test it
 
-Each church on this machine now has a code. Riverside's is **8MWT-P8VE**, at
-`/join/8MWTP8VE`. Settings, Team shows it, with the link, a new code and a switch to turn it off.
+Each church on this machine has a code. Riverside's is **8MWT-P8VE**, at `/join/8MWTP8VE`.
+Settings, Team shows it, with the link, a new code, and a switch to turn it off.
 
-1. **The address the church holds.** Open the link in a private window. Create an account with the
-   email on a person record Riverside already has. You land on the member home as that person, and
-   nobody was asked anything.
-2. **An address it does not hold.** Same link, any other address. You are told the church has the
-   request. Settings, Team, Waiting to join has them, and People has them as a visitor. Approve, and
-   they are a member holding that record. Decline, and the visitor record stays and the account gets
-   nothing.
-3. **A child.** Put a child's email on their record and try it. It waits.
-4. **The code.** Take a new code and the old link stops working. Turn joining off and it stops
-   working for everybody, with nobody losing their place in the queue.
-5. **Signing up with no code at all** now lands on the church chooser, which offers a code box,
-   whatever you are waiting on, and creating a church, in that order.
+1. **Anybody holding the link is in.** Open it in a private window, create an account with any
+   address, and you land on the member home. Nobody approves anything: the code is the gate.
+2. **An address the church already has** claims that record, so they arrive as themselves with their
+   household and groups already attached.
+3. **Any other address** gets a visitor record written there and then, named from what they typed,
+   with their email on it. The church merges it later (R2.9) if it turns out to be somebody it
+   already had.
+4. **A child's record is never claimed**, and neither is one somebody else already holds. Both get
+   their own new record.
+5. **An address that already has an account** is sent to sign in, with the address filled in, the
+   password tab open and the way back in underneath it.
+6. **The code.** Take a new code and the old link stops working. Turn joining off and it stops for
+   everybody.
 
 ### HRT-109, how to test it
 

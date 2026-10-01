@@ -2,23 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, RefreshCw, Check, Copy, DoorOpen } from "lucide-react";
+import { Plus, X, RefreshCw, Copy, DoorOpen } from "lucide-react";
 import {
   Badge, Banner, Button, Card, CardTitle, CodeDisplay, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import {
-  invite, withdraw, changeRole, removeAccess, newJoinCode, stopJoining, decideJoin,
-} from "./actions";
-
-export interface Waiting {
-  id: string;
-  email: string;
-  name: string | null;
-  asked: string;
-}
+import { invite, withdraw, changeRole, removeAccess, newJoinCode, stopJoining } from "./actions";
 
 export interface Member {
   userId: string;
@@ -54,14 +45,12 @@ export function Team({
   invitations,
   joinCode,
   joinLink,
-  waiting,
 }: {
   church: string;
   members: Member[];
   invitations: Invitation[];
   joinCode: string | null;
   joinLink: string | null;
-  waiting: Waiting[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -70,7 +59,6 @@ export function Team({
   const [removing, setRemoving] = React.useState<Member | null>(null);
   const [rotating, setRotating] = React.useState(false);
   const [closing, setClosing] = React.useState(false);
-  const [declining, setDeclining] = React.useState<Waiting | null>(null);
   const [pending, startTransition] = React.useTransition();
 
   const run = (work: () => Promise<{ error?: string }>, said?: string) =>
@@ -197,36 +185,6 @@ export function Team({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={declining !== null} onOpenChange={(on) => setDeclining(on ? declining : null)}>
-        <DialogContent
-          alert
-          title={declining ? t("joining.declineTitle", { name: declining.name ?? declining.email }) : ""}
-        >
-          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("joining.declineBody")}</p>
-          <DialogFooter>
-            <Button variant="ghost" data-dismiss onClick={() => setDeclining(null)}>
-              {t("joining.declineKeep")}
-            </Button>
-            <Button
-              variant="danger"
-              disabled={pending}
-              onClick={() => {
-                const who = declining;
-                setDeclining(null);
-                if (who) {
-                  run(
-                    () => decideJoin(who.id, false, church),
-                    t("joining.declined", { name: who.name ?? who.email }),
-                  );
-                }
-              }}
-            >
-              <X /> {t("joining.decline")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle>{t("team.title")}</CardTitle>
@@ -278,47 +236,6 @@ export function Team({
           ))}
         </ul>
       </Card>
-
-      {waiting.length > 0 ? (
-        <Card>
-          <CardTitle>{t("joining.waiting")}</CardTitle>
-          <Separator className="my-4" />
-          <ul className="flex flex-col">
-            {waiting.map((person, i) => (
-              <li key={person.id}>
-                {i > 0 ? <Separator className="my-3" /> : null}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="flex min-w-0 flex-col">
-                    <span className="text-[length:var(--d-text-body)] text-fg">
-                      {person.name ?? person.email}
-                    </span>
-                    <span className="text-caption text-fg-muted">
-                      {person.name ? `${person.email} · ` : ""}
-                      {t("joining.asked", { date: person.asked })}
-                    </span>
-                  </span>
-                  <span className="flex flex-wrap items-center gap-2">
-                    <Button
-                      disabled={pending}
-                      onClick={() =>
-                        run(
-                          () => decideJoin(person.id, true, church),
-                          t("joining.approved", { name: person.name ?? person.email }),
-                        )
-                      }
-                    >
-                      <Check /> {t("joining.approve")}
-                    </Button>
-                    <Button variant="ghost" disabled={pending} onClick={() => setDeclining(person)}>
-                      <X /> {t("joining.decline")}
-                    </Button>
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
 
       <Card>
         <CardTitle>{t("joining.title")}</CardTitle>

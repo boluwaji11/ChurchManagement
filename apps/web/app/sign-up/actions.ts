@@ -14,6 +14,12 @@ async function origin() {
   return `${proto}://${host}`;
 }
 
+/** R1.8. They have an account. Sign in, and the way back in is on that screen. */
+const taken = (email: string, next: string): never =>
+  redirect(
+    `/sign-in?taken=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`,
+  );
+
 const fail = (message: string, next?: string): never =>
   redirect(
     `/sign-up?error=${encodeURIComponent(message)}${next ? `&next=${encodeURIComponent(next)}` : ""}`,
@@ -45,7 +51,20 @@ export async function signUp(data: FormData) {
     },
   });
 
-  if (error) return fail(explainAuth(error), next);
+  if (error) {
+    if (/already registered|already exists|user_already_exists/i.test(error.message)) {
+      return taken(email, next);
+    }
+    return fail(explainAuth(error), next);
+  }
+
+  // With confirmations on, Supabase answers an address that already has an
+  // account with a user carrying no identities rather than an error, so that
+  // sign-up cannot be used to find out who has one. Both shapes mean the same
+  // thing to the person in front of us.
+  if (created.user && (created.user.identities?.length ?? 0) === 0) {
+    return taken(email, next);
+  }
 
   // A project that does not ask for confirmation hands back a session here, and
   // sending them to look in an inbox that will stay empty is how a product

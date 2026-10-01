@@ -1,17 +1,16 @@
 /**
  * HRT-114. Who gets into a congregation (R1.7).
  *
- * The whole of this is one question: whose address was already on the church's
- * records. Everything that could let somebody past that is tried here, because
- * a member role reads group rosters and the finder, and the only thing standing
- * between a forwarded link and those is this file.
+ * The code is the gate: somebody holding it was given it by the church, and
+ * comes straight in. What is tested here is which record they end up holding,
+ * because the one thing a join must never do is hand somebody another person's
+ * record, and in particular a child's.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { createPerson } from "../src/repo/people";
 import {
-  churchForJoinCode, joinWithCode, rotateJoinCode, closeJoining,
-  waitingToJoin, decideJoinRequest, waitingOn, normaliseJoinCode,
+  churchForJoinCode, joinWithCode, rotateJoinCode, closeJoining, normaliseJoinCode,
 } from "../src/repo/joining";
 import { personForUser } from "../src/repo/scope";
 import { PermissionError } from "../src/roles";
@@ -121,59 +120,39 @@ describe("an address the church already holds", () => {
 });
 
 describe("an address the church does not hold", () => {
-  it("waits, and is a visitor on the records rather than a member", async () => {
+  it("still joins, on a visitor record written there and then", async () => {
     const outcome = await joinWithCode({
       code,
-      user: account(2, "stranger@jointest.invalid", "Someone Else"),
+      user: account(2, "stranger@jointest.invalid", "Sam Stranger"),
     });
-    expect(outcome.status).toBe("waiting");
-
-    const members = await owner()`
-      select 1 from tenant_members where tenant_id = ${tenant} and user_id = ${account(2, "").id}`;
-    expect(members.length).toBe(0);
-
-    const waiting = await run((tx) => waitingToJoin(tx, as()));
-    expect(waiting.map((row) => row.email)).toContain("stranger@jointest.invalid");
-    expect(await waitingOn(account(2, "").id)).toHaveLength(1);
-  });
-
-  it("asks once, however many times they press it", async () => {
-    await joinWithCode({ code, user: account(2, "stranger@jointest.invalid") });
-    const waiting = await run((tx) => waitingToJoin(tx, as()));
-    expect(waiting.filter((row) => row.email === "stranger@jointest.invalid")).toHaveLength(1);
-  });
-
-  it("becomes a member when the church says yes, holding the record it made", async () => {
-    const [request] = await run((tx) => waitingToJoin(tx, as()));
-    await run((tx) =>
-      decideJoinRequest(tx, { ...as(), userId: account(1, "").id }, { id: request!.id, approve: true }),
-    );
+    expect(outcome.status).toBe("joined");
 
     const [membership] = await owner()<{ role: string }[]>`
       select role from tenant_members
       where tenant_id = ${tenant} and user_id = ${account(2, "").id}`;
     expect(membership?.role).toBe("member");
 
-    const linked = await run((tx) => personForUser(tx, account(2, "").id));
-    expect(linked).toBe(request!.personId);
-    expect(await run((tx) => waitingToJoin(tx, as()))).toHaveLength(0);
+    const personId = await run((tx) => personForUser(tx, account(2, "").id));
+    expect(personId).toBeTruthy();
+
+    const [person] = await owner()<{ first_name: string; last_name: string; lifecycle_status: string }[]>`
+      select first_name, last_name, lifecycle_status from people where id = ${personId}`;
+    expect(person?.first_name).toBe("Sam");
+    expect(person?.last_name).toBe("Stranger");
+    expect(person?.lifecycle_status).toBe("visitor");
+
+    const [contact] = await owner()<{ value: string }[]>`
+      select value from contact_methods where person_id = ${personId} and kind = 'email'`;
+    expect(contact?.value).toBe("stranger@jointest.invalid");
   });
 
-  it("keeps the visitor record when the church says no, and grants nothing", async () => {
-    await joinWithCode({ code, user: account(3, "declined@jointest.invalid", "Nope Nope") });
-    const [request] = await run((tx) => waitingToJoin(tx, as()));
+  it("writes one record however many times they press it", async () => {
+    const outcome = await joinWithCode({ code, user: account(2, "stranger@jointest.invalid") });
+    expect(outcome.status).toBe("member");
 
-    await run((tx) =>
-      decideJoinRequest(tx, { ...as(), userId: account(1, "").id }, { id: request!.id, approve: false }),
-    );
-
-    const members = await owner()`
-      select 1 from tenant_members where tenant_id = ${tenant} and user_id = ${account(3, "").id}`;
-    expect(members.length).toBe(0);
-
-    const [person] = await owner()<{ id: string }[]>`
-      select id from people where id = ${request!.personId}`;
-    expect(person).toBeTruthy();
+    const rows = await owner()`
+      select 1 from people where tenant_id = ${tenant} and app_user_id = ${account(2, "").id}`;
+    expect(rows.length).toBe(1);
   });
 });
 
@@ -183,11 +162,14 @@ describe("what a code can never do", () => {
     await addEmail(child, "toby@jointest.invalid");
 
     const outcome = await joinWithCode({ code, user: account(4, "toby@jointest.invalid") });
-    expect(outcome.status).toBe("waiting");
+    expect(outcome.status).toBe("joined");
 
     const [row] = await owner()<{ app_user_id: string | null }[]>`
       select app_user_id from people where id = ${child}`;
     expect(row?.app_user_id).toBeNull();
+
+    // They are in, on a record of their own rather than the child's.
+    expect(await run((tx) => personForUser(tx, account(4, "").id))).not.toBe(child);
   });
 
   it("does not claim a record somebody else already holds", async () => {
@@ -200,7 +182,8 @@ describe("what a code can never do", () => {
       .toBe("joined");
 
     const outcome = await joinWithCode({ code, user: account(6, "office.two@jointest.invalid") });
-    expect(outcome.status).toBe("waiting");
+    expect(outcome.status).toBe("joined");
+    expect(await run((tx) => personForUser(tx, account(6, "").id))).not.toBe(person);
   });
 
   it("does not work on an address Supabase has not verified", async () => {
@@ -213,10 +196,9 @@ describe("what a code can never do", () => {
   });
 
   it("does not reach another church", async () => {
-    const outcome = await joinWithCode({ code, user: account(8, "elsewhere@jointest.invalid") });
-    expect(outcome.status).toBe("waiting");
+    await joinWithCode({ code, user: account(8, "elsewhere@jointest.invalid") });
     const rows = await owner()`
-      select 1 from join_requests where tenant_id = ${other}`;
+      select 1 from tenant_members where tenant_id = ${other}`;
     expect(rows.length).toBe(0);
   });
 
@@ -227,24 +209,5 @@ describe("what a code can never do", () => {
       joinWithCode({ code, user: account(9, "late@jointest.invalid") }),
     ).rejects.toThrow();
     code = await rotateJoinCode(tenant, "owner");
-  });
-});
-
-describe("the waiting list", () => {
-  it("is not readable or decidable by somebody who does not run the church", async () => {
-    await expect(run((tx) => waitingToJoin(tx, as("staff")), "staff")).rejects.toBeInstanceOf(
-      PermissionError,
-    );
-    await expect(
-      run(
-        (tx) =>
-          decideJoinRequest(
-            tx,
-            { tenantId: tenant, role: "member", userId: account(1, "").id },
-            { id: "00000000-0000-4000-8000-000000000000", approve: true },
-          ),
-        "member",
-      ),
-    ).rejects.toBeInstanceOf(PermissionError);
   });
 });

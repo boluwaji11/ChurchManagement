@@ -260,6 +260,13 @@
       "when": 1790885121381,
       "tag": "0036_mighty_serpent_society",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790886304733,
+      "tag": "0037_broken_starjammers",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Church, Clock, Plus } from "lucide-react";
-import { membershipsForUser, waitingOn, canEditPeople, canReadIncidents } from "@hearth/db";
+import { ArrowRight, Church, Plus } from "lucide-react";
+import { membershipsForUser, canEditPeople, canReadIncidents } from "@hearth/db";
 import { Banner, Button } from "@hearth/ui";
 import { currentUser } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -25,7 +25,6 @@ export default async function ChooseChurch({
   if (!user) redirect("/sign-in");
 
   const memberships = await membershipsForUser(user.id);
-  const pending = await waitingOn(user.id);
   const notice = isReason(reason) ? reason : undefined;
 
   return (
@@ -69,23 +68,6 @@ export default async function ChooseChurch({
                 </span>
                 <ArrowRight className="size-4 text-fg-subtle transition-transform duration-fast group-hover:translate-x-0.5" />
               </Link>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      {pending.length > 0 ? (
-        <ul className="flex flex-col gap-2">
-          {pending.map((church) => (
-            <li
-              key={church.name}
-              className="flex items-center gap-3 rounded-lg border border-line bg-surface p-4 shadow-sm"
-            >
-              <Clock className="size-5 shrink-0 text-fg-muted" aria-hidden />
-              <span className="flex flex-col">
-                <span className="text-title text-fg">{church.name}</span>
-                <span className="text-caption text-fg-muted">{t("join.waitingFor")}</span>
-              </span>
             </li>
           ))}
         </ul>

@@ -1,5 +1,4 @@
 import { pgTable, uuid, text, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 import { tenants, appUsers } from "./tenancy";
 import { people } from "./people";
 import { tenantRole } from "./enums";
@@ -41,39 +40,5 @@ export const invitations = pgTable(
   (t) => [
     index("invitations_tenant_idx").on(t.tenantId),
     uniqueIndex("invitations_pending_unique").on(t.tenantId, t.email),
-  ],
-);
-
-/**
- * R1.7. Somebody who came in through the church's join link and is not on its
- * records.
- *
- * A matched address needs none of this: the church already wrote that address
- * down, which is the proof, and the account claims the record and is a member.
- * This is for the rest. They are a visitor on the church's records and nothing
- * more until an admin says otherwise, because a member can see group rosters
- * and a forwarded link is not a congregation.
- */
-export const joinRequests = pgTable(
-  "join_requests",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-    userId: uuid("user_id").notNull().references(() => appUsers.id, { onDelete: "cascade" }),
-    /** The visitor record created for them, which is what an approval adopts. */
-    personId: uuid("person_id").references(() => people.id, { onDelete: "set null" }),
-    email: text("email").notNull(),
-    fullName: text("full_name"),
-    requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
-    decidedAt: timestamp("decided_at", { withTimezone: true }),
-    decidedByUserId: uuid("decided_by_user_id").references(() => appUsers.id, { onDelete: "set null" }),
-    /** "approved" or "declined", and null while it waits. */
-    outcome: text("outcome"),
-  },
-  (t) => [
-    index("join_requests_tenant_idx").on(t.tenantId),
-    uniqueIndex("join_requests_open_unique")
-      .on(t.tenantId, t.userId)
-      .where(sql`decided_at is null`),
   ],
 );

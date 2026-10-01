@@ -10,7 +10,9 @@ export const dynamic = "force-dynamic";
 export default async function SignIn({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; sent?: string; next?: string; set?: string }>;
+  searchParams: Promise<{
+    error?: string; sent?: string; next?: string; set?: string; taken?: string;
+  }>;
 }) {
   const params = await searchParams;
   if (await currentUser()) redirect(params.next ?? "/people");
@@ -37,7 +39,9 @@ export default async function SignIn({
 
         {params.set ? <Banner tone="success" title={t("signIn.set")} /> : null}
 
-        <SignInForm next={params.next} />
+        {params.taken ? <Banner tone="info" title={t("auth.error.taken")} /> : null}
+
+        <SignInForm next={params.next} email={params.taken} />
       </div>
     </main>
   );

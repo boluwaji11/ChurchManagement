@@ -10,24 +10,24 @@ import Link from "next/link";
 import { sendMagicLink, signInWithPassword } from "./actions";
 import { sendReset } from "../sign-up/actions";
 
-export function SignInForm({ next }: { next?: string }) {
+export function SignInForm({ next, email }: { next?: string; email?: string }) {
   return (
-    <Tabs defaultValue="link">
+    <Tabs defaultValue={email ? "password" : "link"}>
       <TabsList>
         <TabsTrigger value="link">{t("signIn.tab.link")}</TabsTrigger>
         <TabsTrigger value="password">{t("signIn.tab.password")}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="link">
-        <MagicLinkForm next={next} />
+        <MagicLinkForm next={next} email={email} />
       </TabsContent>
 
       <TabsContent value="password">
-        <PasswordForm next={next} />
+        <PasswordForm next={next} email={email} />
       </TabsContent>
 
       <Link
-        href="/sign-up?next=/create-church"
+        href={`/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`}
         className="mt-4 inline-block text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
       >
         {t("signIn.noAccount")}
@@ -36,7 +36,7 @@ export function SignInForm({ next }: { next?: string }) {
   );
 }
 
-function MagicLinkForm({ next }: { next?: string }) {
+function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
   const validate = React.useCallback(
     (data: FormData): Errors => ({ email: check(String(data.get("email") ?? ""), validEmail) }),
     [],
@@ -47,7 +47,13 @@ function MagicLinkForm({ next }: { next?: string }) {
     <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next ?? ""} />
       <Field label={t("signIn.email")} htmlFor="email-link" error={errors["email"]} required>
-        <Input name="email" type="email" autoComplete="email" placeholder={t("signIn.emailPlaceholder")} />
+        <Input
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={email}
+          placeholder={t("signIn.emailPlaceholder")}
+        />
       </Field>
       <Button type="submit" full loading={pending}>
         <Mail /> {t("signIn.sendLink")}
@@ -56,7 +62,7 @@ function MagicLinkForm({ next }: { next?: string }) {
   );
 }
 
-function PasswordForm({ next }: { next?: string }) {
+function PasswordForm({ next, email }: { next?: string; email?: string }) {
   const validate = React.useCallback(
     (data: FormData): Errors => ({
       email: check(String(data.get("email") ?? ""), validEmail),
@@ -70,7 +76,13 @@ function PasswordForm({ next }: { next?: string }) {
     <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next ?? ""} />
       <Field label={t("signIn.email")} htmlFor="email-pw" error={errors["email"]} required>
-        <Input name="email" type="email" autoComplete="email" placeholder={t("signIn.emailPlaceholder")} />
+        <Input
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={email}
+          placeholder={t("signIn.emailPlaceholder")}
+        />
       </Field>
       <Field label={t("signIn.password")} htmlFor="password" error={errors["password"]} required>
         <Input name="password" type="password" autoComplete="current-password" />
