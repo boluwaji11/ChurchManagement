@@ -40,8 +40,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async () => {
-    await owner()`delete from tenants where id = ${tenant}`;
+  await withAuditTriggersOff(async (sql) => {
+    await sql`delete from tenants where id = ${tenant}`;
   });
   await closeConnections();
 });
@@ -187,8 +187,8 @@ describe("another church's stations", () => {
     expect(mine.map((s) => s.name)).not.toContain("Their desk");
     expect(await run((tx) => claimStation(tx, theirs.id))).toBeNull();
 
-    await withAuditTriggersOff(async () => {
-      await owner()`delete from tenants where id = ${otherId}`;
+    await withAuditTriggersOff(async (sql) => {
+      await sql`delete from tenants where id = ${otherId}`;
     });
   });
 });

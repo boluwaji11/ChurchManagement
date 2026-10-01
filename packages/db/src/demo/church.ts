@@ -198,8 +198,8 @@ export async function sweepExpiredDemos(): Promise<number> {
      where demo_expires_at is not null and demo_expires_at < now()`;
   if (Number(row?.n ?? 0) === 0) return 0;
 
-  return withAuditTriggersOff(async () => {
-    const gone = await owner()<{ id: string }[]>`
+  return withAuditTriggersOff(async (sql) => {
+    const gone = await sql<{ id: string }[]>`
       delete from tenants
       where demo_expires_at is not null and demo_expires_at < now()
       returning id`;

@@ -177,6 +177,24 @@ declare
   v_before jsonb;
   v_after jsonb;
 begin
+  -- R1.14. One case writes no audit row: deleting a tenant outright, which
+  -- cascades to its people and would have the trigger writing rows pointing at
+  -- the tenant being removed. It is set per connection, for one transaction,
+  -- by the maintenance path that does it.
+  --
+  -- A session setting rather than disabling the triggers, because disabling one
+  -- takes an exclusive lock on every audited table and stops the rest of the
+  -- platform while it runs. This affects nobody but the connection that sets
+  -- it, and it cannot be set through the request path: app_role() is read from
+  -- the same place and the application never sets this one.
+  -- Honoured for the owner connection only. hearth_app is what every request
+  -- runs as, and a query layer that could switch its own auditing off is a
+  -- query layer that could erase what it did. Setting it there changes nothing.
+  if coalesce(current_setting('app.audit_off', true), '') = '1'
+     and current_user <> 'hearth_app' then
+    return null;
+  end if;
+
   if tg_op = 'DELETE' then
     v_before := to_jsonb(old);
     v_tenant := (v_before ->> 'tenant_id')::uuid;

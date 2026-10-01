@@ -72,8 +72,8 @@ describe("slugs", () => {
     } finally {
       // Not a raw delete. Cascading a tenant away fires the audit triggers,
       // which then write rows pointing at the tenant that is going.
-      await withAuditTriggersOff(async () => {
-        await owner()`delete from tenants where id = ${church.tenantId}`;
+      await withAuditTriggersOff(async (sql) => {
+        await sql`delete from tenants where id = ${church.tenantId}`;
       });
     }
   });

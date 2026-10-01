@@ -65,8 +65,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async () => {
-    await owner()`delete from tenants where id = ${tenant}`;
+  await withAuditTriggersOff(async (sql) => {
+    await sql`delete from tenants where id = ${tenant}`;
   });
   await closeConnections();
 });
@@ -166,8 +166,8 @@ describe("another church's families", () => {
     expect(mine.length).toBe(1);
     expect(mine[0]!.people.length).toBe(3);
 
-    await withAuditTriggersOff(async () => {
-      await owner()`delete from tenants where id = ${otherId}`;
+    await withAuditTriggersOff(async (sql) => {
+      await sql`delete from tenants where id = ${otherId}`;
     });
   });
 });

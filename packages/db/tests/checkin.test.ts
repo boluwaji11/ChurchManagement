@@ -61,8 +61,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async () => {
-    await owner()`delete from tenants where id = ${tenant}`;
+  await withAuditTriggersOff(async (sql) => {
+    await sql`delete from tenants where id = ${tenant}`;
   });
   await closeConnections();
 });
@@ -189,8 +189,8 @@ describe("another church", () => {
     );
     expect(theirs).toEqual([]);
 
-    await withAuditTriggersOff(async () => {
-      await owner()`delete from tenants where id = ${other!.id}`;
+    await withAuditTriggersOff(async (sql) => {
+      await sql`delete from tenants where id = ${other!.id}`;
     });
   });
 });

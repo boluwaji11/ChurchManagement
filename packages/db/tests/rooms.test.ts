@@ -32,8 +32,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async () => {
-    await owner()`delete from tenants where id = ${tenant}`;
+  await withAuditTriggersOff(async (sql) => {
+    await sql`delete from tenants where id = ${tenant}`;
   });
   await closeConnections();
 });
@@ -218,8 +218,8 @@ describe("another church's rooms", () => {
     const mine = await run((tx) => listRooms(tx, { includeArchived: true }));
     expect(mine.map((r) => r.name)).not.toContain("Their nursery");
 
-    await withAuditTriggersOff(async () => {
-      await owner()`delete from tenants where id = ${otherId}`;
+    await withAuditTriggersOff(async (sql) => {
+      await sql`delete from tenants where id = ${otherId}`;
     });
   });
 });

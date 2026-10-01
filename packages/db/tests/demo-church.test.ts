@@ -19,9 +19,9 @@ import { withAuditTriggersOff } from "../src/maintenance";
 const made: string[] = [];
 
 afterAll(async () => {
-  await withAuditTriggersOff(async () => {
-    await owner()`delete from tenants where slug like 'demo-%'`;
-    await owner()`delete from app_users where email like '%@demo.invalid'`;
+  await withAuditTriggersOff(async (sql) => {
+    await sql`delete from tenants where slug like 'demo-%'`;
+    await sql`delete from app_users where email like '%@demo.invalid'`;
   });
   await closeConnections();
 });
@@ -157,8 +157,8 @@ describe("the pool", () => {
   // Deleting a tenant cascades, and the audit trigger would write rows
   // pointing at the tenant being deleted, which is what this switch is for.
   const clearPool = () =>
-    withAuditTriggersOff(async () => {
-      await owner()`
+    withAuditTriggersOff(async (sql) => {
+      await sql`
         delete from tenants
          where demo_expires_at is not null and demo_claimed_at is null`;
     });

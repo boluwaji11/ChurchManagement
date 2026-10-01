@@ -5,7 +5,9 @@
  * rather than a fix and a promise.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { owner, closeConnections } from "../src/client";
+import { sql } from "drizzle-orm";
+import { owner, withTenant, closeConnections } from "../src/client";
+import { withAuditTriggersOff, deleteTenantsLike } from "../src/maintenance";
 
 const OUR_FUNCTIONS = ["app_tenant_id", "app_role", "app_user_id", "audit_write"] as const;
 
@@ -118,5 +120,48 @@ describe("the audit log covers every table that holds church data", () => {
     // Auditing the audit log would recurse on every write.
     const log = rows.find((r) => r.relname === "audit_entries");
     expect(log?.triggers).toBe(0);
+  });
+});
+
+describe("the request path cannot switch its own auditing off", () => {
+  it("writes the audit row anyway when hearth_app sets the flag", async () => {
+    const [tenant] = await owner()<{ id: string }[]>`
+      insert into tenants (slug, name, timezone)
+      values ('auditoff', 'Audit Off Church', 'America/Chicago')
+      returning id`;
+    const id = tenant!.id;
+
+    // Exactly what a compromised query layer would try: the setting that the
+    // maintenance path uses, set from the role every request runs as.
+    await withTenant({ tenantId: id, role: "owner" }, async (tx) => {
+      await tx.execute(sql`select set_config('app.audit_off', '1', true)`);
+      await tx.execute(sql`
+        insert into tags (tenant_id, name, hue) values (${id}, 'Audited anyway', 'sky')`);
+    });
+
+    const [row] = await owner()<{ n: string }[]>`
+      select count(*)::text as n from audit_entries
+       where tenant_id = ${id} and entity = 'tags'`;
+    expect(Number(row!.n)).toBe(1);
+
+    await deleteTenantsLike("auditoff");
+  });
+
+  it("is honoured for the owner connection, which is the one that resets things", async () => {
+    const [tenant] = await owner()<{ id: string }[]>`
+      insert into tenants (slug, name, timezone)
+      values ('auditoff2', 'Audit Off Church 2', 'America/Chicago')
+      returning id`;
+    const id = tenant!.id;
+
+    await withAuditTriggersOff(async (sql) => {
+      await sql`insert into tags (tenant_id, name, hue) values (${id}, 'Quiet', 'sky')`;
+    });
+
+    const [row] = await owner()<{ n: string }[]>`
+      select count(*)::text as n from audit_entries where tenant_id = ${id}`;
+    expect(Number(row!.n)).toBe(0);
+
+    await deleteTenantsLike("auditoff2");
   });
 });

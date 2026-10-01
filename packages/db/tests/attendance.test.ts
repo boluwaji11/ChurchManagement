@@ -51,8 +51,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async () => {
-    await owner()`delete from tenants where id = ${tenant}`;
+  await withAuditTriggersOff(async (sql) => {
+    await sql`delete from tenants where id = ${tenant}`;
   });
   await closeConnections();
 });
