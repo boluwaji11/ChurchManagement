@@ -1,6 +1,10 @@
 /**
  * R8.2. Which of today's services the station opens on.
  *
+ * Imported by the browser as well as the server, which is why it has no
+ * imports of its own and sits behind its own entry point: pulling the database
+ * package into a client bundle pulls node:crypto with it.
+ *
  * A church with a 09:00 and an 11:00 has a desk standing in front of both all
  * morning, and the one that matters is whichever is happening. Opening on the
  * first of the day means that at 11:15 a volunteer is writing children into a

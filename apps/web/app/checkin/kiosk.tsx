@@ -4,7 +4,7 @@ import * as React from "react";
 import { Check, Search } from "lucide-react";
 import { Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { serviceNow } from "@hearth/db";
+import { serviceNow } from "@hearth/db/rules";
 import { find, checkIn, type FoundHousehold } from "./actions";
 import { Allergies, warnings } from "./allergies";
 import type { DeskRoom, DeskService } from "./desk";

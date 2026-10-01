@@ -8,7 +8,7 @@ import {
   type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { serviceNow } from "@hearth/db";
+import { serviceNow } from "@hearth/db/rules";
 import { find, checkIn, undo, type FoundHousehold, type FoundPerson } from "./actions";
 import { Allergies, warnings } from "./allergies";
 import { Checkout } from "./checkout";
