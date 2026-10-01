@@ -39,7 +39,7 @@ export default async function GroupsPage({
   return (
     <>
       <AppHeader session={session} />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <PageTitle title={t("groups.title")} className="mb-6" />
 
         <Finder

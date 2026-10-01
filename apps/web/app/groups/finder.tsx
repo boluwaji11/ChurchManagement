@@ -257,7 +257,7 @@ export function Finder({
             ) : null}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {found.map((group) => (
               <GroupCard
                 key={group.id}
@@ -272,7 +272,7 @@ export function Finder({
       ))}
 
       {loose.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {loose.map((group) => (
             <GroupCard
               key={group.id}
@@ -374,10 +374,15 @@ function GroupCard({
   onAsk: () => void;
 }) {
   return (
-    <Card className="flex flex-col gap-2">
+    /*
+     * The whole tile opens the group. The name carries the link and stretches
+     * over the card, so the tile is one target without nesting a button inside
+     * an anchor: Ask to join sits above it.
+     */
+    <Card className="relative flex flex-col gap-2 transition-shadow focus-within:shadow-md hover:shadow-md">
       <Link
         href={`/groups/${group.id}?church=${church}`}
-        className="text-heading text-fg underline-offset-4 hover:underline"
+        className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
       >
         {group.name}
       </Link>
@@ -402,7 +407,7 @@ function GroupCard({
         ) : null}
       </span>
 
-      <span className="flex flex-wrap items-center gap-2">
+      <span className="relative mt-auto flex flex-wrap items-center gap-2 pt-1">
         {group.mine ? (
           <Badge tone="success">{t("find.member")}</Badge>
         ) : group.requested === "pending" ? (
