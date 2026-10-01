@@ -18,9 +18,9 @@ const isReason = (value: string | undefined): value is (typeof REASONS)[number] 
 export default async function ChooseChurch({
   searchParams,
 }: {
-  searchParams: Promise<{ reason?: string; waiting?: string }>;
+  searchParams: Promise<{ reason?: string }>;
 }) {
-  const { reason, waiting } = await searchParams;
+  const { reason } = await searchParams;
   const user = await currentUser();
   if (!user) redirect("/sign-in");
 
@@ -34,13 +34,13 @@ export default async function ChooseChurch({
 
       <main id="main" className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-display text-fg">{t("chooseChurch.title")}</h1>
+        <h1 className="font-display text-display text-fg">
+          {memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
+        </h1>
         <p className="text-[length:var(--d-text-body)] text-fg-muted">
           {t("chooseChurch.signedInAs", { email: user.email })}
         </p>
       </div>
-
-      {waiting ? <Banner tone="success" title={t("join.waitingTitle", { name: waiting })} /> : null}
 
       {notice ? (
         <Banner tone={notice === "denied" ? "warning" : "info"} title={t(`chooseChurch.${notice}.title`)}>
@@ -79,11 +79,12 @@ export default async function ChooseChurch({
           {pending.map((church) => (
             <li
               key={church.name}
-              className="flex items-center gap-3 rounded-lg border border-line border-dashed p-4"
+              className="flex items-center gap-3 rounded-lg border border-line bg-surface p-4 shadow-sm"
             >
-              <Clock className="size-5 text-fg-subtle" aria-hidden />
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">
-                {t("join.waitingTitle", { name: church.name })}
+              <Clock className="size-5 shrink-0 text-fg-muted" aria-hidden />
+              <span className="flex flex-col">
+                <span className="text-title text-fg">{church.name}</span>
+                <span className="text-caption text-fg-muted">{t("join.waitingFor")}</span>
               </span>
             </li>
           ))}

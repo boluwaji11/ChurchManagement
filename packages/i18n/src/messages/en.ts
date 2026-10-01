@@ -122,9 +122,10 @@ export const en = {
 
   // Choosing a church
   "chooseChurch.title": "Choose a church",
+  "chooseChurch.getIn": "Join your church",
   "chooseChurch.signedInAs": "Signed in as {email}",
   "chooseChurch.none.title": "Your account is not in a church yet",
-  "chooseChurch.none.body": "Create one below, or wait to be invited.",
+  "chooseChurch.none.body": "Use the code your church gave you, or create one.",
   "chooseChurch.denied.title": "That church is not available to you",
   "chooseChurch.denied.body": "Ask whoever runs that church to invite you.",
 
@@ -912,6 +913,7 @@ export const en = {
   "join.createAccount": "Create an account",
   "join.signIn": "I already have an account",
   "join.waitingTitle": "{name} has your request",
+  "join.waitingFor": "Waiting for them",
   "join.already": "You are already in {name}.",
   "join.enterCode": "Join a church",
   "join.codeLabel": "Church code",

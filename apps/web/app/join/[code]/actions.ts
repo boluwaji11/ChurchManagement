@@ -25,8 +25,6 @@ export async function join(code: string): Promise<void> {
     redirect(`/join/${code}?error=${encodeURIComponent(explain(error))}`);
   }
 
-  if (outcome.status === "waiting") {
-    redirect(`/choose-church?waiting=${encodeURIComponent(outcome.name)}`);
-  }
+  if (outcome.status === "waiting") redirect("/choose-church");
   redirect(`/home?church=${outcome.slug}`);
 }
