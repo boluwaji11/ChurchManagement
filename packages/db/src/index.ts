@@ -46,6 +46,8 @@ export * from "./repo/incidents";
 export * from "./repo/groups";
 export * from "./repo/followups";
 export * from "./repo/checks";
+export * from "./repo/directory";
+export * from "./repo/directory-rules";
 export * from "./repo/check-rules";
 export * from "./repo/scope";
 export * from "./repo/group-attendance";

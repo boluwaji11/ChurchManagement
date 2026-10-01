@@ -48,6 +48,9 @@ export async function AppHeader({ session }: { session: Session }) {
         <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label={t("nav.sections")}>
           {[
             [t("nav.directory"), "/people"],
+            // R3.1. What a member sees of everybody else, which is a different
+            // screen from the one staff work in.
+            [t("nav.memberDirectory"), "/directory"],
             [t("nav.services"), "/services"],
             [t("nav.groups"), "/groups"],
             [t("nav.checkin"), "/checkin"],

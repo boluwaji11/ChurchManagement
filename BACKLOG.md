@@ -238,8 +238,8 @@ this product is for.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-98 | The member directory: searchable, by household, with photos | R3.1, R3.4 | New |
-| HRT-99 | Per-field visibility chosen by the member, and whole-record opt out | R3.2, R3.3 | New |
+| HRT-98 | The member directory: searchable, by household | R3.1, R3.4 | Resolved |
+| HRT-99 | Per-field visibility chosen by the member, and whole-record opt out | R3.2, R3.3 | Resolved |
 | HRT-100 | The printed and PDF directory, honouring every setting at generation | R3.5 | New |
 | HRT-101 | The admin view that shows every field, permission gated | R3.6 | New |
 
@@ -319,9 +319,9 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | R3.x the member directory, R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks |
-| **Next** | F3 the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **0.2 still owed** | R3.5 the printed and PDF directory, R3.6 the admin view, R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** directory privacy |
+| **Next** | **HRT-100** the printed directory and **HRT-101** the admin view, then F3 the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1045,6 +1045,31 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-98 and HRT-99, how to test them
+
+**Church** in the header is the member directory. **Settings**, then **Directory**, is what you let
+other members see of you.
+
+1. **The default is your name.** Everybody is listed, and nothing else of anybody appears. A church
+   that imported two hundred phone numbers has been given permission by none of those two hundred
+   people, so the absence of a choice means the safest answer.
+2. **Turn a field on.** Your email, your phone, your address, your birthday. It appears in the
+   directory for everybody and the fields you left off do not.
+3. **The acceptance criterion.** Hide your address. You still see it on your own record, and it is
+   nowhere in the directory. It will be nowhere in the printed one either, because both read the
+   same rule.
+4. **Take yourself out.** One tick, and you are absent from the directory and still in the church's
+   records.
+5. **Children.** A child never appears until the head of their household ticks "Our children, by
+   name", and never appears with contact details even then. Tick everything on the parent's record
+   and the child still has no email, no phone and no birthday against them.
+6. **Somebody rings up and asks.** Owner, admin and staff can change somebody's setting for them.
+   Another member cannot.
+7. **Search.** By a person or by a household: "Bennett" finds the Bennetts.
+
+Photos are in the model and nowhere on the screen, because a person's photo cannot be uploaded yet.
+That is R2.x and the quota work behind it.
 
 ### HRT-26, how to test it
 
