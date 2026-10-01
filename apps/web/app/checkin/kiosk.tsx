@@ -3,8 +3,10 @@
 import * as React from "react";
 import { Check, Search } from "lucide-react";
 import {
+  Banner,
   Checkbox, Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { openLabels } from "./open-labels";
 import { serviceNow } from "@hearth/db/rules";
 import { checkIn, type FoundMatch } from "./actions";
 import { useFind } from "./use-find";
@@ -65,6 +67,7 @@ export function Kiosk({
   const [finished, setFinished] = React.useState<string[]>([]);
   const [seen, setSeen] = React.useState(false);
   const [error, setError] = React.useState<string>();
+  const [blocked, setBlocked] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   const reset = React.useCallback(() => {
@@ -145,7 +148,9 @@ export function Kiosk({
               };
             }),
           );
-          window.open(`/checkin/labels?local=1&printer=${printer}`, "hearth-labels", "width=520,height=720");
+          if (!openLabels(`/checkin/labels?local=1&printer=${printer}`)) {
+            setBlocked(`/checkin/labels?local=1&printer=${printer}`);
+          }
         }
         return;
       }
@@ -157,11 +162,10 @@ export function Kiosk({
       setFinished(entries.map((e) => e.personId));
 
       if (wearing.length > 0) {
-        window.open(
-          `/checkin/labels?church=${church}&service=${service}&printer=${printer}&people=${wearing.join(",")}`,
-          "hearth-labels",
-          "width=520,height=720",
-        );
+        const href =
+          `/checkin/labels?church=${church}&service=${service}&printer=${printer}` +
+          `&people=${wearing.join(",")}`;
+        if (!openLabels(href)) setBlocked(href);
       }
     });
   };
@@ -212,6 +216,15 @@ export function Kiosk({
 
   return (
     <div data-density="station" className="flex flex-col gap-5" aria-busy={pending || searching}>
+      {blocked ? (
+        <Banner tone="warning" title={t("labels.blocked")}>
+          <a href={blocked} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+            {t("labels.open")}
+          </a>
+        </Banner>
+      ) : null}
+
+
       <Connection
         state={station.state}
         onSend={() => void station.reconcile()}

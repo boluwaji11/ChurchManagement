@@ -58,7 +58,11 @@ export default async function MemberHomePage({
   return (
     <>
       <AppHeader session={session} />
-      <main id="main" className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6">
+      <main
+        id="main"
+        data-density="portal"
+        className="mx-auto flex w-full max-w-xl flex-col gap-8 px-4 py-8 sm:px-6"
+      >
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-display text-fg">
             {t("home.hello", { name: session.displayName.split(" ")[0] ?? session.displayName })}

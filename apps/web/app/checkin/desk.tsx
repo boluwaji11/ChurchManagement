@@ -9,6 +9,7 @@ import {
   type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { openLabels } from "./open-labels";
 import { serviceNow } from "@hearth/db/rules";
 import { checkIn, undo, type FoundMatch, type FoundPerson } from "./actions";
 import { useFind } from "./use-find";
@@ -77,6 +78,7 @@ export function Desk({
   const [picked, setPicked] = React.useState<Record<string, boolean>>({});
   const [counts, setCounts] = React.useState<Record<string, number>>({});
   const [error, setError] = React.useState<string>();
+  const [blocked, setBlocked] = React.useState<string>();
   const [done, setDone] = React.useState<string[]>([]);
   // Who is waiting on a label. Until the volunteer says the labels are in the
   // parent's hand, the check-in is not finished. (R8.6)
@@ -157,7 +159,9 @@ export function Desk({
               };
             }),
           );
-          window.open(`/checkin/labels?local=1&printer=${printer}`, "hearth-labels", "width=520,height=720");
+          if (!openLabels(`/checkin/labels?local=1&printer=${printer}`)) {
+            setBlocked(`/checkin/labels?local=1&printer=${printer}`);
+          }
         }
         return;
       }
@@ -173,11 +177,10 @@ export function Desk({
       // of the printer before anybody walks away.
       setPrinting(children);
       if (wearing.length > 0) {
-        window.open(
-          `/checkin/labels?church=${church}&service=${service}&printer=${printer}&people=${wearing.join(",")}`,
-          "hearth-labels",
-          "width=520,height=720",
-        );
+        const href =
+          `/checkin/labels?church=${church}&service=${service}&printer=${printer}` +
+          `&people=${wearing.join(",")}`;
+        if (!openLabels(href)) setBlocked(href);
       }
 
       await again();
@@ -244,6 +247,14 @@ export function Desk({
         onSend={() => void station.reconcile()}
         onDismiss={station.dismissConflicts}
       />
+
+      {blocked ? (
+        <Banner tone="warning" title={t("labels.blocked")}>
+          <a href={blocked} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+            {t("labels.open")}
+          </a>
+        </Banner>
+      ) : null}
 
       {error ?? searchError ? (
         <Banner tone="danger" title={t("checkin.failed")}>{error ?? searchError}</Banner>

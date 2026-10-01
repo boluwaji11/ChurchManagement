@@ -1104,6 +1104,8 @@ export const en = {
   "checkin.choose": "Which station is this device?",
   "checkin.useThis": "Use this station",
   "checkin.change": "Change station",
+  "labels.blocked": "Your browser stopped the label window opening",
+  "labels.open": "Open the labels",
   "labels.print": "Print",
   "labels.badge": "Name badge",
   "labels.child": "Child",
