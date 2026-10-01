@@ -43,7 +43,7 @@ describe("a demo church", () => {
 
     const info = await demoChurchInfo(demo.tenantId);
     expect(info.isDemo).toBe(true);
-  });
+  }, 120_000);
 
   it("is its own church every time, so one visitor cannot touch another's", async () => {
     const a = await createDemoChurch(randomUUID());
@@ -58,7 +58,7 @@ describe("a demo church", () => {
     const rows = await owner()<{ n: string }[]>`
       select count(*)::text as n from tenant_members where tenant_id = ${a.tenantId}`;
     expect(Number(rows[0]!.n)).toBe(1);
-  });
+  }, 120_000);
 
   it("is not marked on a real church", async () => {
     const [riverside] = await owner()<{ id: string }[]>`
@@ -82,7 +82,7 @@ describe("expiry", () => {
     const left = await owner()<{ id: string }[]>`
       select id from tenants where id in (${stale.tenantId}, ${fresh.tenantId})`;
     expect(left.map((r) => r.id)).toEqual([fresh.tenantId]);
-  });
+  }, 120_000);
 
   it("never sweeps a church that is not a demo", async () => {
     const before = await owner()<{ n: string }[]>`

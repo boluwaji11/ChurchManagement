@@ -269,8 +269,10 @@
     --hue-clay-key: var(--hue-clay-100);
 }
 
-/* Density. One system, three modes. Set data-density on the root element. */
-:root, :root[data-density="office"] {
+/* Density. One system, three modes. Set data-density on the root element, or on
+   any element whose subtree runs at a different one: a kiosk inside the app is
+   station density while the page around it stays office. */
+:root, [data-density="office"] {
   --d-text-body: 0.875rem;
   --d-leading-body: 1.25rem;
   --d-tap: 2rem;
@@ -284,7 +286,7 @@
   --d-content-max: 90rem;
 }
 
-:root[data-density="station"] {
+[data-density="station"] {
   --d-text-body: 1.25rem;
   --d-leading-body: 1.75rem;
   --d-tap: 3.5rem;
@@ -298,7 +300,7 @@
   --d-content-max: 45rem;
 }
 
-:root[data-density="portal"] {
+[data-density="portal"] {
   --d-text-body: 1rem;
   --d-leading-body: 1.5rem;
   --d-tap: 2.75rem;

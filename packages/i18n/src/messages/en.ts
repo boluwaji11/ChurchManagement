@@ -723,6 +723,8 @@ export const en = {
   "labels.none.title": "Nothing to print",
   "labels.none.body": "Check a child in and the labels come up here.",
   "checkin.done": "Checked in",
+  "checkin.next": "Done",
+  "checkin.thisIsUs": "This is us",
   "checkin.printed": "Done",
   "checkin.notPrinted": "Labels did not print",
   "checkin.search": "Name or last four digits of a phone number",

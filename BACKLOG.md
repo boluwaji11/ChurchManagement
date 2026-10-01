@@ -153,6 +153,7 @@ starting any story below. They are the definition of done, ahead of anything the
 |---|---|---|---|
 | HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Closed |
 | HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Closed |
+| HRT-73 | A screen for the modes a family drives itself, rather than the volunteer's | R8.1, R24.14 | Resolved |
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Resolved |
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | Resolved |
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | New |
@@ -218,7 +219,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk |
 | **Next** | **HRT-58** allergies on the screen and on the label. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -711,3 +712,19 @@ The desk, with a child checked in.
 
 Brother QL and Dymo are HRT-61. This prints through the browser, which is every printer a church
 already owns.
+
+### HRT-73, how to test it
+
+Settings, then Stations. Set a station's mode to "Families use it themselves", and open Check-in on
+a device pointed at it.
+
+1. **Everything is bigger.** Station density: thumb-sized targets and text readable at arm's length
+   from a stand.
+2. **Rooms are buttons, not a menu.** A parent reads four room names at once faster than they open a
+   dropdown.
+3. **Nothing a parent has no business touching.** No undo, no other household on screen once they
+   have chosen theirs, no way further into the church's records.
+4. **It clears itself.** Twenty seconds after a family finishes, the screen is empty again, so the
+   last family's children are not left on a screen in the lobby.
+5. **The counter desk is unchanged.** Set the mode back to "A volunteer runs it" and the desk
+   returns.

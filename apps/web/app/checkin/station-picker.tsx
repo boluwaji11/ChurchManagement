@@ -5,6 +5,7 @@ import { Badge, Button, Card, EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { claim } from "./actions";
 import { Desk, type DeskRoom, type DeskService } from "./desk";
+import { Kiosk } from "./kiosk";
 
 const REMEMBERED = "hearth_station";
 
@@ -75,12 +76,24 @@ export function StationPicker({
   if (station) {
     return (
       <div className="flex flex-col gap-6">
-        <Desk
-          church={church}
-          stationId={station.id}
-          rooms={station.rooms}
-          services={station.services}
-        />
+        {/* A family driving the screen themselves sees a different one. The
+            flow is the same; what a parent has no business touching is not
+            there. */}
+        {station.mode === "kiosk" || station.mode === "phone" ? (
+          <Kiosk
+            church={church}
+            stationId={station.id}
+            rooms={station.rooms}
+            services={station.services}
+          />
+        ) : (
+          <Desk
+            church={church}
+            stationId={station.id}
+            rooms={station.rooms}
+            services={station.services}
+          />
+        )}
 
         {/* Which device this is, kept out of the way. A volunteer checking a
             family in is not thinking about it, and it is only ever touched when
