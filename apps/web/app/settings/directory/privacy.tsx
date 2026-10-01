@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Banner, Button, Card, CardTitle, Checkbox, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { savePrivacy } from "./actions";
@@ -94,8 +95,11 @@ export function Privacy({
           ) : null}
         </div>
 
-        <div>
+        <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+          <Button asChild variant="ghost">
+            <Link href={`/directory?church=${church}`}>{t("privacy.view")}</Link>
+          </Button>
         </div>
       </form>
     </Card>

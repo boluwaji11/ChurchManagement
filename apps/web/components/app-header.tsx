@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Church } from "lucide-react";
 import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
-import { canFollowUp, canReadIncidents } from "@hearth/db";
+import { canEditPeople, canFollowUp, canReadIncidents } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { DemoBanner } from "./demo-banner";
@@ -47,10 +47,14 @@ export async function AppHeader({ session }: { session: Session }) {
 
         <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label={t("nav.sections")}>
           {[
-            [t("nav.directory"), "/people"],
-            // R3.1. What a member sees of everybody else, which is a different
-            // screen from the one staff work in.
-            [t("nav.memberDirectory"), "/directory"],
+            /*
+             * R3.1. One directory each. Staff work in the church's records; a
+             * member sees what the rest of the church chose to publish, and on
+             * /people would see nobody but themselves.
+             */
+            [t("nav.directory"), canEditPeople(session.role) || canReadIncidents(session.role)
+              ? "/people"
+              : "/directory"],
             [t("nav.services"), "/services"],
             [t("nav.groups"), "/groups"],
             [t("nav.checkin"), "/checkin"],
