@@ -71,6 +71,12 @@ export {
   RESERVED_SLUGS,
   type Membership, type TeamMember, type PendingInvitation,
 } from "./repo/membership";
+export {
+  churchForJoinCode, joinWithCode, rotateJoinCode, closeJoining,
+  waitingToJoin, decideJoinRequest, waitingOn,
+  normaliseJoinCode, formatJoinCode,
+  type JoinTarget, type JoinOutcome, type WaitingPerson,
+} from "./repo/joining";
 export { readSheet, readImportFile, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";
 export {
   IMPORT_SOURCES, SOURCE_KEYS, detectSource, sourceMapping,

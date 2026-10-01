@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Church, Plus } from "lucide-react";
-import { membershipsForUser } from "@hearth/db";
+import { ArrowRight, Church, Clock, Plus } from "lucide-react";
+import { membershipsForUser, waitingOn, canEditPeople, canReadIncidents } from "@hearth/db";
 import { Banner, Button } from "@hearth/ui";
 import { currentUser } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
 import { BrandBar } from "@/components/brand";
+import { JoinWithCode } from "./join-with-code";
 import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
@@ -17,13 +18,14 @@ const isReason = (value: string | undefined): value is (typeof REASONS)[number] 
 export default async function ChooseChurch({
   searchParams,
 }: {
-  searchParams: Promise<{ reason?: string }>;
+  searchParams: Promise<{ reason?: string; waiting?: string }>;
 }) {
-  const { reason } = await searchParams;
+  const { reason, waiting } = await searchParams;
   const user = await currentUser();
   if (!user) redirect("/sign-in");
 
   const memberships = await membershipsForUser(user.id);
+  const pending = await waitingOn(user.id);
   const notice = isReason(reason) ? reason : undefined;
 
   return (
@@ -38,6 +40,8 @@ export default async function ChooseChurch({
         </p>
       </div>
 
+      {waiting ? <Banner tone="success" title={t("join.waitingTitle", { name: waiting })} /> : null}
+
       {notice ? (
         <Banner tone={notice === "denied" ? "warning" : "info"} title={t(`chooseChurch.${notice}.title`)}>
           {t(`chooseChurch.${notice}.body`)}
@@ -49,7 +53,11 @@ export default async function ChooseChurch({
           {memberships.map((m) => (
             <li key={m.tenantId}>
               <Link
-                href={`/people?church=${m.tenantSlug}`}
+                href={`${
+                  canEditPeople(m.role as never) || canReadIncidents(m.role as never)
+                    ? "/people"
+                    : "/home"
+                }?church=${m.tenantSlug}`}
                 className="group flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm transition-[border-color,box-shadow] duration-fast hover:border-line-strong hover:shadow-md"
               >
                 <span className="flex items-center gap-3">
@@ -66,7 +74,25 @@ export default async function ChooseChurch({
         </ul>
       ) : null}
 
-      <Button asChild variant={memberships.length > 0 ? "secondary" : "primary"} full>
+      {pending.length > 0 ? (
+        <ul className="flex flex-col gap-2">
+          {pending.map((church) => (
+            <li
+              key={church.name}
+              className="flex items-center gap-3 rounded-lg border border-line border-dashed p-4"
+            >
+              <Clock className="size-5 text-fg-subtle" aria-hidden />
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">
+                {t("join.waitingTitle", { name: church.name })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <JoinWithCode />
+
+      <Button asChild variant="ghost" full>
         <Link href="/create-church">
           <Plus /> {t("createChurch.title")}
         </Link>

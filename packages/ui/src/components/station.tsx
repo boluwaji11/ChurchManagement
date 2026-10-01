@@ -67,7 +67,7 @@ export function CodeDisplay({
       <span
         data-numeric
         className="font-mono text-display font-semibold tracking-[0.15em] text-fg"
-        aria-label={`Code ${code.split("").join(" ")}`}
+        aria-label={label ? `${label} ${code.split("").join(" ")}` : undefined}
       >
         {code}
       </span>

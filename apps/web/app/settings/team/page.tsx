@@ -1,8 +1,12 @@
-import { listTeam, listInvitations, canManageChurch } from "@hearth/db";
+import {
+  listTeam, listInvitations, canManageChurch, getChurch, waitingToJoin, withTenant, formatJoinCode,
+} from "@hearth/db";
+import { headers } from "next/headers";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { Team } from "./team";
+import { longDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +26,16 @@ export default async function TeamPage({
   const members = await listTeam(session.tenantId, session.userId);
   const invitations = await listInvitations(session.tenantId);
 
+  const { profile, waiting } = await withTenant(session, async (tx) => ({
+    profile: await getChurch(tx, session.tenantId),
+    waiting: await waitingToJoin(tx, session),
+  }));
+
+  const code = profile?.joinCode ?? null;
+  const head = await headers();
+  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
+  const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+
   return (
     <Team
       church={session.tenantSlug}
@@ -33,6 +47,14 @@ export default async function TeamPage({
         expiresAt: invitation.expiresAt.toLocaleDateString("en-US", {
           day: "numeric", month: "long",
         }),
+      }))}
+      joinCode={code ? formatJoinCode(code) : null}
+      joinLink={code ? `${proto}://${host}/join/${code}` : null}
+      waiting={waiting.map((person) => ({
+        id: person.id,
+        email: person.email,
+        name: person.fullName,
+        asked: longDate(person.requestedAt.toISOString().slice(0, 10)),
       }))}
     />
   );

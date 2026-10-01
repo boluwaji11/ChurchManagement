@@ -14,7 +14,7 @@ export default async function SignUpPage({
   searchParams: Promise<{ next?: string; error?: string; sent?: string }>;
 }) {
   const params = await searchParams;
-  if (await currentUser()) redirect(params.next ?? "/create-church");
+  if (await currentUser()) redirect(params.next ?? "/choose-church");
 
   return (
     <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-10">

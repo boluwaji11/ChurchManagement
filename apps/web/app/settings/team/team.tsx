@@ -2,14 +2,23 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X } from "lucide-react";
+import { Plus, X, RefreshCw, Check, Copy, DoorOpen } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, CardTitle, Field, Input, Separator,
+  Badge, Banner, Button, Card, CardTitle, CodeDisplay, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { invite, withdraw, changeRole, removeAccess } from "./actions";
+import {
+  invite, withdraw, changeRole, removeAccess, newJoinCode, stopJoining, decideJoin,
+} from "./actions";
+
+export interface Waiting {
+  id: string;
+  email: string;
+  name: string | null;
+  asked: string;
+}
 
 export interface Member {
   userId: string;
@@ -43,16 +52,25 @@ export function Team({
   church,
   members,
   invitations,
+  joinCode,
+  joinLink,
+  waiting,
 }: {
   church: string;
   members: Member[];
   invitations: Invitation[];
+  joinCode: string | null;
+  joinLink: string | null;
+  waiting: Waiting[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [message, setMessage] = React.useState<string>();
   const [changing, setChanging] = React.useState<{ member: Member; role: string } | null>(null);
   const [removing, setRemoving] = React.useState<Member | null>(null);
+  const [rotating, setRotating] = React.useState(false);
+  const [closing, setClosing] = React.useState(false);
+  const [declining, setDeclining] = React.useState<Waiting | null>(null);
   const [pending, startTransition] = React.useTransition();
 
   const run = (work: () => Promise<{ error?: string }>, said?: string) =>
@@ -137,6 +155,78 @@ export function Team({
         </DialogContent>
       </Dialog>
 
+      <Dialog open={rotating} onOpenChange={setRotating}>
+        <DialogContent alert title={t("joining.newTitle")}>
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("joining.newBody")}</p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setRotating(false)}>
+              {t("joining.newKeep")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                setRotating(false);
+                run(() => newJoinCode(church));
+              }}
+            >
+              <RefreshCw /> {t("joining.new")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={closing} onOpenChange={setClosing}>
+        <DialogContent alert title={t("joining.offTitle")}>
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("joining.offBody")}</p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setClosing(false)}>
+              {t("joining.offKeep")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                setClosing(false);
+                run(() => stopJoining(church));
+              }}
+            >
+              <X /> {t("joining.off")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={declining !== null} onOpenChange={(on) => setDeclining(on ? declining : null)}>
+        <DialogContent
+          alert
+          title={declining ? t("joining.declineTitle", { name: declining.name ?? declining.email }) : ""}
+        >
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("joining.declineBody")}</p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setDeclining(null)}>
+              {t("joining.declineKeep")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                const who = declining;
+                setDeclining(null);
+                if (who) {
+                  run(
+                    () => decideJoin(who.id, false, church),
+                    t("joining.declined", { name: who.name ?? who.email }),
+                  );
+                }
+              }}
+            >
+              <X /> {t("joining.decline")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle>{t("team.title")}</CardTitle>
@@ -187,6 +277,87 @@ export function Team({
             </li>
           ))}
         </ul>
+      </Card>
+
+      {waiting.length > 0 ? (
+        <Card>
+          <CardTitle>{t("joining.waiting")}</CardTitle>
+          <Separator className="my-4" />
+          <ul className="flex flex-col">
+            {waiting.map((person, i) => (
+              <li key={person.id}>
+                {i > 0 ? <Separator className="my-3" /> : null}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-[length:var(--d-text-body)] text-fg">
+                      {person.name ?? person.email}
+                    </span>
+                    <span className="text-caption text-fg-muted">
+                      {person.name ? `${person.email} · ` : ""}
+                      {t("joining.asked", { date: person.asked })}
+                    </span>
+                  </span>
+                  <span className="flex flex-wrap items-center gap-2">
+                    <Button
+                      disabled={pending}
+                      onClick={() =>
+                        run(
+                          () => decideJoin(person.id, true, church),
+                          t("joining.approved", { name: person.name ?? person.email }),
+                        )
+                      }
+                    >
+                      <Check /> {t("joining.approve")}
+                    </Button>
+                    <Button variant="ghost" disabled={pending} onClick={() => setDeclining(person)}>
+                      <X /> {t("joining.decline")}
+                    </Button>
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardTitle>{t("joining.title")}</CardTitle>
+        <Separator className="my-4" />
+
+        {joinCode && joinLink ? (
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <CodeDisplay code={joinCode} label={t("joining.code")} className="items-start" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <Field label={t("joining.link")}>
+                <Input readOnly value={joinLink} onFocus={(e) => e.currentTarget.select()} />
+              </Field>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(joinLink);
+                    setMessage(t("joining.copied"));
+                  }}
+                >
+                  <Copy /> {t("joining.copy")}
+                </Button>
+                <Button variant="ghost" disabled={pending} onClick={() => setRotating(true)}>
+                  <RefreshCw /> {t("joining.new")}
+                </Button>
+                <Button variant="ghost" disabled={pending} onClick={() => setClosing(true)}>
+                  <X /> {t("joining.off")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Badge tone="neutral">{t("joining.isOff")}</Badge>
+            <Button disabled={pending} onClick={() => run(() => newJoinCode(church))}>
+              <DoorOpen /> {t("joining.on")}
+            </Button>
+          </div>
+        )}
       </Card>
 
       {invitations.length > 0 ? (
@@ -267,17 +438,16 @@ function InviteDialog({
             <Input name="email" type="email" autoComplete="off" autoFocus />
           </Field>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-label text-fg">{t("team.role")}</span>
+          <Field label={t("team.role")}>
             <Select value={role} onValueChange={setRole}>
-              <SelectTrigger aria-label={t("team.role")}><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {ROLES.map((r) => (
                   <SelectItem key={r} value={r}>{roleName(r)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending || saving}>{t("team.invite")}</Button>

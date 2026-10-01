@@ -80,7 +80,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
 | HRT-110 | Saved lists, static and rule-based | R1.14 | New |
 | HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.x | Resolved |
-| HRT-114 | Joining a church: its link and code, claiming a person record, the waiting list | R1.7, R17.1, R22.1 | Active |
+| HRT-114 | Joining a church: its link and code, claiming a person record, the waiting list | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
@@ -1107,6 +1107,24 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-114, how to test it
+
+Each church on this machine now has a code. Riverside's is **8MWT-P8VE**, at
+`/join/8MWTP8VE`. Settings, Team shows it, with the link, a new code and a switch to turn it off.
+
+1. **The address the church holds.** Open the link in a private window. Create an account with the
+   email on a person record Riverside already has. You land on the member home as that person, and
+   nobody was asked anything.
+2. **An address it does not hold.** Same link, any other address. You are told the church has the
+   request. Settings, Team, Waiting to join has them, and People has them as a visitor. Approve, and
+   they are a member holding that record. Decline, and the visitor record stays and the account gets
+   nothing.
+3. **A child.** Put a child's email on their record and try it. It waits.
+4. **The code.** Take a new code and the old link stops working. Turn joining off and it stops
+   working for everybody, with nobody losing their place in the queue.
+5. **Signing up with no code at all** now lands on the church chooser, which offers a code box,
+   whatever you are waiting on, and creating a church, in that order.
 
 ### HRT-109, how to test it
 

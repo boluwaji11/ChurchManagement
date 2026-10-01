@@ -85,8 +85,10 @@ export async function syncUserAndAcceptInvitations(user: {
     values (${user.id}, ${email}, ${user.fullName ?? null})
     on conflict (id) do update set email = excluded.email, full_name = coalesce(excluded.full_name, app_users.full_name)`;
 
-  const pending = await sql<{ id: string; tenant_id: string; role: TenantRole }[]>`
-    select id, tenant_id, role from invitations
+  const pending = await sql<
+    { id: string; tenant_id: string; role: TenantRole; person_id: string | null }[]
+  >`
+    select id, tenant_id, role, person_id from invitations
     where lower(email) = ${email}
       and accepted_at is null
       and revoked_at is null
@@ -103,6 +105,14 @@ export async function syncUserAndAcceptInvitations(user: {
       set accepted_at = now(), accepted_by_user_id = ${user.id}
       where id = ${invite.id}`;
 
+    // R1.7. An invitation that grants a role and links no record leaves
+    // somebody signed in to a church that has never heard of them.
+    if (invite.person_id) {
+      await sql`
+        update people set app_user_id = ${user.id}
+        where id = ${invite.person_id} and app_user_id is null`;
+    }
+
     const rows = await sql<Membership[]>`
       select t.id as "tenantId", t.slug as "tenantSlug", t.name as "tenantName", ${invite.role}::text as "role"
       from tenants t where t.id = ${invite.tenant_id}`;
@@ -118,18 +128,21 @@ export async function createInvitation(input: {
   email: string;
   role: TenantRole;
   invitedByUserId?: string;
+  /** R1.7. The record this is for, so accepting ties the account to it. */
+  personId?: string | null;
   days?: number;
 }): Promise<{ id: string }> {
   const sql = owner();
   const rows = await sql<{ id: string }[]>`
-    insert into invitations (tenant_id, email, role, invited_by_user_id, expires_at)
+    insert into invitations (tenant_id, email, role, invited_by_user_id, person_id, expires_at)
     values (
       ${input.tenantId}, ${input.email.trim().toLowerCase()}, ${input.role}::tenant_role,
-      ${input.invitedByUserId ?? null},
+      ${input.invitedByUserId ?? null}, ${input.personId ?? null},
       now() + make_interval(days => ${input.days ?? 14})
     )
     on conflict (tenant_id, email) do update set
       role = excluded.role,
+      person_id = coalesce(excluded.person_id, invitations.person_id),
       expires_at = excluded.expires_at,
       revoked_at = null,
       accepted_at = null

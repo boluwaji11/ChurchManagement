@@ -30,7 +30,7 @@ export async function signUp(data: FormData) {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
   const password = String(data.get("password") ?? "");
   const fullName = String(data.get("fullName") ?? "").trim();
-  const next = String(data.get("next") ?? "") || "/create-church";
+  const next = String(data.get("next") ?? "") || "/choose-church";
 
   if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return fail(t("signUp.error.email"), next);
   if (password.length < 10) return fail(t("signUp.error.password"), next);

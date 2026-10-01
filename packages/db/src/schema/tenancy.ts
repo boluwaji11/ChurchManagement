@@ -59,10 +59,19 @@ export const tenants = pgTable(
      */
     setupDismissedAt: timestamp("setup_dismissed_at", { withTimezone: true }),
     setupSkipped: text("setup_skipped").array(),
+    /**
+     * R1.7. The code a church hands its congregation so they can get an account.
+     *
+     * A code rather than the slug, because a slug is a guess and this is the
+     * only thing standing between a stranger and the church's waiting list.
+     * Null means joining is switched off. It can be rotated, which makes every
+     * printed card stop working, which is the point of rotating it.
+     */
+    joinCode: text("join_code"),
     createdAt: created(),
     updatedAt: updated(),
   },
-  (t) => [uniqueIndex("tenants_slug_key").on(t.slug)],
+  (t) => [uniqueIndex("tenants_slug_key").on(t.slug), uniqueIndex("tenants_join_code_key").on(t.joinCode)],
 );
 
 /**

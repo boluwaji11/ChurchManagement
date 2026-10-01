@@ -38,6 +38,8 @@ export interface ChurchProfile {
   website: string | null;
   brandHue: string;
   logoKey: string | null;
+  /** R1.7. Null when the church has switched joining off. */
+  joinCode: string | null;
 }
 
 export interface ChurchInput {
@@ -63,6 +65,7 @@ export async function getChurch(db: Tx, tenantId: string): Promise<ChurchProfile
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      joinCode: tenants.joinCode,
     })
     .from(tenants)
     .where(eq(tenants.id, tenantId))
@@ -117,6 +120,7 @@ export async function updateChurch(
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      joinCode: tenants.joinCode,
     });
 
   if (!row) throw new InvalidInputError("church.error.notFound");
