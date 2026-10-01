@@ -231,9 +231,6 @@ async function loadSundays(
  * board and sees two empty screens with nothing wrong, which reads as the
  * product not working. The service is written through the same functions a
  * church uses, so what the demo shows is what a church would get.
- *
- * One room is deliberately left with a single volunteer, because the two-adult
- * alert is the thing on that screen worth seeing. (R8.17)
  */
 async function loadTodaysService(
   db: Tx,
@@ -275,10 +272,10 @@ async function loadTodaysService(
       roomId: roomFor(i),
       child: true,
     })),
-    // Two in the first room, one in the second, which is the alert.
-    ...adults.slice(0, 3).map((adult, i) => ({
+    // Adults on the attendance, wearing a name badge, in no class.
+    ...adults.slice(0, 3).map((adult) => ({
       personId: adult.id,
-      roomId: roomFor(i === 2 ? 1 : 0),
+      roomId: null,
       child: false,
     })),
   ];

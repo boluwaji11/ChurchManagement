@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Printer, TriangleAlert, UserCheck } from "lucide-react";
+import { Printer, UserCheck } from "lucide-react";
 import {
   Badge, Banner, Button, Card, EmptyState, HueDot, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -73,8 +73,6 @@ export function RoomBoard({
     return <EmptyState title={t("board.noRooms.title")} body={t("board.noRooms.body")} />;
   }
 
-  const alerts = live.rooms.filter((r) => r.twoAdultAlert);
-
   return (
     <div className="flex flex-col gap-5">
       {error ? <Banner tone="danger" title={t("board.title")}>{error}</Banner> : null}
@@ -102,77 +100,58 @@ export function RoomBoard({
         </Button>
       </div>
 
-      {/* R8.17. The alert goes above everything, because a room with one adult
-          in it is the thing a supervisor should be walking towards. */}
-      {alerts.length > 0 ? (
-        <Banner tone="danger" title={t("board.twoAdult.title")}>
-          {alerts.map((room) => room.name).join(", ")}
-        </Banner>
-      ) : null}
-
       <div className="flex flex-wrap items-center gap-4 text-[length:var(--d-text-body)] text-fg">
         <span className="flex items-center gap-2">
           <UserCheck className="size-5 text-fg-muted" aria-hidden />
           {plural("board.outstanding", live.outstanding)}
         </span>
-        {live.unassignedVolunteers > 0 ? (
-          <span className="text-fg-muted">
-            {plural("board.unassigned", live.unassignedVolunteers)}
-          </span>
-        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-1">
         {live.rooms.map((room) => (
-          <Card key={room.roomId} className="flex flex-col gap-3 print:break-inside-avoid">
-            <div className="flex items-start justify-between gap-3">
-              <span className="flex items-center gap-2 text-heading text-fg">
-                <HueDot hue={room.hue as Hue} />
-                {room.name}
-              </span>
-              <span className="font-mono text-display leading-none text-fg">
-                {room.capacity === null
-                  ? room.present
-                  : t("board.ofCapacity", { present: room.present, capacity: room.capacity })}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge tone={room.twoAdultAlert ? "danger" : "neutral"}>
-                {plural("board.volunteers", room.volunteers)}
-              </Badge>
-              {room.over ? (
-                <Badge tone="danger">{t("board.over")}</Badge>
-              ) : room.full ? (
-                <Badge tone="warning">{t("checkin.full")}</Badge>
-              ) : null}
-              {room.underStaffed ? <Badge tone="warning">{t("board.ratio")}</Badge> : null}
-              {room.collected > 0 ? (
-                <span className="text-caption text-fg-muted">
-                  {plural("board.collected", room.collected)}
+          <Card key={room.roomId} className="flex flex-col gap-3 p-0 print:break-inside-avoid">
+            {/* The card is the control: tapping a class shows who is in it. */}
+            <button
+              type="button"
+              aria-expanded={open === room.roomId}
+              onClick={() => setOpen(open === room.roomId ? null : room.roomId)}
+              className="flex w-full flex-col gap-3 rounded-[inherit] p-[var(--d-pad-card)] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span className="flex items-center gap-2 text-heading text-fg">
+                  <HueDot hue={room.hue as Hue} />
+                  {room.name}
                 </span>
-              ) : null}
-            </div>
+                <span className="font-mono text-display leading-none text-fg">
+                  {room.capacity === null
+                    ? room.present
+                    : t("board.ofCapacity", { present: room.present, capacity: room.capacity })}
+                </span>
+              </div>
 
-            {room.twoAdultAlert ? (
-              <span className="flex items-center gap-2 text-[length:var(--d-text-body)] text-danger">
-                <TriangleAlert className="size-5 shrink-0" aria-hidden />
-                {t("board.twoAdult.room")}
-              </span>
-            ) : null}
+              <div className="flex flex-wrap items-center gap-2">
+                {room.over ? (
+                  <Badge tone="danger">{t("board.over")}</Badge>
+                ) : room.full ? (
+                  <Badge tone="warning">{t("checkin.full")}</Badge>
+                ) : null}
+                {room.collected > 0 ? (
+                  <span className="text-caption text-fg-muted">
+                    {plural("board.collected", room.collected)}
+                  </span>
+                ) : null}
+              </div>
+            </button>
 
-            <div className="print:hidden">
-              <Button
-                variant="ghost"
-                onClick={() => setOpen(open === room.roomId ? null : room.roomId)}
-              >
-                {t("board.roster")}
-              </Button>
-            </div>
-
-            {/* R8.18. On screen when it is asked for, and on paper always, because
-                the room needs it on the wall and the tablet is in the lobby. */}
-            <div className={open === room.roomId ? "" : "hidden print:block"}>
+            {/* R8.18. On screen when the class is tapped, and on paper always,
+                because the room needs it on the wall and the tablet is in the
+                lobby. */}
+            <div
+              className={
+                (open === room.roomId ? "" : "hidden print:block") +
+                " px-[var(--d-pad-card)] pb-[var(--d-pad-card)] print:p-0"
+              }
+            >
               <Roster entries={rosters[room.roomId] ?? []} />
             </div>
           </Card>
@@ -193,12 +172,7 @@ function Roster({ entries }: { entries: RoomRosterEntry[] }) {
         <li key={entry.personId}>
           {i > 0 ? <Separator className="my-2" /> : null}
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <span className="text-[length:var(--d-text-body)] text-fg">
-              {entry.name}
-              {entry.kind === "adult" ? (
-                <span className="ml-2 text-caption text-fg-muted">{t("board.volunteer")}</span>
-              ) : null}
-            </span>
+            <span className="text-[length:var(--d-text-body)] text-fg">{entry.name}</span>
             <span className="flex items-center gap-2">
               {entry.checkedOutAt ? (
                 <span className="text-caption text-fg-muted">{t("board.gone")}</span>

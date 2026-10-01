@@ -114,7 +114,7 @@ export function Desk({
       .filter((p) => picked[p.id] && !p.checkedIn)
       .map((p) => ({
         personId: p.id,
-        roomId: chosen[p.id] ?? null,
+        roomId: p.isChild ? (chosen[p.id] ?? null) : null,
         child: p.isChild,
       }));
     if (entries.length === 0) return;
@@ -452,29 +452,28 @@ function Member({
         {justDone ? <Badge tone="success">{t("checkin.checkedIn")}</Badge> : null}
       </label>
 
-      <div className="flex items-center gap-2">
-        {person.isChild && full ? <Badge tone="warning">{t("checkin.full")}</Badge> : null}
-        {/* R8.17. An adult with a room is serving in it, and the two-adult rule
-            counts them. Left empty they are simply here. */}
-        <Select value={roomId ?? ""} onValueChange={(value) => onRoom(value || null)}>
-          <SelectTrigger
-            aria-label={person.isChild ? t("checkin.room") : t("checkin.serving")}
-            className="w-48"
-          >
-            <SelectValue placeholder={person.isChild ? undefined : t("checkin.serving")} />
-          </SelectTrigger>
-          <SelectContent>
-            {rooms.map((r) => (
-              <SelectItem key={r.id} value={r.id}>
-                <span className="flex items-center gap-2">
-                  <HueDot hue={r.hue as Hue} />
-                  {r.name}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Only children are checked into a class. An adult is here, counted on
+          the attendance, and wearing a name badge. */}
+      {person.isChild ? (
+        <div className="flex items-center gap-2">
+          {full ? <Badge tone="warning">{t("checkin.full")}</Badge> : null}
+          <Select value={roomId ?? ""} onValueChange={(value) => onRoom(value || null)}>
+            <SelectTrigger aria-label={t("checkin.room")} className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {rooms.map((r) => (
+                <SelectItem key={r.id} value={r.id}>
+                  <span className="flex items-center gap-2">
+                    <HueDot hue={r.hue as Hue} />
+                    {r.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
     </div>
   );
 }

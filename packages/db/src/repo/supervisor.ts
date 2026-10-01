@@ -19,11 +19,17 @@ import { PermissionError, type TenantRole } from "../roles";
 export const CAN_SUPERVISE: readonly TenantRole[] = ["owner", "admin", "staff", "checkin_volunteer"];
 
 /**
- * R8.17. A room with fewer than two volunteers in it.
+ * R8.17. A class with fewer than two volunteers in it.
  *
  * The two-adult rule is the single most effective safeguarding practice a
  * church has, and it fails quietly: one volunteer steps out to find a parent
- * and nobody notices the room is down to one. This is the alert that notices.
+ * and nobody notices the class is down to one.
+ *
+ * The rule is counted here and shown nowhere yet, deliberately. Check-in puts
+ * children into classes and nothing else, so the only honest source of who is
+ * serving in a class is the serving schedule, which is F10 in 0.4. An alert fed
+ * by nothing would read as "every class is fine", which is worse than no alert
+ * at all. The board shows it the day serving provides the names.
  */
 export const MIN_VOLUNTEERS = 2;
 

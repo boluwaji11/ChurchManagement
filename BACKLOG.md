@@ -152,7 +152,7 @@ starting any story below. They are the definition of done, ahead of anything the
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-54 | Rooms with age ranges, capacity and volunteer ratios | R8.14 to R8.17 | Closed |
+| HRT-54 | Kids classes with age ranges, capacity and volunteer ratios | R8.14 to R8.16 | Closed |
 | HRT-55 | Station configuration and the four station modes | R8.1, R8.2 | Closed |
 | HRT-73 | A screen for the modes a family drives itself, rather than the volunteer's | R8.1, R24.14 | Closed |
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Closed |
@@ -164,8 +164,8 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Closed |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Closed |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Closed |
-| HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.17 to R8.19 | Resolved |
-| HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
+| HRT-62 | Supervisor board and class rosters | R8.18, R8.19 | Resolved |
+| HRT-63 | Incident reports, restricted and permanently retained | R8.13 | Active |
 
 ### F18. Insights, deferred to 1.0
 
@@ -207,6 +207,19 @@ F13 Giving. Stripe Connect at a zero platform fee, batch entry with dual control
 
 F11 Service planning and F12 the song library, which is the Phase 2 spine, plus F10 volunteers.
 
+### F10. Serving and volunteers
+
+A volunteer serves across ministries: the same person runs the sound desk, teaches a class one
+Sunday in three, and drives the van. So serving is a person's schedule across the church rather than
+a list held by each ministry, and the check-in board reads from it rather than keeping its own.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-79 | Teams, positions, and a person serving across several of them | R10.1 to R10.3 | New |
+| HRT-80 | Scheduling with conflict detection, blockout dates, accept and decline | R10.4 to R10.8 | New |
+| HRT-81 | Who is serving in a kids class today, and the two-adult-rule alert on the board | R8.17, R10.12 | New |
+| HRT-82 | Background-check gating: no children's position without a valid check | R10.10 | New |
+
 ## E5. GA (1.0)
 
 F4 Forms, F6 Pastoral care, F14 Events, F15 Calendar, F16 Communication, F17 Portal,
@@ -222,9 +235,9 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | Nothing |
+| **Active** | **HRT-63** incident reports |
 | **Waiting on a test** | **HRT-62** the supervisor board, the room rosters, the two-adult rule |
-| **Next** | **HRT-63** incident reports. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Next** | HRT-79 to HRT-82, serving, which R8.17 is waiting on. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -828,20 +841,13 @@ The station's **Labels** setting picks the stock, so set it before printing.
 
 ### HRT-62, how to test it
 
-**Kids rooms** is in the header. It is the person walking the corridor, not the desk.
+**Kids classes** is in the header. It is the person walking the corridor, not the desk.
 
-1. **Counts.** Check two children into the nursery from the desk. The card shows two, and the
+1. **Counts.** Check two children into a class from the desk. Its card shows two, and the
    outstanding count at the top matches.
-2. **Volunteers.** At the desk, an adult now has a **Serving in** picker. Check one adult into the
-   nursery. The card counts them as a volunteer, and the card says one adult in this room.
-3. **The two-adult rule.** Check a second adult into the same room. The alert goes. Check one of
-   them out and it comes back, with the room named in the banner at the top.
-4. **Capacity.** Fill a room to its capacity: it says full. One more: over capacity.
-5. **Ratio.** A room set to one volunteer per four children with five children and one volunteer
-   says there are not enough volunteers.
-6. **Roster.** Press Roster on a card. Who is in the room, who has been collected, their codes, and
-   any allergy. Press Print: every room's roster prints, expanded, one room a block.
-7. **It keeps up.** Leave the board open and check a child in from another device. Within twenty
-   seconds the board moves on its own.
-8. **A volunteer is not a pickup.** Checking an adult out asks for no code, because a name badge is
-   not a claim on anybody. A child still is.
+2. **The roster.** Tap the card. Who is in the class, who has been collected, their codes, and any
+   allergy. Tap again to close it.
+3. **Capacity.** Fill a class to its capacity: it says full. One more: over capacity.
+4. **Print.** Every class's roster prints, expanded, one class a block, for the wall.
+5. **It keeps up.** Leave it open and check a child in from another device. Within twenty seconds
+   the board moves on its own.
