@@ -105,10 +105,16 @@ SongSelect import, background check provider integration, Mailchimp sync, barcod
 Specified in [PRD-STAGE.md](PRD-STAGE.md), built on its own board,
 [BACKLOG-STAGE.md](BACKLOG-STAGE.md). Outline in [PRD.md section 8.23](PRD.md).
 
-An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@hearth/songs` package
-with the web platform and a local SQLite cache. Offline first. It renders slides directly from the
-song sections and arrangement sequences that Phase 1 already stores, which is the entire reason the
-two products are one platform.
+An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@hearth/songs` package with
+the web platform. Offline always.
+
+**Stage installs and runs on its own**, holding its own song library, importing the library a church
+already has, and presenting a Sunday service for a church that has never heard of Hearth. That is
+what gets it onto a laptop, and it is also how Stage becomes the front door to the platform.
+
+**Paired with Hearth it renders slides directly from the song sections and arrangement sequences
+Phase 1 already stores**, with no import step, which is the entire reason the two products are one
+platform and the thing no other presenter can copy.
 
 Stage does not win by being a better standalone presenter. OpenLP, FreeShow, Quelea, and Church
 Presenter are already free and already good. Stage wins by being the only presenter that already
@@ -119,6 +125,7 @@ Nothing else about Stage may influence Phase 1 scope. The contract is written ou
 [docs/stage-sync-contract.md](docs/stage-sync-contract.md), including the six platform deliverables
 0.4 has to carry.
 
-**Stage releases** are labelled S0.1 to S1.0 so they are never confused with the platform's. S0.1, the
-render on fixture data, has no platform dependency and can be built alongside platform 0.2 and 0.3.
-S0.2 is blocked until platform 0.4 ships.
+**Stage releases** are labelled S0.1 to S1.0 so they are never confused with the platform's. S0.1 the
+slide, S0.2 the library and the importers, and S0.3 the room are a complete standalone presenter with
+no platform dependency, built alongside platform 0.2 and 0.3. **S0.4, the plan, is the only release
+that waits on platform 0.4**, and it is the one that closes the loop.

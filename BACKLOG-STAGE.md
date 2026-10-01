@@ -1,10 +1,15 @@
 # Backlog, Hearth Stage
 
-The Stage board. Separate from [BACKLOG.md](BACKLOG.md) so the platform and the presenter can be
-built in parallel without two people editing one table.
+The Stage board. Separate from [BACKLOG.md](BACKLOG.md) so the platform and the presenter can be built
+in parallel without two people editing one table.
 
-Requirement IDs (`ST3.2`, `ST18.1`) point at [PRD-STAGE.md](PRD-STAGE.md) and say **what** to build.
+Requirement IDs (`ST5.2`, `ST19.1`) point at [PRD-STAGE.md](PRD-STAGE.md) and say **what** to build.
 Work item IDs (`STG-14`) say **when** it is being built and whether it is finished.
+
+> **Draft 2, October 2026.** Draft 1 made Stage a thin client of the platform, which put a Hearth
+> account between a church and a slide. Stage is a complete presenter that runs by itself, so the
+> library and the importers are Stage's own work and sync is additive. **SE1 to SE3, fifty-eight
+> stories, need nothing from the platform board.** The board was renumbered while nothing was built.
 
 ## How this works
 
@@ -12,8 +17,8 @@ Same four levels, same states, and the same rules as the platform board.
 
 | Level | Meaning | ID |
 |---|---|---|
-| **Epic** | A Stage release. Defined by what a church can do on a Sunday with it. | `SE1` to `SE5` |
-| **Feature** | A PRD-STAGE domain inside that release. | `SF1` to `SF20` |
+| **Epic** | A Stage release. Defined by what a church can do on a Sunday with it. | `SE1` to `SE6` |
+| **Feature** | A PRD-STAGE domain inside that release. | `SF1` to `SF21` |
 | **Story** | One deliverable. Built, then tested, then closed. | `STG-n` |
 | **Task** | Steps inside a story. In the story's checklist. | |
 
@@ -31,8 +36,8 @@ board. **Resolved is not Closed.** A story sits in Resolved until Boluwaji has u
 4. **Nothing is built that has no story.**
 5. **The board is updated in the same commit as the work.**
 6. **A Stage story never changes platform scope.** Where Stage needs something from the platform, it
-   becomes a row in the dependency table at the bottom of this file and a story on the platform
-   board, with a requirement ID.
+   becomes a row in the dependency table at the bottom of this file and a story on the platform board,
+   with a requirement ID.
 
 ## File ownership, so two windows do not collide
 
@@ -41,305 +46,351 @@ board. **Resolved is not Closed.** A story sits in Resolved until Boluwaji has u
 | `apps/stage/**` | `apps/web/**` |
 | `packages/songs/**` | `packages/db/**` |
 | `packages/stage-protocol/**` | `packages/i18n/src/**` catalogue entries for web screens |
-| `PRD-STAGE.md`, `BACKLOG-STAGE.md` | `PRD.md`, `BACKLOG.md`, `ROADMAP.md` |
-| `docs/stage-architecture.md`, `docs/stage-sync-contract.md` | `docs/architecture.md`, `docs/data-model.md`, `docs/design-system.md` |
+| `packages/song-import/**` | `PRD.md`, `BACKLOG.md`, `ROADMAP.md` |
+| `PRD-STAGE.md`, `BACKLOG-STAGE.md` | `docs/architecture.md`, `docs/data-model.md`, `docs/design-system.md` |
+| `docs/stage-architecture.md`, `docs/stage-sync-contract.md` | |
 
 Shared, and touched with care: `pnpm-workspace.yaml`, `turbo.json`, root `package.json`,
 `packages/ui/**` (read by Stage, changed by the platform), `packages/i18n` catalogue (Stage adds its
 own namespace rather than editing web keys).
 
-`packages/songs` is owned here because Stage is its only consumer until the platform's music stand
-view (R11.13) arrives in platform 1.0. The platform's song library screens in 0.4 import from it
-without changing it. Any change the platform needs is a row in the dependency table.
+`packages/songs` and `packages/song-import` are owned here because Stage builds them first and is their
+only consumer until the platform's song library screens (0.4) and importers (R20.10) arrive. The schema
+in [PRD.md section 9.4](PRD.md) is the contract between the two, and a change to it is a platform story.
 
 ---
 
 ## SE1. The slide (S0.1)
 
-Fixture data, with sync and the platform dependency still ahead. The release that proves the render is good enough
-before anything is wired to a database. Exit criteria in [PRD-STAGE.md section 4](PRD-STAGE.md).
+A presenter a worship leader can type four songs into and run. No platform dependency. Exit criteria in
+[PRD-STAGE.md section 5](PRD-STAGE.md).
 
 ### SF0. The shared song domain
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-1 | Scaffold `packages/songs` with the song, section, arrangement and usage types from PRD section 9.4, and no runtime dependencies | ST3.2 | New |
-| STG-2 | Resolve an arrangement sequence into an ordered list of sections, failing loudly on a missing label | ST3.2 | New |
-| STG-3 | Parse ChordPro and transpose to any key, verified against the fifty-chart fixture set | ST9.4, R12.6 | New |
-| STG-4 | Split a section into slides on the theme's line limit, breaking between lines | ST4.1 | New |
-| STG-5 | Compile a plan into a deck of cue groups, deterministically, with golden fixtures | ST3.2, ST3.4 | New |
-| STG-6 | Generate the fixture library from the sync contract's own payload schema, so fixtures cannot drift from the real shape | ST3.2 | New |
+| STG-1 | Scaffold `packages/songs` with the song, section, arrangement and usage types from PRD section 9.4, and no runtime dependencies | ST2.1 | New |
+| STG-2 | Resolve an arrangement sequence into an ordered list of sections, failing loudly on a missing label | ST5.2 | New |
+| STG-3 | Split a section into slides on the theme's line limit, breaking between lines | ST6.1 | New |
+| STG-4 | Compile a set list into a deck of cue groups, deterministically, with golden fixtures | ST5.1, ST5.4 | New |
+| STG-5 | Parse ChordPro and transpose to any key, verified against the fifty-chart fixture set | ST2.6, ST11.3 | New |
+
+### SF2. The local library, first pass
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-6 | Build the local library store: songs, sections, arrangements, durable and backed up on write | ST2.1, ST19.5 | New |
+| STG-7 | Type a song in: title, the copyright fields, and lyrics as labelled sections | ST2.1, ST2.2 | New |
+| STG-8 | Offer a section split when a plain lyric block is pasted, confirmed by the operator | ST2.2 | New |
+| STG-9 | Create arrangements with a key, a tempo and a sequence, one of them default | ST2.3 | New |
+| STG-10 | Ship a public-domain sample song set, and offer it on first run | ST1.2 | New |
 
 ### SF1. The Electron shell
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-7 | Scaffold `apps/stage`: Electron, sandboxed renderers, context isolation, CSP, a preload channel allowlist | ST20.8 | New |
-| STG-8 | Define `packages/stage-protocol`: `OutputState` down, intents up, typed both ways | ST18.1 | New |
-| STG-9 | Wire `packages/i18n` into Stage with its own namespace, and a test that fails the build on copy written inline | ST20.9, R22.8 | New |
-| STG-10 | Open an output window fullscreen on a display chosen by identity, with the cursor hidden and the display kept awake | ST8.1, ST8.2 | New |
+| STG-11 | Scaffold `apps/stage`: Electron, sandboxed renderers, context isolation, CSP, a preload channel allowlist | ST21.8 | New |
+| STG-12 | Define `packages/stage-protocol`: `OutputState` down, intents up, typed both ways | ST19.1 | New |
+| STG-13 | Wire `packages/i18n` into Stage with its own namespace, and a test that fails the build on copy written inline | ST17.4, ST21.9 | New |
+| STG-14 | Open Stage with no sign-in, reaching a usable library in under a minute, and name the device after the machine | ST1.1, ST1.9 | New |
+| STG-15 | Open an output window fullscreen on a display chosen by identity, with the cursor hidden and the display kept awake | ST10.1, ST10.2 | New |
 
-### SF4. Lyric rendering
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-11 | Define a theme as data, and ship one built-in theme good enough to use unmodified | ST6.1, ST6.2 | New |
-| STG-12 | Render a lyric slide inside the theme's safe area | ST4.1, ST4.3 | New |
-| STG-13 | Fit text by measurement, one size per section, cached by text, theme and resolution | ST4.2 | New |
-| STG-14 | Cross-dissolve between slides on two GPU layers, with no flash of background | ST4.5 | New |
-
-### SF10. Live operation
+### SF6. Lyric rendering
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-15 | Build the control surface: live slide, next slide, the deck, keyboard only | ST10.1, ST10.2 | New |
-| STG-16 | Make black, clear and logo each one keypress, restoring the exact slide | ST4.6 | New |
-| STG-17 | Make advance idempotent under key repeat | ST10.4 | New |
-| STG-18 | Reorder, skip and repeat a cue for this run, leaving the plan untouched | ST3.7, ST3.9 | New |
-| STG-19 | Write the operator brief: one screen inside Stage saying what the four keys do | ST10.10 | New |
+| STG-16 | Define a theme as data, and ship one built-in theme good enough to use unmodified | ST8.1, ST8.2 | New |
+| STG-17 | Render a lyric slide inside the theme's safe area, with the section label available to the theme | ST6.1, ST6.3 | New |
+| STG-18 | Fit text by measurement, one size per section, cached by text, theme and resolution | ST6.2 | New |
+| STG-19 | Cross-dissolve between slides on two GPU layers, with no flash of background | ST6.5 | New |
+| STG-20 | Render solid and gradient backgrounds from the theme | ST9.1 | New |
 
-### SF19. The measurements
+### SF12. Live operation
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-20 | Build the render harness: rasterise every slide in the fixture library at three resolutions, assert safe area and 7:1 contrast | ST4.4, ST19.4 | New |
-| STG-21 | Measure advance latency by frame capture and record it per release, on reference hardware | ST20.1, ST20.5 | New |
-| STG-22 | Audit the control surface to WCAG 2.2 AA in CI, the same bar as the platform | ST19.1, ST19.2 | New |
-| STG-23 | Add the architecture test that fails the build if the render path can reach the network | ST20.8 | New |
+| STG-21 | Build the control surface: live slide, next slide, the deck, keyboard only | ST12.1, ST12.2 | New |
+| STG-22 | Make black, clear and logo each one keypress, restoring the exact slide | ST6.6 | New |
+| STG-23 | Make advance idempotent under key repeat | ST12.4 | New |
+| STG-24 | Reorder, skip and repeat a cue for this run, leaving the set list untouched | ST5.7 | New |
+| STG-25 | Keep the library, import and theme editing out of the live surface | ST12.3, ST2.15 | New |
+| STG-26 | Present a song, a scripture and a countdown with no set list open | ST5.10 | New |
+| STG-27 | Write the operator brief: one screen saying what the four keys do | ST12.10 | New |
+
+### SF21. The measurements
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-28 | Build the render harness: rasterise every slide in the fixture library at three resolutions, assert safe area and 7:1 contrast | ST6.4, ST20.4 | New |
+| STG-29 | Measure advance latency by frame capture and record it per release, on reference hardware | ST21.1, ST21.5 | New |
+| STG-30 | Audit the control surface to WCAG 2.2 AA in CI, the same bar as the platform | ST20.1, ST20.2 | New |
+| STG-31 | Add the architecture test that fails the build if the render path can reach the network | ST21.8 | New |
 
 ---
 
-## SE2. The plan (S0.2)
+## SE2. The library (S0.2)
 
-**Blocked until platform 0.4 ships the song library and the sync API.** The dependency table at the
-bottom of this file names exactly what is owed. This is the release that justifies the product.
+The release a church with a 300 song ProPresenter library can actually adopt. No platform dependency.
 
-### SF1. Device and identity
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-24 | Pair a device with a six character code, and store the token in the keychain | ST1.1 to ST1.3, ST1.7 | New |
-| STG-25 | Handle a revoked or invalid token by saying so and continuing to serve the cache | ST1.5 | New |
-| STG-26 | Name the device, and show the name in the platform's device list | ST1.8 | New |
-
-### SF2. Sync and the cache
+### SF3. Import and migration
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-27 | Build the local store: `cache.db`, `local.db`, and the content-addressed media directory | ST2.3 | New |
-| STG-28 | Sync by cursor, one transaction per page writing rows and advancing the cursor together | ST2.1, ST2.4 | New |
-| STG-29 | Fetch song and plan bodies, whole, with sections and arrangements nested | ST2.2 | New |
-| STG-30 | Fetch media by content hash, resumable and verified, degrading to the theme colour when missing | ST2.9, ST7.9 | New |
-| STG-31 | Run sync on a worker thread, and prove it cannot delay a cue advance | ST2.7 | New |
-| STG-32 | Show the last successful sync, and say plainly when the plan on screen is older than the server's | ST2.8 | New |
-| STG-33 | Prefetch seven days of services, so Sunday needs no network at all | ST2.10 | New |
+| STG-32 | Scaffold `packages/song-import`: one reader interface, the Hearth schema as output, golden fixtures per format | ST3.9 | New |
+| STG-33 | Read OpenLyrics and OpenSong libraries | ST3.1, ST3.2 | New |
+| STG-34 | Read an OpenLP database | ST3.1, ST3.2 | New |
+| STG-35 | Read a ProPresenter 6 and 7 library, keeping section labels | ST3.1, ST3.2 | New |
+| STG-36 | Read an EasyWorship database | ST3.1, ST3.2 | New |
+| STG-37 | Import a plain text or ChordPro file as one song, and a folder as many | ST3.7 | New |
+| STG-38 | Run an import as a dry run with a report before it writes | ST3.3 | New |
+| STG-39 | Handle duplicates on CCLI number, then title and first line, with skip, replace or keep both | ST3.5 | New |
+| STG-40 | Make an import reversible for thirty days | ST3.4 | New |
+| STG-41 | Match imported media on disk, and list what is missing | ST3.6 | New |
 
-### SF3. The deck from a real plan
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-34 | Open a service chosen from the synced list, defaulting to the next one by date | ST10.5, ST3.1 | New |
-| STG-35 | Show non-presenting plan items as deck markers, so the operator's position matches the room's | ST3.4 | New |
-| STG-36 | Show plan notes, global and addressed to a position, on the control surface | ST3.5 | New |
-| STG-37 | Show the arrangement key and tempo, and honour the plan item's key override | ST3.6 | New |
-| STG-38 | Add a song to the live deck from the cached library by typing, in under five seconds | ST3.8 | New |
-| STG-39 | Offer an updated plan as a dismissible offer that never rewrites the live deck | ST3.11 | New |
-
-### SF5. Scripture
+### SF2. The library, in full
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-40 | Render a scripture item from the platform's resolved text | ST5.1 | New |
-| STG-41 | Split a passage at verse boundaries, with the reference on every slide | ST5.2, ST5.3 | New |
+| STG-42 | Search the library across title, author, lyrics, themes and CCLI number, under 100ms at 2,000 songs | ST2.4, ST21.10 | New |
+| STG-43 | Edit and archive a song, keeping its usage history | ST2.5 | New |
+| STG-44 | Hold a ChordPro chart per arrangement, transposable, and show it | ST2.6 | New |
+| STG-45 | Attach reference audio and practice tracks to an arrangement | ST2.7 | New |
+| STG-46 | **Build a set list**: named, dated, ordered songs, scripture and markers | ST2.8 | New |
+| STG-47 | Duplicate a set list from a previous week, carrying structure | ST2.9 | New |
+| STG-48 | Choose a set list at launch, defaulting to the next one by date | ST12.5 | New |
+| STG-49 | Add a song to the live deck from the library by typing, in under five seconds | ST5.8 | New |
+| STG-50 | Jump to a cue by typing its label, and skip or repeat | ST5.9 | New |
+| STG-51 | Correct a typo on a live slide, offering the fix to the library for a local song | ST6.8 | New |
+| STG-52 | **Log usage when a song is actually shown**, with date, set list, arrangement and key | ST2.10, ST18.2 | New |
+| STG-53 | **Export a CCLI usage report** for a period, validated against the same fixture as the platform's R12.10 | ST2.11, ST18.7 | New |
+| STG-54 | Export the whole library as OpenLyrics and as a Hearth-schema bundle, ungated | ST2.12 | New |
 
-### SF17. Reporting back
+### SF7. Scripture
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-42 | Record usage when a song is actually shown, queue it durably, and push it idempotently | ST17.1 to ST17.3 | New |
-| STG-43 | Report a song added live and absent from the plan, which is the usage churches get fined for | ST17.4 | New |
-
-### SF18. The failure case
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-44 | Build the fault injection suite: no network, held-open connections, 500s, a revoked token, an invalid cursor, a corrupt cache | ST18.5, ST2.7 | New |
-| STG-45 | Run a full cached service with the wifi password changed and the token revoked, every release | ST18.5 | New |
+| STG-55 | Bundle KJV, ASV and WEB, held locally and searchable | ST7.1 | New |
+| STG-56 | Parse a reference the way a human types it, and resolve it from a bundled translation | ST7.2 | New |
+| STG-57 | Split a passage at verse boundaries, with the reference on every slide | ST7.3, ST7.4 | New |
+| STG-58 | Type a passage in by hand, for a translation we cannot ship, and say why in the place a church looks for the NIV | ST7.5, ST7.8 | New |
 
 ---
 
 ## SE3. The room (S0.3)
 
-What makes Stage usable as a church's only presenter. Exit criteria: four consecutive Sundays with
-ProPresenter uninstalled.
+What makes Stage a church's only presenter. No platform dependency. Exit criteria: four consecutive
+Sundays with ProPresenter uninstalled.
 
-### SF9. Stage display
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-46 | Build the stage display: current slide, next slide, clock, timer, legible from twenty feet | ST9.1 | New |
-| STG-47 | Show the position's plan note and the remaining sequence on the stage display | ST9.2, ST9.3 | New |
-| STG-48 | Show chords over lyrics, transposed by the same code the printed chart uses | ST9.4 | New |
-| STG-49 | Ship three stage display presets: band, preacher, host | ST9.6 | New |
-
-### SF8. Outputs
+### SF11. Stage display
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-50 | Drive several outputs with independent content per output | ST8.3, ST9.5 | New |
-| STG-51 | Keep output configuration across a display unplugged, replugged, and a restart | ST8.4, ST8.5 | New |
-| STG-52 | Handle resolution, scaling and aspect explicitly, with letterboxing by choice | ST8.6 | New |
-| STG-53 | Add a test pattern per output showing safe areas, resolution and a contrast ramp | ST8.7 | New |
+| STG-59 | Build the stage display: current slide, next slide, clock, timer, legible from twenty feet | ST11.1 | New |
+| STG-60 | Show the section label and the remaining sequence | ST11.2 | New |
+| STG-61 | Show chords over lyrics, transposed by the same code the printed chart uses | ST11.3 | New |
+| STG-62 | Ship three stage display presets: band, preacher, host | ST11.4 | New |
 
-### SF7. Backgrounds
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-54 | Show a still image background, scaled and cropped without distortion | ST7.2 | New |
-| STG-55 | Play a seamless hardware-decoded video loop with text composited over it | ST7.3 | New |
-| STG-56 | Bundle a small set of loops that look like a church room, licensed for redistribution | ST7.4 | New |
-| STG-57 | Resolve background assignment by precedence: theme, then plan item, then slide | ST7.5 | New |
-| STG-58 | Override size, alignment and background on one slide, for this run only | ST4.7 | New |
-
-### SF11. Timers and loops
+### SF10. Outputs
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-59 | Count down to a time of day, anchored to the clock so a restart resumes correctly | ST11.1, ST11.7 | New |
-| STG-60 | Count down a duration, and output a clock | ST11.2, ST11.3 | New |
-| STG-61 | Run the pre-service announcement loop from the platform's announcements, on any output | ST11.4, ST11.5 | New |
+| STG-63 | Drive several outputs with independent content per output | ST10.3, ST11.5 | New |
+| STG-64 | Keep output configuration across a display unplugged, replugged, and a restart | ST10.4, ST10.5 | New |
+| STG-65 | Handle resolution, scaling and aspect explicitly, with letterboxing by choice | ST10.6 | New |
+| STG-66 | Add a test pattern per output showing safe areas, resolution and a contrast ramp | ST10.7 | New |
 
-### SF18. Recovery
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-62 | Persist the live cue pointer on every change and recover to it in under five seconds | ST18.1, ST18.2 | New |
-| STG-63 | Restart a crashed output renderer without touching the other outputs | ST18.3 | New |
-| STG-64 | Rebuild a corrupt cache on start, keeping the unpushed usage queue | ST18.4 | New |
-| STG-65 | Write a diagnostic log the operator can send, scrubbed of lyrics, names and the token | ST18.8 | New |
-
-### SF6. Themes, and the rest of the room
+### SF9. Backgrounds
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-66 | Sync themes from the platform, with separate themes per content kind | ST6.3, ST6.4 | New |
-| STG-67 | Preview a theme at the real output resolution | ST6.5 | New |
-| STG-68 | Jump to a cue by typing its label | ST3.9 | New |
-| STG-69 | Present a song, a scripture and a countdown with no plan open | ST3.10 | New |
-| STG-70 | Enforce the cache ceiling with LRU eviction, and show what Stage uses on disk | ST2.11, ST2.12 | New |
-| STG-71 | Add a passage live by typing a reference, resolved from the cache | ST5.4, ST5.5 | New |
-| STG-72 | Confirm anything that interrupts the service, with a key that is not the advance key | ST10.7 | New |
-| STG-73 | Soak test three hours with video backgrounds, asserting no memory growth | ST20.6, ST20.7 | New |
+| STG-67 | Show a still image background, scaled and cropped without distortion | ST9.2 | New |
+| STG-68 | Play a seamless hardware-decoded video loop with text composited over it | ST9.3 | New |
+| STG-69 | Bundle a small set of loops that look like a church room, licensed for redistribution | ST9.4 | New |
+| STG-70 | Resolve background assignment by precedence: theme, then item, then slide | ST9.5 | New |
+| STG-71 | Fail a missing or undecodable media file to the theme colour, saying so on the control surface | ST9.9 | New |
+| STG-72 | Override size, alignment and background on one slide, for this run only | ST6.7 | New |
+
+### SF13. Timers and loops
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-73 | Count down to a time of day, anchored to the clock so a restart resumes correctly | ST13.1, ST13.7 | New |
+| STG-74 | Count down a duration, and output a clock | ST13.2, ST13.3 | New |
+| STG-75 | Run an announcement loop of rotating slides on any output, while the main output does something else | ST13.4 | New |
+
+### SF19. Recovery
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-76 | Persist the live cue pointer on every change and recover to it in under five seconds | ST19.1, ST19.2 | New |
+| STG-77 | Restart a crashed output renderer without touching the other outputs | ST19.3 | New |
+| STG-78 | Back up the library on every write, with a restore inside Stage | ST19.5 | New |
+| STG-79 | Write a diagnostic log the operator can send, scrubbed of lyrics, names and any token | ST19.9 | New |
+
+### SF8, SF12. The rest of the room
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-80 | Hold separate themes per content kind: lyrics, scripture, announcement, title | ST8.3 | New |
+| STG-81 | Preview a theme at the real output resolution | ST8.4 | New |
+| STG-82 | Show two translations of one passage side by side | ST7.7 | New |
+| STG-83 | Show the operator what is live, what is next, whether output is black, and the time, at all times | ST12.6 | New |
+| STG-84 | Confirm anything that interrupts the service, with a key that is not the advance key | ST12.7 | New |
+| STG-85 | Respect the operating system's reduced motion setting on the control surface | ST20.5 | New |
+| STG-86 | Soak test three hours with video backgrounds, asserting no memory growth | ST21.6, ST21.7 | New |
+| STG-87 | Measure cold start to the first slide, under ten seconds on reference hardware | ST21.2 | New |
 
 ---
 
-## SE4. The team (S0.4)
+## SE4. The plan (S0.4)
 
-Everything that happens once more than one person is involved.
+**The loop.** The only epic that needs the platform. Blocked until platform 0.4 ships the song library
+and the sync API, and pulled forward the moment it does. The dependency table below names what is owed.
 
-### SF12. Remote control
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-74 | Serve the remote on the local network, paired by a code shown on the control surface | ST12.1, ST12.2 | New |
-| STG-75 | Advance, reverse, black and jump from the remote, and show the deck and the notes | ST12.3, ST12.5 | New |
-| STG-76 | Keep two controllers and the laptop consistent within 300ms | ST12.4, ST12.6 | New |
-
-### SF13. Triggers
+### SF1. Pairing
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-77 | Customise hotkeys, and print the defaults on one card | ST10.8 | New |
-| STG-78 | Fire several actions from one trigger as a macro | ST10.9 | New |
-| STG-79 | Support a Stream Deck with cue, black and macro buttons | ST13.1 | New |
-| STG-80 | Accept and emit MIDI | ST13.2 | New |
-| STG-81 | Accept and emit OSC, with every address documented | ST13.3 | New |
-| STG-82 | Emit an outbound trigger on cue change, so a lighting desk can follow | ST13.4 | New |
-| STG-83 | Keep every integration off by default, and prove none can block a cue | ST13.6 | New |
+| STG-88 | Pair with a six character code, and store the token in the keychain | ST1.3 to ST1.5 | New |
+| STG-89 | Show the device in the platform's device list, named and revocable | ST1.6, ST1.9 | New |
+| STG-90 | Unpair or handle revocation by removing `hearth` records and keeping every local one | ST1.7 | New |
 
-### SF7, SF9, SF17. The rest
+### SF4. Sync
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-84 | Play audio and video as plan items, with in and out points and an end behaviour | ST7.6, ST7.7 | New |
-| STG-85 | Show props and overlays independently of the slide | ST12 outline, ST14.4 | New |
-| STG-86 | Address a named group of outputs together | ST8.8 | New |
-| STG-87 | Send a message to the stage display from the control surface or the remote | ST9.7 | New |
-| STG-88 | Run a sermon timer from the plan's planned duration | ST9.8 | New |
-| STG-89 | Snapshot the run as it happened, so the second service reopens it | ST3.12 | New |
-| STG-90 | Push service run telemetry for the plan's revision history | ST17.5 | New |
+| STG-91 | Build the synced store, separate and disposable, beside the local library | ST4.3 | New |
+| STG-92 | Sync by cursor, one transaction per page writing rows and advancing the cursor together | ST4.1, ST4.2 | New |
+| STG-93 | Mark song origin, make `hearth` songs read-only in Stage, and show which is which | ST2.13, ST4.4 | New |
+| STG-94 | Run sync on a worker thread, and prove it cannot delay a cue advance | ST4.7 | New |
+| STG-95 | Fetch media by content hash, resumable and verified | ST4.9 | New |
+| STG-96 | Show the last successful sync, and say when the plan on screen is older than the server's | ST4.8 | New |
+| STG-97 | Prefetch seven days of services, so Sunday needs no network | ST4.10 | New |
+| STG-98 | Promote a local song into the church library on request, with a duplicate check first | ST2.14, ST4.11 | New |
+
+### SF5. The plan as a deck
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-99 | Open a Hearth plan as a deck, in the order it was planned | ST5.3 | New |
+| STG-100 | Show plan notes, global and addressed to a position, on the control surface and the stage display | ST5.5, ST11.6 | New |
+| STG-101 | Render scripture from the platform's resolved text, under the church's own licence | ST7.6 | New |
+| STG-102 | Build the announcement loop from the church's announcements and plan items | ST13.5 | New |
+| STG-103 | Offer an updated plan as a dismissible offer that never rewrites the live deck | ST5.11 | New |
+| STG-104 | Sync themes from the platform, so every laptop matches | ST8.5 | New |
+
+### SF18, SF19. Reporting and the failure case
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-105 | Push usage rows idempotently, including a song added live and absent from the plan | ST18.1, ST18.3, ST18.4 | New |
+| STG-106 | Build the fault injection suite: no network, held-open connections, 500s, a revoked token, an invalid cursor, a corrupt cache | ST4.7, ST19.4, ST19.6 | New |
+| STG-107 | Run a full cached service with the wifi password changed and the token revoked, every release | ST19.6 | New |
 
 ---
 
-## SE5. The broadcast and the move (S1.0)
+## SE5. The team (S0.5)
+
+Everything that happens once more than one person is involved. No platform dependency except STG-120.
+
+### SF14. Remote control
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-108 | Serve the remote on the local network, paired by a code shown on the control surface | ST14.1, ST14.2 | New |
+| STG-109 | Advance, reverse, black and jump from the remote, showing the deck and the notes | ST14.3, ST14.5 | New |
+| STG-110 | Keep two controllers and the laptop consistent within 300ms | ST14.4, ST14.6 | New |
+
+### SF15. Triggers
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-111 | Customise hotkeys, and print the defaults on one card | ST12.8 | New |
+| STG-112 | Fire several actions from one trigger as a macro | ST12.9 | New |
+| STG-113 | Support a Stream Deck with cue, black and macro buttons | ST15.1 | New |
+| STG-114 | Accept and emit MIDI | ST15.2 | New |
+| STG-115 | Accept and emit OSC, with every address documented | ST15.3 | New |
+| STG-116 | Emit an outbound trigger on cue change, so a lighting desk can follow | ST15.4 | New |
+| STG-117 | Keep every integration off by default, and prove none can block a cue | ST15.6 | New |
+
+### SF9, SF11, SF16. The rest
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-118 | Play audio and video as items, with in and out points and an end behaviour | ST9.6, ST9.7 | New |
+| STG-119 | Show a lower third or prop region independently of the main slide | ST16.4 | New |
+| STG-120 | Address a named group of outputs together | ST10.8 | New |
+| STG-121 | Send a message to the stage display from the control surface or the remote | ST11.7 | New |
+| STG-122 | Run a timer against an item's planned duration | ST11.8 | New |
+| STG-123 | Mix stills, video and slides in one announcement rotation | ST13.6 | New |
+| STG-124 | Snapshot the run as it happened, so the second service reopens it | ST5.12 | New |
+| STG-125 | Push run telemetry to a paired platform for the plan's revision history | ST18.5 | New |
+
+---
+
+## SE6. The broadcast and the launch (S1.0)
 
 Public launch of Stage.
 
-### SF14. Broadcast
+### SF16. Broadcast
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-91 | Output NDI per output group | ST14.1, ST14.5 | New |
-| STG-92 | Output alpha-keyed lyrics with clean antialiased edges | ST14.2 | New |
-| STG-93 | Give the keyed output its own theme, sized for camera | ST14.3 | New |
-| STG-94 | Add lower-third mode, independent of the main slide | ST14.4 | New |
+| STG-126 | Output NDI per output group, degrading to no NDI when it cannot initialise | ST16.1, ST16.5 | New |
+| STG-127 | Output alpha-keyed lyrics with clean antialiased edges | ST16.2 | New |
+| STG-128 | Give the keyed output its own theme, sized for camera | ST16.3 | New |
 
-### SF15. Language
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-95 | Render bilingual slides from section-aligned translations | ST15.1, ST4.9 | New |
-| STG-96 | Carry a different language on a second output | ST15.2 | New |
-| STG-97 | Stream caption output for the livestream's caption track | ST15.3, ST5.6, ST19.6 | New |
-| STG-98 | Support right-to-left text and a font fallback chain | ST4.10 | New |
-
-### SF6. Themes, properly
+### SF17. Language
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-99 | Edit a theme in Stage, with a contrast check that refuses a lyric theme below 7:1 | ST6.6 | New |
-| STG-100 | Save a theme, background and overlay together as a named template | ST6.7 | New |
-| STG-101 | Import a font the church owns, stating the licence responsibility at import | ST6.8 | New |
-| STG-102 | Use a live camera as a background layer, with a frozen fallback | ST7.8 | New |
+| STG-129 | Render bilingual slides from section-aligned translations | ST17.1, ST6.9 | New |
+| STG-130 | Carry a different language on a second output | ST17.2 | New |
+| STG-131 | Stream caption output for the livestream's caption track | ST17.3, ST7.9, ST20.6 | New |
+| STG-132 | Support right-to-left text and a font fallback chain | ST6.10 | New |
 
-### SF16. The move
-
-| ID | Story | Req | State |
-|---|---|---|---|
-| STG-103 | Read ProPresenter, EasyWorship, OpenLP, OpenSong and OpenLyrics libraries into the platform's schema, in a shared package | ST16.1, ST16.2 | New |
-| STG-104 | Import a PowerPoint or Keynote deck as a plan item of ordered slides | ST16.3 | New |
-| STG-105 | Match imported media, and list what is missing | ST16.5 | New |
-
-### SF18. Shipping
+### SF8. Themes, properly
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-106 | Sign and notarise macOS, sign Windows, build AppImage and deb | ST18.9, ST20.11 | New |
-| STG-107 | Auto-update in the background, applied by the operator, held outside the Sunday window | ST18.6 | New |
-| STG-108 | Roll back to the previous version from inside Stage | ST18.7 | New |
-| STG-109 | Export the cache as a portable bundle for a church with no usable wifi | ST2.13 | New |
-| STG-110 | Serve a view-only remote for the preacher and the host | ST12.7 | New |
-| STG-111 | Document the local HTTP control API | ST13.5 | New |
-| STG-112 | Pair a device to one campus, and sync only that campus's services | ST1.9 | New |
+| STG-133 | Edit a theme in Stage, with a contrast check that refuses a lyric theme below 7:1 | ST8.6 | New |
+| STG-134 | Save a theme, background and overlay together as a named template | ST8.7 | New |
+| STG-135 | Import a font the church owns, stating the licence responsibility at import | ST8.8 | New |
+| STG-136 | Use a live camera as a background layer, with a frozen fallback | ST9.8 | New |
+
+### SF19, SF3. Shipping and the last of the move
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| STG-137 | Import a PowerPoint or Keynote deck as an item of ordered slides | ST3.8 | New |
+| STG-138 | Sign and notarise macOS, sign Windows, build AppImage and deb | ST19.10, ST21.11 | New |
+| STG-139 | Auto-update in the background, applied by the operator, held outside the Sunday window | ST19.7 | New |
+| STG-140 | Roll back to the previous version from inside Stage | ST19.8 | New |
+| STG-141 | Export the library and cache as a portable bundle for a church with no usable wifi | ST4.13 | New |
+| STG-142 | Serve a view-only remote for the preacher and the host | ST14.7 | New |
+| STG-143 | Document the local HTTP control API | ST15.5 | New |
+| STG-144 | Pair a device to one campus, and sync only that campus's services | ST1.10 | New |
 
 ---
 
 ## What the platform owes Stage
 
 Specified in full in [docs/stage-sync-contract.md](docs/stage-sync-contract.md). These become stories
-on the **platform** board with `HRT-n` IDs when platform 0.4 is planned. **SE2 is blocked until all
-six land.**
+on the **platform** board with `HRT-n` IDs when platform 0.4 is planned. **SE4 is blocked until all six
+land. SE1, SE2, SE3 and most of SE5 are not.**
 
 | Owed | Platform requirement | Note |
 |---|---|---|
-| The song schema: sections ordered and labelled, sequences as data, translations section aligned | R12.1 to R12.7, R12.9 | PRD section 9.4. This is the one that costs a rewrite if it is wrong. |
+| The song schema: sections ordered and labelled, sequences as data, translations section aligned | R12.1 to R12.7, R12.9 | PRD section 9.4. Stage uses it locally from STG-1, so a real renderer exercises it before the platform's own screens exist. |
 | Service plans readable as data: ordered items, arrangement and key, resolved scripture text, notes per position | R11.1 to R11.6, R11.14 | |
 | `change_seq` on every synced table, from a per-tenant sequence | R11.14 | Set by the trigger that already writes the audit entry |
 | The device principal: table, token hashing, scope enforced in the query layer, pairing code UI, device list with revoke | R11.14, R1.5, R1.10 | Sits beside the active session list, which exists |
-| The nine routes under `/api/stage/v1` | R11.14, R12.13 | |
-| Idempotent `song_usage` insert keyed on the client id, feeding the CCLI export | R12.9, R12.10 | |
+| The routes under `/api/stage/v1`, including the song promotion endpoint | R11.14, R12.13 | |
+| Idempotent `song_usage` insert keyed on the client id, feeding the CCLI export | R12.9, R12.10 | Stage's local export (STG-53) is validated against the same fixture, so the two agree |
 
-Stage owes the platform the usage rows, and nothing else.
+One correction is owed in the other direction: **PRD.md section 9.6** says Stage is "a client of a
+versioned sync API, not a second application with a second database", which draft 2 contradicts. PRD.md
+belongs to the platform board, so that line is corrected there.
 
 ---
 
@@ -347,38 +398,36 @@ Stage owes the platform the usage rows, and nothing else.
 
 ### The order, and why
 
-**SE1 first, on fixtures, with no platform dependency.** The render is the part that can be judged
-before anything is connected, and it is the part that is expensive to retrofit. The same reasoning put
-the design gallery first on the platform board.
+**SE1 first, and it is a real presenter.** By the end of SE1 a worship leader types four songs in and
+runs the set on a projector. That is judgeable, and it is judgeable without a Hearth account, which is
+the point of draft 2. Inside SE1 the order is forced: `packages/songs` before anything compiles a deck,
+the library before there is a song to compile, the deck before there is anything to render, the render
+before the control surface has something to control, and the measurement harness alongside the render,
+because a latency budget written afterwards is a wish.
 
-Inside SE1 the order is forced: `packages/songs` before anything can compile a deck, the deck before
-anything can be rendered, the render before the control surface has something to control, and the
-measurement harness alongside the render rather than after it, because a latency budget written after
-the fact is a wish.
+**SE2 is the adoption release.** A presenter that cannot read a church's existing library has no users,
+so the five importers come before the stage display, before video backgrounds, and before sync. SE2
+also carries the local CCLI export, which is a genuine reason to choose Stage over OpenLP on its own.
 
-**SE2 waits on platform 0.4.** It is the release that makes Stage worth building, and it cannot start
-early. The gap is not idle: SE1's fixture library is generated from the sync contract's own payload
-schema (STG-6), so the day the API exists the client is writing into a store whose shape is already
-proven.
+**SE3 before SE4.** A church leaves ProPresenter when it has the stage display, several outputs, video
+backgrounds, and crash recovery. Pairing with Hearth is what makes it stay.
 
-**SE3 before SE4.** A church cannot leave ProPresenter without the stage display, several outputs,
-video backgrounds, and crash recovery. It can leave without a Stream Deck.
+**SE4 when the platform is ready, and no earlier.** It is the differentiator and the reason Hearth owns
+a presenter, and it is also the one epic whose dependency we do not control. Fifty-eight stories sit in
+front of it, which is long enough that the platform will have shipped 0.4 before Stage is waiting.
 
-**SE5 last**, because NDI, imports, and three signed installers are all work that only matters once
-churches are actually arriving.
+**SE5 then SE6**, because remotes, Stream Decks, NDI and three signed installers all matter once
+churches are arriving.
 
 ### Working method
 
 Unchanged from [CLAUDE.md](CLAUDE.md). One story Active on this board. Built, then what to test is
-written down plainly, then stop. The next story does not start until the last one has been used by
-hand.
+written down plainly, then stop. The next story does not start until the last one has been used by hand.
 
-### The dependency, stated plainly
+### What is no longer true
 
-Stage S0.1 can be built now, in full, with no platform work. Stage S0.2 cannot start until the
-platform's 0.4 song library and sync API exist. The platform board currently has 0.2 still to close
-and 0.3 money ahead of 0.4, so the gate is some distance out. SE1 is roughly twenty-three stories,
-which is enough work that the gate is unlikely to be the thing waiting.
+Draft 1 said S0.2 was blocked on platform 0.4 and that Stage held a cache rather than a library. Both
+are gone. The only blocked epic is SE4, and nothing before it waits on anybody.
 
 ---
 
@@ -387,7 +436,8 @@ which is enough work that the gate is unlikely to be the thing waiting.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Next** | **STG-1**, scaffold `packages/songs`. Then STG-2 to STG-6, the domain, which is pure logic and fully testable before any Electron process exists. |
-| **Blocked** | All of **SE2**, on the six platform deliverables above. |
+| **Next** | **STG-1**, scaffold `packages/songs`. Then STG-2 to STG-5, pure logic, fully testable before any Electron process exists. |
+| **Blocked** | **SE4** only, on the six platform deliverables above. Fifty-eight stories sit in front of it. |
 | **Not started** | Everything. This board was written 1 October 2026, before any Stage code. |
-| **Watch** | `packages/songs` is read by the platform's song library screens in 0.4. The schema in PRD section 9.4 is the contract between the two, and a change to it is a platform story. |
+| **Watch** | `packages/songs` is read by the platform's song library screens in 0.4, and `packages/song-import` by its R20.10 importers. The schema in PRD section 9.4 is the contract, and a change to it is a platform story. |
+| **Owed elsewhere** | The PRD.md section 9.6 correction, on the platform board. |

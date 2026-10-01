@@ -80,6 +80,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
 | HRT-110 | Saved lists, static and rule-based | R1.14 | New |
 | HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.x | Resolved |
+| HRT-114 | Joining a church: its link and code, claiming a person record, the waiting list | R1.7, R17.1, R22.1 | Active |
+| HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -328,11 +330,47 @@ The presenter, specified in [PRD-STAGE.md](PRD-STAGE.md) and tracked on its own 
 [BACKLOG-STAGE.md](BACKLOG-STAGE.md), with `STG-n` story IDs. It is built in parallel and has its own
 Active story.
 
+**Stage runs standalone**, with its own song library and its own importers, so the first three Stage
+releases need nothing from this board. One Stage release, S0.4, pairs with the platform and closes the
+Sunday loop.
+
 What this board owes it, all in 0.4: the song schema (R12.x), plans readable as data (R11.14),
-`change_seq` on every synced table, the Stage device principal with pairing and revoke, the nine
-routes under `/api/stage/v1`, and the idempotent `song_usage` insert. Specified in
+`change_seq` on every synced table, the Stage device principal with pairing and revoke, the routes
+under `/api/stage/v1` including song promotion, and the idempotent `song_usage` insert. Specified in
 [docs/stage-sync-contract.md](docs/stage-sync-contract.md), and written as stories here when 0.4 is
 planned.
+
+**One correction is owed here.** PRD.md section 9.6 says Stage is "a client of a versioned sync API,
+not a second application with a second database". Stage holds a library of its own, so that line needs
+replacing. The wording is in PRD-STAGE.md section 2.
+
+---
+
+## How somebody gets an account, decided October 2026
+
+Sign-up sent everybody to create a church. A member arriving because their church asked them to was
+offered a form for starting a church of their own, and `people.app_user_id`, the field that ties an
+account to a record, was written by nothing in the product.
+
+The order is church, then people, then accounts. A church is created first. People are records the
+church makes, by import, by a form, at a check-in desk or by hand. An account **claims** one of those
+records, and the proof is an address the church already wrote down. This is what Planning Center,
+Breeze and Church Center all do, for the same reason: nobody lets a stranger into a congregation's
+directory.
+
+Three ways in.
+
+| Door | Who | What happens |
+|---|---|---|
+| Invitation | Staff, leaders, and any member the church invites | Exists (HRT-108). The invitation now carries the person record, so accepting links the account to it. |
+| The church's join link or code | A member the church pointed at it | Their verified email is matched against the contacts on the church's records. A match claims that record and they are a member at once. No match creates a visitor record and the membership waits for an admin. |
+| Creating a church | A pastor or administrator starting out | The church is created immediately and is provisional until a human has looked at it (HRT-115). |
+
+A child's record is never claimable.
+
+**Provisional** means the church works for the person who made it, capped: a small number of people,
+no join link, no invitations, no outbound email. A real church is unblocked in an hour, which is what
+the sixty-minute time-to-value metric needs. An abuser gets nothing worth having.
 
 ---
 

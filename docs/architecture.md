@@ -239,12 +239,15 @@ waiting on the tablet, and when they have gone (R8.22).
 
 ## Hearth Stage sync contract
 
-Stage is a client of a versioned sync API, not a second application with a second database.
+Stage holds its own song library and presents without us. When a church pairs it, Stage is a client
+of a versioned sync API, and the records it pulls are read-only on the laptop, so each record has
+one writer.
 
 **Pulls:** plans, plan items, songs, song sections, arrangements, arrangement media, and resolved
 scripture text.
 
-**Pushes:** `SongUsage` rows, which feed the usage history and the CCLI export (R12.9, R12.10, S17).
+**Pushes:** `SongUsage` rows, which feed the usage history and the CCLI export (R12.9, R12.10, S17),
+and a song the operator chooses to promote out of Stage's own library into the church's.
 
 That is the entire contract. It is why R11.14 and R12.13 are Phase 1 requirements rather than Phase 2
 work: the shape of the data Stage needs is settled before Stage exists, so Stage never needs an import
@@ -252,6 +255,11 @@ step. Deleting the import step is the whole product idea.
 
 Written out in full, with routes, payloads, the cursor model, the device principal's scope, and the
 six things 0.4 owes it: [stage-sync-contract.md](stage-sync-contract.md).
+
+**Stage also runs unpaired**, with a song library of its own, which is how it reaches churches that do
+not use the platform. Pairing adds a second source of songs and the plans, and `hearth` records are
+read-only in Stage so there is one writer per record. See
+[stage-architecture.md](stage-architecture.md).
 
 ## Payments
 

@@ -7,19 +7,35 @@ specification both sides build against.
 | | |
 |---|---|
 | **Server side** | Platform release 0.4, requirements R11.14 and R12.13. Built on the platform board as `HRT-n`. |
-| **Client side** | Stage release S0.2, requirements ST1.x and ST2.x. Built on the Stage board as `STG-n`. |
+| **Client side** | Stage release S0.4, requirements ST1.3 to ST1.10 and ST4.x. Built on the Stage board as `STG-n`. |
+| **Optional** | **Pairing is an upgrade.** Stage holds its own library and presents a full service without ever reaching this API. Nothing in Stage releases S0.1 to S0.3 touches it. |
 | **Shape of the data** | [PRD.md section 9.4](../PRD.md) is the source of truth for the song schema. This document does not redefine it. |
 
 ## The one idea
 
-**Stage reads. Stage does not write, except usage.**
+**One writer per record.**
 
-Everything else in this document follows from that sentence. A read-only client has nothing to merge,
+Stage holds two kinds of song, and the difference is which store the row lives in
+([stage-architecture.md](stage-architecture.md), "Local store").
+
+| Origin | Writer | Over this interface |
+|---|---|---|
+| `local` | Stage | Typed in or imported on the laptop. Invisible to the platform until the operator promotes it. |
+| `hearth` | The platform | Pulled through this interface, read-only in Stage, rebuilt by any resync. |
+
+Everything else in this document follows from that. Stage never sends an edit to a record it pulled,
 so there is no conflict resolution to get wrong and no path by which a laptop in a cupboard corrupts a
-church's song library. The cache is disposable and is always rebuildable from the platform.
+church's library. The synced store is disposable and is always rebuildable from the platform, and
+rebuilding it cannot touch the library the church typed in.
 
-The one exception is `song_usage`, which is append-only and idempotent, so pushing the same row twice
-is harmless.
+Two writes go upward, and both are additive:
+
+- **`song_usage`**, append-only and idempotent, so pushing the same row twice is harmless.
+- **A promoted song**, inserted once, on the operator's explicit action, after a duplicate check.
+  After promotion the platform owns it and Stage treats it as `hearth`.
+
+There is no merge algorithm anywhere in this contract, and any future requirement that would need one
+is refused.
 
 ## Transport
 
@@ -53,8 +69,8 @@ POST /api/stage/v1/devices
 ```
 
 - The pairing code is generated in the platform UI by an Owner or Admin. Six characters from an
-  unambiguous alphabet, excluding `0`, `O`, `1`, `I`, `L`. Single use, fifteen minute expiry (ST1.2).
-- The device token is opaque, long lived, and stored in the operating system keychain (ST1.3).
+  unambiguous alphabet, excluding `0`, `O`, `1`, `I`, `L`. Single use, fifteen minute expiry (ST1.4).
+- The device token is opaque, long lived, and stored in the operating system keychain (ST1.5).
 - Rate limited hard on the pairing path. A wrong code is a 404 with no information about which part
   was wrong.
 
@@ -67,12 +83,12 @@ Authorization: Bearer <device_token>
 ### Scope
 
 The device token resolves to a **device principal**, which is not a user and has no role in the
-platform's role table. Its permissions are fixed and enforced server side (ST1.6):
+platform's role table. Its permissions are fixed and enforced server side (ST1.8):
 
 | Scope | Entities |
 |---|---|
 | Read | services and occurrences, plans, plan items, item notes, songs, song sections, arrangements, arrangement media metadata, resolved scripture text, themes, and the names and positions of people scheduled to the synced services |
-| Write | `song_usage` |
+| Write | `song_usage`, and a promoted song with its sections and arrangements |
 | Refused | people, households, giving, check-in, pipelines, forms, pastoral notes, audit log, settings, and every other entity in the platform |
 
 The team roster read is **names and positions only**. A Stage device never receives a phone number, an
@@ -83,7 +99,7 @@ layer rather than by selecting columns in the route handler.
 ### Revocation
 
 A revoked device receives `401` with `{ "error": "device_revoked" }` on its next sync. The client
-stops syncing, says so on the control surface, and **carries on serving its cache** (ST1.5).
+stops syncing, says so on the control surface, and **carries on serving its cache** (ST1.7).
 Revocation is an administrative act, and it is never allowed to stop a service that has already
 started.
 
@@ -126,9 +142,9 @@ failure modes, and it costs one column.
 
 Stage does not sync a church's entire history. It syncs:
 
-- **Services** from seven days ago to twenty-eight days ahead, with their plans and items (ST2.10).
+- **Services** from seven days ago to twenty-eight days ahead, with their plans and items (ST4.10).
 - **Songs** referenced by any plan in that window, plus every song in the library, because the whole
-  library is what makes ST3.8 possible and a 2,000 song library is a few megabytes of text.
+  library is what makes ST5.8 possible and a 2,000 song library is a few megabytes of text.
 - **Arrangement media metadata** for arrangements in the window. The files themselves are fetched
   separately and on demand.
 - **Themes** for the tenant, all of them.
@@ -252,7 +268,7 @@ further lookup.
 
 **Resolved scripture text is required** (R11.5). Stage does not hold a bible, does not call a bible
 API, and therefore cannot fail to render a passage because the wifi is down. The verse array rather
-than one string is what makes verse-boundary splitting possible (ST5.2).
+than one string is what makes verse-boundary splitting possible (ST7.3).
 
 `key_override` on the plan item is what a leader sets when this Sunday's key differs from the
 arrangement's. Stage transposes from the arrangement key to the override using `packages/songs`, the
@@ -268,12 +284,12 @@ GET /api/stage/v1/media/<id>/url
 ```
 
 - Media is fetched on demand, cached locally **by content hash**, and verified against the hash
-  before use (ST2.9).
+  before use (ST4.9).
 - The signed URL is short lived. Stage fetches a fresh one when it needs the file, and never stores
   the URL.
 - Byte range requests are supported by storage, so an interrupted download resumes.
 - A file that fails verification is deleted and refetched once. After that it is treated as missing,
-  which degrades to the theme colour (ST7.9).
+  which degrades to the theme colour (ST9.9).
 
 ## Pushing usage
 
@@ -297,16 +313,47 @@ POST /api/stage/v1/usage
 ```
 
 - **Idempotent on `client_id`**, which is unique per tenant. A row pushed twice lands in
-  `duplicates` and changes nothing (ST17.3).
+  `duplicates` and changes nothing (ST18.3).
 - Queued locally while offline and pushed on reconnect. The queue is durable across restarts.
 - `plan_item_id` is null for a song added live in Stage and not in the plan, which is exactly the
-  usage a church forgets to report (ST17.4).
+  usage a church forgets to report (ST18.4).
 - `used_on` is a date in the tenant's timezone, which the pairing response supplied.
 - `source` is always `stage` from this endpoint. The server does not trust the client's value for
   anything that matters, and sets it.
 
-Service run telemetry (ST17.5) is a later addition under `POST /api/stage/v1/runs`, specified when
-S0.4 is planned.
+Service run telemetry (ST18.5) is a later addition under `POST /api/stage/v1/runs`, specified when
+S0.5 is planned.
+
+## Promoting a local song
+
+The second write, and the one that lets a church that started on Stage alone move its library into
+Hearth when it adopts the platform.
+
+```
+POST /api/stage/v1/songs/promote
+{ "client_id": "uuid generated by Stage",
+  "song": { ...the same song body this interface returns, with its sections and arrangements... } }
+
+201
+{ "song_id": "uuid", "arrangement_ids": { "<stage arrangement id>": "<platform arrangement id>" } }
+
+200
+{ "duplicate_of": "uuid", "matched_on": "ccli_number | title_and_first_line" }
+```
+
+- **On the operator's action only** (ST4.11). A sync does not push songs upward.
+- Idempotent on `client_id`.
+- The platform runs its own duplicate check on CCLI number, then title and first line, and a match
+  comes back as `duplicate_of` with nothing written. Stage shows the operator the existing song and
+  offers to adopt it in place of promoting.
+- A promoted song arrives in the platform library like any other song, through the same validation the
+  web UI uses. It is not a privileged insert.
+- On success Stage marks its local copy as `hearth` with the returned id, so the library stops having
+  two rows for one song and the platform becomes the writer.
+- The device principal may insert a song and may not update or archive one. A correction after
+  promotion is made in Hearth, by a person.
+
+*This is the only path by which data Stage authored enters the platform.*
 
 ## Errors
 
@@ -321,7 +368,7 @@ S0.4 is planned.
 | 5xx | Server trouble | Exponential backoff to a five minute ceiling, and keep serving the cache |
 
 **No error on this interface is allowed to interrupt a service.** The client's error path always ends
-in "keep serving the cache" (ST2.7, ST18.5).
+in "keep serving the cache" (ST4.7, ST19.6).
 
 ## Rate limits
 
@@ -332,13 +379,14 @@ A client that hits 429 is a client with a bug.
 ## What is deliberately absent
 
 - **No realtime subscription.** Carried from the platform decision that Supabase Realtime is unused
-  in v1. A live plan change is a poll, and ST3.11 makes it an offer rather than an
+  in v1. A live plan change is a poll, and ST5.11 makes it an offer rather than an
   interruption.
-- **No write path for songs, plans, or lyrics.** ST4.8's typo correction is a suggestion raised
-  through the platform, by a person, and is not in this contract.
+- **No update path for songs, plans, or lyrics.** A song is inserted once by promotion and is the
+  platform's thereafter. ST6.8's typo correction stays with the run, and a correction that should
+  stick is made in Hearth by a person.
 - **No bible API.** Resolved text only.
 - **No person data beyond names and positions.**
-- **No analytics.** Usage rows serve the church's CCLI obligation and nothing else (ST17.6).
+- **No analytics.** Usage rows serve the church's CCLI obligation and nothing else (ST18.6).
 
 ## Server-side work this implies, for the platform board
 
@@ -348,8 +396,19 @@ A client that hits 429 is a client with a bug.
 | Device principal: table, token hashing, scope enforcement in the query layer | R11.14, R1.5 | Not a row in the user table, and not a role |
 | Pairing code generation in the platform UI, with the device list and revoke | R1.10 | Sits with the active session list, which already exists |
 | The nine routes in this document under `/api/stage/v1` | R11.14, R12.13 | Field-level permission applied at the query layer |
-| Idempotent `song_usage` insert keyed on `client_id` | R12.9, R12.10 | Feeds the CCLI export that already exists in 0.4 |
+| Idempotent `song_usage` insert keyed on `client_id` | R12.9, R12.10 | Feeds the CCLI export that already exists in 0.4. Stage's own local export is validated against the same fixture, so the two agree. |
+| `POST /api/stage/v1/songs/promote`, with the duplicate check | R12.1 to R12.5, R12.12 | Reuses the manual-entry validation R12.12 already needs |
 | An adversarial test suite for the device principal | R1.3, R21.2 | Every refused entity in the scope table, through the ORM and raw SQL |
 
 These are platform stories with platform IDs. They are written on [BACKLOG.md](../BACKLOG.md) when
 0.4 is planned, and they are the reason this document exists before Stage is built.
+
+**None of them blocks Stage releases S0.1 to S0.3.** Those are a complete standalone presenter. This
+interface gates exactly one Stage epic, SE4, which is tracked on
+[BACKLOG-STAGE.md](../BACKLOG-STAGE.md).
+
+### One correction owed in PRD.md
+
+Section 9.6 reads "Stage is a client of a versioned sync API, not a second application with a second
+database." Stage holds a real library of its own, so the line needs replacing. PRD.md belongs to the
+platform board, and the replacement wording is in [PRD-STAGE.md](../PRD-STAGE.md) section 2.
