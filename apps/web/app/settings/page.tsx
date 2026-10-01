@@ -1,12 +1,16 @@
+import { cookies } from "next/headers";
 import { Badge, Card, CardTitle, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeChoice } from "./theme";
+import type { Theme } from "./theme-actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AccountPage() {
   const session = await requireSession();
+  const theme = ((await cookies()).get("hearth-theme")?.value ?? "system") as Theme;
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,6 +37,8 @@ export default async function AccountPage() {
         </dl>
         <SignOutButton />
       </Card>
+
+      <ThemeChoice current={theme} />
     </div>
   );
 }

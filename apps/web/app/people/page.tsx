@@ -11,6 +11,7 @@ import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { Directory } from "./directory";
+import { SetupBanner } from "../setup/banner";
 import { queryFromParams, pageFromParams, type DirectoryParams } from "@/lib/directory-query";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,12 @@ export default async function PeoplePage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        {/* R22.1. Above the title, because it is about the church rather than
+            about this screen. */}
+        {setup && !setup.complete && !setup.dismissed ? (
+          <SetupBanner church={session.tenantSlug} />
+        ) : null}
+
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <PageTitle title={t("people.title")} className="mb-0" />
           {canEdit ? (
@@ -87,17 +94,6 @@ export default async function PeoplePage({
           ) : null}
         </div>
 
-
-        {setup && !setup.complete && !setup.dismissed ? (
-          <Banner tone="info" title={t("setup.title")} className="mb-8">
-            <Link
-              href={`/setup?church=${session.tenantSlug}`}
-              className="underline underline-offset-4"
-            >
-              {t("setup.finish")}
-            </Link>
-          </Banner>
-        ) : null}
 
         {duplicates > 0 ? (
           <Banner tone="warning" title={t("merge.title")} className="mb-8">

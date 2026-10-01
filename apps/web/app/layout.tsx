@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { TooltipProvider } from "@hearth/ui";
 import "./globals.css";
@@ -25,9 +26,23 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * R24.x. Light, dark, or whatever the device is set to.
+ *
+ * Read from a cookie on the server, so the first paint is already the right one
+ * and nobody gets a white flash at 7am in a dark building. Leaving it off means
+ * the device decides, which is what most people want and nobody has to choose.
+ */
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = (await cookies()).get("hearth-theme")?.value;
+
   return (
-    <html lang="en" data-density="office" suppressHydrationWarning>
+    <html
+      lang="en"
+      data-density="office"
+      {...(theme === "light" || theme === "dark" ? { "data-theme": theme } : {})}
+      suppressHydrationWarning
+    >
       <body className={`${display.variable} ${sans.variable} ${mono.variable} font-sans`}>
         <TooltipProvider>{children}</TooltipProvider>
       </body>
