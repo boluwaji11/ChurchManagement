@@ -8,6 +8,7 @@ import {
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { DemoBanner } from "./demo-banner";
+import { Help } from "./help";
 import type { Session } from "@/lib/session";
 
 /**
@@ -106,6 +107,8 @@ export async function AppHeader({ session }: { session: Session }) {
         </nav>
 
         <div className="flex items-center gap-3">
+          {/* R22.2. In reach from every screen, and quiet until it is asked. */}
+          <Help />
           {/* Their name, and everything they administer, in one place. Signing
               out lives there too rather than next to it, since a press beside
               the name somebody aims for is a press they make by accident. */}
