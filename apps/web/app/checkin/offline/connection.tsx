@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { WifiOff, RefreshCw, TriangleAlert } from "lucide-react";
-import { Button, Card } from "@hearth/ui";
+import { Button, Card, OfflineBar } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import type { Conflict } from "@hearth/db";
 import type { StationState } from "./station";
@@ -28,26 +28,36 @@ export function Connection({
     return <Conflicts conflicts={state.conflicts} onDismiss={onDismiss} />;
   }
 
-  if (state.online && state.waiting === 0) return null;
-
+  /*
+   * R8.22. Persistent chrome, in both states. A station that only says
+   * something when it is in trouble is a station nobody believes, and a
+   * notification that disappears is a silent failure.
+   */
   return (
-    <Card className="flex flex-wrap items-center justify-between gap-3 border-warning">
-      <span className="flex items-center gap-2 text-[length:var(--d-text-body)] text-fg">
-        {state.online ? (
-          <RefreshCw className="size-5 text-fg-muted" aria-hidden />
-        ) : (
-          <WifiOff className="size-5 text-warning-text" aria-hidden />
-        )}
-        {state.online ? t("station.sending") : t("station.offline")}
-        {state.waiting > 0 ? (
-          <span className="text-fg-muted">{plural("station.waiting", state.waiting)}</span>
-        ) : null}
-      </span>
+    <div className="flex flex-col gap-2">
+      <OfflineBar
+        online={state.online}
+        label={
+          state.online
+            ? state.waiting > 0
+              ? t("station.sending")
+              : t("station.online")
+            : t("station.offline")
+        }
+        className="rounded-lg"
+      />
 
-      {state.online && state.waiting > 0 ? (
-        <Button variant="secondary" onClick={onSend}>{t("station.send")}</Button>
+      {state.waiting > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="text-[length:var(--d-text-body)] text-fg-muted">
+            {plural("station.waiting", state.waiting)}
+          </span>
+          {state.online ? (
+            <Button variant="secondary" onClick={onSend}>{t("station.send")}</Button>
+          ) : null}
+        </div>
       ) : null}
-    </Card>
+    </div>
   );
 }
 

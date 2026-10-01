@@ -81,11 +81,12 @@ export function CodeDisplay({
  */
 export function OfflineBar({
   online,
-  pending = 0,
+  label,
   className,
 }: {
   online: boolean;
-  pending?: number;
+  /** The product's own words. A component library does not hold copy. */
+  label: string;
   className?: string;
 }) {
   return (
@@ -98,15 +99,12 @@ export function OfflineBar({
         className,
       )}
     >
-      {online ? <Wifi className="size-4 shrink-0" aria-hidden /> : <WifiOff className="size-4 shrink-0" aria-hidden />}
       {online ? (
-        <span>Connected. Everything is saving.</span>
+        <Wifi className="size-4 shrink-0" aria-hidden />
       ) : (
-        <span>
-          Working offline. Check-in still works
-          {pending > 0 ? `, ${pending} to sync when you reconnect` : ""}.
-        </span>
+        <WifiOff className="size-4 shrink-0" aria-hidden />
       )}
+      <span>{label}</span>
     </div>
   );
 }

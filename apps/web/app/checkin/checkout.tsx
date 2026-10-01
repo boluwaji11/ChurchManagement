@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, ShieldAlert } from "lucide-react";
+import { LogOut } from "lucide-react";
 import {
-  Badge, Button, Dialog, DialogTrigger, DialogContent, Field, Input,
+  Badge, Banner, BlockingInterrupt, Button, Dialog, DialogTrigger, DialogContent, Field, Input,
+  RadioGroup, RadioItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { pickup, release } from "./actions";
@@ -125,72 +126,70 @@ export function Checkout({
       </DialogTrigger>
       <DialogContent title={t("checkout.heading", { name: childName })} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
-          {error ? <p className="text-[length:var(--d-text-body)] text-danger">{error}</p> : null}
+          {error ? <Banner tone="danger" title={t("checkout.failed")}>{error}</Banner> : null}
 
           {block ? (
-            /* R24.14. A stop, filling the dialog, passed deliberately. */
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start gap-3 rounded-lg bg-critical p-4 text-white">
-                <ShieldAlert className="size-6 shrink-0" aria-hidden />
-                <p className="text-[length:var(--d-text-body)] font-medium">{block.message}</p>
-              </div>
+            /*
+             * R8.9, R24.14. A blocking warning is blocking. It fills the
+             * screen, it cannot be pressed past by accident, and the way
+             * through costs a sentence that is written down with the name of
+             * whoever decided.
+             */
+            <BlockingInterrupt
+              heading={t("checkout.blocked")}
+              detail={block.message}
+              action={
+                <div className="flex w-full max-w-md flex-col gap-4">
+                  <Field label={t("checkout.reason")}>
+                    <Input
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      autoComplete="off"
+                      autoFocus
+                    />
+                  </Field>
 
-              <Field label={t("checkout.reason")}>
-                <Input
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  autoComplete="off"
-                />
-              </Field>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  variant="danger"
-                  disabled={pending || reason.trim().length === 0}
-                  onClick={() => go({ kind: block.kind, reason })}
-                >
-                  {t("checkout.override")}
-                </Button>
-                <Button variant="ghost" onClick={() => setBlock(null)}>
-                  {t("action.cancel")}
-                </Button>
-              </div>
-            </div>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setBlock(null);
+                        setReason("");
+                      }}
+                    >
+                      {t("checkout.stop")}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      disabled={pending || reason.trim().length === 0}
+                      onClick={() => go({ kind: block.kind, reason })}
+                    >
+                      {t("checkout.override")}
+                    </Button>
+                  </div>
+                </div>
+              }
+            />
           ) : (
             <>
               <div className="flex flex-col gap-1.5">
                 <span className="text-label text-fg">{t("checkout.who")}</span>
-                <div className="flex flex-col gap-2">
+                <RadioGroup
+                  value={collectedBy ?? "other"}
+                  onValueChange={(value) => setCollectedBy(value === "other" ? null : value)}
+                >
                   {people.map((person) => (
-                    <label key={person.id} className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="radio"
-                        name="collectedBy"
-                        checked={collectedBy === person.id}
-                        onChange={() => setCollectedBy(person.id)}
-                        className="size-4 accent-[var(--primary)]"
-                      />
-                      <span className="text-[length:var(--d-text-body)] text-fg">
-                        {person.name}
-                      </span>
+                    <RadioItem key={person.id} value={person.id}>
+                      <span className="text-fg">{person.name}</span>
                       {person.restricted ? (
                         <Badge tone="danger">{t("checkout.restricted")}</Badge>
                       ) : null}
-                    </label>
+                    </RadioItem>
                   ))}
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="radio"
-                      name="collectedBy"
-                      checked={collectedBy === null}
-                      onChange={() => setCollectedBy(null)}
-                      className="size-4 accent-[var(--primary)]"
-                    />
-                    <span className="text-[length:var(--d-text-body)] text-fg">
-                      {t("checkout.someoneElse")}
-                    </span>
-                  </label>
-                </div>
+                  <RadioItem value="other">
+                    <span className="text-fg">{t("checkout.someoneElse")}</span>
+                  </RadioItem>
+                </RadioGroup>
               </div>
 
               <Field label={t("checkout.code")}>

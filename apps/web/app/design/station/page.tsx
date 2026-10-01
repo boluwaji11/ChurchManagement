@@ -44,13 +44,13 @@ export default function StationPage() {
           Network connected
         </label>
         <div className="overflow-hidden rounded-lg border border-line">
-          <OfflineBar online={online} pending={12} />
+          <OfflineBar online={online} label={online ? "Connected" : "Working offline. Check-in still works."} />
         </div>
       </Section>
 
       <Section title="Check in a family" note="Find family, choose children, confirm, print. Four screens, and this is the second.">
         <Station>
-          <OfflineBar online={online} pending={12} />
+          <OfflineBar online={online} label={online ? "Connected" : "Working offline. Check-in still works."} />
           <div className="flex flex-col gap-[var(--d-gutter)] p-[var(--d-gutter)]">
             <div className="flex flex-col gap-2">
               <p className="text-label uppercase tracking-wide text-fg-muted">Household</p>

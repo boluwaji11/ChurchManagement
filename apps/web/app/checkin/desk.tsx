@@ -3,7 +3,8 @@
 import * as React from "react";
 import { Search, Check, Undo2, UserCheck } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, EmptyState, Field, HueDot, Input, Separator,
+  Badge, Banner, Button, Card, Checkbox, CodeDisplay, EmptyState, Field, HueDot, Input,
+  Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
@@ -228,7 +229,16 @@ export function Desk({
   }
 
   return (
-    <div className="flex flex-col gap-4" aria-busy={pending || searching}>
+    /*
+     * R24.2. Station density: 56px targets and 20px text, for a volunteer with
+     * a queue of forty families and reading glasses. The desk is the screen the
+     * design system was written for and it was running at office density.
+     */
+    <div
+      data-density="station"
+      className="flex flex-col gap-4"
+      aria-busy={pending || searching}
+    >
       <Connection
         state={station.state}
         onSend={() => void station.reconcile()}
@@ -287,9 +297,7 @@ export function Desk({
                     {person?.name}
                     {room ? <span className="text-fg-muted">{room.name}</span> : null}
                   </span>
-                  {code ? (
-                    <span className="font-mono text-title tracking-widest text-fg">{code}</span>
-                  ) : null}
+                  {code ? <CodeDisplay code={code} /> : null}
                 </li>
               );
             })}
@@ -308,6 +316,15 @@ export function Desk({
             <span className="text-heading text-fg">{household.household ?? household.name}</span>
             <Button variant="ghost" onClick={() => setOpen(null)}>{t("action.cancel")}</Button>
           </div>
+
+          {/* R8.10, R24.14. Above the people, so a household of four on a
+              tablet cannot push a peanut allergy off the screen. The check-in
+              button does not work until it has been read. */}
+          <Allergies
+            people={household.people.filter((p) => picked[p.id] && !p.checkedIn)}
+            seen={seen}
+            onSeen={() => setSeen(true)}
+          />
 
           <ul className="flex flex-col">
             {household.people.map((person, i) => (
@@ -333,16 +350,6 @@ export function Desk({
               </li>
             ))}
           </ul>
-
-          {/* R8.10, R24.14. Full width, above the button, and the button does
-              not work until it has been read. A volunteer finishing a check-in
-              without having seen this is the failure the requirement exists to
-              stop. */}
-          <Allergies
-            people={household.people.filter((p) => picked[p.id] && !p.checkedIn)}
-            seen={seen}
-            onSeen={() => setSeen(true)}
-          />
 
           {/* Nobody left to check in is nothing to press. */}
           {waiting.length > 0 ? (
@@ -442,12 +449,7 @@ function Member({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <label className="flex cursor-pointer items-center gap-3">
-        <input
-          type="checkbox"
-          checked={picked}
-          onChange={(e) => onPick(e.target.checked)}
-          className="size-5 accent-[var(--primary)]"
-        />
+        <Checkbox checked={picked} onCheckedChange={(on) => onPick(on === true)} />
         <span className="text-[length:var(--d-text-body)] text-fg">{person.name}</span>
         {justDone ? <Badge tone="success">{t("checkin.checkedIn")}</Badge> : null}
       </label>
