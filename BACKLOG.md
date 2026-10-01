@@ -240,8 +240,8 @@ this product is for.
 |---|---|---|---|
 | HRT-98 | The member directory inside the product | R3.1 | Dropped |
 | HRT-99 | Per-field visibility chosen by the member, and whole-record opt out | R3.2, R3.3 | Resolved |
-| HRT-100 | The printed and PDF directory, honouring every setting at generation | R3.5, R3.4 | New |
-| HRT-101 | The admin view that shows every field, permission gated | R3.6 | New |
+| HRT-100 | The printed directory, honouring every setting at generation | R3.5, R3.4 | Resolved |
+| HRT-101 | The admin view that shows every field, permission gated | R3.6 | Closed, built in F2 |
 
 **Decision, October 2026: there is no directory of the congregation inside the product.** It was
 built (HRT-98) and taken out the same day. A search box over everybody's households is a search box
@@ -328,9 +328,9 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | R3.5 the printed and PDF directory, R3.6 the admin view, R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** directory privacy |
-| **Next** | **HRT-100** the printed directory and **HRT-101** the admin view, then F3 the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **0.2 still owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory |
+| **Next** | F22 onboarding (HRT-105 to HRT-107), then the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1055,10 +1055,10 @@ From **Groups**, tap a group's name.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
 
-### HRT-98 and HRT-99, how to test them
+### HRT-99 and HRT-100, how to test them
 
-**Settings**, then **Directory**, is what you let other members see of you, with **See the
-directory** on it.
+**Settings**, then **Printed directory**, is what the church may print about you. On the staff
+**Directory**, **Print the directory** opens the book.
 
 **A member has one screen and no section bar.** Signing in as `member@riverside.example.org` lands
 on it: hello, and the groups they are in with a way to find another. Staff keep the sections they

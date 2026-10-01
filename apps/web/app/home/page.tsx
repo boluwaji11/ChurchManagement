@@ -59,9 +59,17 @@ export default async function MemberHomePage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6">
-        <h1 className="font-display text-display text-fg">
-          {t("home.hello", { name: session.displayName.split(" ")[0] ?? session.displayName })}
-        </h1>
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display text-display text-fg">
+            {t("home.hello", { name: session.displayName.split(" ")[0] ?? session.displayName })}
+          </h1>
+          <Link
+            href={`/settings?church=${session.tenantSlug}`}
+            className="text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+          >
+            {t("home.mySettings")}
+          </Link>
+        </div>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-heading text-fg">{t("home.myGroups")}</h2>
