@@ -4,7 +4,7 @@ import * as React from "react";
 import { Undo2 } from "lucide-react";
 import {
   Button, Card, CardTitle, Separator, Banner, Badge,
-  Dialog, DialogTrigger, DialogContent, DialogClose,
+  Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { undoImport, type RollbackOutcome } from "./actions";
@@ -102,9 +102,9 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
           </Button>
         </DialogTrigger>
         <DialogContent
+          alert
           title={t("import.rollback.confirmTitle", { filename: batch.filename })}
           description={t("import.rollback.window")}
-          closeLabel={t("common.close")}
         >
           {outcome?.error ? (
             <Banner tone="danger" title={t("import.failed")} className="mb-4">{outcome.error}</Banner>
@@ -114,15 +114,19 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
             {t("import.rollback.confirmBody", { created: batch.rowsCreated, updated: batch.rowsUpdated })}
           </p>
 
-          <form noValidate action={submit} className="flex flex-wrap items-center gap-3">
+          <form noValidate action={submit}>
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="batchId" value={batch.id} />
-            <Button type="submit" variant="danger" loading={pending}>
-              <Undo2 /> {t("import.rollback")}
-            </Button>
-            <DialogClose asChild>
-              <Button type="button" variant="ghost">{t("action.cancel")}</Button>
-            </DialogClose>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="ghost" data-dismiss>
+                  {t("import.rollback.keep")}
+                </Button>
+              </DialogClose>
+              <Button type="submit" variant="danger" loading={pending}>
+                <Undo2 /> {t("import.rollback")}
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

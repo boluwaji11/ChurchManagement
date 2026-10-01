@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Check, Undo2, LogOut } from "lucide-react";
 import {
   Badge, Banner, Button, Field, HueDot, HueTag, Input, Separator,
-  Dialog, DialogTrigger, DialogContent,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
@@ -478,13 +478,18 @@ function LeaveDialog({
       <DialogTrigger asChild>
         <Button variant="ghost"><LogOut /> {t("followups.leave")}</Button>
       </DialogTrigger>
-      <DialogContent title={t("followups.leaveTitle", { name })} closeLabel={t("common.close")}>
+      <DialogContent alert title={t("followups.exitTitle", { name })}>
         <div className="flex flex-col gap-4">
           <Field label={t("followups.reason")}>
-            <Input value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
+            <Input value={reason} onChange={(e) => setReason(e.target.value)} />
           </Field>
-          <div className="flex flex-wrap items-center gap-3">
+
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+              {t("followups.exitKeep")}
+            </Button>
             <Button
+              variant="danger"
               disabled={pending || reason.trim() === ""}
               onClick={() => {
                 setOpen(false);
@@ -492,10 +497,9 @@ function LeaveDialog({
                 setReason("");
               }}
             >
-              {t("followups.leave")}
+              {t("followups.exitAction")}
             </Button>
-            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

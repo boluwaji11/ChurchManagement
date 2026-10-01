@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Merge, Undo2, ArrowRight } from "lucide-react";
 import {
   Avatar, Badge, Button, Card, CardTitle, Separator, Banner, EmptyState,
-  RadioGroup, RadioItem, Dialog, DialogTrigger, DialogContent, cn,
+  RadioGroup, RadioItem, Dialog, DialogTrigger, DialogContent, DialogFooter, cn,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { merge, undo, type MergeOutcome } from "./actions";
@@ -198,24 +198,29 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
               </Button>
             </DialogTrigger>
             <DialogContent
+              alert
               title={t("merge.confirmTitle", { loser: loser.name, winner: winner.name })}
               description={t("merge.window")}
-              closeLabel={t("common.close")}
             >
               <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
                 {t("merge.confirmBody", { loser: loser.name })}
               </p>
-              <div className="flex flex-wrap items-center gap-3">
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  data-dismiss
+                  onClick={() => setConfirming(false)}
+                >
+                  {t("merge.keepApart")}
+                </Button>
                 {/* form= reaches the form across the portal. DialogContent is
                     portaled to the body, so a submit button inside it is
                     outside its own form in the DOM and submits nothing. */}
                 <Button type="submit" form={formId} disabled={pending} onClick={() => setConfirming(false)}>
                   <Merge /> {t("merge.merge")}
                 </Button>
-                <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
-                  {t("action.cancel")}
-                </Button>
-              </div>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
 

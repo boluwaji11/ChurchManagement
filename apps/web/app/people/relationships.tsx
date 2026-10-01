@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, X, ShieldAlert } from "lucide-react";
 import {
-  Badge, Banner, Button, Combobox, Dialog, DialogTrigger, DialogContent, DialogClose,
+  Badge, Banner, Button, Combobox, Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -141,22 +141,22 @@ export function Relationships({
                       </Button>
                     </DialogTrigger>
                     <DialogContent
+                      alert
                       title={t("relationship.removeDoNotContactTitle", { name: row.relatedName })}
-                      closeLabel={t("common.close")}
                     >
                       <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
                         {t("relationship.removeDoNotContactBody", { name: row.relatedName })}
                       </p>
-                      <div className="flex flex-wrap items-center gap-3">
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="ghost" data-dismiss>{t("relationship.keep")}</Button>
+                        </DialogClose>
                         <DialogClose asChild>
                           <Button variant="danger" onClick={() => remove(row.id)}>
                             {t("relationship.remove")}
                           </Button>
                         </DialogClose>
-                        <DialogClose asChild>
-                          <Button variant="ghost">{t("action.cancel")}</Button>
-                        </DialogClose>
-                      </div>
+                      </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 ) : null

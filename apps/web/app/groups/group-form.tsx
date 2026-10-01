@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Users } from "lucide-react";
+import { Archive } from "lucide-react";
 import {
   Button, Checkbox, Field, HueDot, Input, Textarea,
-  Dialog, DialogTrigger, DialogContent,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
@@ -266,10 +266,13 @@ export function ArchiveDialog({
       <DialogTrigger asChild>
         <Button variant="ghost"><Archive /> {t("groups.archive")}</Button>
       </DialogTrigger>
-      <DialogContent title={t("groups.archiveTitle", { name })} closeLabel={t("common.close")}>
+      <DialogContent alert title={t("groups.archiveTitle", { name })}>
         <div className="flex flex-col gap-4">
           <p className="text-[length:var(--d-text-body)] text-fg">{t("groups.archiveBody")}</p>
-          <div className="flex flex-wrap items-center gap-3">
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+              {t("groups.keep")}
+            </Button>
             <Button
               variant="danger"
               disabled={pending}
@@ -278,10 +281,9 @@ export function ArchiveDialog({
                 onConfirm();
               }}
             >
-              <Users /> {t("groups.archive")}
+              <Archive /> {t("groups.archiveAction", { name })}
             </Button>
-            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

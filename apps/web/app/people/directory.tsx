@@ -8,7 +8,7 @@ import {
   Avatar, Badge, Button, Card, Input, Checkbox, Banner, HueDot,
   Table, Thead, Th, Tr, Td, EmptyState,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  Dialog, DialogTrigger, DialogContent, DialogClose,
+  Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   cn, type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -550,23 +550,20 @@ function SelectionBar({
               <Archive /> {t("directory.bulkArchive")}
             </Button>
           </DialogTrigger>
-          <DialogContent
-            title={t("directory.bulkArchiveTitle", { count })}
-            closeLabel={t("common.close")}
-          >
+          <DialogContent alert title={t("directory.bulkArchiveTitle", { count })}>
             <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
               {t("directory.bulkArchiveBody")}
             </p>
-            <div className="flex flex-wrap items-center gap-3">
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="ghost" data-dismiss>{t("directory.bulkKeep")}</Button>
+              </DialogClose>
               <DialogClose asChild>
                 <Button variant="danger" onClick={onArchive}>
                   <Archive /> {t("directory.bulkArchive")}
                 </Button>
               </DialogClose>
-              <DialogClose asChild>
-                <Button variant="ghost">{t("action.cancel")}</Button>
-              </DialogClose>
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       ) : null}

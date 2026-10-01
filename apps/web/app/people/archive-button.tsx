@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Archive, ArchiveRestore } from "lucide-react";
-import { Button, Dialog, DialogTrigger, DialogContent, DialogClose, Banner } from "@hearth/ui";
+import { Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter, Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { setArchived } from "./actions";
 
@@ -58,11 +58,7 @@ export function ArchiveButton({
           <Archive /> {t("person.archive")}
         </Button>
       </DialogTrigger>
-      <DialogContent
-        title={t("person.archive.confirmTitle", { name })}
-        description={t("person.archive.confirmLede")}
-        closeLabel={t("common.close")}
-      >
+      <DialogContent alert title={t("person.archive.confirmTitle", { name })}>
         <p className="text-[length:var(--d-text-body)] text-fg-muted mb-5">
           {t("person.archive.confirmBody")}
         </p>
@@ -71,16 +67,20 @@ export function ArchiveButton({
           <Banner tone="danger" title={t("person.archive.failed")} className="mb-4">{error}</Banner>
         ) : null}
 
-        <form noValidate action={submit} className="flex flex-wrap items-center gap-3">
+        <form noValidate action={submit}>
           <input type="hidden" name="church" value={church} />
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="archived" value="1" />
-          <Button type="submit" variant="danger" loading={pending}>
-            <Archive /> {t("person.archive.confirmAction", { name })}
-          </Button>
-          <DialogClose asChild>
-            <Button variant="ghost" type="button">{t("person.archive.keep")}</Button>
-          </DialogClose>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="ghost" type="button" data-dismiss>
+                {t("person.archive.keep")}
+              </Button>
+            </DialogClose>
+            <Button type="submit" variant="danger" loading={pending}>
+              <Archive /> {t("person.archive.confirmAction", { name })}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

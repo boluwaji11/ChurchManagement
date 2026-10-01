@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Pencil, Archive, Undo2, ChevronUp, ChevronDown } from "lucide-react";
 import {
   Banner, Button, Card, EmptyState, Field, HueDot, Input, Separator,
-  Dialog, DialogTrigger, DialogContent,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
@@ -383,20 +383,22 @@ function ArchiveDialog({
       <DialogTrigger asChild>
         <Button variant="ghost"><Archive /> {t("rooms.archive")}</Button>
       </DialogTrigger>
-      <DialogContent title={t("rooms.archiveTitle", { name: room.name })} closeLabel={t("common.close")}>
+      <DialogContent alert title={t("rooms.archiveTitle", { name: room.name })}>
         <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
           {t("rooms.archiveBody")}
         </p>
-        <div className="flex flex-wrap items-center gap-3">
+        <DialogFooter>
+          <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+            {t("rooms.keep")}
+          </Button>
           <Button
             variant="danger"
             disabled={pending}
             onClick={() => { onConfirm(); setOpen(false); }}
           >
-            {t("rooms.archive")}
+            <Archive /> {t("rooms.archiveAction", { name: room.name })}
           </Button>
-          <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

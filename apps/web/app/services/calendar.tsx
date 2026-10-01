@@ -7,7 +7,7 @@ import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList } from "lucide-rea
 import {
   Badge, Banner, Button, Card, EmptyState, Field, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogClose,
+  Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
@@ -157,13 +157,16 @@ export function Calendar({
                       <Button variant="ghost">{t("services.stopRepeat")}</Button>
                     </DialogTrigger>
                     <DialogContent
+                      alert
                       title={t("services.stopRepeatTitle", { name: row.name })}
-                      closeLabel={t("common.close")}
                     >
                       <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
                         {t("services.stopRepeatBody")}
                       </p>
-                      <div className="flex flex-wrap items-center gap-3">
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="ghost" data-dismiss>{t("services.keepRepeating")}</Button>
+                        </DialogClose>
                         <DialogClose asChild>
                           <Button
                             variant="danger"
@@ -174,10 +177,7 @@ export function Calendar({
                             {t("services.stopRepeat")}
                           </Button>
                         </DialogClose>
-                        <DialogClose asChild>
-                          <Button variant="ghost">{t("action.cancel")}</Button>
-                        </DialogClose>
-                      </div>
+                      </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 )}
@@ -395,14 +395,20 @@ function CancelDialog({
         <Button variant="ghost"><X /> {t("services.cancel")}</Button>
       </DialogTrigger>
       <DialogContent
+        alert
         title={t("services.cancelTitle", { name: row.name, date: row.readableDate })}
-        closeLabel={t("common.close")}
       >
         <div className="flex flex-col gap-4">
+          <p className="text-[length:var(--d-text-body)] text-fg">{t("services.cancelBody")}</p>
+
           <Field label={t("services.note")}>
             <Input value={note} onChange={(e) => setNote(e.target.value)} autoComplete="off" />
           </Field>
-          <div className="flex flex-wrap items-center gap-3">
+
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+              {t("services.keep")}
+            </Button>
             <Button
               variant="danger"
               disabled={pending}
@@ -411,10 +417,9 @@ function CancelDialog({
                 setOpen(false);
               }}
             >
-              {t("services.cancel")}
+              {t("services.cancelAction", { name: row.name, date: row.readableDate })}
             </Button>
-            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
