@@ -1051,9 +1051,11 @@ From **Groups**, tap a group's name.
 **Settings**, then **Directory**, is what you let other members see of you, with **See the
 directory** on it.
 
-There is one Directory in the header, and which one it is depends on who you are. Staff get the
-church's records. A member gets what the rest of the church chose to publish, because on the staff
-directory a member sees nobody but themselves.
+**A member has one screen and no section bar.** Signing in as `member@riverside.example.org` lands
+on it: hello, their groups with a way to find another, and the church directory under it. Staff keep
+the sections they work in. A row of links to screens somebody cannot open is how a church ends up
+with a product nobody opens, and the portal in 1.0 (R17) grows from this screen rather than from a
+cut-down copy of the staff app.
 
 1. **The default is your name.** Everybody is listed, and nothing else of anybody appears. A church
    that imported two hundred phone numbers has been given permission by none of those two hundred

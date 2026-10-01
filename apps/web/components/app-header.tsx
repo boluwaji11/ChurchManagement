@@ -35,11 +35,15 @@ export async function AppHeader({ session }: { session: Session }) {
         <div className="flex items-center gap-3">
           {/* The two marks go to the two places somebody means by them. Hearth
               is the platform, so it goes to the lobby, where the churches are.
-              The church's own name is the church, so it goes to its directory. */}
+              The church's own name is the church, so it goes to where that
+              person's church begins: the records for staff, their own screen
+              for everybody else. */}
           <Logo href="/choose-church" />
           <Separator orientation="vertical" className="h-5" />
           <Link
-            href={`/people?church=${session.tenantSlug}`}
+            href={`${
+              canEditPeople(session.role) || canReadIncidents(session.role) ? "/people" : "/home"
+            }?church=${session.tenantSlug}`}
             className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-label text-fg hover:bg-sunken"
           >
             {mark}
@@ -47,8 +51,18 @@ export async function AppHeader({ session }: { session: Session }) {
           </Link>
         </div>
 
-        <nav className="order-3 flex items-center gap-1 sm:order-none" aria-label={t("nav.sections")}>
-          {[
+        {/*
+          * R3.1. Somebody who is not staff has one screen, so they get no
+          * section bar. A row of two links above a page that repeats one of
+          * them is how a church ends up with a product nobody opens.
+          */}
+        <nav
+          className="order-3 flex items-center gap-1 sm:order-none"
+          aria-label={t("nav.sections")}
+        >
+          {(canEditPeople(session.role) || canReadIncidents(session.role)
+            || canCheckIn(session.role) || canFollowUp(session.role)
+            ? [
             /*
              * R3.1. One directory each. Staff work in the church's records; a
              * member sees what the rest of the church chose to publish, and on
@@ -78,7 +92,9 @@ export async function AppHeader({ session }: { session: Session }) {
             ...(canReadIncidents(session.role)
               ? [[t("nav.incidents"), "/incidents"] as const]
               : []),
-          ].map(([label, href]) => (
+          ]
+            : []
+          ).map(([label, href]) => (
             <Link
               key={href}
               href={`${href}?church=${session.tenantSlug}`}

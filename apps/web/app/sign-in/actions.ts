@@ -70,7 +70,7 @@ async function landing(userId: string): Promise<string> {
     if (role === "pastoral") return "/followups";
     // R3.1. Everybody else who does not work in the church's records lands on
     // the directory the church publishes, which is the one with anybody in it.
-    return canEditPeople(role) ? "/people" : "/directory";
+    return canEditPeople(role) ? "/people" : "/home";
   } catch {
     return "/people";
   }

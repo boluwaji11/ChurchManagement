@@ -32,7 +32,7 @@ export default async function PeoplePage({
    * anybody for them, so that is where they go.
    */
   if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
-    redirect(`/directory?church=${session.tenantSlug}`);
+    redirect(`/home?church=${session.tenantSlug}`);
   }
 
   const viewer = { role: session.role, userId: session.userId };

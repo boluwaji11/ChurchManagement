@@ -1,4 +1,7 @@
-import { withTenant, getChurch, memberDirectory } from "@hearth/db";
+import { redirect } from "next/navigation";
+import {
+  withTenant, getChurch, memberDirectory, canEditPeople, canReadIncidents,
+} from "@hearth/db";
 import { EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
@@ -23,6 +26,12 @@ export default async function MemberDirectoryPage({
 }) {
   const { church, q } = await searchParams;
   const session = await requireSession(church);
+
+  // A member reaches the same list on their own screen, with their groups above
+  // it. This URL is how staff see what the church publishes.
+  if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
+    redirect(`/home?church=${session.tenantSlug}`);
+  }
 
   const households = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId },
