@@ -104,7 +104,7 @@ export type JoinOutcome =
  * A child's record is never claimable, whoever the address belongs to. A record
  * somebody else has already claimed is not claimable either: that is a shared
  * mailbox or a mistake. Both cases get their own new record instead, which the
- * church merges (R2.9) if it turns out to be the same person.
+ * church merges (R2.8) if it turns out to be the same person.
  */
 export async function joinWithCode(input: {
   code: string;

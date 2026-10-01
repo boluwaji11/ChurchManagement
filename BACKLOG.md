@@ -53,34 +53,37 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-1 | Platform-neutral tokens, generated to CSS, three density modes | R24.1 to R24.3 | Closed |
-| HRT-2 | Colour spectrum, hues assigned to things rather than sprinkled | R24.4 | Closed |
-| HRT-3 | Component library, every state, both themes, all three densities | R24.6 | Closed |
-| HRT-4 | The `/design` gallery, eight pages | R24.8 | Closed |
+| HRT-1 | Platform-neutral tokens, generated to CSS, three density modes | R24.1 to R24.3, R24.7, R24.13 | Closed |
+| HRT-2 | Colour spectrum, hues assigned to things rather than sprinkled | R24.4, R24.9 | Closed |
+| HRT-3 | Component library, every state, both themes, all three densities | R24.6, R24.11, R24.12, R24.15, R24.17 | Closed |
+| HRT-4 | The `/design` gallery, eight pages | R24.8, R24.16 | Closed |
 | HRT-5 | Replace native browser validation with our own field messages | R24.6 | Closed |
-| HRT-6 | Dark-mode status colours, and stop tinting invalid inputs | R24.5 | Closed |
+| HRT-6 | Dark-mode status colours, and stop tinting invalid inputs | R24.5, R24.10 | Closed |
+| HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.6, R24.18 | Resolved |
 
 ### F1. Tenancy, roles and administration
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-7 | Supabase Postgres, 21 tables, row-level security on every one | R1.3 | Closed |
-| HRT-8 | Roles with field-level permissions enforced at the query layer | R1.4, R1.5 | Closed |
-| HRT-9 | Append-only audit log written by database trigger | R1.11 | Closed |
+| HRT-7 | Supabase Postgres, 21 tables, row-level security on every one | R1.3, R21.1 | Closed |
+| HRT-8 | Roles with field-level permissions enforced at the query layer | R1.4, R1.5, R21.2 | Closed |
+| HRT-9 | Append-only audit log written by database trigger | R1.11, R21.5 | Closed |
 | HRT-10 | Adversarial isolation suite, cross-tenant reads and writes on every table | R1.3 | Closed |
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
-| HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.x | Closed |
+| HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.3, R21.x | Closed |
 | HRT-111 | Campus and location on the record and in the UI where it shows | R1.2 | New |
 | HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
-| HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
+| HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | New |
+| HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | New |
+| HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | New |
+| HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8, R21.4 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Closed |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
 | HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
 | HRT-110 | Saved lists, static and rule-based | R1.14 | Resolved |
-| HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.x | Resolved |
-| HRT-114 | Joining a church: its link and code, claiming a person record, the waiting list | R1.7, R17.1, R22.1 | Resolved |
+| HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
@@ -102,11 +105,15 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-22 | Relationships, independent of household | R2.4 | Closed |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | Closed |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
+| HRT-117 | A merge leaves group memberships, pipeline entries and follow-ups on the loser | R2.8 | New |
+| HRT-118 | Skills, interests and spiritual gifts as managed vocabularies | R2.9 | New |
+| HRT-119 | Search across names, emails, phones and addresses, under 300ms at 5,000 people | R2.14 | New |
+| HRT-120 | The person timeline: attendance, groups, notes and milestones in one order | R2.15 | New |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Closed |
-| HRT-40 | Directory search, filtering, sorting and pagination | R2.x | Closed |
+| HRT-40 | Directory search, filtering, sorting and pagination | R2.1, R2.2 | Closed |
 | HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Closed |
 | HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Resolved |
-| HRT-27 | Birthdays and anniversaries list | R2.9 | New |
+| HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | New |
 
 ### F19. Data portability
 
@@ -119,8 +126,6 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
 | HRT-102 | Planning Center, Breeze and ChurchTrac people and households, their own export formats | R19.5 | Closed |
 | HRT-116 | Group membership import, for the same three systems | R19.5, R9.5 | Closed |
-| HRT-112 | The bag or stroller label, an optional third print | R8.12 | Resolved |
-| HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.9 | New |
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Closed |
 | HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Closed |
 | HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Closed |
@@ -174,6 +179,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Closed |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Closed |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Closed |
+| HRT-112 | The bag or stroller label, an optional third print | R8.12 | Resolved |
 | HRT-62 | Supervisor board and class rosters | R8.18, R8.19 | Resolved |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | Resolved |
 
@@ -370,7 +376,7 @@ Three ways in.
 | Creating a church | A pastor or administrator starting out | The church is created immediately and is provisional until a human has looked at it (HRT-115). |
 
 A child's record is never claimable, and neither is one somebody else already holds. Both get a new
-record instead, which the church merges (R2.9) if it turns out to be the same person.
+record instead, which the church merges (R2.8) if it turns out to be the same person.
 
 An approval queue was built and taken out again on the same day. It put a task on a volunteer every
 time a regular signed up, for a door the church had already chosen to open by handing out the code.
@@ -386,11 +392,11 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-117** what a merge leaves behind (R2.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
-| **Audit, October 2026** | Every 0.1 and 0.2 requirement in the PRD checked against the board. Three had no story at all: R1.14, R8.12, and R1.2 (which is built in the schema and has no screen). Account creation had no story and no screen: **HRT-109**. |
-| **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help, **HRT-107** time to value, **HRT-109** signing up |
-| **Next** | **HRT-117** what a merge leaves behind. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **0.2 still owed** | **HRT-117** what a merge leaves behind (R2.8), **HRT-118** skills and gifts (R2.9), **HRT-119** search at five thousand people (R2.14), **HRT-120** the person timeline (R2.15), **HRT-27** birthdays (R2.11). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
+| **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. All built. |
+| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church |
+| **Next** | **HRT-117** what a merge leaves behind, then **HRT-119** search, **HRT-120** the timeline, **HRT-118** skills and gifts, **HRT-27** birthdays. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1203,7 +1209,7 @@ Settings, Team shows it, with the link, a new code, and a switch to turn it off.
 2. **An address the church already has** claims that record, so they arrive as themselves with their
    household and groups already attached.
 3. **Any other address** gets a visitor record written there and then, named from what they typed,
-   with their email on it. The church merges it later (R2.9) if it turns out to be somebody it
+   with their email on it. The church merges it later (R2.8) if it turns out to be somebody it
    already had.
 4. **A child's record is never claimed**, and neither is one somebody else already holds. Both get
    their own new record.
