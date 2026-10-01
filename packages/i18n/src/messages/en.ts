@@ -372,6 +372,11 @@ export const en = {
   // Notes
   "notes.confidential": "Confidential",
   "notes.general": "General",
+  "notes.add": "Add a note",
+  "notes.body": "The note",
+  "notes.makeConfidential": "Pastoral, and restricted",
+  "notes.failed": "That did not save. Try again.",
+  "notes.error.empty": "Write the note first.",
   "notes.none": "No notes yet.",
   "notes.unattributed": "Unattributed",
   "notes.by": "{author} on {date}",

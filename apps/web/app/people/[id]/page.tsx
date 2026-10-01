@@ -6,7 +6,7 @@ import {
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones,
   canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
-  canSeeChecks, checksFor,
+  canSeeChecks, checksFor, canReadConfidentialNotes,
 } from "@hearth/db";
 import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
@@ -18,8 +18,10 @@ import { Relationships } from "../relationships";
 import { Milestones } from "../milestones";
 import { FollowUps, PersonTasks } from "../followups";
 import { Checks } from "../checks";
+import { NoteForm } from "../note-form";
 import { t, plural } from "@hearth/i18n";
 import { lifecycleLabel } from "@/lib/person-input";
+import { longDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,22 @@ function showValue(type: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return t("person.notRecorded");
   if (Array.isArray(value)) return value.length > 0 ? value.join(", ") : t("person.notRecorded");
   return String(value);
+}
+
+/** One field of a record, and a way to act on it when there is one. */
+function Detail({ label, value, href }: { label: string; value: string; href?: string }) {
+  return (
+    <div className="flex flex-col">
+      <dt className="text-label text-fg-muted">{label}</dt>
+      <dd className="text-[length:var(--d-text-body)] text-fg">
+        {href ? (
+          <a href={href} className="underline-offset-4 hover:underline">{value}</a>
+        ) : (
+          value
+        )}
+      </dd>
+    </div>
+  );
 }
 
 export default async function PersonPage({
@@ -91,14 +109,24 @@ export default async function PersonPage({
         <ArrowLeft className="size-4" /> {t("people.title")}
       </Link>
 
-      <div className="mb-8 flex items-center gap-4">
-        <Avatar name={display} id={person.id} size="xl" />
-        <div className="flex flex-col gap-1.5">
-          <h1 className="font-display text-display text-fg">{display}</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="primary">{lifecycleLabel(person.lifecycleStatus)}</Badge>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Avatar name={display} id={person.id} size="xl" />
+          <div className="flex flex-col gap-1.5">
+            <h1 className="font-display text-display text-fg">{display}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="primary">{lifecycleLabel(person.lifecycleStatus)}</Badge>
+            </div>
           </div>
         </div>
+
+        {canEditPeople(session.role) ? (
+          <Button asChild>
+            <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
+              <Pencil /> {t("action.edit")}
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       {saved ? <Banner tone="success" title={t("person.saved")} className="mb-6" /> : null}
@@ -115,18 +143,7 @@ export default async function PersonPage({
         </Banner>
       ) : null}
 
-      {canArchivePeople(session.role) ? (
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          {canArchivePeople(session.role) ? (
-            <ArchiveButton
-              church={session.tenantSlug}
-              id={person.id}
-              name={display}
-              archived={Boolean(person.archivedAt)}
-            />
-          ) : null}
-        </div>
-      ) : null}
+
 
       {/*
         * Two columns from large up. The left is the record, the right is what
@@ -140,33 +157,51 @@ export default async function PersonPage({
         <CardTitle>{t("person.details")}</CardTitle>
         <Separator className="my-4" />
         <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-          {[
-            [t("person.firstName"), person.firstName],
-            [t("person.lastName"), person.lastName],
-            [t("person.email"), contact?.email ?? t("person.notRecorded")],
-            [t("person.phone"), contact?.phone ?? t("person.notRecorded")],
-            [t("person.dateOfBirth"), person.dateOfBirth ?? t("person.notRecorded")],
-            [t("person.firstVisit"), person.firstVisitOn ?? t("person.notRecorded")],
-            [t("person.membershipDate"), person.membershipDate ?? t("person.notAMember")],
-            [t("person.status"), lifecycleLabel(person.lifecycleStatus)],
-          ].map(([k, v]) => (
-            <div key={k} className="flex flex-col">
-              <dt className="text-label text-fg-muted">{k}</dt>
-              <dd className="text-[length:var(--d-text-body)] text-fg">{v}</dd>
-            </div>
-          ))}
+          <Detail label={t("person.firstName")} value={person.firstName} />
+          <Detail label={t("person.lastName")} value={person.lastName} />
+          <Detail
+            label={t("person.email")}
+            value={contact?.email ?? t("person.notRecorded")}
+            href={contact?.email ? `mailto:${contact.email}` : undefined}
+          />
+          <Detail
+            label={t("person.phone")}
+            value={contact?.phone ?? t("person.notRecorded")}
+            href={contact?.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined}
+          />
+          <Detail
+            label={t("person.dateOfBirth")}
+            value={person.dateOfBirth ? longDate(person.dateOfBirth) : t("person.notRecorded")}
+          />
+          <Detail
+            label={t("person.firstVisit")}
+            value={person.firstVisitOn ? longDate(person.firstVisitOn) : t("person.notRecorded")}
+          />
+          <Detail
+            label={t("person.membershipDate")}
+            value={person.membershipDate ? longDate(person.membershipDate) : t("person.notAMember")}
+          />
+          <Detail label={t("person.status")} value={lifecycleLabel(person.lifecycleStatus)} />
         </dl>
 
-        {canEditPeople(session.role) ? (
+        {/* R8.10. What a label printed a warning about, where somebody can
+            read it. The station shows these at the moment of check-in; this is
+            where the church keeps them. */}
+        {contact?.allergies || contact?.medicalNote ? (
           <>
             <Separator className="my-4" />
-            <Button asChild variant="secondary">
-              <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
-                <Pencil /> {t("action.edit")}
-              </Link>
-            </Button>
+            <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              {contact.allergies ? (
+                <Detail label={t("personForm.allergies")} value={contact.allergies} />
+              ) : null}
+              {contact.medicalNote ? (
+                <Detail label={t("personForm.medicalNote")} value={contact.medicalNote} />
+              ) : null}
+            </dl>
           </>
         ) : null}
+
+
       </Card>
 
       {fields.length > 0 ? (
@@ -243,6 +278,16 @@ export default async function PersonPage({
           <Banner tone="info" title={plural("notes.restrictedCount", restricted)} className="mb-4" />
         ) : null}
 
+        {canEditPeople(session.role) ? (
+          <div className="mb-4">
+            <NoteForm
+              church={session.tenantSlug}
+              personId={person.id}
+              canConfidential={canReadConfidentialNotes(session.role)}
+            />
+          </div>
+        ) : null}
+
         <ul className="flex flex-col gap-3">
           {notes.length === 0 ? (
             <li className="text-[length:var(--d-text-body)] text-fg-muted">{t("notes.none")}</li>
@@ -283,6 +328,17 @@ export default async function PersonPage({
           ))}
         </ul>
       </Card>
+
+        {canArchivePeople(session.role) ? (
+          <div className="mt-2 mb-6">
+            <ArchiveButton
+              church={session.tenantSlug}
+              id={person.id}
+              name={display}
+              archived={Boolean(person.archivedAt)}
+            />
+          </div>
+        ) : null}
 
       </div>
 
