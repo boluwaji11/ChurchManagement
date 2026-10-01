@@ -102,7 +102,8 @@ SongSelect import, background check provider integration, Mailchimp sync, barcod
 
 ## Phase 2: Hearth Stage
 
-A separate PRD before build. Outline in [PRD.md section 8.23](PRD.md).
+Specified in [PRD-STAGE.md](PRD-STAGE.md), built on its own board,
+[BACKLOG-STAGE.md](BACKLOG-STAGE.md). Outline in [PRD.md section 8.23](PRD.md).
 
 An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@hearth/songs` package
 with the web platform and a local SQLite cache. Offline first. It renders slides directly from the
@@ -114,4 +115,10 @@ Presenter are already free and already good. Stage wins by being the only presen
 knows this Sunday's plan, this Sunday's songs, the keys they are in, and who is on the team.
 
 Phase 1 owes Phase 2 exactly two things, and both ship in 0.4: the song schema and the sync contract.
-Nothing else about Stage may influence Phase 1 scope.
+Nothing else about Stage may influence Phase 1 scope. The contract is written out in full in
+[docs/stage-sync-contract.md](docs/stage-sync-contract.md), including the six platform deliverables
+0.4 has to carry.
+
+**Stage releases** are labelled S0.1 to S1.0 so they are never confused with the platform's. S0.1, the
+render on fixture data, has no platform dependency and can be built alongside platform 0.2 and 0.3.
+S0.2 is blocked until platform 0.4 ships.

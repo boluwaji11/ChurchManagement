@@ -14,10 +14,9 @@ specification both sides build against.
 
 **Stage reads. Stage does not write, except usage.**
 
-Everything else in this document follows from that sentence. A read-only client has no merge
-algorithm, no conflict resolution, no last-writer-wins rule, and no way to corrupt a church's song
-library from a laptop in a cupboard. The cache is disposable and can always be rebuilt from the
-platform.
+Everything else in this document follows from that sentence. A read-only client has nothing to merge,
+so there is no conflict resolution to get wrong and no path by which a laptop in a cupboard corrupts a
+church's song library. The cache is disposable and is always rebuildable from the platform.
 
 The one exception is `song_usage`, which is append-only and idempotent, so pushing the same row twice
 is harmless.
@@ -332,8 +331,8 @@ A client that hits 429 is a client with a bug.
 
 ## What is deliberately absent
 
-- **No websocket, no realtime subscription.** Carried from the platform decision that Supabase
-  Realtime is unused in v1. A live plan change is a poll, and ST3.11 makes it an offer rather than an
+- **No realtime subscription.** Carried from the platform decision that Supabase Realtime is unused
+  in v1. A live plan change is a poll, and ST3.11 makes it an offer rather than an
   interruption.
 - **No write path for songs, plans, or lyrics.** ST4.8's typo correction is a suggestion raised
   through the platform, by a person, and is not in this contract.

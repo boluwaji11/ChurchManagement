@@ -18,7 +18,7 @@ Decisions that are expensive to change later. Requirement IDs refer to [../PRD.m
 | Email and SMS | Church-supplied Resend, SMTP, and Twilio credentials | See PRD section 5.2. |
 | Front end | Tailwind CSS v4, shadcn/ui on Radix, Lucide, Motion | See [design-system.md](design-system.md). |
 | Member app | PWA | Native apps are an explicit non-goal in v1. |
-| Presenter | Electron plus shared core, SQLite cache | See PRD section 8.23. |
+| Presenter | Electron plus shared core, SQLite cache | See [stage-architecture.md](stage-architecture.md). |
 | Licence | AGPL-3.0 | Makes the pricing a property of the licence, not a promise. |
 
 ## Packages
@@ -249,6 +249,9 @@ scripture text.
 That is the entire contract. It is why R11.14 and R12.13 are Phase 1 requirements rather than Phase 2
 work: the shape of the data Stage needs is settled before Stage exists, so Stage never needs an import
 step. Deleting the import step is the whole product idea.
+
+Written out in full, with routes, payloads, the cursor model, the device principal's scope, and the
+six things 0.4 owes it: [stage-sync-contract.md](stage-sync-contract.md).
 
 ## Payments
 

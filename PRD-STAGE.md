@@ -22,8 +22,8 @@ whole thing to a different vendor. Planning Center plans the service and exports
 through an import that loses the arrangement. ProPresenter runs the screens and knows nothing about
 the church. The loop breaks in the one place a volunteer has to stand in front of six hundred people.
 
-Stage closes it. It reads the plan Maria built and the songs James chose, out of the same database,
-with no export, no import, and no file passed on a USB stick.
+Stage closes it. It reads the plan Maria built and the songs James chose, out of the same database.
+The export step is gone, and so is the file somebody used to carry across the room.
 
 ### Stage does not win on features
 
@@ -179,11 +179,11 @@ Stage is a device belonging to a church, and the church has to be able to see it
 |---|---|---|
 | ST1.1 | S0.2 | **Pairing by short code.** An admin generates a pairing code in Hearth. The operator types it into Stage once. Stage receives a device token and the church's identity, and never asks again. |
 | ST1.2 | S0.2 | The pairing code is six characters, single use, and expires in fifteen minutes. |
-| ST1.3 | S0.2 | The device token is stored in the operating system keychain, never in a file next to the cache, and never logged. |
+| ST1.3 | S0.2 | The device token is stored in the operating system keychain. It stays out of the cache directory and out of the logs. |
 | ST1.4 | S0.2 | A paired device appears in the platform's device list with its name, platform, last sync time, and a **Revoke** control, alongside the active session list (R1.10). |
 | ST1.5 | S0.2 | A revoked device stops syncing at its next attempt, and **keeps its cache and keeps working for the service in progress**. Revocation is not a kill switch aimed at a Sunday morning. |
 | ST1.6 | S0.2 | The device token is scoped: read on plans, songs, arrangements, scripture, and the team roster for the services it syncs. Write on song usage. Nothing else, enforced server side. |
-| ST1.7 | S0.2 | Stage holds no user account and no password. The device is the identity, so an operator never signs in. |
+| ST1.7 | S0.2 | Stage has no sign-in. The device is the identity, which is what keeps an untrained operator out of a password prompt at 10:28. |
 | ST1.8 | S0.3 | Stage names itself after the machine on first run, and the name is editable, because a church with three laptops needs to tell them apart in the device list. |
 | ST1.9 | S1.0 | Multi-campus: a device is paired to one campus, and only that campus's services sync. |
 
@@ -204,7 +204,7 @@ The single most important property in this document: **once synced, Stage does n
 | ST2.1 | S0.2 | **Delta sync by cursor.** Stage asks what changed since its last cursor and receives only that. A full pull happens once, on pairing. |
 | ST2.2 | S0.2 | Synced entities: services and plans, plan items, songs, song sections, arrangements, arrangement media metadata, resolved scripture text, themes, and the team roster for the service. |
 | ST2.3 | S0.2 | The cache is a local SQLite database holding the same shape as the platform records, so rendering reads one store whether the network is up or down. |
-| ST2.4 | S0.2 | **Stage is read-only on everything it pulls.** Nothing in Stage edits a song, a plan, or a lyric. There is therefore no merge, no conflict resolution, and no divergence. |
+| ST2.4 | S0.2 | **Stage is read-only on everything it pulls.** Nothing in Stage edits a song, a plan, or a lyric, so there is nothing to merge and the library cannot diverge. |
 | ST2.5 | S0.2 | Song usage is the only write. It is queued locally, pushed with a client-generated identifier, and safe to retry. |
 | ST2.6 | S0.2 | Sync runs on launch, on a timer while the network is up, and on demand from a visible control. |
 | ST2.7 | S0.2 | **Sync never blocks the render path.** A sync in flight cannot delay a slide advance, and a failed sync cannot stop a service. |
@@ -233,7 +233,7 @@ The deck is the service, compiled. This is the part no other presenter has.
 |---|---|---|
 | ST3.1 | S0.2 | **A service plan opens as a deck.** Plan items in order become cue groups, in the order Maria and James put them in. No building step. |
 | ST3.2 | S0.1 | A song item compiles to slides by resolving its arrangement's sequence (R12.5) against the song's labelled sections (R12.4). A sequence of `V1 C V2 C B C C` produces exactly those sections in that order, with repeats as separate cues. |
-| ST3.3 | S0.2 | A scripture item compiles to slides from the resolved text the platform already stored (R11.5), with no lookup and no internet. |
+| ST3.3 | S0.2 | A scripture item compiles to slides from the resolved text the platform already stored (R11.5), with no lookup at service time. |
 | ST3.4 | S0.2 | Non-presenting plan items, sermon, prayer, offering, announcements, appear in the deck as markers, so the operator's position in the deck matches the service's position in the room. |
 | ST3.5 | S0.2 | **Plan notes are visible to the operator**, including the note addressed to their position (R11.6), on the control surface and on the stage display. |
 | ST3.6 | S0.2 | The deck shows the arrangement's key and tempo, because that is what James will be asked from the platform. |
@@ -259,13 +259,13 @@ Words on a wall, done properly. The bar is the back row of a dark room.
 
 | ID | Rel | Requirement |
 |---|---|---|
-| ST4.1 | S0.1 | **One section is one or more slides**, split on line count against the theme's limit, never mid-line and never mid-word. |
-| ST4.2 | S0.1 | Text fits the safe area by measurement, not by guesswork. A long line reduces the slide's size, and all slides in a section share one size so the words do not jump between them. |
+| ST4.1 | S0.1 | **One section is one or more slides**, split on line count against the theme's limit. A break falls between two lines. |
+| ST4.2 | S0.1 | Text fits the safe area by measurement. A long line reduces the slide's size, and all slides in a section share one size so the words do not jump between them. |
 | ST4.3 | S0.1 | Section label and type are available to the renderer, so a theme can show `V1` on the confidence monitor and never on the wall. |
-| ST4.4 | S0.1 | A slide never overflows, never clips a descender, and never shows a scrollbar. This is verified by an automated render test, not by eye. |
+| ST4.4 | S0.1 | Every glyph stays inside the safe area, with no clipped descender and no scrollbar. An automated render test verifies it. |
 | ST4.5 | S0.1 | Transition between slides is a cross-dissolve at a theme-set duration, defaulting to 200ms, GPU composited, with no flash of background. |
 | ST4.6 | S0.1 | **Black, clear, and logo** are each one keypress, independent of the deck position, and returning from them restores the exact slide. |
-| ST4.7 | S0.3 | Per-slide override of size, alignment, and background, stored against this run, not against the song. |
+| ST4.7 | S0.3 | Per-slide override of size, alignment, and background, stored against this run. The song is untouched. |
 | ST4.8 | S0.3 | A slide is editable live for a typo, and the edit offers to be sent back to the platform as a suggestion rather than written silently. |
 | ST4.9 | S1.0 | Two languages on one slide, primary and translation, from the section-aligned translations in R12.8, with independent sizing. |
 | ST4.10 | S1.0 | Right-to-left text, vertical centring, and a font fallback chain that covers the scripts a church actually uses. |
@@ -302,7 +302,7 @@ alone exceeds one slide, in which case it breaks at a sentence.
 | ST6.1 | S0.1 | One built-in theme that is good enough to use unmodified on a Sunday. Typography, contrast, and safe areas from the platform's design system. |
 | ST6.2 | S0.1 | A theme is data: font family, weights, sizes as a proportion of output height, colour, alignment, safe area insets, line limit, shadow or outline for legibility over video, and transition duration. |
 | ST6.3 | S0.2 | Themes sync from the platform, so the church sets its look once and every laptop matches. |
-| ST6.4 | S0.3 | Separate themes per content kind: lyrics, scripture, announcement, title. A church sets four looks, not forty. |
+| ST6.4 | S0.3 | Separate themes per content kind: lyrics, scripture, announcement, title. Four looks is what a church will actually maintain. |
 | ST6.5 | S0.3 | A theme is previewed at the real output resolution before it is used. |
 | ST6.6 | S1.0 | Theme editing inside Stage, with a live preview and a contrast check that refuses to save a lyric theme below the station contrast floor of 7:1. |
 | ST6.7 | S1.0 | Templates: a theme plus a background plus an overlay, saved as one named thing a church picks by name. |
@@ -325,7 +325,7 @@ and over the four bundled video loops, measured on the rendered frame rather tha
 | ST7.6 | S0.4 | Audio and video as plan items in their own right, with duration, in and out points, and an end-of-item behaviour. |
 | ST7.7 | S0.4 | Audio ducking is out of scope. Stage sets output device and level, and the sound desk owns the rest. |
 | ST7.8 | S1.0 | Live camera input as a background layer, with device selection and a frozen fallback if the device disappears. |
-| ST7.9 | S0.3 | A media file that is missing, corrupt, or in an undecodable codec fails to the theme colour and says so on the control surface, never on the output. |
+| ST7.9 | S0.3 | A media file that is missing, corrupt, or in an undecodable codec fails to the theme colour. The control surface says what happened, and the output stays clean. |
 
 *Accept ST7.3:* a 30 second 1080p H.264 loop plays for three hours with no visible seam at the loop
 point, no drift in memory use, and no dropped frames during a slide dissolve, on the ST20.5 reference
@@ -340,7 +340,7 @@ hardware.
 | ID | Rel | Requirement |
 |---|---|---|
 | ST8.1 | S0.1 | One output window, fullscreen on a chosen display, with the display picked by name and position rather than by index. |
-| ST8.2 | S0.1 | The output window carries no chrome, no cursor, and no operating system notification, and it does not sleep. |
+| ST8.2 | S0.1 | The output window carries no chrome. The cursor is hidden, operating system notifications are suppressed, and the display is kept awake. |
 | ST8.3 | S0.3 | **Multiple outputs, independent content per output.** The main screen shows lyrics while the foyer screen shows the announcement loop. |
 | ST8.4 | S0.3 | Output configuration survives a display being unplugged and replugged, matched by display identity, so the Sunday projector always lands on the same output. |
 | ST8.5 | S0.3 | A display disappearing mid-service does not take Stage down, and the output reappears on reconnection with the live slide. |
@@ -383,7 +383,7 @@ The operator is sixteen and untrained. This domain is where that is either respe
 |---|---|---|
 | ST10.1 | S0.1 | **Fully keyboard operable.** Next, previous, black, clear, logo, jump, and search, with no pointer. |
 | ST10.2 | S0.1 | The control surface shows the live slide, the next slide, and the deck, and the live slide is unambiguous at a glance. |
-| ST10.3 | S0.1 | **Nothing destructive is reachable during a service.** No delete, no library edit, no theme edit, in the live surface. |
+| ST10.3 | S0.1 | **Nothing destructive is reachable during a service.** Delete, library editing, and theme editing are absent from the live surface. |
 | ST10.4 | S0.1 | Advance is idempotent under key repeat: holding the key does not skip four cues. |
 | ST10.5 | S0.2 | A service is chosen at launch from the synced services, defaulting to the next one by date and time, so the common case is one keypress. |
 | ST10.6 | S0.3 | The operator can see at all times: what is live, what is next, whether the output is black, whether sync is current, and what time it is. |
@@ -424,7 +424,7 @@ in Stage beyond a sync.
 | ID | Rel | Requirement |
 |---|---|---|
 | ST12.1 | S0.4 | **Control from a phone or tablet on the local network**, in a browser, with no app install. |
-| ST12.2 | S0.4 | Pairing by a code shown on the control surface, over the local network only, never through our servers. |
+| ST12.2 | S0.4 | Pairing by a code shown on the control surface, over the local network. Our servers are out of the path. |
 | ST12.3 | S0.4 | Remote shows live slide, next slide, the deck, and the plan notes, and advances, reverses, blacks, and jumps. |
 | ST12.4 | S0.4 | Two controllers at once stay consistent: the leader on stage and the operator at the desk see the same live cue. |
 | ST12.5 | S0.4 | The remote is `portal` density from the design system, usable one handed, with targets a guitarist can hit without looking. |
@@ -508,11 +508,11 @@ part is the file reading and the structural mapping, which lives in a shared pac
 | ID | Rel | Requirement |
 |---|---|---|
 | ST17.1 | S0.2 | **Song usage pushed back** as `SongUsage` rows with song, arrangement, key used, service, and date, with `source = stage` (PRD section 9.4). |
-| ST17.2 | S0.2 | Usage is recorded when a song is actually shown, not when a plan is opened, so the CCLI report reflects the service rather than the intention. |
+| ST17.2 | S0.2 | Usage is recorded when a song is actually shown, so the CCLI report reflects the service rather than the intention. |
 | ST17.3 | S0.2 | Usage queued offline is pushed on reconnect, idempotently, and a double push does not double count. |
 | ST17.4 | S0.3 | A song added live in Stage and not in the plan is still reported, because that is exactly the usage a church forgets to report and gets fined for. |
 | ST17.5 | S0.4 | Service run telemetry back to the platform for the plan's revision history: what ran, in what order, and how long each item actually took, against R11.3's planned durations. |
-| ST17.6 | S0.2 | No other data leaves Stage. No analytics on what a church sings, no model training, carried from the platform's trust constraints. |
+| ST17.6 | S0.2 | No other data leaves Stage. What a church sings is its own business, and the platform's trust constraints carry here unchanged. |
 
 *Accept ST17.1:* a service run in Stage with the network off appears in the platform's CCLI usage
 export for the period after the laptop reconnects, with the correct key.
@@ -571,11 +571,11 @@ fails the build if any sampled text region falls below 7:1.
 | ST20.5 | **Reference hardware is a 2019 laptop**: four cores, 8GB, integrated graphics, 1080p output. That is what is on the church's media desk. Performance is measured there rather than on a developer's machine. |
 | ST20.6 | 1080p60 output with a video background and a text dissolve, with no dropped frames, on reference hardware. |
 | ST20.7 | No memory growth across a three-hour session with video backgrounds, asserted by a soak test. |
-| ST20.8 | **No network call in the render path.** Enforced by an architectural test, not by discipline. |
+| ST20.8 | **No network call in the render path.** An architectural test enforces it. |
 | ST20.9 | Every user-facing string externalised into `packages/i18n` from Stage's first commit (R22.8). |
 | ST20.10 | A library of 2,000 songs and 500 plans in the local cache with search under 100ms. |
 | ST20.11 | Installer under 150MB per platform, and Stage's disk use visible and bounded (ST2.11). |
-| ST20.12 | Stage contains no telemetry beyond ST17.x, and no crash reporting that transmits without the operator's action. |
+| ST20.12 | Stage contains no telemetry beyond ST17.x, and crash reporting transmits only on the operator's action. |
 
 ---
 

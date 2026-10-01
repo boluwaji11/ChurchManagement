@@ -79,6 +79,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
 | HRT-110 | Saved lists, static and rule-based | R1.14 | New |
+| HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.x | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -323,7 +324,15 @@ F18 Reporting, F20 API.
 
 ## E6. Hearth Stage (P2)
 
-The presenter. Separate PRD written at build time.
+The presenter, specified in [PRD-STAGE.md](PRD-STAGE.md) and tracked on its own board,
+[BACKLOG-STAGE.md](BACKLOG-STAGE.md), with `STG-n` story IDs. It is built in parallel and has its own
+Active story.
+
+What this board owes it, all in 0.4: the song schema (R12.x), plans readable as data (R11.14),
+`change_seq` on every synced table, the Stage device principal with pairing and revoke, the nine
+routes under `/api/stage/v1`, and the idempotent `song_usage` insert. Specified in
+[docs/stage-sync-contract.md](docs/stage-sync-contract.md), and written as stories here when 0.4 is
+planned.
 
 ---
 
