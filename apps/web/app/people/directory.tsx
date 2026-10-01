@@ -145,7 +145,7 @@ export function Directory({
        somebody came for, so it gets the width; the filters are read once and
        then sat beside. */
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <aside className="lg:sticky lg:top-6 lg:w-64 lg:shrink-0">
+      <aside className="lg:sticky lg:top-20 lg:w-64 lg:shrink-0">
         <Toolbar
           church={church}
           search={search}

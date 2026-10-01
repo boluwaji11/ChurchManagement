@@ -27,7 +27,7 @@ export async function AppHeader({ session }: { session: Session }) {
   return (
     <>
     <DemoBanner tenantId={session.tenantId} />
-    <header className="border-b border-line bg-surface">
+    <header className="sticky top-0 z-40 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
           {/* The two marks go to the two places somebody means by them. Hearth
