@@ -196,7 +196,9 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
    * station cannot replay is a child nobody can account for.
    */
   const checkInLocally = React.useCallback(
-    async (entries: { personId: string; roomId: string | null; child: boolean }[]) => {
+    async (
+      entries: { personId: string; roomId: string | null; child: boolean; bagLabel?: boolean }[],
+    ) => {
       const codes: Record<string, string> = {};
       const at = new Date().toISOString();
 
@@ -214,6 +216,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
           roomId: entry.roomId,
           child: entry.child,
           code,
+          bagLabel: entry.bagLabel === true,
         };
         await appendEvent(event);
       }

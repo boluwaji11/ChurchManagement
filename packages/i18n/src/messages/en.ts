@@ -1192,6 +1192,8 @@ export const en = {
   "labels.badge": "Name badge",
   "labels.child": "Child",
   "labels.guardian": "Pickup",
+  "labels.bag": "Bag",
+  "checkin.bagLabel": "Bag label",
   "labels.guardianLine": "Show this code to collect",
   "labels.none.title": "Nothing to print",
   "labels.none.body": "Check a child in and the labels come up here.",

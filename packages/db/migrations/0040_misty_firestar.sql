@@ -1,0 +1,1 @@
+ALTER TABLE "checkin_visits" ADD COLUMN "bag_label" boolean DEFAULT false NOT NULL;

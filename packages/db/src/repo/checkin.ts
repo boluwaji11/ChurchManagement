@@ -38,6 +38,12 @@ export interface CheckinEntry {
   /** When it happened at the station, where that is not now. */
   at?: string | null;
   /**
+   * R8.12. A third label for the bag or the stroller that came in with them.
+   * Carries the child's name, the room and the same code, so a bag found in a
+   * corridor says which child it belongs to.
+   */
+  bagLabel?: boolean;
+  /**
    * R8.6. Whether this person needs a label pair and a code. A child does. An
    * adult takes a name badge, and a badge is not a claim on anybody.
    */
@@ -158,6 +164,9 @@ async function writeVisit(
       ...row,
       code,
       kind: child ? "child" : "adult",
+      // An adult takes a name badge and makes no claim on a child, so there is
+      // nothing for a bag label to be matched against.
+      bagLabel: child ? entry.bagLabel === true : false,
       ...(entry.at ? { checkedInAt: new Date(entry.at) } : {}),
     })
     .onConflictDoNothing({ target: [checkinVisits.occurrenceId, checkinVisits.personId] });
@@ -319,6 +328,8 @@ export interface LabelPair {
   code: string | null;
   /** R8.10. What the room has to know. Null means nothing is recorded. */
   allergy: string | null;
+  /** R8.12. Whether a third label goes with this pair. */
+  bag: boolean;
 }
 
 export async function labelsFor(
@@ -340,6 +351,7 @@ export async function labelsFor(
       roomName: checkinRooms.name,
       roomHue: checkinRooms.hue,
       serviceName: serviceOccurrences.name,
+      bagLabel: checkinVisits.bagLabel,
     })
     .from(checkinVisits)
     .innerJoin(people, eq(people.id, checkinVisits.personId))
@@ -362,5 +374,6 @@ export async function labelsFor(
       churchName,
       code: r.code,
       allergy: r.allergies,
+      bag: r.bagLabel,
     }));
 }

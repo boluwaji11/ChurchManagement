@@ -76,6 +76,8 @@ export function Desk({
   const [open, setOpen] = React.useState<string | null>(null);
   const [chosen, setChosen] = React.useState<Record<string, string | null>>({});
   const [picked, setPicked] = React.useState<Record<string, boolean>>({});
+  /** R8.12. Which children came in with a bag or a stroller. */
+  const [bags, setBags] = React.useState<Record<string, boolean>>({});
   const [counts, setCounts] = React.useState<Record<string, number>>({});
   const [error, setError] = React.useState<string>();
   const [blocked, setBlocked] = React.useState<string>();
@@ -101,6 +103,7 @@ export function Desk({
     }
     setChosen(rooms);
     setPicked(people);
+    setBags({});
     setSeen(false);
   };
 
@@ -119,6 +122,7 @@ export function Desk({
         personId: p.id,
         roomId: p.isChild ? (chosen[p.id] ?? null) : null,
         child: p.isChild,
+        bagLabel: p.isChild && bags[p.id] === true,
       }));
     if (entries.length === 0) return;
 
@@ -156,6 +160,7 @@ export function Desk({
                 churchName: station.snapshot?.churchName ?? "",
                 code: given[personId] ?? null,
                 allergy: person?.allergies ?? null,
+                bag: bags[personId] === true,
               };
             }),
           );
@@ -348,9 +353,11 @@ export function Desk({
                   counts={counts}
                   roomId={chosen[person.id] ?? null}
                   picked={Boolean(picked[person.id])}
+                  bag={Boolean(bags[person.id])}
                   justDone={done.includes(person.id)}
                   onRoom={(roomId) => setChosen((c) => ({ ...c, [person.id]: roomId }))}
                   onPick={(on) => setPicked((p) => ({ ...p, [person.id]: on }))}
+                  onBag={(on) => setBags((b) => ({ ...b, [person.id]: on }))}
                   onUndo={() => take(person.id)}
                   offline={{
                     online: station.state.online,
@@ -405,9 +412,11 @@ function Member({
   counts,
   roomId,
   picked,
+  bag,
   justDone,
   onRoom,
   onPick,
+  onBag,
   onUndo,
   offline,
 }: {
@@ -417,9 +426,12 @@ function Member({
   counts: Record<string, number>;
   roomId: string | null;
   picked: boolean;
+  /** R8.12. A bag or a stroller came in with them. */
+  bag: boolean;
   justDone: boolean;
   onRoom: (roomId: string | null) => void;
   onPick: (on: boolean) => void;
+  onBag: (on: boolean) => void;
   onUndo: () => void;
   offline: OfflineCheckout;
 }) {
@@ -468,8 +480,20 @@ function Member({
       {/* Only children are checked into a class. An adult is here, counted on
           the attendance, and wearing a name badge. */}
       {person.isChild ? (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           {full ? <Badge tone="warning">{t("checkin.full")}</Badge> : null}
+
+          {/* R8.12. Offered only while they are being checked in, because a bag
+              label with nothing to match it against is a label nobody wants. */}
+          {picked ? (
+            <label className="flex cursor-pointer items-center gap-2">
+              <Checkbox checked={bag} onCheckedChange={(on) => onBag(on === true)} />
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">
+                {t("checkin.bagLabel")}
+              </span>
+            </label>
+          ) : null}
+
           <Select value={roomId ?? ""} onValueChange={(value) => onRoom(value || null)}>
             <SelectTrigger aria-label={t("checkin.room")} className="w-48">
               <SelectValue />

@@ -212,6 +212,11 @@ describe("the label pair (R8.6, R8.11)", () => {
     expect(looksLikeCode(label!.code ?? "")).toBe(true);
   });
 
+  it("asks for no third label unless the desk did (R8.12)", async () => {
+    const [label] = await run((tx) => labelsFor(tx, service, [mia], "Check-in Test Church"));
+    expect(label!.bag).toBe(false);
+  });
+
   it("gives an adult a name badge with no code on it (R8.5)", async () => {
     // She was taken back out by the undo test above, so she is checked in again.
     await run((tx) => checkInFamily(tx, as(), {
@@ -253,5 +258,57 @@ describe("allergies (R8.10)", () => {
     // is clear would be claiming something the church was never told.
     const [label] = await run((tx) => labelsFor(tx, service, [danny], "Check-in Test Church"));
     expect(label!.allergy).toBeNull();
+  });
+});
+
+/**
+ * R8.12. The bag or the stroller that came in with the child.
+ *
+ * It is a third label, carrying the same code, so a bag found in a corridor
+ * says whose it is. The choice is kept on the visit rather than decided when
+ * printing, so a reprint at 11:20 prints what came out at 09:58.
+ */
+describe("the bag label (R8.12)", () => {
+  let bagKid: string;
+
+  beforeAll(async () => {
+    bagKid = (await run((tx) =>
+      createPerson(tx, as(), {
+        firstName: "Theo", lastName: "Ochoa", dateOfBirth: "2021-03-02",
+      } as never),
+    )).id;
+  });
+
+  it("is printed for the child the desk ticked", async () => {
+    await run((tx) => checkInFamily(tx, as(), {
+      occurrenceId: service,
+      entries: [{ personId: bagKid, roomId: kids, child: true, bagLabel: true }],
+    }));
+
+    const [label] = await run((tx) => labelsFor(tx, service, [bagKid], "Check-in Test Church"));
+    expect(label!.bag).toBe(true);
+    // It carries the same code as the pair, which is the whole point of it.
+    expect(looksLikeCode(label!.code ?? "")).toBe(true);
+  });
+
+  it("stays on the visit, so a reprint prints the same thing", async () => {
+    const again = await run((tx) => labelsFor(tx, service, [bagKid], "Check-in Test Church"));
+    expect(again[0]!.bag).toBe(true);
+  });
+
+  it("is never on an adult's badge", async () => {
+    const adult = (await run((tx) =>
+      createPerson(tx, as(), { firstName: "Marco", lastName: "Ochoa" } as never),
+    )).id;
+
+    // Asked for anyway, which is what a mis-wired client would do.
+    await run((tx) => checkInFamily(tx, as(), {
+      occurrenceId: service,
+      entries: [{ personId: adult, roomId: null, child: false, bagLabel: true }],
+    }));
+
+    const [label] = await run((tx) => labelsFor(tx, service, [adult], "Check-in Test Church"));
+    expect(label!.bag).toBe(false);
+    expect(label!.code).toBeNull();
   });
 });

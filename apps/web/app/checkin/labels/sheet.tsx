@@ -92,6 +92,21 @@ export function LabelSheet({
                 allergy={null}
                 kind={t("labels.guardian")}
               />
+              {/* R8.12. The bag or the stroller, carrying the same code, so a
+                  bag in a corridor says whose it is. No allergy on it: a bag
+                  gets left in places a child's medical note should not be. */}
+              {label.bag ? (
+                <Label
+                  stock={stock}
+                  name={label.childName}
+                  code={label.code}
+                  room={label.roomName}
+                  roomHue={label.roomHue}
+                  lines={[label.serviceName]}
+                  allergy={null}
+                  kind={t("labels.bag")}
+                />
+              ) : null}
             </React.Fragment>
           ),
         )}

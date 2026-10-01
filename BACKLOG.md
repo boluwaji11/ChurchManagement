@@ -119,6 +119,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-39 | Stream the export instead of building it in memory, once a church outgrows it | R19.8 | New |
 | HRT-102 | Planning Center, Breeze and ChurchTrac people and households, their own export formats | R19.5 | Closed |
 | HRT-116 | Group membership import, for the same three systems | R19.5, R9.5 | Closed |
+| HRT-112 | The bag or stroller label, an optional third print | R8.12 | Resolved |
 | HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.9 | New |
 | HRT-31 | Sample data set, with its loader and tests | R19.7 | Closed |
 | HRT-46 | A demo experience: somewhere to see the product full without signing up | R19.7, R22.1 | Closed |
@@ -385,11 +386,11 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-112** the bag label (R8.12), **HRT-117** what a merge leaves behind (R2.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **0.2 still owed** | **HRT-117** what a merge leaves behind (R2.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement in the PRD checked against the board. Three had no story at all: R1.14, R8.12, and R1.2 (which is built in the schema and has no screen). Account creation had no story and no screen: **HRT-109**. |
 | **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
 | **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help, **HRT-107** time to value, **HRT-109** signing up |
-| **Next** | **HRT-112** the bag label. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **Next** | **HRT-117** what a merge leaves behind. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1113,6 +1114,27 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-112, how to test it
+
+At the check-in desk, open a household and tick a child. A **Bag label** box appears beside their
+class, and only while they are being checked in, because a bag label with no child to match it
+against is a label nobody wants.
+
+1. **Tick it and check them in.** Three labels print for that child rather than two: theirs, the
+   pickup one, and the bag, all carrying the same code.
+2. **The bag label has no allergy on it.** A bag gets left in a corridor, on a pew and in a car, and
+   a child's medical note should not be in any of those places. The child's own label still carries
+   it.
+3. **Reprint the labels.** The bag label comes back, because the choice is on the visit rather than
+   decided at print time.
+4. **An adult never gets one**, even if something asks for it: a badge says who somebody is and
+   makes no claim on a child, so there is nothing to match a bag against.
+5. **Offline.** Pull the network, check a child in with the box ticked, and the bag label prints from
+   what the station is holding. It reconciles with the choice intact.
+
+The kiosk does not ask. It is one more decision in a queue of forty families, and the volunteer at
+the desk is the one who prints it when a bag actually turns up.
 
 ### HRT-110, how to test it
 

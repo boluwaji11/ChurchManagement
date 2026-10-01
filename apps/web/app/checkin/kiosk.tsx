@@ -145,6 +145,10 @@ export function Kiosk({
                 churchName: station.snapshot?.churchName ?? "",
                 code: given[personId] ?? null,
                 allergy: person?.allergies ?? null,
+                // R8.12. A parent at a kiosk is not asked about a bag: it is
+                // one more decision in the queue, and the volunteer at the desk
+                // is the one who prints it when a bag turns up.
+                bag: false,
               };
             }),
           );

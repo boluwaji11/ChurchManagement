@@ -11,6 +11,7 @@
  * it is asserted.
  */
 
+import type { ServicePlan } from "./service";
 import type { Arrangement, Song, SongSection, WholeSong } from "./types";
 
 /**
@@ -266,3 +267,96 @@ export const holyHolyHoly: WholeSong = {
 
 /** The songs Stage offers on first run, so a church starting cold has something. */
 export const sampleLibrary: WholeSong[] = [amazingGrace, holyHolyHoly];
+
+/**
+ * A Sunday service, for the deck compiler's tests and for `show-deck`.
+ *
+ * Shaped like a real one rather than like a test: a welcome, two songs with the
+ * second in a different key from its arrangement, a reading, the sermon, and a
+ * closing reprise of the first song. The notices carry a note addressed to one
+ * position, so `notesFor` has something to filter.
+ */
+export const sundayService: ServicePlan = {
+  id: "plan-sunday",
+  source: "set_list",
+  title: "Sunday Morning",
+  date: "2026-10-04",
+  startsAt: "2026-10-04T10:30:00-05:00",
+  items: [
+    {
+      type: "marker",
+      id: "item-welcome",
+      sortOrder: 0,
+      title: "Welcome",
+      durationSeconds: 120,
+      notes: [],
+      kind: "welcome",
+    },
+    {
+      type: "song",
+      id: "item-holy",
+      sortOrder: 1,
+      title: "Holy, Holy, Holy",
+      durationSeconds: 300,
+      notes: [{ position: null, body: "Start a cappella" }],
+      songId: "song-holy",
+      arrangementId: "hhh-sunday",
+      keyOverride: null,
+    },
+    {
+      type: "song",
+      id: "item-grace",
+      sortOrder: 2,
+      title: "Amazing Grace",
+      durationSeconds: 330,
+      notes: [
+        { position: null, body: "Hold the last line" },
+        { position: "Drums", body: "In on the second verse" },
+      ],
+      songId: "song-amazing-grace",
+      arrangementId: "ag-sunday",
+      // The arrangement is in G and the leader wants it lower this Sunday, so
+      // the deck reports Bb and the chart transposes (ST5.6).
+      keyOverride: "Bb",
+    },
+    {
+      type: "scripture",
+      id: "item-reading",
+      sortOrder: 3,
+      title: "Psalm 23",
+      durationSeconds: 180,
+      notes: [],
+      reference: "Psalm 23:1-6",
+      translation: "KJV",
+      verses: [
+        { number: 1, text: "The LORD is my shepherd; I shall not want." },
+        { number: 2, text: "He maketh me to lie down in green pastures: he leadeth me beside the still waters." },
+        { number: 3, text: "He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake." },
+        { number: 4, text: "Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me." },
+        { number: 5, text: "Thou preparest a table before me in the presence of mine enemies: thou anointest my head with oil; my cup runneth over." },
+        { number: 6, text: "Surely goodness and mercy shall follow me all the days of my life: and I will dwell in the house of the LORD for ever." },
+      ],
+    },
+    {
+      type: "marker",
+      id: "item-sermon",
+      sortOrder: 4,
+      title: "The Good Shepherd",
+      durationSeconds: 1800,
+      notes: [],
+      kind: "sermon",
+    },
+    {
+      type: "song",
+      id: "item-grace-reprise",
+      sortOrder: 5,
+      title: "Amazing Grace (reprise)",
+      durationSeconds: 180,
+      notes: [],
+      songId: "song-amazing-grace",
+      // The two-verse arrangement, in its own key.
+      arrangementId: "ag-short",
+      keyOverride: null,
+    },
+  ],
+};

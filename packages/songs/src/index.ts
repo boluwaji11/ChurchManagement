@@ -41,6 +41,57 @@ export {
 } from "./keys";
 
 export {
+  MARKER_KINDS,
+  type MarkerKind,
+  type ItemNote,
+  type Verse,
+  type SongItem,
+  type ScriptureItem,
+  type MarkerItem,
+  type ServiceItem,
+  type ServicePlan,
+  orderedItems,
+  plannedSeconds,
+  notesFor,
+} from "./service";
+
+export {
+  resolveSequence,
+  pickArrangement,
+  formatSequence,
+  parseSequence,
+  type ResolvedSection,
+  type ResolvedSequence,
+  type SequenceProblem,
+} from "./sequence";
+
+export {
+  splitSection,
+  splitBilingual,
+  DEFAULT_LIMITS,
+  type Slide,
+  type SlideLimits,
+  type BilingualSlide,
+} from "./slides";
+
+export {
+  compileDeck,
+  lookupFrom,
+  nextCue,
+  cueAt,
+  positionOf,
+  groupOf,
+  deckIsComplete,
+  type Deck,
+  type Cue,
+  type CueGroup,
+  type CueKind,
+  type DeckProblem,
+  type SongLookup,
+  type CompileOptions,
+} from "./deck";
+
+export {
   validateWholeSong,
   hasErrors,
   errorsOnly,

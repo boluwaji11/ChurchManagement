@@ -119,6 +119,8 @@ export interface OfflineCheckin {
   child: boolean;
   /** From the station's reserved block. Null for an adult taking a badge. */
   code: string | null;
+  /** R8.12. Whether a bag label was printed, so the reconciled row says so. */
+  bagLabel?: boolean;
 }
 
 export interface OfflineCheckout {
@@ -271,6 +273,7 @@ async function replayCheckin(
         roomId: event.roomId,
         child: event.child,
         code: event.code,
+        bagLabel: event.bagLabel === true,
         at: event.at,
       },
     ],

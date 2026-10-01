@@ -281,6 +281,13 @@
       "when": 1790890932477,
       "tag": "0039_curly_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790892203552,
+      "tag": "0040_misty_firestar",
+      "breakpoints": true
     }
   ]
 }

@@ -165,6 +165,14 @@ export const checkinVisits = pgTable(
      * to count them.
      */
     kind: text("kind").notNull().default("child"),
+    /**
+     * R8.12. A third label, for the bag or the stroller that came with them.
+     *
+     * Kept on the visit rather than decided when printing, so a reprint at
+     * 11:20 prints what was printed at 09:58, and a station that was offline
+     * prints the same thing when it reconciles.
+     */
+    bagLabel: boolean("bag_label").notNull().default(false),
     checkedInAt: timestamp("checked_in_at", { withTimezone: true }).defaultNow().notNull(),
     /** Who did the checking in, where a volunteer was driving the station. */
     checkedInBy: uuid("checked_in_by"),
