@@ -70,6 +70,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-10 | Adversarial isolation suite, cross-tenant reads and writes on every table | R1.3 | Closed |
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.x | Closed |
+| HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Resolved |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Closed |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
@@ -159,7 +160,8 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | Resolved |
 | HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | Resolved |
 | HRT-74 | The station opens on the service that is actually happening now | R8.2 | Resolved |
-| HRT-60 | The station keeps working with no network | R8.20 to R8.24 | New |
+| HRT-75 | Station search is a directory lookup, by person, on name prefixes | R8.3, R8.4 | Resolved |
+| HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Active |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
@@ -219,9 +221,9 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service |
-| **Next** | **HRT-60** the station keeps working with no network. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Active** | **HRT-60** the station keeps working with no network |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings |
+| **Next** | HRT-61 label printers. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 

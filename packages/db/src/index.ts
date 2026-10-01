@@ -39,6 +39,7 @@ export * from "./repo/rooms";
 export * from "./repo/stations";
 export * from "./repo/lookup";
 export * from "./repo/checkin";
+export * from "./repo/offline";
 export * from "./repo/checkout";
 export * from "./repo/which-service";
 export * from "./repo/sessions";

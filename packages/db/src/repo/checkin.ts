@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { checkinVisits, checkinRooms } from "../schema/checkin";
+import { checkinVisits, checkinRooms, checkinCodes } from "../schema/checkin";
 import { serviceOccurrences, attendanceRecords } from "../schema/gatherings";
 import { people } from "../schema/people";
 import { PermissionError, type TenantRole } from "../roles";
@@ -30,6 +30,13 @@ export interface CheckinEntry {
   personId: string;
   /** Null for an adult, or for a child the volunteer sent to no room. */
   roomId: string | null;
+  /**
+   * R8.21. A code from a station's reserved block, where the check-in happened
+   * with no network. The online path leaves this unset and takes a fresh one.
+   */
+  code?: string | null;
+  /** When it happened at the station, where that is not now. */
+  at?: string | null;
   /**
    * R8.6. Whether this person needs a label pair and a code. A child does. An
    * adult takes a name badge, and a badge is not a claim on anybody.
@@ -139,15 +146,21 @@ async function writeVisit(
     checkedInBy: input.userId ?? null,
   };
 
-  const code = entry.child === false ? null : await freeCode(db);
+  const code = entry.child === false ? null : (entry.code ?? (await freeCode(db)));
 
   await db
     .insert(checkinVisits)
-    .values({ ...row, code })
+    .values({ ...row, code, ...(entry.at ? { checkedInAt: new Date(entry.at) } : {}) })
     .onConflictDoNothing({ target: [checkinVisits.occurrenceId, checkinVisits.personId] });
 }
 
-/** A code this church has not issued before. */
+/**
+ * A code this church has not issued before and has not promised to a station.
+ *
+ * The reserved blocks matter here. A station holding a hundred codes for a
+ * service it has not run yet has those codes on no label, so nothing stops this
+ * from picking one by chance, and then two children have the same code.
+ */
 async function freeCode(db: Tx): Promise<string> {
   for (let attempt = 0; attempt < CODE_ATTEMPTS; attempt += 1) {
     const candidate = newCode();
@@ -156,7 +169,14 @@ async function freeCode(db: Tx): Promise<string> {
       .from(checkinVisits)
       .where(eq(checkinVisits.code, candidate))
       .limit(1);
-    if (!taken) return candidate;
+    if (taken) continue;
+
+    const [promised] = await db
+      .select({ id: checkinCodes.id })
+      .from(checkinCodes)
+      .where(eq(checkinCodes.code, candidate))
+      .limit(1);
+    if (!promised) return candidate;
   }
   throw new InvalidInputError("checkin.error.code");
 }

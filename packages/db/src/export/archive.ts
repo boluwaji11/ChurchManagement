@@ -32,6 +32,8 @@ const TABLES = [
   "checkin_station_services",
   "checkin_visits",
   "checkin_overrides",
+  "checkin_codes",
+  "checkin_offline_events",
   "stored_files",
   "demo_records",
   "tenant_members",

@@ -169,6 +169,7 @@ export const checkinVisits = pgTable(
     index("visit_tenant_idx").on(t.tenantId),
     index("visit_occurrence_idx").on(t.tenantId, t.occurrenceId),
     index("visit_person_idx").on(t.tenantId, t.personId),
+    index("visit_room_idx").on(t.tenantId, t.roomId),
     // One live visit per person per service. Checking a child in twice is the
     // same child, and two rows would be two codes for one label pair.
     uniqueIndex("visit_unique").on(t.occurrenceId, t.personId),
@@ -211,5 +212,72 @@ export const checkinOverrides = pgTable(
   (t) => [
     index("override_tenant_idx").on(t.tenantId),
     index("override_visit_idx").on(t.tenantId, t.visitId),
+  ],
+);
+
+/**
+ * R8.21. Codes a station holds before it needs them.
+ *
+ * A station with no network still has to put a unique code on a label pair, and
+ * uniqueness is a property of the whole church, so it cannot be worked out by a
+ * tablet on its own. The station is handed a block of codes while the network
+ * is up, and every code in that block is already spoken for: no other station
+ * can be given it, and the online path will not generate it either.
+ *
+ * Reservations outlive the service deliberately. A tablet that was switched off
+ * before it reconciled still has unsent check-ins on it, and those codes are on
+ * labels in a parent's pocket.
+ */
+export const checkinCodes = pgTable(
+  "checkin_codes",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    occurrenceId: uuid("occurrence_id").notNull().references(() => serviceOccurrences.id, { onDelete: "cascade" }),
+    stationId: uuid("station_id").notNull().references(() => checkinStations.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    /** Set when a visit takes it, so a block can be topped up honestly. */
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: created(),
+  },
+  (t) => [
+    index("code_tenant_idx").on(t.tenantId),
+    index("code_block_idx").on(t.tenantId, t.stationId, t.occurrenceId),
+    uniqueIndex("code_unique").on(t.tenantId, t.code),
+  ],
+);
+
+/**
+ * R8.23. What a station did while it was on its own.
+ *
+ * Every offline action carries an id the station made up before it happened, and
+ * that id is what makes replaying twice safe: a tablet that sends its log, loses
+ * the wifi again before it hears back, and sends the same log on reconnect must
+ * not check forty children in twice.
+ *
+ * The outcome is kept rather than discarded, because "applied" and "the child
+ * was already in another room" are both things somebody may have to explain on
+ * a Monday.
+ */
+export const checkinOfflineEvents = pgTable(
+  "checkin_offline_events",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    stationId: uuid("station_id").notNull().references(() => checkinStations.id, { onDelete: "cascade" }),
+    /** The id the station gave it, before it had a network to ask. */
+    eventId: uuid("event_id").notNull(),
+    /** "checkin" or "checkout". */
+    kind: text("kind").notNull(),
+    /** When it happened at the station, which is not when it arrived here. */
+    happenedAt: timestamp("happened_at", { withTimezone: true }).notNull(),
+    /** "applied", or the name of what stopped it. */
+    outcome: text("outcome").notNull(),
+    createdAt: created(),
+  },
+  (t) => [
+    index("offline_event_tenant_idx").on(t.tenantId),
+    index("offline_event_station_idx").on(t.tenantId, t.stationId),
+    uniqueIndex("offline_event_unique").on(t.tenantId, t.eventId),
   ],
 );

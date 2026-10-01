@@ -42,6 +42,8 @@ export interface CheckoutRequest {
   collectedBy?: string | null;
   override?: { kind: OverrideKind; reason: string } | null;
   userId?: string | null;
+  /** R8.23. When it happened at the station, where that is not now. */
+  at?: string | null;
 }
 
 /**
@@ -204,7 +206,10 @@ export async function checkOut(
 
   await db
     .update(checkinVisits)
-    .set({ checkedOutAt: new Date(), checkedOutTo: request.collectedBy ?? null })
+    .set({
+      checkedOutAt: request.at ? new Date(request.at) : new Date(),
+      checkedOutTo: request.collectedBy ?? null,
+    })
     .where(eq(checkinVisits.id, visit.id));
 
   return { released: true };
