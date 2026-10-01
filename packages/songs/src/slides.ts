@@ -6,9 +6,9 @@
  * A section is one slide where it fits and several where it does not. The rules
  * are short and all three matter:
  *
- * - **A break falls between two lines.** Never inside a line, never inside a
- *   word. A congregation reading half a sentence is the single most common fault
- *   in presented lyrics.
+ * - **A break falls between two lines.** A congregation reading half a sentence
+ *   is the single most common fault in presented lyrics, so a line arrives on
+ *   one slide, whole.
  * - **Blank lines are a stanza boundary**, so a section written with a gap in it
  *   breaks there first, before the line count forces a break somewhere worse.
  * - **The last slide is never left with one line** where the split can be

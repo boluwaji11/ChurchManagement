@@ -19,7 +19,7 @@ describe("splitSection", () => {
     expect(slides[0]?.count).toBe(1);
   });
 
-  it("breaks between lines, never inside one", () => {
+  it("breaks between two lines, keeping every line whole", () => {
     const slides = splitSection(blankSection({ lines: lines(8) }), { maxLines: 4 });
     expect(slides.map((slide) => slide.lines)).toEqual([
       ["Line 1", "Line 2", "Line 3", "Line 4"],

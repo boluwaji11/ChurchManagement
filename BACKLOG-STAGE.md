@@ -70,9 +70,9 @@ A presenter a worship leader can type four songs into and run. No platform depen
 | ID | Story | Req | State |
 |---|---|---|---|
 | STG-1 | Scaffold `packages/songs` with the song, section, arrangement and usage types from PRD section 9.4, and no runtime dependencies | ST2.1 | Resolved |
-| STG-2 | Resolve an arrangement sequence into an ordered list of sections, failing loudly on a missing label | ST5.2 | New |
-| STG-3 | Split a section into slides on the theme's line limit, breaking between lines | ST6.1 | New |
-| STG-4 | Compile a set list into a deck of cue groups, deterministically, with golden fixtures | ST5.1, ST5.4 | New |
+| STG-2 | Resolve an arrangement sequence into an ordered list of sections, failing loudly on a missing label | ST5.2 | Resolved |
+| STG-3 | Split a section into slides on the theme's line limit, breaking between lines | ST6.1 | Resolved |
+| STG-4 | Compile a set list into a deck of cue groups, deterministically, with golden fixtures | ST5.1, ST5.4 | Resolved |
 | STG-5 | Parse ChordPro and transpose to any key, verified against the fifty-chart fixture set | ST2.6, ST11.3 | New |
 
 ### SF2. The local library, first pass
@@ -436,9 +436,9 @@ are gone. The only blocked epic is SE4, and nothing before it waits on anybody.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **STG-1** `packages/songs`, the schema as types, with the keys, the validator and the public-domain fixtures. |
-| **Next** | **STG-2**, resolve an arrangement sequence into an ordered list of sections. Then STG-3 to STG-5, still pure logic, before any Electron process exists. |
-| **Blocked** | **SE4** only, on the six platform deliverables above. Fifty-seven stories sit in front of it. |
+| **Waiting on a test** | **STG-1** the schema as types, **STG-2** sequence resolution, **STG-3** slide splitting, **STG-4** the deck compiler. `pnpm --filter @hearth/songs deck` prints a real service. |
+| **Next** | **STG-5**, ChordPro parsing and transposition, which finishes the logic. Then STG-6 to STG-10, the local library, and STG-11, the first Electron process. |
+| **Blocked** | **SE4** only, on the six platform deliverables above. Fifty-four stories sit in front of it. |
 | **Watch** | `packages/songs` is read by the platform's song library screens in 0.4, and `packages/song-import` by its R20.10 importers. The schema in PRD section 9.4 is the contract, and a change to it is a platform story. |
 | **Owed elsewhere** | The PRD.md section 9.6 correction, on the platform board. |
 
@@ -493,3 +493,63 @@ transcription, and both are open to being overruled now while nothing depends on
 The sample library is two public-domain hymns. Stage offers them on first run so a church starting
 cold has something to present, and the suite asserts every bundled song is public domain, because
 Stage ships no copyrighted lyrics.
+
+---
+
+## STG-2, STG-3 and STG-4, how to test them
+
+Three stories grouped, because separately none of them produces anything to look
+at and together they produce the first thing that does.
+
+```
+pnpm --filter @hearth/songs deck
+pnpm --filter @hearth/songs deck -- --lines 2
+pnpm --filter @hearth/songs test
+```
+
+**`deck` prints a Sunday service, compiled.** Six items: a welcome, two hymns, a
+reading, the sermon, and a closing reprise. Every slide on that screen came out
+of the song records and the arrangement sequences with nobody typing a slide.
+That is the claim the whole platform rests on, and it is now a thing that runs.
+
+What to look at in the output:
+
+1. **"Holy, Holy, Holy" sequences `V1 V2 V1`** and produces three cues, with the
+   second V1 marked `(2 of 2)`. A presenter that collapsed the repeat would leave
+   the service one slide behind the band.
+2. **"Amazing Grace" reports the key of Bb**, although its arrangement is in G,
+   because the leader set an override on the item for this Sunday. The reprise
+   below it reports D, which is its own arrangement's key.
+3. **The sermon and the welcome are in the deck**, saying "nothing on the
+   screen". The operator's position in the deck matches the service's position
+   in the room, which is what stops somebody losing their place during the
+   notices.
+4. **Psalm 23 breaks at verse boundaries**, four verses then two, and carries
+   `Psalm 23:1-6` on both slides, because somebody arriving at the second slide
+   still needs to know where they are.
+5. **The note to Drums shows**, next to the note for everybody. A volunteer sees
+   the global notes plus their own.
+6. **`--lines 2` recompiles the whole service tighter.** Every section splits,
+   and the cue count goes up. Worth running to see that a break always falls
+   between two lines.
+
+**`test` is 78 tests now**, 45 of them new. The ones defending something real:
+
+- A sequence naming a label the song does not have is reported by name and
+  position, and the sections that did resolve still present. One bad label does
+  not take a whole song off the screen, and nobody finds out at 10:31.
+- A song in the plan that is missing from the library is reported rather than
+  skipped, so an operator knows before the service that one item will not show.
+- **Five lines at a limit of four splits three and two**, rather than four and
+  one. A single stranded line looks like a mistake on a wall.
+- A blank line inside a section breaks there first, because a church that writes
+  a stanza gap means it.
+- **A cue id survives a recompile.** The same service compiled at a different
+  line limit keeps the same id on the same section, which is what lets a crash
+  recover to the live slide (ST19.1) even though the slide count changed.
+- A bilingual section whose translation runs out renders the primary alone rather
+  than against an empty half.
+
+Nothing here is on a screen yet. The first pixel is STG-11 to STG-17: the
+Electron shell, an output window on a chosen display, and this deck rendered as
+slides. The compiler above is what it will render.
