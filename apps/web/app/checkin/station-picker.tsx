@@ -86,6 +86,7 @@ export function StationPicker({
           <Kiosk
             church={church}
             stationId={station.id}
+            printer={station.printer}
             rooms={station.rooms}
             services={station.services}
             now={now}
@@ -94,6 +95,7 @@ export function StationPicker({
           <Desk
             church={church}
             stationId={station.id}
+            printer={station.printer}
             rooms={station.rooms}
             services={station.services}
             now={now}

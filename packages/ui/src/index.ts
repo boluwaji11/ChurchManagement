@@ -1,4 +1,5 @@
 export { cn } from "./lib/cn";
+export { STOCK, STOCKS, stockOf, printCss, type Stock, type StockShape } from "./lib/label-stock";
 
 export { Button, type ButtonProps } from "./components/button";
 export { IconButton, type IconButtonProps } from "./components/icon-button";

@@ -12,7 +12,7 @@ import { LabelSheet } from "./sheet";
  * local path: nothing here asks the server for anything, and a label comes out
  * of the printer with the network unplugged.
  */
-export function LocalLabels() {
+export function LocalLabels({ printer }: { printer?: string }) {
   const [labels, setLabels] = React.useState<LabelPair[] | null>(null);
 
   React.useEffect(() => {
@@ -20,5 +20,5 @@ export function LocalLabels() {
   }, []);
 
   if (labels === null) return null;
-  return <LabelSheet labels={labels} />;
+  return <LabelSheet labels={labels} printer={printer} />;
 }

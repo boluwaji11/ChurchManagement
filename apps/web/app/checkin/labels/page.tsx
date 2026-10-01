@@ -15,12 +15,15 @@ export const dynamic = "force-dynamic";
 export default async function LabelsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; service?: string; people?: string; local?: string }>;
+  searchParams: Promise<{
+    church?: string; service?: string; people?: string;
+    local?: string; printer?: string;
+  }>;
 }) {
-  const { church, service, people, local } = await searchParams;
+  const { church, service, people, local, printer } = await searchParams;
 
   // R8.24. A station with no network prints what it wrote down itself.
-  if (local) return <LocalLabels />;
+  if (local) return <LocalLabels printer={printer} />;
 
   const session = await requireSession(church);
 
@@ -31,5 +34,5 @@ export default async function LabelsPage({
       )
     : [];
 
-  return <LabelSheet labels={labels} />;
+  return <LabelSheet labels={labels} printer={printer} />;
 }

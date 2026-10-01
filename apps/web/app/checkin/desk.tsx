@@ -44,12 +44,15 @@ export interface DeskService {
 export function Desk({
   church,
   stationId,
+  printer,
   rooms,
   services,
   now,
 }: {
   church: string;
   stationId: string;
+  /** R8.25. The station's label stock, which the labels window prints to. */
+  printer: string;
   rooms: DeskRoom[];
   services: DeskService[];
   now: string;
@@ -150,7 +153,7 @@ export function Desk({
               };
             }),
           );
-          window.open("/checkin/labels?local=1", "hearth-labels", "width=520,height=720");
+          window.open(`/checkin/labels?local=1&printer=${printer}`, "hearth-labels", "width=520,height=720");
         }
         return;
       }
@@ -167,7 +170,7 @@ export function Desk({
       setPrinting(children);
       if (children.length > 0) {
         window.open(
-          `/checkin/labels?church=${church}&service=${service}&people=${children.join(",")}`,
+          `/checkin/labels?church=${church}&service=${service}&printer=${printer}&people=${children.join(",")}`,
           "hearth-labels",
           "width=520,height=720",
         );

@@ -163,7 +163,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-75 | Station search is a directory lookup, by person, on name prefixes | R8.3, R8.4 | Resolved |
 | HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Resolved |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Resolved |
-| HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
+| HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Resolved |
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
 
@@ -223,8 +223,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings, **HRT-78** the station setup, **HRT-60** offline |
-| **Next** | **HRT-61** label printers: Brother QL, Dymo, plain paper. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings, **HRT-78** the station setup, **HRT-60** offline, **HRT-61** label printing |
+| **Next** | **HRT-62** supervisor dashboard, live room rosters, two-adult-rule alert. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -808,3 +808,20 @@ has something to carry.
    child into a different room. Reconnect. The station reports it and leaves the record alone.
 8. **Codes.** Check in forty children offline. They all get codes, all different, and none of them
    collides with anything the online desk issued.
+
+### HRT-61, how to test it
+
+The station's **Labels** setting picks the stock, so set it before printing.
+
+1. **Plain paper.** Leave it on plain paper, check a child in, and print. The pairs are tiled on the
+   sheet with a dashed line to cut along. This is the answer for a church with no label printer, and
+   it should look like one rather than like a fallback.
+2. **Brother QL.** Set it to Brother QL and print to a PDF. Each label is its own page, 62mm by
+   40mm, edge to edge with no margin. On a real QL with DK-22205 tape it comes out the width of the
+   roll.
+3. **Dymo.** Set it to Dymo and print to a PDF. 89mm by 28mm, and the code sits beside the name
+   rather than under it, because 28mm is not tall enough for both.
+4. **The code.** On all three, the code on the child's label matches the one on the guardian's, and
+   it is the largest thing on the label.
+5. **The allergy.** A child with an allergy recorded has it on their own label, and not on the
+   guardian's.
