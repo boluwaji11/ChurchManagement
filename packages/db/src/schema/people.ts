@@ -1,7 +1,7 @@
 import {
   pgTable, uuid, text, boolean, date, timestamp, index, uniqueIndex, primaryKey,
 } from "drizzle-orm/pg-core";
-import { tenants, campuses } from "./tenancy";
+import { tenants, campuses, appUsers } from "./tenancy";
 import {
   lifecycleStatus, householdRole, contactKind, contactLabel, relationshipKind,
   milestoneKind, backgroundCheckStatus, hue,
@@ -53,6 +53,14 @@ export const people = pgTable(
     allergies: text("allergies"),
     /** R8.10. Anything else a room needs: an inhaler, a seizure plan. */
     medicalNote: text("medical_note"),
+    /**
+     * R9.3. The account this person signs in with, where they have one.
+     *
+     * A role says what somebody may do; this says who they are. A group leader
+     * cannot be scoped to their own group without it, and neither can anything
+     * a member does for themselves in the portal.
+     */
+    appUserId: uuid("app_user_id").references(() => appUsers.id, { onDelete: "set null" }),
     /** R2.13. Archived people leave lists and counts, history is retained. */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: created(),
@@ -62,6 +70,8 @@ export const people = pgTable(
     index("people_tenant_idx").on(t.tenantId),
     index("people_name_idx").on(t.tenantId, t.lastName, t.firstName),
     index("people_status_idx").on(t.tenantId, t.lifecycleStatus),
+    // One person a church for an account, so "who am I here" has one answer.
+    uniqueIndex("people_user_unique").on(t.tenantId, t.appUserId),
   ],
 );
 

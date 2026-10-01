@@ -41,7 +41,7 @@ export default async function PersonPage({
   const session = await requireSession(church);
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
-    const person = await getPerson(tx, id);
+    const person = await getPerson(tx, id, { role: session.role, userId: session.userId });
     if (!person) return null;
     return {
       person,

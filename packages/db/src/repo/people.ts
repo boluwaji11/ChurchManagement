@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, isNull, sql, count, type SQL } from "drizz
 import type { Tx } from "../client";
 import { people, households, householdMemberships, contactMethods, tags, personTags } from "../schema/people";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
+import { visiblePeople, type Viewer } from "./scope";
 
 export interface PersonRow {
   id: string;
@@ -35,6 +36,12 @@ export interface DirectoryQuery {
   dir?: "asc" | "desc";
   /** Restricts to a set of ids, for acting on a selection. */
   ids?: string[];
+  /**
+   * R9.3. Who is asking. A group leader sees the people in the groups they
+   * lead and nobody else, and that is decided here rather than in a page,
+   * because a scope enforced by a template is not a scope.
+   */
+  viewer?: Viewer;
   /** One-based. Omitted means every matching row, which is what an export wants. */
   page?: number;
   perPage?: number;
@@ -120,7 +127,9 @@ function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
  * returning another church's members.
  */
 export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<PersonRow[]> {
-  const where = directoryWhere(opts);
+  const scoped = await scopeIds(db, opts);
+  if (scoped !== null && scoped.length === 0) return [];
+  const where = directoryWhere(scoped === null ? opts : { ...opts, ids: scoped });
   const columns = ORDERS[opts.sort ?? "name"] ?? ORDERS.name;
   const direction = opts.dir === "desc" ? desc : asc;
 
@@ -162,7 +171,11 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
   }));
 }
 
-export async function getPerson(db: Tx, id: string) {
+export async function getPerson(db: Tx, id: string, viewer?: Viewer) {
+  if (viewer) {
+    const allowed = await visiblePeople(db, viewer);
+    if (allowed !== null && !allowed.includes(id)) return null;
+  }
   const [row] = await db.select().from(people).where(eq(people.id, id)).limit(1);
   return row ?? null;
 }
@@ -560,8 +573,26 @@ export async function bulkSetStatus(
  * page query joins households to sort by them and a count over that join would
  * have to be made distinct. Two simple queries beat one clever one here.
  */
+/**
+ * R9.3. The ids a viewer may see, crossed with the ids they asked for.
+ *
+ * Null means no restriction. An empty array means nobody, which is what a group
+ * leader who leads nothing gets, and the caller returns an empty page rather
+ * than every person in the church.
+ */
+async function scopeIds(db: Tx, opts: DirectoryQuery): Promise<string[] | null> {
+  if (!opts.viewer) return opts.ids ?? null;
+
+  const allowed = await visiblePeople(db, opts.viewer);
+  if (allowed === null) return opts.ids ?? null;
+  if (!opts.ids) return allowed;
+  return opts.ids.filter((id) => allowed.includes(id));
+}
+
 export async function countPeople(db: Tx, opts: DirectoryQuery = {}): Promise<number> {
-  const where = directoryWhere(opts);
+  const scoped = await scopeIds(db, opts);
+  if (scoped !== null && scoped.length === 0) return 0;
+  const where = directoryWhere(scoped === null ? opts : { ...opts, ids: scoped });
   const rows = await db
     .select({ n: count() })
     .from(people)

@@ -74,7 +74,9 @@ async function exportView(
 ) {
   const rows = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId },
-    (tx) => listPeople(tx, queryFromParams(params)),
+    // R9.3. An export is the easiest place to leak a scope, so it carries
+    // the same viewer the screen does.
+    (tx) => listPeople(tx, { ...queryFromParams(params), viewer: { role: session.role, userId: session.userId } }),
   );
 
   const csv = toCsv(

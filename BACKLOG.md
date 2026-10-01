@@ -201,7 +201,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Resolved |
-| HRT-84 | A leader sees their own group and nothing else | R9.3 | New |
+| HRT-84 | A leader sees their own group and nothing else | R9.3 | Resolved |
 | HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | New |
 | HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | New |
 | HRT-87 | Messaging a group's roster through the church's own provider | R9.8 | New |
@@ -249,8 +249,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups |
-| **Next** | **HRT-84** a leader sees their own group and nothing else, then HRT-85 to HRT-87. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope |
+| **Next** | **HRT-85** group attendance in under sixty seconds on a phone, then HRT-86 and HRT-87. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -898,3 +898,19 @@ The station's **Labels** setting picks the stock, so set it before printing.
    stays, which is what makes a year of discipleship readable later.
 7. **Archive.** Archiving takes it off the list and keeps its roster. Restore brings it back.
 8. **Roles.** A member cannot create or change a group.
+
+### HRT-84, how to test it
+
+This one is a boundary, so test it by trying to get past it. You need a person record linked to a
+signed-in account, and that account given the group_leader role.
+
+1. **The directory.** As a group leader, Directory shows the people in the groups you lead and
+   nobody else. The count under it matches what is listed.
+2. **By URL.** Open a person who is not in your group by their id. It says not found, rather than
+   showing them.
+3. **By export.** Press export with a filter. The CSV contains your group and nobody else.
+4. **Following the roster.** Remove somebody from your group. They leave your directory. Add them
+   back and they return.
+5. **Leading nothing.** A group leader who leads no group sees only themselves.
+6. **Everybody else.** An owner, admin, staff, pastoral or check-in volunteer sees the whole church,
+   exactly as before.

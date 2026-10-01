@@ -44,6 +44,7 @@ export * from "./repo/roster";
 export * from "./repo/supervisor";
 export * from "./repo/incidents";
 export * from "./repo/groups";
+export * from "./repo/scope";
 export * from "./repo/match";
 export * from "./repo/checkout";
 export * from "./repo/which-service";

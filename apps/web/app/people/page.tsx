@@ -25,12 +25,16 @@ export default async function PeoplePage({
   const query = queryFromParams(params);
   const page = pageFromParams(params);
 
+  const viewer = { role: session.role, userId: session.userId };
+
   const { people, tags, duplicates, matching } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       return {
-        people: await listPeople(tx, { ...query, page, perPage: PER_PAGE }),
-        matching: await countPeople(tx, query),
+        // R9.3. Who is asking goes to the query layer, which decides what they
+        // may see. A group leader gets their own group and nobody else.
+        people: await listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
+        matching: await countPeople(tx, { ...query, viewer }),
         tags: await listTagsWithCounts(tx),
         duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
       };
