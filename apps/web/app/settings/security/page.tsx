@@ -3,6 +3,7 @@ import { Banner, Card, CardTitle, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession, currentSessionId } from "@/lib/session";
 import { Sessions } from "../sessions";
+import { Password } from "./password";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,8 @@ export default async function SecurityPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <Password />
+
       <Card>
         <CardTitle>{t("session.title")}</CardTitle>
         <Separator className="my-4" />

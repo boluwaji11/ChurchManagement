@@ -5,7 +5,9 @@ import { Mail, KeyRound } from "lucide-react";
 import { Button, Input, Field, Tabs, TabsList, TabsTrigger, TabsContent } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { check, email as validEmail, requiredValue } from "@/lib/validate";
+import Link from "next/link";
 import { sendMagicLink, signInWithPassword } from "./actions";
+import { sendReset } from "../sign-up/actions";
 
 type Errors = Record<string, string | undefined>;
 
@@ -36,6 +38,12 @@ export function SignInForm({ next }: { next?: string }) {
       <TabsContent value="password">
         <PasswordForm next={next} />
       </TabsContent>
+      <Link
+        href="/sign-up?next=/create-church"
+        className="mt-4 inline-block text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+      >
+        {t("signIn.noAccount")}
+      </Link>
     </Tabs>
   );
 }
@@ -116,6 +124,16 @@ function PasswordForm({ next }: { next?: string }) {
       <Button type="submit" full loading={pending}>
         <KeyRound /> {t("signIn.submit")}
       </Button>
+
+      {/* R1.8. The way back in for somebody who cannot remember, and the way
+          in for somebody who has never set one. */}
+      <button
+        type="submit"
+        formAction={sendReset}
+        className="text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+      >
+        {t("signIn.forgot")}
+      </button>
     </form>
   );
 }

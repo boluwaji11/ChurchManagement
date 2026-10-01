@@ -31,7 +31,7 @@ export default function Home() {
             <Link href="/sign-in">{t("home.signIn")}</Link>
           </Button>
           <Button asChild>
-            <Link href="/create-church">
+            <Link href="/sign-up?next=/create-church">
               {t("createChurch.title")}
               <ArrowRight />
             </Link>
@@ -45,7 +45,7 @@ export default function Home() {
           <p className="mt-5 max-w-2xl text-body-lg text-fg-muted">{t("home.sub")}</p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button asChild>
-              <Link href="/create-church">
+              <Link href="/sign-up?next=/create-church">
                 {t("createChurch.title")}
                 <ArrowRight />
               </Link>
@@ -116,7 +116,7 @@ export default function Home() {
             <div className="flex flex-wrap items-center gap-3">
               <StartDemoButton />
               <Button variant="secondary" asChild>
-                <Link href="/create-church">{t("createChurch.title")}</Link>
+                <Link href="/sign-up?next=/create-church">{t("createChurch.title")}</Link>
               </Button>
             </div>
           </div>

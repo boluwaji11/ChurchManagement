@@ -70,12 +70,15 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-10 | Adversarial isolation suite, cross-tenant reads and writes on every table | R1.3 | Closed |
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.x | Closed |
+| HRT-111 | Campus and location on the record and in the UI where it shows | R1.2 | New |
 | HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Closed |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | New |
 | HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
+| HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
+| HRT-110 | Saved lists, static and rule-based | R1.14 | New |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -329,10 +332,11 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | Nothing. R3.1 was cut, everything else is built and waiting on a test. |
+| **0.2 still owed** | **HRT-102** the three real importers (R19.5), **HRT-110** saved lists (R1.14), **HRT-112** the bag label (R8.12). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **Audit, October 2026** | Every 0.1 and 0.2 requirement in the PRD checked against the board. Three had no story at all: R1.14, R8.12, and R1.2 (which is built in the schema and has no screen). Account creation had no story and no screen: **HRT-109**. |
 | **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help, **HRT-107** time to value |
-| **Next** | 0.3 money: Stripe Connect on the church's own account, giving, and the IRS statements Grace needs every January. Then the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help, **HRT-107** time to value, **HRT-109** signing up |
+| **Next** | **HRT-102** the three importers, **HRT-110** saved lists, **HRT-112** the bag label. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1056,6 +1060,23 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-109, how to test it
+
+Sign out. From the front page, **Start a church**.
+
+1. **Create your account.** Name, email, password of at least ten characters. Nothing exists until
+   the link in the email is opened: an invitation is matched to a verified address, and a church's
+   first owner is granted to one, so the address has to be proved before it is worth anything.
+2. **Then the church.** The link lands on creating a church, and you are its owner.
+3. **I have forgotten my password**, on the password tab. The answer is the same whether or not the
+   address has an account, so it cannot be used to find out who has one.
+4. **Choosing a new one** happens on a screen the link opens, and sends you back to sign in with it.
+5. **Settings, Security.** Changing a password asks for the current one, and checks it by signing in
+   with it. Supabase will change a password on an open session without asking, and an open session
+   on a shared church laptop is the case this has to refuse.
+6. **Somebody who has only ever used email links** has no current password to give, so they ask for
+   a link instead.
 
 ### HRT-107, how to test it
 
