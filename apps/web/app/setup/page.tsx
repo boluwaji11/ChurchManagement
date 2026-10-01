@@ -1,21 +1,13 @@
-import { withTenant, setupProgress, canManageChurch, type SetupStep } from "@hearth/db";
+import { withTenant, setupProgress, canManageChurch } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
 import { Steps } from "./steps";
+import { SETUP_LINKS } from "@/lib/setup-links";
 
 export const dynamic = "force-dynamic";
-
-/** Where each step is actually done. The wizard sends people to the product. */
-export const SETUP_LINKS: Record<SetupStep, string> = {
-  church: "/settings/church",
-  services: "/services",
-  people: "/import",
-  team: "/settings/team",
-  rooms: "/settings/rooms",
-};
 
 /**
  * R22.1, R22.3. The first hour.

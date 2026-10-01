@@ -1,4 +1,7 @@
-import { canManageChurch, canManageCustomFields, canEditPeople, canManageRooms } from "@hearth/db";
+import {
+  canManageChurch, canManageCustomFields, canEditPeople, canManageRooms,
+  withTenant, setupProgress,
+} from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { Avatar } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
@@ -17,6 +20,17 @@ export const dynamic = "force-dynamic";
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
 
+  /*
+   * R22.1. The wizard is a thing a church does once. It is here while there is
+   * something left to do and gone afterwards, rather than sitting in the
+   * settings of a church that finished in March.
+   */
+  const setup = canManageChurch(session.role)
+    ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
+        setupProgress(tx, session.tenantId),
+      )
+    : null;
+
   const tabs: SettingsTab[] = [
     { href: "/settings", label: t("settings.tab.account") },
     { href: "/settings/security", label: t("settings.tab.security") },
@@ -24,7 +38,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     { href: "/settings/privacy", label: t("settings.tab.privacy") },
     ...(canManageChurch(session.role)
       ? [
-          { href: "/setup", label: t("settings.tab.setup") },
+          ...(setup && !setup.complete
+            ? [{ href: "/setup", label: t("settings.tab.setup") }]
+            : []),
           { href: "/settings/church", label: t("settings.tab.church") },
           { href: "/settings/team", label: t("settings.tab.team") },
           { href: "/settings/followups", label: t("settings.tab.followups") },
