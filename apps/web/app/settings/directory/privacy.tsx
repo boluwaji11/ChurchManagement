@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Banner, Button, Card, CardTitle, Checkbox, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { savePrivacy } from "./actions";
@@ -26,11 +25,15 @@ const FIELDS = [
 ] as const;
 
 /**
- * R3.2, R3.3. What the rest of the church sees of me.
+ * R3.2, R3.3. What the church may print about me.
  *
  * Everything starts off. A church that imported this person's phone number has
  * not been given permission to publish it, and this is where that permission is
  * given, one field at a time.
+ *
+ * Its one reader is the printed directory (R3.5). There is no directory of the
+ * congregation inside the product: a member looking the church up is not
+ * something this product does.
  */
 export function Privacy({
   church,
@@ -95,11 +98,8 @@ export function Privacy({
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div>
           <Button type="submit" disabled={pending}>{t("action.save")}</Button>
-          <Button asChild variant="ghost">
-            <Link href={`/directory?church=${church}`}>{t("privacy.view")}</Link>
-          </Button>
         </div>
       </form>
     </Card>

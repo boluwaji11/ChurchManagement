@@ -379,12 +379,12 @@ leaking a home address is a real harm, so the default is private and every field
 
 | ID | Rel | Requirement |
 |---|---|---|
-| R3.1 | 0.2 | Member-facing directory, searchable, grouped by household, with photos. |
+| R3.1 | ~~0.2~~ | ~~Member-facing directory, searchable, grouped by household, with photos.~~ **Cut, October 2026.** A search box over the congregation is not something a member does, and gating the fields does not change what the box is. The printed directory (R3.5) is what a church hands out, and R3.2 to R3.4 govern it. |
 | R3.2 | 0.2 | **Per-field visibility controlled by the member**, defaulting to hidden for address and date of birth, and to visible for name only. |
 | R3.3 | 0.2 | Whole-record opt out. A member can be absent from the directory entirely while remaining in the database. |
 | R3.4 | 0.2 | Children are never shown with contact details, only as household members, and only when the household head opts in. |
 | R3.5 | 0.2 | Printable and downloadable PDF photo directory honouring every visibility setting at generation time. |
-| R3.6 | 0.2 | Separate admin view showing all fields regardless of member visibility settings, permission gated. |
+| R3.6 | 0.2 | Separate admin view showing all fields regardless of member visibility settings, permission gated. Built in F2: with R3.1 cut, it is the only directory on a screen. |
 
 *Accept R3.2:* a member who has hidden their address sees it in their own profile and no other member
 sees it anywhere, including in the generated PDF and the API.

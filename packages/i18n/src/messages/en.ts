@@ -777,7 +777,6 @@ export const en = {
   "privacy.birthday": "My birthday",
   "privacy.photo": "My photo",
   "privacy.children": "Our children, by name",
-  "privacy.view": "See the directory",
   "privacy.noRecord": "Your account is not linked to a person in this church yet",
   "settings.tab.directory": "Directory",
   "checks.title": "Background check",

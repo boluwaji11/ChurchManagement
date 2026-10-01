@@ -1,16 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import {
-  withTenant, getChurch, memberDirectory, findGroups, personForUser,
-  directoryPreferencesFor, canEditPeople, canReadIncidents,
-} from "@hearth/db";
-import { Avatar, Badge, Button, Card, Separator } from "@hearth/ui";
+import { withTenant, findGroups, personForUser, canEditPeople, canReadIncidents } from "@hearth/db";
+import { Button, Card } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
-import { churchNow } from "@/lib/church-now";
-import { Households } from "../directory/households";
 
 export const dynamic = "force-dynamic";
 
@@ -27,12 +22,17 @@ const readableTime = (hhmm: string) => {
 };
 
 /**
- * R3.1, R9.5. The whole of the product for somebody who is not staff.
+ * R9.5. The whole of the product for somebody who is not staff.
  *
- * One screen: what the church knows of me, the groups I am in, and the people.
- * A member signs in two or three times a year, and a navigation bar of sections
- * they cannot open is how a church ends up with a product nobody uses. When the
- * portal lands in 1.0 (R17) this is what it grows from.
+ * The groups they are in, and a way to find another. There is no directory of
+ * the church here: looking the congregation up is not something a member does,
+ * and a search box over everybody's households is a search box over everybody's
+ * households however carefully the fields are gated. The printed directory
+ * (R3.5) is the church handing something out, which is a different act.
+ *
+ * A member signs in two or three times a year. When the portal lands in 1.0
+ * (R17) it grows from this screen: giving, their serving schedule, checking
+ * their own children in.
  */
 export default async function MemberHomePage({
   searchParams,
@@ -47,18 +47,11 @@ export default async function MemberHomePage({
     redirect(`/people?church=${session.tenantSlug}`);
   }
 
-  const { me, mine, households, published } = await withTenant(
+  const mine = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId },
     async (tx) => {
-      const today = churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date;
       const self = await personForUser(tx, session.userId);
-      const groups = await findGroups(tx, { personId: self });
-      return {
-        me: self,
-        mine: groups.filter((group) => group.mine),
-        households: await memberDirectory(tx, { asOf: today }),
-        published: self ? await directoryPreferencesFor(tx, self) : null,
-      };
+      return (await findGroups(tx, { personId: self })).filter((group) => group.mine);
     },
   );
 
@@ -103,29 +96,6 @@ export default async function MemberHomePage({
           </div>
         </section>
 
-        <Separator />
-
-        <section className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-heading text-fg">{t("memberDirectory.title")}</h2>
-            {me ? (
-              <Button asChild variant="ghost">
-                <Link href={`/settings/directory?church=${session.tenantSlug}`}>
-                  {t("home.myEntry")}
-                </Link>
-              </Button>
-            ) : null}
-          </div>
-
-          {published && !published.listed ? (
-            <span className="flex flex-wrap items-center gap-2">
-              <Avatar name={session.displayName} id={session.userId} />
-              <Badge tone="neutral">{t("home.hidden")}</Badge>
-            </span>
-          ) : null}
-
-          <Households church={session.tenantSlug} households={households} />
-        </section>
       </main>
     </>
   );

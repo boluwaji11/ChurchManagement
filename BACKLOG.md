@@ -238,14 +238,23 @@ this product is for.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-98 | The member directory: searchable, by household | R3.1, R3.4 | Resolved |
+| HRT-98 | The member directory inside the product | R3.1 | Dropped |
 | HRT-99 | Per-field visibility chosen by the member, and whole-record opt out | R3.2, R3.3 | Resolved |
-| HRT-100 | The printed and PDF directory, honouring every setting at generation | R3.5 | New |
+| HRT-100 | The printed and PDF directory, honouring every setting at generation | R3.5, R3.4 | New |
 | HRT-101 | The admin view that shows every field, permission gated | R3.6 | New |
 
-The admin directory (F2) exists and is what staff use. This is the other one: what a member sees of
-everybody else, and it is the member who decides what of theirs appears. The default is hidden for
-an address and a date of birth. A child is never shown with contact details.
+**Decision, October 2026: there is no directory of the congregation inside the product.** It was
+built (HRT-98) and taken out the same day. A search box over everybody's households is a search box
+over everybody's households however carefully the fields are gated, and looking the church up is not
+something a member does.
+
+What survives is the consent model (HRT-99) and its one reader, the **printed** directory (HRT-100).
+A church handing out a book it printed is a different act from a search box, and the fields in that
+book are still the member's to decide: the default is their name, a child never appears with contact
+details, and anybody can be absent from it entirely.
+
+R3.1 and R3.6 as the PRD writes them are superseded by this. The staff directory (F2) is the only
+directory on a screen.
 
 ### F21. Safeguarding and minors (0.2)
 
@@ -1052,8 +1061,8 @@ From **Groups**, tap a group's name.
 directory** on it.
 
 **A member has one screen and no section bar.** Signing in as `member@riverside.example.org` lands
-on it: hello, their groups with a way to find another, and the church directory under it. Staff keep
-the sections they work in. A row of links to screens somebody cannot open is how a church ends up
+on it: hello, and the groups they are in with a way to find another. Staff keep the sections they
+work in. A row of links to screens somebody cannot open is how a church ends up
 with a product nobody opens, and the portal in 1.0 (R17) grows from this screen rather than from a
 cut-down copy of the staff app.
 
