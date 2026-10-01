@@ -13,7 +13,8 @@ export function EmptyState({
   className,
 }: {
   title: string;
-  body: string;
+  /** Only where the title leaves something unanswered. Most do not. */
+  body?: string;
   action?: React.ReactNode;
   className?: string;
 }) {
@@ -45,7 +46,7 @@ export function EmptyState({
       </svg>
       <div className="flex flex-col gap-1.5 max-w-sm">
         <h3 className="font-display text-heading text-fg">{title}</h3>
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{body}</p>
+        {body ? <p className="text-[length:var(--d-text-body)] text-fg-muted">{body}</p> : null}
       </div>
       {action}
     </div>

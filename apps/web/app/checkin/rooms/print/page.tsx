@@ -48,8 +48,13 @@ export default async function RosterPrintPage({
   );
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-8 text-black print:max-w-none print:p-0">
+    <main className="mx-auto max-w-2xl px-6 py-8 text-black print:max-w-none print:px-10 print:py-8">
       <AutoPrint />
+
+      {/* The browser draws its own date, title, URL and page number into the
+          page margin. A zero margin takes them off, and the padding below puts
+          the white space back where we want it. */}
+      <style>{"@page { size: auto; margin: 0; }"}</style>
 
       <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
         <h1 className="font-display text-display">{name}</h1>

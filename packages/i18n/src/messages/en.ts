@@ -606,7 +606,6 @@ export const en = {
   "incident.toldOn": "Guardian told {on}",
   "incident.filed": "Filed {on}",
   "incident.none.title": "No incident reports",
-  "incident.none.body": "Reports are written at the station and kept here.",
   "incident.kept": "An incident report cannot be edited or deleted once it is filed.",
   "incident.error.description": "Write what happened.",
   "incident.error.action": "Write what was done about it.",

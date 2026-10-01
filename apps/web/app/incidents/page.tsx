@@ -51,7 +51,7 @@ export default async function IncidentsPage({
         <PageTitle title={t("incident.title")} className="mb-6" />
 
         {incidents.length === 0 ? (
-          <EmptyState title={t("incident.none.title")} body={t("incident.none.body")} />
+          <EmptyState title={t("incident.none.title")} />
         ) : (
           <div className="flex flex-col gap-4">
             {incidents.map((incident) => (
