@@ -277,7 +277,7 @@ export interface LabelPair {
   serviceName: string;
   churchName: string;
   code: string;
-  /** R8.10. Filled once allergies are recorded, in HRT-58. */
+  /** R8.10. What the room has to know. Null means nothing is recorded. */
   allergy: string | null;
 }
 
@@ -296,6 +296,7 @@ export async function labelsFor(
       firstName: people.firstName,
       lastName: people.lastName,
       preferredName: people.preferredName,
+      allergies: people.allergies,
       roomName: checkinRooms.name,
       roomHue: checkinRooms.hue,
       serviceName: serviceOccurrences.name,
@@ -319,6 +320,6 @@ export async function labelsFor(
       serviceName: r.serviceName,
       churchName,
       code: r.code!,
-      allergy: null,
+      allergy: r.allergies,
     }));
 }

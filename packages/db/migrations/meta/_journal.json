@@ -120,6 +120,13 @@
       "when": 1790812148510,
       "tag": "0016_simple_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790813446702,
+      "tag": "0017_nasty_mister_fear",
+      "breakpoints": true
     }
   ]
 }

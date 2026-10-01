@@ -141,20 +141,26 @@ export function Directory({
   const exportHref = `/api/export?church=${church}&${params.toString()}`;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Toolbar
-        church={church}
-        search={search}
-        setSearch={setSearch}
-        params={params}
-        setParam={setParam}
-        tags={tags}
-        filtersOn={filtersOn}
-        onClear={() => router.replace(pathname, { scroll: false })}
-        exportHref={exportHref}
-        canArchive={canArchive}
-      />
+    /* Filters down the side, the list across the rest. The list is the thing
+       somebody came for, so it gets the width; the filters are read once and
+       then sat beside. */
+    <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+      <aside className="lg:sticky lg:top-6 lg:w-64 lg:shrink-0">
+        <Toolbar
+          church={church}
+          search={search}
+          setSearch={setSearch}
+          params={params}
+          setParam={setParam}
+          tags={tags}
+          filtersOn={filtersOn}
+          onClear={() => router.replace(pathname, { scroll: false })}
+          exportHref={exportHref}
+          canArchive={canArchive}
+        />
+      </aside>
 
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
       {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
       {result && !result.error && result.changed !== undefined ? (
         <Banner tone="success" title={t("directory.bulkDone", { count: result.changed })} />
@@ -259,6 +265,7 @@ export function Directory({
       )}
 
       <Pages page={page} perPage={perPage} matching={matching} setParam={setParam} />
+      </div>
     </div>
   );
 }
@@ -370,9 +377,9 @@ function Toolbar({
   canArchive: boolean;
 }) {
   return (
-    <Card className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex min-w-56 flex-1 flex-col gap-1.5">
+    <Card className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
+        <label className="flex flex-col gap-1.5">
           <span className="text-label text-fg">{t("directory.search")}</span>
           <span className="relative flex items-center">
             <Search className="pointer-events-none absolute left-3 size-4 text-fg-subtle" aria-hidden />
@@ -415,7 +422,7 @@ function Toolbar({
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col items-start gap-3">
         {filtersOn ? (
           <Button variant="ghost" onClick={onClear}>
             <X /> {t("directory.clear")}
@@ -431,7 +438,7 @@ function Toolbar({
         </Link>
 
         {canArchive ? (
-          <span className="ml-auto flex flex-wrap items-center gap-3">
+          <span className="flex flex-wrap items-center gap-3">
             <Button variant="ghost" asChild>
               <a href={exportHref} download>
                 <Upload /> {filtersOn ? t("directory.exportView") : t("directory.exportAll")}
@@ -456,7 +463,7 @@ function Filter({
   options: { value: string; label: string; hue?: string }[];
 }) {
   return (
-    <label className="flex min-w-40 flex-col gap-1.5">
+    <label className="flex flex-col gap-1.5">
       <span className="text-label text-fg">{label}</span>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>

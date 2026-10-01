@@ -9,6 +9,7 @@ import {
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { find, checkIn, undo, type FoundHousehold, type FoundPerson } from "./actions";
+import { Allergies, warnings } from "./allergies";
 
 export interface DeskRoom {
   id: string;
@@ -55,6 +56,8 @@ export function Desk({
   // parent's hand, the check-in is not finished. (R8.6)
   const [printing, setPrinting] = React.useState<string[]>([]);
   const [codes, setCodes] = React.useState<Record<string, string>>({});
+  // R8.10. The flow does not finish until somebody has said they read it.
+  const [seen, setSeen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
   // Typing is the whole interaction, so the search runs as they type and the
@@ -87,9 +90,13 @@ export function Desk({
     }
     setChosen(rooms);
     setPicked(people);
+    setSeen(false);
   };
 
   const household = households.find((h) => h.id === open);
+  const needsReading =
+    household !== undefined &&
+    warnings(household.people.filter((p) => picked[p.id] && !p.checkedIn)).length > 0;
 
   const send = () => {
     if (!household) return;
@@ -260,8 +267,21 @@ export function Desk({
             ))}
           </ul>
 
+          {/* R8.10, R24.14. Full width, above the button, and the button does
+              not work until it has been read. A volunteer finishing a check-in
+              without having seen this is the failure the requirement exists to
+              stop. */}
+          <Allergies
+            people={household.people.filter((p) => picked[p.id] && !p.checkedIn)}
+            seen={seen}
+            onSeen={() => setSeen(true)}
+          />
+
           <div>
-            <Button onClick={send} disabled={pending}>
+            <Button
+              onClick={send}
+              disabled={pending || (needsReading && !seen)}
+            >
               <Check /> {t("checkin.check")}
             </Button>
           </div>

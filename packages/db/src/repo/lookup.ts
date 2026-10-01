@@ -28,6 +28,9 @@ export interface LookupPerson {
   householdRole: string;
   /** Under eighteen, or recorded as a child of this household. */
   isChild: boolean;
+  /** R8.10. What a room has to know. Null means nothing is recorded. */
+  allergies: string | null;
+  medicalNote: string | null;
 }
 
 export interface HouseholdMatch {
@@ -100,6 +103,7 @@ export async function lookupHouseholds(
     )
     select p.id, p.first_name, p.last_name, p.preferred_name,
            p.date_of_birth::text as date_of_birth,
+           p.allergies, p.medical_note,
            hm.household_id, h.name as household_name, hm.role
       from people p
       left join household_memberships hm
@@ -138,6 +142,8 @@ function group(
       ageMonths: null,
       householdRole: String(row["role"] ?? "other"),
       isChild: false,
+      allergies: (row["allergies"] as string | null) ?? null,
+      medicalNote: (row["medical_note"] as string | null) ?? null,
     };
 
     person.ageMonths = person.dateOfBirth ? ageInMonths(person.dateOfBirth, asOf) : null;

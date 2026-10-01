@@ -49,6 +49,9 @@ export interface FoundPerson {
   /** Set when they are already checked in to the service being worked on. */
   checkedIn: boolean;
   roomId: string | null;
+  /** R8.10. Null means nothing is recorded, which is not the same as clear. */
+  allergies: string | null;
+  medicalNote: string | null;
 }
 
 export interface FoundHousehold {
@@ -106,6 +109,8 @@ export async function find(
                 : null,
               checkedIn: Boolean(visit),
               roomId: visit?.roomId ?? null,
+              allergies: person.allergies,
+              medicalNote: person.medicalNote,
             };
           }),
         })),

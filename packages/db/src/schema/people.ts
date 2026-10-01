@@ -45,6 +45,14 @@ export const people = pgTable(
     membershipDate: date("membership_date"),
     firstVisitOn: date("first_visit_on"),
     photoKey: text("photo_key"),
+    /**
+     * R8.10. What a volunteer has to know before a child goes into a room, in
+     * the fewest words that are true: "Peanuts", "Bee stings". Printed on the
+     * child's label and shown full size at check-in.
+     */
+    allergies: text("allergies"),
+    /** R8.10. Anything else a room needs: an inhaler, a seizure plan. */
+    medicalNote: text("medical_note"),
     /** R2.13. Archived people leave lists and counts, history is retained. */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: created(),

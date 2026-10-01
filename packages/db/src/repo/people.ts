@@ -237,6 +237,9 @@ export interface PersonInput {
   firstVisitOn?: string | null;
   email?: string | null;
   phone?: string | null;
+  /** R8.10. Shown at check-in and printed on the child's label. */
+  allergies?: string | null;
+  medicalNote?: string | null;
   /** An existing household, or null for none. Ignored when householdName is set. */
   householdId?: string | null;
   /** Creates a household with this name and puts the person in it. */
@@ -271,6 +274,8 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
       lifecycleStatus: input.lifecycleStatus,
       membershipDate: trimmed(input.membershipDate),
       firstVisitOn: trimmed(input.firstVisitOn),
+      allergies: trimmed(input.allergies),
+      medicalNote: trimmed(input.medicalNote),
     })
     .returning({ id: people.id });
 
@@ -309,6 +314,8 @@ export async function updatePerson(
       lifecycleStatus: input.lifecycleStatus,
       membershipDate: trimmed(input.membershipDate),
       firstVisitOn: trimmed(input.firstVisitOn),
+      allergies: trimmed(input.allergies),
+      medicalNote: trimmed(input.medicalNote),
       updatedAt: new Date(),
     })
     .where(eq(people.id, id))
@@ -479,6 +486,8 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
     lifecycleStatus: person.lifecycleStatus as LifecycleStatus,
     membershipDate: person.membershipDate,
     firstVisitOn: person.firstVisitOn,
+    allergies: person.allergies,
+    medicalNote: person.medicalNote,
     email: contacts.find((c) => c.kind === "email")?.value ?? null,
     phone: contacts.find((c) => c.kind === "phone")?.value ?? null,
     householdId: membership?.householdId ?? null,
