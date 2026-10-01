@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import {useRouter } from "next/navigation";
 import { Search, UserMinus } from "lucide-react";
 import {
+  Banner,
   Badge, Button, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -75,7 +76,7 @@ export function Roster({
 
   return (
     <div className="flex flex-col gap-3" aria-busy={pending}>
-      {error ? <p className="text-caption text-danger">{error}</p> : null}
+      {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
       <ul className="flex flex-col">
         {entries.map((entry, i) => (

@@ -84,7 +84,7 @@ export function RoomBoard({
 
   return (
     <div className="flex flex-col gap-5">
-      {error ? <Banner tone="danger" title={t("board.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("board.failed")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         {services.length > 1 ? (

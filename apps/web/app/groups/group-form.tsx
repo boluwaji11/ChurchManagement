@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import {useRouter } from "next/navigation";
 import { Archive } from "lucide-react";
 import {
+  Banner,
   Button, Checkbox, Field, HueDot, Input, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -110,7 +111,7 @@ export function GroupDialog({
           className="flex flex-col gap-4"
         >
           {error ? (
-            <p className="text-[length:var(--d-text-body)] text-danger">{error}</p>
+            <Banner tone="danger" title={t("groups.failed")}>{error}</Banner>
           ) : null}
 
           <Field label={t("groups.name")}>

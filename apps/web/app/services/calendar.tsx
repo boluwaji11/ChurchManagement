@@ -189,7 +189,7 @@ export function Calendar({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("services.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("services.failed")}>{error}</Banner> : null}
 
       {/* The month on the left, and on the right the thing a church came to do
           with it above the thing that changes how it is drawn. */}

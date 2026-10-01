@@ -47,7 +47,7 @@ export function Steps({
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("setup.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("setup.failed")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="h-2 w-48 overflow-hidden rounded-full bg-sunken">

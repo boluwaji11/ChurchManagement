@@ -65,7 +65,7 @@ export function Checks({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("checks.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("checks.failed")}>{error}</Banner> : null}
 
       <span className="flex flex-wrap items-center gap-2">
         <Badge tone={TONE[standing] ?? "neutral"}>

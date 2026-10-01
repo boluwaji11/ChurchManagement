@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@hearth/ui";
+import {useRouter } from "next/navigation";
+import {
+  Banner, Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { ask } from "../actions";
 
@@ -14,7 +15,7 @@ export function JoinButton({ church, groupId }: { church: string; groupId: strin
 
   return (
     <span className="flex flex-wrap items-center gap-3">
-      {error ? <span className="text-caption text-danger">{error}</span> : null}
+      {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
       <Button
         disabled={pending}
         onClick={() =>

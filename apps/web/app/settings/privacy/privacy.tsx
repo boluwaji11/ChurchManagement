@@ -54,7 +54,7 @@ export function Privacy({
       <CardTitle>{t("privacy.title")}</CardTitle>
       <Separator className="my-4" />
 
-      {error ? <Banner tone="danger" title={t("privacy.title")} className="mb-4">{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("privacy.failed")} className="mb-4">{error}</Banner> : null}
 
       <form
         noValidate

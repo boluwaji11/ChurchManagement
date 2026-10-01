@@ -20,7 +20,7 @@ export default async function SignIn({
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-2">
           <Logo size="lg" />
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("signIn.lede")}</p>
+          <h1 className="font-display text-display text-fg">{t("signIn.title")}</h1>
         </div>
 
         {params.error ? (

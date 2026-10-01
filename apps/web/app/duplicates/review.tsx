@@ -129,7 +129,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
       </div>
 
       {outcome?.error ? (
-        <Banner tone="danger" title={t("merge.title")}>{t(outcome.error as never)}</Banner>
+        <Banner tone="danger" title={t("merge.failed")}>{t(outcome.error as never)}</Banner>
       ) : null}
       {outcome?.moved !== undefined ? (
         <Banner tone="success" title={t("merge.done", { count: outcome.moved })} />

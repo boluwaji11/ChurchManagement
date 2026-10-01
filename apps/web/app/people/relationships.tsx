@@ -100,7 +100,7 @@ export function Relationships({
 
   return (
     <div className="flex flex-col gap-3" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("person.relationships")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("relationship.failed")}>{error}</Banner> : null}
       {cancelled > 0 ? (
         <Banner tone="warning" title={plural("relationship.cancelled", cancelled)} />
       ) : null}

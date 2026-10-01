@@ -65,7 +65,7 @@ export function Pipelines({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("pipelines.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
 
       {rows.map((row) => (
         <Card key={row.id} className="flex flex-col gap-3">
@@ -149,7 +149,7 @@ function EditDialog({
           }}
           className="flex flex-col gap-4"
         >
-          {error ? <p className="text-[length:var(--d-text-body)] text-danger">{error}</p> : null}
+          {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
 
           <Field label={t("pipelines.name")}>
             <Input name="name" defaultValue={row.name} autoComplete="off" />

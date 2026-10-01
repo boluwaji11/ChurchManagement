@@ -69,7 +69,7 @@ export function Queue({
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("queue.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("queue.failed")}>{error}</Banner> : null}
 
       {mine.length === 0 && loose.length === 0 ? (
         <EmptyState title={t("queue.none.title")} />

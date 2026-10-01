@@ -27,7 +27,6 @@ export default async function StartPage() {
 
       <div className="flex flex-col gap-1">
         <h1 className="font-display text-display text-fg">{t("createChurch.title")}</h1>
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("createChurch.lede")}</p>
       </div>
 
       <CreateChurchForm />

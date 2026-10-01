@@ -94,7 +94,7 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("rooms.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("rooms.failed")}>{error}</Banner> : null}
 
       <div>
         <RoomDialog

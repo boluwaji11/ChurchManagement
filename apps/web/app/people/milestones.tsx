@@ -97,7 +97,7 @@ export function Milestones({
 
   return (
     <div className="flex flex-col gap-3" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("person.milestones")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("milestone.failed")}>{error}</Banner> : null}
       {followed ? <Banner tone="info" title={followed} /> : null}
 
       <ul className="flex flex-col gap-2">

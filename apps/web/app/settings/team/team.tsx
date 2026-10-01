@@ -61,7 +61,7 @@ export function Team({
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("team.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("team.failed")}>{error}</Banner> : null}
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">

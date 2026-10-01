@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@hearth/ui";
+import {useRouter } from "next/navigation";
+import {
+  Banner, Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { told } from "./actions";
 
@@ -27,7 +28,7 @@ export function Notify({ church, id }: { church: string; id: string }) {
       >
         {t("incident.markNotified")}
       </Button>
-      {error ? <span className="text-caption text-danger">{error}</span> : null}
+      {error ? <Banner tone="danger" title={t("incident.failed")}>{error}</Banner> : null}
     </div>
   );
 }

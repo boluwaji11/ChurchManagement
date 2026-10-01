@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { ClipboardPen } from "lucide-react";
+import {ClipboardPen } from "lucide-react";
 import {
+  Banner,
   Button, Dialog, DialogTrigger, DialogContent, Field, Input, Textarea, Checkbox,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -79,7 +80,7 @@ export function IncidentDialog({
           className="flex flex-col gap-4"
         >
           {error ? (
-            <p className="text-[length:var(--d-text-body)] text-danger">{error}</p>
+            <Banner tone="danger" title={t("incident.failed")}>{error}</Banner>
           ) : null}
 
           <Field label={t("incident.date")}>

@@ -40,7 +40,7 @@ export default async function NewPersonPage({
           <ArrowLeft className="size-4" /> {t("people.title")}
         </Link>
 
-        <PageTitle title={t("personForm.addTitle")} lede={t("personForm.addLede")} />
+        <PageTitle title={t("personForm.addTitle")} />
 
         {permitted ? (
           <PersonForm
