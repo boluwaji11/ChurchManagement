@@ -52,6 +52,9 @@ export interface FoundGroup {
   /** Where this person stands with it already. */
   mine: boolean;
   requested: JoinStatus | null;
+  /** R9.2. Off the finder for the church, on it for whoever runs groups. */
+  listed: boolean;
+  archived: boolean;
 }
 
 export interface JoinRequest {
@@ -90,11 +93,16 @@ export async function findGroups(
     forWhom?: string;
     online?: boolean;
     childrenWelcome?: boolean;
+    /**
+     * R9.1. Whoever runs groups browses the same screen, with the unlisted and
+     * the archived ones on it. Everybody else sees the church's finder.
+     */
+    manage?: boolean;
   } = {},
 ): Promise<FoundGroup[]> {
   const wheres = [
-    isNull(groups.archivedAt),
-    eq(groups.listed, true),
+    opts.manage ? undefined : isNull(groups.archivedAt),
+    opts.manage ? undefined : eq(groups.listed, true),
     opts.typeId ? eq(groups.typeId, opts.typeId) : undefined,
     opts.dayOfWeek !== undefined ? eq(groups.dayOfWeek, opts.dayOfWeek) : undefined,
     opts.location
@@ -131,6 +139,8 @@ export async function findGroups(
       online: groups.online,
       childrenWelcome: groups.childrenWelcome,
       openToJoin: groups.openToJoin,
+      listed: groups.listed,
+      archivedAt: groups.archivedAt,
       typeName: groupTypes.name,
       typeHue: groupTypes.hue,
       members: sql<string>`(
@@ -186,6 +196,8 @@ export async function findGroups(
       full: row.capacity !== null && memberCount >= row.capacity,
       mine: mine.has(row.id),
       requested: asked.get(row.id) ?? null,
+      listed: row.listed,
+      archived: row.archivedAt !== null,
     };
   });
 }
@@ -424,9 +436,9 @@ export interface GroupPage extends FoundGroup {
 export async function groupPage(
   db: Tx,
   id: string,
-  opts: { personId?: string | null } = {},
+  opts: { personId?: string | null; manage?: boolean } = {},
 ): Promise<GroupPage | null> {
-  const [found] = await findGroups(db, { personId: opts.personId }).then((all) =>
+  const [found] = await findGroups(db, { personId: opts.personId, manage: opts.manage }).then((all) =>
     all.filter((g) => g.id === id),
   );
   if (!found) return null;

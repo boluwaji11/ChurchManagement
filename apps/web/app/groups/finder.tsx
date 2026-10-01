@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, X, Search } from "lucide-react";
+import { Check, X, Search, Plus, Undo2 } from "lucide-react";
 import {
   Badge, Banner, Button, Card, Checkbox, EmptyState, HueDot, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -10,7 +10,8 @@ import {
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import Link from "next/link";
-import { ask, decide } from "./actions";
+import { ask, decide, archive } from "./actions";
+import { GroupDialog } from "./group-form";
 
 export interface FinderGroup {
   id: string;
@@ -32,6 +33,8 @@ export interface FinderGroup {
   full: boolean;
   mine: boolean;
   requested: string | null;
+  listed: boolean;
+  archived: boolean;
 }
 
 export interface FinderType {
@@ -49,6 +52,15 @@ export interface FinderRequest {
 }
 
 const ANY = "any";
+
+/** R9.2. Putting an archived group back on the lists. */
+async function restore(id: string, church: string): Promise<{ error?: string }> {
+  const data = new FormData();
+  data.set("church", church);
+  data.set("id", id);
+  data.set("archived", "false");
+  return archive(data);
+}
 
 const dayName = (day: number) => {
   const d = new Date(2024, 0, 7 + day);
@@ -93,11 +105,13 @@ export function Finder({
   groups,
   types,
   requests,
+  canManage,
 }: {
   church: string;
   groups: FinderGroup[];
   types: FinderType[];
   requests: FinderRequest[];
+  canManage: boolean;
 }) {
   const router = useRouter();
   const [query, setQuery] = React.useState("");
@@ -111,8 +125,10 @@ export function Finder({
   const [pending, startTransition] = React.useTransition();
 
   const text = query.trim().toLowerCase();
+  const archivedGroups = groups.filter((group) => group.archived);
   const shown = groups.filter(
     (group) =>
+      !group.archived &&
       (type === ANY || group.typeId === type) &&
       (day === ANY || String(group.dayOfWeek) === day) &&
       (forWhom === ANY || group.forWhom === forWhom) &&
@@ -178,6 +194,18 @@ export function Finder({
             </div>
           ))}
         </Card>
+      ) : null}
+
+      {canManage ? (
+        <div>
+          <GroupDialog
+            church={church}
+            types={types.map((kind) => ({ id: kind.id, name: kind.name, hue: kind.hue }))}
+            pending={pending}
+            title={t("groups.add")}
+            trigger={<Button><Plus /> {t("groups.add")}</Button>}
+          />
+        </div>
       ) : null}
 
       <div className="flex flex-col gap-3">
@@ -256,6 +284,25 @@ export function Finder({
           ))}
         </div>
       ) : null}
+
+      {/* R9.2. Archived groups, for whoever runs them. */}
+      {canManage && archivedGroups.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <span className="text-label text-fg-muted">{t("groups.archived")}</span>
+          {archivedGroups.map((group) => (
+            <div key={group.id} className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">{group.name}</span>
+              <Button
+                variant="ghost"
+                disabled={pending}
+                onClick={() => run(() => restore(group.id, church))}
+              >
+                <Undo2 /> {t("groups.restore")}
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -329,7 +376,7 @@ function GroupCard({
   return (
     <Card className="flex flex-col gap-2">
       <Link
-        href={`/groups/find/${group.id}?church=${church}`}
+        href={`/groups/${group.id}?church=${church}`}
         className="text-heading text-fg underline-offset-4 hover:underline"
       >
         {group.name}
@@ -345,6 +392,7 @@ function GroupCard({
       ) : null}
 
       <span className="flex flex-wrap items-center gap-2">
+        {group.listed ? null : <Badge tone="neutral">{t("groups.unlisted")}</Badge>}
         {group.forWhom && group.forWhom !== "anyone" ? (
           <Badge tone="neutral">{t(`groups.audience.${group.forWhom}` as never)}</Badge>
         ) : null}

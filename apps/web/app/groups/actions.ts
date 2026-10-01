@@ -3,6 +3,7 @@
 import {
   withTenant, createGroup, updateGroup, setGroupArchived,
   addToGroup, removeFromGroup, lookupPeople, getChurch,
+  requestToJoin, decideRequest,
   type GroupRole,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
@@ -144,5 +145,39 @@ export async function findPerson(query: string, church?: string): Promise<Person
     });
   } catch {
     return [];
+  }
+}
+
+export interface AskResult {
+  error?: string;
+}
+
+/** R9.5. Asking to join a group. */
+export async function ask(
+  groupId: string,
+  message: string | null,
+  church?: string,
+): Promise<AskResult> {
+  const { ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => requestToJoin(tx, ctx, { groupId, message }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R9.6. The leader's answer, which puts them on the roster when it is yes. */
+export async function decide(
+  requestId: string,
+  approve: boolean,
+  church?: string,
+): Promise<AskResult> {
+  const { ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => decideRequest(tx, ctx, { requestId, approve }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
   }
 }

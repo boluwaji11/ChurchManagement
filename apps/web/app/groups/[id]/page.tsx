@@ -1,13 +1,17 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, MapPin } from "lucide-react";
-import { withTenant, groupPage, personForUser, getChurch, upcomingMeetings } from "@hearth/db";
+import {
+  withTenant, groupPage, personForUser, getChurch, upcomingMeetings,
+  listGroupTypes, groupRoster, canManageGroups,
+} from "@hearth/db";
 import { Badge, Card, Separator } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { JoinButton } from "./join-button";
+import { ManageGroup } from "./manage";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +51,16 @@ export default async function GroupPage({
   const session = await requireSession(church);
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
 
-  const { group, today } = await withTenant(actor, async (tx) => {
+  const manage = canManageGroups(session.role);
+
+  const { group, today, types, roster } = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
     const self = await personForUser(tx, session.userId);
     return {
-      group: await groupPage(tx, id, { personId: self }),
+      group: await groupPage(tx, id, { personId: self, manage }),
       today: churchNow(profile?.timezone ?? "America/Chicago").date,
+      types: manage ? await listGroupTypes(tx) : [],
+      roster: manage ? await groupRoster(tx, id) : [],
     };
   });
 
@@ -83,10 +91,10 @@ export default async function GroupPage({
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <nav className="mb-6 flex flex-wrap items-center gap-1 text-caption text-fg-muted">
           <Link
-            href={`/groups/find?church=${session.tenantSlug}`}
+            href={`/groups?church=${session.tenantSlug}`}
             className="rounded px-1 py-0.5 hover:text-fg"
           >
-            {t("find.title")}
+            {t("groups.title")}
           </Link>
           {group.typeName ? (
             <>
@@ -227,6 +235,38 @@ export default async function GroupPage({
             ) : null}
           </aside>
         </div>
+
+        {manage ? (
+          <ManageGroup
+            church={session.tenantSlug}
+            types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
+            roster={roster.map((member) => ({
+              personId: member.personId,
+              name: member.name,
+              role: member.role,
+              joinedOn: member.joinedOn,
+              leftOn: member.leftOn,
+            }))}
+            group={{
+              id: group.id,
+              name: group.name,
+              description: group.description,
+              typeId: group.typeId,
+              dayOfWeek: group.dayOfWeek,
+              startsAt: group.startsAt,
+              endsAt: group.endsAt,
+              frequency: group.frequency,
+              location: group.location,
+              address: group.address,
+              capacity: group.capacity,
+              forWhom: group.forWhom,
+              online: group.online,
+              childrenWelcome: group.childrenWelcome,
+              openToJoin: group.openToJoin,
+              listed: group.listed,
+            }}
+          />
+        ) : null}
       </main>
     </>
   );

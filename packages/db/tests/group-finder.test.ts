@@ -107,6 +107,13 @@ describe("browsing (R9.5)", () => {
     expect(byPlace.map((g) => g.name)).toEqual(["Tuesday night"]);
   });
 
+  it("puts the unlisted ones on the same screen for whoever runs groups", async () => {
+    const found = await run((tx) => findGroups(tx, { manage: true }));
+    expect(found.map((g) => g.name)).toContain("Private thing");
+    expect(found.find((g) => g.name === "Private thing")!.listed).toBe(false);
+    expect(found.every((g) => g.archived === false)).toBe(true);
+  });
+
   it("says where this person already stands", async () => {
     const found = await run((tx) => findGroups(tx, { personId: leader }), "member");
     expect(found.find((g) => g.name === "Tuesday night")!.mine).toBe(true);

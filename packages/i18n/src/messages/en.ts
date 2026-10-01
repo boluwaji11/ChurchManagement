@@ -636,6 +636,7 @@ export const en = {
   "groups.archiveTitle": "Archive {name}?",
   "groups.archiveBody": "The group comes off the lists. Its roster and its attendance stay.",
   "groups.archived": "Archived",
+  "groups.unlisted": "Unlisted",
   "groups.restore": "Restore",
   "groups.meets": "{day}s at {time}",
   "groups.none.title": "No groups yet",

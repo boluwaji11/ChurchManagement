@@ -208,6 +208,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 | HRT-88 | A picture on a group, with the storage quota behind it | R9.2, R5.3 | New |
 | HRT-89 | A public group page a church can link to without signing in | R9.5 | New |
 | HRT-90 | A group's own page: what it is, when it meets, who runs it | R9.2, R9.5 | Resolved |
+| HRT-91 | One groups screen: the finder is the groups page | R9.1, R9.5 | Resolved |
 
 Two things a church's existing finder does that ours does not yet. **HRT-88:** every group has a
 picture, which is most of why a list of forty is readable at a glance. It needs the storage quota
@@ -269,7 +270,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen |
 | **Next** | **HRT-87** group messaging, which needs the church's own email provider (R16.x), so it may pull messaging setup forward. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -978,7 +979,7 @@ nobody has sent is already a query, so sending them is the only part left.
 
 ### HRT-90, how to test it
 
-From **Find a group**, tap a group's name.
+From **Groups**, tap a group's name.
 
 1. **The page.** Its kind in the breadcrumb, the name, and a bar saying whether it is open with the
    way to ask beside it.
@@ -994,3 +995,19 @@ From **Find a group**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-91, how to test it
+
+**Groups** in the header. There is one groups screen now, where there were two.
+
+1. **The list.** The church's groups, under their kinds, with the filters: a box to type in, the
+   kind, the night, who it is for, online, children welcome. What used to be behind "Find a group".
+2. **Create a group.** Still the first thing on the screen, for an owner, admin or staff. A member
+   browsing does not see it.
+3. **Unlisted.** Tick off "Listed for members" on a group. It stays on your screen with an Unlisted
+   chip against it, and it is gone from a member's.
+4. **Archived.** Archive a group from its page. It drops to the Archived line at the bottom of the
+   list, with Restore.
+5. **The group.** Tap a name. The page from HRT-90, and under it the roster, the register, Edit and
+   Archive, for whoever runs groups. A member sees the page without that half.
+6. **Requests.** A leader's waiting requests are still at the top of the list.
