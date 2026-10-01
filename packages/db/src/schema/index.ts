@@ -10,4 +10,3 @@ export * from "./audit";
 export * from "./gatherings";
 export * from "./checkin";
 export * from "./groups";
-export * from "./messaging";

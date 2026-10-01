@@ -209,7 +209,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 | HRT-89 | A public group page a church can link to without signing in | R9.5 | New |
 | HRT-90 | A group's own page: what it is, when it meets, who runs it | R9.2, R9.5 | Resolved |
 | HRT-91 | One groups screen: the finder is the groups page | R9.1, R9.5 | Resolved |
-| HRT-92 | The church's own email provider, with a test send | R16.2 | Resolved |
+| HRT-92 | The church's own email provider | R16.2 | Dropped |
 
 Two things a church's existing finder does that ours does not yet. **HRT-88:** every group has a
 picture, which is most of why a list of forty is readable at a glance. It needs the storage quota
@@ -271,8 +271,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-92** the church's email provider |
-| **Next** | **HRT-93** an outbox, then **HRT-87** group messaging on top of it. R9.8 is 0.2, and it cannot send without R16.2, which is why the provider came forward. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen |
+| **Next** | F5 follow-up, F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1013,22 +1013,15 @@ From **Groups**, tap a group's name.
    Archive, for whoever runs groups. A member sees the page without that half.
 6. **Requests.** A leader's waiting requests are still at the top of the list.
 
-### HRT-92, how to test it
+### HRT-92, dropped, and why
 
-**Settings**, then **Email**. Owner and admin only.
+Built and taken out the same day. It put a Resend API key, an SMTP server and a port on a settings
+screen, for Maria to fill in. Four hours a week, one volunteer, and we asked her for a port number.
 
-1. **Resend.** Paste an API key, a from name and a from address on a domain Resend has verified
-   for you. Save.
-2. **Send a test.** It goes to the address you signed in with. Go and look.
-3. **A key it refuses.** Change a character in the key and test again. The provider's own words
-   come back, and the line underneath keeps them.
-4. **The tick.** A successful test stamps the time. Saving anything clears it, because a key that
-   changed has not been tested.
-5. **SMTP.** Switch the provider to SMTP and the screen asks for the server, the port and the
-   username instead. A church with Google Workspace or Microsoft 365 uses this.
-6. **The key does not come back.** Reload. The key field is empty with a placeholder, and leaving
-   it empty on a save keeps the key on file. It is encrypted in the database, and the audit log
-   records that it changed without recording it.
-7. **Remove.** Takes the provider off. The church sends nothing until one is set up again.
+The provider still has to exist, because messaging runs on the church's own account (R16.2) and
+that is settled. It gets set up with the church during onboarding (F22), by somebody who does this
+for a living, out of the volunteer's way. Where that configuration is written down is part of
+onboarding's design, so it is decided there.
 
-Nothing sends email yet besides this test. The outbox is HRT-93.
+**HRT-87** group messaging waits on that. The queue of people a message is owed is already a query,
+so the sending is the only part missing.

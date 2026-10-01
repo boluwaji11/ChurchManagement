@@ -225,6 +225,13 @@
       "when": 1790867740185,
       "tag": "0031_wealthy_drax",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790868074838,
+      "tag": "0032_windy_shadowcat",
+      "breakpoints": true
     }
   ]
 }
