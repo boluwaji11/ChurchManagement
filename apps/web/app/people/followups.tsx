@@ -68,7 +68,6 @@ export function FollowUps({
   canEdit: boolean;
 }) {
   const router = useRouter();
-  const [pipelineId, setPipelineId] = React.useState("");
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
@@ -85,10 +84,6 @@ export function FollowUps({
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("followups.title")}>{error}</Banner> : null}
-
-      {open.length === 0 && tasks.length === 0 && closed.length === 0 ? (
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("followups.none")}</p>
-      ) : null}
 
       {open.map((entry) => (
         <div key={entry.id} className="flex flex-col gap-3">
@@ -169,8 +164,55 @@ export function FollowUps({
       ) : null}
 
       {canEdit ? (
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex min-w-48 flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-3">
+          <StartDialog
+            church={church}
+            personId={personId}
+            pipelines={pipelines}
+            pending={pending}
+            onDone={() => router.refresh()}
+            onError={setError}
+          />
+          <TaskDialog
+            church={church}
+            personId={personId}
+            pending={pending}
+            onDone={() => router.refresh()}
+            onError={setError}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function StartDialog({
+  church,
+  personId,
+  pipelines,
+  pending,
+  onDone,
+  onError,
+}: {
+  church: string;
+  personId: string;
+  pipelines: PipelineOption[];
+  pending: boolean;
+  onDone: () => void;
+  onError: (error?: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [pipelineId, setPipelineId] = React.useState("");
+  const [saving, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button><Plus /> {t("followups.startAction")}</Button>
+      </DialogTrigger>
+      <DialogContent title={t("followups.startAction")} closeLabel={t("common.close")}>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
             <span className="text-label text-fg">{t("followups.start")}</span>
             <Select value={pipelineId} onValueChange={setPipelineId}>
               <SelectTrigger aria-label={t("followups.start")}><SelectValue /></SelectTrigger>
@@ -187,29 +229,32 @@ export function FollowUps({
             </Select>
           </div>
 
-          <Button
-            disabled={pending || !pipelineId}
-            onClick={() => {
-              const data = new FormData();
-              data.set("church", church);
-              data.set("personId", personId);
-              data.set("pipelineId", pipelineId);
-              run(() => startFollowUp(data));
-            }}
-          >
-            <Plus /> {t("followups.startAction")}
-          </Button>
-
-          <TaskDialog
-            church={church}
-            personId={personId}
-            pending={pending}
-            onDone={() => router.refresh()}
-            onError={setError}
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              disabled={pending || saving || !pipelineId}
+              onClick={() => {
+                const data = new FormData();
+                data.set("church", church);
+                data.set("personId", personId);
+                data.set("pipelineId", pipelineId);
+                startTransition(async () => {
+                  const result = await startFollowUp(data);
+                  onError(result.error);
+                  if (!result.error) {
+                    setOpen(false);
+                    setPipelineId("");
+                    onDone();
+                  }
+                });
+              }}
+            >
+              {t("followups.startAction")}
+            </Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+          </div>
         </div>
-      ) : null}
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
