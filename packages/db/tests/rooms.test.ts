@@ -16,6 +16,7 @@ import {
 import { InvalidInputError, NameTakenError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 
@@ -24,17 +25,12 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
   withTenant({ tenantId: tenant, role }, work);
 
 beforeAll(async () => {
-  const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values ('roomtest', 'Room Test Church', 'America/Chicago')
-    returning id`;
-  tenant = row!.id;
+  const rowId = await testTenant("roomtest", "Room Test Church");
+  tenant = rowId;
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async (sql) => {
-    await sql`delete from tenants where id = ${tenant}`;
-  });
+  await dropTenants("roomtest", "roomtest2");
   await closeConnections();
 });
 
@@ -205,11 +201,7 @@ describe("who may change a room", () => {
 
 describe("another church's rooms", () => {
   it("cannot be seen", async () => {
-    const [other] = await owner()<{ id: string }[]>`
-      insert into tenants (slug, name, timezone)
-      values ('roomtest2', 'Other Room Church', 'America/Chicago')
-      returning id`;
-    const otherId = other!.id;
+    const otherId = await testTenant("roomtest2", "Other Room Church");
 
     await withTenant({ tenantId: otherId, role: "owner" }, (tx) =>
       addRoom(tx, { tenantId: otherId, role: "owner" }, { name: "Their nursery" }),

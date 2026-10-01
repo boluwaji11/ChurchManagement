@@ -17,6 +17,7 @@ import { createPerson } from "../src/repo/people";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 const ids: Record<string, string> = {};
@@ -28,11 +29,8 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
   withTenant({ tenantId: tenant, role }, work);
 
 beforeAll(async () => {
-  const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values ('attendtest', 'Attendance Test Church', 'America/Chicago')
-    returning id`;
-  tenant = row!.id;
+  const rowId = await testTenant("attendtest", "Attendance Test Church");
+  tenant = rowId;
 
   for (const first of ["Abigail", "Benjamin", "Caroline"]) {
     const p = await run((tx) =>
@@ -51,9 +49,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async (sql) => {
-    await sql`delete from tenants where id = ${tenant}`;
-  });
+  await dropTenants("attendtest");
   await closeConnections();
 });
 

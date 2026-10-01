@@ -17,6 +17,7 @@ import { addServiceTime } from "../src/repo/church";
 import { InvalidInputError, NameTakenError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 let nursery: string;
@@ -28,11 +29,8 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
   withTenant({ tenantId: tenant, role }, work);
 
 beforeAll(async () => {
-  const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values ('stationtest', 'Station Test Church', 'America/Chicago')
-    returning id`;
-  tenant = row!.id;
+  const rowId = await testTenant("stationtest", "Station Test Church");
+  tenant = rowId;
 
   nursery = (await run((tx) => addRoom(tx, as(), { name: "Nursery", minAgeMonths: 0, maxAgeMonths: 24 }))).id;
   kids = (await run((tx) => addRoom(tx, as(), { name: "Kids", minAgeMonths: 24, maxAgeMonths: 144 }))).id;
@@ -40,9 +38,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async (sql) => {
-    await sql`delete from tenants where id = ${tenant}`;
-  });
+  await dropTenants("stationtest", "stationtest2");
   await closeConnections();
 });
 
@@ -173,11 +169,7 @@ describe("who may set a station up", () => {
 
 describe("another church's stations", () => {
   it("cannot be seen or claimed", async () => {
-    const [other] = await owner()<{ id: string }[]>`
-      insert into tenants (slug, name, timezone)
-      values ('stationtest2', 'Other Station Church', 'America/Chicago')
-      returning id`;
-    const otherId = other!.id;
+    const otherId = await testTenant("stationtest2", "Other Station Church");
 
     const theirs = await withTenant({ tenantId: otherId, role: "owner" }, (tx) =>
       addStation(tx, { tenantId: otherId, role: "owner" }, { name: "Their desk" }),

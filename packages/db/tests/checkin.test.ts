@@ -19,6 +19,7 @@ import { attendanceForPerson } from "../src/repo/attendance";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 let service: string;
@@ -35,11 +36,8 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
 const today = new Date().toISOString().slice(0, 10);
 
 beforeAll(async () => {
-  const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values ('checkintest', 'Check-in Test Church', 'America/Chicago')
-    returning id`;
-  tenant = row!.id;
+  const rowId = await testTenant("checkintest", "Check-in Test Church");
+  tenant = rowId;
 
   nursery = (await run((tx) => addRoom(tx, as(), { name: "Nursery", minAgeMonths: 0, maxAgeMonths: 24, capacity: 2 }))).id;
   kids = (await run((tx) => addRoom(tx, as(), { name: "Kids", minAgeMonths: 24, maxAgeMonths: 144 }))).id;
@@ -61,9 +59,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async (sql) => {
-    await sql`delete from tenants where id = ${tenant}`;
-  });
+  await dropTenants("checkintest", "checkintest2");
   await closeConnections();
 });
 
@@ -179,19 +175,14 @@ describe("who may run a station", () => {
 
 describe("another church", () => {
   it("cannot see these visits", async () => {
-    const [other] = await owner()<{ id: string }[]>`
-      insert into tenants (slug, name, timezone)
-      values ('checkintest2', 'Other Check-in Church', 'America/Chicago')
-      returning id`;
+    const otherId = await testTenant("checkintest2", "Other Check-in Church");
 
-    const theirs = await withTenant({ tenantId: other!.id, role: "owner" }, (tx) =>
+    const theirs = await withTenant({ tenantId: otherId, role: "owner" }, (tx) =>
       visitsFor(tx, service),
     );
     expect(theirs).toEqual([]);
 
-    await withAuditTriggersOff(async (sql) => {
-      await sql`delete from tenants where id = ${other!.id}`;
-    });
+    await dropTenants("checkintest2");
   });
 });
 

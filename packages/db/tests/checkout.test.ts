@@ -20,6 +20,7 @@ import { addRelationship } from "../src/repo/relationships";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 let service: string;
@@ -49,11 +50,8 @@ const freshVisit = async (): Promise<{ id: string; code: string }> => {
 };
 
 beforeAll(async () => {
-  const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values ('checkouttest', 'Checkout Test Church', 'America/Chicago')
-    returning id`;
-  tenant = row!.id;
+  const rowId = await testTenant("checkouttest", "Checkout Test Church");
+  tenant = rowId;
 
   room = (await run((tx) => addRoom(tx, as(), { name: "Kids" }))).id;
   service = (await run((tx) => addSpecialService(tx, as(), {
@@ -101,9 +99,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async (sql) => {
-    await sql`delete from tenants where id = ${tenant}`;
-  });
+  await dropTenants("checkouttest");
   await closeConnections();
 });
 

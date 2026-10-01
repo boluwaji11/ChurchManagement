@@ -18,6 +18,7 @@ import { addServiceTime } from "../src/repo/church";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 
@@ -26,11 +27,8 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
   withTenant({ tenantId: tenant, role }, work);
 
 beforeAll(async () => {
-  const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values ('servicetest', 'Service Test Church', 'America/Chicago')
-    returning id`;
-  tenant = row!.id;
+  const rowId = await testTenant("servicetest", "Service Test Church");
+  tenant = rowId;
 
   // Sunday 09:00 and 11:00, and a Wednesday evening.
   await run((tx) => addServiceTime(tx, as(), { name: "First service", dayOfWeek: 0, startsAt: "09:00" }));
@@ -39,9 +37,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async (sql) => {
-    await sql`delete from tenants where id = ${tenant}`;
-  });
+  await dropTenants("servicetest");
   await closeConnections();
 });
 

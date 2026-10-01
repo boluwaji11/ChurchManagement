@@ -16,6 +16,7 @@ import { listMilestones } from "../src/repo/milestones";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 
@@ -32,17 +33,12 @@ const run = <T>(tenantId: string, role: TenantRole, work: (tx: Tx) => Promise<T>
  * looks like an isolation bug and is not.
  */
 beforeAll(async () => {
-  const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values ('demotest', 'Demo Test Church', 'America/Chicago')
-    returning id`;
-  tenant = row!.id;
+  const rowId = await testTenant("demotest", "Demo Test Church");
+  tenant = rowId;
 });
 
 afterAll(async () => {
-  await withAuditTriggersOff(async (sql) => {
-    await sql`delete from tenants where id = ${tenant}`;
-  });
+  await dropTenants("demotest");
   await closeConnections();
 });
 
