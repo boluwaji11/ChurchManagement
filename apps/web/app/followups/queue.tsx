@@ -131,7 +131,7 @@ function Group({
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className={tone === "danger" ? "text-label text-danger" : "text-label text-fg-muted"}>
+      <h2 className={tone === "danger" ? "text-label text-danger-text" : "text-label text-fg-muted"}>
         {label}
       </h2>
       <Card className="flex flex-col">
@@ -189,7 +189,7 @@ function Row({
         <span className="text-caption text-fg-muted">
           {item.title}
           {item.dueOn ? (
-            <span className={overdue ? "ml-2 text-danger" : "ml-2"}>{readable(item.dueOn)}</span>
+            <span className={overdue ? "ml-2 text-danger-text" : "ml-2"}>{readable(item.dueOn)}</span>
           ) : null}
         </span>
       </span>

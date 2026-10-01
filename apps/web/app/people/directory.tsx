@@ -33,8 +33,8 @@ export interface TagOption {
 
 const STATUS_TONE: Record<string, "primary" | "accent" | "neutral" | "success"> = {
   member: "primary",
-  visitor: "accent",
-  regular_attender: "success",
+  visitor: "neutral",
+  regular_attender: "neutral",
   inactive: "neutral",
 };
 

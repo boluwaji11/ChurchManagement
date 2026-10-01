@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Printer, UserCheck } from "lucide-react";
 import {
+  CriticalBanner,
   Badge, Banner, Button, Card, Dialog, DialogContent, EmptyState, HueDot, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
@@ -233,10 +234,14 @@ function Roster({
               ) : null}
             </span>
           </div>
+          {/* R8.10. The same fact the station treats as critical was the
+              smallest text on this screen, in the lowest-contrast red we have. */}
           {entry.allergies || entry.medicalNote ? (
-            <div className="text-caption text-danger">
-              {[entry.allergies, entry.medicalNote].filter(Boolean).join(". ")}
-            </div>
+            <CriticalBanner
+              heading={t("checkin.allergies")}
+              items={[entry.allergies, entry.medicalNote].filter(Boolean) as string[]}
+              className="mt-2"
+            />
           ) : null}
 
           <div className="flex flex-wrap items-center gap-1 print:hidden">

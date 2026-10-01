@@ -77,6 +77,7 @@ export function LabelSheet({
                 name={label.childName}
                 code={label.code}
                 room={label.roomName}
+                roomHue={label.roomHue}
                 lines={[label.serviceName, label.churchName]}
                 allergy={label.allergy}
                 kind={t("labels.child")}
@@ -86,6 +87,7 @@ export function LabelSheet({
                 name={label.childName}
                 code={label.code}
                 room={label.roomName}
+                roomHue={label.roomHue}
                 lines={[t("labels.guardianLine")]}
                 allergy={null}
                 kind={t("labels.guardian")}
@@ -103,6 +105,7 @@ function Label({
   name,
   code,
   room,
+  roomHue,
   lines,
   allergy,
   kind,
@@ -111,6 +114,8 @@ function Label({
   name: string;
   code: string | null;
   room: string | null;
+  /** R24.4. The class colour, so a volunteer can point a parent at a door. */
+  roomHue?: string | null;
   lines: string[];
   allergy: string | null;
   kind: string;
@@ -133,7 +138,18 @@ function Label({
           <span className="truncate text-[length:var(--d-text-body)] font-medium leading-tight">
             {name}
           </span>
-          {room ? <span className="truncate text-caption">{room}</span> : null}
+          {room ? (
+            <span className="flex min-w-0 items-center gap-1.5 truncate text-caption">
+              {roomHue ? (
+                <span
+                  aria-hidden
+                  className="size-2.5 shrink-0 rounded-full print:outline print:outline-1"
+                  style={{ background: `var(--hue-${roomHue}-500)` }}
+                />
+              ) : null}
+              {room}
+            </span>
+          ) : null}
           {allergy ? (
             <span className="truncate text-caption font-semibold uppercase">{allergy}</span>
           ) : null}
@@ -160,7 +176,20 @@ function Label({
         {name}
       </div>
 
-      {room ? <div className="text-[length:var(--d-text-body)]">{room}</div> : null}
+      {/* R24.4. The room's own colour, printed. A volunteer directs a parent
+          by colour across a corridor faster than by reading a name. */}
+      {room ? (
+        <div className="flex items-center gap-2 text-[length:var(--d-text-body)]">
+          {roomHue ? (
+            <span
+              aria-hidden
+              className="size-3 shrink-0 rounded-full print:outline print:outline-1"
+              style={{ background: `var(--hue-${roomHue}-500)` }}
+            />
+          ) : null}
+          {room}
+        </div>
+      ) : null}
 
       {allergy ? (
         <div className="rounded-md bg-danger px-2 py-1 text-caption font-medium text-white print:bg-white print:text-black print:outline print:outline-2">

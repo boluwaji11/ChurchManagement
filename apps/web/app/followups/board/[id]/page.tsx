@@ -100,7 +100,7 @@ export default async function PipelinePage({
                       <span className="text-caption text-fg-muted">
                         {next ? next.title : t("followups.done")}
                         {next?.dueOn ? (
-                          <span className={late ? "ml-2 text-danger" : "ml-2"}>
+                          <span className={late ? "ml-2 text-danger-text" : "ml-2"}>
                             {readable(next.dueOn)}
                           </span>
                         ) : null}

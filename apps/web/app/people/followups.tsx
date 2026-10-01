@@ -383,7 +383,7 @@ function Step({
           {step.title}
         </span>
         {step.dueOn ? (
-          <span className={overdue ? "ml-2 text-caption text-danger" : "ml-2 text-caption text-fg-muted"}>
+          <span className={overdue ? "ml-2 text-caption text-danger-text" : "ml-2 text-caption text-fg-muted"}>
             {readable(step.dueOn)}
           </span>
         ) : null}
