@@ -175,3 +175,40 @@ export const groupAttendance = pgTable(
     uniqueIndex("group_attendance_unique").on(t.meetingId, t.personId),
   ],
 );
+
+/**
+ * R9.5, R9.6. Somebody asking to join a group.
+ *
+ * A request rather than a join, because a group has a leader and a capacity and
+ * sometimes a reason to say no. The decision is kept either way: a church that
+ * declines somebody and keeps no record of it cannot answer the question three
+ * months later when they ask why they never heard back.
+ */
+export const groupJoinRequests = pgTable(
+  "group_join_requests",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    groupId: uuid("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    /** What they said when they asked. Optional, and usually empty. */
+    message: text("message"),
+    /** "pending", "approved" or "declined". */
+    status: text("status").notNull().default("pending"),
+    decidedBy: uuid("decided_by"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    /** R9.6. Whether the person has been told the answer. */
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("join_request_tenant_idx").on(t.tenantId, t.status),
+    index("join_request_group_idx").on(t.tenantId, t.groupId),
+    index("join_request_person_idx").on(t.tenantId, t.personId),
+    // One open request a person a group. Asking twice is the same asking.
+    uniqueIndex("join_request_open_unique")
+      .on(t.groupId, t.personId)
+      .where(sql`${t.status} = 'pending'`),
+  ],
+);

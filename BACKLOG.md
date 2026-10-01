@@ -203,7 +203,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 | HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Resolved |
 | HRT-84 | A leader sees their own group and nothing else | R9.3 | Resolved |
 | HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | Resolved |
-| HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | New |
+| HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | Resolved |
 | HRT-87 | Messaging a group's roster through the church's own provider | R9.8 | New |
 
 ### F5, F3, F22
@@ -260,8 +260,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance |
-| **Next** | **HRT-86** the group finder and join requests, then HRT-87 group messaging. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder |
+| **Next** | **HRT-87** group messaging, which needs the church's own email provider (R16.x), so it may pull messaging setup forward. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -943,3 +943,23 @@ built for.
 5. **The history.** Under the sheet, the last eight meetings with how many came.
 6. **Who can.** A group leader can record for their own group and is refused on anybody else's. A
    member cannot record at all.
+
+### HRT-86, how to test it
+
+**Find a group** is on the Groups page.
+
+1. **Browse.** Every listed group, with the day, time and place. An unlisted group is not there.
+2. **Filter.** Type, day and where. "hall" finds The Hall, since people type what they say.
+3. **Ask.** Press ask to join. The card changes to Asked. Pressing again does not make a second
+   request.
+4. **A closed group.** A group that is not taking requests says so instead of offering the button,
+   and it is still listed, because somebody looking for a Tuesday group should see the church has
+   one.
+5. **Answer it.** As the leader of that group, the request is at the top of the same screen. Approve
+   puts them on the roster in the same press. Check the group's roster to see it.
+6. **Decline.** The answer is kept, and the person sees it on the finder.
+7. **Somebody else's group.** A leader is only offered the requests for groups they lead.
+
+**Not built yet:** the email telling them either way. Messaging runs on the church's own provider
+(R9.8, HRT-87), so until that lands the finder is where they see the answer. The queue of answers
+nobody has sent is already a query, so sending them is the only part left.

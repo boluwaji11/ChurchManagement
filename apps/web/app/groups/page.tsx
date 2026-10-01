@@ -1,7 +1,7 @@
 import {
   withTenant, listGroups, listGroupTypes, groupRoster, canManageGroups,
 } from "@hearth/db";
-import { Banner } from "@hearth/ui";
+import { Banner, Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { AppHeader } from "@/components/app-header";
@@ -35,7 +35,12 @@ export default async function GroupsPage({
     <>
       <AppHeader session={session} />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("groups.title")} className="mb-6" />
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <PageTitle title={t("groups.title")} className="mb-0" />
+          <Button asChild variant="secondary">
+            <a href={`/groups/find?church=${session.tenantSlug}`}>{t("find.title")}</a>
+          </Button>
+        </div>
 
         {canManageGroups(session.role) ? (
           <GroupList
