@@ -304,7 +304,14 @@ export async function enterPipelineAuto(
       ),
     )
     .limit(1);
-  if (!pipeline) throw new InvalidInputError("followup.error.pipeline");
+  // A trigger firing on a church whose pipeline was archived, or on one created
+  // before the presets existed, does nothing. The thing that fired it, a
+  // milestone or an attendance record, is what the church came to do, and it
+  // has to succeed either way.
+  if (!pipeline) {
+    if (input.pipelineKey) return null;
+    throw new InvalidInputError("followup.error.pipeline");
+  }
 
   const [person] = await db
     .select({ id: people.id })

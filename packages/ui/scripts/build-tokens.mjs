@@ -98,17 +98,19 @@ w(`}`);
 w();
 
 /* ---------- density ---------- */
-w(`/* Density. One system, three modes. Set data-density on the root element. */`);
+w(`/* Density. One system, three modes. Set data-density on the root element, or on
+   any element whose subtree runs at a different one: a kiosk inside the app is
+   station density while the page around it stays office. */`);
 const emitDensity = (sel, mode) => {
   w(`${sel} {`);
   for (const [k, v] of Object.entries(mode)) { if (skip(k)) continue; w(`  --d-${k}: ${v};`); }
   w(`}`);
 };
-emitDensity(`:root, :root[data-density="office"]`, density.modes.office);
+emitDensity(`:root, [data-density="office"]`, density.modes.office);
 w();
-emitDensity(`:root[data-density="station"]`, density.modes.station);
+emitDensity(`[data-density="station"]`, density.modes.station);
 w();
-emitDensity(`:root[data-density="portal"]`, density.modes.portal);
+emitDensity(`[data-density="portal"]`, density.modes.portal);
 w();
 
 /* ---------- Tailwind theme ---------- */

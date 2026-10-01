@@ -34,10 +34,14 @@ describe("dialogs", () => {
     for (const file of SCAN.flatMap(files)) {
       const lines = readFileSync(file, "utf8").split("\n");
       lines.forEach((line, i) => {
-        if (!line.includes("DialogClose")) return;
-        // The submit is on this line or one of the next three.
-        const window = lines.slice(i, i + 4).join(" ");
-        if (window.includes('type="submit"')) {
+        if (!line.includes("<DialogClose")) return;
+        // Everything up to the closing tag, which is what DialogClose actually
+        // wraps. A submit standing beside it as the next button is fine, and
+        // reading four lines blind called that an offence.
+        const rest = lines.slice(i, i + 8).join("\n");
+        const end = rest.indexOf("</DialogClose>");
+        const inside = end === -1 ? rest : rest.slice(0, end);
+        if (inside.includes('type="submit"')) {
           offences.push(`${relative(ROOT, file)}:${i + 1}`);
         }
       });

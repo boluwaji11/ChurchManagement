@@ -57,6 +57,10 @@ export async function loadDemoData(db: Tx, actor: WriteActor): Promise<DemoState
     await db.insert(demoRecords).values({ tenantId: actor.tenantId, entity, recordId });
   };
 
+  // Before any person, because recording a baptism enters that person into the
+  // baptism pipeline and the pipeline has to be there to enter.
+  await seedPipelines(db, actor);
+
   const tagIds = new Map<string, string>();
   for (const tag of DEMO_TAGS) {
     const created = await createTag(db, actor, { name: tag.name, hue: tag.hue as never });
@@ -240,7 +244,6 @@ async function loadGroups(
   remember: (entity: string, recordId: string) => Promise<void>,
   everyone: string[],
 ): Promise<void> {
-  await seedPipelines(db, actor);
   const types = await seedGroupTypes(db, actor);
   const small = types.find((t) => t.name === "Small group") ?? types[0];
   const team = types.find((t) => t.name === "Ministry team") ?? types[0];
