@@ -102,9 +102,11 @@ export function Desk({
   };
 
   const household = matches.find((m) => m.id === open);
-  const needsReading =
-    household !== undefined &&
-    warnings(household.people.filter((p) => picked[p.id] && !p.checkedIn)).length > 0;
+  /** Who this press would check in. Nobody means the press is not offered. */
+  const waiting = household
+    ? household.people.filter((p) => picked[p.id] && !p.checkedIn)
+    : [];
+  const needsReading = warnings(waiting).length > 0;
 
   const send = () => {
     if (!household) return;
@@ -119,6 +121,7 @@ export function Desk({
 
     startTransition(async () => {
       const children = entries.filter((e) => e.child).map((e) => e.personId);
+      const wearing = entries.map((e) => e.personId);
 
       // R8.21. With no network the station does the whole thing itself: it
       // takes codes off the block it was given, writes the check-in to its own
@@ -136,9 +139,9 @@ export function Desk({
         setDone(entries.map((e) => e.personId));
         setPrinting(children);
 
-        if (children.length > 0) {
+        if (wearing.length > 0) {
           await keepLabels(
-            children.map((personId) => {
+            wearing.map((personId) => {
               const person = household.people.find((p) => p.id === personId);
               const room = rooms.find((r) => r.id === chosen[personId]);
               return {
@@ -148,7 +151,7 @@ export function Desk({
                 roomHue: room?.hue ?? null,
                 serviceName: services.find((s) => s.id === service)?.name ?? "",
                 churchName: station.snapshot?.churchName ?? "",
-                code: given[personId] ?? "",
+                code: given[personId] ?? null,
                 allergy: person?.allergies ?? null,
               };
             }),
@@ -168,9 +171,9 @@ export function Desk({
       // The children on this press are the ones whose labels have to come out
       // of the printer before anybody walks away.
       setPrinting(children);
-      if (children.length > 0) {
+      if (wearing.length > 0) {
         window.open(
-          `/checkin/labels?church=${church}&service=${service}&printer=${printer}&people=${children.join(",")}`,
+          `/checkin/labels?church=${church}&service=${service}&printer=${printer}&people=${wearing.join(",")}`,
           "hearth-labels",
           "width=520,height=720",
         );
@@ -188,7 +191,7 @@ export function Desk({
    * a printer that jammed is to put the check-in back rather than carry on.
    */
   const settle = (printed: boolean) => {
-    const waiting = printing;
+    const unsettled = printing;
     setPrinting([]);
 
     if (printed) {
@@ -200,7 +203,7 @@ export function Desk({
     }
 
     startTransition(async () => {
-      for (const personId of waiting) await undo(service, personId, church);
+      for (const personId of unsettled) await undo(service, personId, church);
       await again();
       setDone([]);
     });
@@ -341,14 +344,17 @@ export function Desk({
             onSeen={() => setSeen(true)}
           />
 
-          <div>
-            <Button
-              onClick={send}
-              disabled={pending || (needsReading && !seen)}
-            >
-              <Check /> {t("checkin.check")}
-            </Button>
-          </div>
+          {/* Nobody left to check in is nothing to press. */}
+          {waiting.length > 0 ? (
+            <div>
+              <Button
+                onClick={send}
+                disabled={pending || (needsReading && !seen)}
+              >
+                <Check /> {t("checkin.check")}
+              </Button>
+            </div>
+          ) : null}
         </Card>
       ) : matches.length > 0 ? (
         <ul className="flex flex-col gap-2">

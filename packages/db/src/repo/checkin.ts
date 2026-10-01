@@ -296,7 +296,11 @@ export interface LabelPair {
   roomHue: string | null;
   serviceName: string;
   churchName: string;
-  code: string;
+  /**
+   * R8.6. The code the pair is matched on. Null for an adult, who takes a name
+   * badge: a badge says who somebody is and makes no claim on a child.
+   */
+  code: string | null;
   /** R8.10. What the room has to know. Null means nothing is recorded. */
   allergy: string | null;
 }
@@ -328,10 +332,11 @@ export async function labelsFor(
     .where(eq(checkinVisits.occurrenceId, occurrenceId))
     .orderBy(asc(people.firstName));
 
-  // A person with no code takes a name badge rather than a label pair, and a
-  // name badge is not a claim on anybody.
+  // Everybody checked in has something to wear. A child gets the pair, matched
+  // on a code; an adult gets a name badge, which the sheet prints as one label
+  // with no code on it. (R8.5, R8.6)
   return rows
-    .filter((r) => personIds.includes(r.personId) && r.code !== null)
+    .filter((r) => personIds.includes(r.personId))
     .map((r) => ({
       personId: r.personId,
       childName: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
@@ -339,7 +344,7 @@ export async function labelsFor(
       roomHue: r.roomHue,
       serviceName: r.serviceName,
       churchName,
-      code: r.code!,
+      code: r.code,
       allergy: r.allergies,
     }));
 }

@@ -711,6 +711,7 @@ export const en = {
   "checkin.useThis": "Use this station",
   "checkin.change": "Change station",
   "labels.print": "Print",
+  "labels.badge": "Name badge",
   "labels.child": "Child",
   "labels.guardian": "Pickup",
   "labels.guardianLine": "Show this code to collect",

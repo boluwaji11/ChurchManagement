@@ -57,28 +57,42 @@ export function LabelSheet({
       </div>
 
       <div className="flex flex-wrap gap-4 print:gap-0">
-        {labels.map((label) => (
-          <React.Fragment key={label.personId}>
+        {labels.map((label) =>
+          label.code === null ? (
+            /* R8.5. A name badge: who this is, and nothing that claims a child. */
             <Label
+              key={label.personId}
               stock={stock}
               name={label.childName}
-              code={label.code}
-              room={label.roomName}
+              code={null}
+              room={null}
               lines={[label.serviceName, label.churchName]}
-              allergy={label.allergy}
-              kind={t("labels.child")}
-            />
-            <Label
-              stock={stock}
-              name={label.childName}
-              code={label.code}
-              room={label.roomName}
-              lines={[t("labels.guardianLine")]}
               allergy={null}
-              kind={t("labels.guardian")}
+              kind={t("labels.badge")}
             />
-          </React.Fragment>
-        ))}
+          ) : (
+            <React.Fragment key={label.personId}>
+              <Label
+                stock={stock}
+                name={label.childName}
+                code={label.code}
+                room={label.roomName}
+                lines={[label.serviceName, label.churchName]}
+                allergy={label.allergy}
+                kind={t("labels.child")}
+              />
+              <Label
+                stock={stock}
+                name={label.childName}
+                code={label.code}
+                room={label.roomName}
+                lines={[t("labels.guardianLine")]}
+                allergy={null}
+                kind={t("labels.guardian")}
+              />
+            </React.Fragment>
+          ),
+        )}
       </div>
     </main>
   );
@@ -95,7 +109,7 @@ function Label({
 }: {
   stock: Stock;
   name: string;
-  code: string;
+  code: string | null;
   room: string | null;
   lines: string[];
   allergy: string | null;
@@ -126,7 +140,9 @@ function Label({
           <span className="truncate text-caption opacity-70">{kind}</span>
         </div>
 
-        <span className="shrink-0 font-mono text-title leading-none tracking-widest">{code}</span>
+        {code ? (
+          <span className="shrink-0 font-mono text-title leading-none tracking-widest">{code}</span>
+        ) : null}
       </div>
     );
   }
@@ -140,7 +156,9 @@ function Label({
         {kind}
       </div>
 
-      <div className="text-title font-medium leading-tight">{name}</div>
+      <div className={code ? "text-title font-medium leading-tight" : "text-display font-medium leading-tight"}>
+        {name}
+      </div>
 
       {room ? <div className="text-[length:var(--d-text-body)]">{room}</div> : null}
 
@@ -150,7 +168,9 @@ function Label({
         </div>
       ) : null}
 
-      <div className="font-mono text-display leading-none tracking-widest">{code}</div>
+      {code ? (
+        <div className="font-mono text-display leading-none tracking-widest">{code}</div>
+      ) : null}
 
       {lines.map((line) => (
         <div key={line} className="text-caption text-fg-muted print:text-black">

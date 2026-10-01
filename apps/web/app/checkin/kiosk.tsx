@@ -112,7 +112,7 @@ export function Kiosk({
     if (entries.length === 0) return;
 
     startTransition(async () => {
-      const children = entries.filter((e) => e.child).map((e) => e.personId);
+      const wearing = entries.map((e) => e.personId);
 
       // R8.21. A family checking themselves in with the wifi down gets the same
       // screen, the same labels and the same codes.
@@ -127,9 +127,9 @@ export function Kiosk({
         setCodes(given);
         setFinished(entries.map((e) => e.personId));
 
-        if (children.length > 0) {
+        if (wearing.length > 0) {
           await keepLabels(
-            children.map((personId) => {
+            wearing.map((personId) => {
               const person = household.people.find((p) => p.id === personId);
               const room = rooms.find((r) => r.id === chosen[personId]);
               return {
@@ -139,7 +139,7 @@ export function Kiosk({
                 roomHue: room?.hue ?? null,
                 serviceName: services.find((s) => s.id === service)?.name ?? "",
                 churchName: station.snapshot?.churchName ?? "",
-                code: given[personId] ?? "",
+                code: given[personId] ?? null,
                 allergy: person?.allergies ?? null,
               };
             }),
@@ -155,9 +155,9 @@ export function Kiosk({
       setCodes(result.codes ?? {});
       setFinished(entries.map((e) => e.personId));
 
-      if (children.length > 0) {
+      if (wearing.length > 0) {
         window.open(
-          `/checkin/labels?church=${church}&service=${service}&printer=${printer}&people=${children.join(",")}`,
+          `/checkin/labels?church=${church}&service=${service}&printer=${printer}&people=${wearing.join(",")}`,
           "hearth-labels",
           "width=520,height=720",
         );

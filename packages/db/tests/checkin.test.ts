@@ -209,12 +209,20 @@ describe("the label pair (R8.6, R8.11)", () => {
     expect(label!.roomName).toBe("Nursery");
     expect(label!.serviceName).toBe("Sunday");
     expect(label!.churchName).toBe("Check-in Test Church");
-    expect(looksLikeCode(label!.code)).toBe(true);
+    expect(looksLikeCode(label!.code ?? "")).toBe(true);
   });
 
-  it("prints no label pair for somebody taking a name badge", async () => {
-    const labels = await run((tx) => labelsFor(tx, service, [elena], "Check-in Test Church"));
-    expect(labels).toEqual([]);
+  it("gives an adult a name badge with no code on it (R8.5)", async () => {
+    // She was taken back out by the undo test above, so she is checked in again.
+    await run((tx) => checkInFamily(tx, as(), {
+      occurrenceId: service,
+      entries: [{ personId: elena, roomId: null, child: false }],
+    }));
+
+    const [label] = await run((tx) => labelsFor(tx, service, [elena], "Check-in Test Church"));
+    expect(label!.childName).toBe("Elena Ochoa");
+    // A badge says who somebody is. A code would be a claim on a child.
+    expect(label!.code).toBeNull();
   });
 
   it("keeps the code a child already has when the desk presses again", async () => {
