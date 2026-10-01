@@ -61,6 +61,25 @@ goes. Every decision in this document is tested against that paragraph.
 
 ## 2. Standalone first, and what that costs
 
+**87 of the 144 stories need no platform at all**, which is releases S0.1 to S0.3 in full. Four
+stories outside S0.4 need a paired church: STG-125 run telemetry, STG-141 the portable bundle, and
+STG-144 multi-campus. Everything else in S0.5 and S1.0 works alone.
+
+**What an unpaired church gives up**, stated here so it is a decision rather than a discovery:
+
+| Paired only | What an unpaired church does instead |
+|---|---|
+| Licensed scripture translations, under the church's own licence (ST7.6) | Presents from the bundled public-domain translations, or types the passage in (ST7.1, ST7.5) |
+| The service plan arriving by itself (ST5.3) | Builds a set list in Stage (ST2.8), which somebody types |
+| Announcements typed in Hearth reaching the foyer screen (ST13.5) | Builds the loop's slides in Stage (ST13.4) |
+| Plan notes addressed to a position (ST5.5, ST11.6) | Does without. Who is serving lives in the management system. |
+| The library existing in a second place | Relies on Stage's backup and restore (ST19.5) and its ungated export (ST2.12) |
+| Themes matching across three laptops (ST8.5) | Sets the theme on each laptop |
+
+Everything else is the same product: the library, the five importers, slides, outputs, the stage
+display, backgrounds, timers, the CCLI usage export, and crash recovery.
+
+
 Draft 1 had the platform as Stage's only source of songs. Correcting that changes four things, and
 three of them are costs worth stating plainly.
 
@@ -270,7 +289,7 @@ Stage's own library, which is what makes it a presenter rather than a viewer.
 | ST2.7 | S0.2 | Reference audio and practice tracks attached to an arrangement, from the operator's disk. |
 | ST2.8 | S0.2 | **Set lists built in Stage**: a named, dated, ordered running order of songs, scripture, and markers, which is what a standalone church presents from. |
 | ST2.9 | S0.2 | A set list is duplicated from a previous week, carrying structure. |
-| ST2.10 | S0.2 | **Local usage log**: every song presented, with date, set list, arrangement and key, and a last-used date on the song. |
+| ST2.10 | S0.2 | **Local usage log**: every song presented, with date, set list, arrangement and key, and a last-used date on the song. A row is written when a song is actually shown rather than when a set list is opened, so the report reflects the service. |
 | ST2.11 | S0.2 | **CCLI usage export** from the local log, in the format CCLI accepts, for a chosen period. Small churches get fined for failing this, and no free presenter does it. |
 | ST2.12 | S0.2 | **Export the whole library** as OpenLyrics and as a Hearth-schema JSON bundle, ungated. A church leaving Stage takes its library, which is the same trust commitment the platform makes. |
 | ST2.13 | S0.4 | Song origin is `local` or `hearth`, shown in the library, with `hearth` songs read-only in Stage (section 2). |
@@ -615,7 +634,7 @@ than an empty half.
 | ID | Rel | Requirement |
 |---|---|---|
 | ST18.1 | S0.4 | **Song usage pushed back** as `SongUsage` rows with song, arrangement, key used, service and date, with `source = stage` (PRD section 9.4). |
-| ST18.2 | S0.4 | Usage is recorded when a song is actually shown, so the report reflects the service rather than the intention. |
+| ST18.2 | S0.4 | Pushed usage carries the same rule as the local log in ST2.10: written when a song was shown, so the platform's report reflects the service rather than the intention. |
 | ST18.3 | S0.4 | Usage queued offline is pushed on reconnect, idempotently, and a double push does not double count. |
 | ST18.4 | S0.4 | A song added live and absent from the plan is still reported, because that is exactly the usage a church forgets and gets fined for. |
 | ST18.5 | S0.5 | Run telemetry for the plan's revision history: what ran, in what order, and how long each item actually took, against R11.3's planned durations. |

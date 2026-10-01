@@ -161,7 +161,7 @@ The release a church with a 300 song ProPresenter library can actually adopt. No
 | STG-49 | Add a song to the live deck from the library by typing, in under five seconds | ST5.8 | New |
 | STG-50 | Jump to a cue by typing its label, and skip or repeat | ST5.9 | New |
 | STG-51 | Correct a typo on a live slide, offering the fix to the library for a local song | ST6.8 | New |
-| STG-52 | **Log usage when a song is actually shown**, with date, set list, arrangement and key | ST2.10, ST18.2 | New |
+| STG-52 | **Log usage when a song is actually shown**, with date, set list, arrangement and key | ST2.10, ST18.7 | New |
 | STG-53 | **Export a CCLI usage report** for a period, validated against the same fixture as the platform's R12.10 | ST2.11, ST18.7 | New |
 | STG-54 | Export the whole library as OpenLyrics and as a Hearth-schema bundle, ungated | ST2.12 | New |
 
@@ -291,7 +291,7 @@ and the sync API, and pulled forward the moment it does. The dependency table be
 
 ## SE5. The team (S0.5)
 
-Everything that happens once more than one person is involved. No platform dependency except STG-120.
+Everything that happens once more than one person is involved. **STG-125 needs a paired platform.** The rest does not.
 
 ### SF14. Remote control
 
@@ -333,6 +333,8 @@ Everything that happens once more than one person is involved. No platform depen
 Public launch of Stage.
 
 ### SF16. Broadcast
+
+**STG-141 and STG-144 need a paired platform.** The rest of SE6 does not.
 
 | ID | Story | Req | State |
 |---|---|---|---|
