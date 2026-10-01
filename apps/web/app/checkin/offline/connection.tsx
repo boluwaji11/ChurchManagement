@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { WifiOff, RefreshCw, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { Button, Card, OfflineBar } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import type { Conflict } from "@hearth/db";
