@@ -164,7 +164,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Closed |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Closed |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Closed |
-| HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.17 to R8.19 | Active |
+| HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.17 to R8.19 | Resolved |
 | HRT-63 | Incident reports, restricted and permanently retained | R8.13 | New |
 
 ### F18. Insights, deferred to 1.0
@@ -222,8 +222,8 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | **HRT-62** supervisor dashboard, live room rosters, the two-adult rule |
-| **Waiting on a test** | Nothing. The check-in block was tested and closed on 30 September 2026. |
+| **Active** | Nothing |
+| **Waiting on a test** | **HRT-62** the supervisor board, the room rosters, the two-adult rule |
 | **Next** | **HRT-63** incident reports. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
