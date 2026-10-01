@@ -17,7 +17,7 @@ export default async function SignUpPage({
   if (await currentUser()) redirect(params.next ?? "/create-church");
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-10">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-10">
       <Logo />
 
       <h1 className="font-display text-display text-fg">{t("signUp.title")}</h1>

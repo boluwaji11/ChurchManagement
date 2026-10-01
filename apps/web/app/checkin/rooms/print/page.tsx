@@ -27,7 +27,7 @@ export default async function RosterPrintPage({
 
   if (!canSupervise(session.role) || !service || !room) {
     return (
-      <main className="mx-auto max-w-lg px-4 py-8">
+      <main id="main" className="mx-auto max-w-lg px-4 py-8">
         <Banner tone="info" title={t("board.title")}>{t("forbidden.askAdmin")}</Banner>
       </main>
     );

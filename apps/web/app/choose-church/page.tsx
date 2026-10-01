@@ -30,7 +30,7 @@ export default async function ChooseChurch({
     <div className="flex min-h-dvh flex-col">
       <BrandBar right={<SignOutButton />} />
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
+      <main id="main" className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
       <div className="flex flex-col gap-1">
         <h1 className="font-display text-display text-fg">{t("chooseChurch.title")}</h1>
         <p className="text-[length:var(--d-text-body)] text-fg-muted">

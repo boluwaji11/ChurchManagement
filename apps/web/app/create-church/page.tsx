@@ -17,7 +17,7 @@ export default async function StartPage() {
     <div className="flex min-h-dvh flex-col">
       <BrandBar right={<SignOutButton />} />
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
+      <main id="main" className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
       <Link
         href="/choose-church"
         className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"

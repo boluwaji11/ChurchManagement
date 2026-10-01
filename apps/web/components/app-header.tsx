@@ -8,6 +8,7 @@ import {
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { DemoBanner } from "./demo-banner";
+import { NavLink } from "./nav-link";
 import { Help } from "./help";
 import type { Session } from "@/lib/session";
 
@@ -96,13 +97,7 @@ export async function AppHeader({ session }: { session: Session }) {
           ]
             : []
           ).map(([label, href]) => (
-            <Link
-              key={href}
-              href={`${href}?church=${session.tenantSlug}`}
-              className="rounded-md px-2.5 py-1 text-label text-fg-muted hover:bg-sunken hover:text-fg"
-            >
-              {label}
-            </Link>
+            <NavLink key={href} href={href} church={session.tenantSlug} label={label} />
           ))}
         </nav>
 

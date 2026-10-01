@@ -89,7 +89,7 @@ export function Queue({
       {/* R5.5. Raised by a trigger and given to nobody, so it is not lost. */}
       {loose.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <span className="text-label text-fg-muted">{t("queue.nobody")}</span>
+          <h2 className="text-label text-fg-muted">{t("queue.nobody")}</h2>
           <Card className="flex flex-col">
             {loose.map((item, i) => (
               <div key={item.id}>
@@ -131,9 +131,9 @@ function Group({
 
   return (
     <section className="flex flex-col gap-2">
-      <span className={tone === "danger" ? "text-label text-danger" : "text-label text-fg-muted"}>
+      <h2 className={tone === "danger" ? "text-label text-danger" : "text-label text-fg-muted"}>
         {label}
-      </span>
+      </h2>
       <Card className="flex flex-col">
         {items.map((item, i) => (
           <div key={item.id}>

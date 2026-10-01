@@ -39,7 +39,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col">
+      <main id="main" className="flex flex-1 flex-col">
         <section className="mx-auto w-full max-w-4xl px-6 py-20 sm:py-28">
           <h1 className="max-w-3xl font-display text-display-lg text-fg">{t("home.headline")}</h1>
           <p className="mt-5 max-w-2xl text-body-lg text-fg-muted">{t("home.sub")}</p>

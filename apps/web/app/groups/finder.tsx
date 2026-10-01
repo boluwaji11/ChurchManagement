@@ -204,7 +204,7 @@ export function Finder({
       ) : null}
 
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm transition-colors has-[input:focus]:border-fg">
+        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm transition-colors has-[input:focus-visible]:border-fg has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-[var(--ring)]">
           <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
           <Input
             value={query}
@@ -267,7 +267,7 @@ export function Finder({
       {/* R9.2. Archived groups, for whoever runs them. */}
       {canManage && archivedGroups.length > 0 ? (
         <div className="flex flex-col gap-2">
-          <span className="text-label text-fg-muted">{t("groups.archived")}</span>
+          <h2 className="text-label text-fg-muted">{t("groups.archived")}</h2>
           {archivedGroups.map((group) => (
             <div key={group.id} className="flex flex-wrap items-center justify-between gap-3">
               <span className="text-[length:var(--d-text-body)] text-fg-muted">{group.name}</span>

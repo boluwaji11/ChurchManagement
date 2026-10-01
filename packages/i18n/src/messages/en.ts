@@ -19,6 +19,7 @@
 export const en = {
   // Brand and chrome
   "app.name": "Hearth",
+  "nav.skip": "Skip to the page",
   "nav.sections": "Sections",
   "nav.directory": "Directory",
   "nav.services": "Services",
@@ -1239,5 +1240,13 @@ export const en = {
 
   // Generic
   "common.close": "Close",
+  "hue.rose": "Rose",
+  "hue.amber": "Amber",
+  "hue.citron": "Citron",
+  "hue.fern": "Fern",
+  "hue.teal": "Teal",
+  "hue.sky": "Sky",
+  "hue.indigo": "Indigo",
+  "hue.violet": "Violet",
   "common.none": "None",
 } as const satisfies Record<string, string>;

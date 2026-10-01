@@ -263,7 +263,7 @@ export function Desk({
       ) : null}
 
       <Field label={t("checkin.search")}>
-        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm transition-colors has-[input:focus]:border-fg">
+        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm transition-colors has-[input:focus-visible]:border-fg has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-[var(--ring)]">
           <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
           <Input
             value={query}

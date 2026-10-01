@@ -62,7 +62,7 @@ export default async function PeoplePage({
   return (
     <>
       <AppHeader session={session} />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         {/* R22.1. Above the title, because it is about the church rather than
             about this screen. */}
         {setup && !setup.complete && !setup.dismissed ? (

@@ -101,7 +101,7 @@ export default async function PersonPage({
   return (
     <>
       <AppHeader session={session} />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <Link
         href={`/people?church=${session.tenantSlug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"

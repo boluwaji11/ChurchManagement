@@ -97,7 +97,7 @@ export function FollowUps({
 
       {closed.length > 0 ? (
         <div className="flex flex-col gap-2">
-          <span className="text-label text-fg-muted">{t("followups.closed")}</span>
+          <h3 className="text-label text-fg-muted">{t("followups.closed")}</h3>
           {closed.map((entry) => (
             <div key={entry.id} className="flex flex-wrap items-center gap-2">
               <HueTag hue={entry.pipelineHue as Hue}>{entry.pipelineName}</HueTag>

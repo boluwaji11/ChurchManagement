@@ -48,7 +48,7 @@ export default async function RoomsPage({
   return (
     <>
       <AppHeader session={session} />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 print:max-w-none print:p-0">
+      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 print:max-w-none print:p-0">
         <PageTitle title={t("board.title")} className="mb-6 print:hidden" />
 
         {canSupervise(session.role) ? (

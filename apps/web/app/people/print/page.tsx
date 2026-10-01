@@ -33,7 +33,7 @@ export default async function PrintDirectoryPage({
 
   if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
     return (
-      <main className="mx-auto max-w-lg px-4 py-8">
+      <main id="main" className="mx-auto max-w-lg px-4 py-8">
         <Banner tone="info" title={t("printDirectory.title")}>{t("forbidden.askAdmin")}</Banner>
       </main>
     );

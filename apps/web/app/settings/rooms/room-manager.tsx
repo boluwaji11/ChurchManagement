@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Archive, Undo2, ChevronUp, ChevronDown } from "lucide-react";
 import {
+  HUES,
   Banner, Button, Card, EmptyState, Field, HueDot, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -12,10 +13,6 @@ import {
 import { t } from "@hearth/i18n";
 import { createRoom, saveRoom, archiveRoom, moveRoom } from "./actions";
 
-const HUES: Hue[] = [
-  "rose", "coral", "amber", "citron", "fern", "jade",
-  "teal", "sky", "indigo", "violet", "orchid", "clay",
-];
 
 export interface RoomItem {
   id: string;
@@ -261,7 +258,7 @@ function RoomDialog({
                 <button
                   key={option}
                   type="button"
-                  aria-label={option}
+                  aria-label={t(`hue.${option}` as never)}
                   aria-pressed={hue === option}
                   onClick={() => setHue(option)}
                   className={

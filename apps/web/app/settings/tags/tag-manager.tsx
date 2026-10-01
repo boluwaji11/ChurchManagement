@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Plus, Pencil, Trash2, Merge, Check } from "lucide-react";
 import {
+  HUES,
   Button, Input, Field, Card, Separator, Banner, HueTag, HueDot,
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -18,7 +19,6 @@ export interface TagItem {
   people: number;
 }
 
-const HUES: Hue[] = ["rose", "amber", "citron", "fern", "teal", "sky", "indigo", "violet"];
 
 export function TagManager({
   church,

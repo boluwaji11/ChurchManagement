@@ -62,7 +62,7 @@ export default async function GroupAttendancePage({
   return (
     <>
       <AppHeader session={session} />
-      <main className="mx-auto max-w-lg px-4 py-6 sm:px-6">
+      <main id="main" className="mx-auto max-w-lg px-4 py-6 sm:px-6">
         <PageTitle title={data.group.name} className="mb-5" />
 
         {data.allowed ? (

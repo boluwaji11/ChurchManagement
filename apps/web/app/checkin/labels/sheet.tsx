@@ -38,7 +38,7 @@ export function LabelSheet({
 
   if (labels.length === 0) {
     return (
-      <main className="mx-auto max-w-lg px-4 py-8">
+      <main id="main" className="mx-auto max-w-lg px-4 py-8">
         <EmptyState title={t("labels.none.title")} body={t("labels.none.body")} />
       </main>
     );

@@ -24,7 +24,7 @@ export default async function DuplicatesPage({
     return (
       <>
         <AppHeader session={session} />
-        <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+        <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
           <PageTitle title={t("merge.title")} />
           <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
         </main>

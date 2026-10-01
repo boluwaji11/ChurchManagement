@@ -88,7 +88,7 @@ export default async function GroupPage({
   return (
     <>
       <AppHeader session={session} />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <nav className="mb-6 flex flex-wrap items-center gap-1 text-caption text-fg-muted">
           <Link
             href={`/groups?church=${session.tenantSlug}`}

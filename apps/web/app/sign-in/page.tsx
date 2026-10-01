@@ -16,7 +16,7 @@ export default async function SignIn({
   if (await currentUser()) redirect(params.next ?? "/people");
 
   return (
-    <main className="grid min-h-dvh place-items-center px-6 py-16">
+    <main id="main" className="grid min-h-dvh place-items-center px-6 py-16">
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-2">
           <Logo size="lg" />
