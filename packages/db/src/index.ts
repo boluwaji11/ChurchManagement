@@ -33,6 +33,7 @@ export {
 export * from "./repo/relationships";
 export * from "./repo/milestones";
 export * from "./repo/church";
+export * from "./repo/email";
 export * from "./repo/services";
 export * from "./repo/attendance";
 export * from "./repo/rooms";

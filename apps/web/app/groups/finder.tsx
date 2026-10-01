@@ -8,7 +8,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import Link from "next/link";
 import { ask, decide, archive } from "./actions";
 import { GroupDialog } from "./group-form";
@@ -141,11 +141,6 @@ export function Finder({
         (group.location ?? "").toLowerCase().includes(text)),
   );
 
-  const sections = types
-    .map((kind) => ({ kind, found: shown.filter((g) => g.typeId === kind.id) }))
-    .filter((section) => section.found.length > 0);
-  const loose = shown.filter((g) => !types.some((kind) => kind.id === g.typeId));
-
   const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
       const result = await work();
@@ -240,40 +235,11 @@ export function Finder({
         </div>
       </div>
 
-      {shown.length === 0 ? <EmptyState title={t("find.none.title")} /> : null}
-
-      {sections.map(({ kind, found }) => (
-        <section key={kind.id} className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <span className="flex flex-wrap items-center gap-2">
-              <HueDot hue={kind.hue as Hue} />
-              <h2 className="font-display text-heading text-fg">{kind.name}</h2>
-              <Badge tone="neutral">{plural("find.open", found.filter((g) => g.openToJoin && !g.full).length)}</Badge>
-            </span>
-            {kind.description ? (
-              <p className="max-w-2xl text-[length:var(--d-text-body)] text-fg-muted">
-                {kind.description}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {found.map((group) => (
-              <GroupCard
-                key={group.id}
-                church={church}
-                group={group}
-                pending={pending}
-                onAsk={() => run(() => ask(group.id, null, church))}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {loose.length > 0 ? (
+      {shown.length === 0 ? (
+        <EmptyState title={t("find.none.title")} />
+      ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {loose.map((group) => (
+          {shown.map((group) => (
             <GroupCard
               key={group.id}
               church={church}
@@ -283,7 +249,7 @@ export function Finder({
             />
           ))}
         </div>
-      ) : null}
+      )}
 
       {/* R9.2. Archived groups, for whoever runs them. */}
       {canManage && archivedGroups.length > 0 ? (
@@ -380,12 +346,18 @@ function GroupCard({
      * an anchor: Ask to join sits above it.
      */
     <Card className="relative flex flex-col gap-2 transition-shadow focus-within:shadow-md hover:shadow-md">
-      <Link
-        href={`/groups/${group.id}?church=${church}`}
-        className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
-      >
-        {group.name}
-      </Link>
+      <span className="flex flex-wrap items-center gap-2">
+        {group.typeHue ? <HueDot hue={group.typeHue as Hue} /> : null}
+        <Link
+          href={`/groups/${group.id}?church=${church}`}
+          className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
+        >
+          {group.name}
+        </Link>
+        {group.typeName ? (
+          <span className="text-caption text-fg-muted">{group.typeName}</span>
+        ) : null}
+      </span>
 
       <span className="text-[length:var(--d-text-body)] text-fg-muted">
         {meets(group)}

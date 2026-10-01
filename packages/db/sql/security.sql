@@ -211,6 +211,13 @@ begin
     v_after  := v_after  - 'body_encrypted' - 'body';
   end if;
 
+  -- R16.2. The same for the church's own provider credentials. The log says the
+  -- key changed and who changed it, and holds no copy of it.
+  if tg_table_name = 'email_senders' then
+    v_before := v_before - 'secret';
+    v_after  := v_after  - 'secret';
+  end if;
+
   insert into public.audit_entries (tenant_id, actor_user_id, actor_role, action, entity, entity_id, before, after, ip)
   values (
     v_tenant,
