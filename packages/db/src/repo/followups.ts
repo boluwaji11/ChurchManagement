@@ -269,7 +269,9 @@ export async function enterPipeline(
   },
 ): Promise<PipelineEntry | null> {
   if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
-  return enterPipelineAuto(db, actor.tenantId, input);
+  // Somebody asked for this, so a pipeline that is not there is an error they
+  // need to see. A trigger firing on its own is the quiet case, below.
+  return enterPipelineAuto(db, actor.tenantId, { ...input, quiet: false });
 }
 
 /**
@@ -289,6 +291,12 @@ export async function enterPipelineAuto(
     on: string;
     reason?: EntryReason;
     assigneeUserId?: string | null;
+    /**
+     * Whether a missing pipeline passes in silence. True for a trigger, because
+     * the milestone or the attendance record that fired it is what the church
+     * came to do and it has to succeed either way. False when a person asked.
+     */
+    quiet?: boolean;
   },
 ): Promise<PipelineEntry | null> {
   const startedOn = day(input.on);
@@ -304,12 +312,8 @@ export async function enterPipelineAuto(
       ),
     )
     .limit(1);
-  // A trigger firing on a church whose pipeline was archived, or on one created
-  // before the presets existed, does nothing. The thing that fired it, a
-  // milestone or an attendance record, is what the church came to do, and it
-  // has to succeed either way.
   if (!pipeline) {
-    if (input.pipelineKey) return null;
+    if (input.quiet !== false) return null;
     throw new InvalidInputError("followup.error.pipeline");
   }
 

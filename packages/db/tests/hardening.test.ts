@@ -12,6 +12,20 @@ import { testTenant } from "./helpers/tenant";
 
 const OUR_FUNCTIONS = ["app_tenant_id", "app_role", "app_user_id", "audit_write"] as const;
 
+/**
+ * The storage schema belongs to Supabase, so the bucket policies and the
+ * membership check they call only exist where it does. CI runs against a plain
+ * Postgres container, where there is nothing to assert, and asserting it there
+ * fails a check that is passing on the only database it applies to.
+ *
+ * Read at module load rather than in a hook, so the test is skipped at
+ * collection and a skip is reported rather than a silent pass.
+ */
+const HAS_STORAGE = (
+  await owner()<{ present: boolean }[]>`
+    select to_regclass('storage.objects') is not null as present`
+)[0]?.present ?? false;
+
 let functions: { name: string; config: string[] | null; definer: boolean }[];
 
 beforeAll(async () => {
@@ -19,6 +33,7 @@ beforeAll(async () => {
     select p.proname as name, p.proconfig as config, p.prosecdef as definer
     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = any(${OUR_FUNCTIONS as unknown as string[]})`;
+
 });
 
 afterAll(async () => {
@@ -91,7 +106,7 @@ describe("nothing is reachable over the auto-generated REST API", () => {
    * `hearth`, which is not exposed. It answers one question about the caller's
    * own account: am I in this church.
    */
-  it("keeps the storage membership check out of the exposed schema", async () => {
+  it.skipIf(!HAS_STORAGE)("keeps the storage membership check out of the exposed schema", async () => {
     const [fn] = await owner()<{ definer: boolean }[]>`
       select p.prosecdef as definer
         from pg_proc p join pg_namespace n on n.oid = p.pronamespace

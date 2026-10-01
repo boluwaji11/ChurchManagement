@@ -1,0 +1,268 @@
+/**
+ * STG-1. Songs the tests can rely on, and the set Stage offers on first run.
+ *
+ * Every song here is in the public domain, which is a requirement rather than a
+ * convenience: Stage ships with no copyrighted lyrics of any kind, because
+ * lyrics are the church's CCLI responsibility and bundling any would make them
+ * ours (PRD-STAGE section 4).
+ *
+ * These are well formed on purpose. The broken cases live in the tests, built
+ * from `blankSong` so that what is wrong with each one is visible at the place
+ * it is asserted.
+ */
+
+import type { Arrangement, Song, SongSection, WholeSong } from "./types";
+
+/**
+ * A song with nothing filled in, for a test or a form to build on.
+ *
+ * Every nullable field is null and every list is empty, so a test that omits a
+ * field is testing the absence of it rather than inheriting a value from a
+ * fixture it did not read.
+ */
+export function blankSong(overrides: Partial<Song> = {}): Song {
+  return {
+    id: "song-blank",
+    origin: "local",
+    title: "Untitled",
+    alternateTitles: [],
+    author: null,
+    composer: null,
+    publisher: null,
+    year: null,
+    ccliNumber: null,
+    copyrightLine: null,
+    isPublicDomain: false,
+    themes: [],
+    tempoBpm: null,
+    timeSignature: null,
+    typicalDurationSeconds: null,
+    defaultKey: null,
+    primaryLanguage: "en",
+    lastUsedAt: null,
+    ...overrides,
+  };
+}
+
+export function blankSection(overrides: Partial<SongSection> = {}): SongSection {
+  return {
+    id: "section-blank",
+    songId: "song-blank",
+    sectionType: "verse",
+    label: "V1",
+    sortOrder: 0,
+    lines: ["A line"],
+    language: "en",
+    translationOf: null,
+    ...overrides,
+  };
+}
+
+export function blankArrangement(overrides: Partial<Arrangement> = {}): Arrangement {
+  return {
+    id: "arrangement-blank",
+    songId: "song-blank",
+    name: "Default",
+    key: "C",
+    tempoBpm: null,
+    sequence: ["V1"],
+    chordpro: null,
+    isDefault: true,
+    ...overrides,
+  };
+}
+
+export function blankWholeSong(overrides: Partial<WholeSong> = {}): WholeSong {
+  return {
+    song: blankSong(),
+    sections: [blankSection()],
+    arrangements: [blankArrangement()],
+    media: [],
+    ...overrides,
+  };
+}
+
+/**
+ * "Amazing Grace", John Newton, 1779. Public domain.
+ *
+ * Carries a Spanish translation of the first verse, section aligned, so the
+ * bilingual join in R12.8 has something real to be tested against.
+ */
+export const amazingGrace: WholeSong = {
+  song: blankSong({
+    id: "song-amazing-grace",
+    title: "Amazing Grace",
+    alternateTitles: ["Amazing Grace! How Sweet the Sound"],
+    author: "John Newton",
+    year: 1779,
+    ccliNumber: "22025",
+    copyrightLine: "Public Domain",
+    isPublicDomain: true,
+    themes: ["grace", "salvation", "assurance"],
+    tempoBpm: 72,
+    timeSignature: "3/4",
+    typicalDurationSeconds: 240,
+    defaultKey: "G",
+    primaryLanguage: "en",
+  }),
+  sections: [
+    {
+      id: "ag-v1",
+      songId: "song-amazing-grace",
+      sectionType: "verse",
+      label: "V1",
+      sortOrder: 0,
+      lines: [
+        "Amazing grace! how sweet the sound",
+        "That saved a wretch like me!",
+        "I once was lost, but now am found,",
+        "Was blind, but now I see.",
+      ],
+      language: "en",
+      translationOf: null,
+    },
+    {
+      id: "ag-v2",
+      songId: "song-amazing-grace",
+      sectionType: "verse",
+      label: "V2",
+      sortOrder: 1,
+      lines: [
+        "'Twas grace that taught my heart to fear,",
+        "And grace my fears relieved;",
+        "How precious did that grace appear",
+        "The hour I first believed!",
+      ],
+      language: "en",
+      translationOf: null,
+    },
+    {
+      id: "ag-v3",
+      songId: "song-amazing-grace",
+      sectionType: "verse",
+      label: "V3",
+      sortOrder: 2,
+      lines: [
+        "Through many dangers, toils and snares,",
+        "I have already come;",
+        "'Tis grace hath brought me safe thus far,",
+        "And grace will lead me home.",
+      ],
+      language: "en",
+      translationOf: null,
+    },
+    {
+      id: "ag-v1-es",
+      songId: "song-amazing-grace",
+      sectionType: "verse",
+      label: "V1-es",
+      sortOrder: 3,
+      lines: [
+        "Sublime gracia del Señor,",
+        "que a un pecador salvó;",
+        "fui ciego y hoy veo yo,",
+        "perdido y Él me halló.",
+      ],
+      language: "es",
+      translationOf: "ag-v1",
+    },
+  ],
+  arrangements: [
+    {
+      id: "ag-sunday",
+      songId: "song-amazing-grace",
+      name: "Sunday",
+      key: "G",
+      tempoBpm: 72,
+      sequence: ["V1", "V2", "V3"],
+      chordpro: null,
+      isDefault: true,
+    },
+    {
+      id: "ag-short",
+      songId: "song-amazing-grace",
+      name: "Two verses",
+      key: "D",
+      tempoBpm: 76,
+      sequence: ["V1", "V3"],
+      chordpro: null,
+      isDefault: false,
+    },
+  ],
+  media: [],
+};
+
+/**
+ * "Holy, Holy, Holy", Reginald Heber, 1826. Public domain.
+ *
+ * The sequence repeats its final verse, which is the case a deck compiler has
+ * to produce as two cues rather than one (R12.5).
+ */
+export const holyHolyHoly: WholeSong = {
+  song: blankSong({
+    id: "song-holy",
+    title: "Holy, Holy, Holy",
+    alternateTitles: ["Holy, Holy, Holy! Lord God Almighty"],
+    author: "Reginald Heber",
+    composer: "John B. Dykes",
+    year: 1826,
+    ccliNumber: "1156",
+    copyrightLine: "Public Domain",
+    isPublicDomain: true,
+    themes: ["worship", "trinity", "holiness"],
+    tempoBpm: 60,
+    timeSignature: "4/4",
+    typicalDurationSeconds: 210,
+    defaultKey: "D",
+    primaryLanguage: "en",
+  }),
+  sections: [
+    {
+      id: "hhh-v1",
+      songId: "song-holy",
+      sectionType: "verse",
+      label: "V1",
+      sortOrder: 0,
+      lines: [
+        "Holy, holy, holy! Lord God Almighty!",
+        "Early in the morning our song shall rise to Thee;",
+        "Holy, holy, holy! merciful and mighty!",
+        "God in three Persons, blessed Trinity!",
+      ],
+      language: "en",
+      translationOf: null,
+    },
+    {
+      id: "hhh-v2",
+      songId: "song-holy",
+      sectionType: "verse",
+      label: "V2",
+      sortOrder: 1,
+      lines: [
+        "Holy, holy, holy! all the saints adore Thee,",
+        "Casting down their golden crowns around the glassy sea;",
+        "Cherubim and seraphim falling down before Thee,",
+        "Which wert, and art, and evermore shalt be.",
+      ],
+      language: "en",
+      translationOf: null,
+    },
+  ],
+  arrangements: [
+    {
+      id: "hhh-sunday",
+      songId: "song-holy",
+      name: "Sunday",
+      key: "D",
+      tempoBpm: 60,
+      // The repeat is the point. Two cues, one section.
+      sequence: ["V1", "V2", "V1"],
+      chordpro: null,
+      isDefault: true,
+    },
+  ],
+  media: [],
+};
+
+/** The songs Stage offers on first run, so a church starting cold has something. */
+export const sampleLibrary: WholeSong[] = [amazingGrace, holyHolyHoly];

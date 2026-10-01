@@ -34,6 +34,8 @@ const OWNED: { table: string; column: string; conflictOn?: string[] }[] = [
   { table: "person_tags", column: "person_id", conflictOn: ["tag_id"] },
   // Same for a custom field the winner has already answered.
   { table: "custom_field_values", column: "entity_id", conflictOn: ["field_id"] },
+  // R1.14. A list the winner is already on would collide, so those rows stay.
+  { table: "saved_list_members", column: "person_id", conflictOn: ["list_id"] },
 ];
 
 export interface MergePlan {
