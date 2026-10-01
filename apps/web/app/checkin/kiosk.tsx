@@ -5,6 +5,7 @@ import { Check, Search } from "lucide-react";
 import { Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { find, checkIn, type FoundHousehold } from "./actions";
+import { Allergies, warnings } from "./allergies";
 import type { DeskRoom, DeskService } from "./desk";
 
 /**
@@ -40,6 +41,7 @@ export function Kiosk({
   const [picked, setPicked] = React.useState<Record<string, boolean>>({});
   const [codes, setCodes] = React.useState<Record<string, string>>({});
   const [finished, setFinished] = React.useState<string[]>([]);
+  const [seen, setSeen] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
@@ -51,6 +53,7 @@ export function Kiosk({
     setPicked({});
     setCodes({});
     setFinished([]);
+    setSeen(false);
     setError(undefined);
   }, []);
 
@@ -89,6 +92,7 @@ export function Kiosk({
     }
     setChosen(roomFor);
     setPicked(who);
+    setSeen(false);
   };
 
   const send = () => {
@@ -229,8 +233,23 @@ export function Kiosk({
             ))}
           </ul>
 
+          {/* R8.10, R24.14. A parent checking their own child in reads this
+              before the labels print, the same as a volunteer does. */}
+          <Allergies
+            people={household.people.filter((p) => picked[p.id] && !p.checkedIn)}
+            seen={seen}
+            onSeen={() => setSeen(true)}
+          />
+
           <div className="flex flex-wrap gap-3">
-            <Button onClick={send} disabled={pending}>
+            <Button
+              onClick={send}
+              disabled={
+                pending ||
+                (warnings(household.people.filter((p) => picked[p.id] && !p.checkedIn)).length > 0 &&
+                  !seen)
+              }
+            >
               <Check /> {t("checkin.check")}
             </Button>
             <Button variant="ghost" onClick={reset}>{t("action.cancel")}</Button>

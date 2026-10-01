@@ -239,3 +239,20 @@ describe("the label pair (R8.6, R8.11)", () => {
     expect(after!.code).toBe(before!.code);
   });
 });
+
+describe("allergies (R8.10)", () => {
+  it("prints what the room has to know on the child's label", async () => {
+    await owner()`
+      update people set allergies = 'Peanuts' where id = ${mia}`;
+
+    const [label] = await run((tx) => labelsFor(tx, service, [mia], "Check-in Test Church"));
+    expect(label!.allergy).toBe("Peanuts");
+  });
+
+  it("says nothing for a child with nothing recorded", async () => {
+    // Silence means nobody has written anything down. A label claiming a child
+    // is clear would be claiming something the church was never told.
+    const [label] = await run((tx) => labelsFor(tx, service, [danny], "Check-in Test Church"));
+    expect(label!.allergy).toBeNull();
+  });
+});

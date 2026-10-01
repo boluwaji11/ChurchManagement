@@ -62,6 +62,8 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
     lifecycleStatus: (str(data, "lifecycleStatus") || "visitor") as LifecycleStatus,
     membershipDate: str(data, "membershipDate") || null,
     firstVisitOn: str(data, "firstVisitOn") || null,
+    allergies: str(data, "allergies") || null,
+    medicalNote: str(data, "medicalNote") || null,
     email: str(data, "email") || null,
     phone: str(data, "phone") || null,
     householdId: householdChoice === HOUSEHOLD_NEW || householdChoice === HOUSEHOLD_NONE ? null : householdChoice,

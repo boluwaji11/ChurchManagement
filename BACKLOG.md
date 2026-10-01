@@ -156,7 +156,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-73 | A screen for the modes a family drives itself, rather than the volunteer's | R8.1, R24.14 | Resolved |
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Resolved |
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | Resolved |
-| HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | New |
+| HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | Resolved |
 | HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | New |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | New |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
@@ -219,8 +219,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk |
-| **Next** | **HRT-58** allergies on the screen and on the label. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies |
+| **Next** | **HRT-59** checkout: the code, the pickup list, the custody block, the override. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -728,3 +728,18 @@ a device pointed at it.
    last family's children are not left on a screen in the lobby.
 5. **The counter desk is unchanged.** Set the mode back to "A volunteer runs it" and the desk
    returns.
+
+### HRT-58, how to test it
+
+A child's record, then the desk.
+
+1. **Record one.** Open a child, Health, Allergies: "Peanuts". A medical note holds anything else a
+   room needs, such as an inhaler.
+2. **It is impossible to miss.** Check that child in. The allergy fills a red banner above the
+   button, and the button does not work until somebody has pressed "I have read this". A volunteer
+   finishing a check-in without having seen it is the failure the requirement exists to stop.
+3. **It prints.** The child's label carries it.
+4. **A child with nothing recorded shows nothing at all.** Silence means nobody has written anything
+   down, and a screen saying "no allergies" would be claiming something the church was never told.
+5. **The kiosk does the same**, because a parent checking their own child in reads it too.
+6. **Editing it is audited**, like every other change to a person.

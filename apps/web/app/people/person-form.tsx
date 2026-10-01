@@ -26,6 +26,8 @@ export interface PersonFormValues {
   lifecycleStatus?: string;
   membershipDate?: string | null;
   firstVisitOn?: string | null;
+  allergies?: string | null;
+  medicalNote?: string | null;
   email?: string | null;
   phone?: string | null;
   householdId?: string | null;
@@ -200,6 +202,21 @@ export function PersonForm({
           </Field>
           <Field label={t("personForm.membershipDate")} error={errors.membershipDate}>
             <DateField name="membershipDate" defaultValue={values?.membershipDate ?? ""} />
+          </Field>
+        </div>
+      </Card>
+
+      {/* R8.10. Two fields that are read by a volunteer at a check-in desk, so
+          they live on the record rather than in a note somebody has to open. */}
+      <Card>
+        <CardTitle>{t("personForm.section.health")}</CardTitle>
+        <Separator className="my-4" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t("personForm.allergies")} error={errors.allergies}>
+            <Input name="allergies" defaultValue={values?.allergies ?? ""} autoComplete="off" />
+          </Field>
+          <Field label={t("personForm.medicalNote")} error={errors.medicalNote}>
+            <Input name="medicalNote" defaultValue={values?.medicalNote ?? ""} autoComplete="off" />
           </Field>
         </div>
       </Card>

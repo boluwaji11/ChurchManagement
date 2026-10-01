@@ -171,3 +171,23 @@ describe("another church's families", () => {
     });
   });
 });
+
+describe("what the station has to know (R8.10)", () => {
+  it("brings the allergy and the medical note back with the family", async () => {
+    const [match] = await run((tx) => lookupHouseholds(tx, "ochoa", { asOf: ASOF }));
+    const mia = match!.people.find((p) => p.name === "Mia")!;
+
+    await owner()`
+      update people set allergies = 'Peanuts', medical_note = 'Inhaler in bag'
+      where id = ${mia.id}`;
+
+    const [again] = await run((tx) => lookupHouseholds(tx, "ochoa", { asOf: ASOF }));
+    const updated = again!.people.find((p) => p.name === "Mia")!;
+    expect(updated.allergies).toBe("Peanuts");
+    expect(updated.medicalNote).toBe("Inhaler in bag");
+
+    // A child with nothing recorded says nothing, rather than saying clear.
+    const danny = again!.people.find((p) => p.name === "Danny")!;
+    expect(danny.allergies).toBeNull();
+  });
+});
