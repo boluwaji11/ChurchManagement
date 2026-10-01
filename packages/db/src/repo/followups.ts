@@ -6,6 +6,7 @@ import { tenants } from "../schema/tenancy";
 import { visitorsBetween, absentPeople, DEFAULT_ABSENCE_THRESHOLD } from "./attendance";
 import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
+import { canManageChurch } from "./church";
 
 /**
  * R5.1 to R5.7. Follow-up, which is the difference between a database and a
@@ -853,4 +854,147 @@ export async function pipelineForMilestone(
     on: input.on,
     reason: "milestone",
   });
+}
+
+/**
+ * R5.2. Editing the six.
+ *
+ * A church renames a pipeline into its own words, rewrites a step, changes how
+ * many days it gives itself, says who it lands on, and switches one off. What
+ * it cannot do is invent a seventh or draw a branch, which is where R5.8 and a
+ * workflow engine begin. That line is the reason this is usable.
+ *
+ * Editing the template never touches work in flight. Somebody already in the
+ * pipeline keeps the steps that were written out for them, because a church
+ * that rewords a step should not lose the three people it is already calling.
+ */
+export interface StepInput {
+  id?: string;
+  name: string;
+  dueDays: number;
+}
+
+export async function updatePipeline(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  id: string,
+  input: {
+    name: string;
+    description?: string | null;
+    hue?: string;
+    ownerUserId?: string | null;
+    steps?: StepInput[];
+  },
+): Promise<Pipeline> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+
+  const name = trim(input.name);
+  if (!name) throw new InvalidInputError("followup.error.name");
+
+  const [existing] = await db
+    .select({ id: pipelines.id })
+    .from(pipelines)
+    .where(eq(pipelines.id, id))
+    .limit(1);
+  if (!existing) throw new InvalidInputError("followup.error.pipeline");
+
+  await db
+    .update(pipelines)
+    .set({
+      name,
+      description: trim(input.description),
+      ...(input.hue ? { hue: input.hue } : {}),
+      ownerUserId: input.ownerUserId ?? null,
+      updatedAt: new Date(),
+    })
+    .where(eq(pipelines.id, id));
+
+  if (input.steps) await saveSteps(db, actor, id, input.steps);
+
+  const [after] = (await listPipelines(db, { includeArchived: true })).filter((p) => p.id === id);
+  return after!;
+}
+
+/** R5.2. The steps, in the order they are given, as the whole truth. */
+export async function saveSteps(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  pipelineId: string,
+  steps: StepInput[],
+): Promise<void> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+  if (steps.length === 0) throw new InvalidInputError("followup.error.steps");
+
+  const clean = steps.map((step) => {
+    const name = trim(step.name);
+    if (!name) throw new InvalidInputError("followup.error.stepName");
+    if (!Number.isInteger(step.dueDays) || step.dueDays < 0 || step.dueDays > 365) {
+      throw new InvalidInputError("followup.error.dueDays");
+    }
+    return { id: step.id, name, dueDays: step.dueDays };
+  });
+
+  const existing = await db
+    .select({ id: pipelineSteps.id })
+    .from(pipelineSteps)
+    .where(eq(pipelineSteps.pipelineId, pipelineId));
+
+  const keeping = new Set(clean.map((step) => step.id).filter(Boolean) as string[]);
+  for (const step of existing) {
+    if (!keeping.has(step.id)) {
+      await db.delete(pipelineSteps).where(eq(pipelineSteps.id, step.id));
+    }
+  }
+
+  for (const [position, step] of clean.entries()) {
+    if (step.id && existing.some((row) => row.id === step.id)) {
+      await db
+        .update(pipelineSteps)
+        .set({ name: step.name, dueDays: step.dueDays, position, updatedAt: new Date() })
+        .where(eq(pipelineSteps.id, step.id));
+    } else {
+      await db.insert(pipelineSteps).values({
+        tenantId: actor.tenantId,
+        pipelineId,
+        name: step.name,
+        dueDays: step.dueDays,
+        position,
+      });
+    }
+  }
+}
+
+/** R5.2. Switching one off. Nobody new enters it; the people in it stay. */
+export async function setPipelineArchived(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  id: string,
+  archived: boolean,
+): Promise<void> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+  await db
+    .update(pipelines)
+    .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
+    .where(eq(pipelines.id, id));
+}
+
+/** R5.1. Who a church can hand a follow-up to: the accounts that work them. */
+export async function assignableUsers(
+  db: Tx,
+): Promise<{ userId: string; name: string; role: string }[]> {
+  const rows = await db.execute<Record<string, unknown>>(sql`
+    select m.user_id, m.role, coalesce(nullif(u.full_name, ''), u.email) as name
+      from tenant_members m
+      join app_users u on u.id = m.user_id
+     where m.tenant_id = app_tenant_id()
+     order by name
+  `);
+
+  return (rows as unknown as Record<string, string>[])
+    .filter((row) => CAN_FOLLOW_UP.includes(String(row["role"]) as TenantRole))
+    .map((row) => ({
+      userId: String(row["user_id"]),
+      name: String(row["name"]),
+      role: String(row["role"]),
+    }));
 }

@@ -11,6 +11,7 @@ import {
   seedPipelines, listPipelines, enterPipeline, exitPipeline, completeFollowUp, reopenFollowUp,
   addTask, entriesFor, tasksFor, myFollowUps, unassignedFollowUps, assignFollowUp,
   pipelineBoard, peopleIn, isInPipeline, DEFAULT_PIPELINES,
+  updatePipeline, saveSteps, setPipelineArchived, assignableUsers,
 } from "../src/repo/followups";
 import { createPerson } from "../src/repo/people";
 import { InvalidInputError } from "../src/errors";
@@ -286,5 +287,99 @@ describe("another church's follow-ups", () => {
     expect(theirs).toEqual([]);
     expect(firstVisit).toBeTruthy();
     await dropTenants("followuptest2");
+  });
+});
+
+/**
+ * HRT-97. Editing the six (R5.2).
+ *
+ * The line this draws is the point of the story: a church rewords its own
+ * process and cannot invent a seventh pipeline or branch one. The other half is
+ * that editing a template must not touch the people already in it.
+ */
+describe("editing the six (R5.2)", () => {
+  it("renames one and rewords its steps", async () => {
+    const serving = (await run((tx) => listPipelines(tx))).find((p) => p.key === "serving")!;
+    const after = await run((tx) =>
+      updatePipeline(tx, as(), serving.id, {
+        name: "Getting involved",
+        description: "Somebody wants to help on a Sunday.",
+        steps: [
+          { id: serving.steps[0]!.id, name: "Coffee with them", dueDays: 7 },
+          { name: "Introduce them to a team lead", dueDays: 14 },
+        ],
+      }),
+    );
+
+    expect(after.name).toBe("Getting involved");
+    expect(after.steps.map((s) => s.name)).toEqual([
+      "Coffee with them", "Introduce them to a team lead",
+    ]);
+    expect(after.steps.map((s) => s.dueDays)).toEqual([7, 14]);
+  });
+
+  it("leaves the people already in it alone", async () => {
+    const membership = (await run((tx) => listPipelines(tx))).find((p) => p.key === "membership")!;
+    const before = (await run((tx) => entriesFor(tx, visitor)))
+      .find((e) => e.pipelineKey === "membership")!;
+
+    await run((tx) =>
+      updatePipeline(tx, as(), membership.id, {
+        name: "Membership",
+        steps: [{ name: "One step now", dueDays: 1 }],
+      }),
+    );
+
+    const after = (await run((tx) => entriesFor(tx, visitor)))
+      .find((e) => e.pipelineKey === "membership")!;
+    expect(after.steps.map((s) => s.title)).toEqual(before.steps.map((s) => s.title));
+  });
+
+  it("refuses a pipeline with no steps", async () => {
+    const baptism = (await run((tx) => listPipelines(tx))).find((p) => p.key === "baptism")!;
+    await expect(
+      run((tx) => updatePipeline(tx, as(), baptism.id, { name: "Baptism", steps: [] })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+
+  it("refuses a step with no name, and a count of days that is not one", async () => {
+    const baptism = (await run((tx) => listPipelines(tx))).find((p) => p.key === "baptism")!;
+    await expect(
+      run((tx) => saveSteps(tx, as(), baptism.id, [{ name: "  ", dueDays: 3 }])),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+    await expect(
+      run((tx) => saveSteps(tx, as(), baptism.id, [{ name: "Talk", dueDays: 400 }])),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+
+  it("is owner and admin, because this is the process rather than the work", async () => {
+    const baptism = (await run((tx) => listPipelines(tx))).find((p) => p.key === "baptism")!;
+    for (const role of ["staff", "pastoral", "member"] as const) {
+      await expect(
+        run((tx) => updatePipeline(tx, { tenantId: tenant, role }, baptism.id, {
+          name: "Theirs", steps: [{ name: "Talk", dueDays: 3 }],
+        }), role),
+        role,
+      ).rejects.toBeInstanceOf(PermissionError);
+    }
+  });
+
+  it("switches one off, and nobody new enters it", async () => {
+    const serving = (await run((tx) => listPipelines(tx))).find((p) => p.key === "serving")!;
+    await run((tx) => setPipelineArchived(tx, as(), serving.id, true));
+
+    expect((await run((tx) => listPipelines(tx))).some((p) => p.key === "serving")).toBe(false);
+    await expect(
+      run((tx) => enterPipeline(tx, as(), {
+        pipelineKey: "serving", personId: other, on: MONDAY,
+      })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+
+    await run((tx) => setPipelineArchived(tx, as(), serving.id, false));
+  });
+
+  it("names who a follow-up can be given to", async () => {
+    const people = await run((tx) => assignableUsers(tx));
+    expect(people.every((p) => ["owner", "admin", "staff", "pastoral"].includes(p.role))).toBe(true);
   });
 });
