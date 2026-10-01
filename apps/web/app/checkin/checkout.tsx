@@ -39,11 +39,14 @@ export function Checkout({
   childId,
   childName,
   offline,
+  onDone,
 }: {
   church: string;
   visitId: string;
   childId: string;
   childName: string;
+  /** Where the caller keeps its own copy of who is in the room. */
+  onDone?: () => void;
   /** R8.7. What to do when there is no server to ask. */
   offline?: OfflineCheckout;
 }) {
@@ -90,6 +93,7 @@ export function Checkout({
         });
         if (!stopped) {
           setOpen(false);
+          onDone?.();
           return;
         }
         setBlock({ kind: stopped, message: t(`checkout.block.${stopped}` as never) });
@@ -106,6 +110,7 @@ export function Checkout({
       setError(result.error);
       if (result.released) {
         setOpen(false);
+        onDone?.();
         router.refresh();
         return;
       }

@@ -124,6 +124,8 @@ export async function roomBoard(db: Tx, occurrenceId: string): Promise<Board> {
 }
 
 export interface RoomRosterEntry {
+  /** R8.7. The visit, so a child can be collected from the class itself. */
+  visitId: string;
   personId: string;
   name: string;
   code: string | null;
@@ -150,6 +152,7 @@ export async function roomRoster(
 ): Promise<RoomRosterEntry[]> {
   const rows = await db
     .select({
+      visitId: checkinVisits.id,
       personId: checkinVisits.personId,
       code: checkinVisits.code,
       kind: checkinVisits.kind,
@@ -167,6 +170,7 @@ export async function roomRoster(
     .orderBy(asc(people.firstName), asc(people.lastName));
 
   return rows.map((r) => ({
+    visitId: r.visitId,
     personId: r.personId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     code: r.code,
@@ -182,6 +186,7 @@ export async function roomRoster(
 export async function stillHere(db: Tx, occurrenceId: string): Promise<RoomRosterEntry[]> {
   const rows = await db
     .select({
+      visitId: checkinVisits.id,
       personId: checkinVisits.personId,
       code: checkinVisits.code,
       kind: checkinVisits.kind,
@@ -207,6 +212,7 @@ export async function stillHere(db: Tx, occurrenceId: string): Promise<RoomRoste
     .orderBy(asc(checkinRooms.name), asc(people.firstName));
 
   return rows.map((r) => ({
+    visitId: r.visitId,
     personId: r.personId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     code: r.code,

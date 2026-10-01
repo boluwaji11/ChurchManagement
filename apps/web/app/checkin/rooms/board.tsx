@@ -13,6 +13,7 @@ import type { Board, RoomRosterEntry } from "@hearth/db";
 import type { DeskService } from "../desk";
 import { board as readBoard } from "./actions";
 import { IncidentDialog } from "./incident";
+import { Checkout } from "../checkout";
 
 /**
  * R8.17 to R8.19. The screen the person walking the corridor reads.
@@ -44,40 +45,42 @@ export function RoomBoard({
   rosters: Record<string, RoomRosterEntry[]>;
 }) {
   const [service, setService] = React.useState(() => serviceNow(services, now));
-  const [live, setLive] = React.useState<Board | null>(initial);
-  const [rosters, setRosters] = React.useState(firstRosters);
+  // The board is tagged with the service it was read for, so a switch never
+  // shows one service's numbers under another's name.
+  const [data, setData] = React.useState<{
+    service: string;
+    board: Board;
+    rosters: Record<string, RoomRosterEntry[]>;
+  } | null>(initial ? { service: "", board: initial, rosters: firstRosters } : null);
   const [error, setError] = React.useState<string>();
   const [open, setOpen] = React.useState<string | null>(null);
 
+  const pullNow = React.useCallback(async () => {
+    if (!service) return;
+    const result = await readBoard(service, church);
+    setError(result.error);
+    if (result.board) {
+      setData({ service, board: result.board, rosters: result.rosters ?? {} });
+    }
+  }, [service, church]);
+
   React.useEffect(() => {
     if (!service) return;
-    let running = true;
 
-    const pull = async () => {
-      const result = await readBoard(service, church);
-      if (!running) return;
-      setError(result.error);
-      if (result.board) setLive(result.board);
-      if (result.rosters) setRosters(result.rosters);
-    };
-
-    void pull();
-    const timer = setInterval(() => void pull(), REFRESH_SECONDS * 1000);
-    return () => {
-      running = false;
-      clearInterval(timer);
-    };
-  }, [service, church]);
+    setOpen(null);
+    void pullNow();
+    const timer = setInterval(() => void pullNow(), REFRESH_SECONDS * 1000);
+    return () => clearInterval(timer);
+  }, [service, pullNow]);
 
   if (services.length === 0) {
     return <EmptyState title={t("checkin.noService.title")} body={t("checkin.noService.body")} />;
   }
 
-  if (!live || live.rooms.length === 0) {
-    return <EmptyState title={t("board.noRooms.title")} body={t("board.noRooms.body")} />;
-  }
-
-  const opened = live.rooms.find((r) => r.roomId === open);
+  // Only the board that belongs to the service on screen.
+  const live = data?.service === service ? data.board : null;
+  const rosters = data?.service === service ? data.rosters : {};
+  const opened = live?.rooms.find((r) => r.roomId === open);
 
   return (
     <div className="flex flex-col gap-5">
@@ -102,15 +105,21 @@ export function RoomBoard({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-[length:var(--d-text-body)] text-fg">
-        <span className="flex items-center gap-2">
-          <UserCheck className="size-5 text-fg-muted" aria-hidden />
-          {plural("board.outstanding", live.outstanding)}
-        </span>
-      </div>
+      {live ? (
+        <div className="flex flex-wrap items-center gap-4 text-[length:var(--d-text-body)] text-fg">
+          <span className="flex items-center gap-2">
+            <UserCheck className="size-5 text-fg-muted" aria-hidden />
+            {plural("board.outstanding", live.outstanding)}
+          </span>
+        </div>
+      ) : null}
+
+      {live && live.rooms.length === 0 ? (
+        <EmptyState title={t("board.noRooms.title")} body={t("board.noRooms.body")} />
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {live.rooms.map((room) => (
+        {(live?.rooms ?? []).map((room) => (
           <Card key={room.roomId} className="p-0">
             {/* The card is the control: tapping a class shows who is in it, in
                 front of everything, because a class of thirty pushed every
@@ -165,6 +174,7 @@ export function RoomBoard({
               roomId={opened?.roomId ?? ""}
               occurrenceId={service}
               entries={opened ? (rosters[opened.roomId] ?? []) : []}
+              onChanged={() => void pullNow()}
             />
           </div>
 
@@ -194,12 +204,14 @@ function Roster({
   roomId,
   occurrenceId,
   entries,
+  onChanged,
 }: {
   church: string;
   today: string;
   roomId: string;
   occurrenceId: string;
   entries: RoomRosterEntry[];
+  onChanged: () => void;
 }) {
   if (entries.length === 0) {
     return <span className="text-caption text-fg-muted">{t("board.empty")}</span>;
@@ -227,8 +239,20 @@ function Roster({
             </div>
           ) : null}
 
-          {/* R8.13. Written in the room, by whoever saw it. */}
-          <div className="print:hidden">
+          <div className="flex flex-wrap items-center gap-1 print:hidden">
+            {/* R8.7. A child is usually collected at the door of their own
+                class, so the way to do it is on the class roster. */}
+            {entry.checkedOutAt === null ? (
+              <Checkout
+                church={church}
+                visitId={entry.visitId}
+                childId={entry.personId}
+                childName={entry.name}
+                onDone={onChanged}
+              />
+            ) : null}
+
+            {/* R8.13. Written in the room, by whoever saw it. */}
             <IncidentDialog
               church={church}
               personId={entry.personId}

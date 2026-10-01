@@ -66,4 +66,4 @@ export type PermissionAction =
   | "addMilestone" | "removeMilestone"
   | "editChurch" | "manageDemoData" | "manageServices" | "recordAttendance"
   | "manageRooms" | "manageStations" | "checkIn"
-  | "fileIncident" | "readIncidents";
+  | "fileIncident" | "readIncidents" | "manageGroups";

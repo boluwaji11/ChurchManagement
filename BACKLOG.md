@@ -138,7 +138,7 @@ a Sunday service, and a release name that says otherwise shapes what gets built.
 | HRT-49 | Individual attendance from a roster, backdated and corrected | R7.3, R7.7 | Closed |
 | HRT-50 | First-time and second-time visitor flagging from attendance history | R7.5 | Closed |
 | HRT-51 | Absence detection against a configurable threshold | R7.6 | Closed |
-| HRT-52 | Attendance against groups and events | R7.4 | New |
+| HRT-52 | Attendance against groups and events | R7.4 | Folded into HRT-85 |
 | HRT-53 | Trends: week over week, year over year, rolling average | R7.9 | Moved to HRT-66 |
 
 ### F8. Check-in, safety-critical
@@ -193,10 +193,23 @@ HRT-65 gives the directory a filter driven by those queries, so Insights links i
 already searches, sorts, pages, selects, bulk tags and exports. None of that gets rebuilt when it
 comes back.
 
-### F5, F9, F3, F22
+### F9. Groups and discipleship
 
-Follow-up pipelines, groups, the member-facing directory and onboarding. Stories are written once
-attendance and check-in are in, because all four read from them.
+Where the church happens between Sundays. The hard part is not the roster, it is getting a leader to
+record anything at all, so every leader-facing flow is a phone and under sixty seconds.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Active |
+| HRT-84 | A leader sees their own group and nothing else | R9.3 | New |
+| HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | New |
+| HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | New |
+| HRT-87 | Messaging a group's roster through the church's own provider | R9.8 | New |
+
+### F5, F3, F22
+
+Follow-up pipelines, the member-facing directory and onboarding. Stories are written as groups
+lands, because all three read from it.
 
 ## E3. Money (0.3)
 
@@ -235,9 +248,9 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | Nothing |
+| **Active** | **HRT-83** groups: types, the record, leaders and the roster |
 | **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports |
-| **Next** | HRT-79 to HRT-82, serving, which R8.17 is waiting on. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Next** | HRT-84 to HRT-87, the rest of groups. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 

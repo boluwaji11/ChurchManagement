@@ -169,6 +169,13 @@
       "when": 1790819904754,
       "tag": "0023_sloppy_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790820826218,
+      "tag": "0024_fantastic_nehzno",
+      "breakpoints": true
     }
   ]
 }
