@@ -2,14 +2,34 @@
 import * as React from "react";
 import * as P from "@radix-ui/react-radio-group";
 import { cn } from "../lib/cn";
+import { useFieldControl } from "./field";
 
-export const RadioGroup = React.forwardRef<
+const Group = React.forwardRef<
   React.ComponentRef<typeof P.Root>,
   React.ComponentPropsWithoutRef<typeof P.Root>
->(({ className, ...props }, ref) => (
-  <P.Root ref={ref} className={cn("flex flex-col gap-2", className)} {...props} />
-));
-RadioGroup.displayName = "RadioGroup";
+>(({ className, ...props }, ref) => {
+  const field = useFieldControl();
+  return (
+    <P.Root
+      ref={ref}
+      aria-labelledby={props["aria-labelledby"] ?? (props["aria-label"] ? undefined : field?.labelId)}
+      aria-invalid={props["aria-invalid"] ?? (field?.invalid || undefined)}
+      aria-describedby={props["aria-describedby"] ?? field?.describedBy}
+      className={cn("flex flex-col gap-2", className)}
+      {...props}
+    />
+  );
+});
+Group.displayName = "RadioGroup";
+
+/**
+ * A radio group takes its label from a heading, because there is no one control
+ * for a label element to point at. Field reads these two statics.
+ */
+export const RadioGroup = Object.assign(Group, {
+  hearthFieldManaged: true,
+  hearthFieldGroup: true,
+});
 
 export const RadioItem = React.forwardRef<
   React.ComponentRef<typeof P.Item>,

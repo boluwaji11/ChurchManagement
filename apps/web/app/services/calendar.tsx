@@ -3,11 +3,12 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList } from "lucide-react";
+import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList, ChevronDown } from "lucide-react";
 import {
   Badge, Banner, Button, Card, EmptyState, Field, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
+  Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogFooter,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
@@ -18,6 +19,16 @@ import { Tiles } from "./tiles";
 import type { View } from "./view";
 
 const REPEATS = ["never", "weekly", "fortnightly", "monthly"] as const;
+
+/**
+ * The dialogs on a service row are opened from the row's menu, so the row owns
+ * whether they are open. A menu item cannot hold a dialog trigger: choosing it
+ * closes the menu, which takes the trigger and the dialog with it.
+ */
+interface Controlled {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
 export interface GatheringRow {
   id: string;
@@ -114,78 +125,12 @@ export function Calendar({
    * What a church can do to one service. The list row, the calendar chip and
    * the tile all offer the same set, so it is written once.
    */
-  const rowActions = (row: GatheringRow) => {
-    const cancelled = row.status === "cancelled";
-    return (
-      <>
-                {row.past && !cancelled ? (
-                  <Button variant="ghost" asChild>
-                    <Link href={`/services/${row.id}?church=${church}`}>
-                      <ClipboardList /> {t("roster.title")}
-                    </Link>
-                  </Button>
-                ) : null}
-                {row.past && !cancelled ? (
-                  <CountDialog
-                    row={row}
-                    pending={pending}
-                    onSave={(fields) => simple(recordHeadcount, { id: row.id, ...fields })}
-                  />
-                ) : null}
-                <EditDialog
-                  row={row}
-                  pending={pending}
-                  onSave={(fields) => simple(editGathering, { id: row.id, ...fields })}
-                />
-                {cancelled ? (
-                  <Button
-                    variant="ghost"
-                    onClick={() => simple(setCancelled, { id: row.id, cancelled: "0" })}
-                  >
-                    <Undo2 /> {t("services.restore")}
-                  </Button>
-                ) : (
-                  <CancelDialog
-                    row={row}
-                    pending={pending}
-                    onConfirm={(note) => simple(setCancelled, { id: row.id, cancelled: "1", note })}
-                  />
-                )}
-                {row.special ? null : (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost">{t("services.stopRepeat")}</Button>
-                    </DialogTrigger>
-                    <DialogContent
-                      alert
-                      title={t("services.stopRepeatTitle", { name: row.name })}
-                    >
-                      <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
-                        {t("services.stopRepeatBody")}
-                      </p>
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button variant="ghost" data-dismiss>{t("services.keepRepeating")}</Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                          <Button
-                            variant="danger"
-                            onClick={() =>
-                              simple(stopRepeat, { serviceTimeId: row.serviceTimeId ?? "" })
-                            }
-                          >
-                            {t("services.stopRepeat")}
-                          </Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                )}
-      </>
-    );
-  };
+  const actionsFor = canEdit
+    ? (row: GatheringRow) => (
+        <RowActions key={row.id} row={row} church={church} pending={pending} run={simple} />
+      )
+    : () => null;
 
-  const actionsFor = canEdit ? rowActions : () => null;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
@@ -361,11 +306,7 @@ export function Calendar({
                       </Badge>
                     </Td>
                     <Td>
-                      {canEdit ? (
-                        <span className="flex flex-wrap justify-end gap-1">
-                          {rowActions(row)}
-                        </span>
-                      ) : null}
+                      {actionsFor(row)}
                     </Td>
                   </Tr>
                 );
@@ -374,6 +315,129 @@ export function Calendar({
           </Table>
         </Card>
       )}
+    </div>
+  );
+}
+
+/**
+ * The actions on one service.
+ *
+ * The thing a church does to a service every week is on the row. The rest are
+ * behind a menu, because six buttons of equal weight is a row that reads as a
+ * wall and runs off the side of a phone.
+ */
+function RowActions({
+  row,
+  church,
+  pending,
+  run,
+}: {
+  row: GatheringRow;
+  church: string;
+  pending: boolean;
+  run: (fn: (d: FormData) => Promise<{ error?: string }>, fields: Record<string, string>) => void;
+}) {
+  const [open, setOpen] = React.useState<null | "edit" | "cancel" | "count" | "stop">(null);
+  const cancelled = row.status === "cancelled";
+  const counted = row.past && !cancelled;
+  const change = (which: typeof open) => (is: boolean) => setOpen(is ? which : null);
+
+  return (
+    <div className="flex items-center justify-end gap-1">
+      {counted ? (
+        <Button
+          variant={row.total === null ? "secondary" : "ghost"}
+          onClick={() => setOpen("count")}
+        >
+          <Users /> {t("services.count")}
+        </Button>
+      ) : cancelled ? (
+        <Button variant="ghost" onClick={() => run(setCancelled, { id: row.id, cancelled: "0" })}>
+          <Undo2 /> {t("services.restore")}
+        </Button>
+      ) : (
+        <Button variant="ghost" onClick={() => setOpen("edit")}>
+          <Pencil /> {t("services.edit")}
+        </Button>
+      )}
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost">
+            {t("action.more")} <ChevronDown />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {counted ? (
+            <DropdownMenuItem asChild>
+              <Link href={`/services/${row.id}?church=${church}`}>
+                <ClipboardList /> {t("roster.title")}
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
+          {counted || cancelled ? (
+            <DropdownMenuItem onSelect={() => setOpen("edit")}>
+              <Pencil /> {t("services.edit")}
+            </DropdownMenuItem>
+          ) : null}
+          {row.special ? null : (
+            <DropdownMenuItem onSelect={() => setOpen("stop")}>
+              <Repeat /> {t("services.stopRepeat")}
+            </DropdownMenuItem>
+          )}
+          {cancelled ? null : (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem tone="danger" onSelect={() => setOpen("cancel")}>
+                <X /> {t("services.cancel")}
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <EditDialog
+        row={row}
+        pending={pending}
+        open={open === "edit"}
+        onOpenChange={change("edit")}
+        onSave={(fields) => run(editGathering, { id: row.id, ...fields })}
+      />
+      <CountDialog
+        row={row}
+        pending={pending}
+        open={open === "count"}
+        onOpenChange={change("count")}
+        onSave={(fields) => run(recordHeadcount, { id: row.id, ...fields })}
+      />
+      <CancelDialog
+        row={row}
+        pending={pending}
+        open={open === "cancel"}
+        onOpenChange={change("cancel")}
+        onConfirm={(note) => run(setCancelled, { id: row.id, cancelled: "1", note })}
+      />
+      <Dialog open={open === "stop"} onOpenChange={change("stop")}>
+        <DialogContent alert title={t("services.stopRepeatTitle", { name: row.name })}>
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
+            {t("services.stopRepeatBody")}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setOpen(null)}>
+              {t("services.keepRepeating")}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                run(stopRepeat, { serviceTimeId: row.serviceTimeId ?? "" });
+                setOpen(null);
+              }}
+            >
+              {t("services.stopRepeat")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -391,19 +455,17 @@ function CancelDialog({
   row,
   pending,
   onConfirm,
+  open,
+  onOpenChange,
 }: {
   row: GatheringRow;
   pending: boolean;
   onConfirm: (note: string) => void;
-}) {
-  const [open, setOpen] = React.useState(false);
+} & Controlled) {
   const [note, setNote] = React.useState("");
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost"><X /> {t("services.cancel")}</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         alert
         title={t("services.cancelTitle", { name: row.name, date: row.readableDate })}
@@ -416,7 +478,7 @@ function CancelDialog({
           </Field>
 
           <DialogFooter>
-            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+            <Button variant="ghost" data-dismiss onClick={() => onOpenChange(false)}>
               {t("services.keep")}
             </Button>
             <Button
@@ -424,7 +486,7 @@ function CancelDialog({
               disabled={pending}
               onClick={() => {
                 onConfirm(note);
-                setOpen(false);
+                onOpenChange(false);
               }}
             >
               {t("services.cancelAction", { name: row.name, date: row.readableDate })}
@@ -441,12 +503,13 @@ function EditDialog({
   row,
   pending,
   onSave,
+  open,
+  onOpenChange,
 }: {
   row: GatheringRow;
   pending: boolean;
   onSave: (fields: Record<string, string>) => void;
-}) {
-  const [open, setOpen] = React.useState(false);
+} & Controlled) {
   const [name, setName] = React.useState(row.name);
   const [note, setNote] = React.useState(row.note ?? "");
 
@@ -460,10 +523,7 @@ function EditDialog({
   }, [open, row.name, row.note]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost"><Pencil /> {t("services.edit")}</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent title={t("services.editTitle", { name: row.name })} closeLabel={t("common.close")}>
         <form
           action={(data) => {
@@ -473,7 +533,7 @@ function EditDialog({
               startsAt: String(data.get("startsAt") ?? ""),
               note: String(data.get("note") ?? ""),
             });
-            setOpen(false);
+            onOpenChange(false);
           }}
           noValidate
           className="flex flex-col gap-4"
@@ -494,7 +554,7 @@ function EditDialog({
           </Field>
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending}>{t("action.save")}</Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               {t("action.cancel")}
             </Button>
           </div>
@@ -515,21 +575,17 @@ function CountDialog({
   row,
   pending,
   onSave,
+  open,
+  onOpenChange,
 }: {
   row: GatheringRow;
   pending: boolean;
   onSave: (fields: Record<string, string>) => void;
-}) {
-  const [open, setOpen] = React.useState(false);
+} & Controlled) {
   const value = (n: number | null) => (n === null ? "" : String(n));
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant={row.total === null ? "secondary" : "ghost"}>
-          <Users /> {t("services.count")}
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         title={t("services.countTitle", { name: row.name, date: row.readableDate })}
         closeLabel={t("common.close")}
@@ -542,7 +598,7 @@ function CountDialog({
               visitors: String(data.get("visitors") ?? ""),
               note: String(data.get("note") ?? ""),
             });
-            setOpen(false);
+            onOpenChange(false);
           }}
           noValidate
           className="flex flex-col gap-4"
@@ -563,7 +619,7 @@ function CountDialog({
           </Field>
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending}>{t("action.save")}</Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               {t("action.cancel")}
             </Button>
           </div>

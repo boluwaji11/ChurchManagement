@@ -3,16 +3,31 @@ import * as React from "react";
 import * as P from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "../lib/cn";
+import { useFieldControl } from "./field";
 
-export const Select = P.Root;
+/**
+ * Wrapped rather than re-exported so Field knows to send the trigger its id and
+ * error state by context: the Radix root draws no element of its own.
+ */
+export function Select(props: React.ComponentProps<typeof P.Root>) {
+  return <P.Root {...props} />;
+}
+Select.hearthFieldManaged = true;
+
 export const SelectValue = P.Value;
 
 export const SelectTrigger = React.forwardRef<
   React.ComponentRef<typeof P.Trigger>,
   React.ComponentPropsWithoutRef<typeof P.Trigger>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const field = useFieldControl();
+  return (
   <P.Trigger
     ref={ref}
+    id={props.id ?? field?.id}
+    aria-invalid={props["aria-invalid"] ?? (field?.invalid || undefined)}
+    aria-describedby={props["aria-describedby"] ?? field?.describedBy}
+    aria-required={props["aria-required"] ?? field?.required}
     className={cn(
       "inline-flex w-full items-center justify-between gap-2 bg-surface text-fg text-left",
       "min-h-[var(--d-tap)] px-[var(--d-pad-control-x)] rounded-[var(--d-radius-control)]",
@@ -20,6 +35,7 @@ export const SelectTrigger = React.forwardRef<
       "transition-colors duration-instant ease-out hover:border-fg-subtle",
       "disabled:opacity-45 disabled:pointer-events-none",
       "data-[placeholder]:text-fg-subtle",
+      "aria-invalid:border-danger-text",
       className,
     )}
     {...props}
@@ -29,7 +45,8 @@ export const SelectTrigger = React.forwardRef<
       <ChevronDown className="size-4 opacity-60 shrink-0" />
     </P.Icon>
   </P.Trigger>
-));
+  );
+});
 SelectTrigger.displayName = "SelectTrigger";
 
 export const SelectContent = React.forwardRef<

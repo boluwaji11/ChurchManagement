@@ -34,6 +34,7 @@ export const en = {
   "action.delete": "Delete",
   "action.back": "Back",
   "action.manage": "Manage",
+  "action.more": "More",
 
   // Landing
   "home.tagline": "Church management software.",

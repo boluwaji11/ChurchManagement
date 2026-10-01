@@ -132,6 +132,7 @@ export function Combobox({
           "border border-line-strong shadow-sm",
           "transition-[border-color,box-shadow] duration-instant ease-out",
           "hover:border-fg-subtle focus-within:border-fg-subtle",
+          "has-[input[aria-invalid]]:border-danger-text",
           disabled && "opacity-45 pointer-events-none",
         )}
       >

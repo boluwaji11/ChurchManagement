@@ -98,14 +98,23 @@ export default function Components() {
           <Field label="Phone" htmlFor="c-phone" error="That number needs an area code." required>
             <Input defaultValue="555 0148" />
           </Field>
-          <Field label="Lifecycle status" htmlFor="c-status">
+          <Field label="Lifecycle status">
             <Select defaultValue="member">
-              <SelectTrigger id="c-status"><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="visitor">Visitor</SelectItem>
                 <SelectItem value="regular">Regular attender</SelectItem>
                 <SelectItem value="member">Member</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Room" error="That room is full for this service.">
+            <Select>
+              <SelectTrigger><SelectValue placeholder="Choose a room" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nursery">Nursery</SelectItem>
+                <SelectItem value="toddlers">Toddlers</SelectItem>
               </SelectContent>
             </Select>
           </Field>

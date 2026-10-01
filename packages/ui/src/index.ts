@@ -14,6 +14,9 @@ export { Skeleton, Spinner, Progress } from "./components/feedback";
 export { Checkbox } from "./components/checkbox";
 export { Switch } from "./components/switch";
 export { RadioGroup, RadioItem } from "./components/radio-group";
+export {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
+} from "./components/dropdown-menu";
 export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./components/combobox";
 export { DatePicker, parseTyped, type DatePickerProps, type DatePickerLabels } from "./components/date-picker";

@@ -5,6 +5,32 @@ import { AlertCircle } from "lucide-react";
 import { cn } from "../lib/cn";
 
 /**
+ * What Field hands down to a control that cannot be cloned.
+ *
+ * Cloning works for an input, because an input takes id and aria props and puts
+ * them on its own element. A Select is three components deep and its root draws
+ * nothing, so the props have to reach the trigger by context. A control that
+ * reads this gets the same wiring an input gets.
+ */
+export interface FieldControl {
+  id: string;
+  labelId: string;
+  invalid: boolean;
+  describedBy?: string;
+  required?: boolean;
+}
+
+const FieldControlContext = React.createContext<FieldControl | null>(null);
+
+/** Read by Select, Combobox, DatePicker, TimePicker and RadioGroup. */
+export function useFieldControl() {
+  return React.useContext(FieldControlContext);
+}
+
+/** A component with this static takes its wiring from context rather than a clone. */
+type Managed = { hearthFieldManaged?: boolean; hearthFieldGroup?: boolean };
+
+/**
  * A labelled form control.
  *
  * The label is always a label. Placeholder text disappears exactly when it is
@@ -38,32 +64,54 @@ export function Field({
 }) {
   const auto = React.useId();
   const id = htmlFor ?? auto;
+  const labelId = `${id}-label`;
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
 
   const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
 
-  const control = React.isValidElement(children)
-    ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
-        id,
-        "aria-invalid": error ? true : undefined,
-        "aria-describedby": describedBy,
-        "aria-required": required || undefined,
-      })
-    : children;
+  const type = React.isValidElement(children) ? (children.type as Managed) : undefined;
+  const managed = type?.hearthFieldManaged === true;
+  const group = type?.hearthFieldGroup === true;
+
+  const control =
+    React.isValidElement(children) && !managed
+      ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
+          id,
+          "aria-invalid": error ? true : undefined,
+          "aria-describedby": describedBy,
+          "aria-required": required || undefined,
+        })
+      : children;
+
+  const wiring: FieldControl = {
+    id,
+    labelId,
+    invalid: Boolean(error),
+    describedBy,
+    required,
+  };
+
+  // A radio group is labelled by a heading, because there is no single control
+  // for a label element to point at.
+  const Label = group ? "span" : "label";
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label htmlFor={id} className="text-label text-fg flex items-center gap-1">
+      <Label
+        id={labelId}
+        htmlFor={group ? undefined : id}
+        className="text-label text-fg flex items-center gap-1"
+      >
         {label}
         {required ? (
           <span className="text-fg-subtle font-normal" aria-hidden>
             (required)
           </span>
         ) : null}
-      </label>
+      </Label>
 
-      {control}
+      <FieldControlContext.Provider value={wiring}>{control}</FieldControlContext.Provider>
 
       {error ? (
         <p id={errorId} role="alert" className="flex items-start gap-1.5 text-caption text-danger-text">
