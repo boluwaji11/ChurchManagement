@@ -1,6 +1,9 @@
 "use server";
 
-import { withTenant, roomBoard, roomRoster, type Board, type RoomRosterEntry } from "@hearth/db";
+import {
+  withTenant, roomBoard, roomRoster, fileIncident,
+  type Board, type RoomRosterEntry,
+} from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
@@ -30,6 +33,44 @@ export async function board(occurrenceId: string, church?: string): Promise<Boar
       }
       return { board: live, rosters };
     });
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface ReportResult {
+  error?: string;
+}
+
+/**
+ * R8.13. Filing an incident report.
+ *
+ * Open to whoever runs the station, because the person who saw it has to be
+ * able to write it down. Reading them back is a different permission, and a
+ * different screen.
+ */
+export async function report(
+  input: {
+    personId: string;
+    roomId: string | null;
+    occurrenceId: string | null;
+    occurredOn: string;
+    volunteers: string;
+    description: string;
+    action: string;
+    guardianNotified: boolean;
+  },
+  church?: string,
+): Promise<ReportResult> {
+  const session = await requireSession(church);
+  const actor = { tenantId: session.tenantId, role: session.role };
+  const ctx = { ...actor, userId: session.userId };
+
+  try {
+    await withTenant(ctx, (tx) =>
+      fileIncident(tx, actor, { ...input, userId: session.userId }),
+    );
+    return {};
   } catch (error) {
     return { error: explain(error) };
   }

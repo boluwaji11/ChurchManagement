@@ -12,6 +12,7 @@ import { serviceNow } from "@hearth/db/rules";
 import type { Board, RoomRosterEntry } from "@hearth/db";
 import type { DeskService } from "../desk";
 import { board as readBoard } from "./actions";
+import { IncidentDialog } from "./incident";
 
 /**
  * R8.17 to R8.19. The screen the person walking the corridor reads.
@@ -30,12 +31,15 @@ export function RoomBoard({
   church,
   services,
   now,
+  today,
   initial,
   rosters: firstRosters,
 }: {
   church: string;
   services: DeskService[];
   now: string;
+  /** The church's own date, for a report filed from here. */
+  today: string;
   initial: Board | null;
   rosters: Record<string, RoomRosterEntry[]>;
 }) {
@@ -152,7 +156,13 @@ export function RoomBoard({
                 " px-[var(--d-pad-card)] pb-[var(--d-pad-card)] print:p-0"
               }
             >
-              <Roster entries={rosters[room.roomId] ?? []} />
+              <Roster
+                church={church}
+                today={today}
+                roomId={room.roomId}
+                occurrenceId={service}
+                entries={rosters[room.roomId] ?? []}
+              />
             </div>
           </Card>
         ))}
@@ -161,7 +171,19 @@ export function RoomBoard({
   );
 }
 
-function Roster({ entries }: { entries: RoomRosterEntry[] }) {
+function Roster({
+  church,
+  today,
+  roomId,
+  occurrenceId,
+  entries,
+}: {
+  church: string;
+  today: string;
+  roomId: string;
+  occurrenceId: string;
+  entries: RoomRosterEntry[];
+}) {
   if (entries.length === 0) {
     return <span className="text-caption text-fg-muted">{t("board.empty")}</span>;
   }
@@ -187,6 +209,18 @@ function Roster({ entries }: { entries: RoomRosterEntry[] }) {
               {[entry.allergies, entry.medicalNote].filter(Boolean).join(". ")}
             </div>
           ) : null}
+
+          {/* R8.13. Written in the room, by whoever saw it. */}
+          <div className="print:hidden">
+            <IncidentDialog
+              church={church}
+              personId={entry.personId}
+              personName={entry.name}
+              roomId={roomId}
+              occurrenceId={occurrenceId}
+              today={today}
+            />
+          </div>
         </li>
       ))}
     </ul>

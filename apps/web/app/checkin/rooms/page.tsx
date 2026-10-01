@@ -32,13 +32,14 @@ export default async function RoomsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { services, now } = await withTenant(
+  const { services, now, today } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const clock = churchNow(profile?.timezone ?? "America/Chicago");
       return {
         now: clock.time,
+        today: clock.date,
         services: await listOccurrences(tx, { from: clock.date, to: clock.date }),
       };
     },
@@ -54,6 +55,7 @@ export default async function RoomsPage({
           <RoomBoard
             church={session.tenantSlug}
             now={now}
+            today={today}
             initial={null}
             rosters={{}}
             services={services

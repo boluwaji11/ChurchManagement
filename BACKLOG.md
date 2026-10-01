@@ -165,7 +165,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Closed |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Closed |
 | HRT-62 | Supervisor board and class rosters | R8.18, R8.19 | Resolved |
-| HRT-63 | Incident reports, restricted and permanently retained | R8.13 | Active |
+| HRT-63 | Incident reports, restricted and permanently retained | R8.13 | Resolved |
 
 ### F18. Insights, deferred to 1.0
 
@@ -235,8 +235,8 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | **HRT-63** incident reports |
-| **Waiting on a test** | **HRT-62** the supervisor board, the room rosters, the two-adult rule |
+| **Active** | Nothing |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports |
 | **Next** | HRT-79 to HRT-82, serving, which R8.17 is waiting on. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -851,3 +851,18 @@ The station's **Labels** setting picks the stock, so set it before printing.
 4. **Print.** Every class's roster prints, expanded, one class a block, for the wall.
 5. **It keeps up.** Leave it open and check a child in from another device. Within twenty seconds
    the board moves on its own.
+
+### HRT-63, how to test it
+
+**Incidents** is in the header for Owner, Admin and Pastoral, and for nobody else.
+
+1. **File one.** Open Kids classes, tap a class, and press Report an incident against a child. Write
+   what happened and what was done. It says, once, that a report cannot be edited or deleted.
+2. **Who can write one.** Sign in as a check-in volunteer and file one from the station. It saves.
+3. **Who can read them.** As that same volunteer, there is no Incidents link, and going to the URL
+   says to ask an admin. A report names other volunteers and sits beside other children's, so
+   writing one and reading them are different permissions.
+4. **The guardian.** A new report shows Guardian not told. Press the button on the Incidents screen
+   and it records the moment. Pressing again does not move it.
+5. **It is kept.** There is no edit and no delete anywhere, deliberately, including for an Owner.
+6. **It is audited.** The report appears in the audit log like every other write.

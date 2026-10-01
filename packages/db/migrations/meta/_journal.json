@@ -162,6 +162,13 @@
       "when": 1790818778349,
       "tag": "0022_groovy_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790819904754,
+      "tag": "0023_sloppy_beast",
+      "breakpoints": true
     }
   ]
 }

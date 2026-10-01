@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, timestamp, boolean, date, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { tenants, campuses, serviceTimes } from "./tenancy";
 import { serviceOccurrences } from "./gatherings";
 import { people } from "./people";
@@ -287,5 +287,59 @@ export const checkinOfflineEvents = pgTable(
     index("offline_event_tenant_idx").on(t.tenantId),
     index("offline_event_station_idx").on(t.tenantId, t.stationId),
     uniqueIndex("offline_event_unique").on(t.tenantId, t.eventId),
+  ],
+);
+
+/**
+ * R8.13. An incident report.
+ *
+ * Something happened to a child in a class: a bump on the head, a bite, a child
+ * who could not be settled, a near miss at a door. The church writes it down at
+ * the time, in the room, and it is kept.
+ *
+ * Append only and permanently retained. There is no edit and no delete, not for
+ * an Owner either, for the same reason the audit log has none: a record that can
+ * be tidied up afterwards is worth nothing on the day somebody asks what
+ * happened. The one field that changes is whether the guardian has been told,
+ * because telling them usually happens after the report is written, and the
+ * moment it is set is kept with it.
+ *
+ * Reading is restricted to the roles that handle safeguarding. Writing is not:
+ * the volunteer who saw it has to be able to file it from the station.
+ */
+export const incidentReports = pgTable(
+  "incident_reports",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    /** The child it happened to. */
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    /** The class they were in, where they were in one. */
+    roomId: uuid("room_id").references(() => checkinRooms.id, { onDelete: "set null" }),
+    /** The service it happened at, where it was during one. */
+    occurrenceId: uuid("occurrence_id").references(() => serviceOccurrences.id, { onDelete: "set null" }),
+    /** The day it happened, which is not always the day it was written. */
+    occurredOn: date("occurred_on").notNull(),
+    /**
+     * Who was in the room. Free text until serving is built (F10), because a
+     * church that cannot name the people present at all writes nothing down.
+     */
+    volunteers: text("volunteers").notNull().default(""),
+    /** What happened, in the words of whoever saw it. */
+    description: text("description").notNull(),
+    /** What was done about it. */
+    action: text("action").notNull(),
+    /** R8.13. Whether the guardian was told, and when. */
+    guardianNotified: boolean("guardian_notified").notNull().default(false),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    notifiedBy: uuid("notified_by"),
+    /** Who wrote it. */
+    reportedBy: uuid("reported_by"),
+    createdAt: created(),
+  },
+  (t) => [
+    index("incident_tenant_idx").on(t.tenantId, t.occurredOn),
+    index("incident_person_idx").on(t.tenantId, t.personId),
+    index("incident_room_idx").on(t.tenantId, t.roomId),
   ],
 );
