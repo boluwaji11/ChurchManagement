@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Church } from "lucide-react";
 import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
-import { canEditPeople, canFollowUp, canReadIncidents } from "@hearth/db";
+import {
+  canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
+} from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { DemoBanner } from "./demo-banner";
@@ -55,10 +57,19 @@ export async function AppHeader({ session }: { session: Session }) {
             [t("nav.directory"), canEditPeople(session.role) || canReadIncidents(session.role)
               ? "/people"
               : "/directory"],
-            [t("nav.services"), "/services"],
+            // R7.x. Attendance is recorded by the church, not by the congregation.
+            ...(canManageServices(session.role)
+              ? [[t("nav.services"), "/services"] as const]
+              : []),
+            // R9.5. Groups are for everybody: finding one is the member's question.
             [t("nav.groups"), "/groups"],
-            [t("nav.checkin"), "/checkin"],
-            [t("nav.rooms"), "/checkin/rooms"],
+            // R8.x. The Sunday morning screens, for whoever is on the door.
+            ...(canCheckIn(session.role)
+              ? [
+                  [t("nav.checkin"), "/checkin"] as const,
+                  [t("nav.rooms"), "/checkin/rooms"] as const,
+                ]
+              : []),
             // R5.5. The Monday morning screen, for the roles that work it.
             ...(canFollowUp(session.role)
               ? [[t("nav.followups"), "/followups"] as const]

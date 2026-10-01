@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Plus, Download } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
-  canEditPeople, canArchivePeople, PER_PAGE,
+  canEditPeople, canArchivePeople, canReadIncidents, PER_PAGE,
 } from "@hearth/db";
 import { Button, Banner } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -24,6 +25,15 @@ export default async function PeoplePage({
 
   const query = queryFromParams(params);
   const page = pageFromParams(params);
+
+  /*
+   * R3.1. A member on this screen sees themselves and a banner about notes they
+   * cannot read. The directory their church publishes is the one that holds
+   * anybody for them, so that is where they go.
+   */
+  if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
+    redirect(`/directory?church=${session.tenantSlug}`);
+  }
 
   const viewer = { role: session.role, userId: session.userId };
 
