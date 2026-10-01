@@ -14,7 +14,8 @@
     "seed": "tsx scripts/seed.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "seed:users": "tsx scripts/seed-users.ts"
+    "seed:users": "tsx scripts/seed-users.ts",
+    "metrics": "tsx scripts/metrics.ts"
   },
   "dependencies": {
     "@hearth/i18n": "workspace:*",

@@ -48,6 +48,7 @@ export * from "./repo/followups";
 export * from "./repo/checks";
 export * from "./repo/directory";
 export * from "./repo/setup";
+export * from "./repo/value";
 export * from "./repo/directory-rules";
 export * from "./repo/check-rules";
 export * from "./repo/scope";

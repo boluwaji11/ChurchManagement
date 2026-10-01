@@ -274,7 +274,7 @@ gate, and a test that walks all three.
 | HRT-105 | The setup wizard: church, services, roles, import. Resumable and skippable | R22.1 | Resolved |
 | HRT-108 | Who can get in: the team, invitations, roles | R1.4, R1.7 | Resolved |
 | HRT-106 | In-context help on every screen | R22.2 | Resolved |
-| HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | New |
+| HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Resolved |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
 screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
@@ -329,9 +329,10 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help |
-| **Next** | **HRT-107** time to value, then the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **0.2 still owed** | Nothing. R3.1 was cut, everything else is built and waiting on a test. |
+| **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. Everything else in 0.2 is built. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-26** background checks, **HRT-98** the member directory, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-108** who can get in, **HRT-106** help, **HRT-107** time to value |
+| **Next** | 0.3 money: Stripe Connect on the church's own account, giving, and the IRS statements Grace needs every January. Then the member directory (HRT-98 to HRT-101), R19.5 the real importers (HRT-102), F22 onboarding (HRT-105 to HRT-107), and the two safeguarding stories. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. **HRT-87** group messaging waits on onboarding. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1055,6 +1056,19 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-107, how to test it
+
+`pnpm --filter @hearth/db metrics`, against the real database.
+
+1. **Every church, and how long it took** from signing up to a directory somebody can use: a
+   committed import, or twenty-five people entered by hand, whichever came first.
+2. **Twenty-five** because a church of fifty to five hundred with twenty-five people in it has
+   stopped evaluating and started using it. One person typed in while looking around has not.
+3. **It is derived.** Roll an import back and the church stops being counted as having got there.
+   Nothing is written at the moment it happens by code that might not run.
+4. **The median and the share inside the hour**, which is the number the sixty-minute target is
+   actually about. The average would be moved by one church that signed up and came back in March.
 
 ### HRT-106, how to test it
 
