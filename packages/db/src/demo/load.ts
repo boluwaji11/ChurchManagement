@@ -16,6 +16,7 @@ import { addRoom, ageInMonths } from "../repo/rooms";
 import { addStation } from "../repo/stations";
 import { checkInFamily } from "../repo/checkin";
 import { seedGroupTypes, createGroup, addToGroup } from "../repo/groups";
+import { seedPipelines } from "../repo/followups";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { DEMO_PEOPLE, DEMO_TAGS } from "./people";
@@ -239,6 +240,7 @@ async function loadGroups(
   remember: (entity: string, recordId: string) => Promise<void>,
   everyone: string[],
 ): Promise<void> {
+  await seedPipelines(db, actor);
   const types = await seedGroupTypes(db, actor);
   const small = types.find((t) => t.name === "Small group") ?? types[0];
   const team = types.find((t) => t.name === "Ministry team") ?? types[0];

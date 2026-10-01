@@ -3,6 +3,7 @@ import { owner } from "../client";
 import type { TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
 import { DEFAULT_GROUP_TYPES } from "./groups";
+import { DEFAULT_PIPELINES } from "./followups";
 
 export interface Membership {
   tenantId: string;
@@ -256,6 +257,22 @@ export async function createChurch(input: {
       await tx`
         insert into group_types (tenant_id, name, hue, position)
         values (${tenant.id}, ${type.name}, ${type.hue}, ${position})`;
+    }
+
+    // R5.2. The six follow-up pipelines, with their steps. Same reason: a
+    // church should be able to welcome its first visitor on the first Sunday
+    // rather than design a process first.
+    for (const [position, pipeline] of DEFAULT_PIPELINES.entries()) {
+      const [row] = await tx<{ id: string }[]>`
+        insert into pipelines (tenant_id, key, name, description, hue, position)
+        values (${tenant.id}, ${pipeline.key}, ${pipeline.name}, ${pipeline.description},
+                ${pipeline.hue}, ${position})
+        returning id`;
+      for (const [at, step] of pipeline.steps.entries()) {
+        await tx`
+          insert into pipeline_steps (tenant_id, pipeline_id, name, due_days, position)
+          values (${tenant.id}, ${row!.id}, ${step.name}, ${step.dueDays}, ${at})`;
+      }
     }
 
     return { tenantId: tenant.id, slug, name };

@@ -5,14 +5,17 @@ import {
   withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones,
+  canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
 } from "@hearth/db";
 import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
+import { churchNow } from "@/lib/church-now";
 import { AppHeader } from "@/components/app-header";
 import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
 import { Relationships } from "../relationships";
 import { Milestones } from "../milestones";
+import { FollowUps } from "../followups";
 import { t, plural } from "@hearth/i18n";
 import { lifecycleLabel } from "@/lib/person-input";
 
@@ -53,6 +56,10 @@ export default async function PersonPage({
       fieldValues: await getCustomValues(tx, "person", id),
       relationships: await listRelationships(tx, id),
       milestones: await listMilestones(tx, id),
+      pipelines: canFollowUp(session.role) ? await listPipelines(tx) : [],
+      entries: canFollowUp(session.role) ? await entriesFor(tx, id) : [],
+      tasks: canFollowUp(session.role) ? await tasksFor(tx, id) : [],
+      today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
       // Everyone in the church, for the picker. A church of 50 to 500 fits in a
       // list; the search this will need at five thousand is R2.14's job.
       everyone: await listPeople(tx),
@@ -62,7 +69,10 @@ export default async function PersonPage({
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone, milestones } = result;
+  const {
+    person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone,
+    milestones, pipelines, entries, tasks, today,
+  } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
 
@@ -157,6 +167,46 @@ export default async function PersonPage({
               </div>
             ))}
           </dl>
+        </Card>
+      ) : null}
+
+      {canFollowUp(session.role) ? (
+        <Card className="mb-6">
+          <CardTitle>{t("person.followups")}</CardTitle>
+          <Separator className="my-4" />
+          <FollowUps
+            church={session.tenantSlug}
+            personId={person.id}
+            today={today}
+            canEdit
+            pipelines={pipelines.map((pipeline) => ({
+              id: pipeline.id, name: pipeline.name, hue: pipeline.hue,
+            }))}
+            entries={entries.map((entry) => ({
+              id: entry.id,
+              pipelineName: entry.pipelineName,
+              pipelineHue: entry.pipelineHue,
+              status: entry.status,
+              startedOn: entry.startedOn,
+              exitReason: entry.exitReason,
+              steps: entry.steps.map((step) => ({
+                id: step.id,
+                title: step.title,
+                dueOn: step.dueOn,
+                doneAt: step.doneAt ? step.doneAt.toISOString() : null,
+                outcome: step.outcome,
+                mine: step.assigneeUserId === session.userId,
+              })),
+            }))}
+            tasks={tasks.map((task) => ({
+              id: task.id,
+              title: task.title,
+              dueOn: task.dueOn,
+              doneAt: task.doneAt ? task.doneAt.toISOString() : null,
+              outcome: task.outcome,
+              mine: task.assigneeUserId === session.userId,
+            }))}
+          />
         </Card>
       ) : null}
 

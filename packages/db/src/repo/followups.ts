@@ -1,0 +1,698 @@
+import { and, asc, desc, eq, isNull, inArray, sql } from "drizzle-orm";
+import type { Tx } from "../client";
+import { pipelines, pipelineSteps, pipelineEntries, followUps } from "../schema/followups";
+import { people } from "../schema/people";
+import { PermissionError, type TenantRole } from "../roles";
+import { InvalidInputError } from "../errors";
+
+/**
+ * R5.1 to R5.7. Follow-up, which is the difference between a database and a
+ * ministry tool.
+ *
+ * Six pipelines, written down. No workflow engine, no canvas, no conditions:
+ * that is the feature that makes Rock RMS unusable by the person this product
+ * is for. A church welcoming a visitor needs the three steps and a name against
+ * each, and the steps are the same three at every church of this size.
+ *
+ * Entering a pipeline writes every one of its steps out as a dated task, so a
+ * step can be reassigned or answered without the church losing what happened.
+ */
+
+export const CAN_FOLLOW_UP: readonly TenantRole[] = ["owner", "admin", "staff", "pastoral"];
+export const canFollowUp = (role: TenantRole): boolean => CAN_FOLLOW_UP.includes(role);
+
+export const PIPELINE_KEYS = [
+  "first_visit", "second_visit", "absent", "baptism", "membership", "serving",
+] as const;
+export type PipelineKey = (typeof PIPELINE_KEYS)[number];
+
+export const ENTRY_REASONS = [
+  "by_hand", "first_visit", "second_visit", "absent", "milestone", "form",
+] as const;
+export type EntryReason = (typeof ENTRY_REASONS)[number];
+
+/**
+ * R5.2. The six, and the steps each one takes.
+ *
+ * The day counts are what a church can actually hold to: a thank you inside the
+ * week, a conversation inside the fortnight, an invitation inside the month.
+ */
+export const DEFAULT_PIPELINES: {
+  key: PipelineKey;
+  name: string;
+  description: string;
+  hue: string;
+  steps: { name: string; dueDays: number }[];
+}[] = [
+  {
+    key: "first_visit",
+    name: "First visit",
+    description: "Somebody came for the first time.",
+    hue: "sky",
+    steps: [
+      { name: "Say thank you", dueDays: 2 },
+      { name: "Call them", dueDays: 7 },
+      { name: "Invite them to something", dueDays: 21 },
+    ],
+  },
+  {
+    key: "second_visit",
+    name: "Second visit",
+    description: "They came back.",
+    hue: "teal",
+    steps: [
+      { name: "Thank them for coming back", dueDays: 2 },
+      { name: "Ask what brought them", dueDays: 10 },
+      { name: "Introduce them to a group", dueDays: 28 },
+    ],
+  },
+  {
+    key: "absent",
+    name: "Not seen for a while",
+    description: "Somebody who was here every week has not been for three.",
+    hue: "amber",
+    steps: [
+      { name: "Check they are well", dueDays: 3 },
+      { name: "Pastoral call", dueDays: 14 },
+    ],
+  },
+  {
+    key: "baptism",
+    name: "Baptism",
+    description: "Somebody asked about being baptised.",
+    hue: "indigo",
+    steps: [
+      { name: "Talk it through", dueDays: 7 },
+      { name: "Set a date", dueDays: 21 },
+      { name: "Baptism", dueDays: 56 },
+    ],
+  },
+  {
+    key: "membership",
+    name: "Membership",
+    description: "Somebody is becoming a member.",
+    hue: "violet",
+    steps: [
+      { name: "Confirm their place on the class", dueDays: 3 },
+      { name: "Membership class", dueDays: 21 },
+      { name: "Welcome them in", dueDays: 35 },
+    ],
+  },
+  {
+    key: "serving",
+    name: "Serving",
+    description: "Somebody wants to help.",
+    hue: "rose",
+    steps: [
+      { name: "Find out what they would enjoy", dueDays: 5 },
+      { name: "Background check, where the role needs one", dueDays: 14 },
+      { name: "Put them with a team", dueDays: 28 },
+    ],
+  },
+];
+
+export interface Pipeline {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  hue: string;
+  position: number;
+  ownerUserId: string | null;
+  archived: boolean;
+  steps: { id: string; name: string; dueDays: number; position: number }[];
+}
+
+export interface FollowUp {
+  id: string;
+  personId: string;
+  personName: string;
+  title: string;
+  pipelineName: string | null;
+  pipelineHue: string | null;
+  entryId: string | null;
+  assigneeUserId: string | null;
+  dueOn: string | null;
+  doneAt: Date | null;
+  outcome: string | null;
+  position: number;
+}
+
+export interface PipelineEntry {
+  id: string;
+  pipelineId: string;
+  pipelineKey: string;
+  pipelineName: string;
+  pipelineHue: string;
+  personId: string;
+  status: string;
+  reason: string;
+  startedOn: string;
+  exitReason: string | null;
+  steps: FollowUp[];
+}
+
+const trim = (value: string | null | undefined): string | null => value?.trim() || null;
+
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+const day = (value: string): string => {
+  if (!ISO.test(value) || Number.isNaN(Date.parse(`${value}T00:00:00Z`))) {
+    throw new InvalidInputError("followup.error.day");
+  }
+  return value;
+};
+
+/** Days added to a date, in UTC, so a timezone cannot move a due day. */
+function addDays(iso: string, days: number): string {
+  const at = new Date(`${iso}T00:00:00Z`);
+  at.setUTCDate(at.getUTCDate() + days);
+  return at.toISOString().slice(0, 10);
+}
+
+const called = (row: { firstName: string; lastName: string; preferredName: string | null }) =>
+  `${row.preferredName?.trim() || row.firstName} ${row.lastName}`;
+
+/** R5.2. Created with the church. Running it again adds only what is missing. */
+export async function seedPipelines(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+): Promise<void> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+
+  const existing = await db
+    .select({ key: pipelines.key })
+    .from(pipelines)
+    .where(eq(pipelines.tenantId, actor.tenantId));
+  const have = new Set(existing.map((row) => row.key));
+
+  for (const [index, preset] of DEFAULT_PIPELINES.entries()) {
+    if (have.has(preset.key)) continue;
+    const [row] = await db
+      .insert(pipelines)
+      .values({
+        tenantId: actor.tenantId,
+        key: preset.key,
+        name: preset.name,
+        description: preset.description,
+        hue: preset.hue,
+        position: index,
+      })
+      .returning({ id: pipelines.id });
+
+    await db.insert(pipelineSteps).values(
+      preset.steps.map((step, position) => ({
+        tenantId: actor.tenantId,
+        pipelineId: row!.id,
+        name: step.name,
+        dueDays: step.dueDays,
+        position,
+      })),
+    );
+  }
+}
+
+export async function listPipelines(
+  db: Tx,
+  opts: { includeArchived?: boolean } = {},
+): Promise<Pipeline[]> {
+  const rows = await db
+    .select()
+    .from(pipelines)
+    .where(opts.includeArchived ? undefined : isNull(pipelines.archivedAt))
+    .orderBy(asc(pipelines.position), asc(pipelines.name));
+  if (rows.length === 0) return [];
+
+  const steps = await db
+    .select()
+    .from(pipelineSteps)
+    .where(inArray(pipelineSteps.pipelineId, rows.map((row) => row.id)))
+    .orderBy(asc(pipelineSteps.position));
+
+  return rows.map((row) => ({
+    id: row.id,
+    key: row.key,
+    name: row.name,
+    description: row.description,
+    hue: row.hue,
+    position: row.position,
+    ownerUserId: row.ownerUserId,
+    archived: row.archivedAt !== null,
+    steps: steps
+      .filter((step) => step.pipelineId === row.id)
+      .map((step) => ({
+        id: step.id, name: step.name, dueDays: step.dueDays, position: step.position,
+      })),
+  }));
+}
+
+/**
+ * R5.1, R5.3, R5.4. Putting somebody in a pipeline.
+ *
+ * Every step is written out at once, dated from the day they entered. Somebody
+ * already in it stays where they are rather than starting again, because a
+ * person who visits twice in a fortnight is one visitor.
+ */
+export async function enterPipeline(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole; userId?: string | null },
+  input: {
+    pipelineKey?: PipelineKey;
+    pipelineId?: string;
+    personId: string;
+    on: string;
+    reason?: EntryReason;
+    assigneeUserId?: string | null;
+  },
+): Promise<PipelineEntry | null> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+
+  const startedOn = day(input.on);
+
+  const [pipeline] = await db
+    .select()
+    .from(pipelines)
+    .where(
+      and(
+        isNull(pipelines.archivedAt),
+        input.pipelineId ? eq(pipelines.id, input.pipelineId) : undefined,
+        input.pipelineKey ? eq(pipelines.key, input.pipelineKey) : undefined,
+      ),
+    )
+    .limit(1);
+  if (!pipeline) throw new InvalidInputError("followup.error.pipeline");
+
+  const [person] = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(eq(people.id, input.personId))
+    .limit(1);
+  if (!person) throw new InvalidInputError("followup.error.person");
+
+  // Already being followed up. Leave them where they are.
+  const [open] = await db
+    .select({ id: pipelineEntries.id })
+    .from(pipelineEntries)
+    .where(
+      and(
+        eq(pipelineEntries.pipelineId, pipeline.id),
+        eq(pipelineEntries.personId, input.personId),
+        eq(pipelineEntries.status, "open"),
+      ),
+    )
+    .limit(1);
+  if (open) return null;
+
+  const [entry] = await db
+    .insert(pipelineEntries)
+    .values({
+      tenantId: actor.tenantId,
+      pipelineId: pipeline.id,
+      personId: input.personId,
+      startedOn,
+      reason: input.reason ?? "by_hand",
+    })
+    .returning({ id: pipelineEntries.id });
+
+  const steps = await db
+    .select()
+    .from(pipelineSteps)
+    .where(eq(pipelineSteps.pipelineId, pipeline.id))
+    .orderBy(asc(pipelineSteps.position));
+
+  if (steps.length > 0) {
+    await db.insert(followUps).values(
+      steps.map((step) => ({
+        tenantId: actor.tenantId,
+        entryId: entry!.id,
+        stepId: step.id,
+        personId: input.personId,
+        title: step.name,
+        assigneeUserId: input.assigneeUserId ?? pipeline.ownerUserId ?? null,
+        dueOn: addDays(startedOn, step.dueDays),
+        position: step.position,
+      })),
+    );
+  }
+
+  return (await entriesWhere(db, eq(pipelineEntries.id, entry!.id)))[0] ?? null;
+}
+
+/** R5.4. Coming out, with the reason kept. */
+export async function exitPipeline(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  input: { entryId: string; reason: string; done?: boolean },
+): Promise<void> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+
+  const reason = trim(input.reason);
+  if (!reason) throw new InvalidInputError("followup.error.exitReason");
+
+  const [entry] = await db
+    .select({ id: pipelineEntries.id, status: pipelineEntries.status })
+    .from(pipelineEntries)
+    .where(eq(pipelineEntries.id, input.entryId))
+    .limit(1);
+  if (!entry) throw new InvalidInputError("followup.error.entry");
+  if (entry.status !== "open") throw new InvalidInputError("followup.error.closed");
+
+  await db
+    .update(pipelineEntries)
+    .set({
+      status: input.done ? "done" : "left",
+      exitReason: reason,
+      closedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(pipelineEntries.id, input.entryId));
+}
+
+/** R5.1. A step answered, with what happened. */
+export async function completeFollowUp(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole; userId?: string | null },
+  input: { id: string; outcome?: string | null },
+): Promise<void> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+
+  const [task] = await db
+    .select({ id: followUps.id, entryId: followUps.entryId, doneAt: followUps.doneAt })
+    .from(followUps)
+    .where(eq(followUps.id, input.id))
+    .limit(1);
+  if (!task) throw new InvalidInputError("followup.error.task");
+
+  await db
+    .update(followUps)
+    .set({
+      doneAt: task.doneAt ?? new Date(),
+      doneByUserId: actor.userId ?? null,
+      outcome: trim(input.outcome),
+      updatedAt: new Date(),
+    })
+    .where(eq(followUps.id, input.id));
+
+  // The last step answered closes the entry. A church that has done all three
+  // things should not have to say so a fourth time.
+  if (task.entryId) {
+    const [left] = await db
+      .select({ count: sql<string>`count(*)` })
+      .from(followUps)
+      .where(and(eq(followUps.entryId, task.entryId), isNull(followUps.doneAt)));
+    if (Number(left?.count ?? 0) === 0) {
+      await db
+        .update(pipelineEntries)
+        .set({ status: "done", closedAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(pipelineEntries.id, task.entryId), eq(pipelineEntries.status, "open")));
+    }
+  }
+}
+
+/** R5.1. Undoing an answer, because somebody ticked the wrong line. */
+export async function reopenFollowUp(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  id: string,
+): Promise<void> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+
+  const [task] = await db
+    .select({ entryId: followUps.entryId })
+    .from(followUps)
+    .where(eq(followUps.id, id))
+    .limit(1);
+  if (!task) throw new InvalidInputError("followup.error.task");
+
+  await db
+    .update(followUps)
+    .set({ doneAt: null, doneByUserId: null, outcome: null, updatedAt: new Date() })
+    .where(eq(followUps.id, id));
+
+  if (task.entryId) {
+    await db
+      .update(pipelineEntries)
+      .set({ status: "open", closedAt: null, updatedAt: new Date() })
+      .where(and(eq(pipelineEntries.id, task.entryId), eq(pipelineEntries.status, "done")));
+  }
+}
+
+/** R5.6. A thing to do about somebody, attached to no pipeline. */
+export async function addTask(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  input: {
+    personId: string;
+    title: string;
+    assigneeUserId?: string | null;
+    dueOn?: string | null;
+  },
+): Promise<FollowUp> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+
+  const title = trim(input.title);
+  if (!title) throw new InvalidInputError("followup.error.title");
+  if (input.dueOn) day(input.dueOn);
+
+  const [person] = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(eq(people.id, input.personId))
+    .limit(1);
+  if (!person) throw new InvalidInputError("followup.error.person");
+
+  const [row] = await db
+    .insert(followUps)
+    .values({
+      tenantId: actor.tenantId,
+      personId: input.personId,
+      title,
+      assigneeUserId: input.assigneeUserId ?? null,
+      dueOn: input.dueOn ?? null,
+    })
+    .returning({ id: followUps.id });
+
+  return (await tasksWhere(db, eq(followUps.id, row!.id)))[0]!;
+}
+
+async function tasksWhere(db: Tx, where: ReturnType<typeof eq>): Promise<FollowUp[]> {
+  const rows = await db
+    .select({
+      id: followUps.id,
+      personId: followUps.personId,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
+      title: followUps.title,
+      entryId: followUps.entryId,
+      assigneeUserId: followUps.assigneeUserId,
+      dueOn: sql<string | null>`${followUps.dueOn}::text`,
+      doneAt: followUps.doneAt,
+      outcome: followUps.outcome,
+      position: followUps.position,
+      pipelineName: pipelines.name,
+      pipelineHue: pipelines.hue,
+    })
+    .from(followUps)
+    .innerJoin(people, eq(people.id, followUps.personId))
+    .leftJoin(pipelineEntries, eq(pipelineEntries.id, followUps.entryId))
+    .leftJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
+    .where(where)
+    .orderBy(asc(followUps.dueOn), asc(followUps.position));
+
+  return rows.map((row) => ({
+    id: row.id,
+    personId: row.personId,
+    personName: called(row),
+    title: row.title,
+    pipelineName: row.pipelineName,
+    pipelineHue: row.pipelineHue,
+    entryId: row.entryId,
+    assigneeUserId: row.assigneeUserId,
+    dueOn: row.dueOn,
+    doneAt: row.doneAt,
+    outcome: row.outcome,
+    position: row.position,
+  }));
+}
+
+async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<PipelineEntry[]> {
+  const rows = await db
+    .select({
+      id: pipelineEntries.id,
+      pipelineId: pipelineEntries.pipelineId,
+      personId: pipelineEntries.personId,
+      status: pipelineEntries.status,
+      reason: pipelineEntries.reason,
+      startedOn: sql<string>`${pipelineEntries.startedOn}::text`,
+      exitReason: pipelineEntries.exitReason,
+      key: pipelines.key,
+      name: pipelines.name,
+      hue: pipelines.hue,
+    })
+    .from(pipelineEntries)
+    .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
+    .where(where)
+    .orderBy(desc(pipelineEntries.startedOn));
+  if (rows.length === 0) return [];
+
+  const steps = await tasksWhere(
+    db,
+    inArray(followUps.entryId, rows.map((row) => row.id)) as never,
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    pipelineId: row.pipelineId,
+    pipelineKey: row.key,
+    pipelineName: row.name,
+    pipelineHue: row.hue,
+    personId: row.personId,
+    status: row.status,
+    reason: row.reason,
+    startedOn: row.startedOn,
+    exitReason: row.exitReason,
+    steps: steps.filter((step) => step.entryId === row.id),
+  }));
+}
+
+/** R5.1. Where this person is up to, on their own record. */
+export async function entriesFor(db: Tx, personId: string): Promise<PipelineEntry[]> {
+  return entriesWhere(db, eq(pipelineEntries.personId, personId));
+}
+
+/** R5.6. Their loose tasks, which belong to no pipeline. */
+export async function tasksFor(db: Tx, personId: string): Promise<FollowUp[]> {
+  return tasksWhere(db, and(eq(followUps.personId, personId), isNull(followUps.entryId)) as never);
+}
+
+/**
+ * R5.5. My follow-ups.
+ *
+ * Everything waiting on this person, overdue first. Sorted by the day it was
+ * due rather than the day it was made, because the question is what is late.
+ */
+export async function myFollowUps(
+  db: Tx,
+  userId: string | null | undefined,
+): Promise<FollowUp[]> {
+  if (!userId) return [];
+  return tasksWhere(
+    db,
+    and(eq(followUps.assigneeUserId, userId), isNull(followUps.doneAt)) as never,
+  );
+}
+
+/** R5.5. Everything nobody has been given, so it is not quietly lost. */
+export async function unassignedFollowUps(db: Tx): Promise<FollowUp[]> {
+  return tasksWhere(
+    db,
+    and(isNull(followUps.assigneeUserId), isNull(followUps.doneAt)) as never,
+  );
+}
+
+/** R5.1. Giving a step to somebody, or taking it back. */
+export async function assignFollowUp(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  input: { id: string; assigneeUserId: string | null },
+): Promise<void> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  await db
+    .update(followUps)
+    .set({ assigneeUserId: input.assigneeUserId, updatedAt: new Date() })
+    .where(eq(followUps.id, input.id));
+}
+
+export interface PipelineCount {
+  pipelineId: string;
+  key: string;
+  name: string;
+  hue: string;
+  open: number;
+  overdue: number;
+  /** R5.7. How long the people in it have been there, in days. */
+  longestDays: number | null;
+}
+
+/**
+ * R5.7. The board.
+ *
+ * How many are in each pipeline, how long the oldest has been waiting, and how
+ * much of it is late. Three numbers, because a pastor looking at this wants to
+ * know where the church is dropping people.
+ */
+export async function pipelineBoard(db: Tx, today: string): Promise<PipelineCount[]> {
+  const rows = await db
+    .select({
+      pipelineId: pipelines.id,
+      key: pipelines.key,
+      name: pipelines.name,
+      hue: pipelines.hue,
+      position: pipelines.position,
+      open: sql<string>`(
+        select count(*) from pipeline_entries e
+         where e.pipeline_id = pipelines.id and e.status = 'open'
+      )`,
+      overdue: sql<string>`(
+        select count(distinct e.id) from pipeline_entries e
+          join follow_ups f on f.entry_id = e.id
+         where e.pipeline_id = pipelines.id
+           and e.status = 'open'
+           and f.done_at is null
+           and f.due_on < ${today}::date
+      )`,
+      longest: sql<string | null>`(
+        select max(${today}::date - e.started_on) from pipeline_entries e
+         where e.pipeline_id = pipelines.id and e.status = 'open'
+      )`,
+    })
+    .from(pipelines)
+    .where(isNull(pipelines.archivedAt))
+    .orderBy(asc(pipelines.position), asc(pipelines.name));
+
+  return rows.map((row) => ({
+    pipelineId: row.pipelineId,
+    key: row.key,
+    name: row.name,
+    hue: row.hue,
+    open: Number(row.open),
+    overdue: Number(row.overdue),
+    longestDays: row.longest === null ? null : Number(row.longest),
+  }));
+}
+
+/** R5.7. Who is in one, oldest first, which is who has waited longest. */
+export async function peopleIn(
+  db: Tx,
+  pipelineId: string,
+  opts: { status?: string } = {},
+): Promise<PipelineEntry[]> {
+  return entriesWhere(
+    db,
+    and(
+      eq(pipelineEntries.pipelineId, pipelineId),
+      eq(pipelineEntries.status, opts.status ?? "open"),
+    ) as never,
+  );
+}
+
+/** Whether anybody has a pipeline open. Used by the triggers (R5.3). */
+export async function isInPipeline(
+  db: Tx,
+  personId: string,
+  key: PipelineKey,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: pipelineEntries.id })
+    .from(pipelineEntries)
+    .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
+    .where(
+      and(
+        eq(pipelineEntries.personId, personId),
+        eq(pipelines.key, key),
+        eq(pipelineEntries.status, "open"),
+      ),
+    )
+    .limit(1);
+  return row !== undefined;
+}

@@ -232,6 +232,13 @@
       "when": 1790868074838,
       "tag": "0032_windy_shadowcat",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790868296416,
+      "tag": "0033_aromatic_pixie",
+      "breakpoints": true
     }
   ]
 }

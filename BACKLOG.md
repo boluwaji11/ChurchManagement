@@ -217,10 +217,22 @@ and image transcoding behind it rather than a URL field. **HRT-89:** the finder 
 and a church links to its groups page from its website, so somebody who has never been needs to see
 it. Both are real, and both are after the rest of F9.
 
-### F5, F3, F22
+### F5. Follow-up and assimilation (0.2)
 
-Follow-up pipelines, the member-facing directory and onboarding. Stories are written as groups
-lands, because all three read from it.
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-93 | The six pipelines, their steps, and a person's follow-up | R5.1, R5.2, R5.4, R5.6 | Resolved |
+| HRT-94 | Entering a pipeline on its own: first visit, second visit, three absences | R5.3 | New |
+| HRT-95 | My follow-ups: the queue, overdue first | R5.5 | New |
+| HRT-96 | The board: who is in each pipeline and what is late | R5.7 | New |
+
+No workflow engine. Six pipelines, written down, and a configurable builder deferred to 1.x where
+the PRD puts it (R5.8). The engine is the single feature that makes Rock RMS unusable by the person
+this product is for.
+
+### F3, F22
+
+The member-facing directory and onboarding. Stories are written as follow-up lands.
 
 ## E3. Money (0.3)
 
@@ -271,8 +283,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen |
-| **Next** | F5 follow-up, F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines |
+| **Next** | **HRT-94** the triggers, then **HRT-95** the queue and **HRT-96** the board. Then F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -996,6 +1008,30 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-93, how to test it
+
+Open anybody in the **Directory**. There is a **Follow-up** card under their details, for owner,
+admin, staff and pastoral.
+
+1. **Start one.** Choose **First visit** and press Start. Three steps appear, dated: say thank you
+   in two days, call them in a week, invite them to something in three. The dates are worked out
+   from the day you started, so nobody types a date.
+2. **The six.** First visit, Second visit, Not seen for a while, Baptism, Membership, Serving. That
+   is the list, deliberately. A church cannot invent a seventh, which is what keeps this usable.
+3. **Answer a step.** Done asks what happened, and that sentence stays on the record. Six months
+   later "we called her and she is coming to the Tuesday group" is the thing worth having.
+4. **Overdue.** A step past its day shows its date in red.
+5. **Undo.** Ticking the wrong line is undone, and the pipeline opens again if it had closed.
+6. **The last step closes it.** Answer all three and the whole thing drops to Closed, marked Done.
+7. **Close it early.** Close asks why, and keeps the reason. "Where did the eleven people in this
+   stage go" is the question this answers.
+8. **Twice.** Start First visit again on the same person while it is open. Nothing happens, by
+   design: somebody who visits twice in a fortnight is one visitor.
+9. **A task on its own.** Add a task writes a thing to do with a due date and no pipeline.
+
+Nothing enters a pipeline by itself yet. That is HRT-94: first attendance, second attendance, and
+three absences in a row.
 
 ### HRT-91, how to test it
 
