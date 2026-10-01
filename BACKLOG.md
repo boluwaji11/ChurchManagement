@@ -960,13 +960,16 @@ built for.
 2. **Filter.** Type, day and where. "hall" finds The Hall, since people type what they say.
 3. **Ask.** Press ask to join. The card changes to Asked. Pressing again does not make a second
    request.
-4. **A closed group.** A group that is not taking requests says so instead of offering the button,
+4. **Browsing by kind.** The groups sit under their kind, each with the church's own words for it
+   and how many are open. Filter by day, who it is for, online, children welcome, or type in the
+   box: it searches the name, the description and the place.
+5. **A closed group.** A group that is not taking requests says so instead of offering the button,
    and it is still listed, because somebody looking for a Tuesday group should see the church has
-   one.
-5. **Answer it.** As the leader of that group, the request is at the top of the same screen. Approve
+   one. Untick "include closed and full" to drop them.
+6. **Answer it.** As the leader of that group, the request is at the top of the same screen. Approve
    puts them on the roster in the same press. Check the group's roster to see it.
-6. **Decline.** The answer is kept, and the person sees it on the finder.
-7. **Somebody else's group.** A leader is only offered the requests for groups they lead.
+7. **Decline.** The answer is kept, and the person sees it on the finder.
+8. **Somebody else's group.** A leader is only offered the requests for groups they lead.
 
 **Not built yet:** the email telling them either way. Messaging runs on the church's own provider
 (R9.8, HRT-87), so until that lands the finder is where they see the answer. The queue of answers
