@@ -8,6 +8,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { sql } from "drizzle-orm";
 import { owner, withTenant, closeConnections } from "../src/client";
 import { withAuditTriggersOff, deleteTenantsLike } from "../src/maintenance";
+import { testTenant } from "./helpers/tenant";
 
 const OUR_FUNCTIONS = ["app_tenant_id", "app_role", "app_user_id", "audit_write"] as const;
 
@@ -71,25 +72,42 @@ describe("nothing is reachable over the auto-generated REST API", () => {
     expect(grants).toEqual([]);
   });
 
-  /**
-   * One function is granted to `authenticated`, and only one.
-   *
-   * The storage bucket policies are evaluated as that role, so the membership
-   * check they call has to be callable by it. It answers one question about the
-   * caller's own account: am I in this church. A user can already answer that,
-   * and it says nothing about anybody else. Every other function stays out of
-   * reach, which is what the assertion below is for.
-   */
-  const ALLOWED_FOR_AUTHENTICATED = new Set(["user_in_church"]);
-
-  it("grants them no function privileges beyond the storage membership check", async () => {
+  it("grants them no function privileges in the exposed schema", async () => {
     const grants = await owner()<{ grantee: string; routine_name: string }[]>`
       select grantee, routine_name
       from information_schema.role_routine_grants
       where specific_schema = 'public' and grantee in ('anon', 'authenticated')`;
 
-    expect(grants.filter((g) => g.grantee === "anon")).toEqual([]);
-    expect(grants.filter((g) => !ALLOWED_FOR_AUTHENTICATED.has(g.routine_name))).toEqual([]);
+    expect(grants).toEqual([]);
+  });
+
+  /**
+   * The one function `authenticated` may call lives where PostgREST cannot
+   * serve it.
+   *
+   * The storage bucket policies are evaluated as that role, so the membership
+   * check they call has to be executable by it. PostgREST publishes every
+   * function in the exposed schema as an RPC endpoint, so the function sits in
+   * `hearth`, which is not exposed. It answers one question about the caller's
+   * own account: am I in this church.
+   */
+  it("keeps the storage membership check out of the exposed schema", async () => {
+    const [fn] = await owner()<{ definer: boolean }[]>`
+      select p.prosecdef as definer
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+       where n.nspname = 'hearth' and p.proname = 'user_in_church'`;
+    expect(fn?.definer, "hearth.user_in_church is missing").toBe(true);
+
+    const [gone] = await owner()<{ present: boolean }[]>`
+      select exists (
+        select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+         where n.nspname = 'public' and p.proname = 'user_in_church'
+      ) as present`;
+    expect(gone?.present, "public.user_in_church is still an RPC endpoint").toBe(false);
+
+    const [may] = await owner()<{ ok: boolean | null }[]>`
+      select has_function_privilege('authenticated', 'hearth.user_in_church(text)', 'execute') as ok`;
+    expect(may?.ok, "the bucket policies cannot call it").toBe(true);
   });
 });
 
@@ -125,11 +143,7 @@ describe("the audit log covers every table that holds church data", () => {
 
 describe("the request path cannot switch its own auditing off", () => {
   it("writes the audit row anyway when hearth_app sets the flag", async () => {
-    const [tenant] = await owner()<{ id: string }[]>`
-      insert into tenants (slug, name, timezone)
-      values ('auditoff', 'Audit Off Church', 'America/Chicago')
-      returning id`;
-    const id = tenant!.id;
+    const id = await testTenant("auditoff", "Audit Off Church");
 
     // Exactly what a compromised query layer would try: the setting that the
     // maintenance path uses, set from the role every request runs as.
@@ -148,11 +162,7 @@ describe("the request path cannot switch its own auditing off", () => {
   });
 
   it("is honoured for the owner connection, which is the one that resets things", async () => {
-    const [tenant] = await owner()<{ id: string }[]>`
-      insert into tenants (slug, name, timezone)
-      values ('auditoff2', 'Audit Off Church 2', 'America/Chicago')
-      returning id`;
-    const id = tenant!.id;
+    const id = await testTenant("auditoff2", "Audit Off Church 2");
 
     await withAuditTriggersOff(async (sql) => {
       await sql`insert into tags (tenant_id, name, hue) values (${id}, 'Quiet', 'sky')`;

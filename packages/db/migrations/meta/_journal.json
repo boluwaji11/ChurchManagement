@@ -134,6 +134,20 @@
       "when": 1790813960680,
       "tag": "0018_lyrical_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790815890484,
+      "tag": "0019_organic_ultimatum",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790816313369,
+      "tag": "0020_slim_pixie",
+      "breakpoints": true
     }
   ]
 }

@@ -124,7 +124,11 @@ export const addresses = pgTable(
     isPrimary: boolean("is_primary").notNull().default(false),
     createdAt: created(),
   },
-  (t) => [index("addresses_tenant_idx").on(t.tenantId)],
+  (t) => [
+    index("addresses_tenant_idx").on(t.tenantId),
+    index("addresses_person_idx").on(t.tenantId, t.personId),
+    index("addresses_household_idx").on(t.tenantId, t.householdId),
+  ],
 );
 
 /**
@@ -146,6 +150,9 @@ export const relationships = pgTable(
   (t) => [
     index("rel_tenant_idx").on(t.tenantId),
     index("rel_person_idx").on(t.tenantId, t.personId),
+    // Who points at this person. R8.8 reads the relationship both ways,
+    // because a guardian recorded once is a guardian in both directions.
+    index("rel_related_idx").on(t.tenantId, t.relatedPersonId),
     uniqueIndex("rel_unique").on(t.tenantId, t.personId, t.relatedPersonId, t.kind),
   ],
 );
@@ -202,5 +209,9 @@ export const personTags = pgTable(
     tagId: uuid("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
     createdAt: created(),
   },
-  (t) => [primaryKey({ columns: [t.personId, t.tagId] }), index("person_tags_tenant_idx").on(t.tenantId)],
+  (t) => [
+    primaryKey({ columns: [t.personId, t.tagId] }),
+    index("person_tags_tenant_idx").on(t.tenantId),
+    index("person_tags_tag_idx").on(t.tenantId, t.tagId),
+  ],
 );

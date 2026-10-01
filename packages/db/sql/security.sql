@@ -393,8 +393,18 @@ begin
     return;
   end if;
 
+  -- The membership check the bucket policies call.
+  --
+  -- It lives outside public because PostgREST serves every function in the
+  -- exposed schema as an RPC endpoint, and the storage policies are evaluated
+  -- as the authenticated role, so the role has to be able to execute it. A
+  -- schema PostgREST does not expose gives the policies what they need without
+  -- publishing a security definer function on the open API.
+  create schema if not exists hearth;
+  execute 'grant usage on schema hearth to authenticated';
+
   execute $fn$
-    create or replace function public.user_in_church(p_slug text)
+    create or replace function hearth.user_in_church(p_slug text)
     returns boolean
     language sql
     security definer
@@ -410,8 +420,8 @@ begin
     $body$;
   $fn$;
 
-  execute 'revoke all on function public.user_in_church(text) from public';
-  execute 'grant execute on function public.user_in_church(text) to authenticated';
+  execute 'revoke all on function hearth.user_in_church(text) from public';
+  execute 'grant execute on function hearth.user_in_church(text) to authenticated';
 
   insert into storage.buckets (id, name, public)
   values ('church', 'church', false)
@@ -424,19 +434,22 @@ begin
 
   execute $pol$
     create policy church_read on storage.objects for select to authenticated
-    using (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+    using (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
   $pol$;
   execute $pol$
     create policy church_write on storage.objects for insert to authenticated
-    with check (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+    with check (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
   $pol$;
   execute $pol$
     create policy church_update on storage.objects for update to authenticated
-    using (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
-    with check (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+    using (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
+    with check (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
   $pol$;
   execute $pol$
     create policy church_delete on storage.objects for delete to authenticated
-    using (bucket_id = 'church' and public.user_in_church((storage.foldername(name))[1]))
+    using (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
   $pol$;
+
+  -- Where it used to live, when it was also an RPC endpoint.
+  execute 'drop function if exists public.user_in_church(text)';
 end $$;
