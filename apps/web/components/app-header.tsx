@@ -49,6 +49,7 @@ export async function AppHeader({ session }: { session: Session }) {
           {[
             [t("nav.directory"), "/people"],
             [t("nav.services"), "/services"],
+            [t("nav.groups"), "/groups"],
             [t("nav.checkin"), "/checkin"],
             [t("nav.rooms"), "/checkin/rooms"],
             // R8.13. Only the roles that handle safeguarding have anywhere to go.

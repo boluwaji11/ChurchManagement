@@ -200,7 +200,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Active |
+| HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Resolved |
 | HRT-84 | A leader sees their own group and nothing else | R9.3 | New |
 | HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | New |
 | HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | New |
@@ -248,9 +248,9 @@ The presenter. Separate PRD written at build time.
 
 | | |
 |---|---|
-| **Active** | **HRT-83** groups: types, the record, leaders and the roster |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports |
-| **Next** | HRT-84 to HRT-87, the rest of groups. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Active** | Nothing |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups |
+| **Next** | **HRT-84** a leader sees their own group and nothing else, then HRT-85 to HRT-87. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -880,3 +880,21 @@ The station's **Labels** setting picks the stock, so set it before printing.
    and it records the moment. Pressing again does not move it.
 5. **It is kept.** There is no edit and no delete anywhere, deliberately, including for an Owner.
 6. **It is audited.** The report appears in the audit log like every other write.
+
+### HRT-83, how to test it
+
+**Groups** is in the header.
+
+1. **Types.** A church starts with five: small group, ministry team, class, committee, other. They
+   are what the Type picker offers.
+2. **Create one.** Name, what it is for, type, day, time, how often, where, and how many it holds.
+   Everything except the name is optional, so a group with no pattern saves.
+3. **Open it.** Tapping a group opens it with its roster in front of the list.
+4. **The roster.** Search a name the way you do at check-in, choose leader, co-leader or member, and
+   add them. Leaders sort to the top of the roster and their names show on the card.
+5. **Adding twice.** Adding somebody already in the group moves their role rather than listing them
+   twice.
+6. **Removing.** Remove somebody. They come off the roster. The record of their time in the group
+   stays, which is what makes a year of discipleship readable later.
+7. **Archive.** Archiving takes it off the list and keeps its roster. Restore brings it back.
+8. **Roles.** A member cannot create or change a group.

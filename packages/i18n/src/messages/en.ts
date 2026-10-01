@@ -802,6 +802,7 @@ export const en = {
   "checkin.check": "Check in",
   "checkin.checkedIn": "Checked in",
   "checkin.undo": "Undo",
+  "nav.groups": "Groups",
   "nav.rooms": "Kids classes",
   "nav.incidents": "Incidents",
   "board.title": "Kids classes",

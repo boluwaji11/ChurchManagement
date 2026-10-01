@@ -2,6 +2,7 @@ import { and, eq, gt, isNull, sql as raw } from "drizzle-orm";
 import { owner } from "../client";
 import type { TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
+import { DEFAULT_GROUP_TYPES } from "./groups";
 
 export interface Membership {
   tenantId: string;
@@ -246,6 +247,16 @@ export async function createChurch(input: {
     await tx`
       insert into tenant_members (tenant_id, user_id, role)
       values (${tenant.id}, ${input.user.id}, 'owner')`;
+
+    // R9.1. The group types a church starts with. Written here rather than on
+    // first use, so the form that creates a group has something to choose from
+    // and nobody has to configure a vocabulary before they can write anything
+    // down. Any of them can be renamed, added to or archived.
+    for (const [position, type] of DEFAULT_GROUP_TYPES.entries()) {
+      await tx`
+        insert into group_types (tenant_id, name, hue, position)
+        values (${tenant.id}, ${type.name}, ${type.hue}, ${position})`;
+    }
 
     return { tenantId: tenant.id, slug, name };
   }) as Promise<{ tenantId: string; slug: string; name: string }>;

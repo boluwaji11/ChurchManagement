@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { demoRecords, serviceTimes } from "../schema/tenancy";
 import { serviceOccurrences } from "../schema/gatherings";
 import { checkinRooms, checkinStations } from "../schema/checkin";
+import { groups } from "../schema/groups";
 import { people, households, tags } from "../schema/people";
 import { createPerson, type WriteActor } from "../repo/people";
 import { createTag, setPersonTag } from "../repo/tags";
@@ -14,6 +15,7 @@ import { setPresentMany } from "../repo/attendance";
 import { addRoom, ageInMonths } from "../repo/rooms";
 import { addStation } from "../repo/stations";
 import { checkInFamily } from "../repo/checkin";
+import { seedGroupTypes, createGroup, addToGroup } from "../repo/groups";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { DEMO_PEOPLE, DEMO_TAGS } from "./people";
@@ -222,6 +224,55 @@ async function loadSundays(
   await remember("station", station.id);
 
   await loadTodaysService(db, actor, remember, station.id, roomIds, people);
+  await loadGroups(db, actor, remember, people);
+}
+
+/**
+ * R9.1 to R9.4. Two groups, with the people who are in them.
+ *
+ * Two rather than ten, because a demo full of groups nobody can read teaches a
+ * church less than two they can open and understand.
+ */
+async function loadGroups(
+  db: Tx,
+  actor: WriteActor,
+  remember: (entity: string, recordId: string) => Promise<void>,
+  everyone: string[],
+): Promise<void> {
+  const types = await seedGroupTypes(db, actor);
+  const small = types.find((t) => t.name === "Small group") ?? types[0];
+  const team = types.find((t) => t.name === "Ministry team") ?? types[0];
+
+  const tuesday = await createGroup(db, actor, {
+    name: "Tuesday night",
+    description: "A small group that meets in the Hall.",
+    typeId: small?.id ?? null,
+    dayOfWeek: 2,
+    startsAt: "19:30",
+    frequency: "weekly",
+    location: "The Hall",
+    capacity: 14,
+  });
+  await remember("group", tuesday.id);
+
+  const welcome = await createGroup(db, actor, {
+    name: "Welcome team",
+    description: "On the door before each service.",
+    typeId: team?.id ?? null,
+    dayOfWeek: 0,
+    startsAt: "08:30",
+    frequency: "weekly",
+    location: "The foyer",
+  });
+  await remember("group", welcome.id);
+
+  for (const [index, personId] of everyone.slice(0, 9).entries()) {
+    await addToGroup(db, actor, {
+      groupId: index % 2 === 0 ? tuesday.id : welcome.id,
+      personId,
+      role: index < 2 ? "leader" : "member",
+    });
+  }
 }
 
 /**
@@ -314,6 +365,7 @@ export async function removeDemoData(db: Tx, actor: WriteActor): Promise<DemoRem
   const tagIds = ids("tag");
   const serviceTimeIds = ids("serviceTime");
   const occurrenceIds = ids("occurrence");
+  const groupIds = ids("group");
   const roomIds = ids("room");
   const stationIds = ids("station");
 
@@ -335,6 +387,9 @@ export async function removeDemoData(db: Tx, actor: WriteActor): Promise<DemoRem
   // the check-in visits against it go with it.
   if (occurrenceIds.length) {
     await db.delete(serviceOccurrences).where(inArray(serviceOccurrences.id, occurrenceIds));
+  }
+  if (groupIds.length) {
+    await db.delete(groups).where(inArray(groups.id, groupIds));
   }
   if (stationIds.length) {
     await db.delete(checkinStations).where(inArray(checkinStations.id, stationIds));
