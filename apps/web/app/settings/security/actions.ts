@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { t } from "@hearth/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
+import { explainAuth } from "@/lib/auth-errors";
 import { requireSession } from "@/lib/session";
 
 export interface PasswordResult {
@@ -28,7 +29,7 @@ export async function changePassword(data: FormData): Promise<PasswordResult> {
   if (check.error) return { error: t("password.error.wrong") };
 
   const { error } = await supabase.auth.updateUser({ password: next });
-  return error ? { error: error.message } : {};
+  return error ? { error: explainAuth(error) } : {};
 }
 
 /** R1.8. For somebody who has only ever signed in by email link. */
@@ -42,5 +43,5 @@ export async function emailMeALink(): Promise<PasswordResult> {
   const { error } = await supabase.auth.resetPasswordForEmail(session.email, {
     redirectTo: `${proto}://${host}/auth/callback?next=/reset`,
   });
-  return error ? { error: error.message } : {};
+  return error ? { error: explainAuth(error) } : {};
 }

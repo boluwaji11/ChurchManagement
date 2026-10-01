@@ -2,8 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { syncUserAndAcceptInvitations } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
+import { explainAuth } from "@/lib/auth-errors";
 
 async function origin() {
   const h = await headers();
@@ -34,7 +36,7 @@ export async function signUp(data: FormData) {
   if (password.length < 10) return fail(t("signUp.error.password"), next);
 
   const supabase = await supabaseServer();
-  const { error } = await supabase.auth.signUp({
+  const { data: created, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -43,7 +45,21 @@ export async function signUp(data: FormData) {
     },
   });
 
-  if (error) return fail(error.message, next);
+  if (error) return fail(explainAuth(error), next);
+
+  // A project that does not ask for confirmation hands back a session here, and
+  // sending them to look in an inbox that will stay empty is how a product
+  // loses somebody on its first screen.
+  if (created.session) {
+    await syncUserAndAcceptInvitations({
+      id: created.user!.id,
+      email: created.user!.email ?? email,
+      fullName: fullName || null,
+      emailVerified: true,
+    });
+    redirect(next);
+  }
+
   redirect(`/sign-up?sent=${encodeURIComponent(email)}`);
 }
 
@@ -69,6 +85,6 @@ export async function setPassword(data: FormData): Promise<{ error?: string }> {
 
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) return { error: error.message };
+  if (error) return { error: explainAuth(error) };
   redirect("/sign-in?set=1");
 }

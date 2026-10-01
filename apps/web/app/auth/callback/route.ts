@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { syncUserAndAcceptInvitations } from "@hearth/db";
 import { supabaseServer } from "@/lib/supabase/server";
+import { explainAuth } from "@/lib/auth-errors";
 
 /**
  * Where an email link lands. Handles both shapes Supabase sends: a PKCE `code`,
@@ -26,8 +27,9 @@ export async function GET(request: NextRequest) {
       : { data: { user: null }, error: new Error("This link is missing its token.") };
 
   if (result.error || !result.data.user) {
-    const message = result.error?.message ?? "That link is no longer valid. Ask for a new one.";
-    return NextResponse.redirect(`${origin}/sign-in?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(
+      `${origin}/sign-in?error=${encodeURIComponent(explainAuth(result.error))}`,
+    );
   }
 
   const user = result.data.user;

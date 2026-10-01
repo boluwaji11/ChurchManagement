@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { syncUserAndAcceptInvitations, membershipsForUser, canEditPeople } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
+import { explainAuth } from "@/lib/auth-errors";
 
 /** Returns never, so callers use `return fail(...)` and control flow narrows. */
 const fail = (message: string, next?: string): never =>
@@ -31,7 +32,7 @@ export async function sendMagicLink(data: FormData) {
     },
   });
 
-  if (error) return fail(error.message, next);
+  if (error) return fail(explainAuth(error), next);
   redirect(`/sign-in?sent=${encodeURIComponent(email)}`);
 }
 
