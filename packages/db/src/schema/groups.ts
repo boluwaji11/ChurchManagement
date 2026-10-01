@@ -122,3 +122,56 @@ export const groupMemberships = pgTable(
       .where(sql`${t.leftOn} is null`),
   ],
 );
+
+/**
+ * R9.7. One meeting of a group.
+ *
+ * A row a leader creates by opening the group on the day it met. It exists so
+ * that "we did not meet this week" is a recorded fact rather than an absence of
+ * data: a group with no meeting row and a group that was cancelled look the
+ * same in a report otherwise, and only one of them is a problem.
+ */
+export const groupMeetings = pgTable(
+  "group_meetings",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    groupId: uuid("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+    metOn: date("met_on").notNull(),
+    /** R9.7. Marked rather than deleted, because not meeting is information. */
+    notHeld: boolean("not_held").notNull().default(false),
+    note: text("note"),
+    /** The leader who recorded it. */
+    recordedBy: uuid("recorded_by"),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("group_meeting_tenant_idx").on(t.tenantId, t.metOn),
+    index("group_meeting_group_idx").on(t.tenantId, t.groupId),
+    uniqueIndex("group_meeting_unique").on(t.groupId, t.metOn),
+  ],
+);
+
+/**
+ * R9.7, R7.4. Who was at a meeting.
+ *
+ * A row means present. Absence is the absence of a row, which is the same shape
+ * the Sunday roster uses, so the two kinds of attendance read alike.
+ */
+export const groupAttendance = pgTable(
+  "group_attendance",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    meetingId: uuid("meeting_id").notNull().references(() => groupMeetings.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    createdAt: created(),
+  },
+  (t) => [
+    index("group_attendance_tenant_idx").on(t.tenantId),
+    index("group_attendance_meeting_idx").on(t.tenantId, t.meetingId),
+    index("group_attendance_person_idx").on(t.tenantId, t.personId),
+    uniqueIndex("group_attendance_unique").on(t.meetingId, t.personId),
+  ],
+);

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Archive, Undo2, Users } from "lucide-react";
+import { Plus, Pencil, Archive, Undo2, Users, ClipboardCheck } from "lucide-react";
 import {
   Badge, Banner, Button, Card, Checkbox, EmptyState, Field, HueDot, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
@@ -188,6 +188,12 @@ export function GroupList({
               <Separator />
 
               <div className="flex flex-wrap items-center gap-2">
+                {/* R9.7. The one thing a leader comes here to do. */}
+                <Button asChild>
+                  <a href={`/groups/${opened.id}/attendance?church=${church}`}>
+                    <ClipboardCheck /> {t("meeting.title")}
+                  </a>
+                </Button>
                 <GroupDialog
                   church={church}
                   types={types}

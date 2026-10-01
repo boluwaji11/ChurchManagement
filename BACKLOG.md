@@ -202,7 +202,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 |---|---|---|---|
 | HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Resolved |
 | HRT-84 | A leader sees their own group and nothing else | R9.3 | Resolved |
-| HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | New |
+| HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | Resolved |
 | HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | New |
 | HRT-87 | Messaging a group's roster through the church's own provider | R9.8 | New |
 
@@ -225,6 +225,17 @@ F11 Service planning and F12 the song library, which is the Phase 2 spine, plus 
 A volunteer serves across ministries: the same person runs the sound desk, teaches a class one
 Sunday in three, and drives the van. So serving is a person's schedule across the church rather than
 a list held by each ministry, and the check-in board reads from it rather than keeping its own.
+
+**A team is not a group.** A group is people who meet: a small group, a class, a committee. A team
+is people who serve on a rota: worship, production, welcome, kids. The difference is what each one
+needs. A group needs a roster and a record of whether it met. A team needs positions, a schedule
+against specific services, accept and decline, blockout dates, substitutes, and a background check
+before anybody is scheduled with children. Building a team as a group with extra columns would mean
+a rota screen pretending to be a roster screen.
+
+Where they meet: a person is on a team and may also be in a group, and both show on their record.
+The **Ministry team** group type stays for a church that wants a list of who is on the sound desk
+and nothing more; when HRT-79 lands, such a group can be turned into a team and keeps its people.
 
 | ID | Story | Req | State |
 |---|---|---|---|
@@ -249,8 +260,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope |
-| **Next** | **HRT-85** group attendance in under sixty seconds on a phone, then HRT-86 and HRT-87. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance |
+| **Next** | **HRT-86** the group finder and join requests, then HRT-87 group messaging. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -914,3 +925,21 @@ signed-in account, and that account given the group_leader role.
 5. **Leading nothing.** A group leader who leads no group sees only themselves.
 6. **Everybody else.** An owner, admin, staff, pastoral or check-in volunteer sees the whole church,
    exactly as before.
+
+### HRT-85, how to test it
+
+Open a group and press **Attendance**. Use a phone if you have one to hand, since that is what it is
+built for.
+
+1. **The day.** It opens on the group's own meeting day counting back from today, so recording on
+   Wednesday offers Tuesday. Change the day and it loads that meeting.
+2. **The default.** Everybody on the roster starts present. Tap the two or three who were not there
+   and press save. That is the whole interaction: for twelve people with four missing it is four
+   taps and a submit.
+3. **Coming back to it.** Reopen the same day. It shows what was recorded rather than everybody
+   ticked again, so fixing one name does not re-tick the room.
+4. **It did not meet.** Press it, then save. The meeting is recorded as not held and the names are
+   cleared, because a group that was cancelled and a leader who forgot should not look the same.
+5. **The history.** Under the sheet, the last eight meetings with how many came.
+6. **Who can.** A group leader can record for their own group and is refused on anybody else's. A
+   member cannot record at all.

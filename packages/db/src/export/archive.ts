@@ -38,6 +38,8 @@ const TABLES = [
   "group_types",
   "groups",
   "group_memberships",
+  "group_meetings",
+  "group_attendance",
   "stored_files",
   "demo_records",
   "tenant_members",
