@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Church } from "lucide-react";
 import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
-import { canReadIncidents } from "@hearth/db";
+import { canFollowUp, canReadIncidents } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { DemoBanner } from "./demo-banner";
@@ -52,6 +52,10 @@ export async function AppHeader({ session }: { session: Session }) {
             [t("nav.groups"), "/groups"],
             [t("nav.checkin"), "/checkin"],
             [t("nav.rooms"), "/checkin/rooms"],
+            // R5.5. The Monday morning screen, for the roles that work it.
+            ...(canFollowUp(session.role)
+              ? [[t("nav.followups"), "/followups"] as const]
+              : []),
             // R8.13. Only the roles that handle safeguarding have anywhere to go.
             ...(canReadIncidents(session.role)
               ? [[t("nav.incidents"), "/incidents"] as const]

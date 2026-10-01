@@ -153,6 +153,14 @@ describe("working them (R5.1, R5.5)", () => {
     expect(mine[0]!.pipelineName).toBe("First visit");
   });
 
+  it("puts a step with no day after the dated ones", async () => {
+    const undated = await run((tx) =>
+      addTask(tx, as(), { personId: visitor, title: "Whenever", assigneeUserId: pastor }),
+    );
+    const mine = await run((tx) => myFollowUps(tx, pastor));
+    expect(mine[mine.length - 1]!.id).toBe(undated.id);
+  });
+
   it("is nothing for somebody with nothing assigned", async () => {
     expect(await run((tx) => myFollowUps(tx, volunteer))).toEqual([]);
   });

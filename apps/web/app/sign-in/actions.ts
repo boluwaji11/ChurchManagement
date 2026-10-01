@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { syncUserAndAcceptInvitations } from "@hearth/db";
+import { syncUserAndAcceptInvitations, membershipsForUser } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -54,5 +54,19 @@ export async function signInWithPassword(data: FormData) {
     emailVerified: Boolean(result.user.email_confirmed_at),
   });
 
-  redirect(next || "/people");
+  // R5.5. A pastoral account lands on its queue. It is the one role whose job
+  // is the follow-ups rather than the records, and the directory is a click
+  // away from it.
+  redirect(next || (await landing(result.user.id)));
+}
+
+async function landing(userId: string): Promise<string> {
+  try {
+    const memberships = await membershipsForUser(userId);
+    return memberships.length === 1 && memberships[0]!.role === "pastoral"
+      ? "/followups"
+      : "/people";
+  } catch {
+    return "/people";
+  }
 }

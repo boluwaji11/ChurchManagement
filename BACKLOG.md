@@ -224,7 +224,7 @@ it. Both are real, and both are after the rest of F9.
 | HRT-93 | The six pipelines, their steps, and a person's follow-up | R5.1, R5.2, R5.4, R5.6 | Resolved |
 | HRT-94 | Entering a pipeline on its own: first visit, second visit, three absences | R5.3 | Resolved |
 | HRT-97 | Editing the six: names, steps, days, who they land on, off | R5.2 | New |
-| HRT-95 | My follow-ups: the queue, overdue first | R5.5 | New |
+| HRT-95 | My follow-ups: the queue, overdue first | R5.5 | Resolved |
 | HRT-96 | The board: who is in each pipeline and what is late | R5.7 | New |
 
 No workflow engine. Six pipelines, written down, and a configurable builder deferred to 1.x where
@@ -286,8 +286,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers |
-| **Next** | **HRT-95** the queue, then **HRT-96** the board. Then F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue |
+| **Next** | **HRT-96** the board, and **HRT-97** editing the six. Then F3 the member directory, F22 onboarding. **HRT-87** group messaging is parked behind onboarding, because sending needs a provider and a provider is set up with the church rather than by it. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1011,6 +1011,21 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-95, how to test it
+
+**Follow-ups** in the header, for owner, admin, staff and pastoral.
+
+1. **Three groups, no filters.** Late, This week, Later. Somebody opening this on a Monday morning
+   wants to know what they have already missed, and a dropdown does not answer that.
+2. **Late is red** and sits at the top.
+3. **The row** names the person, links to their record, and carries the pipeline in its own colour,
+   so working a queue of twenty does not mean guessing which is which.
+4. **Done** asks what happened, from here, without opening the person.
+5. **Nobody has these.** A step raised by a trigger and given to no one. Take it and it moves into
+   your queue, which is how a volunteer picks work up.
+6. **A pastoral account lands here** after signing in. It is the one role whose job is the
+   follow-ups rather than the records.
 
 ### HRT-94, how to test it
 
