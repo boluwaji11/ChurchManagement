@@ -47,6 +47,7 @@ export * from "./repo/groups";
 export * from "./repo/scope";
 export * from "./repo/group-attendance";
 export * from "./repo/group-finder";
+export * from "./repo/meeting-dates";
 export * from "./repo/match";
 export * from "./repo/checkout";
 export * from "./repo/which-service";

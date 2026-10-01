@@ -10,3 +10,4 @@ export * from "./repo/age";
 export * from "./repo/match";
 export * from "./repo/codes";
 export * from "./repo/release-rules";
+export * from "./repo/meeting-dates";

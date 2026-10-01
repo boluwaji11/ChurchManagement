@@ -74,6 +74,7 @@ export interface Group {
   endsAt: string | null;
   frequency: string | null;
   location: string | null;
+  address: string | null;
   capacity: number | null;
   forWhom: string | null;
   online: boolean;
@@ -96,6 +97,7 @@ export interface GroupInput {
   endsAt?: string | null;
   frequency?: string | null;
   location?: string | null;
+  address?: string | null;
   capacity?: number | null;
   forWhom?: string | null;
   online?: boolean;
@@ -216,6 +218,7 @@ function check(input: GroupInput): {
   endsAt: string | null;
   frequency: string | null;
   location: string | null;
+  address: string | null;
   capacity: number | null;
   forWhom: string | null;
 } {
@@ -260,6 +263,7 @@ function check(input: GroupInput): {
     endsAt,
     frequency,
     location: text(input.location),
+    address: text(input.address),
     capacity,
     forWhom,
   };
@@ -314,6 +318,7 @@ const COLUMNS = {
   endsAt: groups.endsAt,
   frequency: groups.frequency,
   location: groups.location,
+  address: groups.address,
   capacity: groups.capacity,
   forWhom: groups.forWhom,
   online: groups.online,

@@ -42,6 +42,7 @@ function read(data: FormData) {
     endsAt: optional(data, "endsAt"),
     frequency: optional(data, "frequency"),
     location: optional(data, "location"),
+    address: optional(data, "address"),
     capacity: number(data, "capacity"),
     forWhom: optional(data, "forWhom"),
     online: data.get("online") === "on",

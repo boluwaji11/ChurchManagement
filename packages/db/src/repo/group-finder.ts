@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { groups, groupTypes, groupMemberships, groupJoinRequests } from "../schema/groups";
+import {
+  groups, groupTypes, groupMemberships, groupJoinRequests, groupMeetings,
+} from "../schema/groups";
 import { people } from "../schema/people";
 import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
@@ -401,4 +403,76 @@ export async function markNotified(db: Tx, requestId: string): Promise<void> {
     .update(groupJoinRequests)
     .set({ notifiedAt: new Date() })
     .where(eq(groupJoinRequests.id, requestId));
+}
+
+export interface GroupPage extends FoundGroup {
+  typeDescription: string | null;
+  address: string | null;
+  /** R9.3. Who runs it, which is who a newcomer is really asking about. */
+  leaders: { personId: string; name: string }[];
+  /** R9.7. Meetings that were held, most recent first. */
+  past: { metOn: string; present: number }[];
+}
+
+/**
+ * R9.5. One group's own page.
+ *
+ * Everything somebody deciding whether to turn up on Tuesday needs: what it is,
+ * when and where, who runs it, and whether it is taking people. The leaders are
+ * named because "who runs it" is the question behind most of the others.
+ */
+export async function groupPage(
+  db: Tx,
+  id: string,
+  opts: { personId?: string | null } = {},
+): Promise<GroupPage | null> {
+  const [found] = await findGroups(db, { personId: opts.personId }).then((all) =>
+    all.filter((g) => g.id === id),
+  );
+  if (!found) return null;
+
+  const [extra] = await db
+    .select({ address: groups.address, typeDescription: groupTypes.description })
+    .from(groups)
+    .leftJoin(groupTypes, eq(groupTypes.id, groups.typeId))
+    .where(eq(groups.id, id))
+    .limit(1);
+
+  const leaders = await db
+    .select({
+      personId: groupMemberships.personId,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
+    })
+    .from(groupMemberships)
+    .innerJoin(people, eq(people.id, groupMemberships.personId))
+    .where(
+      and(
+        eq(groupMemberships.groupId, id),
+        isNull(groupMemberships.leftOn),
+        inArray(groupMemberships.role, ["leader", "coleader"]),
+      ),
+    )
+    .orderBy(asc(people.firstName));
+
+  const past = await db
+    .select({
+      metOn: sql<string>`${groupMeetings.metOn}::text`,
+      present: sql<string>`(
+        select count(*) from group_attendance a where a.meeting_id = ${groupMeetings.id}
+      )`,
+    })
+    .from(groupMeetings)
+    .where(and(eq(groupMeetings.groupId, id), eq(groupMeetings.notHeld, false)))
+    .orderBy(desc(groupMeetings.metOn))
+    .limit(3);
+
+  return {
+    ...found,
+    address: extra?.address ?? null,
+    typeDescription: extra?.typeDescription ?? null,
+    leaders: leaders.map((l) => ({ personId: l.personId, name: called(l) })),
+    past: past.map((row) => ({ metOn: row.metOn, present: Number(row.present) })),
+  };
 }

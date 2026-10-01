@@ -207,6 +207,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 | HRT-87 | Messaging a group's roster through the church's own provider | R9.8 | New |
 | HRT-88 | A picture on a group, with the storage quota behind it | R9.2, R5.3 | New |
 | HRT-89 | A public group page a church can link to without signing in | R9.5 | New |
+| HRT-90 | A group's own page: what it is, when it meets, who runs it | R9.2, R9.5 | Resolved |
 
 Two things a church's existing finder does that ours does not yet. **HRT-88:** every group has a
 picture, which is most of why a list of forty is readable at a glance. It needs the storage quota
@@ -268,7 +269,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder |
+| **Waiting on a test** | **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page |
 | **Next** | **HRT-87** group messaging, which needs the church's own email provider (R16.x), so it may pull messaging setup forward. Then F5 follow-up, F3 the member directory, F22 onboarding. HRT-79 to HRT-82 serving is 0.4, and R8.17 waits on it. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -974,3 +975,22 @@ built for.
 **Not built yet:** the email telling them either way. Messaging runs on the church's own provider
 (R9.8, HRT-87), so until that lands the finder is where they see the answer. The queue of answers
 nobody has sent is already a query, so sending them is the only part left.
+
+### HRT-90, how to test it
+
+From **Find a group**, tap a group's name.
+
+1. **The page.** Its kind in the breadcrumb, the name, and a bar saying whether it is open with the
+   way to ask beside it.
+2. **About.** The group's own description, in full, rather than the three lines the card shows.
+3. **Categories.** Day, kind, who it is for, online, children welcome, and where, as chips.
+4. **Schedule.** "Meets weekly on Tuesdays, 7:30pm to 9:00pm", written the way somebody says it.
+5. **Next meetings.** The next three dates, worked out from the pattern. A fortnightly group skips a
+   week. A monthly group stays on the same weekday rather than the same date, because "the first
+   Tuesday" is what monthly means to a church.
+6. **Last met.** The meetings that were actually recorded, with how many came. A group whose leader
+   has recorded nothing shows nothing here, which is the honest answer.
+7. **Where.** Tuesday night has an address: it shows, with a directions link that opens a map.
+   Welcome team has one too. Membership class has none, and that section is simply absent.
+8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
+   leader on the finder.

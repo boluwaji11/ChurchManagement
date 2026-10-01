@@ -33,6 +33,7 @@ export interface GroupItem {
   endsAt: string | null;
   frequency: string | null;
   location: string | null;
+  address: string | null;
   capacity: number | null;
   forWhom: string | null;
   online: boolean;
@@ -309,6 +310,10 @@ function GroupDialog({
 
             <Field label={t("groups.location")}>
               <Input name="location" defaultValue={group?.location ?? ""} autoComplete="off" />
+            </Field>
+
+            <Field label={t("groups.address")}>
+              <Input name="address" defaultValue={group?.address ?? ""} autoComplete="off" />
             </Field>
 
             <div className="flex flex-col gap-1.5">

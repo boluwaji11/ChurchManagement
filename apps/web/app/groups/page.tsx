@@ -58,6 +58,7 @@ export default async function GroupsPage({
               endsAt: group.endsAt,
               frequency: group.frequency,
               location: group.location,
+              address: group.address,
               capacity: group.capacity,
               forWhom: group.forWhom,
               online: group.online,

@@ -9,6 +9,7 @@ import {
   type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
+import Link from "next/link";
 import { ask, decide } from "./actions";
 
 export interface FinderGroup {
@@ -232,6 +233,7 @@ export function Finder({
             {found.map((group) => (
               <GroupCard
                 key={group.id}
+                church={church}
                 group={group}
                 pending={pending}
                 onAsk={() => run(() => ask(group.id, null, church))}
@@ -246,6 +248,7 @@ export function Finder({
           {loose.map((group) => (
             <GroupCard
               key={group.id}
+              church={church}
               group={group}
               pending={pending}
               onAsk={() => run(() => ask(group.id, null, church))}
@@ -313,17 +316,24 @@ function Toggle({
 }
 
 function GroupCard({
+  church,
   group,
   pending,
   onAsk,
 }: {
+  church: string;
   group: FinderGroup;
   pending: boolean;
   onAsk: () => void;
 }) {
   return (
     <Card className="flex flex-col gap-2">
-      <span className="text-heading text-fg">{group.name}</span>
+      <Link
+        href={`/groups/find/${group.id}?church=${church}`}
+        className="text-heading text-fg underline-offset-4 hover:underline"
+      >
+        {group.name}
+      </Link>
 
       <span className="text-[length:var(--d-text-body)] text-fg-muted">
         {meets(group)}

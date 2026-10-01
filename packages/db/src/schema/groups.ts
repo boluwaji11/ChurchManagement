@@ -73,8 +73,15 @@ export const groups = pgTable(
     endsAt: text("ends_at"),
     /** "weekly", "fortnightly", "monthly", or null where it is irregular. */
     frequency: text("frequency"),
-    /** Where it meets, as somebody would tell a newcomer. */
+    /** Where it meets, as somebody would tell a newcomer: "The Hall", "U-City". */
     location: text("location"),
+    /**
+     * R9.5. The street address, where the church is willing to publish one.
+     * Separate from the location because "The Hall" is what you say and
+     * "6350 Delmar Blvd" is what a map needs, and a group meeting in a home
+     * often has the first and deliberately not the second.
+     */
+    address: text("address"),
     /** How many it holds. Null means the church has not said. */
     capacity: integer("capacity"),
     /**
