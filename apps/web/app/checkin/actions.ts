@@ -3,8 +3,9 @@
 import {
   withTenant, claimStation, lookupPeople, listRooms, suggestRoom,
   checkInFamily, visitsFor, undoCheckIn, roomCounts,
-  checkOut, pickupList,
+  checkOut, pickupList, stationRoster, reserveCodes, reconcile,
   type CheckinEntry, type OverrideKind, type PickupPerson,
+  type Roster, type OfflineEvent, type Reconciliation,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { explain } from "@/lib/explain";
@@ -249,6 +250,108 @@ export async function release(
         kind: result.block!.kind,
         message: t(BLOCKED[result.block!.kind] as never),
       },
+    };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface SnapshotResult {
+  snapshot?: {
+    stationId: string;
+    occurrenceId: string;
+    roster: Roster;
+    rooms: {
+      id: string; name: string; hue: string; capacity: number | null;
+      minAgeMonths: number | null; maxAgeMonths: number | null; position: number;
+    }[];
+    codes: string[];
+    churchName: string;
+    /** R8.7. Who is already checked in, with the code on their label. */
+    visits: { personId: string; visitId: string; roomId: string | null; code: string | null }[];
+  };
+  error?: string;
+}
+
+/**
+ * R8.20, R8.21. What the station takes with it.
+ *
+ * Pulled when a station is claimed, when a service is chosen, and after every
+ * reconciliation, so the tablet standing in the lobby at 09:40 is already
+ * holding the directory, the rooms, the medical notes, the pickup lists, and a
+ * block of codes nobody else can print.
+ */
+export async function snapshot(
+  stationId: string,
+  occurrenceId: string,
+  church?: string,
+): Promise<SnapshotResult> {
+  const { session, actor, ctx } = await context(church);
+
+  try {
+    return await withTenant(ctx, async (tx) => {
+      const profile = await getChurch(tx, session.tenantId);
+      const asOf = churchNow(profile?.timezone ?? "America/Chicago").date;
+
+      const [roster, rooms, block, already] = await Promise.all([
+        stationRoster(tx, { asOf }),
+        listRooms(tx),
+        reserveCodes(tx, actor, { occurrenceId, stationId }),
+        visitsFor(tx, occurrenceId),
+      ]);
+
+      return {
+        snapshot: {
+          stationId,
+          occurrenceId,
+          roster,
+          rooms: rooms
+            .filter((r) => r.archivedAt === null)
+            .map((r) => ({
+              id: r.id,
+              name: r.name,
+              hue: r.hue,
+              capacity: r.capacity,
+              minAgeMonths: r.minAgeMonths,
+              maxAgeMonths: r.maxAgeMonths,
+              position: r.position,
+            })),
+          codes: block.codes,
+          churchName: session.tenantName,
+          visits: already
+            .filter((v) => v.checkedOutAt === null)
+            .map((v) => ({ personId: v.personId, visitId: v.id, roomId: v.roomId, code: v.code })),
+        },
+      };
+    });
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface SyncResult {
+  result?: Reconciliation;
+  error?: string;
+}
+
+/**
+ * R8.23. The station's log, replayed.
+ *
+ * Conflicts come back rather than being resolved here, because a child checked
+ * in at two stations is a question about where a child physically is, and the
+ * answer to that is a person walking to a room.
+ */
+export async function sync(
+  stationId: string,
+  events: OfflineEvent[],
+  church?: string,
+): Promise<SyncResult> {
+  const { session, actor, ctx } = await context(church);
+  try {
+    return {
+      result: await withTenant(ctx, (tx) =>
+        reconcile(tx, actor, { stationId, userId: session.userId, events }),
+      ),
     };
   } catch (error) {
     return { error: explain(error) };

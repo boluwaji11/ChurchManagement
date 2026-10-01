@@ -7,6 +7,9 @@ import { t } from "@hearth/i18n";
 import { serviceNow } from "@hearth/db/rules";
 import { checkIn, type FoundMatch } from "./actions";
 import { useFind } from "./use-find";
+import { useStation } from "./offline/station";
+import { Connection, useStationWorker } from "./offline/connection";
+import { keepLabels } from "./offline/store";
 import { Allergies, warnings } from "./allergies";
 import type { DeskRoom, DeskService } from "./desk";
 
@@ -39,7 +42,18 @@ export function Kiosk({
 }) {
   const [service, setService] = React.useState(() => serviceNow(services, now));
   const [query, setQuery] = React.useState("");
-  const { matches, error: searchError, searching } = useFind(query, service, church);
+
+  useStationWorker();
+  const station = useStation(stationId, service, church);
+  const offline = React.useMemo(
+    () => ({
+      ready: station.snapshot !== null,
+      online: station.state.online,
+      search: station.searchLocal,
+    }),
+    [station.snapshot, station.state.online, station.searchLocal],
+  );
+  const { matches, error: searchError, searching } = useFind(query, service, church, offline);
   const [open, setOpen] = React.useState<string | null>(null);
   const [chosen, setChosen] = React.useState<Record<string, string | null>>({});
   const [picked, setPicked] = React.useState<Record<string, boolean>>({});
@@ -95,13 +109,49 @@ export function Kiosk({
     if (entries.length === 0) return;
 
     startTransition(async () => {
+      const children = entries.filter((e) => e.child).map((e) => e.personId);
+
+      // R8.21. A family checking themselves in with the wifi down gets the same
+      // screen, the same labels and the same codes.
+      if (!station.state.online) {
+        let given: Record<string, string>;
+        try {
+          given = await station.checkInLocally(entries);
+        } catch {
+          setError(t("station.error.codes"));
+          return;
+        }
+        setCodes(given);
+        setFinished(entries.map((e) => e.personId));
+
+        if (children.length > 0) {
+          await keepLabels(
+            children.map((personId) => {
+              const person = household.people.find((p) => p.id === personId);
+              const room = rooms.find((r) => r.id === chosen[personId]);
+              return {
+                personId,
+                childName: `${person?.name ?? ""} ${person?.lastName ?? ""}`.trim(),
+                roomName: room?.name ?? null,
+                roomHue: room?.hue ?? null,
+                serviceName: services.find((s) => s.id === service)?.name ?? "",
+                churchName: station.snapshot?.churchName ?? "",
+                code: given[personId] ?? "",
+                allergy: person?.allergies ?? null,
+              };
+            }),
+          );
+          window.open("/checkin/labels?local=1", "hearth-labels", "width=520,height=720");
+        }
+        return;
+      }
+
       const result = await checkIn(service, stationId, entries, church);
       setError(result.error);
       if (result.error) return;
       setCodes(result.codes ?? {});
       setFinished(entries.map((e) => e.personId));
 
-      const children = entries.filter((e) => e.child).map((e) => e.personId);
       if (children.length > 0) {
         window.open(
           `/checkin/labels?church=${church}&service=${service}&people=${children.join(",")}`,
@@ -158,6 +208,12 @@ export function Kiosk({
 
   return (
     <div data-density="station" className="flex flex-col gap-5" aria-busy={pending || searching}>
+      <Connection
+        state={station.state}
+        onSend={() => void station.reconcile()}
+        onDismiss={station.dismissConflicts}
+      />
+
       {error ?? searchError ? (
         <Card className="border-danger text-fg">{error ?? searchError}</Card>
       ) : null}

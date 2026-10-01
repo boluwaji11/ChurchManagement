@@ -1,4 +1,4 @@
-import { withTenant, listStations, listRooms, listServiceTimes, canManageStations } from "@hearth/db";
+import { withTenant, listStations, canManageStations } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
@@ -14,12 +14,10 @@ export default async function StationsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { stations, rooms, services } = await withTenant(
+  const { stations } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       stations: await listStations(tx, { includeArchived: true }),
-      rooms: await listRooms(tx),
-      services: await listServiceTimes(tx),
     }),
   );
 
@@ -30,15 +28,11 @@ export default async function StationsPage({
   return (
     <StationManager
       church={session.tenantSlug}
-      rooms={rooms.map((r) => ({ id: r.id, name: r.name, hue: r.hue }))}
-      services={services.map((s) => ({ id: s.id, name: s.name }))}
       stations={stations.map((s) => ({
         id: s.id,
         name: s.name,
         mode: s.mode,
         printer: s.printer,
-        roomIds: s.roomIds,
-        serviceTimeIds: s.serviceTimeIds,
         archived: s.archivedAt !== null,
       }))}
     />

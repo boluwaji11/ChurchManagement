@@ -63,23 +63,30 @@ export async function reserveCodes(
   const free = held.filter((row) => row.usedAt === null).map((row) => row.code);
   const used = held.length - free.length;
 
-  for (let attempt = 0; free.length < size && attempt < size * CODE_ATTEMPTS; attempt += 1) {
-    const candidate = newCode();
-    // The unique index is what settles a race between two stations asking at
-    // the same moment. A code that loses is simply not taken, and the loop asks
-    // for another, because nothing has been printed yet.
+  // A block at a time rather than a code at a time, because this runs while a
+  // volunteer is standing at the station waiting for it to be ready. The unique
+  // index settles a race between two stations asking at the same moment: a code
+  // that loses is simply not taken, and the next round asks for another, since
+  // nothing has been printed yet.
+  for (let round = 0; free.length < size && round < CODE_ATTEMPTS; round += 1) {
+    const wanted = size - free.length;
+    const candidates = new Set<string>();
+    while (candidates.size < wanted) candidates.add(newCode());
+
     const written = await db
       .insert(checkinCodes)
-      .values({
-        tenantId: actor.tenantId,
-        occurrenceId: input.occurrenceId,
-        stationId: input.stationId,
-        code: candidate,
-      })
+      .values(
+        [...candidates].map((code) => ({
+          tenantId: actor.tenantId,
+          occurrenceId: input.occurrenceId,
+          stationId: input.stationId,
+          code,
+        })),
+      )
       .onConflictDoNothing({ target: [checkinCodes.tenantId, checkinCodes.code] })
       .returning({ code: checkinCodes.code });
 
-    if (written[0]) free.push(written[0].code);
+    for (const row of written) free.push(row.code);
   }
 
   if (free.length === 0) throw new InvalidInputError("checkin.error.code");

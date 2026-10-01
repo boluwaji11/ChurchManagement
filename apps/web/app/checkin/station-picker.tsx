@@ -82,7 +82,7 @@ export function StationPicker({
         {/* A family driving the screen themselves sees a different one. The
             flow is the same; what a parent has no business touching is not
             there. */}
-        {station.mode === "kiosk" || station.mode === "phone" ? (
+        {station.mode === "kiosk" ? (
           <Kiosk
             church={church}
             stationId={station.id}

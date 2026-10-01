@@ -5,6 +5,9 @@ import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { MessageKey } from "@hearth/i18n";
 import type { WriteActor } from "./people";
+import { ageInMonths, suggestRoom } from "./age";
+
+export { ageInMonths, suggestRoom };
 
 /**
  * R8.14 to R8.17. The rooms children are checked into.
@@ -57,60 +60,6 @@ const COLUMNS = {
   position: checkinRooms.position,
   archivedAt: checkinRooms.archivedAt,
 };
-
-/**
- * How old somebody is, in whole months, on a given day.
- *
- * Whole months, because a room takes a child who is eleven months and
- * twenty-nine days old the same way it takes one who is eleven months and a
- * day. The day of the month is compared so a birthday partway through counts
- * only once it has passed.
- */
-export function ageInMonths(dateOfBirth: string, asOf: string): number | null {
-  const born = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOfBirth);
-  const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(asOf);
-  if (!born || !day) return null;
-
-  const [, by, bm, bd] = born.map(Number) as unknown as number[];
-  const [, ay, am, ad] = day.map(Number) as unknown as number[];
-
-  let months = (ay! - by!) * 12 + (am! - bm!);
-  if (ad! < bd!) months -= 1;
-  return months < 0 ? null : months;
-}
-
-/**
- * R8.14. Which room this child belongs in.
- *
- * A suggestion, and the station always lets a volunteer send them somewhere
- * else, because the child who is small for their age and sits with their
- * sibling is not a data error.
- *
- * The range is inclusive at the bottom and exclusive at the top, so a church
- * can write 0 to 24 and 24 to 48 without a month belonging to both rooms or to
- * neither. Where ranges do overlap, the narrowest room wins, which is what a
- * church means when it writes a nursery inside a wider toddler room.
- */
-export function suggestRoom(rooms: Room[], ageMonths: number | null): Room | null {
-  if (ageMonths === null) return null;
-
-  const fits = rooms.filter(
-    (r) =>
-      r.archivedAt === null &&
-      (r.minAgeMonths === null || ageMonths >= r.minAgeMonths) &&
-      (r.maxAgeMonths === null || ageMonths < r.maxAgeMonths),
-  );
-  if (fits.length === 0) return null;
-
-  const width = (r: Room) =>
-    r.minAgeMonths === null || r.maxAgeMonths === null
-      ? Number.POSITIVE_INFINITY
-      : r.maxAgeMonths - r.minAgeMonths;
-
-  return fits.sort(
-    (a, b) => width(a) - width(b) || a.position - b.position || a.name.localeCompare(b.name),
-  )[0]!;
-}
 
 export async function listRooms(
   db: Tx,

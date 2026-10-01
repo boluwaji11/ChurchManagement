@@ -9,6 +9,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { lookupPeople } from "../src/repo/lookup";
+import { stationRoster } from "../src/repo/roster";
+import { search } from "../src/repo/match";
 import { createPerson } from "../src/repo/people";
 import { withAuditTriggersOff } from "../src/maintenance";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -194,5 +196,33 @@ describe("what the station has to know (R8.10)", () => {
     const danny = again!.household.find((p) => p.name === "Danny")!;
     expect(danny.allergies).toBeNull();
     expect(danny.medicalNote).toBeNull();
+  });
+});
+
+/**
+ * R8.20. The station searches a copy of the directory with no database behind
+ * it, so the rules are written once in `match.ts` and the SQL is written to
+ * agree with them. This is the test that holds the two together: when one is
+ * changed and the other is not, the Sunday a station spends offline is a
+ * Sunday where it finds different people.
+ */
+describe("the offline station finds the same people", () => {
+  it("agrees with the query, for everything somebody types", async () => {
+    const roster = await run((tx) => stationRoster(tx, { asOf: ASOF }));
+
+    for (const typed of ["ochoa", "mia", "danny", "daniel", "elena ochoa", "0134", "hoa", "zz"]) {
+      const fromDatabase = (await run((tx) => lookupPeople(tx, typed, { asOf: ASOF }))).map(
+        (m) => m.person.id,
+      );
+      const fromStation = search(roster.people, typed).map((p) => p.id);
+      expect(fromStation, typed).toEqual(fromDatabase);
+    }
+  });
+
+  it("carries the pickup list for every child (R8.8)", async () => {
+    const roster = await run((tx) => stationRoster(tx, { asOf: ASOF }));
+    const mia = roster.people.find((p) => p.firstName === "Mia")!;
+    const names = roster.pickup[mia.id]!.map((p) => p.name);
+    expect(names).toContain("Elena Ochoa");
   });
 });

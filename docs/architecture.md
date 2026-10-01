@@ -203,24 +203,39 @@ The check-in station is the only place where offline is a hard requirement, so i
 design rather than a general purpose sync framework. The design case is 09:58 on a Sunday, forty
 families queuing, the wifi down, and a volunteer who has done this twice.
 
-**Before the service.** The station pulls the household roster, room configuration, medical notes, and
-authorised pickup lists into local storage (R8.20).
+**Before the service.** The station pulls the directory, the room configuration, the medical notes
+and the authorised pickup lists into IndexedDB (R8.20). It pulls again on claiming a station, on
+choosing a service, and after every reconciliation, so a tablet standing in the lobby at 09:40 is
+already holding everything it needs.
 
-**Security code ranges.** Each station is issued a reserved code range on sync, so codes generated
-offline cannot collide with another station's (R8.6, R8.21). Ranges are drawn from a per-occurrence
-pool and are not reused within twelve months.
+**Security code ranges.** Each station is issued a block of codes on sync, written to
+`checkin_codes` before anybody needs them (R8.6, R8.21). Every code in a block is spoken for: no
+other station is given it, and `freeCode` on the online path will not generate it either. A station
+holds 150, which is more children than one station checks in on a Sunday.
 
-**Event log.** Check-in and checkout events are written to a local append-only log and replayed on
-reconnect (R8.23).
+**The same rules on both sides.** `@hearth/db/rules` is a pure entry point with no database and no
+node built-ins: the lookup ranking, the age and room rules, the code alphabet, and the release
+decision. The station runs that code, and the SQL in `lookup.ts` is written to agree with it. A test
+runs both against the same church and compares the answers.
+
+**Event log.** Check-in and checkout are written to an append-only IndexedDB log, each with an id
+the station generates before the event happens. Replay is idempotent on that id, so a log sent twice
+checks nobody in twice (R8.23).
 
 **Conflict handling.** Replay conflicts, for example the same child checked in at two stations, are
-surfaced to a human. **Nothing auto-merges a child's location.** A wrong automatic answer here is worse
-than an alert.
+surfaced to a human. **Nothing auto-merges a child's location.** A wrong automatic answer here is
+worse than an alert.
 
-**Printing.** Labels print through a local path, not a server-rendered document, so printing survives
-the network failing (R8.24).
+**Printing.** The desk writes the label pair into local storage and opens the labels window at
+`?local=1`, which renders from what the station holds and asks the server for nothing (R8.24).
 
-**Connection state is always visible.** The station never silently fails (R8.22).
+**The screen survives the network.** A service worker scoped to `/checkin` serves the station shell
+network first and cache second, so a reload or a tablet waking up gets the station rather than the
+browser's error page. It handles GET only: a check-in is a POST, and a POST answered from a cache
+would be a check-in that never happened.
+
+**Connection state is always visible.** The bar says there is no network, how many check-ins are
+waiting on the tablet, and when they have gone (R8.22).
 
 ## Hearth Stage sync contract
 

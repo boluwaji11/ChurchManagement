@@ -5,6 +5,7 @@ import { people, householdMemberships, relationships } from "../schema/people";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { readCode } from "./codes";
+import { releaseBlock, type OverrideKind } from "./release-rules";
 import { canCheckIn } from "./checkin";
 import type { WriteActor } from "./people";
 
@@ -23,7 +24,7 @@ import type { WriteActor } from "./people";
  * row cannot be edited afterwards.
  */
 
-export type OverrideKind = "code" | "pickup" | "restriction";
+export type { OverrideKind } from "./release-rules";
 
 export interface PickupPerson {
   id: string;
@@ -170,24 +171,22 @@ export async function checkOut(
 
   const override = request.override ?? null;
 
-  if (request.collectedBy) {
-    const restricted = await restrictedAgainst(db, visit.personId);
-    if (restricted.includes(request.collectedBy) && override?.kind !== "restriction") {
-      return { released: false, block: { kind: "restriction", key: "checkout.block.restriction" } };
-    }
+  const restricted = request.collectedBy ? await restrictedAgainst(db, visit.personId) : [];
+  const allowed = request.collectedBy
+    ? (await pickupList(db, visit.personId)).map((p) => p.id)
+    : [];
 
-    const allowed = await pickupList(db, visit.personId);
-    const onList = allowed.some((p) => p.id === request.collectedBy);
-    if (!onList && override?.kind !== "pickup") {
-      return { released: false, block: { kind: "pickup", key: "checkout.block.pickup" } };
-    }
-  }
+  const stopped = releaseBlock({
+    expected: visit.code,
+    typed: readCode(request.code ?? ""),
+    collectedBy: request.collectedBy ?? null,
+    restricted,
+    allowed,
+    override,
+  });
 
-  // R8.7. The code, or a decision somebody made instead of it.
-  const typed = readCode(request.code ?? "");
-  const matches = visit.code !== null && typed === visit.code;
-  if (!matches && override?.kind !== "code") {
-    return { released: false, block: { kind: "code", key: "checkout.block.code" } };
+  if (stopped) {
+    return { released: false, block: { kind: stopped, key: `checkout.block.${stopped}` as const } };
   }
 
   if (override) {

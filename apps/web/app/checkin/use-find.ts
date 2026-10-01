@@ -14,7 +14,13 @@ import { find, type FoundMatch } from "./actions";
  */
 const SETTLE_MS = 120;
 
-export function useFind(query: string, service: string, church: string) {
+export function useFind(
+  query: string,
+  service: string,
+  church: string,
+  /** R8.20. What the station holds, for when the server cannot be reached. */
+  offline?: { ready: boolean; online: boolean; search: (query: string) => FoundMatch[] },
+) {
   const [matches, setMatches] = React.useState<FoundMatch[]>([]);
   const [error, setError] = React.useState<string>();
   const [searching, setSearching] = React.useState(false);
@@ -29,7 +35,30 @@ export function useFind(query: string, service: string, church: string) {
 
       const mine = ++ticket.current;
       setSearching(true);
-      const result = await find(text, service, church);
+
+      // A station that knows it has no network does not wait for a request to
+      // time out with a queue in front of it.
+      if (offline?.ready && !offline.online) {
+        setSearching(false);
+        setError(undefined);
+        setMatches(offline.search(text));
+        return;
+      }
+
+      let result;
+      try {
+        result = await find(text, service, church);
+      } catch {
+        if (mine !== ticket.current) return;
+        setSearching(false);
+        if (offline?.ready) {
+          setError(undefined);
+          setMatches(offline.search(text));
+          return;
+        }
+        setError(undefined);
+        return;
+      }
       if (mine !== ticket.current) return;
 
       setSearching(false);
@@ -39,7 +68,7 @@ export function useFind(query: string, service: string, church: string) {
       seen.current.set(key, found);
       setMatches(found);
     },
-    [service, church],
+    [service, church, offline],
   );
 
   React.useEffect(() => {

@@ -216,7 +216,7 @@ async function loadSundays(
   }
 
   const station = await addStation(db, actor, {
-    name: "Foyer desk", mode: "manned", printer: "paper", roomIds: [], serviceTimeIds: [],
+    name: "Foyer desk", mode: "desk", printer: "paper", roomIds: [], serviceTimeIds: [],
   });
   await remember("station", station.id);
 }

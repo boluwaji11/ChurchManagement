@@ -11,8 +11,11 @@ import { t } from "@hearth/i18n";
 import { serviceNow } from "@hearth/db/rules";
 import { checkIn, undo, type FoundMatch, type FoundPerson } from "./actions";
 import { useFind } from "./use-find";
+import { useStation } from "./offline/station";
+import { Connection, useStationWorker } from "./offline/connection";
+import { keepLabels } from "./offline/store";
 import { Allergies, warnings } from "./allergies";
-import { Checkout } from "./checkout";
+import { Checkout, type OfflineCheckout } from "./checkout";
 
 export interface DeskRoom {
   id: string;
@@ -53,7 +56,18 @@ export function Desk({
 }) {
   const [service, setService] = React.useState(() => serviceNow(services, now));
   const [query, setQuery] = React.useState("");
-  const { matches, error: searchError, searching, again } = useFind(query, service, church);
+
+  useStationWorker();
+  const station = useStation(stationId, service, church);
+  const offline = React.useMemo(
+    () => ({
+      ready: station.snapshot !== null,
+      online: station.state.online,
+      search: station.searchLocal,
+    }),
+    [station.snapshot, station.state.online, station.searchLocal],
+  );
+  const { matches, error: searchError, searching, again } = useFind(query, service, church, offline);
   const [open, setOpen] = React.useState<string | null>(null);
   const [chosen, setChosen] = React.useState<Record<string, string | null>>({});
   const [picked, setPicked] = React.useState<Record<string, boolean>>({});
@@ -101,6 +115,46 @@ export function Desk({
     if (entries.length === 0) return;
 
     startTransition(async () => {
+      const children = entries.filter((e) => e.child).map((e) => e.personId);
+
+      // R8.21. With no network the station does the whole thing itself: it
+      // takes codes off the block it was given, writes the check-in to its own
+      // log, and prints from what it wrote.
+      if (!station.state.online) {
+        let given: Record<string, string>;
+        try {
+          given = await station.checkInLocally(entries);
+        } catch {
+          setError(t("station.error.codes"));
+          return;
+        }
+
+        setCodes(given);
+        setDone(entries.map((e) => e.personId));
+        setPrinting(children);
+
+        if (children.length > 0) {
+          await keepLabels(
+            children.map((personId) => {
+              const person = household.people.find((p) => p.id === personId);
+              const room = rooms.find((r) => r.id === chosen[personId]);
+              return {
+                personId,
+                childName: `${person?.name ?? ""} ${person?.lastName ?? ""}`.trim(),
+                roomName: room?.name ?? null,
+                roomHue: room?.hue ?? null,
+                serviceName: services.find((s) => s.id === service)?.name ?? "",
+                churchName: station.snapshot?.churchName ?? "",
+                code: given[personId] ?? "",
+                allergy: person?.allergies ?? null,
+              };
+            }),
+          );
+          window.open("/checkin/labels?local=1", "hearth-labels", "width=520,height=720");
+        }
+        return;
+      }
+
       const result = await checkIn(service, stationId, entries, church);
       setError(result.error);
       if (result.error) return;
@@ -110,7 +164,6 @@ export function Desk({
 
       // The children on this press are the ones whose labels have to come out
       // of the printer before anybody walks away.
-      const children = entries.filter((e) => e.child).map((e) => e.personId);
       setPrinting(children);
       if (children.length > 0) {
         window.open(
@@ -152,6 +205,10 @@ export function Desk({
 
   const take = (personId: string) => {
     startTransition(async () => {
+      if (!station.state.online) {
+        await station.undoLocally(personId);
+        return;
+      }
       const result = await undo(service, personId, church);
       setError(result.error);
       if (result.error) return;
@@ -166,6 +223,12 @@ export function Desk({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending || searching}>
+      <Connection
+        state={station.state}
+        onSend={() => void station.reconcile()}
+        onDismiss={station.dismissConflicts}
+      />
+
       {error ?? searchError ? (
         <Banner tone="danger" title={t("checkin.title")}>{error ?? searchError}</Banner>
       ) : null}
@@ -255,6 +318,11 @@ export function Desk({
                   onRoom={(roomId) => setChosen((c) => ({ ...c, [person.id]: roomId }))}
                   onPick={(on) => setPicked((p) => ({ ...p, [person.id]: on }))}
                   onUndo={() => take(person.id)}
+                  offline={{
+                    online: station.state.online,
+                    pickupFor: station.pickupFor,
+                    release: station.releaseLocally,
+                  }}
                 />
               </li>
             ))}
@@ -314,6 +382,7 @@ function Member({
   onRoom,
   onPick,
   onUndo,
+  offline,
 }: {
   church: string;
   person: FoundPerson;
@@ -325,6 +394,7 @@ function Member({
   onRoom: (roomId: string | null) => void;
   onPick: (on: boolean) => void;
   onUndo: () => void;
+  offline: OfflineCheckout;
 }) {
   const room = rooms.find((r) => r.id === roomId);
   const inRoom = roomId ? (counts[roomId] ?? 0) : 0;
@@ -351,6 +421,7 @@ function Member({
               visitId={person.visitId}
               childId={person.id}
               childName={person.name}
+              offline={offline}
             />
           ) : null}
           <Button variant="ghost" onClick={onUndo}><Undo2 /> {t("checkin.undo")}</Button>
@@ -391,9 +462,7 @@ function Member({
             </SelectContent>
           </Select>
         </div>
-      ) : (
-        <span className="text-caption text-fg-muted">{t("checkin.badge")}</span>
-      )}
+      ) : null}
     </div>
   );
 }

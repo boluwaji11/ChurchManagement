@@ -4,15 +4,14 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Archive, Undo2 } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, Checkbox, EmptyState, Field, HueDot, Input, Separator,
+  Badge, Banner, Button, Card, EmptyState, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { createStation, saveStation, archiveStation } from "./actions";
 
-const MODES = ["manned", "kiosk", "roaming", "phone"] as const;
+const MODES = ["desk", "kiosk"] as const;
 const PRINTERS = ["paper", "brother", "dymo"] as const;
 
 export interface StationItem {
@@ -20,39 +19,23 @@ export interface StationItem {
   name: string;
   mode: string;
   printer: string;
-  roomIds: string[];
-  serviceTimeIds: string[];
   archived: boolean;
-}
-
-export interface RoomOption {
-  id: string;
-  name: string;
-  hue: string;
-}
-
-export interface ServiceOption {
-  id: string;
-  name: string;
 }
 
 /**
  * R8.1, R8.2. The devices a church checks people in on.
  *
- * A station is configured here and a device is pointed at it, so the tablet
- * that dies at 09:40 on a Sunday is replaced by pointing another one at the
- * same station.
+ * Three questions: what it is called, whether a volunteer runs it or a family
+ * does, and what prints the labels. A device is then pointed at it, so the
+ * tablet that dies at 09:40 on a Sunday is replaced by pointing another one at
+ * the same station.
  */
 export function StationManager({
   church,
   stations,
-  rooms,
-  services,
 }: {
   church: string;
   stations: StationItem[];
-  rooms: RoomOption[];
-  services: ServiceOption[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -72,22 +55,12 @@ export function StationManager({
   const open = stations.filter((s) => !s.archived);
   const archived = stations.filter((s) => s.archived);
 
-  const summary = (station: StationItem): string =>
-    station.roomIds.length === 0
-      ? t("stations.allRooms")
-      : rooms
-          .filter((r) => station.roomIds.includes(r.id))
-          .map((r) => r.name)
-          .join(", ");
-
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("stations.title")}>{error}</Banner> : null}
 
       <div>
         <StationDialog
-          rooms={rooms}
-          services={services}
           pending={pending}
           title={t("stations.add")}
           trigger={<Button><Plus /> {t("stations.add")}</Button>}
@@ -110,14 +83,11 @@ export function StationManager({
                       <Badge tone="neutral">{t(`stations.mode.${station.mode}` as never)}</Badge>
                       <Badge tone="neutral">{t(`stations.printer.${station.printer}` as never)}</Badge>
                     </div>
-                    <div className="text-caption text-fg-muted">{summary(station)}</div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-1">
                     <StationDialog
                       station={station}
-                      rooms={rooms}
-                      services={services}
                       pending={pending}
                       title={t("stations.editTitle", { name: station.name })}
                       trigger={<Button variant="ghost"><Pencil /> {t("stations.edit")}</Button>}
@@ -164,33 +134,20 @@ export function StationManager({
 
 function StationDialog({
   station,
-  rooms,
-  services,
   pending,
   title,
   trigger,
   onSave,
 }: {
   station?: StationItem;
-  rooms: RoomOption[];
-  services: ServiceOption[];
   pending: boolean;
   title: string;
   trigger: React.ReactNode;
   onSave: (fields: Record<string, string>) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [mode, setMode] = React.useState(station?.mode ?? "manned");
+  const [mode, setMode] = React.useState(station?.mode ?? "desk");
   const [printer, setPrinter] = React.useState(station?.printer ?? "paper");
-  const [roomIds, setRoomIds] = React.useState<string[]>(station?.roomIds ?? []);
-  const [serviceIds, setServiceIds] = React.useState<string[]>(station?.serviceTimeIds ?? []);
-
-  const toggle = (
-    list: string[],
-    set: (next: string[]) => void,
-    id: string,
-    on: boolean,
-  ) => set(on ? [...list, id] : list.filter((x) => x !== id));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -202,8 +159,6 @@ function StationDialog({
               name: String(data.get("name") ?? ""),
               mode,
               printer,
-              roomIds: roomIds.join(","),
-              serviceTimeIds: serviceIds.join(","),
             });
             setOpen(false);
           }}
@@ -244,26 +199,6 @@ function StationDialog({
             </div>
           </div>
 
-          {/* Nothing ticked is every room and every service, which is what a
-              church with one desk wants and never has to think about. */}
-          <Picker
-            label={t("stations.rooms")}
-            options={rooms.map((r) => ({
-              id: r.id,
-              label: r.name,
-              icon: <HueDot hue={r.hue as Hue} />,
-            }))}
-            chosen={roomIds}
-            onToggle={(id, on) => toggle(roomIds, setRoomIds, id, on)}
-          />
-
-          <Picker
-            label={t("stations.services")}
-            options={services.map((s) => ({ id: s.id, label: s.name }))}
-            chosen={serviceIds}
-            onToggle={(id, on) => toggle(serviceIds, setServiceIds, id, on)}
-          />
-
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending}>{t("action.save")}</Button>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
@@ -273,41 +208,6 @@ function StationDialog({
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function Picker({
-  label,
-  options,
-  chosen,
-  onToggle,
-}: {
-  label: string;
-  options: { id: string; label: string; icon?: React.ReactNode }[];
-  chosen: string[];
-  onToggle: (id: string, on: boolean) => void;
-}) {
-  if (options.length === 0) return null;
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-label text-fg">{label}</span>
-      <div className="flex flex-col gap-2">
-        {options.map((option) => (
-          <label
-            key={option.id}
-            className="flex cursor-pointer items-center gap-2 text-[length:var(--d-text-body)] text-fg"
-          >
-            <Checkbox
-              checked={chosen.includes(option.id)}
-              onCheckedChange={(on) => onToggle(option.id, on === true)}
-            />
-            {option.icon}
-            {option.label}
-          </label>
-        ))}
-      </div>
-    </div>
   );
 }
 

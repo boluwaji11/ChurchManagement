@@ -9,10 +9,18 @@ import type { WriteActor } from "./people";
 /**
  * R8.1, R8.2. Stations: the devices a church checks people in on.
  *
- * The configuration belongs to the station rather than to the device, so a
- * tablet that dies at 09:40 on a Sunday is replaced by pointing another one at
- * the same station. What a station may do is decided here, by an administrator
- * who is not standing at it.
+ * A station is an identity, and it exists for three reasons that a device
+ * cannot answer on its own. It says what prints the labels, because the lobby
+ * tablet drives a label printer and a parent's phone prints nothing. It is what
+ * a block of offline security codes is issued to, because two tablets with no
+ * network must not print the same code on two children (R8.21). And it is what
+ * a visit records, so the answer to "who checked this child in" is a place
+ * somebody can walk to.
+ *
+ * It is deliberately three questions and no more: a name, whether a volunteer
+ * runs it or a family does, and what prints. A station is also replaceable: a
+ * tablet that dies at 09:40 is replaced by pointing another one at the same
+ * station.
  */
 
 /** Stations decide which children may be checked into which room, so this is Owner and Admin. */
@@ -21,14 +29,14 @@ export const canManageStations = (role: TenantRole): boolean =>
   CAN_MANAGE_STATIONS.includes(role);
 
 /**
- * The four modes.
+ * Two modes, because there are two screens.
  *
- * `kiosk` a family drives itself, `manned` a volunteer drives, `roaming` is
- * carried around the foyer, and `phone` is the household's own phone before
- * they arrive. The last is not a device we configure, and it is a mode here
- * because it needs the same answers about rooms and services as the others.
+ * `desk` a volunteer drives, with undo and checkout in reach. `kiosk` a family
+ * drives itself, which is the same flow with everything a parent has no
+ * business touching taken away. A phone and a tablet on a stand are both the
+ * second one, and a volunteer carrying a tablet is the first.
  */
-export const STATION_MODES = ["kiosk", "manned", "roaming", "phone"] as const;
+export const STATION_MODES = ["desk", "kiosk"] as const;
 export type StationMode = (typeof STATION_MODES)[number];
 
 /** What prints the labels. Plain paper is a church with no label printer yet. */
@@ -72,7 +80,7 @@ function check(input: StationInput): { name: string; mode: string; printer: stri
   if (!name) throw new InvalidInputError("station.error.name");
   if (name.length > 80) throw new InvalidInputError("station.error.nameLong");
 
-  const mode = input.mode ?? "manned";
+  const mode = input.mode ?? "desk";
   if (!(STATION_MODES as readonly string[]).includes(mode)) {
     throw new InvalidInputError("station.error.mode");
   }
@@ -182,12 +190,6 @@ export async function addStation(db: Tx, actor: WriteActor, input: StationInput)
   const clash = await nameTaken(db, values.name);
   if (clash) throw new NameTakenError("station.error.taken", values.name, clash);
 
-  // One phone station a church, because there is one household phone flow and
-  // two configurations of it would be two answers to the same question.
-  if (values.mode === "phone" && (await phoneStation(db))) {
-    throw new InvalidInputError("station.error.onePhone");
-  }
-
   const [row] = await db
     .insert(checkinStations)
     .values({ tenantId: actor.tenantId, ...values })
@@ -195,14 +197,6 @@ export async function addStation(db: Tx, actor: WriteActor, input: StationInput)
 
   await setLinks(db, actor, row!.id, input.roomIds ?? [], input.serviceTimeIds ?? []);
   return (await getStation(db, row!.id))!;
-}
-
-async function phoneStation(db: Tx, exceptId?: string): Promise<boolean> {
-  const rows = await db
-    .select({ id: checkinStations.id })
-    .from(checkinStations)
-    .where(and(eq(checkinStations.mode, "phone"), isNull(checkinStations.archivedAt)));
-  return rows.some((r) => r.id !== exceptId);
 }
 
 export async function updateStation(
@@ -215,9 +209,6 @@ export async function updateStation(
   const values = check(input);
   const clash = await nameTaken(db, values.name, id);
   if (clash) throw new NameTakenError("station.error.taken", values.name, clash);
-  if (values.mode === "phone" && (await phoneStation(db, id))) {
-    throw new InvalidInputError("station.error.onePhone");
-  }
 
   const [row] = await db
     .update(checkinStations)

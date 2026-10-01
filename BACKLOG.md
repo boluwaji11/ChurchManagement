@@ -161,6 +161,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | Resolved |
 | HRT-74 | The station opens on the service that is actually happening now | R8.2 | Resolved |
 | HRT-75 | Station search is a directory lookup, by person, on name prefixes | R8.3, R8.4 | Resolved |
+| HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Resolved |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Active |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
@@ -222,7 +223,7 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | **HRT-60** the station keeps working with no network |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout, **HRT-74** which service, **HRT-75** the search, **HRT-77** the advisor findings, **HRT-78** the station setup |
 | **Next** | HRT-61 label printers. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -777,3 +778,33 @@ A day with two services on it, such as Riverside's 30 September.
    second has started, the second. A service that finished hours ago is let go of, and the nearest
    one is offered instead.
 3. **A day with nothing on it** says so, and offers no way to check anybody in.
+
+### HRT-75, how to test it
+
+1. **Search by person.** Type three letters of a first name at the desk. The rows are people, with
+   the household on a quiet second line. Tap a row and the whole family opens, the way it did.
+2. **Surnames.** Type a surname. Every person who has it is a row of their own.
+3. **The start of a name.** "hoa" finds no Ochoas. "och" finds them all.
+4. **Speed.** Type a name, then backspace. The earlier answer is there at once.
+
+### HRT-60, how to test it
+
+Use a real tablet or a second browser window, and the browser's own offline switch (DevTools,
+Network, Offline). The station has to be claimed and a service chosen while the network is up, so it
+has something to carry.
+
+1. **It says so.** Turn the network off. The bar appears and says there is no network.
+2. **Search still works.** Type a name. It comes back from what the station pulled down.
+3. **Check in.** Check a family in. The labels window opens and prints, with a code on each pair.
+   The bar now says how many are waiting.
+4. **Reload it.** Reload the page with the network still off. The station comes back rather than the
+   browser's error page, and the waiting count is still right.
+5. **Check out.** Collect one of them. The code is asked for and checked, the pickup list is the one
+   the station pulled down, and a person not on it is still stopped.
+6. **Reconnect.** Turn the network back on. Within a few seconds the waiting count goes to zero.
+   Open the service on another device: every check-in is there, with the codes that were printed,
+   and the times are when they happened rather than when the wifi came back.
+7. **A conflict.** With the station offline, check a child in. On another device, check the same
+   child into a different room. Reconnect. The station reports it and leaves the record alone.
+8. **Codes.** Check in forty children offline. They all get codes, all different, and none of them
+   collides with anything the online desk issued.

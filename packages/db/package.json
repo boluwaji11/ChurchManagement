@@ -6,7 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
-    "./rules": "./src/repo/which-service.ts"
+    "./rules": "./src/rules.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

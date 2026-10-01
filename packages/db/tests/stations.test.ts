@@ -45,20 +45,20 @@ afterAll(async () => {
 describe("setting a station up", () => {
   it("takes a name, a mode, a printer, and what it may touch", async () => {
     const station = await run((tx) => addStation(tx, as(), {
-      name: "Foyer desk", mode: "manned", printer: "brother",
+      name: "Foyer desk", mode: "desk", printer: "brother",
       roomIds: [nursery], serviceTimeIds: [sunday],
     }));
 
-    expect(station.mode).toBe("manned");
+    expect(station.mode).toBe("desk");
     expect(station.printer).toBe("brother");
     expect(station.roomIds).toEqual([nursery]);
     expect(station.serviceTimeIds).toEqual([sunday]);
     expect(station.lastSeenAt).toBeNull();
   });
 
-  it("defaults to a manned desk printing on paper", async () => {
+  it("defaults to a desk printing on paper", async () => {
     const station = await run((tx) => addStation(tx, as(), { name: "Spare" }));
-    expect(station.mode).toBe("manned");
+    expect(station.mode).toBe("desk");
     expect(station.printer).toBe("paper");
   });
 
@@ -87,14 +87,10 @@ describe("setting a station up", () => {
       .rejects.toBeInstanceOf(InvalidInputError);
   });
 
-  it("has all four modes", () => {
-    expect([...STATION_MODES]).toEqual(["kiosk", "manned", "roaming", "phone"]);
-  });
-
-  it("keeps one station for the household's own phone, and no more", async () => {
-    await run((tx) => addStation(tx, as(), { name: "Before you arrive", mode: "phone" }));
-    await expect(run((tx) => addStation(tx, as(), { name: "Another phone", mode: "phone" })))
-      .rejects.toBeInstanceOf(InvalidInputError);
+  // Two, because there are two screens: one a volunteer drives and one a
+  // family drives. A phone and a tablet on a stand are both the second.
+  it("has two modes", () => {
+    expect([...STATION_MODES]).toEqual(["desk", "kiosk"]);
   });
 
   it("drops a room that no longer exists rather than refusing to save", async () => {

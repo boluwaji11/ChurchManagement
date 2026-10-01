@@ -1,6 +1,7 @@
 import { withTenant, labelsFor } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { LabelSheet } from "./sheet";
+import { LocalLabels } from "./local";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +15,13 @@ export const dynamic = "force-dynamic";
 export default async function LabelsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; service?: string; people?: string }>;
+  searchParams: Promise<{ church?: string; service?: string; people?: string; local?: string }>;
 }) {
-  const { church, service, people } = await searchParams;
+  const { church, service, people, local } = await searchParams;
+
+  // R8.24. A station with no network prints what it wrote down itself.
+  if (local) return <LocalLabels />;
+
   const session = await requireSession(church);
 
   const personIds = (people ?? "").split(",").filter(Boolean);

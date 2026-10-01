@@ -30,7 +30,7 @@ const ids = (data: FormData, key: string) => field(data, key).split(",").filter(
 
 const input = (data: FormData) => ({
   name: field(data, "name"),
-  mode: field(data, "mode") || "manned",
+  mode: field(data, "mode") || "desk",
   printer: field(data, "printer") || "paper",
   roomIds: ids(data, "roomIds"),
   serviceTimeIds: ids(data, "serviceTimeIds"),

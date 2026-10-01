@@ -8,7 +8,7 @@ import {
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { pickup, release } from "./actions";
-import type { PickupPerson } from "@hearth/db";
+import type { PickupPerson, OverrideKind } from "@hearth/db";
 
 /**
  * R8.7 to R8.9. Letting a child go.
@@ -20,16 +20,32 @@ import type { PickupPerson } from "@hearth/db";
  * it says what it is, and passing it costs a sentence explaining why, which is
  * written down with the name of whoever decided.
  */
+export interface OfflineCheckout {
+  online: boolean;
+  /** R8.8. The list the station pulled down before the service. */
+  pickupFor: (childId: string) => PickupPerson[];
+  /** Applies the same rules the server does, against what the station holds. */
+  release: (input: {
+    personId: string;
+    typed: string;
+    collectedBy: string | null;
+    override: { kind: OverrideKind; reason: string } | null;
+  }) => Promise<OverrideKind | null>;
+}
+
 export function Checkout({
   church,
   visitId,
   childId,
   childName,
+  offline,
 }: {
   church: string;
   visitId: string;
   childId: string;
   childName: string;
+  /** R8.7. What to do when there is no server to ask. */
+  offline?: OfflineCheckout;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -48,15 +64,38 @@ export function Checkout({
     setCode("");
     setCollectedBy(null);
     setError(undefined);
+    if (offline && !offline.online) {
+      setPeople(offline.pickupFor(childId));
+      return;
+    }
+
     startTransition(async () => {
       const result = await pickup(childId, church);
       setError(result.error);
       setPeople(result.people ?? []);
     });
-  }, [open, childId, church]);
+  }, [open, childId, church, offline]);
 
   const go = (override: { kind: string; reason: string } | null) => {
     startTransition(async () => {
+      // R8.7. With no network the station asks the same questions itself and
+      // writes the answer to its log, because a child whose parent is standing
+      // there cannot wait for the wifi.
+      if (offline && !offline.online) {
+        const stopped = await offline.release({
+          personId: childId,
+          typed: code,
+          collectedBy,
+          override: override as { kind: OverrideKind; reason: string } | null,
+        });
+        if (!stopped) {
+          setOpen(false);
+          return;
+        }
+        setBlock({ kind: stopped, message: t(`checkout.block.${stopped}` as never) });
+        return;
+      }
+
       const result = await release(
         visitId,
         code,

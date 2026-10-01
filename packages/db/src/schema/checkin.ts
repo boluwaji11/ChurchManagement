@@ -81,8 +81,8 @@ export const checkinStations = pgTable(
     tenantId: tenantId(),
     campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "set null" }),
     name: text("name").notNull(),
-    /** "kiosk", "manned", "roaming" or "phone". */
-    mode: text("mode").notNull().default("manned"),
+    /** "desk", a volunteer drives it, or "kiosk", a family does. */
+    mode: text("mode").notNull().default("desk"),
     /** "brother", "dymo" or "paper". */
     printer: text("printer").notNull().default("paper"),
     /** When a device last identified itself as this station. */

@@ -148,6 +148,13 @@
       "when": 1790816313369,
       "tag": "0020_slim_pixie",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790818012633,
+      "tag": "0021_stale_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }
