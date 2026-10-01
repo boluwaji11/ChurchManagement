@@ -69,7 +69,7 @@ A presenter a worship leader can type four songs into and run. No platform depen
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-1 | Scaffold `packages/songs` with the song, section, arrangement and usage types from PRD section 9.4, and no runtime dependencies | ST2.1 | New |
+| STG-1 | Scaffold `packages/songs` with the song, section, arrangement and usage types from PRD section 9.4, and no runtime dependencies | ST2.1 | Resolved |
 | STG-2 | Resolve an arrangement sequence into an ordered list of sections, failing loudly on a missing label | ST5.2 | New |
 | STG-3 | Split a section into slides on the theme's line limit, breaking between lines | ST6.1 | New |
 | STG-4 | Compile a set list into a deck of cue groups, deterministically, with golden fixtures | ST5.1, ST5.4 | New |
@@ -436,8 +436,60 @@ are gone. The only blocked epic is SE4, and nothing before it waits on anybody.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Next** | **STG-1**, scaffold `packages/songs`. Then STG-2 to STG-5, pure logic, fully testable before any Electron process exists. |
-| **Blocked** | **SE4** only, on the six platform deliverables above. Fifty-eight stories sit in front of it. |
-| **Not started** | Everything. This board was written 1 October 2026, before any Stage code. |
+| **Waiting on a test** | **STG-1** `packages/songs`, the schema as types, with the keys, the validator and the public-domain fixtures. |
+| **Next** | **STG-2**, resolve an arrangement sequence into an ordered list of sections. Then STG-3 to STG-5, still pure logic, before any Electron process exists. |
+| **Blocked** | **SE4** only, on the six platform deliverables above. Fifty-seven stories sit in front of it. |
 | **Watch** | `packages/songs` is read by the platform's song library screens in 0.4, and `packages/song-import` by its R20.10 importers. The schema in PRD section 9.4 is the contract, and a change to it is a platform story. |
 | **Owed elsewhere** | The PRD.md section 9.6 correction, on the platform board. |
+
+---
+
+## STG-1, how to test it
+
+`packages/songs` is the spine. It has no screen, so the test is the suite and the types.
+
+```
+pnpm --filter @hearth/songs test
+pnpm --filter @hearth/songs typecheck
+```
+
+Thirty-three tests, three files. What each one is defending:
+
+1. **Lyrics cannot become a blob.** `validate.test.ts` refuses a section whose single line holds
+   newlines, which is how a "good enough" song list passes a type check today and costs a rewrite in
+   Phase 2. It names the line it found. This is the R12.4 guard, and it is the most valuable test in
+   the package.
+2. **A sequence has to resolve.** An arrangement sequencing `V1 C B` against a song that has only
+   `V1` reports two problems by name, at validation time, rather than leaving two holes in the
+   service. The R12.5 acceptance criterion.
+3. **A repeat is allowed.** `Holy, Holy, Holy` sequences `V1 V2 V1` and validates clean, because the
+   deck compiler has to turn that into three cues (STG-4).
+4. **Translations are aligned.** `Amazing Grace` carries a public-domain Spanish first verse pointing
+   at the English one. A translation of a translation, a translation in the same language as its
+   primary, and a translation pointing at nothing are each refused, so a bilingual slide cannot
+   render one language twice.
+5. **Keys are read the way they are written.** `bb`, `f#`, `E♭`, `A minor` and `a min` all parse.
+   `H`, `Gbb` and `key of G` return null rather than a guess, because a guessed key transposes a
+   whole set wrongly and nobody finds out until the band is playing. `C#` and `Db` share a pitch
+   class, which is what transposition will depend on in STG-5.
+6. **Errors and warnings are different things.** A bad time signature, an unparseable CCLI number and
+   an implausible year are warnings, so a library imported from somewhere else still presents. A
+   missing title or an unresolvable sequence is an error.
+7. **The package depends on nothing.** `no-dependencies.test.ts` fails the build if `package.json`
+   grows a dependency, if any source file imports anything outside its own directory, or if a
+   database, framework or store is referenced. Stated as a test because a README does not fail a
+   build.
+
+Worth reading rather than running: `src/types.ts` is the schema from PRD section 9.4 written out, and
+it is the one file where being wrong is expensive. Two things in it are decisions rather than
+transcription, and both are open to being overruled now while nothing depends on them.
+
+- **`tenantId` is absent.** The platform holds these records with a tenant and row-level security,
+  and Stage holds them with no tenant at all, so tenancy belongs to each store rather than to the
+  shared type.
+- **`origin` is present**, `local` or `hearth`, carrying the two-writer rule from PRD-STAGE section 2
+  into the type itself.
+
+The sample library is two public-domain hymns. Stage offers them on first run so a church starting
+cold has something to present, and the suite asserts every bundled song is public domain, because
+Stage ships no copyrighted lyrics.

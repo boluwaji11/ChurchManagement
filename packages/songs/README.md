@@ -6,10 +6,9 @@ This package is the reason the repository is a monorepo. A slide on the wall in 
 chart in the platform's music stand view resolve the same arrangement with the same function, so the
 two cannot disagree about what `V1 C V2 C B C C` means.
 
-**It has no runtime dependencies, and it never will.** No database driver, no framework, no
-validation library. It is called from a Next.js server action, from an Electron main process, from a
-worker thread reading a ProPresenter file, and from a test. Anything it imports, all four have to
-carry.
+**It has no runtime dependencies, and it never will.** It is called from a Next.js server action,
+from an Electron main process, from a worker thread reading a ProPresenter file, and from a test.
+Anything it imports, all four have to carry, so it imports nothing. A test enforces that.
 
 - [PRD.md section 9.4](../../PRD.md) is the schema's specification.
 - [PRD-STAGE.md](../../PRD-STAGE.md) is what Stage does with it.

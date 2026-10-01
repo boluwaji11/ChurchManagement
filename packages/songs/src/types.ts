@@ -4,10 +4,10 @@
  * Three properties of this shape are load bearing, and each one exists for a
  * reason that only shows up later:
  *
- * 1. **Lyrics are an ordered set of labelled sections, never a blob.** Stage
- *    renders a slide per section. A blob would need a parser, a parser would
- *    need an import step, and deleting the import step is the whole product
- *    idea. `SongSection.lines` is an array of lines, and a validator refuses a
+ * 1. **Lyrics are an ordered set of labelled sections.** Stage renders a slide
+ *    per section. A single text blob would need a parser, a parser would need an
+ *    import step, and deleting the import step is the whole product idea.
+ *    `SongSection.lines` holds one line per element, and a validator refuses a
  *    line containing a newline (R12.4).
  * 2. **An arrangement's sequence is data.** `["V1","C","V2","C","B","C","C"]`
  *    builds the slide order with nobody clicking anything, and the same
