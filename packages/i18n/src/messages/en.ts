@@ -731,7 +731,6 @@ export const en = {
   "checkin.search": "Name or last four digits of a phone number",
   "checkin.service": "Service",
   "checkin.serviceAt": "{name}, {time}",
-  "checkin.open": "Open",
   "checkin.check": "Check in",
   "checkin.checkedIn": "Checked in",
   "checkin.undo": "Undo",

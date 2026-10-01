@@ -9,7 +9,8 @@ import {
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { serviceNow } from "@hearth/db/rules";
-import { find, checkIn, undo, type FoundHousehold, type FoundPerson } from "./actions";
+import { checkIn, undo, type FoundMatch, type FoundPerson } from "./actions";
+import { useFind } from "./use-find";
 import { Allergies, warnings } from "./allergies";
 import { Checkout } from "./checkout";
 
@@ -52,7 +53,7 @@ export function Desk({
 }) {
   const [service, setService] = React.useState(() => serviceNow(services, now));
   const [query, setQuery] = React.useState("");
-  const [households, setHouseholds] = React.useState<FoundHousehold[]>([]);
+  const { matches, error: searchError, searching, again } = useFind(query, service, church);
   const [open, setOpen] = React.useState<string | null>(null);
   const [chosen, setChosen] = React.useState<Record<string, string | null>>({});
   const [picked, setPicked] = React.useState<Record<string, boolean>>({});
@@ -67,31 +68,14 @@ export function Desk({
   const [seen, setSeen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
-  // Typing is the whole interaction, so the search runs as they type and the
-  // keystrokes settle before it does.
-  React.useEffect(() => {
-    if (query.trim().length < 2) {
-      setHouseholds([]);
-      return;
-    }
-    const timer = setTimeout(() => {
-      startTransition(async () => {
-        const result = await find(query, service, church);
-        setError(result.error);
-        setHouseholds(result.households ?? []);
-      });
-    }, 180);
-    return () => clearTimeout(timer);
-  }, [query, service, church]);
-
-  const start = (household: FoundHousehold) => {
-    setOpen(household.id);
+  const start = (match: FoundMatch) => {
+    setOpen(match.id);
     setDone([]);
     setPrinting([]);
     setCodes({});
     const rooms: Record<string, string | null> = {};
     const people: Record<string, boolean> = {};
-    for (const person of household.people) {
+    for (const person of match.people) {
       rooms[person.id] = person.roomId ?? person.suggestedRoomId;
       people[person.id] = !person.checkedIn;
     }
@@ -100,7 +84,7 @@ export function Desk({
     setSeen(false);
   };
 
-  const household = households.find((h) => h.id === open);
+  const household = matches.find((m) => m.id === open);
   const needsReading =
     household !== undefined &&
     warnings(household.people.filter((p) => picked[p.id] && !p.checkedIn)).length > 0;
@@ -136,8 +120,7 @@ export function Desk({
         );
       }
 
-      const refreshed = await find(query, service, church);
-      setHouseholds(refreshed.households ?? []);
+      await again();
     });
   };
 
@@ -162,8 +145,7 @@ export function Desk({
 
     startTransition(async () => {
       for (const personId of waiting) await undo(service, personId, church);
-      const refreshed = await find(query, service, church);
-      setHouseholds(refreshed.households ?? []);
+      await again();
       setDone([]);
     });
   };
@@ -174,8 +156,7 @@ export function Desk({
       setError(result.error);
       if (result.error) return;
       setCounts(result.counts ?? {});
-      const refreshed = await find(query, service, church);
-      setHouseholds(refreshed.households ?? []);
+      await again();
     });
   };
 
@@ -184,8 +165,10 @@ export function Desk({
   }
 
   return (
-    <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("checkin.title")}>{error}</Banner> : null}
+    <div className="flex flex-col gap-4" aria-busy={pending || searching}>
+      {error ?? searchError ? (
+        <Banner tone="danger" title={t("checkin.title")}>{error ?? searchError}</Banner>
+      ) : null}
 
       {services.length > 1 ? (
         <Select value={service} onValueChange={setService}>
@@ -201,14 +184,14 @@ export function Desk({
       ) : null}
 
       <Field label={t("checkin.search")}>
-        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm">
+        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm transition-colors has-[input:focus]:border-fg">
           <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
           <Input
             value={query}
             onChange={(e) => { setQuery(e.target.value); setOpen(null); }}
             autoComplete="off"
             autoFocus
-            className="border-0 bg-transparent shadow-none"
+            className="border-0 bg-transparent shadow-none outline-none focus-visible:outline-none"
           />
         </div>
       </Field>
@@ -253,7 +236,7 @@ export function Desk({
       ) : household ? (
         <Card className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-heading text-fg">{household.name}</span>
+            <span className="text-heading text-fg">{household.household ?? household.name}</span>
             <Button variant="ghost" onClick={() => setOpen(null)}>{t("action.cancel")}</Button>
           </div>
 
@@ -296,21 +279,24 @@ export function Desk({
             </Button>
           </div>
         </Card>
-      ) : households.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          {households.map((h) => (
-            <Card key={h.id} className="flex flex-wrap items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="truncate text-[length:var(--d-text-body)] text-fg">{h.name}</div>
-                <div className="truncate text-caption text-fg-muted">
-                  {h.people.map((p) => p.name).join(", ")}
-                </div>
-              </div>
-              <Button onClick={() => start(h)}>{t("checkin.open")}</Button>
-            </Card>
+      ) : matches.length > 0 ? (
+        <ul className="flex flex-col gap-2">
+          {matches.map((m) => (
+            <li key={m.id}>
+              <button
+                type="button"
+                onClick={() => start(m)}
+                className="flex w-full min-w-0 flex-col items-start gap-0.5 rounded-[var(--d-radius-control)] border border-line bg-surface px-4 py-3 text-left transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+              >
+                <span className="truncate text-[length:var(--d-text-body)] text-fg">{m.name}</span>
+                {m.household ? (
+                  <span className="truncate text-caption text-fg-muted">{m.household}</span>
+                ) : null}
+              </button>
+            </li>
           ))}
-        </div>
-      ) : query.trim().length >= 2 && !pending ? (
+        </ul>
+      ) : query.trim().length >= 2 && !searching ? (
         <EmptyState title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
       ) : null}
     </div>

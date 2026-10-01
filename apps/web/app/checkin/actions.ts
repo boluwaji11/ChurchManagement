@@ -1,7 +1,7 @@
 "use server";
 
 import {
-  withTenant, claimStation, lookupHouseholds, listRooms, suggestRoom,
+  withTenant, claimStation, lookupPeople, listRooms, suggestRoom,
   checkInFamily, visitsFor, undoCheckIn, roomCounts,
   checkOut, pickupList,
   type CheckinEntry, type OverrideKind, type PickupPerson,
@@ -58,19 +58,29 @@ export interface FoundPerson {
   medicalNote: string | null;
 }
 
-export interface FoundHousehold {
+export interface FoundMatch {
+  /** The person who matched, which is what the row is. */
   id: string;
+  /** Their full name, the way the church writes it down. */
   name: string;
+  /** The household they live in, for the second line. Null when they live alone. */
+  household: string | null;
+  /** Them and everybody they live with, children first. */
   people: FoundPerson[];
 }
 
 export interface FindResult {
-  households?: FoundHousehold[];
+  matches?: FoundMatch[];
   error?: string;
 }
 
 /**
- * R8.3. Finding a family from what a parent says at the desk.
+ * R8.3. Finding somebody from what was typed at the station.
+ *
+ * A directory lookup: the rows are people, best match first. The household
+ * comes with each row so that opening a person puts their family on screen
+ * without a second trip to the server, which is the difference between one
+ * press for three children and three.
  *
  * The room each child is sent to is worked out here rather than in the browser,
  * because the ages and the room configuration are both the church's and a
@@ -89,35 +99,37 @@ export async function find(
       const profile = await getChurch(tx, session.tenantId);
       const asOf = churchNow(profile?.timezone ?? "America/Chicago").date;
 
-      const [matches, rooms] = await Promise.all([
-        lookupHouseholds(tx, query, { asOf }),
+      const [matches, rooms, already] = await Promise.all([
+        lookupPeople(tx, query, { asOf }),
         listRooms(tx),
+        occurrenceId ? visitsFor(tx, occurrenceId) : Promise.resolve([]),
       ]);
 
-      const already = occurrenceId ? await visitsFor(tx, occurrenceId) : [];
+      const found = (person: (typeof matches)[number]["household"][number]): FoundPerson => {
+        const visit = already.find((v) => v.personId === person.id);
+        return {
+          id: person.id,
+          name: person.name,
+          lastName: person.lastName,
+          isChild: person.isChild,
+          ageMonths: person.ageMonths,
+          suggestedRoomId: person.isChild
+            ? (suggestRoom(rooms, person.ageMonths)?.id ?? null)
+            : null,
+          checkedIn: Boolean(visit) && visit?.checkedOutAt === null,
+          visitId: visit?.id ?? null,
+          roomId: visit?.roomId ?? null,
+          allergies: person.allergies,
+          medicalNote: person.medicalNote,
+        };
+      };
 
       return {
-        households: matches.map((match) => ({
-          id: match.householdId ?? match.people[0]!.id,
-          name: match.name,
-          people: match.people.map((person) => {
-            const visit = already.find((v) => v.personId === person.id);
-            return {
-              id: person.id,
-              name: person.name,
-              lastName: person.lastName,
-              isChild: person.isChild,
-              ageMonths: person.ageMonths,
-              suggestedRoomId: person.isChild
-                ? (suggestRoom(rooms, person.ageMonths)?.id ?? null)
-                : null,
-              checkedIn: Boolean(visit) && visit?.checkedOutAt === null,
-              visitId: visit?.id ?? null,
-              roomId: visit?.roomId ?? null,
-              allergies: person.allergies,
-              medicalNote: person.medicalNote,
-            };
-          }),
+        matches: matches.map((match) => ({
+          id: match.person.id,
+          name: `${match.person.name} ${match.person.lastName}`,
+          household: match.householdName,
+          people: match.household.map(found),
         })),
       };
     });

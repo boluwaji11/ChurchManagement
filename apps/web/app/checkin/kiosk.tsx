@@ -5,7 +5,8 @@ import { Check, Search } from "lucide-react";
 import { Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { serviceNow } from "@hearth/db/rules";
-import { find, checkIn, type FoundHousehold } from "./actions";
+import { checkIn, type FoundMatch } from "./actions";
+import { useFind } from "./use-find";
 import { Allergies, warnings } from "./allergies";
 import type { DeskRoom, DeskService } from "./desk";
 
@@ -38,7 +39,7 @@ export function Kiosk({
 }) {
   const [service, setService] = React.useState(() => serviceNow(services, now));
   const [query, setQuery] = React.useState("");
-  const [households, setHouseholds] = React.useState<FoundHousehold[]>([]);
+  const { matches, error: searchError, searching } = useFind(query, service, church);
   const [open, setOpen] = React.useState<string | null>(null);
   const [chosen, setChosen] = React.useState<Record<string, string | null>>({});
   const [picked, setPicked] = React.useState<Record<string, boolean>>({});
@@ -50,7 +51,6 @@ export function Kiosk({
 
   const reset = React.useCallback(() => {
     setQuery("");
-    setHouseholds([]);
     setOpen(null);
     setChosen({});
     setPicked({});
@@ -60,21 +60,6 @@ export function Kiosk({
     setError(undefined);
   }, []);
 
-  React.useEffect(() => {
-    if (query.trim().length < 2) {
-      setHouseholds([]);
-      return;
-    }
-    const timer = setTimeout(() => {
-      startTransition(async () => {
-        const result = await find(query, service, church);
-        setError(result.error);
-        setHouseholds(result.households ?? []);
-      });
-    }, 180);
-    return () => clearTimeout(timer);
-  }, [query, service, church]);
-
   // Back to the start on its own, so a family who walked away does not leave
   // their children's names on a screen in the lobby.
   React.useEffect(() => {
@@ -83,9 +68,9 @@ export function Kiosk({
     return () => clearTimeout(timer);
   }, [finished, reset]);
 
-  const household = households.find((h) => h.id === open);
+  const household = matches.find((m) => m.id === open);
 
-  const start = (match: FoundHousehold) => {
+  const start = (match: FoundMatch) => {
     setOpen(match.id);
     const roomFor: Record<string, string | null> = {};
     const who: Record<string, boolean> = {};
@@ -172,9 +157,9 @@ export function Kiosk({
   }
 
   return (
-    <div data-density="station" className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? (
-        <Card className="border-danger text-fg">{error}</Card>
+    <div data-density="station" className="flex flex-col gap-5" aria-busy={pending || searching}>
+      {error ?? searchError ? (
+        <Card className="border-danger text-fg">{error ?? searchError}</Card>
       ) : null}
 
       {services.length > 1 && !household ? (
@@ -193,7 +178,7 @@ export function Kiosk({
 
       {household ? (
         <Card className="flex flex-col gap-5">
-          <span className="text-display text-fg">{household.name}</span>
+          <span className="text-display text-fg">{household.household ?? household.name}</span>
 
           <ul className="flex flex-col gap-4">
             {household.people.map((person) => (
@@ -261,31 +246,33 @@ export function Kiosk({
       ) : (
         <>
           <Field label={t("checkin.search")}>
-            <div className="flex items-center gap-3 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-4 shadow-sm">
+            <div className="flex items-center gap-3 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-4 shadow-sm transition-colors has-[input:focus]:border-fg">
               <Search className="size-[var(--d-icon)] shrink-0 text-fg-muted" aria-hidden />
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 autoComplete="off"
                 autoFocus
-                className="border-0 bg-transparent shadow-none"
+                className="border-0 bg-transparent shadow-none outline-none focus-visible:outline-none"
               />
             </div>
           </Field>
 
-          {households.map((h) => (
-            <Card key={h.id} className="flex flex-wrap items-center justify-between gap-4">
+          {matches.map((m) => (
+            <Card key={m.id} className="flex flex-wrap items-center justify-between gap-4">
               <div className="min-w-0">
-                <div className="truncate text-title text-fg">{h.name}</div>
-                <div className="truncate text-[length:var(--d-text-body)] text-fg-muted">
-                  {h.people.map((p) => p.name).join(", ")}
-                </div>
+                <div className="truncate text-title text-fg">{m.name}</div>
+                {m.household ? (
+                  <div className="truncate text-[length:var(--d-text-body)] text-fg-muted">
+                    {m.household}
+                  </div>
+                ) : null}
               </div>
-              <Button onClick={() => start(h)}>{t("checkin.thisIsUs")}</Button>
+              <Button onClick={() => start(m)}>{t("checkin.thisIsUs")}</Button>
             </Card>
           ))}
 
-          {query.trim().length >= 2 && households.length === 0 && !pending ? (
+          {query.trim().length >= 2 && matches.length === 0 && !searching ? (
             <EmptyState title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
           ) : null}
         </>

@@ -3,13 +3,20 @@ import type { Tx } from "../client";
 import { ageInMonths } from "./rooms";
 
 /**
- * R8.3, R8.4. Finding a family at the station.
+ * R8.3, R8.4. Finding somebody at the station.
  *
  * The design case is 09:58 with forty families queuing, so this answers the two
- * ways a parent identifies themselves without thinking: the last four digits of
- * their phone number, and a name. Both return the whole household, because a
- * parent at the desk is checking in their children rather than themselves, and
- * asking for each child by name in turn is how a queue stops moving.
+ * ways a person identifies themselves without thinking: the last four digits of
+ * their phone number, and a name.
+ *
+ * What comes back is the directory: one row per person who matched, the way the
+ * typist thinks of them. A parent checking three children in is still one press,
+ * because each row carries the household behind it, so the desk opens a person
+ * and gets their family already on screen.
+ *
+ * Matching is on the start of a name rather than anywhere inside it. Typing
+ * "ann" at a desk means Annette, and surfacing Rosanna and Giovanni alongside
+ * her is a list somebody has to read instead of a list somebody can point at.
  */
 
 /** Old enough that the station offers a name badge rather than a room. */
@@ -33,11 +40,15 @@ export interface LookupPerson {
   medicalNote: string | null;
 }
 
-export interface HouseholdMatch {
+export interface PersonMatch {
+  /** The person who matched what was typed. */
+  person: LookupPerson;
   /** Null for somebody the church holds outside any household. */
   householdId: string | null;
-  name: string;
-  people: LookupPerson[];
+  /** The household's name, for the quiet second line under a row. */
+  householdName: string | null;
+  /** Everybody who lives with them, children first, including the match. */
+  household: LookupPerson[];
 }
 
 /** Digits only, so "(512) 555-0134" and "512-555-0134" answer the same question. */
@@ -46,134 +57,168 @@ const digits = (raw: string): string => raw.replace(/\D+/g, "");
 const called = (row: { firstName: string; preferredName: string | null }) =>
   row.preferredName?.trim() || row.firstName;
 
+/** LIKE treats these as wildcards, and a surname can contain either. */
+const escapeLike = (raw: string): string => raw.replace(/[\\%_]/g, (c) => `\\${c}`);
+
 /**
- * Households matching what somebody typed.
+ * People matching what somebody typed, best match first.
  *
  * Four or more digits searches phone numbers by their ending, which is what a
- * parent reads off the top of their head. Anything else searches names, of
- * people and of households, from the start of any word, so "mia och" finds the
- * Ochoas and "ochoa" does too.
+ * parent reads off the top of their head. Anything else searches the start of a
+ * first name, a preferred name, a surname, a full name as it is said, or a
+ * household name, in that order of confidence.
  */
-export async function lookupHouseholds(
+export async function lookupPeople(
   db: Tx,
   query: string,
   opts: { asOf: string; limit?: number },
-): Promise<HouseholdMatch[]> {
+): Promise<PersonMatch[]> {
   const text = query.trim();
   if (text.length < 2) return [];
 
-  const limit = opts.limit ?? 12;
+  const limit = opts.limit ?? 20;
   const numeric = digits(text);
-  const like = `%${text.toLowerCase()}%`;
+  const prefix = `${escapeLike(text.toLowerCase())}%`;
 
-  // Four or more digits is a phone number. Anything else is a name, of a person
-  // or of a household, matched anywhere inside it so "ochoa" and "mia" both
-  // find the same family.
-  const seeds =
+  // Four or more digits is a phone number, and the ending is what people
+  // remember, so that one is matched from the right.
+  const matched =
     numeric.length >= 4
       ? sql`
-          select distinct c.person_id as person_id
+          select distinct c.person_id as id, 0 as rank
             from contact_methods c
            where c.kind = 'phone'
              and regexp_replace(c.value, '[^0-9]', '', 'g') like ${"%" + numeric}`
       : sql`
-          select p.id as person_id
+          select p.id as id,
+                 min(case
+                   when lower(coalesce(nullif(p.preferred_name, ''), p.first_name)) like ${prefix} then 0
+                   when lower(p.last_name) like ${prefix} then 1
+                   when lower(p.first_name || ' ' || p.last_name) like ${prefix} then 2
+                   else 3
+                 end) as rank
             from people p
             left join household_memberships hm
               on hm.person_id = p.id and hm.ended_on is null
             left join households h on h.id = hm.household_id
            where p.archived_at is null
              and (
-               lower(p.first_name) like ${like}
-               or lower(coalesce(p.preferred_name, '')) like ${like}
-               or lower(p.last_name) like ${like}
-               or lower(p.first_name || ' ' || p.last_name) like ${like}
-               or lower(coalesce(h.name, '')) like ${like}
-             )`;
+               lower(p.first_name) like ${prefix}
+               or lower(coalesce(p.preferred_name, '')) like ${prefix}
+               or lower(p.last_name) like ${prefix}
+               or lower(p.first_name || ' ' || p.last_name) like ${prefix}
+               or lower(coalesce(h.name, '')) like ${prefix}
+             )
+           group by p.id`;
 
-  // Everybody who lives with whoever matched. A parent typing their own number
-  // expects their children, and the children are what the station is for.
+  // One pass: the people who matched, then everybody who lives with them. The
+  // second half is what makes checking a family in a single press, and it costs
+  // nothing extra at the desk.
   const rows = await db.execute(sql`
-    with seed as (${seeds}),
-    household_ids as (
-      select distinct hm.household_id as household_id
-        from household_memberships hm
-        join seed on seed.person_id = hm.person_id
-       where hm.ended_on is null
+    with matched as (${matched}),
+    seed as (
+      select m.id as id, m.rank as rank,
+             hm.household_id as household_id, h.name as household_name,
+             p.last_name as last_name, p.first_name as first_name
+        from matched m
+        join people p on p.id = m.id and p.archived_at is null
+        left join household_memberships hm
+          on hm.person_id = m.id and hm.ended_on is null
+        left join households h on h.id = hm.household_id
+       order by m.rank, p.last_name, p.first_name
+       limit ${limit}
     )
-    select p.id, p.first_name, p.last_name, p.preferred_name,
+    select s.id as seed_id, s.rank as rank,
+           s.household_id as household_id, s.household_name as household_name,
+           p.id as person_id, p.first_name, p.last_name, p.preferred_name,
            p.date_of_birth::text as date_of_birth,
-           p.allergies, p.medical_note,
-           hm.household_id, h.name as household_name, hm.role
-      from people p
-      left join household_memberships hm
-        on hm.person_id = p.id and hm.ended_on is null
-      left join households h on h.id = hm.household_id
-     where p.archived_at is null
-       and (
-         hm.household_id in (select household_id from household_ids)
-         or (hm.household_id is null and p.id in (select person_id from seed))
-       )
-     order by h.name nulls last, p.last_name, p.first_name
+           p.allergies, p.medical_note, coalesce(hm.role, 'other') as role
+      from seed s
+      join household_memberships hm
+        on hm.household_id = s.household_id and hm.ended_on is null
+      join people p on p.id = hm.person_id and p.archived_at is null
+    union all
+    select s.id, s.rank, null::uuid, null::text,
+           p.id, p.first_name, p.last_name, p.preferred_name,
+           p.date_of_birth::text, p.allergies, p.medical_note, 'other'
+      from seed s
+      join people p on p.id = s.id
+     where s.household_id is null
   `);
 
-  return group(rows as unknown as Record<string, unknown>[], opts.asOf, limit);
+  return assemble(rows as unknown as Record<string, unknown>[], opts.asOf);
 }
 
-function group(
-  rows: Record<string, unknown>[],
-  asOf: string,
-  limit: number,
-): HouseholdMatch[] {
-  const out = new Map<string, HouseholdMatch>();
+function person(row: Record<string, unknown>, asOf: string): LookupPerson {
+  const firstName = String(row["first_name"]);
+  const preferredName = (row["preferred_name"] as string | null) ?? null;
+  const dateOfBirth = (row["date_of_birth"] as string | null) ?? null;
+  const ageMonths = dateOfBirth ? ageInMonths(dateOfBirth, asOf) : null;
+  const householdRole = String(row["role"] ?? "other");
+
+  return {
+    id: String(row["person_id"]),
+    firstName,
+    lastName: String(row["last_name"]),
+    preferredName,
+    name: called({ firstName, preferredName }),
+    dateOfBirth,
+    ageMonths,
+    householdRole,
+    isChild:
+      ageMonths !== null ? ageMonths < CHILD_UNDER_YEARS * 12 : householdRole === "child",
+    allergies: (row["allergies"] as string | null) ?? null,
+    medicalNote: (row["medical_note"] as string | null) ?? null,
+  };
+}
+
+function assemble(rows: Record<string, unknown>[], asOf: string): PersonMatch[] {
+  const bySeed = new Map<
+    string,
+    { rank: number; householdId: string | null; householdName: string | null; people: LookupPerson[] }
+  >();
 
   for (const row of rows) {
-    const householdId = (row["household_id"] as string | null) ?? null;
-    const person: LookupPerson = {
-      id: String(row["id"]),
-      firstName: String(row["first_name"]),
-      lastName: String(row["last_name"]),
-      preferredName: (row["preferred_name"] as string | null) ?? null,
-      name: called({
-        firstName: String(row["first_name"]),
-        preferredName: (row["preferred_name"] as string | null) ?? null,
-      }),
-      dateOfBirth: (row["date_of_birth"] as string | null) ?? null,
-      ageMonths: null,
-      householdRole: String(row["role"] ?? "other"),
-      isChild: false,
-      allergies: (row["allergies"] as string | null) ?? null,
-      medicalNote: (row["medical_note"] as string | null) ?? null,
+    const seedId = String(row["seed_id"]);
+    const entry = bySeed.get(seedId) ?? {
+      rank: Number(row["rank"] ?? 0),
+      householdId: (row["household_id"] as string | null) ?? null,
+      householdName: (row["household_name"] as string | null) ?? null,
+      people: [],
     };
-
-    person.ageMonths = person.dateOfBirth ? ageInMonths(person.dateOfBirth, asOf) : null;
-    person.isChild =
-      person.ageMonths !== null
-        ? person.ageMonths < CHILD_UNDER_YEARS * 12
-        : person.householdRole === "child";
-
-    const key = householdId ?? `person:${person.id}`;
-    const existing = out.get(key);
-    if (existing) {
-      existing.people.push(person);
-      continue;
-    }
-    out.set(key, {
-      householdId,
-      name: (row["household_name"] as string | null) ?? `${person.lastName}, ${person.name}`,
-      people: [person],
-    });
+    entry.people.push(person(row, asOf));
+    bySeed.set(seedId, entry);
   }
 
-  // Children first inside a household, because they are what the queue is for.
-  for (const match of out.values()) {
-    match.people.sort(
+  const out: PersonMatch[] = [];
+
+  for (const [seedId, entry] of bySeed) {
+    // Children first inside a household, because they are what the queue is for.
+    entry.people.sort(
       (a, b) =>
         Number(b.isChild) - Number(a.isChild) ||
         (a.ageMonths ?? Number.MAX_SAFE_INTEGER) - (b.ageMonths ?? Number.MAX_SAFE_INTEGER) ||
         a.name.localeCompare(b.name),
     );
+    const matchedPerson = entry.people.find((p) => p.id === seedId);
+    if (!matchedPerson) continue;
+    out.push({
+      person: matchedPerson,
+      householdId: entry.householdId,
+      householdName: entry.householdName,
+      household: entry.people,
+    });
   }
 
-  return [...out.values()].slice(0, limit);
+  // The union loses the seed ordering, so confidence is applied here: the name
+  // somebody typed the start of, then alphabetical.
+  return out.sort((a, b) => {
+    const seedA = bySeed.get(a.person.id)!;
+    const seedB = bySeed.get(b.person.id)!;
+    return (
+      seedA.rank - seedB.rank ||
+      a.person.lastName.localeCompare(b.person.lastName) ||
+      a.person.name.localeCompare(b.person.name)
+    );
+  });
 }
