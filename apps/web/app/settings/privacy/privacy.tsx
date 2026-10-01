@@ -47,6 +47,7 @@ export function Privacy({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [listed, setListed] = React.useState(values.listed);
+  const [saved, setSaved] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
   return (
@@ -55,6 +56,7 @@ export function Privacy({
       <Separator className="my-4" />
 
       {error ? <Banner tone="danger" title={t("privacy.failed")} className="mb-4">{error}</Banner> : null}
+      {saved && !error ? <Banner tone="success" title={t("church.saved")} className="mb-4" /> : null}
 
       <form
         noValidate
@@ -63,6 +65,7 @@ export function Privacy({
           startTransition(async () => {
             const result = await savePrivacy(data);
             setError(result.error);
+            setSaved(!result.error);
             if (!result.error) router.refresh();
           });
         }}

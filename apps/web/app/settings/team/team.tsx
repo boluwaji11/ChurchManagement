@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import {
   Badge, Banner, Button, Card, CardTitle, Field, Input, Separator,
-  Dialog, DialogTrigger, DialogContent,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -50,23 +50,97 @@ export function Team({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
+  const [message, setMessage] = React.useState<string>();
+  const [changing, setChanging] = React.useState<{ member: Member; role: string } | null>(null);
+  const [removing, setRemoving] = React.useState<Member | null>(null);
   const [pending, startTransition] = React.useTransition();
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  const run = (work: () => Promise<{ error?: string }>, said?: string) =>
     startTransition(async () => {
       const result = await work();
       setError(result.error);
+      setMessage(result.error ? undefined : said);
       if (!result.error) router.refresh();
     });
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("team.failed")}>{error}</Banner> : null}
+      {message ? <Banner tone="success" title={message} /> : null}
+
+      {/* R1.4. Both of these change what somebody may do, and neither is
+          obvious from the row afterwards, so both are asked and both answer. */}
+      <Dialog open={changing !== null} onOpenChange={(on) => setChanging(on ? changing : null)}>
+        <DialogContent
+          alert
+          title={
+            changing
+              ? t("team.roleTitle", {
+                  name: changing.member.name ?? changing.member.email,
+                  role: roleName(changing.role),
+                })
+              : ""
+          }
+        >
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("team.roleBody")}</p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setChanging(null)}>
+              {t("team.roleKeep")}
+            </Button>
+            <Button
+              disabled={pending}
+              onClick={() => {
+                const next = changing;
+                setChanging(null);
+                if (next) {
+                  run(
+                    () => changeRole(next.member.userId, next.role as never, church),
+                    t("team.roleChanged"),
+                  );
+                }
+              }}
+            >
+              {t("action.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={removing !== null} onOpenChange={(on) => setRemoving(on ? removing : null)}>
+        <DialogContent
+          alert
+          title={
+            removing
+              ? t("team.removeTitle", { name: removing.name ?? removing.email })
+              : ""
+          }
+        >
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("team.removeBody")}</p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setRemoving(null)}>
+              {t("team.removeKeep")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                const who = removing;
+                setRemoving(null);
+                if (who) {
+                  run(() => removeAccess(who.userId, church), t("team.removed"));
+                }
+              }}
+            >
+              <X /> {t("team.remove")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle>{t("team.title")}</CardTitle>
-          <InviteDialog church={church} pending={pending} onDone={() => router.refresh()} onError={setError} />
+          <InviteDialog church={church} pending={pending} onDone={() => router.refresh()} />
         </div>
         <Separator className="my-4" />
 
@@ -88,31 +162,25 @@ export function Team({
                   {member.isSelf ? (
                     <Badge tone="neutral">{roleName(member.role)}</Badge>
                   ) : (
-                    <Select
-                      value={member.role}
-                      onValueChange={(role) =>
-                        run(() => changeRole(member.userId, role as never, church))
-                      }
-                    >
-                      <SelectTrigger aria-label={t("team.role")} className="min-w-44">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((role) => (
-                          <SelectItem key={role} value={role}>{roleName(role)}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                    <>
+                      {/* R1.4. Promoting somebody to owner, or demoting the
+                          person who set the church up, was one stray click on
+                          a dropdown. It is asked for now. */}
+                      <Select value={member.role} onValueChange={(role) => setChanging({ member, role })}>
+                        <SelectTrigger aria-label={t("team.role")} className="min-w-44">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLES.map((role) => (
+                            <SelectItem key={role} value={role}>{roleName(role)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  {member.isSelf ? null : (
-                    <Button
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() => run(() => removeAccess(member.userId, church))}
-                    >
-                      <X /> {t("team.remove")}
-                    </Button>
+                      <Button variant="ghost" disabled={pending} onClick={() => setRemoving(member)}>
+                        <X /> {t("team.remove")}
+                      </Button>
+                    </>
                   )}
                 </span>
               </div>
@@ -160,15 +228,14 @@ function InviteDialog({
   church,
   pending,
   onDone,
-  onError,
 }: {
   church: string;
   pending: boolean;
   onDone: () => void;
-  onError: (error?: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [role, setRole] = React.useState("staff");
+  const [failed, setFailed] = React.useState<string>();
   const [saving, startTransition] = React.useTransition();
 
   return (
@@ -184,7 +251,7 @@ function InviteDialog({
             data.set("role", role);
             startTransition(async () => {
               const result = await invite(data);
-              onError(result.error);
+              setFailed(result.error);
               if (!result.error) {
                 setOpen(false);
                 onDone();
@@ -193,6 +260,9 @@ function InviteDialog({
           }}
           className="flex flex-col gap-4"
         >
+          {/* Inside the box. A banner at the top of the page is behind the
+              dialog that is still open, which is nothing at all. */}
+          {failed ? <Banner tone="danger" title={t("team.failed")}>{failed}</Banner> : null}
           <Field label={t("team.email")}>
             <Input name="email" type="email" autoComplete="off" autoFocus />
           </Field>
