@@ -95,7 +95,7 @@ export function ChurchForm({
                   onChange={setRegion}
                   placeholder={t("church.chooseRegion")}
                   emptyLabel={t("church.noRegion")}
-                  clearLabel={t("action.cancel")}
+                  clearLabel={t("date.clear")}
                   disabled={!canEdit}
                 />
               ) : (
@@ -122,7 +122,7 @@ export function ChurchForm({
                 }}
                 placeholder={t("church.chooseCountry")}
                 emptyLabel={t("church.noCountry")}
-                clearLabel={t("action.cancel")}
+                clearLabel={t("date.clear")}
                 disabled={!canEdit}
               />
             </Field>
@@ -140,7 +140,7 @@ export function ChurchForm({
                 onChange={setTimezone}
                 placeholder={t("church.chooseTimezone")}
                 emptyLabel={t("church.noTimezone")}
-                clearLabel={t("action.cancel")}
+                clearLabel={t("date.clear")}
                 disabled={!canEdit}
               />
             </Field>

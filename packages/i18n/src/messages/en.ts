@@ -776,6 +776,7 @@ export const en = {
   "pipelines.description": "What it is for",
   "pipelines.owner": "Lands on",
   "pipelines.nobody": "Nobody",
+  "pipelines.stepAfter": "{name}, day {count}",
   "pipelines.steps": "Steps",
   "pipelines.step": "Step",
   "pipelines.days": "Days",

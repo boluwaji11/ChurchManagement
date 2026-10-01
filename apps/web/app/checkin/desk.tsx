@@ -381,7 +381,7 @@ export function Desk({
               <button
                 type="button"
                 onClick={() => start(m)}
-                className="flex w-full min-w-0 flex-col items-start gap-0.5 rounded-[var(--d-radius-control)] border border-line bg-surface px-4 py-3 text-left transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                className="flex w-full min-w-0 flex-col items-start gap-0.5 rounded-[var(--d-radius-control)] border border-line bg-surface px-4 py-3 text-left transition-colors hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
               >
                 <span className="truncate text-[length:var(--d-text-body)] text-fg">{m.name}</span>
                 {m.household ? (

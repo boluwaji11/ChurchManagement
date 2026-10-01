@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus } from "lucide-react";
+import { ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus } from "lucide-react";
 import {
   Avatar, Badge, Button, Card, Input, Checkbox, Banner, HueDot,
   Table, Thead, Th, Tr, Td, EmptyState,
@@ -229,7 +229,6 @@ export function Directory({
               <SortHeader field="status" label={t("people.column.status")} sort={sort} dir={dir} setParam={setParam} />
               <Th>{t("people.column.email")}</Th>
               <Th>{t("people.column.phone")}</Th>
-              <Th />
             </Tr>
           </Thead>
           <tbody>
@@ -262,16 +261,26 @@ export function Directory({
                     {lifecycleLabel(p.lifecycleStatus)}
                   </Badge>
                 </Td>
-                <Td className="text-fg-muted">{p.primaryEmail ?? t("people.none")}</Td>
-                <Td data-numeric className="text-fg-muted">{p.primaryPhone ?? t("people.none")}</Td>
-                <Td>
-                  <Link
-                    href={`/people/${p.id}?church=${church}`}
-                    aria-label={t("people.open", { name: p.displayName })}
-                    className="inline-flex text-fg-subtle hover:text-fg"
-                  >
-                    <ArrowRight className="size-4" />
-                  </Link>
+                <Td className="text-fg-muted">
+                  {p.primaryEmail ? (
+                    <a href={`mailto:${p.primaryEmail}`} className="underline-offset-4 hover:underline">
+                      {p.primaryEmail}
+                    </a>
+                  ) : (
+                    t("people.none")
+                  )}
+                </Td>
+                <Td data-numeric className="text-fg-muted">
+                  {p.primaryPhone ? (
+                    <a
+                      href={`tel:${p.primaryPhone.replace(/[^+\d]/g, "")}`}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {p.primaryPhone}
+                    </a>
+                  ) : (
+                    t("people.none")
+                  )}
                 </Td>
               </Tr>
             ))}
@@ -602,7 +611,9 @@ function Picker({
 }) {
   const [key, setKey] = React.useState(0);
   return (
-    <Select
+    <div className="flex flex-col gap-1.5">
+      <span className="text-label text-fg">{label}</span>
+      <Select
       key={key}
       value=""
       onValueChange={(v) => {
@@ -610,7 +621,7 @@ function Picker({
         setKey((k) => k + 1);
       }}
     >
-      <SelectTrigger className="w-auto min-w-40">
+      <SelectTrigger aria-label={label} className="w-auto min-w-40">
         <SelectValue placeholder={label} />
       </SelectTrigger>
       <SelectContent>
@@ -623,6 +634,7 @@ function Picker({
           </SelectItem>
         ))}
       </SelectContent>
-    </Select>
+      </Select>
+    </div>
   );
 }

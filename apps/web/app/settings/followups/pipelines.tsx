@@ -74,7 +74,7 @@ export function Pipelines({
               <HueTag hue={row.hue as Hue}>{row.name}</HueTag>
               {row.archived ? <Badge tone="neutral">{t("pipelines.off")}</Badge> : null}
               <span className="text-caption text-fg-muted">
-                {row.steps.map((step) => `${step.name} (${step.dueDays}d)`).join(", ")}
+                {row.steps.map((step) => t("pipelines.stepAfter", { name: step.name, count: String(step.dueDays) })).join(", ")}
               </span>
             </span>
 

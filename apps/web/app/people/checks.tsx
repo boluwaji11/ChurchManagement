@@ -61,7 +61,7 @@ export function Checks({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
-  const [pending] = React.useTransition();
+  const pending = false;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>

@@ -55,11 +55,10 @@ export function MonthBar({
 
         <Link
           href={`/services?church=${church}&view=${view}`}
-          aria-label={t("services.month.today")}
           aria-current={isThisMonth ? "page" : undefined}
           className={cn(step, isThisMonth && "text-primary")}
         >
-          <span className="size-1.5 rounded-full bg-current" aria-hidden />
+          {t("services.month.today")}
         </Link>
 
         <Link href={href(next)} aria-label={t("services.month.next")} className={step}>
