@@ -10,6 +10,7 @@ import {
   type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
+import { TimeField } from "@/components/time-field";
 import { create, save, archive } from "./actions";
 import { Roster, type RosterEntry } from "./roster";
 
@@ -306,7 +307,7 @@ function GroupDialog({
             </div>
 
             <Field label={t("groups.time")}>
-              <Input name="startsAt" type="time" defaultValue={group?.startsAt ?? ""} />
+              <TimeField name="startsAt" defaultValue={group?.startsAt ?? ""} />
             </Field>
 
             <div className="flex flex-col gap-1.5">

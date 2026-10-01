@@ -6,6 +6,7 @@ import {
   Button, Dialog, DialogTrigger, DialogContent, Field, Input, Textarea, Checkbox,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { DateField } from "@/components/date-field";
 import { report } from "./actions";
 
 /**
@@ -81,7 +82,7 @@ export function IncidentDialog({
           ) : null}
 
           <Field label={t("incident.date")}>
-            <Input name="occurredOn" type="date" defaultValue={today} max={today} />
+            <DateField name="occurredOn" defaultValue={today} max={today} />
           </Field>
 
           <Field label={t("incident.description")}>
