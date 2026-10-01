@@ -39,7 +39,12 @@ export default async function FindGroupsPage({
 
         <Finder
           church={session.tenantSlug}
-          types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
+          types={types.map((type) => ({
+            id: type.id,
+            name: type.name,
+            description: type.description,
+            hue: type.hue,
+          }))}
           requests={requests.map((request) => ({
             id: request.id,
             groupName: request.groupName,
@@ -55,7 +60,12 @@ export default async function FindGroupsPage({
             typeHue: group.typeHue,
             dayOfWeek: group.dayOfWeek,
             startsAt: group.startsAt,
+            endsAt: group.endsAt,
+            frequency: group.frequency,
             location: group.location,
+            forWhom: group.forWhom,
+            online: group.online,
+            childrenWelcome: group.childrenWelcome,
             memberCount: group.memberCount,
             openToJoin: group.openToJoin,
             full: group.full,

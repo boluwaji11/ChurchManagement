@@ -205,6 +205,14 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 | HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | Resolved |
 | HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | Resolved |
 | HRT-87 | Messaging a group's roster through the church's own provider | R9.8 | New |
+| HRT-88 | A picture on a group, with the storage quota behind it | R9.2, R5.3 | New |
+| HRT-89 | A public group page a church can link to without signing in | R9.5 | New |
+
+Two things a church's existing finder does that ours does not yet. **HRT-88:** every group has a
+picture, which is most of why a list of forty is readable at a glance. It needs the storage quota
+and image transcoding behind it rather than a URL field. **HRT-89:** the finder is behind sign-in,
+and a church links to its groups page from its website, so somebody who has never been needs to see
+it. Both are real, and both are after the rest of F9.
 
 ### F5, F3, F22
 

@@ -35,9 +35,13 @@ export interface FoundGroup {
   typeHue: string | null;
   dayOfWeek: number | null;
   startsAt: string | null;
+  endsAt: string | null;
   frequency: string | null;
   location: string | null;
   capacity: number | null;
+  forWhom: string | null;
+  online: boolean;
+  childrenWelcome: boolean;
   memberCount: number;
   /** R9.5. Whether the finder offers to ask. */
   openToJoin: boolean;
@@ -79,6 +83,11 @@ export async function findGroups(
     dayOfWeek?: number;
     /** Matched anywhere in the location, since people type "hall" not "The Hall". */
     location?: string;
+    /** R9.5. Free text over the name and what the group says about itself. */
+    q?: string;
+    forWhom?: string;
+    online?: boolean;
+    childrenWelcome?: boolean;
   } = {},
 ): Promise<FoundGroup[]> {
   const wheres = [
@@ -88,6 +97,19 @@ export async function findGroups(
     opts.dayOfWeek !== undefined ? eq(groups.dayOfWeek, opts.dayOfWeek) : undefined,
     opts.location
       ? sql`lower(coalesce(${groups.location}, '')) like ${`%${opts.location.toLowerCase()}%`}`
+      : undefined,
+    opts.forWhom ? eq(groups.forWhom, opts.forWhom) : undefined,
+    opts.online !== undefined ? eq(groups.online, opts.online) : undefined,
+    opts.childrenWelcome !== undefined
+      ? eq(groups.childrenWelcome, opts.childrenWelcome)
+      : undefined,
+    // One box over the name and the description, because somebody looking for a
+    // group types "men" or "prayer" rather than opening a dropdown.
+    opts.q?.trim()
+      ? sql`(
+          lower(${groups.name}) like ${`%${opts.q.trim().toLowerCase()}%`}
+          or lower(coalesce(${groups.description}, '')) like ${`%${opts.q.trim().toLowerCase()}%`}
+        )`
       : undefined,
   ].filter(Boolean);
 
@@ -99,9 +121,13 @@ export async function findGroups(
       typeId: groups.typeId,
       dayOfWeek: groups.dayOfWeek,
       startsAt: groups.startsAt,
+      endsAt: groups.endsAt,
       frequency: groups.frequency,
       location: groups.location,
       capacity: groups.capacity,
+      forWhom: groups.forWhom,
+      online: groups.online,
+      childrenWelcome: groups.childrenWelcome,
       openToJoin: groups.openToJoin,
       typeName: groupTypes.name,
       typeHue: groupTypes.hue,
@@ -146,9 +172,13 @@ export async function findGroups(
       typeHue: row.typeHue,
       dayOfWeek: row.dayOfWeek,
       startsAt: row.startsAt,
+      endsAt: row.endsAt,
       frequency: row.frequency,
       location: row.location,
       capacity: row.capacity,
+      forWhom: row.forWhom,
+      online: row.online,
+      childrenWelcome: row.childrenWelcome,
       memberCount,
       openToJoin: row.openToJoin,
       full: row.capacity !== null && memberCount >= row.capacity,

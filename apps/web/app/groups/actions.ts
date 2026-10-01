@@ -39,9 +39,13 @@ function read(data: FormData) {
     typeId: optional(data, "typeId"),
     dayOfWeek: field(data, "dayOfWeek") === "" ? null : Number(field(data, "dayOfWeek")),
     startsAt: optional(data, "startsAt"),
+    endsAt: optional(data, "endsAt"),
     frequency: optional(data, "frequency"),
     location: optional(data, "location"),
     capacity: number(data, "capacity"),
+    forWhom: optional(data, "forWhom"),
+    online: data.get("online") === "on",
+    childrenWelcome: data.get("childrenWelcome") === "on",
     openToJoin: data.get("openToJoin") === "on",
     listed: data.get("listed") === "on",
   };

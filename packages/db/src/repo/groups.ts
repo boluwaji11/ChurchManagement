@@ -32,6 +32,18 @@ export type GroupRole = (typeof GROUP_ROLES)[number];
 export const GROUP_FREQUENCIES = ["weekly", "fortnightly", "monthly"] as const;
 export type GroupFrequency = (typeof GROUP_FREQUENCIES)[number];
 
+/**
+ * R9.5. Who a group is for, as a church writes it on the poster.
+ *
+ * One field rather than a gender and an age range crossed together. A church
+ * says "Young adults" or "Men"; it does not fill in two dropdowns to say it,
+ * and a finder that asks somebody to is a finder people give up on.
+ */
+export const GROUP_AUDIENCES = [
+  "anyone", "men", "women", "young_adults", "students", "parents", "seniors",
+] as const;
+export type GroupAudience = (typeof GROUP_AUDIENCES)[number];
+
 /** R9.1. What a church starts with, and may rename or add to. */
 export const DEFAULT_GROUP_TYPES = [
   { name: "Small group", hue: "sky" },
@@ -44,6 +56,7 @@ export const DEFAULT_GROUP_TYPES = [
 export interface GroupType {
   id: string;
   name: string;
+  description: string | null;
   hue: string;
   position: number;
   archivedAt: Date | null;
@@ -58,9 +71,13 @@ export interface Group {
   typeHue: string | null;
   dayOfWeek: number | null;
   startsAt: string | null;
+  endsAt: string | null;
   frequency: string | null;
   location: string | null;
   capacity: number | null;
+  forWhom: string | null;
+  online: boolean;
+  childrenWelcome: boolean;
   openToJoin: boolean;
   listed: boolean;
   archivedAt: Date | null;
@@ -76,9 +93,13 @@ export interface GroupInput {
   typeId?: string | null;
   dayOfWeek?: number | null;
   startsAt?: string | null;
+  endsAt?: string | null;
   frequency?: string | null;
   location?: string | null;
   capacity?: number | null;
+  forWhom?: string | null;
+  online?: boolean;
+  childrenWelcome?: boolean;
   openToJoin?: boolean;
   listed?: boolean;
 }
@@ -114,6 +135,7 @@ export async function listGroupTypes(
     .select({
       id: groupTypes.id,
       name: groupTypes.name,
+      description: groupTypes.description,
       hue: groupTypes.hue,
       position: groupTypes.position,
       archivedAt: groupTypes.archivedAt,
@@ -127,7 +149,7 @@ export async function listGroupTypes(
 export async function addGroupType(
   db: Tx,
   actor: WriteActor,
-  input: { name: string; hue?: string },
+  input: { name: string; hue?: string; description?: string | null },
 ): Promise<GroupType> {
   if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
 
@@ -152,12 +174,14 @@ export async function addGroupType(
     .values({
       tenantId: actor.tenantId,
       name,
+      description: input.description?.trim() || null,
       hue: input.hue ?? "sky",
       position: (last?.position ?? -1) + 1,
     })
     .returning({
       id: groupTypes.id,
       name: groupTypes.name,
+      description: groupTypes.description,
       hue: groupTypes.hue,
       position: groupTypes.position,
       archivedAt: groupTypes.archivedAt,
@@ -189,9 +213,11 @@ function check(input: GroupInput): {
   description: string | null;
   dayOfWeek: number | null;
   startsAt: string | null;
+  endsAt: string | null;
   frequency: string | null;
   location: string | null;
   capacity: number | null;
+  forWhom: string | null;
 } {
   const name = clean(input.name);
   if (!name) throw new InvalidInputError("group.error.name");
@@ -204,6 +230,17 @@ function check(input: GroupInput): {
 
   const startsAt = text(input.startsAt);
   if (startsAt !== null && !TIME.test(startsAt)) throw new InvalidInputError("group.error.time");
+
+  const endsAt = text(input.endsAt);
+  if (endsAt !== null && !TIME.test(endsAt)) throw new InvalidInputError("group.error.time");
+  if (startsAt !== null && endsAt !== null && endsAt <= startsAt) {
+    throw new InvalidInputError("group.error.ends");
+  }
+
+  const forWhom = text(input.forWhom);
+  if (forWhom !== null && !(GROUP_AUDIENCES as readonly string[]).includes(forWhom)) {
+    throw new InvalidInputError("group.error.audience");
+  }
 
   const frequency = text(input.frequency);
   if (frequency !== null && !(GROUP_FREQUENCIES as readonly string[]).includes(frequency)) {
@@ -220,9 +257,11 @@ function check(input: GroupInput): {
     description: text(input.description),
     dayOfWeek: day,
     startsAt,
+    endsAt,
     frequency,
     location: text(input.location),
     capacity,
+    forWhom,
   };
 }
 
@@ -272,9 +311,13 @@ const COLUMNS = {
   typeId: groups.typeId,
   dayOfWeek: groups.dayOfWeek,
   startsAt: groups.startsAt,
+  endsAt: groups.endsAt,
   frequency: groups.frequency,
   location: groups.location,
   capacity: groups.capacity,
+  forWhom: groups.forWhom,
+  online: groups.online,
+  childrenWelcome: groups.childrenWelcome,
   openToJoin: groups.openToJoin,
   listed: groups.listed,
   archivedAt: groups.archivedAt,
@@ -340,6 +383,8 @@ export async function createGroup(db: Tx, actor: WriteActor, input: GroupInput):
     .values({
       tenantId: actor.tenantId,
       typeId: input.typeId ?? null,
+      online: input.online ?? false,
+      childrenWelcome: input.childrenWelcome ?? false,
       openToJoin: input.openToJoin ?? true,
       listed: input.listed ?? true,
       ...values,
@@ -371,6 +416,8 @@ export async function updateGroup(
     .update(groups)
     .set({
       typeId: input.typeId ?? null,
+      online: input.online ?? false,
+      childrenWelcome: input.childrenWelcome ?? false,
       openToJoin: input.openToJoin ?? true,
       listed: input.listed ?? true,
       ...values,
@@ -577,4 +624,18 @@ export async function groupsLedBy(db: Tx, personId: string): Promise<string[]> {
       ),
     );
   return rows.map((r) => r.groupId);
+}
+
+/** R9.1. A type's own words, shown at the top of its section in the finder. */
+export async function describeGroupType(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  description: string | null,
+): Promise<void> {
+  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  await db
+    .update(groupTypes)
+    .set({ description: description?.trim() || null, updatedAt: new Date() })
+    .where(eq(groupTypes.id, id));
 }

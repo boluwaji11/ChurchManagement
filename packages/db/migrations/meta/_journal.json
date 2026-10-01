@@ -197,6 +197,20 @@
       "when": 1790822582270,
       "tag": "0027_slow_mercury",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1790822870019,
+      "tag": "0028_freezing_hercules",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1790823126351,
+      "tag": "0029_icy_the_hood",
+      "breakpoints": true
     }
   ]
 }

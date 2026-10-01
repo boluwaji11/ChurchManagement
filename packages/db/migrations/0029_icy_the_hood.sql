@@ -1,0 +1,1 @@
+ALTER TABLE "group_types" ADD COLUMN "description" text;

@@ -25,6 +25,12 @@ export const groupTypes = pgTable(
     id: pk(),
     tenantId: tenantId(),
     name: text("name").notNull(),
+    /**
+     * R9.5. What this kind of group is, in the church's words, shown at the top
+     * of its section in the finder. This is where a church says "Life Groups
+     * exist to help you grow" and when the next term starts.
+     */
+    description: text("description"),
     hue: text("hue").notNull().default("sky"),
     position: integer("position").notNull().default(0),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
@@ -63,12 +69,25 @@ export const groups = pgTable(
     dayOfWeek: integer("day_of_week"),
     /** 24-hour HH:MM, so it sorts and a timezone never gets involved. */
     startsAt: text("starts_at"),
+    /** When it finishes, because "7:15 to 8:45" is what people need to know. */
+    endsAt: text("ends_at"),
     /** "weekly", "fortnightly", "monthly", or null where it is irregular. */
     frequency: text("frequency"),
     /** Where it meets, as somebody would tell a newcomer. */
     location: text("location"),
     /** How many it holds. Null means the church has not said. */
     capacity: integer("capacity"),
+    /**
+     * R9.5. Who the group is for, as a church says it: anyone, men, women,
+     * young adults, students, seniors, parents. One field rather than a gender
+     * and an age range, because a church writes "Young adults" on the poster
+     * and nobody fills in two dropdowns to say it.
+     */
+    forWhom: text("for_whom"),
+    /** R9.5. It meets online, so where it is does not narrow it. */
+    online: boolean("online").notNull().default(false),
+    /** R9.5. The question every parent asks before they ask anything else. */
+    childrenWelcome: boolean("children_welcome").notNull().default(false),
     /** R9.5. Whether the finder offers a join request. */
     openToJoin: boolean("open_to_join").notNull().default(true),
     /** R9.5. Whether members see it in the finder at all. */
