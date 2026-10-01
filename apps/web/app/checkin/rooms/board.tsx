@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Printer, UserCheck } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, EmptyState, HueDot, Separator,
+  Badge, Banner, Button, Card, Dialog, DialogContent, EmptyState, HueDot, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
@@ -77,11 +77,13 @@ export function RoomBoard({
     return <EmptyState title={t("board.noRooms.title")} body={t("board.noRooms.body")} />;
   }
 
+  const opened = live.rooms.find((r) => r.roomId === open);
+
   return (
     <div className="flex flex-col gap-5">
       {error ? <Banner tone="danger" title={t("board.title")}>{error}</Banner> : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {services.length > 1 ? (
           <Select value={service} onValueChange={setService}>
             <SelectTrigger aria-label={t("checkin.service")} className="w-64">
@@ -98,10 +100,6 @@ export function RoomBoard({
         ) : (
           <span />
         )}
-
-        <Button variant="secondary" onClick={() => window.print()}>
-          <Printer /> {t("board.print")}
-        </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 text-[length:var(--d-text-body)] text-fg">
@@ -111,14 +109,15 @@ export function RoomBoard({
         </span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-1">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {live.rooms.map((room) => (
-          <Card key={room.roomId} className="flex flex-col gap-3 p-0 print:break-inside-avoid">
-            {/* The card is the control: tapping a class shows who is in it. */}
+          <Card key={room.roomId} className="p-0">
+            {/* The card is the control: tapping a class shows who is in it, in
+                front of everything, because a class of thirty pushed every
+                other class off the screen. */}
             <button
               type="button"
-              aria-expanded={open === room.roomId}
-              onClick={() => setOpen(open === room.roomId ? null : room.roomId)}
+              onClick={() => setOpen(room.roomId)}
               className="flex w-full flex-col gap-3 rounded-[inherit] p-[var(--d-pad-card)] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
             >
               <div className="flex items-start justify-between gap-3">
@@ -146,27 +145,45 @@ export function RoomBoard({
                 ) : null}
               </div>
             </button>
-
-            {/* R8.18. On screen when the class is tapped, and on paper always,
-                because the room needs it on the wall and the tablet is in the
-                lobby. */}
-            <div
-              className={
-                (open === room.roomId ? "" : "hidden print:block") +
-                " px-[var(--d-pad-card)] pb-[var(--d-pad-card)] print:p-0"
-              }
-            >
-              <Roster
-                church={church}
-                today={today}
-                roomId={room.roomId}
-                occurrenceId={service}
-                entries={rosters[room.roomId] ?? []}
-              />
-            </div>
           </Card>
         ))}
       </div>
+
+      {/* R8.18. The roster, in front of the board, with the way to put it on
+          paper beside it. The room needs it on the wall and the tablet is in
+          the lobby. */}
+      <Dialog open={opened !== undefined} onOpenChange={(on) => setOpen(on ? open : null)}>
+        <DialogContent
+          title={opened?.name ?? ""}
+          closeLabel={t("common.close")}
+          className="max-w-xl"
+        >
+          <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+            <Roster
+              church={church}
+              today={today}
+              roomId={opened?.roomId ?? ""}
+              occurrenceId={service}
+              entries={opened ? (rosters[opened.roomId] ?? []) : []}
+            />
+          </div>
+
+          <div className="mt-4">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                window.open(
+                  `/checkin/rooms/print?church=${church}&service=${service}&room=${opened?.roomId ?? ""}`,
+                  "hearth-roster",
+                  "width=720,height=900",
+                )
+              }
+            >
+              <Printer /> {t("board.print")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

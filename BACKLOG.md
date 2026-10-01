@@ -845,10 +845,11 @@ The station's **Labels** setting picks the stock, so set it before printing.
 
 1. **Counts.** Check two children into a class from the desk. Its card shows two, and the
    outstanding count at the top matches.
-2. **The roster.** Tap the card. Who is in the class, who has been collected, their codes, and any
-   allergy. Tap again to close it.
+2. **The roster.** Tap the card. It opens in front of the board, scrolling inside itself, so a
+   class of thirty does not push every other class off the screen.
 3. **Capacity.** Fill a class to its capacity: it says full. One more: over capacity.
-4. **Print.** Every class's roster prints, expanded, one class a block, for the wall.
+4. **Print.** Print inside the roster opens that class's sheet and the printer dialog: names,
+   codes, allergies, and who has been collected, for the wall.
 5. **It keeps up.** Leave it open and check a child in from another device. Within twenty seconds
    the board moves on its own.
 
