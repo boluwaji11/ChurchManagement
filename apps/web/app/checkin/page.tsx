@@ -1,4 +1,6 @@
-import { withTenant, listStations, listRooms, listOccurrences, getChurch } from "@hearth/db";
+import {
+  withTenant, listStations, listRooms, listOccurrences, getChurch, canManageStations,
+} from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { AppHeader } from "@/components/app-header";
@@ -54,6 +56,7 @@ export default async function CheckinPage({
         <StationPicker
           church={session.tenantSlug}
           now={now}
+          canManage={canManageStations(session.role)}
           stations={stations.map((s) => ({
             id: s.id,
             name: s.name,

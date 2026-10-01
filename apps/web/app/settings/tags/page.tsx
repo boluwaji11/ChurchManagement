@@ -23,18 +23,18 @@ export default async function TagsPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <h2 className="text-heading font-display text-fg">{t("tags.title")}</h2>
+
+
+        {tags.length === 0 && canCreate ? (
+          <EmptyState title={t("tags.empty.title")} body={t("tags.empty.body")} />
+        ) : null}
 
         {!canCreate && !canManage ? (
           <Banner tone="info" title={t("tags.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
         ) : (
           <TagManager church={session.tenantSlug} tags={tags} canManage={canManage} canCreate={canCreate} />
         )}
-
-        {tags.length === 0 && canCreate ? (
-          <div className="mt-8">
-            <EmptyState title={t("tags.empty.title")} body={t("tags.empty.body")} />
-          </div>
-        ) : null}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Download, Printer } from "lucide-react";
+import { Plus, Upload, Printer } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress, PER_PAGE,
@@ -80,7 +80,7 @@ export default async function PeoplePage({
               </Button>
               <Button variant="secondary" asChild>
                 <Link href={`/import?church=${session.tenantSlug}`}>
-                  <Download /> {t("import.title")}
+                  <Upload /> {t("import.title")}
                 </Link>
               </Button>
               {/* R3.5. The one directory of the congregation we produce, and

@@ -283,8 +283,18 @@ export function Calendar({
         </div>
       </div>
 
-      {rows.length === 0 && view !== "calendar" ? (
-        <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
+      {rows.length === 0 ? (
+        <EmptyState
+          title={t("services.none.title")}
+          body={t("services.none.body")}
+          action={
+            canEdit ? (
+              <Button onClick={() => { setAddOn(""); setAddDate(""); setAdding(true); }}>
+                <Plus /> {t("services.add")}
+              </Button>
+            ) : undefined
+          }
+        />
       ) : view === "calendar" ? (
         <MonthGrid
           month={month}

@@ -22,18 +22,18 @@ export default async function FieldsPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <h2 className="text-heading font-display text-fg">{t("fields.title")}</h2>
+
+
+        {fields.length === 0 && canManage ? (
+          <EmptyState title={t("fields.empty.title")} body={t("fields.empty.body")} />
+        ) : null}
 
         {!canManage ? (
           <Banner tone="info" title={t("fields.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
         ) : (
           <FieldManager church={session.tenantSlug} fields={fields} canManage={canManage} />
         )}
-
-        {fields.length === 0 && canManage ? (
-          <div className="mt-8">
-            <EmptyState title={t("fields.empty.title")} body={t("fields.empty.body")} />
-          </div>
-        ) : null}
     </div>
   );
 }

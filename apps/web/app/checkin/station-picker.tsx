@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Badge, Button, Card, EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { claim } from "./actions";
@@ -29,11 +30,14 @@ export function StationPicker({
   church,
   stations,
   now,
+  canManage,
 }: {
   church: string;
   stations: StationOption[];
   /** The church's own clock, as HH:MM. */
   now: string;
+  /** Whether the person reading "an administrator creates these" is one. */
+  canManage: boolean;
 }) {
   const [chosen, setChosen] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
@@ -71,7 +75,19 @@ export function StationPicker({
   if (!ready) return null;
 
   if (stations.length === 0) {
-    return <EmptyState title={t("checkin.none.title")} body={t("checkin.none.body")} />;
+    return (
+      <EmptyState
+        title={t("checkin.none.title")}
+        body={t("checkin.none.body")}
+        action={
+          canManage ? (
+            <Button asChild>
+              <Link href={`/settings/stations?church=${church}`}>{t("stations.add")}</Link>
+            </Button>
+          ) : undefined
+        }
+      />
+    );
   }
 
   const station = stations.find((s) => s.id === chosen);

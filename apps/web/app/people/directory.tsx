@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Merge } from "lucide-react";
+import { ArrowRight, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus } from "lucide-react";
 import {
   Avatar, Badge, Button, Card, Input, Checkbox, Banner, HueDot,
   Table, Thead, Th, Tr, Td, EmptyState,
@@ -193,6 +193,21 @@ export function Directory({
               <Button variant="secondary" onClick={() => router.replace(pathname, { scroll: false })}>
                 <X /> {t("directory.clear")}
               </Button>
+            ) : canEdit ? (
+              // Day one. The copy named two things to do and the screen offered
+              // neither of them.
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <Button asChild>
+                  <Link href={`/people/new?church=${church}`}>
+                    <Plus /> {t("people.add")}
+                  </Link>
+                </Button>
+                <Button variant="secondary" asChild>
+                  <Link href={`/import?church=${church}`}>
+                    <Upload /> {t("import.title")}
+                  </Link>
+                </Button>
+              </div>
             ) : undefined
           }
         />
@@ -441,7 +456,7 @@ function Toolbar({
           <span className="flex flex-wrap items-center gap-3">
             <Button variant="ghost" asChild>
               <a href={exportHref} download>
-                <Upload /> {filtersOn ? t("directory.exportView") : t("directory.exportAll")}
+                <Download /> {filtersOn ? t("directory.exportView") : t("directory.exportAll")}
               </a>
             </Button>
           </span>

@@ -236,7 +236,20 @@ export function Finder({
       </div>
 
       {shown.length === 0 ? (
-        <EmptyState title={t("find.none.title")} />
+        <EmptyState
+          title={t("find.none.title")}
+          action={
+            canManage ? (
+              <GroupDialog
+                church={church}
+                types={types.map((kind) => ({ id: kind.id, name: kind.name, hue: kind.hue }))}
+                pending={pending}
+                title={t("groups.add")}
+                trigger={<Button><Plus /> {t("groups.add")}</Button>}
+              />
+            ) : undefined
+          }
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((group) => (
