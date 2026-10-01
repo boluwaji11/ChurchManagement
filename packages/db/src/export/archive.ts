@@ -31,6 +31,7 @@ const TABLES = [
   "checkin_station_rooms",
   "checkin_station_services",
   "checkin_visits",
+  "checkin_overrides",
   "stored_files",
   "demo_records",
   "tenant_members",

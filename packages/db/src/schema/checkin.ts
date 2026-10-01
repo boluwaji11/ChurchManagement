@@ -179,3 +179,37 @@ export const checkinVisits = pgTable(
     uniqueIndex("visit_code_unique").on(t.tenantId, t.code),
   ],
 );
+
+/**
+ * R8.7 to R8.9. A decision somebody made to release a child anyway.
+ *
+ * Every rule at checkout can be passed, because a real Sunday produces cases no
+ * rule anticipated: a grandmother nobody got round to adding, a code on a label
+ * that went through the wash. What cannot happen is passing one quietly. This
+ * row is the record that a person decided, which child it was about, what they
+ * were passing, and why.
+ *
+ * Append only. Nothing in the application edits or deletes one, including an
+ * Owner, which is the same rule the audit log runs under.
+ */
+export const checkinOverrides = pgTable(
+  "checkin_overrides",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    visitId: uuid("visit_id").notNull().references(() => checkinVisits.id, { onDelete: "cascade" }),
+    /** "code", "pickup" or "restriction". What was passed. */
+    reasonKind: text("reason_kind").notNull(),
+    /** What the person typed. Required, because "why" is the point of the row. */
+    reason: text("reason").notNull(),
+    /** The signed-in user who authorised it. */
+    authorisedBy: uuid("authorised_by"),
+    /** Who collected the child, where the church holds a record of them. */
+    collectedBy: uuid("collected_by").references(() => people.id, { onDelete: "set null" }),
+    createdAt: created(),
+  },
+  (t) => [
+    index("override_tenant_idx").on(t.tenantId),
+    index("override_visit_idx").on(t.tenantId, t.visitId),
+  ],
+);

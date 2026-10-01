@@ -10,6 +10,7 @@ import {
 import { t } from "@hearth/i18n";
 import { find, checkIn, undo, type FoundHousehold, type FoundPerson } from "./actions";
 import { Allergies, warnings } from "./allergies";
+import { Checkout } from "./checkout";
 
 export interface DeskRoom {
   id: string;
@@ -253,6 +254,7 @@ export function Desk({
               <li key={person.id}>
                 {i > 0 ? <Separator className="my-3" /> : null}
                 <Member
+                  church={church}
                   person={person}
                   rooms={rooms}
                   counts={counts}
@@ -308,6 +310,7 @@ export function Desk({
 }
 
 function Member({
+  church,
   person,
   rooms,
   counts,
@@ -318,6 +321,7 @@ function Member({
   onPick,
   onUndo,
 }: {
+  church: string;
   person: FoundPerson;
   rooms: DeskRoom[];
   counts: Record<string, number>;
@@ -346,7 +350,17 @@ function Member({
             <Badge tone="success">{t("checkin.checkedIn")}</Badge>
           )}
         </div>
-        <Button variant="ghost" onClick={onUndo}><Undo2 /> {t("checkin.undo")}</Button>
+        <div className="flex flex-wrap items-center gap-1">
+          {person.visitId ? (
+            <Checkout
+              church={church}
+              visitId={person.visitId}
+              childId={person.id}
+              childName={person.name}
+            />
+          ) : null}
+          <Button variant="ghost" onClick={onUndo}><Undo2 /> {t("checkin.undo")}</Button>
+        </div>
       </div>
     );
   }

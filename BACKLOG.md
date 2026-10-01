@@ -157,7 +157,7 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-56 | Family lookup, and several children checked in together | R8.3 to R8.5 | Resolved |
 | HRT-57 | Matching label pair with a unique per-visit security code | R8.6, R8.11 | Resolved |
 | HRT-58 | Allergies and medical notes on the label and on screen | R8.10 | Resolved |
-| HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | New |
+| HRT-59 | Checkout: the code, the authorised pickup list, the custody block, the override | R8.7 to R8.9 | Resolved |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | New |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | New |
 | HRT-62 | Supervisor dashboard, live room rosters, two-adult-rule alert | R8.18, R8.19 | New |
@@ -219,8 +219,8 @@ The presenter. Separate PRD written at build time.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies |
-| **Next** | **HRT-59** checkout: the code, the pickup list, the custody block, the override. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
+| **Waiting on a test** | **HRT-56** the desk, **HRT-57** the label pair, **HRT-73** the kiosk, **HRT-58** allergies, **HRT-59** checkout |
+| **Next** | **HRT-60** the station keeps working with no network. HRT-52 group attendance follows groups. F18 Insights is deferred to 1.0. HRT-13 MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -743,3 +743,23 @@ A child's record, then the desk.
    down, and a screen saying "no allergies" would be claiming something the church was never told.
 5. **The kiosk does the same**, because a parent checking their own child in reads it too.
 6. **Editing it is audited**, like every other change to a person.
+
+### HRT-59, how to test it
+
+Check a child in, then find the family again.
+
+1. **The code releases them.** Type what is on the guardian's label. Spacing and case are forgiven.
+2. **A wrong code releases nobody.** So does an empty one.
+3. **Who is collecting.** The list is anybody recorded as a guardian or emergency contact, plus
+   anybody who lives in the household. A church that had to name every parent before a Sunday works
+   would stop keeping the list, and a list nobody maintains protects nobody.
+4. **Somebody not on the list is stopped**, holding the right code.
+5. **A restriction stops the person it names**, code or no code, and it is asked about before the
+   code so the conversation happens once rather than twice.
+6. **Every stop can be passed**, and passing one costs a sentence saying why. The sentence, the
+   child, what was passed and who decided are written down and cannot be edited afterwards.
+7. **Twice is refused.**
+
+Record a do-not-contact between a child and an adult in their household to see the custody case.
+The product refuses to record that person as a guardian at all once the order exists, so the
+household is the only way the two facts can sit together.

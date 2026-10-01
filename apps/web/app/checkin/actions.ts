@@ -3,8 +3,10 @@
 import {
   withTenant, claimStation, lookupHouseholds, listRooms, suggestRoom,
   checkInFamily, visitsFor, undoCheckIn, roomCounts,
-  type CheckinEntry,
+  checkOut, pickupList,
+  type CheckinEntry, type OverrideKind, type PickupPerson,
 } from "@hearth/db";
+import { t } from "@hearth/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -48,6 +50,8 @@ export interface FoundPerson {
   suggestedRoomId: string | null;
   /** Set when they are already checked in to the service being worked on. */
   checkedIn: boolean;
+  /** The visit to check them out of, when they are in. */
+  visitId: string | null;
   roomId: string | null;
   /** R8.10. Null means nothing is recorded, which is not the same as clear. */
   allergies: string | null;
@@ -107,7 +111,8 @@ export async function find(
               suggestedRoomId: person.isChild
                 ? (suggestRoom(rooms, person.ageMonths)?.id ?? null)
                 : null,
-              checkedIn: Boolean(visit),
+              checkedIn: Boolean(visit) && visit?.checkedOutAt === null,
+              visitId: visit?.id ?? null,
               roomId: visit?.roomId ?? null,
               allergies: person.allergies,
               medicalNote: person.medicalNote,
@@ -166,6 +171,73 @@ export async function undo(
       await undoCheckIn(tx, actor, occurrenceId, personId);
       return { counts: await roomCounts(tx, occurrenceId) };
     });
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface PickupResult {
+  people?: PickupPerson[];
+  error?: string;
+}
+
+/** R8.8. Who the church has recorded as allowed to collect this child. */
+export async function pickup(childId: string, church?: string): Promise<PickupResult> {
+  const { ctx } = await context(church);
+  try {
+    return { people: await withTenant(ctx, (tx) => pickupList(tx, childId)) };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface ReleaseResult {
+  released?: boolean;
+  /** What stopped it, as something to show and decide about. */
+  block?: { kind: OverrideKind; message: string };
+  error?: string;
+}
+
+const BLOCKED: Record<string, string> = {
+  code: "checkout.block.code",
+  pickup: "checkout.block.pickup",
+  restriction: "checkout.block.restriction",
+};
+
+/**
+ * R8.7 to R8.9. Releasing a child, or saying why not.
+ *
+ * A block comes back as something to read and decide about rather than an
+ * error, because deciding is what a supervisor is for and the decision is
+ * recorded either way.
+ */
+export async function release(
+  visitId: string,
+  code: string,
+  collectedBy: string | null,
+  override: { kind: OverrideKind; reason: string } | null,
+  church?: string,
+): Promise<ReleaseResult> {
+  const { session, actor, ctx } = await context(church);
+  try {
+    const result = await withTenant(ctx, (tx) =>
+      checkOut(tx, actor, {
+        visitId,
+        code,
+        collectedBy,
+        override,
+        userId: session.userId,
+      }),
+    );
+
+    if (result.released) return { released: true };
+    return {
+      released: false,
+      block: {
+        kind: result.block!.kind,
+        message: t(BLOCKED[result.block!.kind] as never),
+      },
+    };
   } catch (error) {
     return { error: explain(error) };
   }
