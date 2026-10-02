@@ -113,7 +113,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-40 | Directory search, filtering, sorting and pagination | R2.1, R2.2 | Closed |
 | HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Closed |
 | HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Resolved |
-| HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | New |
+| HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | Resolved |
 
 ### F19. Data portability
 
@@ -426,11 +426,11 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-27** birthdays (R2.11). R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
-| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church |
-| **Next** | **HRT-27** birthdays. That closes 0.2. |
+| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays |
+| **Next** | **0.4**, starting with the song library and the Stage sync contract. |
 | **Order after that** | **0.4** the song library and the Stage contract first, because Stage is being built in parallel and its SE4 epic is blocked on this board. Then serving (HRT-79, HRT-80) and service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. |
 | **Waiting on somebody else** | **HRT-87** group messaging waits on a church having a provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1156,6 +1156,25 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-27, how to test it
+
+**Birthdays** is a button at the top of the directory, beside Import.
+
+1. It opens on this month. Two tiles count the birthdays and the anniversaries in it.
+2. The arrows move a month at a time. **Week** switches to seven days and the arrows move a week at
+   a time. **This month** and **This week** come back to today.
+3. The age is the one they reach on the day, so somebody born in 1984 reads 42 in October 2026 and
+   47 when you page forward to October 2031.
+4. An anniversary comes off the marriage milestone. Record one on a husband and the same date on his
+   wife, with a spouse relationship between them, and they appear on one row, as "Hana and Idris".
+   Record one on somebody whose spouse the church has no record of and they appear alone.
+5. Put a birthday on 29 February. In a leap year it reads 29 February. In any other year it reads
+   28 February, so the person is still on February's list.
+6. Page to a week that crosses new year, such as 28 December. A birthday on 30 December and one on
+   2 January are both on it, dated in their own years.
+7. Archive somebody with a birthday this month. They come off the list.
+8. The whole window is in the URL, so the October list can be sent to whoever writes the cards.
 
 ### HRT-120, how to test it
 

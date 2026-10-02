@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Upload, Printer } from "lucide-react";
+import { Plus, Upload, Printer, Cake } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
@@ -93,6 +93,12 @@ export default async function PeoplePage({
               <Button variant="secondary" asChild>
                 <Link href={`/import?church=${session.tenantSlug}`}>
                   <Upload /> {t("import.title")}
+                </Link>
+              </Button>
+              {/* R2.11. Who to send a card to, by month or by week. */}
+              <Button variant="secondary" asChild>
+                <Link href={`/people/celebrations?church=${session.tenantSlug}`}>
+                  <Cake /> {t("celebrations.open")}
                 </Link>
               </Button>
               {/* R3.5. The one directory of the congregation we produce, and
