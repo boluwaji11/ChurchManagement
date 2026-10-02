@@ -23,7 +23,18 @@ export const MERGE_UNDO_WINDOW_DAYS = 30;
  * import_rows is deliberately absent. It records what an import did at the time,
  * and re-pointing it would make the history say something that did not happen.
  */
-const OWNED: { table: string; column: string; conflictOn?: string[] }[] = [
+const OWNED: {
+  table: string;
+  column: string;
+  conflictOn?: string[];
+  /**
+   * Extra SQL narrowing what counts as a collision, where the unique index is
+   * partial. `w` is the winner's row and `t` the loser's. Without this, a
+   * membership the winner once left would block the loser's live one from
+   * moving, and the person would quietly come off the group.
+   */
+  liveOnly?: string;
+}[] = [
   { table: "contact_methods", column: "person_id" },
   { table: "addresses", column: "person_id" },
   { table: "household_memberships", column: "person_id" },
@@ -36,6 +47,32 @@ const OWNED: { table: string; column: string; conflictOn?: string[] }[] = [
   { table: "custom_field_values", column: "entity_id", conflictOn: ["field_id"] },
   // R1.14. A list the winner is already on would collide, so those rows stay.
   { table: "saved_list_members", column: "person_id", conflictOn: ["list_id"] },
+  // R9.4. Group membership. Only a live row collides with a live row: the index
+  // is partial, and the history of somebody who left and came back is two rows
+  // on purpose.
+  {
+    table: "group_memberships",
+    column: "person_id",
+    conflictOn: ["group_id"],
+    liveOnly: "w.left_on is null and t.left_on is null",
+  },
+  // R5.3. One open entry per person per pipeline, so only two open entries
+  // collide. A closed one is history and moves.
+  {
+    table: "pipeline_entries",
+    column: "person_id",
+    conflictOn: ["pipeline_id"],
+    liveOnly: "w.status = 'open' and t.status = 'open'",
+  },
+  // R5.1. A task about this person. Nothing is unique, so all of it moves.
+  { table: "follow_ups", column: "person_id" },
+  // R9.5. A request to join, which belongs to whoever is left standing.
+  {
+    table: "group_join_requests",
+    column: "person_id",
+    conflictOn: ["group_id"],
+    liveOnly: "w.decided_at is null and t.decided_at is null",
+  },
 ];
 
 export interface MergePlan {
@@ -86,6 +123,7 @@ export async function mergePeople(
               owned.conflictOn.map((c) => sql`w.${sql.identifier(c)} = t.${sql.identifier(c)}`),
               sql` and `,
             )}
+            ${owned.liveOnly ? sql`and ${sql.raw(owned.liveOnly)}` : sql``}
         )`
       : sql``;
 

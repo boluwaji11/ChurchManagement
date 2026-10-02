@@ -11,6 +11,8 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { mergePeople, undoMerge, listMerges, findDuplicatePairs } from "../src/repo/merge";
 import { createPerson, getPersonForEdit, listPeople, listTagsForPerson } from "../src/repo/people";
 import { createTag, setPersonTag } from "../src/repo/tags";
+import { createGroup, addToGroup, removeFromGroup, groupRoster, seedGroupTypes } from "../src/repo/groups";
+import { enterPipeline, addTask, peopleIn, listPipelines } from "../src/repo/followups";
 import { createNote, countNotes } from "../src/repo/notes";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { InvalidInputError } from "../src/errors";
@@ -271,5 +273,127 @@ describe("the review queue (R2.8)", () => {
     expect(
       (await run(riverside, "owner", (tx) => findDuplicatePairs(tx))).filter((p) => p.a.name.includes(SUR)),
     ).toHaveLength(0);
+  });
+});
+
+/**
+ * HRT-117. What a merge used to leave behind (R2.8).
+ *
+ * Merging two records moved contact details, notes, tags and milestones, and
+ * left the loser holding their group memberships, their place in a pipeline and
+ * every task about them. The survivor came off the group, and nobody would see
+ * it happen: the merge said it had worked and the roster was simply one shorter.
+ */
+describe("what a merge takes with it (R2.8)", () => {
+  const today = new Date().toISOString().slice(0, 10);
+
+  it("moves a group membership onto the survivor", async () => {
+    const winner = await make("Ada");
+    const loser = await make("Addie");
+    await run(riverside, "owner", (tx) => seedGroupTypes(tx, as(riverside)));
+    const group = await run(riverside, "owner", (tx) =>
+      createGroup(tx, as(riverside), { name: `Mergetest group ${Date.now()}` }),
+    );
+    await run(riverside, "owner", (tx) =>
+      addToGroup(tx, as(riverside), { groupId: group.id, personId: loser.id, role: "leader" }),
+    );
+
+    await run(riverside, "owner", (tx) =>
+      mergePeople(tx, as(riverside), { winnerId: winner.id, loserId: loser.id }),
+    );
+
+    const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
+    expect(roster.map((m) => m.personId)).toContain(winner.id);
+    expect(roster.map((m) => m.personId)).not.toContain(loser.id);
+    // The role they held comes with them.
+    expect(roster.find((m) => m.personId === winner.id)?.role).toBe("leader");
+  });
+
+  it("leaves a membership where the survivor is already live in that group", async () => {
+    const winner = await make("Bea");
+    const loser = await make("Beatrice");
+    const group = await run(riverside, "owner", (tx) =>
+      createGroup(tx, as(riverside), { name: `Mergetest both ${Date.now()}` }),
+    );
+    for (const person of [winner, loser]) {
+      await run(riverside, "owner", (tx) =>
+        addToGroup(tx, as(riverside), { groupId: group.id, personId: person.id }),
+      );
+    }
+
+    await run(riverside, "owner", (tx) =>
+      mergePeople(tx, as(riverside), { winnerId: winner.id, loserId: loser.id }),
+    );
+
+    // One row, not two, and the group is not holding an archived person twice.
+    const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
+    expect(roster.filter((m) => m.personId === winner.id)).toHaveLength(1);
+  });
+
+  it("still moves a live membership when the survivor once left that group", async () => {
+    // The unique index only covers live rows, so a row the survivor left is not
+    // a collision. Treating it as one was how somebody came off a group.
+    const winner = await make("Cara");
+    const loser = await make("Carah");
+    const group = await run(riverside, "owner", (tx) =>
+      createGroup(tx, as(riverside), { name: `Mergetest rejoin ${Date.now()}` }),
+    );
+    await run(riverside, "owner", (tx) =>
+      addToGroup(tx, as(riverside), { groupId: group.id, personId: winner.id }),
+    );
+    await run(riverside, "owner", (tx) =>
+      removeFromGroup(tx, as(riverside), { groupId: group.id, personId: winner.id }),
+    );
+    await run(riverside, "owner", (tx) =>
+      addToGroup(tx, as(riverside), { groupId: group.id, personId: loser.id }),
+    );
+
+    await run(riverside, "owner", (tx) =>
+      mergePeople(tx, as(riverside), { winnerId: winner.id, loserId: loser.id }),
+    );
+
+    const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
+    expect(roster.map((m) => m.personId)).toContain(winner.id);
+  });
+
+  it("moves an open pipeline entry and the tasks written about them", async () => {
+    const winner = await make("Dee");
+    const loser = await make("Deedee");
+    const [pipeline] = await run(riverside, "owner", (tx) => listPipelines(tx));
+
+    await run(riverside, "owner", (tx) =>
+      enterPipeline(tx, as(riverside), { pipelineId: pipeline!.id, personId: loser.id, on: today }),
+    );
+    await run(riverside, "owner", (tx) =>
+      addTask(tx, as(riverside), { personId: loser.id, title: "Call them back", dueOn: today }),
+    );
+
+    await run(riverside, "owner", (tx) =>
+      mergePeople(tx, as(riverside), { winnerId: winner.id, loserId: loser.id }),
+    );
+
+    const inPipeline = await run(riverside, "owner", (tx) => peopleIn(tx, pipeline!.id));
+    expect(inPipeline.map((p) => p.personId)).toContain(winner.id);
+    expect(inPipeline.map((p) => p.personId)).not.toContain(loser.id);
+  });
+
+  it("puts every one of them back when the merge is undone", async () => {
+    const winner = await make("Eve");
+    const loser = await make("Evie");
+    const group = await run(riverside, "owner", (tx) =>
+      createGroup(tx, as(riverside), { name: `Mergetest undo ${Date.now()}` }),
+    );
+    await run(riverside, "owner", (tx) =>
+      addToGroup(tx, as(riverside), { groupId: group.id, personId: loser.id }),
+    );
+
+    const merge = await run(riverside, "owner", (tx) =>
+      mergePeople(tx, as(riverside), { winnerId: winner.id, loserId: loser.id }),
+    );
+    await run(riverside, "owner", (tx) => undoMerge(tx, as(riverside), merge.mergeId));
+
+    const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
+    expect(roster.map((m) => m.personId)).toContain(loser.id);
+    expect(roster.map((m) => m.personId)).not.toContain(winner.id);
   });
 });
