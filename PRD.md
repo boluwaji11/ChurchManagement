@@ -357,7 +357,7 @@ count is a design constraint and not a detail.
 | R2.6 | 0.1 | **Milestones** with date and notes: first visit, salvation, baptism, confirmation, child dedication, membership class, marriage, death. Extensible list. |
 | R2.7 | 0.1 | Notes in two separate classes: **general** (staff visible) and **confidential pastoral** (restricted per R1.5, separately audited). The distinction is enforced, not advisory. |
 | R2.8 | 0.1 | **Duplicate detection** on create and on import, matching on name, email, phone, and address, with a review queue and a **merge that is reversible for 30 days**. |
-| R2.9 | 0.2 | Skills, interests, and spiritual gifts as managed vocabularies, queryable for volunteer recruiting. |
+| R2.9 | ~~0.2~~ | ~~Skills, interests, and spiritual gifts as managed vocabularies, queryable for volunteer recruiting.~~ **Cut.** A record of what every member is good at and feels called to is more than a church needs to run, and more than is worth holding about somebody. Serving (R10.x) records what a position requires instead. |
 | R2.10 | 0.2 | **Background check status**: provider, date completed, expiry date, result. Status tracking only in v1. Feeds the scheduling gate in R10.9. |
 | R2.11 | 0.2 | Birthday and anniversary lists, filterable by month and week. |
 | R2.12 | 0.1 | Bulk edit and bulk tag across a selected list. |

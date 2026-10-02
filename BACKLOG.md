@@ -106,7 +106,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | Closed |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
 | HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.8 | Resolved |
-| HRT-118 | Skills, interests and spiritual gifts as managed vocabularies | R2.9 | Resolved |
+| HRT-118 | ~~Skills, interests and spiritual gifts as managed vocabularies~~ | R2.9 | **Cut** |
 | HRT-119 | Search across names, emails, phones and addresses, under 300ms at 5,000 people | R2.14 | Resolved |
 | HRT-120 | The person timeline: attendance, groups, notes and milestones in one order | R2.15 | Resolved |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Closed |
@@ -375,6 +375,20 @@ replacing. The wording is in PRD-STAGE.md section 2.
 
 ---
 
+## R2.9 was cut, October 2026
+
+Skills, interests and spiritual gifts were built as three managed lists and taken out the same day.
+
+A church management system holds what a church needs to run: who is here, who is in a group, who is
+checked in, what has been given. A record of what every member is good at and what they feel called
+to is a different kind of thing to hold about somebody, and holding it is not worth what it costs
+them. It was also one more set of lists for a volunteer to maintain for a question most churches ask
+by asking a person.
+
+The requirement stays in the PRD marked cut, like R3.1. If serving in 0.4 needs to know who can do
+something, a team records its own requirements against its own positions, which is a smaller claim
+about a smaller number of people who volunteered for it.
+
 ## How somebody gets an account, decided October 2026
 
 Sign-up sent everybody to create a church. A member arriving because their church asked them to was
@@ -412,7 +426,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-27** birthdays (R2.11). Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **0.2 still owed** | **HRT-27** birthdays (R2.11). R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church |
@@ -1142,22 +1156,6 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
-
-### HRT-118, how to test it
-
-Settings, **Skills and gifts**.
-
-1. Three lists, because a church asks three different questions. "Who can drive a minibus" is a
-   skill. "Who cares about prison ministry" is an interest, and often different people. "Who has a
-   gift of teaching" is a third thing, and a church that uses gifting language will not accept it
-   filed under skills.
-2. Add one to each. The same name is allowed on two different lists and refused twice on one.
-3. **A person's record** now has Skills and gifts above Tags. Tick a few.
-4. **The directory** has a Skill or gift filter. That is the whole point: when the church is short
-   of a driver, this is where it asks.
-5. Save that filtered view as a list, and it keeps answering itself.
-6. Archive an entry. It comes off the lists people can be given, and stays on the records that
-   already have it, because somebody recorded as a driver two years ago was a driver two years ago.
 
 ### HRT-120, how to test it
 

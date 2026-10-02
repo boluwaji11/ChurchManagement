@@ -4,7 +4,7 @@ import { Plus, Upload, Printer } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
-  listSavedLists, resolveList, listAbilities, PER_PAGE,
+  listSavedLists, resolveList, PER_PAGE,
 } from "@hearth/db";
 import { Button, Banner } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -40,7 +40,7 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { people, tags, duplicates, matching, setup, lists, viewing, abilities } = await withTenant(
+  const { people, tags, duplicates, matching, setup, lists, viewing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // R1.14. A saved list is either a set of people or the filters it was
@@ -53,8 +53,6 @@ export default async function PeoplePage({
 
       return {
         lists: canEditPeople(session.role) ? await listSavedLists(tx) : [],
-        // R2.9. The three lists, so the directory can ask who can do this.
-        abilities: canEditPeople(session.role) ? await listAbilities(tx) : [],
         viewing: opened ? { id: params.list!, name: opened.name, kind: opened.kind } : null,
         // R9.3. Who is asking goes to the query layer, which decides what they
         // may see. A group leader gets their own group and nobody else.
@@ -144,7 +142,6 @@ export default async function PeoplePage({
           matching={matching}
           lists={lists}
           viewing={viewing}
-          abilities={abilities.map((a) => ({ id: a.id, kind: a.kind, name: a.name }))}
           tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
           rows={people.map((p) => ({
             id: p.id,

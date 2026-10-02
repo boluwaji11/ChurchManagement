@@ -30,8 +30,6 @@ export interface DirectoryQuery {
   q?: string;
   status?: string;
   tagId?: string;
-  /** R2.9. Who can do this: a skill, an interest or a spiritual gift. */
-  abilityId?: string;
   /** "any" means no filter. */
   has?: "email" | "phone" | "noEmail" | "noPhone";
   sort?: "name" | "firstName" | "household" | "status" | "added";
@@ -136,14 +134,6 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   if (opts.tagId) {
     where.push(sql`exists (
       select 1 from person_tags pt where pt.person_id = ${people.id} and pt.tag_id = ${opts.tagId}::uuid
-    )`);
-  }
-
-  // R2.9. The read the three lists exist for: who can do this.
-  if (opts.abilityId) {
-    where.push(sql`exists (
-      select 1 from person_abilities pa
-      where pa.person_id = ${people.id} and pa.ability_id = ${opts.abilityId}::uuid
     )`);
   }
 

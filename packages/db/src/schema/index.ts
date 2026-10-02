@@ -13,4 +13,3 @@ export * from "./groups";
 export * from "./followups";
 export * from "./directory";
 export * from "./lists";
-export * from "./abilities";

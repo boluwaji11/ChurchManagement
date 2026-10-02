@@ -47,8 +47,6 @@ const OWNED: {
   { table: "person_tags", column: "person_id", conflictOn: ["tag_id"], key: "tag_id" },
   // Same for a custom field the winner has already answered.
   { table: "custom_field_values", column: "entity_id", conflictOn: ["field_id"] },
-  // R2.9. A skill the winner already has would collide, so that row stays.
-  { table: "person_abilities", column: "person_id", conflictOn: ["ability_id"], key: "ability_id" },
   // R1.14. A list the winner is already on would collide, so those rows stay.
   { table: "saved_list_members", column: "person_id", conflictOn: ["list_id"] },
   // R9.4. Group membership. Only a live row collides with a live row: the index

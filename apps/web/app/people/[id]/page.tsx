@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Lock, FileText, Pencil } from "lucide-react";
 import {
   withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson, listsForPerson,
-  personTimeline, listAbilities, abilitiesForPerson,
+  personTimeline,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones,
   canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
@@ -16,7 +16,6 @@ import { AppHeader } from "@/components/app-header";
 import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
 import { Timeline } from "./timeline";
-import { AbilityEditor } from "../ability-editor";
 import { Relationships } from "../relationships";
 import { Milestones } from "../milestones";
 import { FollowUps, PersonTasks } from "../followups";
@@ -76,9 +75,6 @@ export default async function PersonPage({
       // R1.14. Which lists this person is on, which is the question somebody
       // asks when they want to know why she keeps being contacted.
       onLists: canEditPeople(session.role) ? await listsForPerson(tx, id) : [],
-      // R2.9. What this person can do, cares about, and is gifted in.
-      allAbilities: await listAbilities(tx),
-      abilities: await abilitiesForPerson(tx, id),
       // R2.15. Everything that has happened with this person, in one order.
       history: await personTimeline(
         tx,
@@ -109,7 +105,6 @@ export default async function PersonPage({
   const {
     person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone,
     milestones, pipelines, entries, tasks, today, checks, onLists, history,
-    allAbilities, abilities,
   } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
@@ -289,18 +284,6 @@ export default async function PersonPage({
           </ul>
         </Card>
       ) : null}
-
-      <Card className="mb-6">
-        <CardTitle>{t("ability.title")}</CardTitle>
-        <Separator className="my-4" />
-        <AbilityEditor
-          church={session.tenantSlug}
-          personId={person.id}
-          all={allAbilities.map((a) => ({ id: a.id, kind: a.kind, name: a.name }))}
-          assigned={abilities.map((a) => a.id)}
-          canEdit={canEditPeople(session.role)}
-        />
-      </Card>
 
       <Card className="mb-6">
         <CardTitle>{t("person.tags")}</CardTitle>

@@ -6,8 +6,6 @@ export interface DirectoryParams {
   q?: string;
   status?: string;
   tag?: string;
-  /** R2.9. A skill, an interest or a spiritual gift. */
-  ability?: string;
   has?: string;
   sort?: string;
   dir?: string;
@@ -46,7 +44,6 @@ export function queryFromParams(params: DirectoryParams): DirectoryQuery {
     q: params.q,
     status: params.status,
     tagId: params.tag,
-    abilityId: params.ability,
     has,
     sort,
     dir: params.dir === "desc" ? "desc" : "asc",
@@ -62,8 +59,7 @@ export const pageFromParams = (params: DirectoryParams): number => {
 /** True when the URL narrows the directory, rather than showing all of it. */
 export const isFiltered = (params: DirectoryParams): boolean =>
   Boolean(
-    params.q || params.status || params.tag || params.ability || params.has ||
-    params.show === "archived" || params.list,
+    params.q || params.status || params.tag || params.has || params.show === "archived" || params.list,
   );
 
 /**
@@ -77,7 +73,6 @@ export function paramsFromRule(rule: Record<string, string>): DirectoryParams {
     q: rule["q"],
     status: rule["status"],
     tag: rule["tag"],
-    ability: rule["ability"],
     has: rule["has"],
     show: rule["show"],
   };

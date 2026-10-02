@@ -23,7 +23,7 @@ export interface WriteActor {
 }
 
 /** The filters a rule list may hold. Anything else is dropped on the way in. */
-export const RULE_KEYS = ["q", "status", "tag", "ability", "has", "show"] as const;
+export const RULE_KEYS = ["q", "status", "tag", "has", "show"] as const;
 export type RuleKey = (typeof RULE_KEYS)[number];
 export type ListRule = Partial<Record<RuleKey, string>>;
 
