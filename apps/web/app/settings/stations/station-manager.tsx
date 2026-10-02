@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Archive, Undo2 } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, EmptyState, Field, Input, Separator,
+  Badge, Banner, Button, IconButton, Card, EmptyState, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -90,7 +90,12 @@ export function StationManager({
                       station={station}
                       pending={pending}
                       title={t("stations.editTitle", { name: station.name })}
-                      trigger={<Button variant="ghost"><Pencil /> {t("stations.edit")}</Button>}
+                      trigger={<IconButton
+                        label={t("stations.edit")}
+                        variant="ghost"
+                      >
+                        <Pencil />
+                      </IconButton>}
                       onSave={(fields) => act(saveStation, { id: station.id, ...fields })}
                     />
                     <ArchiveDialog
@@ -115,13 +120,14 @@ export function StationManager({
                 {i > 0 ? <Separator className="my-3" /> : null}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-[length:var(--d-text-body)] text-fg-subtle">{station.name}</span>
-                  <Button
+                  <IconButton
+                    label={t("stations.restore")}
                     variant="ghost"
                     disabled={pending}
                     onClick={() => act(archiveStation, { id: station.id, archived: "0" })}
                   >
-                    <Undo2 /> {t("stations.restore")}
-                  </Button>
+                    <Undo2 />
+                  </IconButton>
                 </div>
               </li>
             ))}
@@ -225,7 +231,12 @@ function ArchiveDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost"><Archive /> {t("stations.archive")}</Button>
+        <IconButton
+          label={t("stations.archive")}
+          variant="ghost"
+        >
+          <Archive />
+        </IconButton>
       </DialogTrigger>
       <DialogContent alert title={t("stations.archiveTitle", { name: station.name })}>
         <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Archive } from "lucide-react";
 import {
-  Banner, Button, Field, HueDot, Input, Textarea,
+  Banner, Button, IconButton, Field, HueDot, Input, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   HUES, type Hue,
@@ -119,7 +119,12 @@ export function ArchiveTeamDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost"><Archive /> {t("serving.archive")}</Button>
+        <IconButton
+          label={t("serving.archive")}
+          variant="ghost"
+        >
+          <Archive />
+        </IconButton>
       </DialogTrigger>
       <DialogContent alert title={t("serving.archiveTitle", { name })}>
         <div className="flex flex-col gap-4">

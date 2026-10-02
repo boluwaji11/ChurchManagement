@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Archive, ShieldCheck, Baby } from "lucide-react";
+import { Plus, Archive, ShieldCheck, Baby, Pencil } from "lucide-react";
 import {
-  Banner, Button, Checkbox, Field, Input, Separator,
+  Banner, Button, IconButton, Checkbox, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter, EmptyState,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -81,7 +81,7 @@ export function Positions({
                       teamId={teamId}
                       position={position}
                       title={position.name}
-                      trigger={<Button variant="ghost">{t("action.edit")}</Button>}
+                      trigger={<IconButton label={t("action.edit")}><Pencil /></IconButton>}
                     />
                     <ArchivePosition
                       name={position.name}
@@ -224,7 +224,12 @@ function ArchivePosition({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost"><Archive /> {t("serving.archive")}</Button>
+        <IconButton
+          label={t("serving.archive")}
+          variant="ghost"
+        >
+          <Archive />
+        </IconButton>
       </DialogTrigger>
       <DialogContent alert title={t("serving.position.archiveTitle", { name })}>
         <div className="flex flex-col gap-4">

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Check, Undo2, LogOut } from "lucide-react";
 import {
-  Badge, Banner, Button, Field, HueDot, HueTag, Input, Separator,
+  Badge, Banner, Button, IconButton, Field, HueDot, HueTag, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
@@ -394,9 +394,14 @@ function Step({
 
       {canEdit ? (
         step.doneAt ? (
-          <Button variant="ghost" disabled={pending} onClick={() => run(() => undoStep(step.id, church))}>
-            <Undo2 /> {t("followups.undo")}
-          </Button>
+          <IconButton
+            label={t("followups.undo")}
+            variant="ghost"
+            disabled={pending}
+            onClick={() => run(() => undoStep(step.id, church))}
+          >
+            <Undo2 />
+          </IconButton>
         ) : (
           <span className="flex items-center gap-1">
             {step.mine ? null : (
@@ -435,7 +440,12 @@ function DoneDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary"><Check /> {t("followups.doneAction")}</Button>
+        <IconButton
+          label={t("followups.doneAction")}
+          variant="secondary"
+        >
+          <Check />
+        </IconButton>
       </DialogTrigger>
       <DialogContent title={title} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
@@ -476,7 +486,12 @@ function LeaveDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost"><LogOut /> {t("followups.leave")}</Button>
+        <IconButton
+          label={t("followups.leave")}
+          variant="ghost"
+        >
+          <LogOut />
+        </IconButton>
       </DialogTrigger>
       <DialogContent alert title={t("followups.exitTitle", { name })}>
         <div className="flex flex-col gap-4">

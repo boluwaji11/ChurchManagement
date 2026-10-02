@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, X, ShieldAlert } from "lucide-react";
 import {
-  Badge, Banner, Button, Combobox, Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
+  Badge, Banner, Button, IconButton, Combobox, Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -136,9 +136,13 @@ export function Relationships({
                 canLift ? (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" className="ml-auto">
-                        <X /> {t("relationship.remove")}
-                      </Button>
+                      <IconButton
+                        label={t("relationship.remove")}
+                        variant="ghost"
+                        className="ml-auto"
+                      >
+                        <X />
+                      </IconButton>
                     </DialogTrigger>
                     <DialogContent
                       alert
@@ -161,9 +165,14 @@ export function Relationships({
                   </Dialog>
                 ) : null
               ) : canEdit ? (
-                <Button variant="ghost" className="ml-auto" onClick={() => remove(row.id)}>
-                  <X /> {t("relationship.remove")}
-                </Button>
+                <IconButton
+                  label={t("relationship.remove")}
+                  variant="ghost"
+                  className="ml-auto"
+                  onClick={() => remove(row.id)}
+                >
+                  <X />
+                </IconButton>
               ) : null}
             </li>
           );

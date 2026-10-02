@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search, Check, Undo2, UserCheck } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, Checkbox, CodeDisplay, EmptyState, Field, HueDot, Input,
+  Badge, Banner, Button, IconButton, Card, Checkbox, CodeDisplay, EmptyState, Field, HueDot, Input,
   Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
@@ -463,7 +463,13 @@ function Member({
               offline={offline}
             />
           ) : null}
-          <Button variant="ghost" onClick={onUndo}><Undo2 /> {t("checkin.undo")}</Button>
+          <IconButton
+            label={t("checkin.undo")}
+            variant="ghost"
+            onClick={onUndo}
+          >
+            <Undo2 />
+          </IconButton>
         </div>
       </div>
     );

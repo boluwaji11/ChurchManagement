@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, ShieldCheck, RotateCcw } from "lucide-react";
+import { Plus, ShieldCheck, RotateCcw, Pencil } from "lucide-react";
 import {
-  Banner, Button, Card, EmptyState, HueDot, Badge, type Hue,
+  Banner, Button, IconButton, Card, EmptyState, HueDot, Badge, type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { TeamDialog, ArchiveTeamDialog } from "./team-dialog";
@@ -74,11 +74,14 @@ export function Teams({
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => (
             <li key={team.id}>
-              <Card className="flex h-full flex-col gap-3 p-5">
+              {/* R24.x. The whole tile opens the team. The title carries the
+                  link and stretches over the card, so the markup stays an
+                  anchor around text rather than an anchor around buttons. */}
+              <Card className="relative flex h-full flex-col gap-3 p-5 transition-shadow focus-within:shadow-md hover:shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <Link
                     href={`/serving/${team.id}?church=${church}`}
-                    className="flex items-center gap-2 font-display text-heading text-fg underline-offset-4 hover:underline"
+                    className="flex items-center gap-2 font-display text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
                   >
                     <HueDot hue={team.hue as Hue} />
                     {team.name}
@@ -104,23 +107,24 @@ export function Teams({
                 </div>
 
                 {canManage ? (
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative flex flex-wrap items-center gap-2">
                     <TeamDialog
                       church={church}
                       team={team}
                       title={t("serving.editTeam")}
                       trigger={
-                        <Button variant="ghost">{t("action.edit")}</Button>
+                        <IconButton label={t("action.edit")}><Pencil /></IconButton>
                       }
                     />
                     {team.archived ? (
-                      <Button
+                      <IconButton
+                        label={t("serving.restore")}
                         variant="ghost"
                         disabled={pending}
                         onClick={() => setArchived(team.id, false)}
                       >
-                        <RotateCcw /> {t("serving.restore")}
-                      </Button>
+                        <RotateCcw />
+                      </IconButton>
                     ) : (
                       <ArchiveTeamDialog
                         name={team.name}

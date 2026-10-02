@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, RefreshCw, Copy, DoorOpen } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, CardTitle, CodeDisplay, Field, Input, Separator,
+  Badge, Banner, Button, IconButton, Card, CardTitle, CodeDisplay, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -225,9 +225,14 @@ export function Team({
                         </SelectContent>
                       </Select>
 
-                      <Button variant="ghost" disabled={pending} onClick={() => setRemoving(member)}>
-                        <X /> {t("team.remove")}
-                      </Button>
+                      <IconButton
+                        label={t("team.remove")}
+                        variant="ghost"
+                        disabled={pending}
+                        onClick={() => setRemoving(member)}
+                      >
+                        <X />
+                      </IconButton>
                     </>
                   )}
                 </span>
@@ -294,13 +299,14 @@ export function Team({
                     <span className="text-caption text-fg-muted">
                       {t("team.until", { day: invitation.expiresAt })}
                     </span>
-                    <Button
+                    <IconButton
+                      label={t("team.withdraw")}
                       variant="ghost"
                       disabled={pending}
                       onClick={() => run(() => withdraw(invitation.id, church))}
                     >
-                      <X /> {t("team.withdraw")}
-                    </Button>
+                      <X />
+                    </IconButton>
                   </span>
                 </div>
               </li>

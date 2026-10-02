@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Merge, Undo2, ArrowRight } from "lucide-react";
 import {
-  Avatar, Badge, Button, Card, CardTitle, Separator, Banner, EmptyState,
+  Avatar, Badge, Button, IconButton, Card, CardTitle, Separator, Banner, EmptyState,
   RadioGroup, RadioItem, Dialog, DialogTrigger, DialogContent, DialogFooter, cn,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -289,9 +289,14 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
                 <form noValidate action={submit}>
                   <input type="hidden" name="church" value={church} />
                   <input type="hidden" name="mergeId" value={m.id} />
-                  <Button type="submit" variant="ghost" loading={pending}>
-                    <Undo2 /> {t("merge.undo")}
-                  </Button>
+                  <IconButton
+                    label={t("merge.undo")}
+                    type="submit"
+                    variant="ghost"
+                    disabled={pending}
+                  >
+                    <Undo2 />
+                  </IconButton>
                 </form>
               ) : m.undoneAt ? null : (
                 <span className="text-caption text-fg-subtle">{t("merge.expired")}</span>

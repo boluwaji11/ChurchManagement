@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import {
-  Badge, Banner, BlockingInterrupt, Button, Dialog, DialogTrigger, DialogContent, Field, Input,
+  Badge, Banner, BlockingInterrupt, Button, IconButton, Dialog, DialogTrigger, DialogContent, Field, Input,
   RadioGroup, RadioItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -122,7 +122,12 @@ export function Checkout({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary"><LogOut /> {t("checkout.title")}</Button>
+        <IconButton
+          label={t("checkout.title")}
+          variant="secondary"
+        >
+          <LogOut />
+        </IconButton>
       </DialogTrigger>
       <DialogContent title={t("checkout.heading", { name: childName })} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">

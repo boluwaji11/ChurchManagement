@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, UserMinus } from "lucide-react";
 import {
-  Banner, Badge, Button, Checkbox, Input, Separator, EmptyState,
+  Banner, Badge, Button, IconButton, Checkbox, Input, Separator, EmptyState,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -143,12 +143,13 @@ export function Roster({
                     </SelectContent>
                   </Select>
 
-                  <Button
+                  <IconButton
+                    label={t("serving.remove")}
                     variant="ghost"
                     onClick={() => run(() => removeMember(teamId, member.personId, church))}
                   >
-                    <UserMinus /> {t("serving.remove")}
-                  </Button>
+                    <UserMinus />
+                  </IconButton>
                 </span>
               </div>
             </li>

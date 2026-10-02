@@ -4,7 +4,7 @@ import * as React from "react";
 import { Plus, Pencil, Trash2, Merge, Check } from "lucide-react";
 import {
   HUES,
-  Button, Input, Field, Card, Separator, Banner, HueTag, HueDot,
+  Button, IconButton, Input, Field, Card, Separator, Banner, HueTag, HueDot,
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
@@ -130,9 +130,12 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
   return (
     <Dialog open={open} onOpenChange={reset}>
       <DialogTrigger asChild>
-        <Button variant="ghost">
-          <Pencil /> {t("action.edit")}
-        </Button>
+        <IconButton
+          label={t("action.edit")}
+          variant="ghost"
+        >
+          <Pencil />
+        </IconButton>
       </DialogTrigger>
 
       <DialogContent title={tag.name} closeLabel={t("common.close")}>

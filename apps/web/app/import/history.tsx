@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Undo2 } from "lucide-react";
 import {
-  Button, Card, CardTitle, Separator, Banner, Badge,
+  Button, IconButton, Card, CardTitle, Separator, Banner, Badge,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -105,9 +105,12 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="ghost">
-            <Undo2 /> {t("import.rollback")}
-          </Button>
+          <IconButton
+            label={t("import.rollback")}
+            variant="ghost"
+          >
+            <Undo2 />
+          </IconButton>
         </DialogTrigger>
         <DialogContent
           alert

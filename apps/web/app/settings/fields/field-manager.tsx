@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Plus, Pencil, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
 import {
-  Button, Input, Textarea, Field, Card, Separator, Banner, Badge,
+  Button, IconButton, Input, Textarea, Field, Card, Separator, Banner, Badge,
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -166,9 +166,12 @@ function EditField({ church, field }: { church: string; field: FieldItem }) {
   return (
     <Dialog open={open} onOpenChange={reset}>
       <DialogTrigger asChild>
-        <Button variant="ghost">
-          <Pencil /> {t("action.edit")}
-        </Button>
+        <IconButton
+          label={t("action.edit")}
+          variant="ghost"
+        >
+          <Pencil />
+        </IconButton>
       </DialogTrigger>
 
       <DialogContent title={field.label} description={typeLabel(field.type)} closeLabel={t("common.close")}>

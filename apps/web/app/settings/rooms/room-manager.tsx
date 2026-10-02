@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Pencil, Archive, Undo2, ChevronUp, ChevronDown } from "lucide-react";
 import {
   HUES,
-  Banner, Button, Card, EmptyState, Field, HueDot, Input, Separator,
+  Banner, Button, IconButton, Card, EmptyState, Field, HueDot, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
@@ -149,7 +149,12 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                       church={church}
                       room={room}
                       pending={pending}
-                      trigger={<Button variant="ghost"><Pencil /> {t("rooms.edit")}</Button>}
+                      trigger={<IconButton
+                        label={t("rooms.edit")}
+                        variant="ghost"
+                      >
+                        <Pencil />
+                      </IconButton>}
                       title={t("rooms.editTitle", { name: room.name })}
                       onSave={(fields) => act(saveRoom, { id: room.id, ...fields })}
                     />
@@ -178,13 +183,14 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                     <HueDot hue={room.hue as Hue} />
                     <span className="text-[length:var(--d-text-body)]">{room.name}</span>
                   </div>
-                  <Button
+                  <IconButton
+                    label={t("rooms.restore")}
                     variant="ghost"
                     disabled={pending}
                     onClick={() => act(archiveRoom, { id: room.id, archived: "0" })}
                   >
-                    <Undo2 /> {t("rooms.restore")}
-                  </Button>
+                    <Undo2 />
+                  </IconButton>
                 </div>
               </li>
             ))}
@@ -378,7 +384,12 @@ function ArchiveDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost"><Archive /> {t("rooms.archive")}</Button>
+        <IconButton
+          label={t("rooms.archive")}
+          variant="ghost"
+        >
+          <Archive />
+        </IconButton>
       </DialogTrigger>
       <DialogContent alert title={t("rooms.archiveTitle", { name: room.name })}>
         <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">

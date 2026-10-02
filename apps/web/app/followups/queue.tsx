@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import {
-  Banner, Button, Card, EmptyState, Field, HueTag, Input, Separator,
+  Banner, Button, IconButton, Card, EmptyState, Field, HueTag, Input, Separator,
   Dialog, DialogTrigger, DialogContent,
   type Hue,
 } from "@hearth/ui";
@@ -215,7 +215,12 @@ function DoneDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary"><Check /> {t("followups.doneAction")}</Button>
+        <IconButton
+          label={t("followups.doneAction")}
+          variant="secondary"
+        >
+          <Check />
+        </IconButton>
       </DialogTrigger>
       <DialogContent title={`${title}: ${person}`} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">

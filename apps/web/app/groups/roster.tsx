@@ -5,7 +5,7 @@ import {useRouter } from "next/navigation";
 import { Search, UserMinus } from "lucide-react";
 import {
   Banner,
-  Badge, Button, Input, Separator,
+  Badge, IconButton, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -89,9 +89,13 @@ export function Roster({
                   <Badge tone="neutral">{t(`groups.role.${entry.role}` as never)}</Badge>
                 )}
               </span>
-              <Button variant="ghost" onClick={() => take(entry.personId)}>
-                <UserMinus /> {t("groups.remove")}
-              </Button>
+              <IconButton
+                label={t("groups.remove")}
+                variant="ghost"
+                onClick={() => take(entry.personId)}
+              >
+                <UserMinus />
+              </IconButton>
             </div>
           </li>
         ))}

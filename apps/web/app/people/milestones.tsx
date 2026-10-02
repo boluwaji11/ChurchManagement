@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import {
-  Badge, Banner, Button, Input, Dialog, DialogTrigger, DialogContent,
+  Badge, Banner, Button, IconButton, Input, Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { DateField } from "@/components/date-field";
@@ -118,9 +118,14 @@ export function Milestones({
               <span className="text-caption text-fg-muted">{row.notes}</span>
             ) : null}
             {canEdit ? (
-              <Button variant="ghost" className="ml-auto" onClick={() => remove(row.id)}>
-                <X /> {t("milestone.remove")}
-              </Button>
+              <IconButton
+                label={t("milestone.remove")}
+                variant="ghost"
+                className="ml-auto"
+                onClick={() => remove(row.id)}
+              >
+                <X />
+              </IconButton>
             ) : null}
           </li>
         ))}

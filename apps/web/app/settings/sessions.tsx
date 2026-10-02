@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { LogOut, Monitor } from "lucide-react";
-import { Badge, Banner, Button } from "@hearth/ui";
+import { Badge, Banner, Button, IconButton } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { endSession, endOtherSessions } from "./session-actions";
 
@@ -65,9 +65,14 @@ export function Sessions({ church, rows }: { church: string; rows: SessionRow[] 
               {row.ip ? ` · ${row.ip}` : ""}
             </span>
             {row.current ? null : (
-              <Button variant="ghost" className="ml-auto" onClick={() => act(endSession, row.id)}>
-                <LogOut /> {t("session.end")}
-              </Button>
+              <IconButton
+                label={t("session.end")}
+                variant="ghost"
+                className="ml-auto"
+                onClick={() => act(endSession, row.id)}
+              >
+                <LogOut />
+              </IconButton>
             )}
           </li>
         ))}

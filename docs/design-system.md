@@ -288,6 +288,11 @@ background with a hairline, not a blur.
 - Icons are `currentColor`, always.
 - **An icon-only control must carry an accessible label**, and on station density, icon-only controls
   are not permitted at all. A volunteer should never have to guess.
+- **A repeated action is an icon alone.** Edit, archive, restore, remove, undo: where the action sits
+  on every row of a list or every card in a grid, it is an `IconButton`. The words are identical on
+  every row, so a column reading "Edit Archive Edit Archive" is noise. `IconButton` requires a
+  `label`, which becomes the accessible name and the tooltip. An action that appears once on a
+  screen keeps its words on the button, and so does a confirmation inside a dialog.
 - One concept, one icon, registered in a single map. No two glyphs for "person".
 
 ## 7. Motion
@@ -422,6 +427,8 @@ Explicitly refused, so the conversation happens once:
 | Grey text on grey backgrounds below 4.5:1 | It is not subtle, it is unreadable |
 | Icon-only buttons without labels | Nobody guesses correctly under time pressure |
 | Hover-only affordances | Half the product is touch |
+| The same word on every row of a column | "Edit Archive Edit Archive" reads as texture. Repeated actions are `IconButton` |
+| A tile whose title is the only clickable part | The whole tile stands for the thing. Stretch the title's link across the card |
 | Pure black or pure white backgrounds | Harsh, and kills the warmth the palette exists for |
 | Toast-only error reporting | Toasts vanish. Errors must persist near their cause |
 | Hint text explaining what a field is for | A label and an error are enough. Hints make a short form look long |

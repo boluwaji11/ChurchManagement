@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, X, Search, Plus, Undo2 } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, Checkbox, EmptyState, HueDot, Input, Separator,
+  Badge, Banner, Button, IconButton, Card, Checkbox, EmptyState, HueDot, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
@@ -170,20 +170,22 @@ export function Finder({
                   ) : null}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Button
+                  <IconButton
+                    label={t("find.approve")}
                     variant="secondary"
                     disabled={pending}
                     onClick={() => run(() => decide(request.id, true, church))}
                   >
-                    <Check /> {t("find.approve")}
-                  </Button>
-                  <Button
+                    <Check />
+                  </IconButton>
+                  <IconButton
+                    label={t("find.decline")}
                     variant="ghost"
                     disabled={pending}
                     onClick={() => run(() => decide(request.id, false, church))}
                   >
-                    <X /> {t("find.decline")}
-                  </Button>
+                    <X />
+                  </IconButton>
                 </span>
               </div>
             </div>
@@ -271,13 +273,14 @@ export function Finder({
           {archivedGroups.map((group) => (
             <div key={group.id} className="flex flex-wrap items-center justify-between gap-3">
               <span className="text-[length:var(--d-text-body)] text-fg-muted">{group.name}</span>
-              <Button
+              <IconButton
+                label={t("groups.restore")}
                 variant="ghost"
                 disabled={pending}
                 onClick={() => run(() => restore(group.id, church))}
               >
-                <Undo2 /> {t("groups.restore")}
-              </Button>
+                <Undo2 />
+              </IconButton>
             </div>
           ))}
         </div>

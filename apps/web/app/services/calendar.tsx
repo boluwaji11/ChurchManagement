@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList, ChevronDown } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, EmptyState, Field, Input,
+  Badge, Banner, Button, IconButton, Card, EmptyState, Field, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Table, Thead, Th, Tr, Td, Dialog, DialogTrigger, DialogContent, DialogFooter,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
@@ -345,20 +345,29 @@ function RowActions({
   return (
     <div className="flex items-center justify-end gap-1">
       {counted ? (
-        <Button
+        <IconButton
+          label={t("services.count")}
           variant={row.total === null ? "secondary" : "ghost"}
           onClick={() => setOpen("count")}
         >
-          <Users /> {t("services.count")}
-        </Button>
+          <Users />
+        </IconButton>
       ) : cancelled ? (
-        <Button variant="ghost" onClick={() => run(setCancelled, { id: row.id, cancelled: "0" })}>
-          <Undo2 /> {t("services.restore")}
-        </Button>
+        <IconButton
+          label={t("services.restore")}
+          variant="ghost"
+          onClick={() => run(setCancelled, { id: row.id, cancelled: "0" })}
+        >
+          <Undo2 />
+        </IconButton>
       ) : (
-        <Button variant="ghost" onClick={() => setOpen("edit")}>
-          <Pencil /> {t("services.edit")}
-        </Button>
+        <IconButton
+          label={t("services.edit")}
+          variant="ghost"
+          onClick={() => setOpen("edit")}
+        >
+          <Pencil />
+        </IconButton>
       )}
 
       <DropdownMenu>

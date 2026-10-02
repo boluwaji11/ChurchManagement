@@ -4,7 +4,7 @@ import * as React from "react";
 import {ClipboardPen } from "lucide-react";
 import {
   Banner,
-  Button, Dialog, DialogTrigger, DialogContent, Field, Input, Textarea, Checkbox,
+  Button, IconButton, Dialog, DialogTrigger, DialogContent, Field, Input, Textarea, Checkbox,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { DateField } from "@/components/date-field";
@@ -44,9 +44,12 @@ export function IncidentDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost">
-          <ClipboardPen /> {t("incident.add")}
-        </Button>
+        <IconButton
+          label={t("incident.add")}
+          variant="ghost"
+        >
+          <ClipboardPen />
+        </IconButton>
       </DialogTrigger>
 
       <DialogContent

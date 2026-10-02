@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, Pencil, Power } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, Field, HueTag, Input, Separator, Textarea,
+  Badge, Banner, Button, IconButton, Card, Field, HueTag, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
@@ -129,7 +129,12 @@ function EditDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary"><Pencil /> {t("action.edit")}</Button>
+        <IconButton
+          label={t("action.edit")}
+          variant="secondary"
+        >
+          <Pencil />
+        </IconButton>
       </DialogTrigger>
       <DialogContent title={row.name} closeLabel={t("common.close")} className="max-w-xl">
         <form
@@ -200,13 +205,14 @@ function EditDialog({
                     />
                   </Field>
                 </div>
-                <Button
+                <IconButton
+                  label={t("pipelines.removeStep")}
                   type="button"
                   variant="ghost"
                   onClick={() => setSteps((all) => all.filter((s) => s.key !== step.key))}
                 >
-                  <X /> {t("pipelines.removeStep")}
-                </Button>
+                  <X />
+                </IconButton>
               </div>
             ))}
 
