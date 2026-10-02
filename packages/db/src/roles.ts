@@ -67,4 +67,5 @@ export type PermissionAction =
   | "editChurch" | "manageDemoData" | "manageServices" | "recordAttendance"
   | "manageRooms" | "manageStations" | "checkIn"
   | "fileIncident" | "readIncidents" | "manageGroups" | "recordGroupAttendance"
-  | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy";
+  | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy"
+  | "manageTeams" | "manageTeamRoster";

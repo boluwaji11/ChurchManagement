@@ -17,6 +17,7 @@ import { addStation } from "../repo/stations";
 import { checkInFamily } from "../repo/checkin";
 import { seedGroupTypes, createGroup, addToGroup } from "../repo/groups";
 import { seedPipelines } from "../repo/followups";
+import { seedTeams, listTeams, getTeam, addToTeam } from "../repo/serving";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { DEMO_PEOPLE, DEMO_TAGS } from "./people";
@@ -230,6 +231,37 @@ async function loadServices(
 
   await loadTodaysService(db, actor, remember, station.id, roomIds, people);
   await loadGroups(db, actor, remember, people);
+  await loadServing(db, actor, people);
+}
+
+/**
+ * R10.1. People on the teams the church already has.
+ *
+ * The teams themselves come with the church, so nothing here is remembered as
+ * a demo record: emptying the demo takes the roster off and leaves the teams,
+ * which is what a church wants, since they will use them.
+ */
+async function loadServing(db: Tx, actor: WriteActor, everyone: string[]): Promise<void> {
+  await seedTeams(db, actor);
+
+  const wanted = ["Worship", "Production", "Welcome"];
+  const teams = (await listTeams(db)).filter((t) => wanted.includes(t.name));
+
+  let at = 0;
+  for (const summary of teams) {
+    const team = await getTeam(db, summary.id);
+    if (!team) continue;
+
+    // Three a team, the first of them leading it, each playing one position.
+    for (let i = 0; i < 3 && at < everyone.length; i += 1, at += 1) {
+      await addToTeam(db, actor, {
+        teamId: team.id,
+        personId: everyone[at]!,
+        role: i === 0 ? "leader" : "member",
+        positionIds: team.positions[i] ? [team.positions[i]!.id] : [],
+      });
+    }
+  }
 }
 
 /**

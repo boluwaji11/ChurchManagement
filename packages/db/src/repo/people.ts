@@ -269,6 +269,12 @@ export type HouseholdRole = (typeof HOUSEHOLD_ROLES)[number];
 export interface WriteActor {
   tenantId: string;
   role: TenantRole;
+  /**
+   * The signed-in account, where the write is scoped to something this person
+   * is part of. A team leader may change the rota of the team they lead, and
+   * that is the only way to know which team that is.
+   */
+  userId?: string | null;
 }
 
 export interface PersonInput {

@@ -339,12 +339,13 @@ a rota screen pretending to be a roster screen.
 
 Where they meet: a person is on a team and may also be in a group, and both show on their record.
 The **Ministry team** group type stays for a church that wants a list of who is on the sound desk
-and nothing more; when HRT-79 lands, such a group can be turned into a team and keeps its people.
+and nothing more. Turning such a group into a team is not built: a church that wants a team makes
+one and adds the people, which takes a minute and needs no migration screen.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-79 | Teams, positions, and a person serving across several of them | R10.1 to R10.3 | New |
-| HRT-80 | Scheduling with conflict detection, blockout dates, accept and decline | R10.4 to R10.8 | New |
+| HRT-79 | Teams, positions, and a person serving across several of them | R10.1, R10.2 | Resolved |
+| HRT-80 | Scheduling with conflict detection, blockout dates, accept and decline | R10.3 to R10.8 | New |
 | HRT-81 | Who is serving in a kids class today, and the two-adult-rule alert on the board | R8.17, R10.12 | Deferred to 0.9 |
 | HRT-82 | Background-check gating: no children's position without a valid check | R10.10 | Deferred to 0.9 |
 
@@ -442,9 +443,9 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
-| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays |
-| **Next** | **0.4**, starting with **HRT-79** teams and positions. |
-| **Order after that** | **0.4** serving (HRT-79, HRT-80), then service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
+| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions |
+| **Next** | **HRT-80** scheduling against services, with conflict detection. |
+| **Order after that** | **0.4** scheduling (HRT-80), then service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging waits on a church having a provider set up. **HRT-13** MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -1169,6 +1170,30 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-79, how to test it
+
+**Serving** is in the header. Your church already has five teams, because they came with it.
+
+1. Worship, Production, Welcome, Ushers and Children, each with the positions it schedules. The
+   Children card says a background check is required; Production's does not.
+2. Open **Children**. Room leader and Helper are marked as working with children and asking for a
+   check. Check-in desk is marked as neither.
+3. Add a position. Tick **Works with children** and the check box ticks itself. You can untick it,
+   which is the church's call.
+4. A position name has to be new on that team. "Keys" is taken on Worship and free on Production.
+5. Under **Who serves**, type two letters of a name and press the person. They go on the team.
+   Press **Positions** against them and tick what they play.
+6. **Take off the team** removes them from the list. The row they left behind keeps the date, so
+   who was on the sound desk last year stays answerable.
+7. Archive a position you added. It comes off the team and off everybody who played it.
+8. Open that person's record. A **Serving** card sits above Lists, naming every team they are on,
+   the ones they lead, and the positions they play.
+9. **Sign in as a team leader** whose record is linked to an account and who is marked Leader on
+   one team. They get a Serving link, see only that team, can change its roster, and cannot create
+   a team or touch another one. Opening another team's page sends them back to the list.
+10. The directory a team leader sees is their own team, the same way a group leader sees their own
+    group.
 
 ### HRT-27, how to test it
 

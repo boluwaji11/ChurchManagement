@@ -75,6 +75,13 @@ const OWNED: {
     conflictOn: ["group_id"],
     liveOnly: "w.decided_at is null and t.decided_at is null",
   },
+  // R10.1. Serving on a team. Partial index again, same reason as a group.
+  {
+    table: "team_members",
+    column: "person_id",
+    conflictOn: ["team_id"],
+    liveOnly: "w.left_on is null and t.left_on is null",
+  },
 ];
 
 /**

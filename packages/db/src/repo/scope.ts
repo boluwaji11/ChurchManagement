@@ -2,6 +2,7 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Tx } from "../client";
 import { people } from "../schema/people";
 import { groupMemberships } from "../schema/groups";
+import { teamMembers } from "../schema/serving";
 import type { TenantRole } from "../roles";
 
 /**
@@ -65,14 +66,39 @@ export async function visiblePeople(db: Tx, viewer: Viewer): Promise<string[] | 
     );
 
   const groupIds = led.map((row) => row.groupId);
-  if (groupIds.length === 0) return [self];
 
-  const roster = await db
-    .selectDistinct({ personId: groupMemberships.personId })
-    .from(groupMemberships)
-    .where(and(inArray(groupMemberships.groupId, groupIds), isNull(groupMemberships.leftOn)));
+  const roster = groupIds.length === 0
+    ? []
+    : await db
+      .selectDistinct({ personId: groupMemberships.personId })
+      .from(groupMemberships)
+      .where(and(inArray(groupMemberships.groupId, groupIds), isNull(groupMemberships.leftOn)));
 
-  return [...new Set([self, ...roster.map((row) => row.personId)])];
+  // R10.1. A team leader sees their own band and nobody else, for the same
+  // reason a group leader sees their own group: they have to keep the rota.
+  const teamsLed = await db
+    .select({ teamId: teamMembers.teamId })
+    .from(teamMembers)
+    .where(and(
+      eq(teamMembers.personId, self),
+      eq(teamMembers.role, "leader"),
+      isNull(teamMembers.leftOn),
+    ));
+
+  const teamIds = teamsLed.map((row) => row.teamId);
+
+  const servers = teamIds.length === 0
+    ? []
+    : await db
+      .selectDistinct({ personId: teamMembers.personId })
+      .from(teamMembers)
+      .where(and(inArray(teamMembers.teamId, teamIds), isNull(teamMembers.leftOn)));
+
+  return [...new Set([
+    self,
+    ...roster.map((row) => row.personId),
+    ...servers.map((row) => row.personId),
+  ])];
 }
 
 /** R9.3. Which person this account is in this church, where they are one. */

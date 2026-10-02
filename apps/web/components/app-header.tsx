@@ -4,6 +4,7 @@ import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
+  canLeadTeams,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
@@ -64,6 +65,7 @@ export async function AppHeader({ session }: { session: Session }) {
         >
           {(canEditPeople(session.role) || canReadIncidents(session.role)
             || canCheckIn(session.role) || canFollowUp(session.role)
+            || canLeadTeams(session.role)
             ? [
             /*
              * R3.1. One directory each. Staff work in the church's records; a
@@ -79,6 +81,10 @@ export async function AppHeader({ session }: { session: Session }) {
               : []),
             // R9.5. Groups are for everybody: finding one is the member's question.
             [t("nav.groups"), "/groups"],
+            // R10.1. The rota. A team leader has this and nothing else.
+            ...(canLeadTeams(session.role)
+              ? [[t("nav.serving"), "/serving"] as const]
+              : []),
             // R8.x. The screens for whoever is on the door while a service runs.
             ...(canCheckIn(session.role)
               ? [

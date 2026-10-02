@@ -5,11 +5,13 @@ import {
   withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson, listsForPerson,
   personTimeline,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
-  listRelationships, listPeople, listMilestones,
+  listRelationships, listPeople, listMilestones, servingForPerson,
   canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
   canSeeChecks, checksFor, canReadConfidentialNotes,
 } from "@hearth/db";
-import { Avatar, Badge, Button, Card, CardTitle, Separator, Banner } from "@hearth/ui";
+import {
+  Avatar, Badge, Button, Card, CardTitle, Separator, Banner, HueDot, type Hue,
+} from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { AppHeader } from "@/components/app-header";
@@ -86,6 +88,8 @@ export default async function PersonPage({
       fields: await listCustomFields(tx, "person"),
       fieldValues: await getCustomValues(tx, "person", id),
       relationships: await listRelationships(tx, id),
+      // R10.1. Every team they serve on, in one place rather than one per ministry.
+      serving: await servingForPerson(tx, id),
       milestones: await listMilestones(tx, id),
       pipelines: canFollowUp(session.role) ? await listPipelines(tx) : [],
       entries: canFollowUp(session.role) ? await entriesFor(tx, id) : [],
@@ -103,7 +107,7 @@ export default async function PersonPage({
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
   const {
-    person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone,
+    person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone, serving,
     milestones, pipelines, entries, tasks, today, checks, onLists, history,
   } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
@@ -265,6 +269,34 @@ export default async function PersonPage({
           canLift={canArchivePeople(session.role)}
         />
       </Card>
+
+      {serving.length > 0 ? (
+        <Card className="mb-6">
+          <CardTitle>{t("serving.onTeams")}</CardTitle>
+          <Separator className="my-4" />
+          <ul className="flex flex-col gap-2">
+            {serving.map((team) => (
+              <li key={team.teamId} className="flex flex-wrap items-center gap-2">
+                <HueDot hue={team.hue as Hue} />
+                <Link
+                  href={`/serving/${team.teamId}?church=${session.tenantSlug}`}
+                  className="text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
+                >
+                  {team.teamName}
+                </Link>
+                {team.role === "leader" ? (
+                  <Badge tone="neutral">{t("serving.role.leader")}</Badge>
+                ) : null}
+                {team.positions.length > 0 ? (
+                  <span className="text-caption text-fg-muted">
+                    {team.positions.join(", ")}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       {onLists.length > 0 ? (
         <Card className="mb-6">
