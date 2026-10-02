@@ -288,6 +288,13 @@
       "when": 1790892203552,
       "tag": "0040_misty_firestar",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790954321597,
+      "tag": "0041_outstanding_luke_cage",
+      "breakpoints": true
     }
   ]
 }

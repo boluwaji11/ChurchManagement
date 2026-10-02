@@ -65,6 +65,11 @@ export * from "./demo/church";
 export { DEMO_PEOPLE, DEMO_TAGS } from "./demo/people";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
+  listAbilities, addAbility, renameAbility, setAbilityArchived,
+  abilitiesForPerson, setPersonAbility, peopleWith, abilityCount,
+  ABILITY_KINDS, type Ability, type AbilityKind,
+} from "./repo/abilities";
+export {
   personTimeline, TIMELINE_LIMIT,
   type TimelineEntry, type TimelineKind,
 } from "./repo/timeline";

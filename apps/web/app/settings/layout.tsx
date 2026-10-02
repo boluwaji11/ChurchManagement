@@ -44,6 +44,8 @@ export default async function SettingsLayout({ children }: { children: React.Rea
           { href: "/settings/church", label: t("settings.tab.church") },
           { href: "/settings/team", label: t("settings.tab.team") },
           { href: "/settings/followups", label: t("settings.tab.followups") },
+          // R2.9. Skills, interests and spiritual gifts.
+          { href: "/settings/abilities", label: t("settings.tab.abilities") },
         ]
       : []),
     ...(canManageRooms(session.role)

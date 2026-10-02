@@ -48,6 +48,8 @@ const TABLES = [
   "directory_preferences",
   "saved_lists",
   "saved_list_members",
+  "abilities",
+  "person_abilities",
   "stored_files",
   "demo_records",
   "tenant_members",

@@ -16,6 +16,12 @@ import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkArchive, bulkStatus, bulkTag, type BulkResult } from "./bulk-actions";
 import { saveSelection, saveView, takeOffList, rename, archiveList } from "./list-actions";
 
+export interface AbilityOption {
+  id: string;
+  kind: string;
+  name: string;
+}
+
 export interface ListOption {
   id: string;
   name: string;
@@ -73,10 +79,13 @@ export function Directory({
   matching,
   lists,
   viewing,
+  abilities,
 }: {
   church: string;
   rows: Row[];
   tags: TagOption[];
+  /** R2.9. The church's skills, interests and spiritual gifts. */
+  abilities: AbilityOption[];
   canEdit: boolean;
   canArchive: boolean;
   page: number;
@@ -154,7 +163,7 @@ export function Directory({
     });
   };
 
-  const filtersOn = ["q", "status", "tag", "has", "show"].some((k) => params.get(k));
+  const filtersOn = ["q", "status", "tag", "ability", "has", "show"].some((k) => params.get(k));
   const exportHref = `/api/export?church=${church}&${params.toString()}`;
 
   return (
@@ -170,6 +179,7 @@ export function Directory({
           params={params}
           setParam={setParam}
           tags={tags}
+          abilities={abilities}
           filtersOn={filtersOn}
           onClear={() => router.replace(pathname, { scroll: false })}
           exportHref={exportHref}
@@ -414,6 +424,7 @@ function Toolbar({
   params,
   setParam,
   tags,
+  abilities,
   filtersOn,
   onClear,
   exportHref,
@@ -428,6 +439,7 @@ function Toolbar({
   params: URLSearchParams;
   setParam: (c: Record<string, string | undefined>) => void;
   tags: TagOption[];
+  abilities: AbilityOption[];
   filtersOn: boolean;
   onClear: () => void;
   exportHref: string;
@@ -467,6 +479,20 @@ function Toolbar({
             value={params.get("tag") ?? ANY}
             onChange={(v) => setParam({ tag: v })}
             options={tags.map((t) => ({ value: t.id, label: t.name, hue: t.hue }))}
+          />
+        ) : null}
+
+        {/* R2.9. Who can do this, which is the question the three lists exist
+            to answer, asked from the screen a church is already looking at. */}
+        {abilities.length > 0 ? (
+          <Filter
+            label={t("ability.filter")}
+            value={params.get("ability") ?? ANY}
+            onChange={(v) => setParam({ ability: v })}
+            options={abilities.map((a) => ({
+              value: a.id,
+              label: `${a.name} (${t(`ability.kind.${a.kind}` as never)})`,
+            }))}
           />
         ) : null}
 
@@ -562,7 +588,7 @@ function SaveViewDialog({ church, params }: { church: string; params: URLSearchP
           noValidate
           action={(data) => {
             data.set("church", church);
-            for (const key of ["q", "status", "tag", "has", "show"]) {
+            for (const key of ["q", "status", "tag", "ability", "has", "show"]) {
               data.set(key, params.get(key) ?? "");
             }
             startTransition(async () => {

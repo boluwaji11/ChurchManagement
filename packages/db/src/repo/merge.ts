@@ -34,6 +34,8 @@ const OWNED: {
    * moving, and the person would quietly come off the group.
    */
   liveOnly?: string;
+  /** The column naming one row, where the table has no `id` of its own. */
+  key?: string;
 }[] = [
   { table: "contact_methods", column: "person_id" },
   { table: "addresses", column: "person_id" },
@@ -42,9 +44,11 @@ const OWNED: {
   { table: "background_checks", column: "person_id" },
   { table: "notes", column: "person_id" },
   // A tag the winner already carries would collide, so those rows stay put.
-  { table: "person_tags", column: "person_id", conflictOn: ["tag_id"] },
+  { table: "person_tags", column: "person_id", conflictOn: ["tag_id"], key: "tag_id" },
   // Same for a custom field the winner has already answered.
   { table: "custom_field_values", column: "entity_id", conflictOn: ["field_id"] },
+  // R2.9. A skill the winner already has would collide, so that row stays.
+  { table: "person_abilities", column: "person_id", conflictOn: ["ability_id"], key: "ability_id" },
   // R1.14. A list the winner is already on would collide, so those rows stay.
   { table: "saved_list_members", column: "person_id", conflictOn: ["list_id"] },
   // R9.4. Group membership. Only a live row collides with a live row: the index
@@ -74,6 +78,15 @@ const OWNED: {
     liveOnly: "w.decided_at is null and t.decided_at is null",
   },
 ];
+
+/**
+ * The column naming one row, for the tables that have no `id` of their own.
+ * Read on the way back out of a merge, where only the table name survives in
+ * the record of what moved.
+ */
+const KEYS: Record<string, string> = Object.fromEntries(
+  OWNED.filter((o) => o.key).map((o) => [o.table, o.key!]),
+);
 
 export interface MergePlan {
   winnerId: string;
@@ -132,7 +145,7 @@ export async function mergePeople(
          set ${sql.identifier(owned.column)} = ${plan.winnerId}::uuid
        where t.${sql.identifier(owned.column)} = ${plan.loserId}::uuid
          ${keep}
-      returning t.${sql.identifier(owned.table === "person_tags" ? "tag_id" : "id")} as id`)) as unknown as {
+      returning t.${sql.identifier(owned.key ?? "id")} as id`)) as unknown as {
       id: string;
     }[];
 
@@ -287,7 +300,7 @@ export async function undoMerge(
       ? row.table.split(".")
       : [row.table, row.table === "person_tags" ? "person_id" : row.table === "custom_field_values" ? "entity_id" : "person_id"];
 
-    const key = table === "person_tags" ? "tag_id" : "id";
+    const key = KEYS[table!] ?? "id";
     const result = (await db.execute(sql`
       update ${sql.identifier(table!)}
          set ${sql.identifier(column!)} = ${merge.loserId}::uuid
