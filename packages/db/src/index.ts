@@ -65,6 +65,10 @@ export * from "./demo/church";
 export { DEMO_PEOPLE, DEMO_TAGS } from "./demo/people";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
+  personTimeline, TIMELINE_LIMIT,
+  type TimelineEntry, type TimelineKind,
+} from "./repo/timeline";
+export {
   listSavedLists, getSavedList, createStaticList, createRuleList, renameList,
   setListArchived, addToList, removeFromList, resolveList, listsForPerson,
   cleanRule, RULE_KEYS,

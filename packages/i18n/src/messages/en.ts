@@ -611,6 +611,25 @@ export const en = {
   "lists.error.missing": "That list could not be found.",
   "lists.error.ruleList": "That list answers itself, so people cannot be put on it by hand.",
 
+  // HRT-120. The person timeline (R2.15)
+  "timeline.title": "History",
+  "timeline.empty": "Nothing recorded yet",
+  "timeline.added": "Added to the church",
+  "timeline.attended": "At {name}",
+  "timeline.checkedIn": "Checked in to {name}",
+  "timeline.checkedInNoRoom": "Checked in",
+  "timeline.joinedGroup": "Joined {name}",
+  "timeline.leftGroup": "Left {name}",
+  "timeline.milestone": "{name}",
+  "timeline.note": "Note",
+  "timeline.noteConfidential": "Confidential note",
+  "timeline.enteredPipeline": "Entered {name}",
+  "timeline.leftPipeline": "Finished {name}",
+  "timeline.followUpDone": "{name}",
+  "timeline.check": "Background check",
+  "timeline.archived": "Archived",
+  "timeline.more": "Show everything",
+
   // Export
   "export.title": "Export everything",
   "export.body": "Every record this church holds, as a spreadsheet and as a data file.",

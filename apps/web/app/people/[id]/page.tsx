@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Lock, FileText, Pencil } from "lucide-react";
 import {
   withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson, listsForPerson,
+  personTimeline,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones,
   canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
@@ -14,6 +15,7 @@ import { churchNow } from "@/lib/church-now";
 import { AppHeader } from "@/components/app-header";
 import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
+import { Timeline } from "./timeline";
 import { Relationships } from "../relationships";
 import { Milestones } from "../milestones";
 import { FollowUps, PersonTasks } from "../followups";
@@ -73,6 +75,12 @@ export default async function PersonPage({
       // R1.14. Which lists this person is on, which is the question somebody
       // asks when they want to know why she keeps being contacted.
       onLists: canEditPeople(session.role) ? await listsForPerson(tx, id) : [],
+      // R2.15. Everything that has happened with this person, in one order.
+      history: await personTimeline(
+        tx,
+        { tenantId: session.tenantId, role: session.role, userId: session.userId },
+        id,
+      ),
       contact: await getPersonForEdit(tx, id),
       allTags: await listTagsWithCounts(tx),
       fields: await listCustomFields(tx, "person"),
@@ -96,7 +104,7 @@ export default async function PersonPage({
   if (!result) notFound();
   const {
     person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone,
-    milestones, pipelines, entries, tasks, today, checks, onLists,
+    milestones, pipelines, entries, tasks, today, checks, onLists, history,
   } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const restricted = notes.filter((n) => n.restricted).length;
@@ -287,6 +295,12 @@ export default async function PersonPage({
           assigned={tags.map((t) => t.id)}
           canEdit={canEditPeople(session.role)}
         />
+      </Card>
+
+      <Card className="mb-6">
+        <CardTitle>{t("timeline.title")}</CardTitle>
+        <Separator className="my-4" />
+        <Timeline entries={history} />
       </Card>
 
       <Card>
