@@ -141,7 +141,7 @@ export async function loadDemoData(db: Tx, actor: WriteActor): Promise<DemoState
     }
   }
 
-  await loadSundays(db, actor, remember, [...personIds.values()]);
+  await loadServices(db, actor, remember, [...personIds.values()]);
 
   return demoState(db);
 }
@@ -162,7 +162,7 @@ const daysAgo = (n: number): string => {
  * same functions the product uses, so a demo cannot drift into showing
  * something the church would not get.
  */
-async function loadSundays(
+async function loadServices(
   db: Tx,
   actor: WriteActor,
   remember: (entity: string, recordId: string) => Promise<void>,
@@ -191,11 +191,11 @@ async function loadSundays(
     // another round trip. Four weeks of records is enough to read.
     if (occurrence.occursOn < daysAgo(28)) continue;
 
-    // Names on Sundays, a headcount midweek, which is how a church this size
+    // Names at the main service, a headcount midweek, which is how a church this size
     // actually records the two.
     if (!midweek) {
       // A different two thirds each week, rather than the same list every
-      // Sunday.
+      // time.
       const present = people.filter((_, i) => (i + index) % 3 !== 0);
       if (present.length) await setPresentMany(db, actor, occurrence.id, present, true);
     }
@@ -298,7 +298,7 @@ async function loadTodaysService(
 ): Promise<void> {
   const today = daysAgo(0);
   const occurrence = await addSpecialService(db, actor, {
-    name: "Sunday gathering",
+    name: "Morning gathering",
     occursOn: today,
     startsAt: "09:00",
     note: null,

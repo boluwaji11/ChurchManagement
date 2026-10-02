@@ -9,7 +9,7 @@ import type { WriteActor } from "./people";
 /**
  * R9.1 to R9.4. Groups.
  *
- * Where the church happens between Sundays. The record is deliberately small:
+ * Where the church happens between services. The record is deliberately small:
  * what it is called, what kind it is, when and where it meets, who leads it and
  * who is in it. Everything a group could have and most groups will not is left
  * out, because a leader with four hours a week fills in a short form and

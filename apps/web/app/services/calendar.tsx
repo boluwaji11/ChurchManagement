@@ -57,7 +57,7 @@ export interface GatheringRow {
  * Add one, and say which weeks did not happen. There is no calendar to
  * maintain: a service that repeats keeps itself six months ahead, topped up
  * whenever this page is read. A cancelled service stays on the list, greyed,
- * because a Sunday that vanished leaves a gap in the attendance record that
+ * because a service that vanished leaves a gap in the attendance record that
  * reads as a collapse.
  */
 export function Calendar({

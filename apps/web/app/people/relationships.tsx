@@ -34,7 +34,7 @@ const label = (kind: string) => t(`relationship.kind.${kind}` as never);
  *
  * A do-not-contact order is shown in the danger tone and sits at the top of the
  * list, because R8.9 turns it into a blocking control at check-in and a
- * volunteer scanning this card on a Sunday reads the first line.
+ * volunteer scanning this card at the door reads the first line.
  */
 export function Relationships({
   church,

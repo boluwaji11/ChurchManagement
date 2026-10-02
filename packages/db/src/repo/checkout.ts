@@ -18,7 +18,7 @@ import type { WriteActor } from "./people";
  * somebody the church has recorded as allowed to, and no restriction standing
  * between them.
  *
- * Any of the three can be overridden, because a real Sunday produces cases no
+ * Any of the three can be overridden, because a real service produces cases no
  * rule anticipated. None of them can be overridden quietly: an override names
  * the person who authorised it, the child, what was passed, and why, and that
  * row cannot be edited afterwards.
@@ -52,7 +52,7 @@ export interface CheckoutRequest {
  *
  * Three ways somebody qualifies: they are a recorded guardian, they are an
  * emergency contact, or they live in the same household. The third is there
- * because a church that has to name every parent before a Sunday works will
+ * because a church that has to name every parent before check-in works will
  * stop using the list, and a list nobody maintains protects nobody.
  *
  * A restriction does not remove somebody from the list. It marks them, so the

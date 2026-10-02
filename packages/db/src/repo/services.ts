@@ -11,7 +11,7 @@ import type { WriteActor } from "./people";
  *
  * Generated from the weekly pattern in settings, then edited, because the
  * generated calendar is a starting point rather than the truth. Christmas Eve
- * is not in the pattern. The Sunday it snowed is in the pattern and did not
+ * is not in the pattern. The service it snowed on is in the pattern and did not
  * happen. Both have to be sayable, and a church that cannot say the second one
  * has a hole in its attendance record that looks like a collapse.
  */
@@ -111,11 +111,11 @@ export interface Repeat {
 /**
  * Every date in a range that this repeat lands on.
  *
- * Built from local dates rather than UTC instants, because "Sunday" is a local
+ * Built from local dates rather than UTC instants, because a service day is a local
  * idea and an offset slides it by a day either side of midnight.
  *
  * Monthly means the same weekday of the month, so the second Tuesday stays the
- * second Tuesday. A month with no fifth Sunday simply has none: moving it to
+ * second Tuesday. A month with no fifth of that weekday simply has none: moving it to
  * the fourth or the first of the next month would invent a service the church
  * did not say it holds.
  */
@@ -209,7 +209,7 @@ export interface ListOccurrences {
   includeCancelled?: boolean;
 }
 
-/** Newest first, which is how somebody looking for last Sunday reads it. */
+/** Newest first, which is how somebody looking for the last one reads it. */
 export async function listOccurrences(db: Tx, opts: ListOccurrences = {}): Promise<Occurrence[]> {
   const where = [
     opts.from ? gte(serviceOccurrences.occursOn, opts.from) : undefined,
@@ -317,7 +317,7 @@ export async function updateOccurrence(
 /**
  * Cancels a gathering, or puts it back.
  *
- * The record stays either way. A cancelled Sunday that vanished from the
+ * The record stays either way. A cancelled service that vanished from the
  * calendar leaves a gap that reads as a collapse in attendance, and somebody
  * has to remember, a year later, that it snowed.
  */
@@ -408,7 +408,7 @@ export interface AddServiceInput {
  * Adds a service, and keeps it coming if it repeats.
  *
  * One idea rather than three. A church that meets at 09:00 and 11:00 on a
- * Sunday adds two services once and never thinks about a calendar again. The
+ * service adds two of them once and never thinks about a calendar again. The
  * weekly pattern still exists underneath, because check-in stations and service
  * plans need to name a recurring service, and it is no longer something a
  * volunteer has to know about.
@@ -562,7 +562,7 @@ const count = (value: number | null | undefined): number | null => {
  * R7.2. Headcount-only attendance.
  *
  * Most churches this size count heads on a clipboard and will never do more.
- * The product has to be better than the clipboard on the first Sunday, and it
+ * The product has to be better than the clipboard on the first day, and it
  * must not nag anybody into naming individuals. Three numbers and a note is a
  * complete answer here, not a lesser one.
  *
@@ -615,7 +615,7 @@ export interface CountedOccurrence extends Occurrence {
  * The services a church has held, with whatever was counted at each.
  *
  * Past first, because recording attendance is something done after the fact,
- * and the Sunday just gone is the one somebody is looking for.
+ * and the service just gone is the one somebody is looking for.
  */
 export async function listForAttendance(
   db: Tx,

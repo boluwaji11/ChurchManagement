@@ -12,7 +12,7 @@ const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow
  *
  * Generated from the church's service times, and editable afterwards, because
  * the generated calendar is a starting point rather than the truth. Christmas
- * Eve is not on the list. The Sunday it snowed is on the list and did not
+ * Eve is not on the list. The service it snowed on is on the list and did not
  * happen. Both have to be sayable.
  *
  * A special service has no service_time_id: it belongs to no weekly pattern and

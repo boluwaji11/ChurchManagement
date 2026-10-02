@@ -273,7 +273,7 @@ export async function createChurch(input: {
     }
 
     // R5.2. The six follow-up pipelines, with their steps. Same reason: a
-    // church should be able to welcome its first visitor on the first Sunday
+    // church should be able to welcome its first visitor at its first service
     // rather than design a process first.
     for (const [position, pipeline] of DEFAULT_PIPELINES.entries()) {
       const [row] = await tx<{ id: string }[]>`
@@ -293,7 +293,7 @@ export async function createChurch(input: {
 }
 
 /**
- * Timezone matters more here than it looks. Sunday is a local concept, the
+ * Timezone matters more here than it looks. A service day is a local concept, the
  * no-deploy window is local, and a giving statement's year end is local.
  */
 export function isKnownTimezone(tz: string): boolean {

@@ -10,7 +10,7 @@ import type { WriteActor } from "./people";
  *
  * Household says who lives together. It does not say who may collect a child,
  * who to ring when someone collapses in the car park, or which parent a court
- * has ordered must not be told where the child is on a Sunday. Those three
+ * has ordered must not be told where the child is during a service. Those three
  * questions are the reason this table exists separately, and R8.9 makes the
  * third one a blocking control at check-in.
  *
@@ -206,7 +206,7 @@ export async function addRelationship(
  *
  * Lifting a do-not-contact order is narrower than recording one. Anyone who may
  * edit a person can enter the order, because the person who hears about the
- * custody arrangement on a Sunday morning is rarely the Owner. Taking it off
+ * custody arrangement minutes before a service is rarely the Owner. Taking it off
  * stays with Owner and Admin, since that is the press that lets a parent collect
  * a child again.
  */

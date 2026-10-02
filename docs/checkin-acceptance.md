@@ -3,7 +3,7 @@
 Written before any check-in code, because a defect here can cause physical harm to a child. Every
 criterion below is a test, and a story is refused if its criteria are not met, whatever else works.
 
-The design case is one moment: **09:58 on a Sunday, forty families queuing, the church wifi down, and
+The design case is one moment: **two minutes before a service, forty families queuing, the church wifi down, and
 the volunteer running the station has done this twice before.** Every rule here serves that moment.
 
 ## The rules that cannot be traded away

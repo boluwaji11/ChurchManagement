@@ -10,7 +10,7 @@ import { t } from "@hearth/i18n";
 import { createChurchAccount } from "./actions";
 
 /**
- * Timezone is not a detail. Sunday is local, the no-deploy window is local, and
+ * Timezone is not a detail. A service day is local, the no-deploy window is local, and
  * a giving statement's year end is local. The browser knows the answer, so it is
  * filled in and shown rather than asked for.
  */

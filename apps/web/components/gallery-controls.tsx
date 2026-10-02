@@ -9,7 +9,7 @@ type Theme = "light" | "dark" | "system";
 
 const DENSITIES: { id: Density; label: string; icon: React.ElementType; hint: string }[] = [
   { id: "office", label: "Office", icon: LayoutDashboard, hint: "Maria at a desk. Dense, keyboard-first." },
-  { id: "station", label: "Station", icon: ScanLine, hint: "Sunday 09:58. Unmissable, zero ambiguity." },
+  { id: "station", label: "Station", icon: ScanLine, hint: "Doors open. Unmissable, zero ambiguity." },
   { id: "portal", label: "Portal", icon: Smartphone, hint: "A member on a phone. Warm, app-like." },
 ];
 

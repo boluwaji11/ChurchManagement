@@ -28,7 +28,7 @@ export default function StationPage() {
     <>
       <PageTitle
         title="Station"
-        lede="The hardest screen in church software. It is 09:58 on a Sunday, forty families are queuing, the wifi has dropped, and the volunteer running this has done it twice before. Everything here serves that moment."
+        lede="The hardest screen in church software. It is two minutes before a service, forty families are queuing, the wifi has dropped, and the volunteer running this has done it twice before. Everything here serves that moment."
       />
 
       <Section title="Why it has its own rules" note="A mistake here is a safety incident, not a support ticket. 56px targets, 20px text, 7:1 contrast, one task per screen, no navigation, no hover states, and no icon-only controls.">

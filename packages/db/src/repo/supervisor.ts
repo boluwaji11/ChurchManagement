@@ -8,7 +8,7 @@ import { PermissionError, type TenantRole } from "../roles";
 /**
  * R8.17 to R8.19. What the person walking the corridor needs to see.
  *
- * One screen for the whole of children's ministry on a Sunday: every room, how
+ * One screen for the whole of children's ministry during a service: every room, how
  * many children are in it, whether that is within what the room can hold,
  * whether there are enough volunteers, and who has still to be collected.
  *

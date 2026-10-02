@@ -7,7 +7,7 @@ import { cn } from "../lib/cn";
  * A menu of the things that can be done to one row.
  *
  * A row with six ghost buttons on it gives equal weight to the thing a church
- * does every Sunday and the thing it does once a year. The primary action stays
+ * does every week and the thing it does once a year. The primary action stays
  * on the row and the rest come in here, which also gets a long row off the
  * right edge of a phone.
  *

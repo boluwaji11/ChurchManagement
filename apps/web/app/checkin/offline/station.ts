@@ -14,7 +14,7 @@ import {
 /**
  * R8.20 to R8.23. The station, with or without a network.
  *
- * The design case is 09:58 on a Sunday with forty families queuing and the wifi
+ * The design case is two minutes before a service with forty families queuing and the wifi
  * down, so the station does not ask whether it is online before it works. It
  * works, from what it is holding, and sends what it did when there is somewhere
  * to send it.

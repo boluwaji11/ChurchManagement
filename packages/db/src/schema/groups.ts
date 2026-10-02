@@ -183,7 +183,7 @@ export const groupMeetings = pgTable(
  * R9.7, R7.4. Who was at a meeting.
  *
  * A row means present. Absence is the absence of a row, which is the same shape
- * the Sunday roster uses, so the two kinds of attendance read alike.
+ * the service roster uses, so the two kinds of attendance read alike.
  */
 export const groupAttendance = pgTable(
   "group_attendance",

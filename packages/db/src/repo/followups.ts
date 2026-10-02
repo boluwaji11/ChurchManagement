@@ -742,7 +742,7 @@ export async function isInPipeline(
  * R5.3. The triggers.
  *
  * A church that has to remember to put a visitor on a list will not remember on
- * the Sunday it matters. So the record itself raises the follow-up: a first
+ * the week it matters. So the record itself raises the follow-up: a first
  * visit, a second visit, and three held services missed in a row.
  *
  * Counted from the attendance record each time rather than from a flag written
@@ -813,7 +813,7 @@ export async function sweepFollowUps(
   }
 
   if (running.has("absent")) {
-    // R7.6. The church's own number for how many missed Sundays it wants to
+    // R7.6. The church's own number for how many missed services it wants to
     // know about, rather than ours.
     const [church] = await db
       .select({ threshold: tenants.absenceThreshold })
@@ -822,7 +822,7 @@ export async function sweepFollowUps(
       .limit(1);
     const threshold = opts.threshold ?? church?.threshold ?? DEFAULT_ABSENCE_THRESHOLD;
     for (const person of await absentPeople(db, { threshold, asOf: today })) {
-      // Dated from the last Sunday they were here, so one spell raises one
+      // Dated from the last service they were at, so one spell raises one
       // follow-up however long it runs, and coming back then drifting again
       // raises another.
       if (await enteredSince(db, person.personId, "absent", person.lastSeenOn)) continue;

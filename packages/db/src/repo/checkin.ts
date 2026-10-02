@@ -78,7 +78,7 @@ const COLUMNS = {
  * Checks a family in, and marks them present.
  *
  * The attendance record is the same one the roster writes, so a church reading
- * its attendance sees Sunday morning whether it was taken at a desk or ticked
+ * its attendance sees the same service whether it was taken at a desk or ticked
  * off a list afterwards.
  *
  * Pressing twice is the same press: a person already checked in keeps the visit

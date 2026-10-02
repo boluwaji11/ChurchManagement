@@ -10,7 +10,7 @@ import { setArchived } from "./actions";
  * Archiving is confirmed, never one click.
  *
  * It is reversible, and it is still the action that takes somebody out of every
- * list at once, including the list a volunteer will print on Sunday morning. The
+ * list at once, including the list a volunteer will print before a service. The
  * dialog says what happens and what does not, because "are you sure?" tells
  * nobody anything.
  */

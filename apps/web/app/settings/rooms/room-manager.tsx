@@ -58,7 +58,7 @@ function ageLine(room: RoomItem): string | null {
 /**
  * R8.14 to R8.17. The rooms children are checked into.
  *
- * Four numbers a church sets once and a station reads every Sunday: who the
+ * Four numbers a church sets once and a station reads at every service: who the
  * room is for, how many it holds, how many volunteers it needs, and what colour
  * it prints. The colour is how a volunteer points a parent at the right door
  * across a full foyer, so it is part of the configuration rather than a theme.

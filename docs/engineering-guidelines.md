@@ -58,7 +58,7 @@ contradicts a settled decision. Say so rather than building it.
 **Check-in is safety-critical (section 8.8).** A defect here can cause physical harm to a child.
 Matching label pairs with unique per-visit codes, authorised pickup enforced at checkout, allergies
 shown on screen at the moment of check-in, and **it keeps working with no network**. The design case
-is 09:58 on a Sunday with forty families queuing and the wifi down. Never weaken an R8 requirement
+is two minutes before a service with forty families queuing and the wifi down. Never weaken an R8 requirement
 for implementation convenience. Raise it instead.
 
 **The song schema is the spine (section 9.4).** Lyrics are stored as ordered labeled sections, never
@@ -99,7 +99,8 @@ See [architecture.md](architecture.md), [data-model.md](data-model.md), and
   sees.
 - **Accessibility is WCAG 2.2 AA**, audited in CI. A check-in station has to work for someone with a
   tremor and reading glasses.
-- **No deploys during Sunday 07:00 to 14:00 local windows.** Enforced by tooling.
+- **No deploys during a church's service window**, 07:00 to 14:00 local on its own service
+  days. Enforced by tooling.
 - Zero-downtime migrations. A church cannot be told the database is upgrading on a Saturday night.
 
 ## Design
@@ -107,7 +108,7 @@ See [architecture.md](architecture.md), [data-model.md](data-model.md), and
 Full specification in [design-system.md](design-system.md). Read it before writing any UI.
 Hearth replaces software churches pay for, so it has to look better than that software.
 
-- **Three density modes, one system.** `office` dense and keyboard-first, `station` a Sunday kiosk at
+- **Three density modes, one system.** `office` dense and keyboard-first, `station` a check-in kiosk at
   56px targets and 20px text, `portal` app-like on a phone. Resolved through tokens on the root
   element. A component is written once and must work in all three with no density branches in its own
   code.

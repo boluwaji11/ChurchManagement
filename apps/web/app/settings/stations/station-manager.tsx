@@ -27,7 +27,7 @@ export interface StationItem {
  *
  * Three questions: what it is called, whether a volunteer runs it or a family
  * does, and what prints the labels. A device is then pointed at it, so the
- * tablet that dies at 09:40 on a Sunday is replaced by pointing another one at
+ * tablet that dies minutes before a service is replaced by pointing another one at
  * the same station.
  */
 export function StationManager({

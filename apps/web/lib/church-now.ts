@@ -4,7 +4,7 @@ import "server-only";
  * The date and time where the church is.
  *
  * A service at 09:00 in Austin has not happened yet when the server in Virginia
- * says 09:30, and it has when a server in California says 07:00. Sunday is a
+ * says 09:30, and it has when a server in California says 07:00. A service day is a
  * local idea (R1.1), so anything deciding whether a service has been held reads
  * the clock the church reads.
  */

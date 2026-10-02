@@ -263,12 +263,12 @@ export interface VisitNumber {
  * gathering that was missed, or imports a year of history.
  *
  * Only people the church has recorded as visitors. A church of two hundred
- * starts using Hearth on a Sunday and marks two hundred regulars present: the
+ * starts using Hearth at one service and marks two hundred regulars present: the
  * attendance record says every one of them is here for the first time, and it
  * is wrong about all two hundred. The record began that day. They did not.
  *
  * Ties on a date count together, so a person at both services on their first
- * Sunday is first-time at both rather than second-time at the later one. They
+ * service is first-time at both rather than second-time at the later one. They
  * turned up once.
  */
 export async function visitNumbers(db: Tx, occurrenceId: string): Promise<VisitNumber[]> {
@@ -350,7 +350,7 @@ export async function visitorsBetween(
       visit: Number(r["visit"]),
     }))
     // Most recent first, then by name. Without the second key, two people whose
-    // first visit was the same Sunday swap places between loads, and a list that
+    // first visit was at the same service swap places between loads, and a list that
     // reorders itself is a list somebody loses their place in.
     .sort(
       (a, b) =>
@@ -377,7 +377,7 @@ export const DEFAULT_ABSENCE_THRESHOLD = 3;
  * R7.6. People who have stopped coming.
  *
  * Counted against the services that were actually held: cancelled ones are not
- * in it, so a church that cancelled a Sunday for snow does not accuse half its
+ * in it, so a church that cancelled a service for snow does not accuse half its
  * congregation of drifting the following week. Two services on one day count
  * once, for the same reason a visit does.
  *

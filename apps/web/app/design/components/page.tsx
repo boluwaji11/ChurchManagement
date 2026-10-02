@@ -207,7 +207,7 @@ export default function Components() {
 
       <Section title="Banners" note="Errors persist near their cause. A toast that vanishes is not error reporting. Every tone carries its own icon, because colour is never the only signal.">
         <div className="flex max-w-2xl flex-col gap-3">
-          <Banner tone="info" title="Three services this Sunday">Check-in stations are configured for all three.</Banner>
+          <Banner tone="info" title="Three services this weekend">Check-in stations are configured for all three.</Banner>
           <Banner tone="success" title="Statements sent">218 households, 4 bounced and are in the print batch.</Banner>
           <Banner tone="warning" title="Two background checks expire this month">Both volunteers serve in the under-fives room.</Banner>
           <Banner tone="danger" title="A batch will not close">The entered total is $40 under the declared total. Add a variance note or recount.</Banner>

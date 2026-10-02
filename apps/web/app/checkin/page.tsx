@@ -22,7 +22,7 @@ const readableTime = (hhmm: string) => {
  * R8.2. Which station this device is.
  *
  * The configuration is the station's and the choice is the device's, so a
- * tablet that dies on a Sunday morning is replaced by pointing another one at
+ * tablet that dies minutes before a service is replaced by pointing another one at
  * the same station.
  */
 export default async function CheckinPage({

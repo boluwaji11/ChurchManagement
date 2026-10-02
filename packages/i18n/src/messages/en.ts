@@ -888,7 +888,7 @@ export const en = {
   "help.import.body": "A spreadsheet from whatever you use now. Hearth shows you what it read before anything is written, and you say which column is which. An import can be rolled back for thirty days, so the first one does not have to be the right one.",
 
   "help.services.title": "Services and attendance",
-  "help.services.body": "A service time repeats, and each Sunday it happens is an occurrence. Recording attendance is ticking a roster, or a headcount if that is all you keep. A cancelled service is marked cancelled rather than deleted, so nobody is counted absent from a Sunday the church called off.",
+  "help.services.body": "A service time repeats, and each time it comes round is an occurrence. Recording attendance is ticking a roster, or a headcount if that is all you keep. A cancelled service is marked cancelled rather than deleted, so nobody is counted absent from a service the church called off.",
 
   "help.checkin.title": "Check-in",
   "help.checkin.body": "Type any part of a name. A child's label and their guardian's carry the same code, and that code is what releases them at the end. Allergies show on the screen as you check them in and print on the label. If the wifi drops the station keeps working and reconciles when it comes back.",
@@ -900,10 +900,10 @@ export const en = {
   "help.incidents.body": "Written at the station by whoever was there, and kept here. A report cannot be edited or removed by anybody, including an owner: what was written at the time is what a church may need years later. Owner, admin and pastoral can read them.",
 
   "help.groups.title": "Groups",
-  "help.groups.body": "What a church does between Sundays. A group has a leader, a roster, and a night it meets. Members browse the ones open to join and ask; a leader approves, which puts them on the roster in the same press. A leader records whether the group met, which is attendance for the group.",
+  "help.groups.body": "What a church does between services. A group has a leader, a roster, and a night it meets. Members browse the ones open to join and ask; a leader approves, which puts them on the roster in the same press. A leader records whether the group met, which is attendance for the group.",
 
   "help.followups.title": "Follow-ups",
-  "help.followups.body": "Six pipelines, each a few steps with a day each one is due. A first visit, a second visit and three missed Sundays raise themselves from the attendance record. Answering a step records what happened, and that sentence is the thing worth having six months later.",
+  "help.followups.body": "Six pipelines, each a few steps with a day each one is due. A first visit, a second visit and three missed services raise themselves from the attendance record. Answering a step records what happened, and that sentence is the thing worth having six months later.",
 
   "help.settings.title": "Settings",
   "help.settings.body": "The church's own details, who can get in and what they may do, your kids classes and stations, and the tags and fields you keep on people. Changing a role takes effect the next time that person loads a page.",

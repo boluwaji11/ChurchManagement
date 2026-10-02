@@ -10,7 +10,7 @@ import { updatePerson, type PersonInput } from "../repo/people";
  * R19.4. Undoing a completed import, as one operation, for thirty days.
  *
  * The case this exists for is a spreadsheet imported at 9pm on a Saturday with
- * the columns shifted by one. The church notices on Sunday morning. "Restore the
+ * the columns shifted by one. The church notices as the doors open. "Restore the
  * database" is not an answer at that point, and neither is asking a volunteer to
  * find and fix 400 records by hand.
  */

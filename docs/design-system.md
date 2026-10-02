@@ -8,7 +8,7 @@ defined platform-neutrally in section 9.
 
 ## 1. Principles
 
-**1. Sunday is the constraint.** The hardest screen in this product is a check-in station at 09:58
+**1. The service is the constraint.** The hardest screen in this product is a check-in station two minutes before a service
 with a queue of forty families, run by a volunteer who has done it twice. Design for that, and the
 Tuesday afternoon office screens take care of themselves. This is why there are three density modes
 (section 2) and not one.
@@ -43,7 +43,7 @@ that makes the system work across contexts that have genuinely different require
 
 | | **Office** | **Station** | **Portal** |
 |---|---|---|---|
-| Who | Maria at a desk, Tuesday | Ruth at check-in, Sunday 09:58 | A member on a phone, 4 min a week |
+| Who | Maria at a desk, midweek | Ruth at check-in, doors open | A member on a phone, 4 min a week |
 | Goal | Density, keyboard speed, calm | Unmissable, fast, zero ambiguity | Warm, simple, app-like |
 | Base body | 14px / 20px | **20px / 28px** | 16px / 24px |
 | Min tap target | 32px (mouse), 44px (touch) | **56px** | 44px |

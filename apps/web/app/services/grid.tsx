@@ -10,7 +10,7 @@ import type { GatheringRow } from "./calendar";
 /**
  * R7.1, HRT-70. The month as a calendar.
  *
- * A list says what is scheduled. A grid says which Sunday is missing, which is
+ * A list says what is scheduled. A grid says which week is missing, which is
  * the question somebody opens this page with in March when the attendance
  * figures look wrong. Every service is a chip, and a chip opens the same
  * actions the list row has.

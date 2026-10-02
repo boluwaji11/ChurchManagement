@@ -11,7 +11,7 @@ import { checkOut, type OverrideKind } from "./checkout";
 /**
  * R8.20 to R8.23. A station that lost the network, and what happens after.
  *
- * The design case is 09:58 on a Sunday with the wifi down, so the station has
+ * The design case is two minutes before a service with the wifi down, so the station has
  * to be carrying everything it needs before that happens: the people, the
  * rooms, the medical notes, the pickup lists, and a block of security codes
  * nobody else can issue.

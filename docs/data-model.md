@@ -60,7 +60,7 @@ SongSection                       one row per labeled block of lyrics
 
 Arrangement
   id, song_id
-  name            "Sunday 2026", "Acoustic"
+  name            "Advent 2026", "Acoustic"
   key, tempo_bpm
   sequence[]      ordered section labels: ["V1","C","V2","C","B","C","C"]
   chordpro        full chart, transposable

@@ -18,7 +18,7 @@ export default function Overview() {
         <div className="grid gap-4 sm:grid-cols-3">
           {[
             ["Office", "Maria at a desk on a Tuesday. Dense, keyboard-first, calm.", "indigo"],
-            ["Station", "Ruth at check-in, Sunday 09:58, forty families queuing. Unmissable, zero ambiguity.", "rose"],
+            ["Station", "Ruth at check-in, doors open, forty families queuing. Unmissable, zero ambiguity.", "rose"],
             ["Portal", "A member on a phone for four minutes a week. Warm, simple, app-like.", "teal"],
           ].map(([name, use, hue]) => (
             <Card key={name as string}>

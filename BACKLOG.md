@@ -271,16 +271,23 @@ details, and anybody can be absent from it entirely.
 R3.1 and R3.6 as the PRD writes them are superseded by this. The staff directory (F2) is the only
 directory on a screen.
 
-### F21. Safeguarding and minors (0.2)
+### F21. Safeguarding and minors, deferred to the children's ministry pass
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-103 | Minors: no contact details in the member directory, restricted export, consent recorded | R21.10 | New |
-| HRT-104 | Safeguarding records retained permanently with access restricted, audited end to end | R21.11 | New |
+| HRT-103 | Minors: no contact details in the member directory, restricted export, consent recorded | R21.10 | Deferred to 0.9 |
+| HRT-104 | Safeguarding records retained permanently with access restricted, audited end to end | R21.11 | Deferred to 0.9 |
 
 **HRT-104** is partly built: incident reports are permanent and restricted (HRT-63). What is missing
-is background checks (HRT-26) and training records (F10, 0.4) under the same retention and the same
-gate, and a test that walks all three.
+is background checks (HRT-26) and training records (F10) under the same retention and the same gate,
+and a test that walks all three.
+
+**Why these moved.** Check-in already enforces what keeps a child safe on the day: matching label
+pairs with a per-visit code, authorised pickup at checkout, allergies on screen and on the label,
+incident reports that cannot be edited, and the whole thing working with no network. Those shipped
+in 0.2 and are not touched by this. What is deferred is the paperwork around them, which no church
+needs before it can run the product. It is gathered into one children's ministry pass (0.9), ahead
+of money and after everything else.
 
 ### F22. Onboarding (0.2)
 
@@ -295,7 +302,20 @@ R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and 
 screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
 roles and invitations, and the import.
 
-## E3. Money (0.3)
+## E7. Children's ministry, the paperwork pass (0.9)
+
+Everything that keeps a child safe on the day shipped in 0.2: matching label pairs with a per-visit
+code, authorised pickup enforced at checkout, allergies on screen and on the label, incident reports
+that cannot be edited, and the station working with no network. None of that moves.
+
+What is gathered here is the records around it, which a church can run the product without:
+**HRT-103** minors in the printed directory, **HRT-104** retention and the audit that proves it,
+**HRT-81** the two-adult-rule alert, **HRT-82** background-check gating on a children's position.
+R8.17 belongs here too.
+
+It runs second to last, after 1.0 and before money.
+
+## E3. Money (0.3, built last)
 
 F13 Giving. Stripe Connect at a zero platform fee, batch entry with dual control, IRS Publication
 1771 statements, QuickBooks export.
@@ -325,8 +345,8 @@ and nothing more; when HRT-79 lands, such a group can be turned into a team and 
 |---|---|---|---|
 | HRT-79 | Teams, positions, and a person serving across several of them | R10.1 to R10.3 | New |
 | HRT-80 | Scheduling with conflict detection, blockout dates, accept and decline | R10.4 to R10.8 | New |
-| HRT-81 | Who is serving in a kids class today, and the two-adult-rule alert on the board | R8.17, R10.12 | New |
-| HRT-82 | Background-check gating: no children's position without a valid check | R10.10 | New |
+| HRT-81 | Who is serving in a kids class today, and the two-adult-rule alert on the board | R8.17, R10.12 | Deferred to 0.9 |
+| HRT-82 | Background-check gating: no children's position without a valid check | R10.10 | Deferred to 0.9 |
 
 ## E5. GA (1.0)
 
@@ -392,11 +412,13 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-117** what a merge leaves behind (R2.8), **HRT-118** skills and gifts (R2.9), **HRT-119** search at five thousand people (R2.14), **HRT-120** the person timeline (R2.15), **HRT-27** birthdays (R2.11). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **0.2 still owed** | **HRT-117** what a merge leaves behind (R2.8), **HRT-118** skills and gifts (R2.9), **HRT-119** search at five thousand people (R2.14), **HRT-120** the person timeline (R2.15), **HRT-27** birthdays (R2.11). Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
-| **Was owed** | R19.5 the three importers, R21.10 minors, R21.11 training records (the rest of it is built), R22.1 to R22.3 onboarding. All built. |
+| **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church |
-| **Next** | **HRT-117** what a merge leaves behind, then **HRT-119** search, **HRT-120** the timeline, **HRT-118** skills and gifts, **HRT-27** birthdays. That closes 0.2. Then 0.3 money. HRT-79 to HRT-82 serving is 0.4 and R8.17 waits on it. **HRT-87** group messaging waits on a provider. F18 Insights is 1.0. HRT-13 MFA stays deferred. |
+| **Next** | **HRT-117** what a merge leaves behind, then **HRT-119** search, **HRT-120** the timeline, **HRT-118** skills and gifts, **HRT-27** birthdays. That closes 0.2. |
+| **Order after that** | **0.4** the song library and the Stage contract first, because Stage is being built in parallel and its SE4 epic is blocked on this board. Then serving (HRT-79, HRT-80) and service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. |
+| **Waiting on somebody else** | **HRT-87** group messaging waits on a church having a provider set up. **HRT-13** MFA stays deferred. |
 
 ### HRT-16, how to test it
 

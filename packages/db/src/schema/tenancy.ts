@@ -27,7 +27,7 @@ export const tenants = pgTable(
     website: text("website"),
     /**
      * R7.6. How many held services somebody misses in a row before the church
-     * wants to know. Three by default, which is roughly a month of Sundays.
+     * wants to know. Three by default, which is roughly a month of services.
      */
     absenceThreshold: integer("absence_threshold").notNull().default(3),
     /** R1.1. One of the twelve hues, used wherever the church brands a page. */

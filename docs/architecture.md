@@ -200,7 +200,7 @@ notes, permissions, and check-in, and every **read** of a confidential note or a
 ## Offline check-in
 
 The check-in station is the only place where offline is a hard requirement, so it gets a deliberate
-design rather than a general purpose sync framework. The design case is 09:58 on a Sunday, forty
+design rather than a general purpose sync framework. The design case is two minutes before a service, forty
 families queuing, the wifi down, and a volunteer who has done this twice.
 
 **Before the service.** The station pulls the directory, the room configuration, the medical notes
@@ -211,7 +211,7 @@ already holding everything it needs.
 **Security code ranges.** Each station is issued a block of codes on sync, written to
 `checkin_codes` before anybody needs them (R8.6, R8.21). Every code in a block is spoken for: no
 other station is given it, and `freeCode` on the online path will not generate it either. A station
-holds 150, which is more children than one station checks in on a Sunday.
+holds 150, which is more children than one station checks in at a service.
 
 **The same rules on both sides.** `@hearth/db/rules` is a pure entry point with no database and no
 node built-ins: the lookup ranking, the age and room rules, the code alphabet, and the release
@@ -278,11 +278,11 @@ before it saves anything (R16.1).
 
 ## Reliability
 
-**Sunday windows are the availability target that matters.** 99.9% or better between 07:00 and 14:00
-local time on Sundays, measured and reported separately from overall uptime (N1). A monthly uptime
+**The service window is the availability target that matters.** 99.9% or better between 07:00 and 14:00
+local time on a church's service days, measured and reported separately from overall uptime (N1). A monthly uptime
 figure hides the only outage a church will ever notice.
 
-- **No deploys inside a Sunday window.** Enforced by tooling, not by memory (N5).
+- **No deploys inside a service window.** Enforced by tooling, not by memory (N5).
 - **Zero-downtime migrations.** A church cannot be told the database is upgrading on a Saturday night
   (N9).
 - **Daily backups with point-in-time recovery**, and a **restore drill run and documented quarterly**

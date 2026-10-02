@@ -79,7 +79,7 @@ export async function AppHeader({ session }: { session: Session }) {
               : []),
             // R9.5. Groups are for everybody: finding one is the member's question.
             [t("nav.groups"), "/groups"],
-            // R8.x. The Sunday morning screens, for whoever is on the door.
+            // R8.x. The screens for whoever is on the door while a service runs.
             ...(canCheckIn(session.role)
               ? [
                   [t("nav.checkin"), "/checkin"] as const,

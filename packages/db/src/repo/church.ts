@@ -10,7 +10,7 @@ import type { WriteActor } from "./people";
  *
  * Everything here is read on screens a member sees, so it is the one place
  * where getting it wrong is public. The legal name goes on giving statements
- * under IRS Pub. 1771 (R13.14), the timezone decides what "Sunday" means for
+ * under IRS Pub. 1771 (R13.14), the timezone decides when a service day starts for
  * every report, and the service times are what attendance and check-in count
  * against.
  */

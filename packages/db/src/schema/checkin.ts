@@ -62,7 +62,7 @@ export const checkinRooms = pgTable(
  * R8.1, R8.2. A station: one device set up to check people in.
  *
  * The configuration is the station's rather than the device's, so a church that
- * replaces a broken tablet on a Sunday morning points the new one at the same
+ * replaces a broken tablet minutes before a service points the new one at the same
  * station and carries on. The device remembers which station it is; everything
  * about what that station may do lives here, where an administrator can change
  * it without standing at the device.
@@ -200,7 +200,7 @@ export const checkinVisits = pgTable(
 /**
  * R8.7 to R8.9. A decision somebody made to release a child anyway.
  *
- * Every rule at checkout can be passed, because a real Sunday produces cases no
+ * Every rule at checkout can be passed, because a real service produces cases no
  * rule anticipated: a grandmother nobody got round to adding, a code on a label
  * that went through the wash. What cannot happen is passing one quietly. This
  * row is the record that a person decided, which child it was about, what they
