@@ -107,7 +107,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
 | HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.8 | Resolved |
 | HRT-118 | Skills, interests and spiritual gifts as managed vocabularies | R2.9 | New |
-| HRT-119 | Search across names, emails, phones and addresses, under 300ms at 5,000 people | R2.14 | New |
+| HRT-119 | Search across names, emails, phones and addresses, under 300ms at 5,000 people | R2.14 | Resolved |
 | HRT-120 | The person timeline: attendance, groups, notes and milestones in one order | R2.15 | New |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Closed |
 | HRT-40 | Directory search, filtering, sorting and pagination | R2.1, R2.2 | Closed |
@@ -412,11 +412,11 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | | |
 |---|---|
 | **Active** | Nothing |
-| **0.2 still owed** | **HRT-118** skills and gifts (R2.9), **HRT-119** search at five thousand people (R2.14), **HRT-120** the person timeline (R2.15), **HRT-27** birthdays (R2.11). Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
+| **0.2 still owed** | **HRT-120** the person timeline (R2.15), **HRT-118** skills and gifts (R2.9), **HRT-27** birthdays (R2.11). Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church |
-| **Next** | **HRT-119** search, **HRT-120** the timeline, **HRT-118** skills and gifts, **HRT-27** birthdays. That closes 0.2. |
+| **Next** | **HRT-120** the timeline, **HRT-118** skills and gifts, **HRT-27** birthdays. That closes 0.2. |
 | **Order after that** | **0.4** the song library and the Stage contract first, because Stage is being built in parallel and its SE4 epic is blocked on this board. Then serving (HRT-79, HRT-80) and service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. |
 | **Waiting on somebody else** | **HRT-87** group messaging waits on a church having a provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1142,6 +1142,20 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-119, how to test it
+
+Directory, the search box. One box, so type whatever you remember.
+
+1. **Part of a surname**, part of an email, or the digits of a phone number with the punctuation
+   left out: "5550148" finds "(512) 555-0148".
+2. **A street, a town or a postcode** now finds the people who live there, including everybody in
+   the household the address belongs to. That is new.
+3. **A first name and surname typed together** still works.
+4. Nothing matching returns nothing, as quickly.
+
+The budget is the database's own time on the query, measured with EXPLAIN ANALYZE against a church
+of five thousand people. It was 1,871ms and is 105ms.
 
 ### HRT-117, how to test it
 

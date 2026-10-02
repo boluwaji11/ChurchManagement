@@ -23,6 +23,9 @@ async function main() {
   console.log(`Applying ${files.length} table migration(s) from migrations/`);
   await migrate(db, { migrationsFolder });
 
+  console.log("Applying sql/search.sql (trigram indexes behind the search box)");
+  await sql.unsafe(readFileSync(join(root, "sql", "search.sql"), "utf8"));
+
   console.log("Applying sql/security.sql (roles, RLS, grants, audit triggers)");
   const security = readFileSync(join(root, "sql", "security.sql"), "utf8");
 

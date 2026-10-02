@@ -70,18 +70,34 @@ const ORDERS = {
  * and so a filtered export exports what the filter says rather than what one
  * page of it said.
  */
-function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
+/**
+ * The whole of what the search box and the filters mean, as SQL.
+ *
+ * Exported so the performance test can ask the database to explain exactly this
+ * rather than a copy of it. A copy drifts, and then the number it reports is
+ * about a query nobody runs. (R2.14)
+ */
+export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   const where: (SQL | undefined)[] = [];
 
   if (!opts.includeArchived) where.push(isNull(people.archivedAt));
 
   const q = (opts.q ?? "").trim();
   if (q) {
-    // One box, because a volunteer types what they remember and does not know
-    // which field it was. Digits are matched against phone numbers with their
-    // punctuation stripped, so "5550148" finds "(512) 555-0148".
+    // R2.14. One box, because a volunteer types what they remember and does not
+    // know which field it was: part of a surname, the back half of a phone
+    // number, a street off a returned letter.
+    //
+    // Digits are matched against phone numbers with their punctuation stripped,
+    // so "5550148" finds "(512) 555-0148". Every one of these is a substring
+    // match, which is why sql/search.sql puts a trigram index on each of them.
     const like = `%${q.toLowerCase()}%`;
     const digits = q.replace(/\D/g, "");
+    const addressMatches = sql`
+      lower(a.line1) like ${like}
+      or lower(coalesce(a.line2, '')) like ${like}
+      or lower(coalesce(a.city, '')) like ${like}
+      or lower(coalesce(a.postal_code, '')) like ${like}`;
     where.push(sql`(
       lower(${people.firstName}) like ${like}
       or lower(${people.lastName}) like ${like}
@@ -94,6 +110,21 @@ function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
             lower(cm.value) like ${like}
             ${digits.length >= 3 ? sql`or regexp_replace(cm.value, '[^0-9]', '', 'g') like ${`%${digits}%`}` : sql``}
           )
+      )
+      or ${people.id} in (
+        -- Their own address, or their household's, because a church writes one
+        -- address for the family and looks a person up by it.
+        --
+        -- Written as a set rather than a correlated exists. As an exists, the
+        -- planner ran it once per person: five thousand people, each scanning
+        -- every address, which took 1.9 seconds. This runs once.
+        select a.person_id from addresses a
+         where a.person_id is not null and (${addressMatches})
+        union
+        select hm.person_id
+          from addresses a
+          join household_memberships hm on hm.household_id = a.household_id
+         where a.household_id is not null and (${addressMatches})
       )
     )`);
   }
