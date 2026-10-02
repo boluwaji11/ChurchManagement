@@ -322,12 +322,12 @@ F13 Giving. Stripe Connect at a zero platform fee, batch entry with dual control
 
 ## E4. Service Ops (0.4)
 
-F11 Service planning and F12 the song library, which is the Phase 2 spine, plus F10 volunteers.
+F10 volunteers, then F11 service planning. F12 the song library is deferred.
 
 ### F10. Serving and volunteers
 
 A volunteer serves across ministries: the same person runs the sound desk, teaches a class one
-Sunday in three, and drives the van. So serving is a person's schedule across the church rather than
+week in three, and drives the van. So serving is a person's schedule across the church rather than
 a list held by each ministry, and the check-in board reads from it rather than keeping its own.
 
 **A team is not a group.** A group is people who meet: a small group, a class, a committee. A team
@@ -361,19 +361,32 @@ Active story.
 
 **Stage runs standalone**, with its own song library and its own importers, so the first three Stage
 releases need nothing from this board. One Stage release, S0.4, pairs with the platform and closes the
-Sunday loop.
+loop from plan to stage to attendance.
 
-What this board owes it, all in 0.4: the song schema (R12.x), plans readable as data (R11.14),
-`change_seq` on every synced table, the Stage device principal with pairing and revoke, the routes
-under `/api/stage/v1` including song promotion, and the idempotent `song_usage` insert. Specified in
-[docs/stage-sync-contract.md](docs/stage-sync-contract.md), and written as stories here when 0.4 is
-planned.
+**That pairing is deferred.** The sync contract in
+[docs/stage-sync-contract.md](docs/stage-sync-contract.md) still describes what the platform would
+owe Stage: the song schema (R12.x), plans readable as data (R11.14), `change_seq` on every synced
+table, the Stage device principal with pairing and revoke, the routes under `/api/stage/v1`, and the
+idempotent `song_usage` insert. None of it is scheduled, and none of it gets a story until somebody
+asks. See the note below.
 
 **One correction is owed here.** PRD.md section 9.6 says Stage is "a client of a versioned sync API,
 not a second application with a second database". Stage holds a library of its own, so that line needs
 replacing. The wording is in PRD-STAGE.md section 2.
 
 ---
+
+## Songs and the Stage contract are deferred, October 2026
+
+Hearth Stage is being built in its own repo, with its own song library and its own importers. So
+this board owes it nothing: not the song schema (R12.x), not `/api/stage/v1`, not the `song_usage`
+insert, not `packages/songs`. F12 has no stories and gets none until somebody asks for them.
+
+0.4 is serving and service planning. A plan item that would have been a song is a plan item with a
+title, which is what a church without a library has anyway.
+
+The shape in PRD section 9.4 still stands for whenever songs return: lyrics as ordered labeled
+sections, arrangement sequences as data, translations section-aligned.
 
 ## R2.9 was cut, October 2026
 
@@ -430,8 +443,8 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays |
-| **Next** | **0.4**, starting with the song library and the Stage sync contract. |
-| **Order after that** | **0.4** the song library and the Stage contract first, because Stage is being built in parallel and its SE4 epic is blocked on this board. Then serving (HRT-79, HRT-80) and service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. |
+| **Next** | **0.4**, starting with **HRT-79** teams and positions. |
+| **Order after that** | **0.4** serving (HRT-79, HRT-80), then service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging waits on a church having a provider set up. **HRT-13** MFA stays deferred. |
 
 ### HRT-16, how to test it
