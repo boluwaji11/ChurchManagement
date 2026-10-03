@@ -9,6 +9,8 @@ import { Badge, Card, Separator } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
+import { GroupPhoto } from "../photo";
+import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { JoinButton } from "./join-button";
 import { ManageGroup } from "./manage";
@@ -65,6 +67,15 @@ export default async function GroupPage({
   });
 
   if (!group) notFound();
+
+  // R9.2. The bucket is private, so the picture is served through a link signed
+  // for an hour. A leaked path is then a leak with an expiry.
+  let photoUrl: string | null = null;
+  if (group.photoKey) {
+    const supabase = await supabaseServer();
+    const signed = await supabase.storage.from("church").createSignedUrl(group.photoKey, 3600);
+    photoUrl = signed.data?.signedUrl ?? null;
+  }
 
   const next = upcomingMeetings(
     { dayOfWeek: group.dayOfWeek, frequency: group.frequency },
@@ -128,6 +139,16 @@ export default async function GroupPage({
 
         <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
           <div className="flex min-w-0 flex-1 flex-col gap-6">
+            {photoUrl || manage ? (
+              <GroupPhoto
+                church={session.tenantSlug}
+                groupId={group.id}
+                groupName={group.name}
+                photoUrl={photoUrl}
+                canEdit={manage}
+              />
+            ) : null}
+
             {group.description ? (
               <section className="flex flex-col gap-2">
                 <h2 className="text-heading text-fg">{t("group.about", { name: group.name })}</h2>

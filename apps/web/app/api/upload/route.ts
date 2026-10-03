@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import {
-  withTenant, assertCanStore, recordFile, setChurchLogo, attachToItem,
-  canManageChurch, canManageServices,
+  withTenant, assertCanStore, recordFile, setChurchLogo, attachToItem, setGroupPhoto,
+  canManageChurch, canManageServices, canManageGroups,
   type UploadPurpose,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
@@ -44,6 +44,8 @@ export async function POST(request: Request) {
   // R11.7. Which item on a service plan the bytes belong to.
   const itemId = String(form.get("itemId") ?? "") || null;
   const label = String(form.get("label") ?? "").trim() || null;
+  // R9.2. Which group the picture belongs to.
+  const groupId = String(form.get("groupId") ?? "") || null;
 
   const session = await requireSession(slug);
 
@@ -52,6 +54,14 @@ export async function POST(request: Request) {
   }
   if (purpose === "logo" && !canManageChurch(session.role)) {
     return NextResponse.json({ error: t("error.permission.editChurch") }, { status: 403 });
+  }
+  if (purpose === "group_photo") {
+    if (!canManageGroups(session.role)) {
+      return NextResponse.json({ error: t("error.permission.manageGroups") }, { status: 403 });
+    }
+    if (!groupId) {
+      return NextResponse.json({ error: t("group.error.missing") }, { status: 400 });
+    }
   }
   if (purpose === "plan_item") {
     if (!canManageServices(session.role)) {
@@ -95,11 +105,14 @@ export async function POST(request: Request) {
       if (purpose === "plan_item" && itemId) {
         await attachToItem(tx, actor, { itemId, fileId: stored.id, label });
       }
+      if (purpose === "group_photo" && groupId) {
+        return (await setGroupPhoto(tx, actor, groupId, key)).removed;
+      }
       return null;
     });
 
-    // The replaced logo goes from the bucket as well, so the ledger and the
-    // object store agree. A failure here leaves an orphan, which the ledger
+    // The replaced logo or group photo goes from the bucket as well, so the
+    // ledger and the object store agree. A failure here leaves an orphan, which the ledger
     // makes findable, rather than a missing file somebody is looking at.
     if (removed) await supabase.storage.from("church").remove([removed]);
   } catch (error) {

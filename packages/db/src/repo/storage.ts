@@ -27,6 +27,14 @@ export const UPLOAD_RULES = {
   logo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 2 * ONE_MIB },
   person_photo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
   /**
+   * R9.2. A picture of a group, for the card in the finder.
+   *
+   * The same ceiling as a person's photo. A church with forty groups spends two
+   * hundred megabytes at the limit, which is a tenth of its quota and visible
+   * on the storage bar before it gets there.
+   */
+  group_photo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
+  /**
    * R11.7. What hangs off an item on a service plan: chord charts, a running
    * order as a PDF, a reference track, a slide image, a lyric sheet.
    *

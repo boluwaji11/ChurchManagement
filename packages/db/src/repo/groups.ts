@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { groups, groupTypes, groupMemberships } from "../schema/groups";
 import { people } from "../schema/people";
+import { storedFiles } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
@@ -82,6 +83,8 @@ export interface Group {
   openToJoin: boolean;
   listed: boolean;
   archivedAt: Date | null;
+  /** R9.2. The picture on the card, in the church bucket. */
+  photoKey: string | null;
   /** Live members, including the leaders. */
   memberCount: number;
   /** R9.3. Who leads it, for a list that has to say so without a second query. */
@@ -326,6 +329,7 @@ const COLUMNS = {
   openToJoin: groups.openToJoin,
   listed: groups.listed,
   archivedAt: groups.archivedAt,
+  photoKey: groups.photoKey,
   typeName: groupTypes.name,
   typeHue: groupTypes.hue,
 };
@@ -643,4 +647,40 @@ export async function describeGroupType(
     .update(groupTypes)
     .set({ description: description?.trim() || null, updatedAt: new Date() })
     .where(eq(groupTypes.id, id));
+}
+
+/**
+ * R9.2, R1.16. Puts a picture on a group, and takes the old one off.
+ *
+ * The same shape as the church logo: replacing a photo ten times costs one
+ * photo rather than ten, because the ledger row for the old key goes with it
+ * and the caller removes the object. A quota a church pays for in files nothing
+ * points at is a quota it cannot understand.
+ */
+export async function setGroupPhoto(
+  db: Tx,
+  actor: WriteActor,
+  groupId: string,
+  key: string | null,
+): Promise<{ removed: string | null }> {
+  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+
+  const [before] = await db
+    .select({ photoKey: groups.photoKey })
+    .from(groups)
+    .where(eq(groups.id, groupId))
+    .limit(1);
+  if (!before) throw new InvalidInputError("group.error.missing");
+
+  await db
+    .update(groups)
+    .set({ photoKey: key, updatedAt: new Date() })
+    .where(eq(groups.id, groupId));
+
+  const old = before.photoKey;
+  if (old && old !== key) {
+    await db.delete(storedFiles).where(eq(storedFiles.key, old));
+    return { removed: old };
+  }
+  return { removed: null };
 }

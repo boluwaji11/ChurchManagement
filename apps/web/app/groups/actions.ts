@@ -3,12 +3,13 @@
 import {
   withTenant, createGroup, updateGroup, setGroupArchived,
   addToGroup, removeFromGroup, lookupPeople, getChurch,
-  requestToJoin, decideRequest,
+  requestToJoin, decideRequest, setGroupPhoto,
   type GroupRole,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
+import { supabaseServer } from "@/lib/supabase/server";
 
 async function context(church?: string) {
   const session = await requireSession(church);
@@ -176,6 +177,25 @@ export async function decide(
   const { ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => decideRequest(tx, ctx, { requestId, approve }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R9.2. Takes the picture off a group, and out of the bucket. */
+export async function clearGroupPhoto(
+  groupId: string,
+  church?: string,
+): Promise<GroupResult> {
+  const session = await requireSession(church);
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  try {
+    const removed = await withTenant(actor, (tx) => setGroupPhoto(tx, actor, groupId, null));
+    if (removed.removed) {
+      const supabase = await supabaseServer();
+      await supabase.storage.from("church").remove([removed.removed]);
+    }
     return {};
   } catch (error) {
     return { error: explain(error) };

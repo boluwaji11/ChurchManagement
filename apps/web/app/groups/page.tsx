@@ -6,6 +6,7 @@ import { PageTitle } from "@/components/section";
 import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
 import { Finder } from "./finder";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,23 @@ export default async function GroupsPage({
       requests: await pendingRequests(tx, actor),
     };
   });
+
+  /*
+   * R9.2. The bucket is private, so each picture is served through a link
+   * signed for an hour. Signed here rather than in the card, because a client
+   * component cannot hold the key and one pass is one round trip.
+   */
+  const photos = new Map<string, string>();
+  const withPhotos = groups.filter((group) => group.photoKey);
+  if (withPhotos.length > 0) {
+    const supabase = await supabaseServer();
+    for (const group of withPhotos) {
+      const signed = await supabase.storage
+        .from("church")
+        .createSignedUrl(group.photoKey!, 3600);
+      if (signed.data?.signedUrl) photos.set(group.id, signed.data.signedUrl);
+    }
+  }
 
   return (
     <>
@@ -79,6 +97,7 @@ export default async function GroupsPage({
             requested: group.requested,
             listed: group.listed,
             archived: group.archived,
+            photoUrl: photos.get(group.id) ?? null,
           }))}
         />
       </main>

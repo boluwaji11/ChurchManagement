@@ -15,6 +15,8 @@ import { GroupDialog } from "./group-form";
 
 export interface FinderGroup {
   id: string;
+  /** R9.2. Signed for an hour by the page, because the bucket is private. */
+  photoUrl?: string | null;
   name: string;
   description: string | null;
   typeId: string | null;
@@ -361,7 +363,17 @@ function GroupCard({
      * over the card, so the tile is one target without nesting a button inside
      * an anchor: Ask to join sits above it.
      */
-    <Card className="relative flex flex-col gap-2 transition-shadow focus-within:shadow-md hover:shadow-md">
+    <Card className="relative flex flex-col gap-2 overflow-hidden transition-shadow focus-within:shadow-md hover:shadow-md">
+      {/* R9.2. A photograph of eight people round a table says what a paragraph
+          cannot: this is a real group and you would not be the only new one. */}
+      {group.photoUrl ? (
+        <img
+          src={group.photoUrl}
+          alt=""
+          className="-mx-[var(--d-pad-card)] -mt-[var(--d-pad-card)] mb-1 h-32 w-[calc(100%+2*var(--d-pad-card))] object-cover"
+        />
+      ) : null}
+
       <span className="flex flex-wrap items-center gap-2">
         {group.typeHue ? <HueDot hue={group.typeHue as Hue} /> : null}
         <Link

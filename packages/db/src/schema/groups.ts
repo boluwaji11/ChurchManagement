@@ -85,6 +85,15 @@ export const groups = pgTable(
     /** How many it holds. Null means the church has not said. */
     capacity: integer("capacity"),
     /**
+     * R9.2. A picture of the group, in the church bucket.
+     *
+     * The finder is a wall of cards, and a card with a photograph of eight
+     * people round a table says what a paragraph cannot: this is a real group
+     * of real people and you would not be the only new one. Null is a working
+     * state, and most groups will stay that way.
+     */
+    photoKey: text("photo_key"),
+    /**
      * R9.5. Who the group is for, as a church says it: anyone, men, women,
      * young adults, students, seniors, parents. One field rather than a gender
      * and an age range, because a church writes "Young adults" on the poster

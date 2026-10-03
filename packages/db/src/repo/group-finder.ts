@@ -54,6 +54,8 @@ export interface FoundGroup {
   requested: JoinStatus | null;
   /** R9.2. Off the finder for the church, on it for whoever runs groups. */
   listed: boolean;
+  /** R9.2. The picture on the card, in the church bucket. */
+  photoKey: string | null;
   archived: boolean;
 }
 
@@ -140,6 +142,7 @@ export async function findGroups(
       childrenWelcome: groups.childrenWelcome,
       openToJoin: groups.openToJoin,
       listed: groups.listed,
+      photoKey: groups.photoKey,
       archivedAt: groups.archivedAt,
       typeName: groupTypes.name,
       typeHue: groupTypes.hue,
@@ -187,6 +190,7 @@ export async function findGroups(
       endsAt: row.endsAt,
       frequency: row.frequency,
       location: row.location,
+      photoKey: row.photoKey,
       capacity: row.capacity,
       forWhom: row.forWhom,
       online: row.online,
