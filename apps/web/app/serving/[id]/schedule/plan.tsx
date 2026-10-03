@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, UserMinus, TriangleAlert } from "lucide-react";
+import { Plus, UserMinus, TriangleAlert, Link2 } from "lucide-react";
 import {
   Banner, Badge, IconButton, Card, EmptyState, Separator,
   Dialog, DialogTrigger, DialogContent,
@@ -31,6 +31,8 @@ export interface PlanEntry {
   personName: string;
   status: string;
   overridden: boolean;
+  /** R10.6. The link this person answers on, for sending by whatever a church uses. */
+  token: string;
 }
 
 /**
@@ -147,6 +149,7 @@ export function SchedulePlan({
                             aria-label={t("plan.overridden")}
                           />
                         ) : null}
+                        <CopyLink token={entry.token} />
                         <IconButton
                           label={t("plan.remove")}
                           disabled={pending}
@@ -261,21 +264,38 @@ function AddDialog({
                       {warning}
                     </span>
                   ) : null}
-                  {/* R10.3. Where else they are at that hour. Serving in two
-                      places at once is allowed, so this is information. */}
-                  {candidate.alsoOn ? (
-                    <span className="text-caption text-fg-muted">
-                      {t("plan.alsoOn", {
-                        team: candidate.alsoOn.teamName,
-                        position: candidate.alsoOn.positionName,
-                      })}
-                    </span>
-                  ) : null}
                 </button>
               );
             })}
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * R10.6. The link that asks this person whether they can.
+ *
+ * Copied rather than sent, because messaging runs on the church's own provider
+ * and that arrives later. A leader pastes it into whatever they already use.
+ */
+function CopyLink({ token }: { token: string }) {
+  const [copied, setCopied] = React.useState(false);
+
+  return (
+    <IconButton
+      label={copied ? t("plan.copied") : t("plan.copyLink")}
+      onClick={() => {
+        navigator.clipboard
+          .writeText(`${window.location.origin}/serving/respond/${token}`)
+          .then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          })
+          .catch(() => setCopied(false));
+      }}
+    >
+      <Link2 />
+    </IconButton>
   );
 }

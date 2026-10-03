@@ -18,16 +18,11 @@ import type { WriteActor } from "./people";
  * church with two gatherings on one day runs two different bands, and a row
  * holding a date alone cannot say which one somebody is in.
  *
- * Reading across every team at once is the reason this is one system rather
- * than one per ministry. The person who leads worship is the person the kids
- * team was about to put in a room, and neither leader can see the other's
- * schedule. So the scheduler is shown where else somebody is at that hour.
- *
- * Serving in two places at one hour is allowed. R10.3 asked for it to be a
- * conflict; the church said somebody who runs the desk and reads a lesson in
- * the same service is doing what small churches do, and software that calls it
- * an error is wrong about the church rather than the other way round. So it is
- * information in the picker, and nothing is refused or flagged for it.
+ * Serving in two places at one hour is allowed, and nothing is said about it.
+ * R10.3 asked for it to be a conflict; the church said somebody who runs the
+ * desk and reads a lesson in the same service is doing what small churches do,
+ * and software that calls it an error is wrong about the church rather than the
+ * other way round.
  *
  * What does warn is a day somebody said they are away, and a turn that comes
  * round sooner than they asked for. Both warn rather than refuse: somebody who
@@ -56,6 +51,8 @@ export interface Assignment {
   status: AssignmentStatus;
   declineReason: string | null;
   overridden: boolean;
+  /** R10.6. The link this person answers on. */
+  token: string;
 }
 
 export interface Blockout {
@@ -64,12 +61,6 @@ export interface Blockout {
   startsOn: string;
   endsOn: string;
   reason: string | null;
-}
-
-/** Where else this person is at that hour. Information, not a warning. */
-export interface Elsewhere {
-  teamName: string;
-  positionName: string;
 }
 
 /** Why the scheduler was warned, if they were. */
@@ -88,7 +79,6 @@ export interface PlanCandidate {
   lastServedOn: string | null;
   frequency: ServingFrequency | null;
   warning: Warning;
-  alsoOn: Elsewhere | null;
 }
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -156,6 +146,7 @@ export async function assignmentsForTeam(
       status: servingAssignments.status,
       declineReason: servingAssignments.declineReason,
       overridden: servingAssignments.overridden,
+      token: servingAssignments.respondToken,
       order: teamPositions.position,
       firstName: people.firstName,
       preferredName: people.preferredName,
@@ -181,6 +172,7 @@ export async function assignmentsForTeam(
     status: r.status as AssignmentStatus,
     declineReason: r.declineReason,
     overridden: r.overridden,
+    token: r.token,
   }));
 }
 
@@ -202,6 +194,7 @@ export async function assignmentsForPerson(
       status: servingAssignments.status,
       declineReason: servingAssignments.declineReason,
       overridden: servingAssignments.overridden,
+      token: servingAssignments.respondToken,
       serviceName: serviceOccurrences.name,
       occursOn: sql<string>`${serviceOccurrences.occursOn}::text`,
       startsAt: serviceOccurrences.startsAt,
@@ -233,6 +226,7 @@ export async function assignmentsForPerson(
     status: r.status as AssignmentStatus,
     declineReason: r.declineReason,
     overridden: r.overridden,
+    token: r.token,
     serviceName: r.serviceName,
     occursOn: r.occursOn,
     startsAt: r.startsAt,
@@ -242,14 +236,13 @@ export async function assignmentsForPerson(
 /**
  * R10.3. What a scheduler should know before putting this person here.
  *
- * Three questions, in the order a leader would ask them: where else are they at
- * that hour, have they said they are away, and did they serve more recently
- * than they asked to. Only the last two are warnings.
+ * Two questions: have they said they are away, and did they serve more
+ * recently than they asked to.
  */
 export async function checkFor(
   db: Tx,
   input: { personId: string; occurrenceId: string },
-): Promise<{ warning: Warning; alsoOn: Elsewhere | null }> {
+): Promise<Warning> {
   const [occurrence] = await db
     .select({
       occursOn: sql<string>`${serviceOccurrences.occursOn}::text`,
@@ -259,21 +252,6 @@ export async function checkFor(
     .where(eq(serviceOccurrences.id, input.occurrenceId))
     .limit(1);
   if (!occurrence) throw new InvalidInputError("schedule.error.occurrence");
-
-  // Across every team, which is the whole reason the schedule is one system.
-  const [elsewhere] = await db
-    .select({ teamName: teams.name, positionName: teamPositions.name })
-    .from(servingAssignments)
-    .innerJoin(teams, eq(teams.id, servingAssignments.teamId))
-    .innerJoin(teamPositions, eq(teamPositions.id, servingAssignments.positionId))
-    .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, servingAssignments.occurrenceId))
-    .where(and(
-      eq(servingAssignments.personId, input.personId),
-      sql`${servingAssignments.status} <> 'declined'`,
-      sql`${serviceOccurrences.occursOn}::text = ${occurrence.occursOn}`,
-      eq(serviceOccurrences.startsAt, occurrence.startsAt),
-    ))
-    .limit(1);
 
   const [away] = await db
     .select({
@@ -321,10 +299,7 @@ export async function checkFor(
     }
   }
 
-  return {
-    warning: { blockedOut: away ?? null, tooSoon },
-    alsoOn: elsewhere ?? null,
-  };
+  return { blockedOut: away ?? null, tooSoon };
 }
 
 /**
@@ -371,7 +346,7 @@ export async function candidatesFor(
 
   const out: PlanCandidate[] = [];
   for (const person of roster) {
-    const { warning, alsoOn } = await checkFor(db, {
+    const warning = await checkFor(db, {
       personId: person.personId,
       occurrenceId: input.occurrenceId,
     });
@@ -382,7 +357,6 @@ export async function candidatesFor(
       lastServedOn: warning.tooSoon?.lastServedOn ?? null,
       frequency: byPerson.get(person.personId) ?? null,
       warning,
-      alsoOn,
     });
   }
 
@@ -406,7 +380,7 @@ export interface AssignInput {
  * R10.3. Puts somebody down.
  *
  * Refuses once where they are away or due a break, then records that it was
- * told to go ahead. Being on another team at the same hour is not refused.
+ * told to go ahead.
  */
 export async function assign(
   db: Tx,
@@ -426,7 +400,7 @@ export async function assign(
     .limit(1);
   if (!position) throw new InvalidInputError("schedule.error.position");
 
-  const { warning } = await checkFor(db, {
+  const warning = await checkFor(db, {
     personId: input.personId,
     occurrenceId: input.occurrenceId,
   });

@@ -141,19 +141,12 @@ describe("serving in two places at one hour", () => {
     expect(made.overridden).toBe(false);
   });
 
-  it("says where else they are, as information", async () => {
-    const { alsoOn } = await run((tx) =>
+  it("says nothing about it at all", async () => {
+    const warning = await run((tx) =>
       checkFor(tx, { personId: ids.Ada!, occurrenceId: services.second! }),
     );
-    expect(alsoOn?.teamName).toBeTruthy();
-    expect(alsoOn?.positionName).toBeTruthy();
-  });
-
-  it("says nothing about a gathering later the same day", async () => {
-    const { alsoOn } = await run((tx) =>
-      checkFor(tx, { personId: ids.Ada!, occurrenceId: services.evening! }),
-    );
-    expect(alsoOn).toBeNull();
+    expect(warning.blockedOut).toBeNull();
+    expect(warning.tooSoon).toBeNull();
   });
 });
 
@@ -176,7 +169,7 @@ describe("blockout dates", () => {
     );
 
     for (const occurrenceId of [services.first!, services.later!]) {
-      const { warning } = await run((tx) => checkFor(tx, { personId: ids.Boma!, occurrenceId }));
+      const warning = await run((tx) => checkFor(tx, { personId: ids.Boma!, occurrenceId }));
       expect(warning.blockedOut?.reason).toBe("Away");
     }
   });
@@ -229,7 +222,7 @@ describe("how often somebody wants to serve", () => {
       }),
     );
 
-    const { warning } = await run((tx) =>
+    const warning = await run((tx) =>
       checkFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
     );
     expect(warning.tooSoon?.lastServedOn).toBe("2027-03-07");
@@ -238,7 +231,7 @@ describe("how often somebody wants to serve", () => {
 
   it("says nothing to somebody who asked for weekly", async () => {
     await run((tx) => setServingPreference(tx, as(), { personId: ids.Chi!, frequency: "weekly" }));
-    const { warning } = await run((tx) =>
+    const warning = await run((tx) =>
       checkFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
     );
     expect(warning.tooSoon).toBeNull();
@@ -254,12 +247,10 @@ describe("who could fill a position", () => {
     expect(found[0]!.plays).toBe(true);
   });
 
-  it("carries where else somebody is, rather than hiding them", async () => {
+  it("lists the whole roster rather than hiding anybody", async () => {
     const found = await run((tx) =>
       candidatesFor(tx, { teamId: worship, positionId: keys, occurrenceId: services.second! }),
     );
-    const ada = found.find((c) => c.name.startsWith("Ada"))!;
-    expect(ada.alsoOn).not.toBeNull();
     expect(found.map((c) => c.name)).toHaveLength(3);
   });
 });

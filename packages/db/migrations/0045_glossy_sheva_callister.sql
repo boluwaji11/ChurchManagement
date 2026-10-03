@@ -1,0 +1,2 @@
+ALTER TABLE "serving_assignments" ADD COLUMN "respond_token" text DEFAULT replace(gen_random_uuid()::text, '-', '') NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "assignment_token_unique" ON "serving_assignments" USING btree ("respond_token");

@@ -100,6 +100,7 @@ export default async function SchedulePlanPage({
             personName: e.personName,
             status: e.status,
             overridden: e.overridden,
+            token: e.token,
           }))}
         />
       </main>
