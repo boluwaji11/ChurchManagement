@@ -1,4 +1,4 @@
-import { servingRequestFor } from "@hearth/db";
+import { servingRequestFor, substituteStatusFor } from "@hearth/db";
 import { EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
@@ -22,6 +22,7 @@ export default async function RespondPage({
 }) {
   const { token } = await params;
   const request = await servingRequestFor(token);
+  const swap = request ? await substituteStatusFor(token) : null;
 
   return (
     <main id="main" className="mx-auto flex max-w-xl flex-col gap-8 px-4 py-12 sm:px-6">
@@ -51,7 +52,7 @@ export default async function RespondPage({
             </p>
           </div>
 
-          <Respond token={token} request={request} />
+          <Respond token={token} request={request} swap={swap} />
         </>
       )}
     </main>

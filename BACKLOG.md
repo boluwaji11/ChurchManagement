@@ -347,8 +347,8 @@ one and adds the people, which takes a minute and needs no migration screen.
 | HRT-79 | Teams, positions, and a person serving across several of them | R10.1, R10.2 | Resolved |
 | HRT-80 | The schedule plan: by service, blockout dates, how often, and where else somebody is | R10.3 to R10.5 | Resolved |
 | HRT-124 | Accept and decline from a link, with no sign-in | R10.6 | Resolved |
-| HRT-125 | Substitute requests: the volunteer asks, the leader confirms | R10.7 | New |
-| HRT-126 | Reminders on publication, a week out and two days out | R10.8 | New |
+| HRT-125 | Substitute requests: the volunteer asks, the leader confirms | R10.7 | Resolved |
+| HRT-126 | Reminders on publication, a week out and two days out, including the email that carries the answer link | R10.8 | Blocked on a messaging provider (R16.3) |
 | HRT-81 | Who is serving in a kids class today, and the two-adult-rule alert on the board | R8.17, R10.12 | Deferred to 0.9 |
 | HRT-82 | Background-check gating: no children's position without a valid check | R10.9 | Deferred to 0.9 |
 
@@ -446,10 +446,10 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
-| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request |
-| **Next** | **HRT-125** substitute requests. |
-| **Order after that** | **0.4** the rest of serving (HRT-125, HRT-126), then service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
-| **Waiting on somebody else** | **HRT-87** group messaging waits on a church having a provider set up. **HRT-13** MFA stays deferred. |
+| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-125** substitutes |
+| **Next** | Service planning (F11). **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. |
+| **Order after that** | **0.4** service planning (F11). HRT-126 waits on a provider. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
+| **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
 ### HRT-16, how to test it
 
@@ -1173,6 +1173,22 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-125, how to test it
+
+1. Open an answer link and press **Ask for a substitute**. The reason is optional.
+2. That also answers no, because somebody looking for a swap has already said they cannot make it.
+   The slot reads empty again on the schedule plan.
+3. The schedule plan shows **Substitutes wanted** above the positions, naming who asked, which
+   position, and why if they said.
+4. **Put somebody in** lists the rest of the team, leaving out whoever asked and anybody already in
+   that position, with the same away and served-recently warnings.
+5. Picking one schedules them and the request disappears. The original row stays, declined, because
+   "she asked and Ada covered" is the history worth keeping.
+6. **Close without a swap** clears the request and schedules nobody.
+7. Back on the answer link, **I can do it after all** takes the request back.
+8. The Serving list shows how each team stands: accepted, asked, declined, and how many are wanting
+   a swap.
 
 ### HRT-124, how to test it
 

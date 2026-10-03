@@ -252,3 +252,38 @@ export const servingPreferences = pgTable(
     index("serving_pref_tenant_idx").on(t.tenantId),
   ],
 );
+
+/**
+ * R10.7. Somebody who cannot make it asks for a swap.
+ *
+ * The request hangs off the assignment rather than off the person, because the
+ * question is about one slot at one gathering. A leader confirms the
+ * replacement; the system offers names and decides nothing, since who covers
+ * the sound desk is a judgement about people.
+ */
+export const substituteRequests = pgTable(
+  "substitute_requests",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    assignmentId: uuid("assignment_id").notNull()
+      .references(() => servingAssignments.id, { onDelete: "cascade" }),
+    /** Theirs, and nobody is required to give one. */
+    reason: text("reason"),
+    /** "open", "filled", "withdrawn" or "cancelled". */
+    status: text("status").notNull().default("open"),
+    /** Who the leader put in instead, once they have. */
+    filledByPersonId: uuid("filled_by_person_id").references(() => people.id, { onDelete: "set null" }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("substitute_tenant_idx").on(t.tenantId),
+    index("substitute_assignment_idx").on(t.tenantId, t.assignmentId),
+    // One open request a slot. Asking twice is asking once.
+    uniqueIndex("substitute_open_unique")
+      .on(t.assignmentId)
+      .where(sql`${t.status} = 'open'`),
+  ],
+);

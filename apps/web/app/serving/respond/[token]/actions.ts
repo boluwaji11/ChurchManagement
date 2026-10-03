@@ -1,6 +1,9 @@
 "use server";
 
-import { answerServingRequest, type ServingRequest } from "@hearth/db";
+import {
+  answerServingRequest, askForSubstitute, withdrawSubstitute,
+  type ServingRequest,
+} from "@hearth/db";
 import { explain } from "@/lib/explain";
 
 export interface AnswerResult {
@@ -21,6 +24,29 @@ export async function answer(
 ): Promise<AnswerResult> {
   try {
     return { request: await answerServingRequest(token, { accept, reason }) };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface SwapResult {
+  error?: string;
+}
+
+/** R10.7. Asking for a swap, from the same link and with no sign-in. */
+export async function askSwap(token: string, reason: string | null): Promise<SwapResult> {
+  try {
+    await askForSubstitute(token, reason);
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function dropSwap(token: string): Promise<SwapResult> {
+  try {
+    await withdrawSubstitute(token);
+    return {};
   } catch (error) {
     return { error: explain(error) };
   }

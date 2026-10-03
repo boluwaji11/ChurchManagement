@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import {
   withTenant, getTeam, getChurch, canManageTeams, canLeadTeams, leadsTeam,
-  upcomingServices, assignmentsForTeam,
+  upcomingServices, assignmentsForTeam, openSubstitutes,
 } from "@hearth/db";
 import { Button, HueDot, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -13,6 +13,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { dayAndMonth, readableTime } from "@/lib/dates";
 import { SchedulePlan } from "./plan";
+import { Swaps } from "./swaps";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export default async function SchedulePlanPage({
 
   const canManage = canManageTeams(session.role);
 
-  const { team, mine, gatherings, chosen, entries } = await withTenant(
+  const { team, mine, gatherings, chosen, entries, swaps } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
@@ -58,6 +59,11 @@ export default async function SchedulePlanPage({
         gatherings: upcoming,
         chosen,
         entries: chosen ? await assignmentsForTeam(tx, id, [chosen]) : [],
+        // R10.7. Above the schedule, because an unanswered swap is what goes
+        // wrong on the day.
+        swaps: chosen
+          ? await openSubstitutes(tx, { teamId: id, occurrenceIds: [chosen] })
+          : [],
       };
     },
   );
@@ -78,6 +84,18 @@ export default async function SchedulePlanPage({
         <div className="mb-8 flex items-center gap-3">
           <HueDot hue={team.hue as Hue} />
           <PageTitle title={t("plan.title")} className="mb-0" />
+        </div>
+
+        <div className="mb-6">
+          <Swaps
+            church={session.tenantSlug}
+            swaps={swaps.map((swap) => ({
+              id: swap.id,
+              personName: swap.personName,
+              positionName: swap.positionName,
+              reason: swap.reason,
+            }))}
+          />
         </div>
 
         <SchedulePlan

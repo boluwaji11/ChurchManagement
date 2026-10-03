@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { withTenant, listTeams, canManageTeams, canLeadTeams } from "@hearth/db";
+import {
+  withTenant, listTeams, getChurch, answerCounts, canManageTeams, canLeadTeams,
+} from "@hearth/db";
 import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
+import { churchNow } from "@/lib/church-now";
 import { Teams } from "./teams";
 
 export const dynamic = "force-dynamic";
@@ -32,9 +35,19 @@ export default async function ServingPage({
   const canManage = canManageTeams(session.role);
   const showArchived = canManage && params.archived === "1";
 
-  const teams = await withTenant(
+  const { teams, counts } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    (tx) => listTeams(tx, { includeArchived: showArchived }),
+    async (tx) => {
+      const found = await listTeams(tx, { includeArchived: showArchived });
+      const today = churchNow(
+        (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
+      ).date;
+      return {
+        teams: found,
+        // R10.6, R10.7. How each team's schedule stands from today onwards.
+        counts: await answerCounts(tx, { teamIds: found.map((t) => t.id), from: today }),
+      };
+    },
   );
 
   return (
@@ -66,6 +79,9 @@ export default async function ServingPage({
             positions: team.positions,
             needsChecks: team.needsChecks,
             archived: team.archivedAt !== null,
+            answers: counts[team.id] ?? {
+              asked: 0, accepted: 0, declined: 0, substitutes: 0,
+            },
           }))}
         />
       </main>
