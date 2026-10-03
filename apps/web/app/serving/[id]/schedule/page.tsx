@@ -30,10 +30,10 @@ export default async function SchedulePlanPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; service?: string }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
+  const { church, service } = await searchParams;
   const session = await requireSession(church);
 
   if (!canLeadTeams(session.role)) {
@@ -42,18 +42,22 @@ export default async function SchedulePlanPage({
 
   const canManage = canManageTeams(session.role);
 
-  const { team, mine, gatherings, entries } = await withTenant(
+  const { team, mine, gatherings, chosen, entries } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const today = churchNow(profile?.timezone ?? "America/Chicago").date;
       const upcoming = await upcomingServices(tx, { from: today, limit: HOW_MANY });
 
+      // The one being planned: whichever was asked for, or the next one.
+      const chosen = upcoming.find((o) => o.id === service)?.id ?? upcoming[0]?.id ?? null;
+
       return {
         team: await getTeam(tx, id),
         mine: canManage ? true : await leadsTeam(tx, id, session.userId),
         gatherings: upcoming,
-        entries: await assignmentsForTeam(tx, id, upcoming.map((o) => o.id)),
+        chosen,
+        entries: chosen ? await assignmentsForTeam(tx, id, [chosen]) : [],
       };
     },
   );
@@ -79,11 +83,10 @@ export default async function SchedulePlanPage({
         <SchedulePlan
           church={session.tenantSlug}
           teamId={team.id}
+          chosen={chosen ?? ""}
           gatherings={gatherings.map((o) => ({
             id: o.id,
-            name: o.name,
-            day: dayAndMonth(o.occursOn),
-            time: readableTime(o.startsAt),
+            label: `${dayAndMonth(o.occursOn)} · ${o.name} ${readableTime(o.startsAt)}`,
           }))}
           positions={team.positions.map((p) => ({
             id: p.id,

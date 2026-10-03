@@ -1117,6 +1117,7 @@ export const en = {
   "blockout.error.missing": "That could not be found.",
   "preference.error.frequency": "Choose how often from the list.",
   "plan.title": "Schedule plan",
+  "plan.service": "Service",
   "plan.open": "Schedule plan",
   "plan.failed": "That did not save. Try again.",
   "plan.empty": "No services scheduled",

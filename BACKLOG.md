@@ -1176,25 +1176,26 @@ From **Groups**, tap a group's name.
 
 ### HRT-80, how to test it
 
-Open a team and press **Schedule plan**. It shows the next six gatherings from today, so generate a service
-calendar first if there is none.
+Open a team and press **Schedule plan**. Generate a service calendar first if there is none.
 
-1. Each gathering lists the team's positions with "0 of 2" against them, red until the position is
-   full.
-2. Press **+** on a position. It lists the team's roster, with whoever is marked as playing that
+1. A **Service** dropdown holds the next six services from today, and the soonest is chosen. Pick
+   one and the page plans that one. The choice is in the URL, so the link can be sent on.
+2. The chosen service lists the team's positions with "0 of 2" against them, red until the position
+   is full.
+3. Press **+** on a position. It lists the team's roster, with whoever is marked as playing that
    position first, and a **Plays this** badge against them.
-3. Put somebody down. The count goes up and their name sits against the position.
-4. Put the same person on another team at the same gathering. It goes through. The dialog says
+4. Put somebody down. The count goes up and their name sits against the position.
+5. Put the same person on another team at the same gathering. It goes through. The dialog says
    "Also on Worship, Keys" under their name, because a leader wants to know where somebody is, and
    serving in two places at one hour is a thing small churches do.
-5. That note only appears for a gathering at the same hour on the same day.
-6. On a person's record, the **Serving** card now carries **Coming up**, **How often they serve**
+6. That note only appears for a gathering at the same hour on the same day.
+7. On a person's record, the **Serving** card now carries **Coming up**, **How often they serve**
    and **Days away**. Add days away covering a gathering, then open the schedule for it: that person
    carries "Away" in the dialog.
-7. Set how often they serve to monthly, put them on a gathering, then open a gathering a week later.
+8. Set how often they serve to monthly, put them on a gathering, then open a gathering a week later.
    They carry "Served 2027-03-07, asked for Monthly". Set it to weekly and the warning is gone.
-8. **Take off the schedule** empties the slot and the count drops.
-9. A team leader can build the schedule of the team they lead, and gets the same warnings.
+9. **Take off** empties the slot and the count drops.
+10. A team leader can build the schedule of the team they lead, and gets the same warnings.
 
 ### HRT-79, how to test it
 

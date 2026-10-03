@@ -6,6 +6,7 @@ import { Plus, UserMinus, TriangleAlert } from "lucide-react";
 import {
   Banner, Badge, IconButton, Card, EmptyState, Separator,
   Dialog, DialogTrigger, DialogContent,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import type { PlanCandidate } from "@hearth/db";
@@ -13,9 +14,8 @@ import { schedule, unschedule, whoCouldFill } from "../../actions";
 
 export interface Gathering {
   id: string;
-  name: string;
-  day: string;
-  time: string;
+  /** "Sunday, 4 October · First service 9:00am", already in the reader's locale. */
+  label: string;
 }
 
 export interface PlanPosition {
@@ -34,27 +34,34 @@ export interface PlanEntry {
 }
 
 /**
- * R10.3. The schedule plan, one gathering at a time.
+ * R10.3. The schedule plan: one service, picked from the ones coming up.
  *
- * A gathering rather than a grid, because that is the unit a leader works in:
- * they sit down to fill one service, not to read a spreadsheet of six.
+ * One at a time, because that is the unit a leader works in. They sit down to
+ * fill this week's service, not to read a spreadsheet of six, and a screen that
+ * shows six is a screen where the one they came for is below the fold.
  */
 export function SchedulePlan({
   church,
   teamId,
   gatherings,
+  chosen,
   positions,
   entries,
 }: {
   church: string;
   teamId: string;
   gatherings: Gathering[];
+  chosen: string;
   positions: PlanPosition[];
   entries: PlanEntry[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+
+  const choose = (id: string) => {
+    router.push(`/serving/${teamId}/schedule?church=${church}&service=${id}`);
+  };
 
   const take = (id: string) => {
     startTransition(async () => {
@@ -81,85 +88,92 @@ export function SchedulePlan({
     <div className="flex flex-col gap-6" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("plan.failed")}>{error}</Banner> : null}
 
-      {gatherings.map((gathering) => (
-        <Card key={gathering.id} className="flex flex-col gap-3 p-5">
-          <div className="flex flex-wrap items-baseline gap-3">
-            <h3 className="font-display text-heading text-fg">{gathering.day}</h3>
-            <span className="text-caption text-fg-muted">
-              {gathering.name} {gathering.time}
-            </span>
-          </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-label text-fg">{t("plan.service")}</span>
+        <Select value={chosen} onValueChange={choose}>
+          <SelectTrigger aria-label={t("plan.service")} className="w-full sm:w-96">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {gatherings.map((gathering) => (
+              <SelectItem key={gathering.id} value={gathering.id}>
+                {gathering.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-          <ul className="flex flex-col">
-            {positions.map((position, i) => {
-              const filled = entries.filter(
-                (e) => e.occurrenceId === gathering.id && e.positionId === position.id,
-              );
-              return (
-                <li key={position.id}>
-                  {i > 0 ? <Separator className="my-2" /> : null}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="flex flex-wrap items-center gap-3">
-                      <span className="text-[length:var(--d-text-body)] text-fg">
-                        {position.name}
-                      </span>
-                      <span
-                        className={`text-caption tabular-nums ${
-                          filled.length < position.needed ? "text-danger-text" : "text-fg-muted"
-                        }`}
-                      >
-                        {t("plan.filled", {
-                          filled: filled.length,
-                          needed: position.needed,
-                        })}
-                      </span>
+      <Card className="flex flex-col gap-3 p-5">
+        <ul className="flex flex-col">
+          {positions.map((position, i) => {
+            const filled = entries.filter(
+              (e) => e.occurrenceId === chosen && e.positionId === position.id,
+            );
+            return (
+              <li key={position.id}>
+                {i > 0 ? <Separator className="my-2" /> : null}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="flex flex-wrap items-center gap-3">
+                    <span className="text-[length:var(--d-text-body)] text-fg">
+                      {position.name}
                     </span>
+                    <span
+                      className={`text-caption tabular-nums ${
+                        filled.length < position.needed ? "text-danger-text" : "text-fg-muted"
+                      }`}
+                    >
+                      {t("plan.filled", {
+                        filled: filled.length,
+                        needed: position.needed,
+                      })}
+                    </span>
+                  </span>
 
-                    <span className="flex flex-wrap items-center gap-2">
-                      {filled.map((entry) => (
-                        <span key={entry.id} className="flex items-center gap-1">
-                          <span className="text-[length:var(--d-text-body)] text-fg">
-                            {entry.personName}
-                          </span>
-                          {entry.status === "declined" ? (
-                            <Badge tone="danger">{t("plan.status.declined")}</Badge>
-                          ) : entry.status === "accepted" ? (
-                            <Badge tone="success">{t("plan.status.accepted")}</Badge>
-                          ) : null}
-                          {entry.overridden ? (
-                            <TriangleAlert
-                              className="size-4 text-warning-text"
-                              aria-label={t("plan.overridden")}
-                            />
-                          ) : null}
-                          <IconButton
-                            label={t("plan.remove")}
-                            disabled={pending}
-                            onClick={() => take(entry.id)}
-                          >
-                            <UserMinus />
-                          </IconButton>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {filled.map((entry) => (
+                      <span key={entry.id} className="flex items-center gap-1">
+                        <span className="text-[length:var(--d-text-body)] text-fg">
+                          {entry.personName}
                         </span>
-                      ))}
+                        {entry.status === "declined" ? (
+                          <Badge tone="danger">{t("plan.status.declined")}</Badge>
+                        ) : entry.status === "accepted" ? (
+                          <Badge tone="success">{t("plan.status.accepted")}</Badge>
+                        ) : null}
+                        {entry.overridden ? (
+                          <TriangleAlert
+                            className="size-4 text-warning-text"
+                            aria-label={t("plan.overridden")}
+                          />
+                        ) : null}
+                        <IconButton
+                          label={t("plan.remove")}
+                          disabled={pending}
+                          onClick={() => take(entry.id)}
+                        >
+                          <UserMinus />
+                        </IconButton>
+                      </span>
+                    ))}
 
-                      <AddDialog
-                        church={church}
-                        teamId={teamId}
-                        positionId={position.id}
-                        positionName={position.name}
-                        occurrenceId={gathering.id}
-                        already={filled.map((e) => e.personName)}
-                        onPick={(personId, anyway) =>
-                          put(gathering.id, position.id, personId, anyway)}
-                      />
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      ))}
+                    <AddDialog
+                      church={church}
+                      teamId={teamId}
+                      positionId={position.id}
+                      positionName={position.name}
+                      occurrenceId={chosen}
+                      already={filled.map((e) => e.personName)}
+                      onPick={(personId, anyway) =>
+                        put(chosen, position.id, personId, anyway)}
+                    />
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
     </div>
   );
 }
