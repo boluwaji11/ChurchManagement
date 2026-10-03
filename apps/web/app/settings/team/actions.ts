@@ -6,11 +6,25 @@ import {
   type TenantRole,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
+import { headers } from "next/headers";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
+import { sendTransactional } from "@/lib/send-mail";
 
 export interface TeamResult {
   error?: string;
+  /** R16.3. Set when the invitation went out as well as being recorded. */
+  emailed?: string;
+  /** R16.3. Set when the record was made but the message was not sent. */
+  notEmailed?: string;
+}
+
+/** The address this church is reached on, for a link in an email. */
+async function appOrigin(): Promise<string> {
+  const head = await headers();
+  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "localhost:4488";
+  const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
 }
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
@@ -40,7 +54,28 @@ export async function invite(data: FormData): Promise<TeamResult> {
       role,
       invitedByUserId: session.userId,
     });
-    return {};
+
+    /*
+     * R16.3. The invitation is recorded whatever happens to the message, and
+     * the join link is still on the screen. A church whose mail is not set up
+     * yet invites people the way it did before, and is told that is what
+     * happened rather than being left to wonder.
+     */
+    const origin = await appOrigin();
+    const sent = await sendTransactional(
+      { tenantId: session.tenantId, role: session.role, userId: session.userId },
+      "invitation",
+      {
+        to: email,
+        subject: t("invite.mail.subject", { church: session.tenantName }),
+        text: t("invite.mail.body", {
+          church: session.tenantName,
+          link: `${origin}/join?church=${session.tenantSlug}`,
+        }),
+      },
+    );
+
+    return sent.sent ? { emailed: email } : { notEmailed: sent.error ?? t("mail.failed") };
   } catch (error) {
     return { error: explain(error) };
   }

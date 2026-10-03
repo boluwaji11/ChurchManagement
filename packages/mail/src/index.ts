@@ -88,3 +88,29 @@ export async function sendMail(
     transport.close();
   }
 }
+
+/**
+ * R16.3. The account Hearth pays for, which carries the shared allowance.
+ *
+ * Unset in a development environment, and that is a working state: the ledger
+ * records a refusal and the screen that asked for the message says so, rather
+ * than the message disappearing.
+ */
+export function sharedAccount(): MailAccount | null {
+  const host = process.env.SHARED_SMTP_HOST;
+  const username = process.env.SHARED_SMTP_USER;
+  const password = process.env.SHARED_SMTP_PASSWORD;
+  const fromEmail = process.env.SHARED_SMTP_FROM;
+  if (!host || !username || !password || !fromEmail) return null;
+
+  return {
+    host,
+    port: Number(process.env.SHARED_SMTP_PORT ?? 587),
+    secure: process.env.SHARED_SMTP_SECURE === "true",
+    username,
+    password,
+    fromEmail,
+    fromName: process.env.SHARED_SMTP_FROM_NAME ?? null,
+    replyTo: null,
+  };
+}

@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
-import { withTenant, getEmailProvider, canManageChurch } from "@hearth/db";
+import {
+  withTenant, getEmailProvider, sharedAllowance, recentSends, canManageChurch,
+} from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { MailForm } from "./mail-form";
+import { AllowanceCard } from "./allowance";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +25,24 @@ export default async function MailSettingsPage({
 
   if (!canManageChurch(session.role)) redirect(`/settings?church=${session.tenantSlug}`);
 
-  const current = await withTenant(
+  const { current, allowance, sends } = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId },
-    (tx) => getEmailProvider(tx),
+    async (tx) => ({
+      current: await getEmailProvider(tx),
+      // R16.3. What the allowance is for, and what is left of it.
+      allowance: await sharedAllowance(tx),
+      sends: await recentSends(tx),
+    }),
   );
 
-  return <MailForm church={session.tenantSlug} current={current} />;
+  return (
+    <div className="flex flex-col gap-6">
+      <MailForm church={session.tenantSlug} current={current} />
+      <AllowanceCard
+        allowance={allowance}
+        sends={sends}
+        own={current?.hasPassword === true}
+      />
+    </div>
+  );
 }

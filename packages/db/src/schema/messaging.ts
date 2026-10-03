@@ -39,3 +39,35 @@ export const providerCredentials = pgTable(
     uniqueIndex("provider_kind_unique").on(t.tenantId, t.kind),
   ],
 );
+
+/**
+ * R16.3. Every transactional message, and which account carried it.
+ *
+ * The ledger is what makes the shared allowance honest. A church can see what
+ * it has used and on what, and a church that has set up its own account can see
+ * that its own account is the one sending, which is the question somebody asks
+ * the first time a message does not arrive.
+ *
+ * Bulk sending is not in here. That has its own queue, in R16.6.
+ */
+export const emailSends = pgTable(
+  "email_sends",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    /** "invitation", "password_reset", "checkin_receipt", "serving_request". */
+    purpose: text("purpose").notNull(),
+    toEmail: text("to_email").notNull(),
+    /** "church" for the church's own account, "shared" for the allowance. */
+    via: text("via").notNull(),
+    /** "sent", "failed" or "refused" when the allowance is spent. */
+    status: text("status").notNull(),
+    /** What the mail server said, when it refused. Never a credential. */
+    reason: text("reason"),
+    sentAt: created(),
+  },
+  (t) => [
+    index("email_send_tenant_idx").on(t.tenantId, t.sentAt),
+    index("email_send_via_idx").on(t.tenantId, t.via, t.sentAt),
+  ],
+);
