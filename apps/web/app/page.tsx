@@ -122,6 +122,16 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {/* R21.12. The promises, where somebody deciding whether to trust us with
+          a congregation's records can read them before making an account. */}
+      <footer className="border-t border-line">
+        <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center gap-4 px-6 py-8">
+          <Link href="/trust" className="text-label text-fg-muted hover:text-fg">
+            {t("trust.title")}
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }
