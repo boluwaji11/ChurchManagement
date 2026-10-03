@@ -13,30 +13,37 @@ import {
 import { getChurch } from "../src/repo/church";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
+import { testTenant, dropTenants } from "./helpers/tenant";
 
+/*
+ * Its own two churches rather than the seeded development ones.
+ *
+ * This suite asserts absolute file counts and absolute quota numbers, which is
+ * only true of a church nothing else touches. Bound to the seeded riverside it
+ * failed the day somebody attached a chord chart to a plan, and its teardown
+ * reset every church's logo and quota rather than its own.
+ */
 let riverside: string;
 let northgate: string;
+const SLUG = "storagetest";
 
 const as = (tenantId: string, role: TenantRole = "owner") => ({ tenantId, role });
 const run = <T>(tenantId: string, role: TenantRole, work: (tx: Tx) => Promise<T>) =>
   withTenant({ tenantId, role }, work);
 
-const KEY = (n: string) => `riverside/test/${n}.png`;
+const KEY = (n: string) => `storagetest/${n}.png`;
 
 beforeAll(async () => {
-  const rows = await owner()<{ id: string; slug: string }[]>`
-    select id, slug from tenants where slug in ('riverside', 'northgate')`;
-  riverside = rows.find((r) => r.slug === "riverside")!.id;
-  northgate = rows.find((r) => r.slug === "northgate")!.id;
+  riverside = await testTenant(SLUG, "Storage Test Church");
+  northgate = await testTenant(`${SLUG}2`, "Other Storage Church");
 });
 
 afterAll(async () => {
-  await owner()`delete from stored_files where key like 'riverside/test/%'`;
-  await owner()`update tenants set logo_key = null, storage_quota_bytes = 2147483648`;
+  await dropTenants(SLUG, `${SLUG}2`);
   await closeConnections();
 });
 
-const clear = () => owner()`delete from stored_files where key like 'riverside/test/%'`;
+const clear = () => owner()`delete from stored_files where key like 'storagetest/%'`;
 
 describe("what may be stored", () => {
   it("refuses a file type we do not serve", async () => {
@@ -122,7 +129,7 @@ describe("the quota", () => {
 
   it("counts only this church's files", async () => {
     await clear();
-    await owner()`update tenants set storage_quota_bytes = ${1_000_000}`;
+    await owner()`update tenants set storage_quota_bytes = ${1_000_000} where id in (${riverside}, ${northgate})`;
     await run(riverside, "owner", (tx) =>
       recordFile(tx, as(riverside), {
         key: KEY("d"), purpose: "logo", contentType: "image/png", bytes: 300_000,
@@ -138,7 +145,7 @@ describe("the quota", () => {
 describe("the logo", () => {
   it("replacing one forgets the old file, so ten changes cost one logo", async () => {
     await clear();
-    await owner()`update tenants set storage_quota_bytes = ${2147483648}`;
+    await owner()`update tenants set storage_quota_bytes = ${2147483648} where id = ${riverside}`;
 
     for (const n of ["e", "f"]) {
       await run(riverside, "owner", (tx) =>
