@@ -104,9 +104,11 @@ export function Field({
         className="text-label text-fg flex items-center gap-1"
       >
         {label}
+        {/* The control carries aria-required, so this is decoration for the eye
+            and is hidden from a screen reader rather than read as "star". */}
         {required ? (
-          <span className="text-fg-subtle font-normal" aria-hidden>
-            (required)
+          <span className="text-danger-text" aria-hidden>
+            *
           </span>
         ) : null}
       </Label>

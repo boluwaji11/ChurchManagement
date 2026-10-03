@@ -79,7 +79,7 @@ function NewTag({ church }: { church: string }) {
   return (
     <form ref={formRef} action={action} noValidate className="flex flex-wrap items-end gap-3">
       <input type="hidden" name="church" value={church} />
-      <Field label={t("tags.new")} error={error} className="min-w-64 flex-1">
+      <Field label={t("tags.new")} error={error} className="min-w-64 flex-1" required>
         <Input name="name" autoComplete="off" placeholder={t("tags.newPlaceholder")} />
       </Field>
       <Button type="submit" loading={pending}>
@@ -146,7 +146,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
           <input type="hidden" name="id" value={tag.id} />
           <input type="hidden" name="hue" value={hue} />
 
-          <Field label={t("tags.name")}>
+          <Field label={t("tags.name")} required>
             <Input name="name" defaultValue={tag.name} autoComplete="off" />
           </Field>
 

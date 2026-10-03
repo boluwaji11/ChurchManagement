@@ -145,7 +145,7 @@ export function Checkout({
               detail={block.message}
               action={
                 <div className="flex w-full max-w-md flex-col gap-4">
-                  <Field label={t("checkout.reason")}>
+                  <Field label={t("checkout.reason")} required>
                     <Input
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}

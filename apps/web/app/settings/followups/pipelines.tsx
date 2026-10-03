@@ -156,7 +156,7 @@ function EditDialog({
         >
           {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
 
-          <Field label={t("pipelines.name")}>
+          <Field label={t("pipelines.name")} required>
             <Input name="name" defaultValue={row.name} autoComplete="off" />
           </Field>
 
@@ -186,7 +186,7 @@ function EditDialog({
               <div key={step.key} className="flex flex-wrap items-end gap-2">
                 <input type="hidden" name="stepId" value={step.id} />
                 <div className="min-w-48 flex-1">
-                  <Field label={t("pipelines.step")}>
+                  <Field label={t("pipelines.step")} required>
                     <Input
                       name="stepName"
                       value={step.name}

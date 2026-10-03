@@ -152,7 +152,7 @@ function AddDialog({
           }}
           className="flex flex-col gap-4"
         >
-          <Field label={t("checks.provider")}>
+          <Field label={t("checks.provider")} required>
             <Input name="provider" autoComplete="off" autoFocus />
           </Field>
 

@@ -439,6 +439,7 @@ Explicitly refused, so the conversation happens once:
 | Modal stacking | If a dialog opens a dialog, the flow is wrong |
 | More than one primary button in a view | Then none of them is primary |
 | Placeholder text as the label | It disappears exactly when it is needed |
+| A required field with nothing to say so | The asterisk is the one mark everyone already reads. Pass `required` to `Field` |
 | Native browser validation bubbles | Unstyled, unlocalised, vanish on their own, and look like a different product. Put `noValidate` on every form and render the message through `Field`. |
 | Any default browser UI we can replace | Validation bubbles, `alert()`, `confirm()`, the default file input. If the browser drew it, it does not match the system. |
 | Emoji as iconography | Renders differently everywhere, reads as unserious |

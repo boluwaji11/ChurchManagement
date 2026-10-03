@@ -58,7 +58,7 @@ export function NoteForm({
         >
           {error ? <Banner tone="danger" title={t("notes.failed")}>{error}</Banner> : null}
 
-          <Field label={t("notes.body")}>
+          <Field label={t("notes.body")} required>
             <Textarea name="body" rows={5} autoFocus />
           </Field>
 

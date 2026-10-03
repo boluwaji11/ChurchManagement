@@ -86,15 +86,15 @@ export function IncidentDialog({
             <Banner tone="danger" title={t("incident.failed")}>{error}</Banner>
           ) : null}
 
-          <Field label={t("incident.date")}>
+          <Field label={t("incident.date")} required>
             <DateField name="occurredOn" defaultValue={today} max={today} />
           </Field>
 
-          <Field label={t("incident.description")}>
+          <Field label={t("incident.description")} required>
             <Textarea name="description" rows={4} autoFocus />
           </Field>
 
-          <Field label={t("incident.action")}>
+          <Field label={t("incident.action")} required>
             <Textarea name="action" rows={3} />
           </Field>
 

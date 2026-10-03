@@ -163,11 +163,11 @@ function PositionDialog({
         <div className="flex flex-col gap-4">
           {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
 
-          <Field label={t("serving.position.name")}>
+          <Field label={t("serving.position.name")} required>
             <Input value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" autoFocus />
           </Field>
 
-          <Field label={t("serving.position.needed")}>
+          <Field label={t("serving.position.needed")} required>
             <Input
               type="number"
               min={1}

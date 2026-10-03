@@ -305,7 +305,7 @@ function ItemDialog({
             </Field>
           </div>
 
-          <Field label={t("order.item")}>
+          <Field label={t("order.item")} required>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}

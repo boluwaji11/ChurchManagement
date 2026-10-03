@@ -144,10 +144,10 @@ export function Availability({
             className="flex flex-col gap-3"
           >
             <div className="grid gap-3 sm:grid-cols-3">
-              <Field label={t("availability.from")}>
+              <Field label={t("availability.from")} required>
                 <DateField name="startsOn" />
               </Field>
-              <Field label={t("availability.to")}>
+              <Field label={t("availability.to")} required>
                 <DateField name="endsOn" />
               </Field>
               <Field label={t("availability.reason")}>

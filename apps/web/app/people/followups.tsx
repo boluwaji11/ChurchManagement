@@ -495,7 +495,7 @@ function LeaveDialog({
       </DialogTrigger>
       <DialogContent alert title={t("followups.exitTitle", { name })}>
         <div className="flex flex-col gap-4">
-          <Field label={t("followups.reason")}>
+          <Field label={t("followups.reason")} required>
             <Input value={reason} onChange={(e) => setReason(e.target.value)} />
           </Field>
 
@@ -559,7 +559,7 @@ function TaskDialog({
           }}
           className="flex flex-col gap-4"
         >
-          <Field label={t("followups.what")}>
+          <Field label={t("followups.what")} required>
             <Input name="title" autoComplete="off" autoFocus />
           </Field>
           <Field label={t("followups.due")}>

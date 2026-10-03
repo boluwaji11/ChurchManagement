@@ -27,7 +27,7 @@ export function JoinWithCode() {
       className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4 shadow-sm"
     >
       {error ? <Banner tone="danger" title={error} /> : null}
-      <Field label={t("join.codeLabel")}>
+      <Field label={t("join.codeLabel")} required>
         <Input name="code" autoComplete="off" spellCheck={false} />
       </Field>
       <Button type="submit" variant="secondary" loading={pending} full>

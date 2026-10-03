@@ -114,7 +114,7 @@ export function GroupDialog({
             <Banner tone="danger" title={t("groups.failed")}>{error}</Banner>
           ) : null}
 
-          <Field label={t("groups.name")}>
+          <Field label={t("groups.name")} required>
             <Input name="name" defaultValue={group?.name ?? ""} autoComplete="off" autoFocus />
           </Field>
 

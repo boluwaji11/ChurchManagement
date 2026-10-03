@@ -66,7 +66,7 @@ export function TeamDialog({
         >
           {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
 
-          <Field label={t("serving.team.name")}>
+          <Field label={t("serving.team.name")} required>
             <Input name="name" defaultValue={team?.name ?? ""} autoComplete="off" autoFocus />
           </Field>
 

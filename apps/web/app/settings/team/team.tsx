@@ -357,7 +357,7 @@ function InviteDialog({
           {/* Inside the box. A banner at the top of the page is behind the
               dialog that is still open, which is nothing at all. */}
           {failed ? <Banner tone="danger" title={t("team.failed")}>{failed}</Banner> : null}
-          <Field label={t("team.email")}>
+          <Field label={t("team.email")} required>
             <Input name="email" type="email" autoComplete="off" autoFocus />
           </Field>
 

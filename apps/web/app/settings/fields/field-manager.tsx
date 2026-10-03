@@ -99,7 +99,7 @@ function NewField({ church }: { church: string }) {
       <form ref={formRef} action={action} noValidate className="flex flex-col gap-4">
         <input type="hidden" name="church" value={church} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("fields.new")} error={error}>
+          <Field label={t("fields.new")} error={error} required>
             <Input name="label" autoComplete="off" placeholder={t("fields.newPlaceholder")} />
           </Field>
           <Field label={t("fields.type")}>
@@ -181,7 +181,7 @@ function EditField({ church, field }: { church: string; field: FieldItem }) {
           <input type="hidden" name="church" value={church} />
           <input type="hidden" name="id" value={field.id} />
 
-          <Field label={t("fields.name")}>
+          <Field label={t("fields.name")} required>
             <Input name="label" defaultValue={field.label} autoComplete="off" />
           </Field>
 
