@@ -82,7 +82,7 @@ const OWNED: {
     conflictOn: ["team_id"],
     liveOnly: "w.left_on is null and t.left_on is null",
   },
-  // R10.3. The rota. Two rows collide when both are the same position at the
+  // R10.3. The schedule. Two rows collide when both are the same position at the
   // same gathering, which is the same person scheduled twice.
   {
     table: "serving_assignments",

@@ -12,7 +12,7 @@ import type { WriteActor } from "./people";
  *
  * A volunteer serves across the church: the same person runs the sound desk,
  * teaches a class one week in three, and drives the van. So a team holds
- * positions and a rota, and the person's record reads every team at once,
+ * positions and a schedule, and the person's record reads every team at once,
  * rather than each ministry keeping a list only it can see.
  *
  * What a position requires is held here, on the position, because that is a
@@ -24,7 +24,7 @@ export const CAN_MANAGE_TEAMS: readonly TenantRole[] = ["owner", "admin", "staff
 export const canManageTeams = (role: TenantRole): boolean => CAN_MANAGE_TEAMS.includes(role);
 
 /**
- * A team leader runs the rota for the team they lead, and nothing else.
+ * A team leader runs the schedule for the team they lead, and nothing else.
  *
  * The role exists so a worship leader can keep their own band up to date
  * without being able to edit the church's records. Which teams they lead is
@@ -357,7 +357,7 @@ export async function updateTeam(
 }
 
 /**
- * R2.13 again, for a team. Archiving keeps the rota that was run.
+ * R2.13 again, for a team. Archiving keeps the schedule that was run.
  *
  * A church that reorganises its ministries still has to answer who was on the
  * sound desk in 2027.
@@ -659,7 +659,7 @@ export async function setTeamMemberRole(
 /**
  * R10.1. Somebody steps off the team.
  *
- * A date rather than a deletion, so the rota that was run stays answerable.
+ * A date rather than a deletion, so the schedule that was run stays answerable.
  */
 export async function removeFromTeam(
   db: Tx,

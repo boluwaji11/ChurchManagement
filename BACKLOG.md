@@ -331,11 +331,11 @@ week in three, and drives the van. So serving is a person's schedule across the 
 a list held by each ministry, and the check-in board reads from it rather than keeping its own.
 
 **A team is not a group.** A group is people who meet: a small group, a class, a committee. A team
-is people who serve on a rota: worship, production, welcome, kids. The difference is what each one
+is people who serve on a schedule: worship, production, welcome, kids. The difference is what each one
 needs. A group needs a roster and a record of whether it met. A team needs positions, a schedule
 against specific services, accept and decline, blockout dates, substitutes, and a background check
 before anybody is scheduled with children. Building a team as a group with extra columns would mean
-a rota screen pretending to be a roster screen.
+a schedule screen pretending to be a roster screen.
 
 Where they meet: a person is on a team and may also be in a group, and both show on their record.
 The **Ministry team** group type stays for a church that wants a list of who is on the sound desk
@@ -345,7 +345,7 @@ one and adds the people, which takes a minute and needs no migration screen.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-79 | Teams, positions, and a person serving across several of them | R10.1, R10.2 | Resolved |
-| HRT-80 | The rota: scheduling by service, conflict detection, blockout dates, how often | R10.3 to R10.5 | Resolved |
+| HRT-80 | The schedule plan: by service, blockout dates, how often, and where else somebody is | R10.3 to R10.5 | Resolved |
 | HRT-124 | Accept and decline from a link, with no sign-in | R10.6 | New |
 | HRT-125 | Substitute requests: the volunteer asks, the leader confirms | R10.7 | New |
 | HRT-126 | Reminders on publication, a week out and two days out | R10.8 | New |
@@ -446,7 +446,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
-| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the rota |
+| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule |
 | **Next** | **HRT-124** accept and decline from a link. |
 | **Order after that** | **0.4** the rest of serving (HRT-124, HRT-125, HRT-126), then service planning. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging waits on a church having a provider set up. **HRT-13** MFA stays deferred. |
@@ -1176,7 +1176,7 @@ From **Groups**, tap a group's name.
 
 ### HRT-80, how to test it
 
-Open a team and press **Rota**. It shows the next six gatherings from today, so generate a service
+Open a team and press **Schedule plan**. It shows the next six gatherings from today, so generate a service
 calendar first if there is none.
 
 1. Each gathering lists the team's positions with "0 of 2" against them, red until the position is
@@ -1184,18 +1184,17 @@ calendar first if there is none.
 2. Press **+** on a position. It lists the team's roster, with whoever is marked as playing that
    position first, and a **Plays this** badge against them.
 3. Put somebody down. The count goes up and their name sits against the position.
-4. Open another team's rota and try to put the same person on the same gathering. The dialog shows
-   a warning against their name: "Already on Worship, Keys". Pressing them anyway puts them down and
-   marks the row with a warning triangle.
-5. Two gatherings on the same day at the same time clash. Two gatherings on the same day at
-   different times do not.
+4. Put the same person on another team at the same gathering. It goes through. The dialog says
+   "Also on Worship, Keys" under their name, because a leader wants to know where somebody is, and
+   serving in two places at one hour is a thing small churches do.
+5. That note only appears for a gathering at the same hour on the same day.
 6. On a person's record, the **Serving** card now carries **Coming up**, **How often they serve**
-   and **Days away**. Add days away covering a gathering, then open the rota for it: that person
+   and **Days away**. Add days away covering a gathering, then open the schedule for it: that person
    carries "Away" in the dialog.
 7. Set how often they serve to monthly, put them on a gathering, then open a gathering a week later.
    They carry "Served 2027-03-07, asked for Monthly". Set it to weekly and the warning is gone.
-8. **Take off the rota** empties the slot and the count drops.
-9. A team leader can build the rota of the team they lead, and gets the same warnings.
+8. **Take off the schedule** empties the slot and the count drops.
+9. A team leader can build the schedule of the team they lead, and gets the same warnings.
 
 ### HRT-79, how to test it
 

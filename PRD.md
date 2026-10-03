@@ -579,7 +579,7 @@ single most common reason a worship leader pays for Planning Center.
 |---|---|---|
 | R10.1 | 0.4 | Teams and positions: worship, tech, hospitality, children, ushers, and custom, each with named positions. |
 | R10.2 | 0.4 | Required background check per position, and which of the team's positions each person plays. (Required skills was cut with R2.9: Hearth keeps no list of what a congregant is good at. What a team has asked of somebody is held on the team.) |
-| R10.3 | 0.4 | Scheduling by service occurrence: assign a person to a position, with **conflict detection across all teams** so nobody is scheduled twice at the same hour. |
+| R10.3 | 0.4 | Scheduling by service occurrence: assign a person to a position, reading **across all teams** so the scheduler is shown where else somebody is at that hour. (Amended October 2026: serving in two places at one hour is allowed. The church ruled that somebody who runs the desk and reads a lesson in the same service is doing what small churches do.) |
 | R10.4 | 0.4 | **Availability and blockout dates** entered by the volunteer through the portal, respected by scheduling with a warning on override. |
 | R10.5 | 0.4 | Serving frequency preference per volunteer, for example once a month, surfaced to the scheduler. |
 | R10.6 | 0.4 | **Accept and decline** from an email, SMS, or portal link with no login required, with an optional reason on decline. |

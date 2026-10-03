@@ -75,7 +75,7 @@ export async function visiblePeople(db: Tx, viewer: Viewer): Promise<string[] | 
       .where(and(inArray(groupMemberships.groupId, groupIds), isNull(groupMemberships.leftOn)));
 
   // R10.1. A team leader sees their own band and nobody else, for the same
-  // reason a group leader sees their own group: they have to keep the rota.
+  // reason a group leader sees their own group: they have to keep the schedule.
   const teamsLed = await db
     .select({ teamId: teamMembers.teamId })
     .from(teamMembers)

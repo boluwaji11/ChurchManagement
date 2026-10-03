@@ -8,7 +8,7 @@ import {
   Dialog, DialogTrigger, DialogContent,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import type { RotaCandidate } from "@hearth/db";
+import type { PlanCandidate } from "@hearth/db";
 import { schedule, unschedule, whoCouldFill } from "../../actions";
 
 export interface Gathering {
@@ -18,13 +18,13 @@ export interface Gathering {
   time: string;
 }
 
-export interface RotaPosition {
+export interface PlanPosition {
   id: string;
   name: string;
   needed: number;
 }
 
-export interface RotaEntry {
+export interface PlanEntry {
   id: string;
   occurrenceId: string;
   positionId: string;
@@ -34,12 +34,12 @@ export interface RotaEntry {
 }
 
 /**
- * R10.3. The rota, one gathering at a time.
+ * R10.3. The schedule plan, one gathering at a time.
  *
  * A gathering rather than a grid, because that is the unit a leader works in:
  * they sit down to fill one service, not to read a spreadsheet of six.
  */
-export function Rota({
+export function SchedulePlan({
   church,
   teamId,
   gatherings,
@@ -49,8 +49,8 @@ export function Rota({
   church: string;
   teamId: string;
   gatherings: Gathering[];
-  positions: RotaPosition[];
-  entries: RotaEntry[];
+  positions: PlanPosition[];
+  entries: PlanEntry[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -75,11 +75,11 @@ export function Rota({
     });
   };
 
-  if (gatherings.length === 0) return <EmptyState title={t("rota.empty")} />;
+  if (gatherings.length === 0) return <EmptyState title={t("plan.empty")} />;
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("rota.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger" title={t("plan.failed")}>{error}</Banner> : null}
 
       {gatherings.map((gathering) => (
         <Card key={gathering.id} className="flex flex-col gap-3 p-5">
@@ -108,7 +108,7 @@ export function Rota({
                           filled.length < position.needed ? "text-danger-text" : "text-fg-muted"
                         }`}
                       >
-                        {t("rota.filled", {
+                        {t("plan.filled", {
                           filled: filled.length,
                           needed: position.needed,
                         })}
@@ -122,18 +122,18 @@ export function Rota({
                             {entry.personName}
                           </span>
                           {entry.status === "declined" ? (
-                            <Badge tone="danger">{t("rota.status.declined")}</Badge>
+                            <Badge tone="danger">{t("plan.status.declined")}</Badge>
                           ) : entry.status === "accepted" ? (
-                            <Badge tone="success">{t("rota.status.accepted")}</Badge>
+                            <Badge tone="success">{t("plan.status.accepted")}</Badge>
                           ) : null}
                           {entry.overridden ? (
                             <TriangleAlert
                               className="size-4 text-warning-text"
-                              aria-label={t("rota.overridden")}
+                              aria-label={t("plan.overridden")}
                             />
                           ) : null}
                           <IconButton
-                            label={t("rota.remove")}
+                            label={t("plan.remove")}
                             disabled={pending}
                             onClick={() => take(entry.id)}
                           >
@@ -164,7 +164,7 @@ export function Rota({
   );
 }
 
-/** R10.3 to R10.5. Who could fill the slot, and what is known against each of them. */
+/** R10.3 to R10.5. Who could fill the slot, and what the scheduler should know. */
 function AddDialog({
   church,
   teamId,
@@ -183,7 +183,7 @@ function AddDialog({
   onPick: (personId: string, anyway: boolean) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [people, setPeople] = React.useState<RotaCandidate[] | null>(null);
+  const [people, setPeople] = React.useState<PlanCandidate[] | null>(null);
 
   React.useEffect(() => {
     if (!open) return;
@@ -194,16 +194,13 @@ function AddDialog({
     return () => { live = false; };
   }, [open, teamId, positionId, occurrenceId, church]);
 
-  const warningOf = (candidate: RotaCandidate): string | null => {
+  const warningOf = (candidate: PlanCandidate): string | null => {
     const w = candidate.warning;
-    if (w.clash) {
-      return t("rota.warning.clash", { team: w.clash.teamName, position: w.clash.positionName });
-    }
     if (w.blockedOut) {
-      return t("rota.warning.away", { from: w.blockedOut.startsOn, to: w.blockedOut.endsOn });
+      return t("plan.warning.away", { from: w.blockedOut.startsOn, to: w.blockedOut.endsOn });
     }
     if (w.tooSoon) {
-      return t("rota.warning.tooSoon", {
+      return t("plan.warning.tooSoon", {
         day: w.tooSoon.lastServedOn,
         frequency: t(`frequency.${w.tooSoon.frequency}` as never),
       });
@@ -214,12 +211,12 @@ function AddDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <IconButton label={t("rota.add")}><Plus /></IconButton>
+        <IconButton label={t("plan.add")}><Plus /></IconButton>
       </DialogTrigger>
       <DialogContent title={positionName} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-2">
           {people !== null && people.length === 0 ? (
-            <EmptyState title={t("rota.nobody")} />
+            <EmptyState title={t("plan.nobody")} />
           ) : null}
 
           {(people ?? [])
@@ -241,13 +238,23 @@ function AddDialog({
                       {candidate.name}
                     </span>
                     {candidate.plays ? (
-                      <Badge tone="neutral">{t("rota.plays")}</Badge>
+                      <Badge tone="neutral">{t("plan.plays")}</Badge>
                     ) : null}
                   </span>
                   {warning ? (
                     <span className="flex items-center gap-1.5 text-caption text-warning-text">
                       <TriangleAlert className="size-4" aria-hidden />
                       {warning}
+                    </span>
+                  ) : null}
+                  {/* R10.3. Where else they are at that hour. Serving in two
+                      places at once is allowed, so this is information. */}
+                  {candidate.alsoOn ? (
+                    <span className="text-caption text-fg-muted">
+                      {t("plan.alsoOn", {
+                        team: candidate.alsoOn.teamName,
+                        position: candidate.alsoOn.positionName,
+                      })}
                     </span>
                   ) : null}
                 </button>

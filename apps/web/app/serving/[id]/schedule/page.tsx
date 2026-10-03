@@ -12,20 +12,20 @@ import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { dayAndMonth, readableTime } from "@/lib/dates";
-import { Rota } from "./rota";
+import { SchedulePlan } from "./plan";
 
 export const dynamic = "force-dynamic";
 
 /**
- * R10.3. One team's rota across the gatherings coming up.
+ * R10.3. One team's schedule across the gatherings coming up.
  *
- * Six of them, because a rota built further out than that is rebuilt before it
+ * Six of them, because a schedule built further out than that is rebuilt before it
  * is used, and a leader filling one service at a time is doing the work the way
  * it is actually done.
  */
 const HOW_MANY = 6;
 
-export default async function RotaPage({
+export default async function SchedulePlanPage({
   params,
   searchParams,
 }: {
@@ -73,10 +73,10 @@ export default async function RotaPage({
 
         <div className="mb-8 flex items-center gap-3">
           <HueDot hue={team.hue as Hue} />
-          <PageTitle title={t("rota.title")} className="mb-0" />
+          <PageTitle title={t("plan.title")} className="mb-0" />
         </div>
 
-        <Rota
+        <SchedulePlan
           church={session.tenantSlug}
           teamId={team.id}
           gatherings={gatherings.map((o) => ({

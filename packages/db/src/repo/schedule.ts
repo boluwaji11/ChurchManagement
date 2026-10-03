@@ -12,16 +12,25 @@ import { canManageTeams, leadsTeam } from "./serving";
 import type { WriteActor } from "./people";
 
 /**
- * R10.3 to R10.5. The rota: who is doing what, at which gathering.
+ * R10.3 to R10.5. The schedule: who is doing what, at which gathering.
  *
  * The schedule hangs off the service occurrence rather than off a date. A
  * church with two gatherings on one day runs two different bands, and a row
  * holding a date alone cannot say which one somebody is in.
  *
- * Conflicts are the reason this is one system rather than one per ministry.
- * The person who leads worship is the same person the kids team was about to
- * put in a room, and neither leader can see the other's rota. So the check runs
- * across every team at once, and it warns rather than refuses: somebody who
+ * Reading across every team at once is the reason this is one system rather
+ * than one per ministry. The person who leads worship is the person the kids
+ * team was about to put in a room, and neither leader can see the other's
+ * schedule. So the scheduler is shown where else somebody is at that hour.
+ *
+ * Serving in two places at one hour is allowed. R10.3 asked for it to be a
+ * conflict; the church said somebody who runs the desk and reads a lesson in
+ * the same service is doing what small churches do, and software that calls it
+ * an error is wrong about the church rather than the other way round. So it is
+ * information in the picker, and nothing is refused or flagged for it.
+ *
+ * What does warn is a day somebody said they are away, and a turn that comes
+ * round sooner than they asked for. Both warn rather than refuse: somebody who
  * says yes in the corridor has already decided, and software that will not
  * record the decision is software a church works around.
  */
@@ -57,17 +66,21 @@ export interface Blockout {
   reason: string | null;
 }
 
+/** Where else this person is at that hour. Information, not a warning. */
+export interface Elsewhere {
+  teamName: string;
+  positionName: string;
+}
+
 /** Why the scheduler was warned, if they were. */
 export interface Warning {
-  /** Already serving at the same hour, here or on another team. */
-  clash: { teamName: string; positionName: string } | null;
   /** R10.4. They said they are away. */
   blockedOut: { startsOn: string; endsOn: string; reason: string | null } | null;
   /** R10.5. They served more recently than their preference asks for. */
   tooSoon: { lastServedOn: string; frequency: ServingFrequency } | null;
 }
 
-export interface RotaCandidate {
+export interface PlanCandidate {
   personId: string;
   name: string;
   /** True when they are marked as playing this position. */
@@ -75,11 +88,12 @@ export interface RotaCandidate {
   lastServedOn: string | null;
   frequency: ServingFrequency | null;
   warning: Warning;
+  alsoOn: Elsewhere | null;
 }
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const clean = (warning: Warning): boolean =>
-  warning.clash === null && warning.blockedOut === null && warning.tooSoon === null;
+  warning.blockedOut === null && warning.tooSoon === null;
 
 const displayName = (r: { firstName: string; preferredName: string | null; lastName: string }) =>
   `${r.preferredName ?? r.firstName} ${r.lastName}`;
@@ -88,7 +102,7 @@ const displayName = (r: { firstName: string; preferredName: string | null; lastN
 export class ScheduleConflictError extends Error {
   readonly warning: Warning;
   constructor(warning: Warning) {
-    super("That person is already serving, away, or due a break.");
+    super("That person is away, or due a break.");
     this.name = "ScheduleConflictError";
     this.warning = warning;
   }
@@ -102,7 +116,7 @@ async function mayScheduleFor(db: Tx, actor: WriteActor, teamId: string): Promis
   throw new PermissionError(actor.role, "schedule");
 }
 
-/** R10.3. The gatherings this rota covers, soonest first. */
+/** R10.3. The gatherings this schedule covers, soonest first. */
 export async function upcomingServices(
   db: Tx,
   options: { from: string; limit?: number },
@@ -226,16 +240,16 @@ export async function assignmentsForPerson(
 }
 
 /**
- * R10.3. What is wrong with putting this person here, if anything.
+ * R10.3. What a scheduler should know before putting this person here.
  *
- * Three questions, in the order a leader would ask them: are they already
- * doing something at this hour, have they said they are away, and did they
- * serve more recently than they asked to.
+ * Three questions, in the order a leader would ask them: where else are they at
+ * that hour, have they said they are away, and did they serve more recently
+ * than they asked to. Only the last two are warnings.
  */
-export async function warningsFor(
+export async function checkFor(
   db: Tx,
   input: { personId: string; occurrenceId: string },
-): Promise<Warning> {
+): Promise<{ warning: Warning; alsoOn: Elsewhere | null }> {
   const [occurrence] = await db
     .select({
       occursOn: sql<string>`${serviceOccurrences.occursOn}::text`,
@@ -246,8 +260,8 @@ export async function warningsFor(
     .limit(1);
   if (!occurrence) throw new InvalidInputError("schedule.error.occurrence");
 
-  // Across every team, which is the whole reason the rota is one system.
-  const [clash] = await db
+  // Across every team, which is the whole reason the schedule is one system.
+  const [elsewhere] = await db
     .select({ teamName: teams.name, positionName: teamPositions.name })
     .from(servingAssignments)
     .innerJoin(teams, eq(teams.id, servingAssignments.teamId))
@@ -308,9 +322,8 @@ export async function warningsFor(
   }
 
   return {
-    clash: clash ?? null,
-    blockedOut: away ?? null,
-    tooSoon,
+    warning: { blockedOut: away ?? null, tooSoon },
+    alsoOn: elsewhere ?? null,
   };
 }
 
@@ -321,7 +334,7 @@ export async function warningsFor(
 export async function candidatesFor(
   db: Tx,
   input: { teamId: string; positionId: string; occurrenceId: string },
-): Promise<RotaCandidate[]> {
+): Promise<PlanCandidate[]> {
   const roster = await db
     .select({
       memberId: teamMembers.id,
@@ -356,9 +369,9 @@ export async function candidatesFor(
     .where(inArray(servingPreferences.personId, roster.map((r) => r.personId)));
   const byPerson = new Map(preferences.map((p) => [p.personId, p.frequency as ServingFrequency]));
 
-  const out: RotaCandidate[] = [];
+  const out: PlanCandidate[] = [];
   for (const person of roster) {
-    const warning = await warningsFor(db, {
+    const { warning, alsoOn } = await checkFor(db, {
       personId: person.personId,
       occurrenceId: input.occurrenceId,
     });
@@ -369,6 +382,7 @@ export async function candidatesFor(
       lastServedOn: warning.tooSoon?.lastServedOn ?? null,
       frequency: byPerson.get(person.personId) ?? null,
       warning,
+      alsoOn,
     });
   }
 
@@ -388,7 +402,12 @@ export interface AssignInput {
   anyway?: boolean;
 }
 
-/** R10.3. Puts somebody down. Refuses once, then records that it was told to. */
+/**
+ * R10.3. Puts somebody down.
+ *
+ * Refuses once where they are away or due a break, then records that it was
+ * told to go ahead. Being on another team at the same hour is not refused.
+ */
 export async function assign(
   db: Tx,
   actor: WriteActor,
@@ -407,7 +426,7 @@ export async function assign(
     .limit(1);
   if (!position) throw new InvalidInputError("schedule.error.position");
 
-  const warning = await warningsFor(db, {
+  const { warning } = await checkFor(db, {
     personId: input.personId,
     occurrenceId: input.occurrenceId,
   });

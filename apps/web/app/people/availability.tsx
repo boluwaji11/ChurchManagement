@@ -26,7 +26,7 @@ const NONE = "none";
  * R10.4, R10.5. What this person has said about serving: how often, and when
  * they are away.
  *
- * Both are shown to whoever builds a rota as a warning rather than a rule. A
+ * Both are shown to whoever builds a schedule as a warning rather than a rule. A
  * leader who has already spoken to somebody can put them down anyway.
  */
 export function Availability({

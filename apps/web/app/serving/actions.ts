@@ -6,7 +6,7 @@ import {
   addToTeam, removeFromTeam, setTeamMemberRole, setTeamMemberPositions,
   lookupPeople, getChurch,
   assign, unassign, candidatesFor, addBlockout, removeBlockout, setServingPreference,
-  type TeamRole, type TagHue, type RotaCandidate, type ServingFrequency,
+  type TeamRole, type TagHue, type PlanCandidate, type ServingFrequency,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -17,7 +17,7 @@ async function context(church?: string) {
   return {
     session,
     // R10.1. The account goes to the repository, because a team leader may
-    // change the rota of the team they lead and nothing else, and only the id
+    // change the schedule of the team they lead and nothing else, and only the id
     // answers which team that is.
     actor: { tenantId: session.tenantId, role: session.role, userId: session.userId },
     ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId },
@@ -195,7 +195,7 @@ export async function findPerson(query: string, church?: string): Promise<Person
 }
 
 // ---------------------------------------------------------------------------
-// R10.3 to R10.5. The rota
+// R10.3 to R10.5. The schedule
 // ---------------------------------------------------------------------------
 
 export interface ScheduleResult {
@@ -231,7 +231,7 @@ export async function unschedule(id: string, church?: string): Promise<ScheduleR
 export async function whoCouldFill(
   input: { teamId: string; positionId: string; occurrenceId: string },
   church?: string,
-): Promise<RotaCandidate[]> {
+): Promise<PlanCandidate[]> {
   const { ctx } = await context(church);
   try {
     return await withTenant(ctx, (tx) => candidatesFor(tx, input));

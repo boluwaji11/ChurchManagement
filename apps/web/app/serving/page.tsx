@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  * R10.1. The teams screen.
  *
  * A volunteer serves across the church, so this is one list of every team
- * rather than a rota held inside each ministry. A team leader reaches their own
+ * rather than a schedule held inside each ministry. A team leader reaches their own
  * team from here and can change nothing else.
  */
 export default async function ServingPage({

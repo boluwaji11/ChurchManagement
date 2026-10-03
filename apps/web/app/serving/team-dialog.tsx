@@ -23,8 +23,8 @@ export interface TeamDraft {
  * R10.1. Writing a team down.
  *
  * One form for creating and for editing. A team has three fields, because the
- * rota is where the work is and a church that has to describe a team before it
- * can schedule anybody never gets to the rota.
+ * schedule is where the work is and a church that has to describe a team before it
+ * can schedule anybody never gets to the schedule.
  */
 export function TeamDialog({
   church,

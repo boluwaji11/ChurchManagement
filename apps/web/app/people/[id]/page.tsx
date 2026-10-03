@@ -322,9 +322,9 @@ export default async function PersonPage({
                       {entry.teamName} {entry.positionName}
                     </span>
                     {entry.status === "declined" ? (
-                      <Badge tone="danger">{t("rota.status.declined")}</Badge>
+                      <Badge tone="danger">{t("plan.status.declined")}</Badge>
                     ) : entry.status === "accepted" ? (
-                      <Badge tone="success">{t("rota.status.accepted")}</Badge>
+                      <Badge tone="success">{t("plan.status.accepted")}</Badge>
                     ) : null}
                   </li>
                 ))}

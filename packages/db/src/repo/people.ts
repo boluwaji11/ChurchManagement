@@ -271,7 +271,7 @@ export interface WriteActor {
   role: TenantRole;
   /**
    * The signed-in account, where the write is scoped to something this person
-   * is part of. A team leader may change the rota of the team they lead, and
+   * is part of. A team leader may change the schedule of the team they lead, and
    * that is the only way to know which team that is.
    */
   userId?: string | null;

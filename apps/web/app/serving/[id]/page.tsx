@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  *
  * A team leader opens their own team here. The positions are read-only for
  * them, because what a position requires is the church's decision, and the
- * rota is theirs.
+ * schedule is theirs.
  */
 export default async function TeamPage({
   params,
@@ -70,7 +70,7 @@ export default async function TeamPage({
           </div>
           <Button asChild>
             <Link href={`/serving/${team.id}/schedule?church=${session.tenantSlug}`}>
-              <CalendarDays /> {t("rota.open")}
+              <CalendarDays /> {t("plan.open")}
             </Link>
           </Button>
         </div>

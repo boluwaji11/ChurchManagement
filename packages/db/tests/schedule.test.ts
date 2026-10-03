@@ -1,17 +1,17 @@
 /**
- * HRT-80. The rota: who is doing what, at which gathering (R10.3 to R10.5).
+ * HRT-80. The schedule: who is doing what, at which gathering (R10.3 to R10.5).
  *
- * The conflict check is the whole reason the rota is one system rather than
+ * The conflict check is the whole reason the schedule is one system rather than
  * one per ministry, so most of this is about what the scheduler is warned
  * about: already serving at that hour on somebody else's team, away, or due a
  * break. And about the warning being a warning: a church that cannot write
- * down a decision it already made will keep its rota in a spreadsheet.
+ * down a decision it already made will keep its schedule in a spreadsheet.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   assign, unassign, assignmentsForTeam, assignmentsForPerson, candidatesFor,
-  warningsFor, upcomingServices, addBlockout, listBlockouts, removeBlockout,
+  checkFor, upcomingServices, addBlockout, listBlockouts, removeBlockout,
   setServingPreference, getServingPreference, ScheduleConflictError,
 } from "../src/repo/schedule";
 import { seedTeams, listTeams, getTeam, addToTeam, setTeamMemberPositions } from "../src/repo/serving";
@@ -101,12 +101,12 @@ describe("putting somebody down", () => {
       }),
     );
 
-    const rota = await run((tx) => assignmentsForTeam(tx, worship, [services.first!]));
-    expect(rota).toHaveLength(1);
-    expect(rota[0]!.personName).toContain("Ada");
-    expect(rota[0]!.positionName).toBe("Keys");
-    expect(rota[0]!.status).toBe("asked");
-    expect(rota[0]!.overridden).toBe(false);
+    const schedule = await run((tx) => assignmentsForTeam(tx, worship, [services.first!]));
+    expect(schedule).toHaveLength(1);
+    expect(schedule[0]!.personName).toContain("Ada");
+    expect(schedule[0]!.positionName).toBe("Keys");
+    expect(schedule[0]!.status).toBe("asked");
+    expect(schedule[0]!.overridden).toBe(false);
   });
 
   it("refuses a position that belongs to another team", async () => {
@@ -131,43 +131,29 @@ describe("putting somebody down", () => {
   });
 });
 
-describe("the clash check", () => {
-  it("catches somebody already serving at that hour on another team", async () => {
-    await expect(
-      run((tx) =>
-        assign(tx, as(), {
-          occurrenceId: services.first!, teamId: production, positionId: sound, personId: ids.Ada!,
-        }),
-      ),
-    ).rejects.toThrow(ScheduleConflictError);
+describe("serving in two places at one hour", () => {
+  it("is allowed, because small churches do it", async () => {
+    const made = await run((tx) =>
+      assign(tx, as(), {
+        occurrenceId: services.first!, teamId: production, positionId: sound, personId: ids.Ada!,
+      }),
+    );
+    expect(made.overridden).toBe(false);
   });
 
-  it("catches a second gathering at the same hour on the same day", async () => {
-    const warning = await run((tx) =>
-      warningsFor(tx, { personId: ids.Ada!, occurrenceId: services.second! }),
+  it("says where else they are, as information", async () => {
+    const { alsoOn } = await run((tx) =>
+      checkFor(tx, { personId: ids.Ada!, occurrenceId: services.second! }),
     );
-    expect(warning.clash?.teamName).toBe("Worship");
-    expect(warning.clash?.positionName).toBe("Keys");
+    expect(alsoOn?.teamName).toBeTruthy();
+    expect(alsoOn?.positionName).toBeTruthy();
   });
 
   it("says nothing about a gathering later the same day", async () => {
-    const warning = await run((tx) =>
-      warningsFor(tx, { personId: ids.Ada!, occurrenceId: services.evening! }),
+    const { alsoOn } = await run((tx) =>
+      checkFor(tx, { personId: ids.Ada!, occurrenceId: services.evening! }),
     );
-    expect(warning.clash).toBeNull();
-  });
-
-  it("goes ahead when told to, and says it was told", async () => {
-    const made = await run((tx) =>
-      assign(tx, as(), {
-        occurrenceId: services.second!, teamId: production, positionId: sound,
-        personId: ids.Ada!, anyway: true,
-      }),
-    );
-    expect(made.overridden).toBe(true);
-
-    const rota = await run((tx) => assignmentsForTeam(tx, production, [services.second!]));
-    expect(rota[0]!.overridden).toBe(true);
+    expect(alsoOn).toBeNull();
   });
 });
 
@@ -190,12 +176,21 @@ describe("blockout dates", () => {
     );
 
     for (const occurrenceId of [services.first!, services.later!]) {
-      const warning = await run((tx) => warningsFor(tx, { personId: ids.Boma!, occurrenceId }));
+      const { warning } = await run((tx) => checkFor(tx, { personId: ids.Boma!, occurrenceId }));
       expect(warning.blockedOut?.reason).toBe("Away");
     }
   });
 
-  it("warns rather than refuses, because the conversation already happened", async () => {
+  it("refuses until it is told to go ahead, then says it was told", async () => {
+    await expect(
+      run((tx) =>
+        assign(tx, as(), {
+          occurrenceId: services.later!, teamId: worship, positionId: vocals,
+          personId: ids.Boma!,
+        }),
+      ),
+    ).rejects.toThrow(ScheduleConflictError);
+
     const made = await run((tx) =>
       assign(tx, as(), {
         occurrenceId: services.later!, teamId: worship, positionId: vocals,
@@ -234,8 +229,8 @@ describe("how often somebody wants to serve", () => {
       }),
     );
 
-    const warning = await run((tx) =>
-      warningsFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
+    const { warning } = await run((tx) =>
+      checkFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
     );
     expect(warning.tooSoon?.lastServedOn).toBe("2027-03-07");
     expect(warning.tooSoon?.frequency).toBe("monthly");
@@ -243,8 +238,8 @@ describe("how often somebody wants to serve", () => {
 
   it("says nothing to somebody who asked for weekly", async () => {
     await run((tx) => setServingPreference(tx, as(), { personId: ids.Chi!, frequency: "weekly" }));
-    const warning = await run((tx) =>
-      warningsFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
+    const { warning } = await run((tx) =>
+      checkFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
     );
     expect(warning.tooSoon).toBeNull();
   });
@@ -259,17 +254,17 @@ describe("who could fill a position", () => {
     expect(found[0]!.plays).toBe(true);
   });
 
-  it("carries the warning rather than hiding the person", async () => {
+  it("carries where else somebody is, rather than hiding them", async () => {
     const found = await run((tx) =>
       candidatesFor(tx, { teamId: worship, positionId: keys, occurrenceId: services.second! }),
     );
     const ada = found.find((c) => c.name.startsWith("Ada"))!;
-    expect(ada.warning.clash).not.toBeNull();
+    expect(ada.alsoOn).not.toBeNull();
     expect(found.map((c) => c.name)).toHaveLength(3);
   });
 });
 
-describe("one person's own rota", () => {
+describe("one person's own schedule", () => {
   it("reads every team at once, soonest first", async () => {
     const mine = await run((tx) => assignmentsForPerson(tx, ids.Ada!, { from: "2027-01-01" }));
     expect(mine.map((a) => a.teamName).sort()).toEqual(["Production", "Worship"]);
@@ -284,7 +279,7 @@ describe("one person's own rota", () => {
   });
 });
 
-describe("the gatherings a rota covers", () => {
+describe("the gatherings a schedule covers", () => {
   it("is soonest first, from the day asked about", async () => {
     const found = await run((tx) => upcomingServices(tx, { from: "2027-03-01", limit: 10 }));
     const days = found.map((o) => `${o.occursOn} ${o.startsAt}`);

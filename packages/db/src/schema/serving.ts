@@ -13,12 +13,12 @@ const created = () => timestamp("created_at", { withTimezone: true }).defaultNow
 const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
 
 /**
- * R10.1. A team: people who serve on a rota.
+ * R10.1. A team: people who serve on a schedule.
  *
  * A team is not a group. A group is people who meet, and what it needs is a
  * roster and a record of whether it met. A team needs positions, a schedule
  * against specific services, and somebody checking nobody is in two places at
- * one hour. Building one as the other would give a church a rota screen
+ * one hour. Building one as the other would give a church a schedule screen
  * pretending to be a roster screen.
  *
  * The hue is the same spectrum the rest of the product assigns to things, so a
@@ -129,10 +129,10 @@ export const teamMembers = pgTable(
  * per team rather than as a property of the person. Hearth does not keep a
  * list of what a congregant is good at: it keeps what a team has asked of
  * them. So a worship leader marking somebody as a vocalist is recording a
- * decision about their own rota, and it means nothing on the production team.
+ * decision about their own schedule, and it means nothing on the production team.
  *
  * A member with no positions marked is still on the team, and still
- * schedulable. A church that runs its rota by asking out loud should not have
+ * schedulable. A church that runs its schedule by asking out loud should not have
  * to fill this in.
  */
 export const teamMemberPositions = pgTable(
@@ -224,7 +224,7 @@ export const blockoutDates = pgTable(
 /**
  * R10.5. How often somebody is willing to serve.
  *
- * A preference, shown to whoever builds the rota. Nothing enforces it, because
+ * A preference, shown to whoever builds the schedule. Nothing enforces it, because
  * the person who says once a month and then covers three weeks running has not
  * broken a rule.
  */
