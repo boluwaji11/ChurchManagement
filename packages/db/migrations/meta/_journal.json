@@ -337,6 +337,13 @@
       "when": 1791038777149,
       "tag": "0047_classy_vulcan",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1791039061466,
+      "tag": "0048_slim_maximus",
+      "breakpoints": true
     }
   ]
 }

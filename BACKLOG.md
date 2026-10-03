@@ -352,6 +352,27 @@ one and adds the people, which takes a minute and needs no migration screen.
 | HRT-81 | Who is serving in a kids class today, and the two-adult-rule alert on the board | R8.17, R10.12 | Deferred to 0.9 |
 | HRT-82 | Background-check gating: no children's position without a valid check | R10.9 | Deferred to 0.9 |
 
+### F11. Service planning
+
+The order of service, which is the document a church actually runs a gathering from. It is one plan
+per gathering, because two services on a day are two plans even where the order is the same.
+
+Songs are deferred, so a song item is an item with a title. When F12 comes back, a song item points
+at an arrangement and R11.4 lands on top of what is already here.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-127 | The plan: items in order, with types, durations, a running total and the end time | R11.1 to R11.3 | Resolved |
+| HRT-128 | Notes on an item, and notes addressed to a team or a position | R11.6 | New |
+| HRT-129 | Attachments on an item: charts, PDFs, audio, images | R11.7 | New |
+| HRT-130 | Templates, and duplicating last week's plan without its content | R11.8 | New |
+| HRT-131 | Who serves, inline on the plan, writing through to the schedule | R11.9 | New |
+| HRT-132 | The printed order of service, full for the team and short for the bulletin | R11.10 | New |
+| HRT-133 | Live mode: current item, next item, elapsed against planned | R11.11 | New |
+| HRT-134 | Plan history: who changed what, and when | R11.12 | New |
+| HRT-135 | Scripture items with the reference, the translation and the resolved text | R11.5 | Blocked on a Bible API (R20.6) |
+| HRT-136 | Song items carrying an arrangement, its key and its sequence | R11.4 | Deferred with the song library |
+
 ## E5. GA (1.0)
 
 F4 Forms, F6 Pastoral care, F14 Events, F15 Calendar, F16 Communication, F17 Portal,
@@ -455,8 +476,8 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
-| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request |
-| **Next** | Service planning (F11). **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service |
+| **Next** | **HRT-128** notes on an item. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **0.4** service planning (F11). HRT-126 waits on a provider. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1182,6 +1203,23 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-127, how to test it
+
+Open a service, then **Order of service**.
+
+1. The plan is created when you open it. A service you never open has none, which keeps a year of
+   generated services out of every list and every export.
+2. **Add an item**: a kind, how many minutes, what it is, and a description.
+3. Every item shows the clock time it starts at, counted from the service's own start. The heading
+   says what time the plan ends and how many minutes it runs.
+4. Change the sermon from 25 to 35 minutes. Everything below it moves, and the end time moves with
+   it.
+5. The arrows move an item up and down, and the clock follows. They are disabled at the ends.
+6. An item can be 0 minutes, for a line on the page that takes no time.
+7. **Series** and **Theme** save when you leave the field.
+8. A plan that runs past midnight reads 00:30 rather than 24:30.
+9. Only Owner, Admin and Staff can open it. Anyone else lands back on the service.
 
 ### HRT-124, how to test it
 

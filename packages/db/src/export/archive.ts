@@ -55,6 +55,8 @@ const TABLES = [
   "serving_assignments",
   "blockout_dates",
   "serving_preferences",
+  "service_plans",
+  "plan_items",
   "stored_files",
   "demo_records",
   "tenant_members",

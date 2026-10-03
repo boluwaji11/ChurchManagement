@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ListOrdered } from "lucide-react";
 import {
   withTenant, getOccurrence, listRoster, visitNumbers, canManageServices,
 } from "@hearth/db";
+import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -55,10 +56,22 @@ export default async function RosterPage({
           <ArrowLeft className="size-4" /> {t("roster.back")}
         </Link>
 
-        <PageTitle
-          title={occurrence.name}
-          lede={`${readable(occurrence.occursOn)}`}
-        />
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+          <PageTitle
+            title={occurrence.name}
+            lede={`${readable(occurrence.occursOn)}`}
+            className="mb-0"
+          />
+          {/* R11.1. The order of service, which is what a church runs the
+              gathering from. */}
+          {canManageServices(session.role) ? (
+            <Button variant="secondary" asChild>
+              <Link href={`/services/${occurrence.id}/plan?church=${session.tenantSlug}`}>
+                <ListOrdered /> {t("order.open")}
+              </Link>
+            </Button>
+          ) : null}
+        </div>
 
         <Roster
           church={session.tenantSlug}
