@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList, ChevronDown } from "lucide-react";
+import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList, ChevronDown, ListOrdered } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Card, EmptyState, Field, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -377,6 +377,15 @@ function RowActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          {/* R11.1. The order of service, which is planned before the gathering
+              rather than after it, so it is here whatever the date. */}
+          {cancelled ? null : (
+            <DropdownMenuItem asChild>
+              <Link href={`/services/${row.id}/plan?church=${church}`}>
+                <ListOrdered /> {t("order.title")}
+              </Link>
+            </DropdownMenuItem>
+          )}
           {counted ? (
             <DropdownMenuItem asChild>
               <Link href={`/services/${row.id}?church=${church}`}>

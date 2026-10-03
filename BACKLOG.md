@@ -1206,7 +1206,8 @@ From **Groups**, tap a group's name.
 
 ### HRT-127, how to test it
 
-Open a service, then **Order of service**.
+On **Services**, press **More** against any service and choose **Order of service**. A past service
+also has it on its own page, beside the roster.
 
 1. The plan is created when you open it. A service you never open has none, which keeps a year of
    generated services out of every list and every export.
