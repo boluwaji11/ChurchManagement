@@ -48,6 +48,7 @@ export * from "./repo/followups";
 export * from "./repo/checks";
 export * from "./repo/celebrations";
 export * from "./repo/serving";
+export * from "./repo/schedule";
 export * from "./repo/directory";
 export * from "./repo/setup";
 export * from "./repo/value";

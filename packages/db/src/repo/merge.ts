@@ -82,6 +82,24 @@ const OWNED: {
     conflictOn: ["team_id"],
     liveOnly: "w.left_on is null and t.left_on is null",
   },
+  // R10.3. The rota. Two rows collide when both are the same position at the
+  // same gathering, which is the same person scheduled twice.
+  {
+    table: "serving_assignments",
+    column: "person_id",
+    conflictOn: ["occurrence_id", "position_id"],
+  },
+  // R10.4. Days they said they are away. Nothing is unique, so all of it moves.
+  { table: "blockout_dates", column: "person_id" },
+  // R10.5. One preference a person, so any row the winner already has is the
+  // collision. `tenant_id` is the same on every row in the church, which makes
+  // it the predicate that asks "does the winner have one".
+  {
+    table: "serving_preferences",
+    column: "person_id",
+    conflictOn: ["tenant_id"],
+    key: "person_id",
+  },
 ];
 
 /**

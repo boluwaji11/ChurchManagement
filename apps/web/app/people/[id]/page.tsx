@@ -6,6 +6,7 @@ import {
   personTimeline,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones, servingForPerson,
+  assignmentsForPerson, listBlockouts, getServingPreference,
   canFollowUp, listPipelines, entriesFor, tasksFor, getChurch,
   canSeeChecks, checksFor, canReadConfidentialNotes,
 } from "@hearth/db";
@@ -19,6 +20,7 @@ import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
 import { Timeline } from "./timeline";
 import { Relationships } from "../relationships";
+import { Availability } from "../availability";
 import { Milestones } from "../milestones";
 import { FollowUps, PersonTasks } from "../followups";
 import { Checks } from "../checks";
@@ -70,6 +72,11 @@ export default async function PersonPage({
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     const person = await getPerson(tx, id, { role: session.role, userId: session.userId });
     if (!person) return null;
+
+    const today = churchNow(
+      (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
+    ).date;
+
     return {
       person,
       notes: await listNotesForPerson(tx, id, session.role, { tenantId: session.tenantId }),
@@ -90,13 +97,18 @@ export default async function PersonPage({
       relationships: await listRelationships(tx, id),
       // R10.1. Every team they serve on, in one place rather than one per ministry.
       serving: await servingForPerson(tx, id),
+      // R10.3 to R10.5. What they are down for, and what they have said about
+      // when they can.
+      upcoming: await assignmentsForPerson(tx, id, { from: today, limit: 8 }),
+      away: await listBlockouts(tx, id, { from: today }),
+      frequency: await getServingPreference(tx, id),
       milestones: await listMilestones(tx, id),
       pipelines: canFollowUp(session.role) ? await listPipelines(tx) : [],
       entries: canFollowUp(session.role) ? await entriesFor(tx, id) : [],
       tasks: canFollowUp(session.role) ? await tasksFor(tx, id) : [],
       // R2.10, R21.11. The safeguarding drawer, for the roles that hold it.
       checks: canSeeChecks(session.role) ? await checksFor(tx, { role: session.role }, id) : null,
-      today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
+      today,
       // Everyone in the church, for the picker. A church of 50 to 500 fits in a
       // list; the search this will need at five thousand is R2.14's job.
       everyone: await listPeople(tx),
@@ -107,7 +119,7 @@ export default async function PersonPage({
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
   const {
-    person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone, serving,
+    person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone, serving, upcoming, away, frequency,
     milestones, pipelines, entries, tasks, today, checks, onLists, history,
   } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
@@ -295,6 +307,44 @@ export default async function PersonPage({
               </li>
             ))}
           </ul>
+
+          {upcoming.length > 0 ? (
+            <>
+              <Separator className="my-4" />
+              <h3 className="mb-2 text-label text-fg">{t("serving.upcoming")}</h3>
+              <ul className="flex flex-col gap-1">
+                {upcoming.map((entry) => (
+                  <li key={entry.id} className="flex flex-wrap items-center gap-2">
+                    <span className="text-[length:var(--d-text-body)] text-fg">
+                      {longDate(entry.occursOn)}
+                    </span>
+                    <span className="text-caption text-fg-muted">
+                      {entry.teamName} {entry.positionName}
+                    </span>
+                    {entry.status === "declined" ? (
+                      <Badge tone="danger">{t("rota.status.declined")}</Badge>
+                    ) : entry.status === "accepted" ? (
+                      <Badge tone="success">{t("rota.status.accepted")}</Badge>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+
+          <Separator className="my-4" />
+          <Availability
+            church={session.tenantSlug}
+            personId={person.id}
+            frequency={frequency}
+            away={away.map((range) => ({
+              id: range.id,
+              startsOn: range.startsOn,
+              endsOn: range.endsOn,
+              reason: range.reason,
+            }))}
+            canEdit={canEditPeople(session.role)}
+          />
         </Card>
       ) : null}
 

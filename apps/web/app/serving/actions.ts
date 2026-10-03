@@ -5,7 +5,8 @@ import {
   addPosition, updatePosition, setPositionArchived,
   addToTeam, removeFromTeam, setTeamMemberRole, setTeamMemberPositions,
   lookupPeople, getChurch,
-  type TeamRole, type TagHue,
+  assign, unassign, candidatesFor, addBlockout, removeBlockout, setServingPreference,
+  type TeamRole, type TagHue, type RotaCandidate, type ServingFrequency,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -190,5 +191,97 @@ export async function findPerson(query: string, church?: string): Promise<Person
     });
   } catch {
     return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// R10.3 to R10.5. The rota
+// ---------------------------------------------------------------------------
+
+export interface ScheduleResult {
+  error?: string;
+}
+
+export async function schedule(
+  input: {
+    occurrenceId: string; teamId: string; positionId: string; personId: string; anyway: boolean;
+  },
+  church?: string,
+): Promise<ScheduleResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => assign(tx, actor, input));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function unschedule(id: string, church?: string): Promise<ScheduleResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => unassign(tx, actor, id));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R10.3. Who could fill this slot, with what the scheduler should know. */
+export async function whoCouldFill(
+  input: { teamId: string; positionId: string; occurrenceId: string },
+  church?: string,
+): Promise<RotaCandidate[]> {
+  const { ctx } = await context(church);
+  try {
+    return await withTenant(ctx, (tx) => candidatesFor(tx, input));
+  } catch {
+    return [];
+  }
+}
+
+export interface AvailabilityResult {
+  error?: string;
+}
+
+export async function saveBlockout(data: FormData): Promise<AvailabilityResult> {
+  const church = field(data, "church") || undefined;
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) =>
+      addBlockout(tx, actor, {
+        personId: field(data, "personId"),
+        startsOn: field(data, "startsOn"),
+        endsOn: field(data, "endsOn"),
+        reason: optional(data, "reason"),
+      }),
+    );
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function dropBlockout(id: string, church?: string): Promise<AvailabilityResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => removeBlockout(tx, actor, id));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function saveFrequency(
+  personId: string,
+  frequency: ServingFrequency | null,
+  church?: string,
+): Promise<AvailabilityResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setServingPreference(tx, actor, { personId, frequency }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
   }
 }

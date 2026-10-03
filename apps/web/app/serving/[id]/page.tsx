@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, CalendarDays } from "lucide-react";
 import {
   withTenant, getTeam, canManageTeams, canLeadTeams, leadsTeam,
 } from "@hearth/db";
@@ -59,13 +59,20 @@ export default async function TeamPage({
           </Link>
         </Button>
 
-        <div className="mb-8 flex items-center gap-3">
-          <HueDot hue={team.hue as Hue} />
-          <PageTitle
-            title={team.name}
-            lede={team.description ?? undefined}
-            className="mb-0"
-          />
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <HueDot hue={team.hue as Hue} />
+            <PageTitle
+              title={team.name}
+              lede={team.description ?? undefined}
+              className="mb-0"
+            />
+          </div>
+          <Button asChild>
+            <Link href={`/serving/${team.id}/schedule?church=${session.tenantSlug}`}>
+              <CalendarDays /> {t("rota.open")}
+            </Link>
+          </Button>
         </div>
 
         <Section title={t("serving.positions")}>

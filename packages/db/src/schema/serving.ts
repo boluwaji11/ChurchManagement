@@ -3,6 +3,7 @@ import {
   pgTable, uuid, text, integer, boolean, date, timestamp, index, uniqueIndex, primaryKey,
 } from "drizzle-orm/pg-core";
 import { tenants, campuses } from "./tenancy";
+import { serviceOccurrences } from "./gatherings";
 import { people } from "./people";
 import { hue } from "./enums";
 
@@ -146,5 +147,98 @@ export const teamMemberPositions = pgTable(
     primaryKey({ columns: [t.memberId, t.positionId] }),
     index("tmp_tenant_idx").on(t.tenantId),
     index("tmp_position_idx").on(t.tenantId, t.positionId),
+  ],
+);
+
+/**
+ * R10.3. One person, in one position, at one gathering.
+ *
+ * The schedule is held against the service occurrence rather than against a
+ * date, because a church with two services on the same day schedules two
+ * different bands and a row holding only a date cannot say which.
+ *
+ * The status is the volunteer's answer (R10.6). It starts as asked, and the
+ * screens read "asked" as "probably there, chase it".
+ */
+export const servingAssignments = pgTable(
+  "serving_assignments",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    occurrenceId: uuid("occurrence_id").notNull()
+      .references(() => serviceOccurrences.id, { onDelete: "cascade" }),
+    teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+    positionId: uuid("position_id").notNull()
+      .references(() => teamPositions.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    /** "asked", "accepted" or "declined". */
+    status: text("status").notNull().default("asked"),
+    /** R10.6. Why they cannot, in their own words, where they gave one. */
+    declineReason: text("decline_reason"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    /**
+     * R10.4. True where the scheduler was warned and went ahead: a blockout, or
+     * somebody already serving at that hour. Kept because the answer to "why is
+     * she down twice" has to be answerable later.
+     */
+    overridden: boolean("overridden").notNull().default(false),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("assignment_tenant_idx").on(t.tenantId),
+    index("assignment_occurrence_idx").on(t.tenantId, t.occurrenceId),
+    index("assignment_person_idx").on(t.tenantId, t.personId),
+    index("assignment_team_idx").on(t.tenantId, t.teamId, t.occurrenceId),
+    // The same person is not put in the same position twice at one gathering.
+    uniqueIndex("assignment_unique").on(t.occurrenceId, t.positionId, t.personId),
+  ],
+);
+
+/**
+ * R10.4. Days a volunteer has said they cannot serve.
+ *
+ * Inclusive at both ends, because somebody writing "the 14th to the 21st" means
+ * both of those days. The scheduler warns rather than refuses: a church that
+ * cannot put somebody down after asking them in the corridor has software
+ * getting in the way of a conversation that already happened.
+ */
+export const blockoutDates = pgTable(
+  "blockout_dates",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    startsOn: date("starts_on").notNull(),
+    endsOn: date("ends_on").notNull(),
+    /** "Away", "Surgery". Theirs, and nobody is required to give one. */
+    reason: text("reason"),
+    createdAt: created(),
+  },
+  (t) => [
+    index("blockout_tenant_idx").on(t.tenantId),
+    index("blockout_person_idx").on(t.tenantId, t.personId, t.startsOn),
+  ],
+);
+
+/**
+ * R10.5. How often somebody is willing to serve.
+ *
+ * A preference, shown to whoever builds the rota. Nothing enforces it, because
+ * the person who says once a month and then covers three weeks running has not
+ * broken a rule.
+ */
+export const servingPreferences = pgTable(
+  "serving_preferences",
+  {
+    tenantId: tenantId(),
+    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    /** "weekly", "fortnightly", "monthly", "quarterly". */
+    frequency: text("frequency").notNull(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.personId] }),
+    index("serving_pref_tenant_idx").on(t.tenantId),
   ],
 );
