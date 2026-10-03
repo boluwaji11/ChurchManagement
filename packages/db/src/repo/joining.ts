@@ -57,7 +57,10 @@ export async function churchForJoinCode(code: string): Promise<JoinTarget | null
   const sql = owner();
   const rows = await sql<JoinTarget[]>`
     select id as "tenantId", slug, name from tenants
-    where join_code = ${value} and demo_expires_at is null
+    where join_code = ${value}
+      and demo_expires_at is null
+      -- R1.1. A church nobody has looked at yet has no public door.
+      and approved_at is not null
     limit 1`;
   return rows[0] ?? null;
 }
@@ -70,6 +73,15 @@ export async function rotateJoinCode(
   if (!canManageChurch(role)) throw new PermissionError(role, "editChurch");
 
   const sql = owner();
+
+  /*
+   * R1.1. A church nobody has looked at yet does not get a door to the public.
+   * Handing out a link is the one thing a church cannot undo, and it is the one
+   * thing worth having for somebody who is not a church.
+   */
+  const [standing] = await sql<{ approved: boolean }[]>`
+    select approved_at is not null as approved from tenants where id = ${tenantId}`;
+  if (!standing?.approved) throw new InvalidInputError("provisional.error.locked");
   for (let attempt = 0; attempt < 10; attempt++) {
     const code = newCode();
     const rows = await sql<{ join_code: string }[]>`

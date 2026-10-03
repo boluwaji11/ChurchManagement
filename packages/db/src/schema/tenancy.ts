@@ -68,6 +68,21 @@ export const tenants = pgTable(
      * printed card stop working, which is the point of rotating it.
      */
     joinCode: text("join_code"),
+    /**
+     * R1.1, R21.x. When a human looked at this church and said it is a church.
+     *
+     * Null means provisional, which is where every new church starts. A
+     * provisional church works for the person who made it and is capped: a
+     * small number of people, no join link, no invitations. A real church is
+     * unblocked in an hour, which is what the sixty-minute time-to-value
+     * number needs. An abuser gets nothing worth having.
+     *
+     * Not a queue with a task on somebody. That was built and taken out on the
+     * same day, because it put work on a volunteer every time a regular signed
+     * up for a door the church had already chosen to open.
+     */
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    approvedBy: text("approved_by"),
     createdAt: created(),
     updatedAt: updated(),
   },

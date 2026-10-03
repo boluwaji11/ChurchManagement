@@ -17,11 +17,27 @@ export async function dropTenants(...slugs: string[]): Promise<void> {
   });
 }
 
-export async function testTenant(slug: string, name: string): Promise<string> {
+/**
+ * R1.1. Approved, unless a test is about not being.
+ *
+ * A church created by the product is provisional and capped at a few people,
+ * which is the point of HRT-115. A test church is one somebody has already
+ * looked at, because almost every suite is about something else and would
+ * otherwise be writing a test of the cap by accident.
+ */
+export async function testTenant(
+  slug: string,
+  name: string,
+  options: { approved?: boolean } = {},
+): Promise<string> {
   await dropTenants(slug);
+  const approved = options.approved !== false;
   const [row] = await owner()<{ id: string }[]>`
-    insert into tenants (slug, name, timezone)
-    values (${slug}, ${name}, 'America/Chicago')
+    insert into tenants (slug, name, timezone, approved_at, approved_by)
+    values (
+      ${slug}, ${name}, 'America/Chicago',
+      ${approved ? new Date() : null}, ${approved ? "test harness" : null}
+    )
     returning id`;
   return row!.id;
 }

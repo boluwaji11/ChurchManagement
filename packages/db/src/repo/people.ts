@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { people, households, householdMemberships, contactMethods, tags, personTags } from "../schema/people";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { visiblePeople, type Viewer } from "./scope";
+import { requireRoomForPeople } from "./provisional";
 
 export interface PersonRow {
   id: string;
@@ -312,6 +313,10 @@ const trimmed = (v: string | null | undefined): string | null => {
  */
 export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput): Promise<{ id: string }> {
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "addPerson");
+  // R1.1. A church nobody has looked at yet holds a congregation's worth of
+  // nothing. Checked here rather than on a screen, because an import adds four
+  // hundred at once and a screen is not where that happens.
+  await requireRoomForPeople(db, actor.tenantId);
 
   const [row] = await db
     .insert(people)

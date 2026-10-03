@@ -9,6 +9,7 @@ import {
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { DemoBanner } from "./demo-banner";
+import { ProvisionalBanner } from "./provisional-banner";
 import { NavLink } from "./nav-link";
 import { Help } from "./help";
 import type { Session } from "@/lib/session";
@@ -33,6 +34,7 @@ export async function AppHeader({ session }: { session: Session }) {
   return (
     <>
     <DemoBanner tenantId={session.tenantId} />
+    <ProvisionalBanner tenantId={session.tenantId} role={session.role} />
     <header className="sticky top-0 z-40 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">

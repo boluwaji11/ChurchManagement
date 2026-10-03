@@ -286,7 +286,8 @@ figure hides the only outage a church will ever notice.
 - **Zero-downtime migrations.** A church cannot be told the database is upgrading on a Saturday night
   (N9).
 - **Daily backups with point-in-time recovery**, and a **restore drill run and documented quarterly**
-  (R21.6). An untested backup is not a backup.
+  (R21.6). An untested backup is not a backup. The runbook, the census tool the drill uses, and the
+  drill log are in [backup-and-restore.md](backup-and-restore.md).
 
 ## Performance targets
 

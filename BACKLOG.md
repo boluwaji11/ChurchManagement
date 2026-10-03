@@ -73,7 +73,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.3, R21.x | Closed |
 | HRT-111 | Campus and location on the record and in the UI where it shows | R1.2 | Resolved |
 | HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
-| HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | New |
+| HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | Resolved |
 | HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | New |
 | HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | New |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8, R21.4 | Deferred to later in 0.1, product surface first |
@@ -84,7 +84,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
 | HRT-110 | Saved lists, static and rule-based | R1.14 | Resolved |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
-| HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | New |
+| HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -606,7 +606,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-115**, a new church is provisional until a human has looked at it. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-122** the no-training commitment where a church can read it. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1332,6 +1332,46 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-121, how to test it
+
+The deliverable is the drill, not the backup setting: an untested backup is not a backup. The
+runbook is [docs/backup-and-restore.md](docs/backup-and-restore.md).
+
+1. `pnpm --filter @hearth/db census riverside` counts every row of every table that church holds,
+   biggest first.
+2. `--out before.json` writes it. `--against before.json` compares a fresh census with it, exits 0
+   when every table matches and 1 when it does not, naming the table.
+3. Change one thing and run it again. It says which table and whether the count or the rows
+   themselves differ: the digest catches the right number of the wrong rows.
+4. Tables are found by looking for a `tenant_id`, so a table added next quarter is in the next drill
+   without anybody remembering it.
+5. The runbook has the restore steps, the drill log, and the two things it does not cover.
+
+Nothing writes while a census runs, including the test suite. Several suites mutate the seeded
+development churches, so a census taken during a test run will disagree with itself.
+
+**Point-in-time recovery is a paid Supabase add-on** and is not on yet. That is the one call here
+that costs money and is yours to make. The runbook argues for keeping it on and says why.
+
+### HRT-115, how to test it
+
+Create a church from the sign-up form. Every church that existed before this story was approved when
+the migration ran, so your own church is unaffected.
+
+1. A new church carries a banner on every page saying it is being checked, with how many of its 25
+   people it holds.
+2. It works completely otherwise: add people, services, groups, teams, run a check-in.
+3. **Settings → Team**: the join link is refused, and so is inviting anybody. Both say the same
+   thing, that it opens once somebody has looked at it.
+4. Add people up to 25. The twenty-sixth is refused, and an import that would go past it in one go
+   is refused as a whole rather than half-landing.
+5. `pnpm --filter @hearth/db approve` lists what is waiting: the church, who made it, how many
+   people, how old it is.
+6. `pnpm --filter @hearth/db approve <slug> <your name>` approves it. Reload: the banner is gone, the
+   cap is gone, the join link works and invitations send.
+7. `pnpm --filter @hearth/db approve --revoke <slug>` puts it back, and the join code already handed
+   out stops working.
 
 ### HRT-111, how to test it
 

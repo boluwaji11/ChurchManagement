@@ -134,6 +134,16 @@ export async function createInvitation(input: {
   days?: number;
 }): Promise<{ id: string }> {
   const sql = owner();
+
+  /*
+   * R1.1. A church nobody has looked at yet cannot reach anybody outside
+   * itself. The person who made it still has their own account and their own
+   * records, which is everything a real church needs in its first hour.
+   */
+  const [standing] = await sql<{ approved: boolean }[]>`
+    select approved_at is not null as approved from tenants where id = ${input.tenantId}`;
+  if (!standing?.approved) throw new InvalidInputError("provisional.error.locked");
+
   const rows = await sql<{ id: string }[]>`
     insert into invitations (tenant_id, email, role, invited_by_user_id, person_id, expires_at)
     values (

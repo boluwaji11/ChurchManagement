@@ -15,7 +15,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "seed:users": "tsx scripts/seed-users.ts",
-    "metrics": "tsx scripts/metrics.ts"
+    "metrics": "tsx scripts/metrics.ts",
+    "approve": "tsx scripts/approve.ts",
+    "census": "tsx scripts/census.ts"
   },
   "dependencies": {
     "@hearth/i18n": "workspace:*",
