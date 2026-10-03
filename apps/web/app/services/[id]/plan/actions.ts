@@ -3,6 +3,7 @@
 import {
   withTenant, ensurePlan, updatePlan, addItem, updateItem, removeItem, moveItem,
   addItemNote, removeItemNote, detachFromItem,
+  saveAsTemplate, renameTemplate, removeTemplate, applyTemplate, copyPlan,
   type ItemKind,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
@@ -151,4 +152,73 @@ export async function fileLink(key: string): Promise<string | null> {
   const supabase = await supabaseServer();
   const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
   return signed.data?.signedUrl ?? null;
+}
+
+/** R11.8. Saves the shape of this plan under a name, for next time. */
+export async function keepAsTemplate(
+  planId: string,
+  name: string,
+  church?: string,
+): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => saveAsTemplate(tx, actor, { planId, name }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function renamePlanTemplate(
+  id: string,
+  name: string,
+  church?: string,
+): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => renameTemplate(tx, actor, id, name));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function dropTemplate(id: string, church?: string): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => removeTemplate(tx, actor, id));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R11.8. Lays a saved shape onto the plan, after whatever is already there. */
+export async function useTemplate(
+  planId: string,
+  templateId: string,
+  church?: string,
+): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => applyTemplate(tx, actor, { planId, templateId }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R11.8. Copies the shape of a plan already run onto this one. */
+export async function copyFrom(
+  planId: string,
+  fromOccurrenceId: string,
+  church?: string,
+): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => copyPlan(tx, actor, { planId, fromOccurrenceId }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
 }

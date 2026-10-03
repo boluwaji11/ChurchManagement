@@ -131,3 +131,47 @@ export const planItemFiles = pgTable(
     uniqueIndex("plan_file_unique").on(t.itemId, t.fileId),
   ],
 );
+
+/**
+ * R11.8. A saved shape for an order of service.
+ *
+ * A church runs the same skeleton most weeks and fills it differently each
+ * time, so what gets saved is the skeleton: the kinds, the titles and the
+ * lengths. The notes, the files and the theme belong to the week they were
+ * written for and are left behind.
+ */
+export const planTemplates = pgTable(
+  "plan_templates",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    /** "Morning service", "Carols", "Midweek". What the church calls the shape. */
+    name: text("name").notNull(),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("plan_template_tenant_idx").on(t.tenantId),
+    uniqueIndex("plan_template_name_unique").on(t.tenantId, t.name),
+  ],
+);
+
+/** R11.8. One line of a saved shape, matching planItems without the content. */
+export const planTemplateItems = pgTable(
+  "plan_template_items",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    templateId: uuid("template_id").notNull()
+      .references(() => planTemplates.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull().default("custom"),
+    title: text("title").notNull(),
+    minutes: integer("minutes").notNull().default(5),
+    position: integer("position").notNull().default(0),
+    createdAt: created(),
+  },
+  (t) => [
+    index("plan_template_item_tenant_idx").on(t.tenantId),
+    index("plan_template_item_idx").on(t.tenantId, t.templateId, t.position),
+  ],
+);

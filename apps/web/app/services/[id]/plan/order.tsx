@@ -4,16 +4,20 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus, Trash2, ChevronUp, ChevronDown, Pencil, MessageSquare, X, Paperclip,
+  Copy, LayoutList,
 } from "lucide-react";
 import {
   Banner, Button, Card, EmptyState, Field, IconButton, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import type { ItemKind } from "@hearth/db";
 import {
   saveHeader, saveItem, dropItem, shiftItem, saveNote, dropNote, dropFile, fileLink,
+  keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom,
 } from "./actions";
 
 const KINDS: ItemKind[] = [
@@ -41,6 +45,21 @@ export interface OrderNote {
   id: string;
   body: string;
   audience: string | null;
+}
+
+/** R11.8. A saved shape, and a plan already run, both offered as a start. */
+export interface OrderTemplate {
+  id: string;
+  name: string;
+  items: number;
+  minutes: number;
+}
+
+export interface OrderSource {
+  occurrenceId: string;
+  label: string;
+  items: number;
+  minutes: number;
 }
 
 /** R11.6. Who a note can be addressed to on this gathering. */
@@ -80,6 +99,8 @@ export function Order({
   theme,
   items,
   audience,
+  templates,
+  sources,
 }: {
   church: string;
   planId: string;
@@ -88,6 +109,8 @@ export function Order({
   theme: string | null;
   items: OrderItem[];
   audience: Audience;
+  templates: OrderTemplate[];
+  sources: OrderSource[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -239,11 +262,28 @@ export function Order({
           </ul>
         )}
 
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
           <ItemDialog
             church={church}
             planId={planId}
             trigger={<Button variant="secondary"><Plus /> {t("order.add")}</Button>}
+          />
+
+          {/* R11.8. The same shape most weeks, filled in differently. The kinds,
+              the titles and the lengths come over. Last week's notes, files and
+              theme stay with last week. */}
+          <StartFrom
+            church={church}
+            planId={planId}
+            templates={templates}
+            sources={sources}
+            disabled={pending}
+          />
+          <TemplateDialog
+            church={church}
+            planId={planId}
+            templates={templates}
+            empty={timed.length === 0}
           />
         </div>
       </Card>
@@ -586,5 +626,230 @@ function AttachButton({ church, itemId }: { church: string; itemId: string }) {
         <Paperclip />
       </IconButton>
     </>
+  );
+}
+
+/** R11.8. One press to lay an earlier plan or a saved shape onto this one. */
+function StartFrom({
+  church,
+  planId,
+  templates,
+  sources,
+  disabled,
+}: {
+  church: string;
+  planId: string;
+  templates: OrderTemplate[];
+  sources: OrderSource[];
+  disabled: boolean;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = React.useTransition();
+
+  const run = (work: () => Promise<{ error?: string }>) => {
+    startTransition(async () => {
+      await work();
+      router.refresh();
+    });
+  };
+
+  const summary = (items: number, minutes: number) =>
+    t("order.summary", { items: String(items), minutes: String(minutes) });
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" disabled={disabled || pending}>
+          <Copy /> {t("order.start")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="max-w-xs">
+        {sources.length === 0 ? (
+          <DropdownMenuItem disabled>{t("order.recent.none")}</DropdownMenuItem>
+        ) : (
+          sources.map((source) => (
+            <DropdownMenuItem
+              key={source.occurrenceId}
+              onSelect={() => run(() => copyFrom(planId, source.occurrenceId, church))}
+            >
+              <span className="flex flex-col">
+                <span>{source.label}</span>
+                <span className="text-caption text-fg-muted">
+                  {summary(source.items, source.minutes)}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          ))
+        )}
+
+        <DropdownMenuSeparator />
+
+        {templates.length === 0 ? (
+          <DropdownMenuItem disabled>{t("order.template.none")}</DropdownMenuItem>
+        ) : (
+          templates.map((template) => (
+            <DropdownMenuItem
+              key={template.id}
+              onSelect={() => run(() => useTemplate(planId, template.id, church))}
+            >
+              <span className="flex flex-col">
+                <span>{template.name}</span>
+                <span className="text-caption text-fg-muted">
+                  {summary(template.items, template.minutes)}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          ))
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/**
+ * R11.8. Saving this plan's shape, and keeping the saved ones tidy.
+ *
+ * Saving under a name already in use replaces that shape, because a church
+ * correcting its order of service is correcting one thing rather than
+ * collecting versions of it.
+ */
+function TemplateDialog({
+  church,
+  planId,
+  templates,
+  empty,
+}: {
+  church: string;
+  planId: string;
+  templates: OrderTemplate[];
+  empty: boolean;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string>();
+  const [name, setName] = React.useState("");
+  const [editing, setEditing] = React.useState<string | null>(null);
+  const [editName, setEditName] = React.useState("");
+  const [pending, startTransition] = React.useTransition();
+
+  const run = (work: () => Promise<{ error?: string }>, after?: () => void) => {
+    startTransition(async () => {
+      const result = await work();
+      setError(result.error);
+      if (!result.error) {
+        after?.();
+        router.refresh();
+      }
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" disabled={empty}>
+          <LayoutList /> {t("order.template.save")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent title={t("order.template.save")} closeLabel={t("common.close")}>
+        <div className="flex flex-col gap-4" aria-busy={pending}>
+          {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
+
+          <Field label={t("order.template.name")} required>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
+          </Field>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                run(() => keepAsTemplate(planId, name, church), () => {
+                  setName("");
+                  setOpen(false);
+                })
+              }
+            >
+              {t("action.save")}
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+          </div>
+
+          {templates.length > 0 ? (
+            <>
+              <Separator />
+              <span className="text-label text-fg">{t("order.template.saved")}</span>
+              <ul className="flex flex-col gap-2">
+                {templates.map((template) => (
+                  <li key={template.id} className="flex items-center gap-2">
+                    {editing === template.id ? (
+                      <>
+                        <Input
+                          className="flex-1"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          aria-label={t("order.template.name")}
+                          autoComplete="off"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={pending}
+                          onClick={() =>
+                            run(
+                              () => renamePlanTemplate(template.id, editName, church),
+                              () => setEditing(null),
+                            )
+                          }
+                        >
+                          {t("action.save")}
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className="text-[length:var(--d-text-body)] text-fg">
+                            {template.name}
+                          </span>
+                          <span className="text-caption text-fg-muted">
+                            {t("order.summary", {
+                              items: String(template.items),
+                              minutes: String(template.minutes),
+                            })}
+                          </span>
+                        </span>
+                        <IconButton
+                          label={t("order.template.rename")}
+                          disabled={pending}
+                          onClick={() => {
+                            setEditing(template.id);
+                            setEditName(template.name);
+                          }}
+                        >
+                          <Pencil />
+                        </IconButton>
+                        <IconButton
+                          label={t("order.template.remove")}
+                          disabled={pending}
+                          onClick={() => run(() => dropTemplate(template.id, church))}
+                        >
+                          <Trash2 />
+                        </IconButton>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, addressableFor, canManageServices,
+  listTemplates, recentPlans,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
@@ -45,11 +46,14 @@ export default async function PlanPage({
       plan: await getPlan(tx, id),
       // R11.6. Who a note can be addressed to: the schedule for this gathering.
       audience: await addressableFor(tx, id),
+      // R11.8. Shapes to start from: what the church has saved, and what it ran.
+      templates: await listTemplates(tx),
+      sources: await recentPlans(tx, id),
     };
   });
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, audience } = result;
+  const { occurrence, plan, audience, templates, sources } = result;
 
   return (
     <>
@@ -93,6 +97,13 @@ export default async function PlanPage({
             })),
           }))}
           audience={audience}
+          templates={templates}
+          sources={sources.map((source) => ({
+            occurrenceId: source.occurrenceId,
+            label: `${source.name}, ${longDate(source.occursOn)}`,
+            items: source.items,
+            minutes: source.minutes,
+          }))}
         />
       </main>
     </>
