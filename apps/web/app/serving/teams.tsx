@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, ShieldCheck, RotateCcw, Pencil, Repeat } from "lucide-react";
+import { Plus, ShieldCheck, RotateCcw, Pencil } from "lucide-react";
 import {
   Banner, Button, IconButton, Card, EmptyState, HueDot, Badge, type Hue,
 } from "@hearth/ui";
@@ -20,8 +20,8 @@ export interface TeamCard {
   positions: number;
   needsChecks: boolean;
   archived: boolean;
-  /** R10.6, R10.7. How the schedule stands from today onwards. */
-  answers: { asked: number; accepted: number; declined: number; substitutes: number };
+  /** R10.6. How the schedule stands from today onwards. */
+  answers: { pending: number; accepted: number; declined: number };
 }
 
 /**
@@ -108,29 +108,23 @@ export function Teams({
                   ) : null}
                 </div>
 
-                {/* R10.6, R10.7. Where the schedule stands, so a leader can see
-                    from the list which team still owes answers. */}
-                {team.answers.asked + team.answers.accepted + team.answers.declined > 0 ? (
+                {/* R10.6. Where the schedule stands, so a leader can see from
+                    the list which team still owes answers. */}
+                {team.answers.pending + team.answers.accepted + team.answers.declined > 0 ? (
                   <div className="flex flex-wrap items-center gap-2">
                     {team.answers.accepted > 0 ? (
                       <Badge tone="success">
                         {t("plan.status.acceptedCount", { count: team.answers.accepted })}
                       </Badge>
                     ) : null}
-                    {team.answers.asked > 0 ? (
+                    {team.answers.pending > 0 ? (
                       <Badge tone="neutral">
-                        {t("plan.status.askedCount", { count: team.answers.asked })}
+                        {t("plan.status.pendingCount", { count: team.answers.pending })}
                       </Badge>
                     ) : null}
                     {team.answers.declined > 0 ? (
                       <Badge tone="danger">
                         {t("plan.status.declinedCount", { count: team.answers.declined })}
-                      </Badge>
-                    ) : null}
-                    {team.answers.substitutes > 0 ? (
-                      <Badge tone="warning">
-                        <Repeat className="size-3.5" aria-hidden />
-                        {t("plan.status.substitutes", { count: team.answers.substitutes })}
                       </Badge>
                     ) : null}
                   </div>

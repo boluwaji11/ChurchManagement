@@ -6,7 +6,6 @@ import {
   addToTeam, removeFromTeam, setTeamMemberRole, setTeamMemberPositions,
   lookupPeople, getChurch,
   assign, unassign, candidatesFor, addBlockout, removeBlockout, setServingPreference,
-  coverFor, fillSubstitute, cancelSubstitute,
   type TeamRole, type TagHue, type PlanCandidate, type ServingFrequency,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
@@ -281,47 +280,6 @@ export async function saveFrequency(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => setServingPreference(tx, actor, { personId, frequency }));
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-// ---------------------------------------------------------------------------
-// R10.7. Substitutes
-// ---------------------------------------------------------------------------
-
-export async function whoCouldCover(
-  requestId: string,
-  church?: string,
-): Promise<PlanCandidate[]> {
-  const { ctx } = await context(church);
-  try {
-    return await withTenant(ctx, (tx) => coverFor(tx, requestId));
-  } catch {
-    return [];
-  }
-}
-
-export async function putSomebodyIn(
-  requestId: string,
-  personId: string,
-  anyway: boolean,
-  church?: string,
-): Promise<ScheduleResult> {
-  const { actor, ctx } = await context(church);
-  try {
-    await withTenant(ctx, (tx) => fillSubstitute(tx, actor, { requestId, personId, anyway }));
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-export async function closeSwap(requestId: string, church?: string): Promise<ScheduleResult> {
-  const { actor, ctx } = await context(church);
-  try {
-    await withTenant(ctx, (tx) => cancelSubstitute(tx, actor, requestId));
     return {};
   } catch (error) {
     return { error: explain(error) };

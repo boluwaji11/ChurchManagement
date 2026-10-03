@@ -583,7 +583,7 @@ single most common reason a worship leader pays for Planning Center.
 | R10.4 | 0.4 | **Availability and blockout dates** entered by the volunteer through the portal, respected by scheduling with a warning on override. |
 | R10.5 | 0.4 | Serving frequency preference per volunteer, for example once a month, surfaced to the scheduler. |
 | R10.6 | 0.4 | **Accept and decline** from an email, SMS, or portal link with no login required, with an optional reason on decline. |
-| R10.7 | 0.4 | **Substitute request flow**: a volunteer requests a swap, the system offers qualified and available alternatives, the leader confirms. |
+| ~~R10.7~~ | ~~0.4~~ | ~~**Substitute request flow**: a volunteer requests a swap, the system offers qualified and available alternatives, the leader confirms.~~ **Cut, October 2026.** A decline already empties the slot and tells the leader. Filling it is the same picker that filled it the first time, with the same warnings. A separate request object was a second way to say the same thing. |
 | R10.8 | 0.4 | Automated reminders: on schedule publication, one week out, and two days out, configurable per team. |
 | R10.9 | 0.4 | **Background check gate.** A person without a valid, unexpired check cannot be scheduled to a position flagged as working with children. Hard block, overridable only by Owner, and the override is audited. |
 | R10.10 | 1.0 | Training and certification records with expiry, for safeguarding training, first aid, and DBS or equivalent. |

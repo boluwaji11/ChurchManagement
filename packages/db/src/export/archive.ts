@@ -55,7 +55,6 @@ const TABLES = [
   "serving_assignments",
   "blockout_dates",
   "serving_preferences",
-  "substitute_requests",
   "stored_files",
   "demo_records",
   "tenant_members",

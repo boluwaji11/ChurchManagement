@@ -73,7 +73,7 @@ describe("the link", () => {
     expect(request?.teamName).toBe("Worship");
     expect(request?.positionName).toBe("Keys");
     expect(request?.occursOn).toBe("2030-05-05");
-    expect(request?.status).toBe("asked");
+    expect(request?.status).toBe("pending");
   });
 
   it("gives nothing for a token that names nothing", async () => {

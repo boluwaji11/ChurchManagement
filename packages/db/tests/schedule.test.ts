@@ -105,7 +105,7 @@ describe("putting somebody down", () => {
     expect(schedule).toHaveLength(1);
     expect(schedule[0]!.personName).toContain("Ada");
     expect(schedule[0]!.positionName).toBe("Keys");
-    expect(schedule[0]!.status).toBe("asked");
+    expect(schedule[0]!.status).toBe("pending");
     expect(schedule[0]!.overridden).toBe(false);
   });
 

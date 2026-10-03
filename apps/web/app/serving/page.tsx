@@ -79,9 +79,7 @@ export default async function ServingPage({
             positions: team.positions,
             needsChecks: team.needsChecks,
             archived: team.archivedAt !== null,
-            answers: counts[team.id] ?? {
-              asked: 0, accepted: 0, declined: 0, substitutes: 0,
-            },
+            answers: counts[team.id] ?? { pending: 0, accepted: 0, declined: 0 },
           }))}
         />
       </main>

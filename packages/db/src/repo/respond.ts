@@ -23,7 +23,7 @@ export interface ServingRequest {
   serviceName: string;
   occursOn: string;
   startsAt: string;
-  status: "asked" | "accepted" | "declined";
+  status: "pending" | "accepted" | "declined";
   declineReason: string | null;
   /** True once the gathering has been and gone, which closes the question. */
   past: boolean;

@@ -38,7 +38,7 @@ const GAP_DAYS: Record<ServingFrequency, number> = {
   weekly: 7, fortnightly: 14, monthly: 28, quarterly: 91,
 };
 
-export type AssignmentStatus = "asked" | "accepted" | "declined";
+export type AssignmentStatus = "pending" | "accepted" | "declined";
 
 export interface Assignment {
   id: string;
@@ -534,4 +534,50 @@ export async function setServingPreference(
       target: servingPreferences.personId,
       set: { frequency: input.frequency, updatedAt: new Date() },
     });
+}
+
+/**
+ * R10.6. How a team's schedule stands: waiting, accepted, declined.
+ *
+ * Read from today onwards, because last month's answers are not what somebody
+ * opening the list is asking about.
+ */
+export interface AnswerCounts {
+  pending: number;
+  accepted: number;
+  declined: number;
+}
+
+export async function answerCounts(
+  db: Tx,
+  options: { teamIds: string[]; from: string },
+): Promise<Record<string, AnswerCounts>> {
+  if (options.teamIds.length === 0) return {};
+
+  const rows = await db
+    .select({
+      teamId: servingAssignments.teamId,
+      status: servingAssignments.status,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(servingAssignments)
+    .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, servingAssignments.occurrenceId))
+    .where(and(
+      inArray(servingAssignments.teamId, options.teamIds),
+      sql`${serviceOccurrences.occursOn}::text >= ${options.from}`,
+      eq(serviceOccurrences.status, "scheduled"),
+    ))
+    .groupBy(servingAssignments.teamId, servingAssignments.status);
+
+  const out: Record<string, AnswerCounts> = {};
+  for (const id of options.teamIds) out[id] = { pending: 0, accepted: 0, declined: 0 };
+
+  for (const row of rows) {
+    const bucket = out[row.teamId];
+    if (!bucket) continue;
+    if (row.status === "accepted") bucket.accepted += row.count;
+    else if (row.status === "declined") bucket.declined += row.count;
+    else bucket.pending += row.count;
+  }
+  return out;
 }

@@ -143,7 +143,7 @@ export function SchedulePlan({
                         ) : entry.status === "accepted" ? (
                           <Badge tone="success">{t("plan.status.accepted")}</Badge>
                         ) : (
-                          <Badge tone="neutral">{t("plan.status.asked")}</Badge>
+                          <Badge tone="neutral">{t("plan.status.pending")}</Badge>
                         )}
                         {entry.overridden ? (
                           <TriangleAlert
