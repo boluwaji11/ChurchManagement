@@ -1,10 +1,11 @@
 import {
   withTenant, getChurch, canManageChurch,
-  getStorageUsage,
+  getStorageUsage, primaryCampus, listLocations,
 } from "@hearth/db";
 import { Card, CardTitle, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
+import { Places } from "./places";
 import { ChurchForm } from "../church-form";
 import { LogoAndStorage } from "../logo";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -19,11 +20,14 @@ export default async function SettingsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const { profile, usage } = await withTenant(
+  const { profile, usage, campus, places } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       profile: await getChurch(tx, session.tenantId),
       usage: await getStorageUsage(tx, session.tenantId),
+      // R1.2. The one campus, and the places inside it.
+      campus: await primaryCampus(tx),
+      places: await listLocations(tx),
     }),
   );
 
@@ -52,6 +56,13 @@ export default async function SettingsPage({
             />
           </Card>
         ) : null}
+
+        <Places
+          church={session.tenantSlug}
+          campus={campus}
+          places={places}
+          canEdit={canManageChurch(session.role)}
+        />
 
         {profile ? (
           <ChurchForm

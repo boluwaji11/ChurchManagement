@@ -252,6 +252,97 @@ begin
   end loop;
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- 7. R1.2. Campus, filled in rather than left null
+-- ---------------------------------------------------------------------------
+--
+-- Every record that belongs somewhere carries a campus_id. The UI is
+-- single-campus and says nothing about it, so nothing on a screen ever sets
+-- one, and the column would be a column of nulls that a multi-campus release
+-- has to backfill from nothing.
+--
+-- So the database fills it: on insert, a null campus_id becomes the tenant's
+-- primary campus. By trigger rather than by code, because the call sites are
+-- the people repository, the importer, the seed script and whatever is written
+-- next, and a rule enforced in four of those five places is not a rule.
+
+create or replace function public.campus_default() returns trigger
+language plpgsql
+security invoker
+as $$
+declare v_campus uuid;
+begin
+  if new.campus_id is not null then return new; end if;
+
+  select id into v_campus
+    from public.campuses
+   where tenant_id = new.tenant_id
+     and is_primary
+   order by created_at
+   limit 1;
+
+  new.campus_id := v_campus;
+  return new;
+end $$;
+
+-- Found by looking, like the audit triggers. A table that gains a campus_id
+-- later is covered the next time this file runs.
+do $$
+declare t text;
+begin
+  for t in
+    select c.relname
+      from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+      join pg_attribute a on a.attrelid = c.oid and a.attname = 'campus_id' and a.attnum > 0
+      join pg_attribute b on b.attrelid = c.oid and b.attname = 'tenant_id' and b.attnum > 0
+     where n.nspname = 'public'
+       and c.relkind = 'r'
+       and c.relname <> 'campuses'
+       and c.relname <> 'locations'
+     order by c.relname
+  loop
+    execute format('drop trigger if exists campus_default_%1$s on public.%1$I', t);
+    execute format(
+      'create trigger campus_default_%1$s before insert on public.%1$I for each row execute function campus_default()',
+      t
+    );
+  end loop;
+end $$;
+
+revoke all on function public.campus_default() from public;
+grant execute on function public.campus_default() to hearth_app;
+
+-- R1.2. Anything written before the trigger existed. Harmless to run again, and
+-- a no-op on the second pass because every row already has one.
+--
+-- Audited off for the duration. A church with four thousand records would
+-- otherwise get four thousand audit rows saying a column nobody has ever seen
+-- changed from null to the only value it could have.
+do $$
+declare t text;
+begin
+  perform set_config('app.audit_off', '1', true);
+
+  for t in
+    select c.relname
+      from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+      join pg_attribute a on a.attrelid = c.oid and a.attname = 'campus_id' and a.attnum > 0
+      join pg_attribute b on b.attrelid = c.oid and b.attname = 'tenant_id' and b.attnum > 0
+     where n.nspname = 'public'
+       and c.relkind = 'r'
+       and c.relname not in ('campuses', 'locations')
+     order by c.relname
+  loop
+    execute format(
+      'update public.%1$I t set campus_id = c.id from public.campuses c'
+      ' where c.tenant_id = t.tenant_id and c.is_primary and t.campus_id is null',
+      t
+    );
+  end loop;
+end $$;
+
 -- Not callable as an API endpoint. It is a trigger function, and a trigger fires
 -- it regardless of EXECUTE privilege, so nothing needs to be able to call it.
 revoke all on function public.audit_write() from public;

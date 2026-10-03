@@ -71,7 +71,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-10 | Adversarial isolation suite, cross-tenant reads and writes on every table | R1.3 | Closed |
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.3, R21.x | Closed |
-| HRT-111 | Campus and location on the record and in the UI where it shows | R1.2 | New |
+| HRT-111 | Campus and location on the record and in the UI where it shows | R1.2 | Resolved |
 | HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
 | HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | New |
 | HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | New |
@@ -606,7 +606,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **The 0.1 and 0.2 stories still open.** F16 messaging is deferred, and so are finance and the children's paperwork, until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-115**, a new church is provisional until a human has looked at it. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1332,6 +1332,20 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-111, how to test it
+
+The UI is single-campus on purpose. There is no campus picker anywhere, and there should not be.
+
+1. **Settings → Church** has **Where you meet**: the campus name, and the places inside it.
+2. Rename the campus. It saves when the field loses focus and carries the red asterisk.
+3. **Add a place** names one: "The Hall", "The Annexe". Extra spaces are collapsed, a duplicate name
+   is refused, and the pencil renames one.
+4. **Delete** asks first and says that anything recorded as meeting there keeps its own words.
+5. Only Owner and Admin see the buttons. Anybody else sees the list.
+6. The part with no screen: add a person, a service or a group, and the record carries the campus
+   without anybody choosing one. A database trigger fills it, so the importer and the seed script
+   get it too. Records written before this story were backfilled when the migration ran.
 
 ### HRT-134, how to test it
 
