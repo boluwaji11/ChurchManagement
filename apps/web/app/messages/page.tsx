@@ -1,14 +1,19 @@
 import { redirect } from "next/navigation";
 import {
-  withTenant, listMessageTemplates, listPeople, getChurch, canManageChurch,
+  withTenant, listMessageTemplates, listPeople, getChurch, audienceOptions,
+  canManageChurch,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { AppHeader } from "@/components/app-header";
 import { requireSession } from "@/lib/session";
 import { Composer } from "./composer";
+import { AudiencePicker } from "./audience-picker";
 
 export const dynamic = "force-dynamic";
+
+/** R16.5. The lifecycle statuses a church can write to. */
+const STATUSES = ["visitor", "regular_attender", "member", "inactive"] as const;
 
 /**
  * R16.4. The composer, and the library of messages worth sending again.
@@ -28,13 +33,15 @@ export default async function MessagesPage({
 
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
 
-  const { library, sample } = await withTenant(actor, async (tx) => {
+  const { library, sample, options } = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
     // R16.4. A real person, so the preview reads like a real message.
     const person = (await listPeople(tx, { page: 1, perPage: 1 }))[0];
 
     return {
       library: await listMessageTemplates(tx),
+      // R16.5. What the church can pick from, each with how many it holds.
+      options: await audienceOptions(tx),
       sample: {
         first_name: person?.preferredName ?? person?.firstName ?? session.displayName,
         last_name: person?.lastName ?? "",
@@ -52,7 +59,21 @@ export default async function MessagesPage({
       <AppHeader session={session} />
       <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <PageTitle title={t("compose.title")} className="mb-8" />
-        <Composer church={session.tenantSlug} library={library} sample={sample} />
+        <div className="flex flex-col gap-6">
+          <AudiencePicker
+            church={session.tenantSlug}
+            options={{
+              ...options,
+              // R16.5. Lifecycle status is a fixed set rather than a table.
+              statuses: STATUSES.map((status) => ({
+                id: status,
+                name: t(`lifecycle.` as never),
+                count: 0,
+              })),
+            }}
+          />
+          <Composer church={session.tenantSlug} library={library} sample={sample} />
+        </div>
       </main>
     </>
   );

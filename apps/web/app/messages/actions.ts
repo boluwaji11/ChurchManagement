@@ -2,7 +2,8 @@
 
 import {
   withTenant, listMessageTemplates, saveMessageTemplate, removeMessageTemplate,
-  type TemplateInput,
+  recipientsFor,
+  type TemplateInput, type AudienceChoice,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -48,4 +49,30 @@ export async function dropTemplate(id: string, church?: string): Promise<Compose
 export async function templates(church?: string) {
   const { ctx } = await context(church);
   return withTenant(ctx, (tx) => listMessageTemplates(tx));
+}
+
+/**
+ * R16.5. Who a message would go to, and how many of them can be reached.
+ *
+ * Asked for as the choice changes, because the number is the thing that tells
+ * somebody they picked the wrong group before four hundred people find out.
+ */
+export async function audienceSize(
+  choice: AudienceChoice,
+  church?: string,
+): Promise<{ total: number; reachable: number; noEmail: number; error?: string }> {
+  const session = await requireSession(church);
+  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  try {
+    const result = await withTenant(ctx, (tx) =>
+      recipientsFor(tx, choice, session.tenantName),
+    );
+    return {
+      total: result.total,
+      reachable: result.recipients.length,
+      noEmail: result.noEmail,
+    };
+  } catch (error) {
+    return { total: 0, reachable: 0, noEmail: 0, error: explain(error) };
+  }
 }

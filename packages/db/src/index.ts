@@ -57,6 +57,7 @@ export * from "./repo/plan-history";
 export * from "./repo/messaging";
 export * from "./repo/transactional";
 export * from "./repo/compose";
+export * from "./repo/audience";
 export * from "./repo/directory";
 export * from "./repo/setup";
 export * from "./repo/value";

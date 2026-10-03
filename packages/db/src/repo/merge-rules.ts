@@ -70,3 +70,20 @@ export function unknownFields(text: string): string[] {
   }
   return out;
 }
+
+/**
+ * R16.5. The kinds of group a message can be addressed to.
+ *
+ * Here with the merge fields because the picker is a client component and this
+ * is the list it draws. Giving status is held back to 0.3 with the money.
+ */
+export const AUDIENCE_KINDS = [
+  "everybody", "list", "group", "team", "pipeline", "tag", "status",
+] as const;
+export type AudienceKind = (typeof AUDIENCE_KINDS)[number];
+
+export interface AudienceChoice {
+  kind: AudienceKind;
+  /** The list, group, team, pipeline or tag. A lifecycle status, for "status". */
+  id?: string | null;
+}
