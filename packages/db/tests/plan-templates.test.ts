@@ -208,10 +208,10 @@ describe("templates", () => {
 
   it("is refused to a volunteer", async () => {
     await expect(
-      run((tx) => saveAsTemplate(tx, as("volunteer"), { planId: pastPlan, name: "Nope" }), "volunteer"),
+      run((tx) => saveAsTemplate(tx, as("member"), { planId: pastPlan, name: "Nope" }), "member"),
     ).rejects.toBeInstanceOf(PermissionError);
     await expect(
-      run((tx) => copyPlan(tx, as("volunteer"), { planId: nextPlan, fromOccurrenceId: past }), "volunteer"),
+      run((tx) => copyPlan(tx, as("member"), { planId: nextPlan, fromOccurrenceId: past }), "member"),
     ).rejects.toBeInstanceOf(PermissionError);
   });
 });

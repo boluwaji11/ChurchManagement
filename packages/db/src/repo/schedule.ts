@@ -581,3 +581,121 @@ export async function answerCounts(
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// R11.9. Who serves, read from the plan
+// ---------------------------------------------------------------------------
+
+/**
+ * One person down for one position at this gathering.
+ *
+ * The status is carried through, because a request somebody declined leaves the
+ * position open and the plan has to say so.
+ */
+export interface PlanRosterEntry {
+  assignmentId: string;
+  personId: string;
+  personName: string;
+  status: AssignmentStatus;
+  overridden: boolean;
+  token: string;
+}
+
+export interface PlanRosterPosition {
+  id: string;
+  name: string;
+  /** How many the church wants here. */
+  needed: number;
+  entries: PlanRosterEntry[];
+  /** How many are still wanted. A declined request counts as nobody. */
+  short: number;
+}
+
+export interface PlanRosterTeam {
+  id: string;
+  name: string;
+  hue: string;
+  positions: PlanRosterPosition[];
+}
+
+/**
+ * R11.9. The teams and positions for one gathering, with who is in them.
+ *
+ * This is the same schedule the serving pages write, read from the other end,
+ * so a name put down here is a request that person answers in the usual way.
+ * A team with nothing to fill and nobody in it is left out, because a plan
+ * listing every team in the church is a plan nobody reads to the bottom of.
+ */
+export async function rosterFor(db: Tx, occurrenceId: string): Promise<PlanRosterTeam[]> {
+  const slots = await db
+    .select({
+      teamId: teams.id,
+      teamName: teams.name,
+      hue: teams.hue,
+      teamOrder: teams.position,
+      positionId: teamPositions.id,
+      positionName: teamPositions.name,
+      needed: teamPositions.needed,
+      positionOrder: teamPositions.position,
+    })
+    .from(teams)
+    .innerJoin(teamPositions, eq(teamPositions.teamId, teams.id))
+    .where(and(isNull(teams.archivedAt), isNull(teamPositions.archivedAt)))
+    .orderBy(asc(teams.position), asc(teams.name), asc(teamPositions.position));
+
+  const assignments = await db
+    .select({
+      id: servingAssignments.id,
+      teamId: servingAssignments.teamId,
+      positionId: servingAssignments.positionId,
+      personId: servingAssignments.personId,
+      status: servingAssignments.status,
+      overridden: servingAssignments.overridden,
+      token: servingAssignments.respondToken,
+      firstName: people.firstName,
+      preferredName: people.preferredName,
+      lastName: people.lastName,
+    })
+    .from(servingAssignments)
+    .innerJoin(people, eq(people.id, servingAssignments.personId))
+    .where(eq(servingAssignments.occurrenceId, occurrenceId))
+    .orderBy(asc(people.lastName), asc(people.firstName));
+
+  const byPosition = new Map<string, PlanRosterEntry[]>();
+  for (const row of assignments) {
+    const entry: PlanRosterEntry = {
+      assignmentId: row.id,
+      personId: row.personId,
+      personName: displayName(row),
+      status: row.status as AssignmentStatus,
+      overridden: row.overridden,
+      token: row.token,
+    };
+    const held = byPosition.get(row.positionId);
+    if (held) held.push(entry);
+    else byPosition.set(row.positionId, [entry]);
+  }
+
+  const out: PlanRosterTeam[] = [];
+  for (const slot of slots) {
+    const entries = byPosition.get(slot.positionId) ?? [];
+    if (slot.needed === 0 && entries.length === 0) continue;
+
+    let team = out.find((x) => x.id === slot.teamId);
+    if (!team) {
+      team = { id: slot.teamId, name: slot.teamName, hue: slot.hue, positions: [] };
+      out.push(team);
+    }
+
+    const standing = entries.filter((e) => e.status !== "declined").length;
+    team.positions.push({
+      id: slot.positionId,
+      name: slot.positionName,
+      needed: slot.needed,
+      entries,
+      short: Math.max(slot.needed - standing, 0),
+    });
+  }
+
+  return out;
+}

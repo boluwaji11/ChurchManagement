@@ -366,7 +366,7 @@ at an arrangement and R11.4 lands on top of what is already here.
 | HRT-128 | Notes on an item, and notes addressed to a team or a position | R11.6 | Resolved |
 | HRT-129 | Attachments on an item: charts, PDFs, audio, images | R11.7 | Resolved |
 | HRT-130 | Templates, and duplicating last week's plan without its content | R11.8 | Resolved |
-| HRT-131 | Who serves, inline on the plan, writing through to the schedule | R11.9 | New |
+| HRT-131 | Who serves, inline on the plan, writing through to the schedule | R11.9 | Resolved |
 | HRT-132 | The printed order of service, full for the team and short for the bulletin | R11.10 | New |
 | HRT-133 | Live mode: current item, next item, elapsed against planned | R11.11 | New |
 | HRT-134 | Plan history: who changed what, and when | R11.12 | New |
@@ -477,7 +477,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-131** who serves, inline on the plan, writing through to the schedule. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-132** the printed order of service. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **0.4** service planning (F11). HRT-126 waits on a provider. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1203,6 +1203,20 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-131, how to test it
+
+1. **Who serves** sits under the order of service, listing each team that has a position to fill,
+   with the team's colour beside its name.
+2. Each position reads filled of needed, in red while it is short, and the card header counts how
+   many are still wanted across the whole gathering.
+3. The plus against a position offers the team's roster, whoever plays that position first, with
+   away and due-a-break warnings the same as the serving screen.
+4. Somebody put down here shows as Pending and appears on their own serving list. The chain icon
+   copies the same answer link.
+5. Open that link and accept. The plan reads Accepted. Decline instead, and the position reads
+   short again while the declined name stays, so the leader knows it was asked and answered.
+6. Taking somebody off here takes them off the serving schedule too.
 
 ### HRT-130, how to test it
 

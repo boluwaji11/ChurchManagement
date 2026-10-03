@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, addressableFor, canManageServices,
-  listTemplates, recentPlans,
+  listTemplates, recentPlans, rosterFor,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
@@ -11,6 +11,7 @@ import { requireSession } from "@/lib/session";
 import { AppHeader } from "@/components/app-header";
 import { longDate, readableTime } from "@/lib/dates";
 import { Order } from "./order";
+import { WhoServes } from "./who-serves";
 
 export const dynamic = "force-dynamic";
 
@@ -49,11 +50,13 @@ export default async function PlanPage({
       // R11.8. Shapes to start from: what the church has saved, and what it ran.
       templates: await listTemplates(tx),
       sources: await recentPlans(tx, id),
+      // R11.9. Who serves, read from the same schedule the serving pages write.
+      roster: await rosterFor(tx, id),
     };
   });
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, audience, templates, sources } = result;
+  const { occurrence, plan, audience, templates, sources, roster } = result;
 
   return (
     <>
@@ -105,6 +108,10 @@ export default async function PlanPage({
             minutes: source.minutes,
           }))}
         />
+
+        <div className="mt-6">
+          <WhoServes church={session.tenantSlug} occurrenceId={id} teams={roster} />
+        </div>
       </main>
     </>
   );
