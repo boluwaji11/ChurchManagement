@@ -344,6 +344,13 @@
       "when": 1791039061466,
       "tag": "0048_slim_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1791040863605,
+      "tag": "0049_narrow_prima",
+      "breakpoints": true
     }
   ]
 }

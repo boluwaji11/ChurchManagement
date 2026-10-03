@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, getOccurrence, getPlan, ensurePlan, canManageServices } from "@hearth/db";
+import {
+  withTenant, getOccurrence, getPlan, ensurePlan, addressableFor, canManageServices,
+} from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
@@ -38,11 +40,16 @@ export default async function PlanPage({
     const occurrence = await getOccurrence(tx, id);
     if (!occurrence) return null;
     await ensurePlan(tx, actor, id);
-    return { occurrence, plan: await getPlan(tx, id) };
+    return {
+      occurrence,
+      plan: await getPlan(tx, id),
+      // R11.6. Who a note can be addressed to: the schedule for this gathering.
+      audience: await addressableFor(tx, id),
+    };
   });
 
   if (!result?.plan) notFound();
-  const { occurrence, plan } = result;
+  const { occurrence, plan, audience } = result;
 
   return (
     <>
@@ -73,7 +80,13 @@ export default async function PlanPage({
             title: item.title,
             description: item.description,
             minutes: item.minutes,
+            notes: item.notes.map((note) => ({
+              id: note.id,
+              body: note.body,
+              audience: note.audience,
+            })),
           }))}
+          audience={audience}
         />
       </main>
     </>

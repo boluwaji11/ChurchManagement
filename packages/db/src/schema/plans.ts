@@ -3,6 +3,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
 import { serviceOccurrences } from "./gatherings";
+import { teams, teamPositions } from "./serving";
+import { people } from "./people";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -69,5 +71,37 @@ export const planItems = pgTable(
   (t) => [
     index("plan_item_tenant_idx").on(t.tenantId),
     index("plan_item_plan_idx").on(t.tenantId, t.planId, t.position),
+  ],
+);
+
+/**
+ * R11.6. A note on an item, and who it is for.
+ *
+ * A plan carries two kinds of writing. The description on the item is what the
+ * thing is, and everybody reading the plan sees it. A note is an instruction,
+ * and most instructions are for one person: the drummer comes in on the second
+ * verse, the sound desk drops the click after the bridge. Addressing it means
+ * the drummer reads the drummer's note instead of reading forty of them.
+ *
+ * All three targets empty means everybody. They are narrowing, so a note on the
+ * Drums position reaches whoever is scheduled to play drums, whoever that turns
+ * out to be by the time the gathering comes round.
+ */
+export const planItemNotes = pgTable(
+  "plan_item_notes",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    itemId: uuid("item_id").notNull().references(() => planItems.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    teamId: uuid("team_id").references(() => teams.id, { onDelete: "cascade" }),
+    positionId: uuid("position_id").references(() => teamPositions.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").references(() => people.id, { onDelete: "cascade" }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("plan_note_tenant_idx").on(t.tenantId),
+    index("plan_note_item_idx").on(t.tenantId, t.itemId),
   ],
 );

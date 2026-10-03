@@ -2,6 +2,7 @@
 
 import {
   withTenant, ensurePlan, updatePlan, addItem, updateItem, removeItem, moveItem,
+  addItemNote, removeItemNote,
   type ItemKind,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
@@ -88,6 +89,36 @@ export async function startPlan(occurrenceId: string, church?: string): Promise<
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => ensurePlan(tx, actor, occurrenceId));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R11.6. A note on an item, addressed to everybody or to one position or person. */
+export async function saveNote(
+  input: {
+    itemId: string;
+    body: string;
+    teamId: string | null;
+    positionId: string | null;
+    personId: string | null;
+  },
+  church?: string,
+): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => addItemNote(tx, actor, input));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function dropNote(id: string, church?: string): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => removeItemNote(tx, actor, id));
     return {};
   } catch (error) {
     return { error: explain(error) };

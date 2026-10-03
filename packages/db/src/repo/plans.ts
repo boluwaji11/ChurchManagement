@@ -1,6 +1,8 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { servicePlans, planItems } from "../schema/plans";
+import { servicePlans, planItems, planItemNotes } from "../schema/plans";
+import { teams, teamPositions, servingAssignments } from "../schema/serving";
+import { people } from "../schema/people";
 import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
@@ -32,6 +34,47 @@ export interface PlanItem {
   position: number;
   /** R11.3. The clock time this item starts at, from the service start. */
   startsAt: string;
+  /** R11.6. Instructions on this item, and who each one is for. */
+  notes: ItemNote[];
+}
+
+/**
+ * R11.6. One instruction on an item.
+ *
+ * The targets narrow. All three empty is a note for everybody; a position means
+ * whoever is scheduled to play it, whoever that turns out to be.
+ */
+export interface ItemNote {
+  id: string;
+  itemId: string;
+  body: string;
+  teamId: string | null;
+  positionId: string | null;
+  personId: string | null;
+  /** What to show beside the note: the team, the position, or the name. */
+  audience: string | null;
+}
+
+/** Who is reading the plan, for R11.6's filtering. */
+export interface PlanReader {
+  personId: string;
+  teamIds: string[];
+  positionIds: string[];
+}
+
+/**
+ * R11.6. The notes this reader should see.
+ *
+ * Pure, so the rule is one thing in one place and the live view, the printed
+ * plan and the editor cannot disagree about who the drummer's note is for.
+ */
+export function notesFor(notes: ItemNote[], reader: PlanReader): ItemNote[] {
+  return notes.filter((note) => {
+    if (note.personId) return note.personId === reader.personId;
+    if (note.positionId) return reader.positionIds.includes(note.positionId);
+    if (note.teamId) return reader.teamIds.includes(note.teamId);
+    return true;
+  });
 }
 
 export interface ServicePlan {
@@ -131,9 +174,15 @@ export async function getPlan(db: Tx, occurrenceId: string): Promise<ServicePlan
     .where(eq(planItems.planId, row.id))
     .orderBy(asc(planItems.position), asc(planItems.createdAt));
 
+  const notes = await notesForPlan(db, row.id);
+
   const timed = runningTimes(
     row.serviceStartsAt,
-    rows.map((r) => ({ ...r, kind: r.kind as ItemKind })),
+    rows.map((r) => ({
+      ...r,
+      kind: r.kind as ItemKind,
+      notes: notes.filter((n) => n.itemId === r.id),
+    })),
   );
 
   return { ...row, items: timed.items, minutes: timed.minutes, endsAt: timed.endsAt };
@@ -302,4 +351,187 @@ export async function moveItem(
 
   [order[at], order[to]] = [order[to]!, order[at]!];
   await reorderItems(db, actor, input.planId, order);
+}
+
+// ---------------------------------------------------------------------------
+// R11.6. Notes on an item
+// ---------------------------------------------------------------------------
+
+/** Every note on a plan, with the name of whoever each one is addressed to. */
+export async function notesForPlan(db: Tx, planId: string): Promise<ItemNote[]> {
+  const rows = await db
+    .select({
+      id: planItemNotes.id,
+      itemId: planItemNotes.itemId,
+      body: planItemNotes.body,
+      teamId: planItemNotes.teamId,
+      positionId: planItemNotes.positionId,
+      personId: planItemNotes.personId,
+      teamName: teams.name,
+      positionName: teamPositions.name,
+      firstName: people.firstName,
+      preferredName: people.preferredName,
+      lastName: people.lastName,
+    })
+    .from(planItemNotes)
+    .innerJoin(planItems, eq(planItems.id, planItemNotes.itemId))
+    .leftJoin(teams, eq(teams.id, planItemNotes.teamId))
+    .leftJoin(teamPositions, eq(teamPositions.id, planItemNotes.positionId))
+    .leftJoin(people, eq(people.id, planItemNotes.personId))
+    .where(eq(planItems.planId, planId))
+    .orderBy(asc(planItemNotes.createdAt));
+
+  return rows.map((r) => ({
+    id: r.id,
+    itemId: r.itemId,
+    body: r.body,
+    teamId: r.teamId,
+    positionId: r.positionId,
+    personId: r.personId,
+    audience: r.personId && r.firstName
+      ? `${r.preferredName ?? r.firstName} ${r.lastName}`
+      : r.positionName ?? r.teamName ?? null,
+  }));
+}
+
+export interface NoteInput {
+  itemId: string;
+  body: string;
+  teamId?: string | null;
+  positionId?: string | null;
+  personId?: string | null;
+}
+
+/**
+ * R11.6. Writes a note on an item.
+ *
+ * A position carries its own team, so addressing the drummer also addresses
+ * worship, and the plan does not have to ask for both.
+ */
+export async function addItemNote(
+  db: Tx,
+  actor: WriteActor,
+  input: NoteInput,
+): Promise<{ id: string }> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+
+  const body = input.body?.trim();
+  if (!body) throw new InvalidInputError("order.error.note");
+
+  let teamId = input.teamId ?? null;
+  if (input.positionId) {
+    const [position] = await db
+      .select({ teamId: teamPositions.teamId })
+      .from(teamPositions)
+      .where(eq(teamPositions.id, input.positionId))
+      .limit(1);
+    if (!position) throw new InvalidInputError("order.error.audience");
+    teamId = position.teamId;
+  }
+
+  const [row] = await db
+    .insert(planItemNotes)
+    .values({
+      tenantId: actor.tenantId,
+      itemId: input.itemId,
+      body,
+      teamId,
+      positionId: input.positionId ?? null,
+      personId: input.personId ?? null,
+    })
+    .returning({ id: planItemNotes.id });
+
+  return { id: row!.id };
+}
+
+export async function removeItemNote(db: Tx, actor: WriteActor, id: string): Promise<void> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+
+  const gone = await db
+    .delete(planItemNotes)
+    .where(eq(planItemNotes.id, id))
+    .returning({ id: planItemNotes.id });
+  if (gone.length === 0) throw new InvalidInputError("order.error.note");
+}
+
+/**
+ * R11.6. Who the plan can address: the positions scheduled on this gathering,
+ * and the people in them.
+ *
+ * Read from the schedule rather than from every team, because a note addressed
+ * to a position nobody is filling is a note nobody reads.
+ */
+export interface Addressable {
+  teams: { id: string; name: string }[];
+  positions: { id: string; name: string; teamName: string }[];
+  people: { id: string; name: string; positionName: string }[];
+}
+
+export async function addressableFor(db: Tx, occurrenceId: string): Promise<Addressable> {
+  const rows = await db
+    .select({
+      teamId: teams.id,
+      teamName: teams.name,
+      positionId: teamPositions.id,
+      positionName: teamPositions.name,
+      personId: people.id,
+      firstName: people.firstName,
+      preferredName: people.preferredName,
+      lastName: people.lastName,
+    })
+    .from(servingAssignments)
+    .innerJoin(teams, eq(teams.id, servingAssignments.teamId))
+    .innerJoin(teamPositions, eq(teamPositions.id, servingAssignments.positionId))
+    .innerJoin(people, eq(people.id, servingAssignments.personId))
+    .where(and(
+      eq(servingAssignments.occurrenceId, occurrenceId),
+      sql`${servingAssignments.status} <> 'declined'`,
+    ))
+    .orderBy(asc(teams.name), asc(teamPositions.position), asc(people.lastName));
+
+  const byTeam = new Map<string, { id: string; name: string }>();
+  const byPosition = new Map<string, { id: string; name: string; teamName: string }>();
+  const byPerson = new Map<string, { id: string; name: string; positionName: string }>();
+
+  for (const row of rows) {
+    byTeam.set(row.teamId, { id: row.teamId, name: row.teamName });
+    byPosition.set(row.positionId, {
+      id: row.positionId, name: row.positionName, teamName: row.teamName,
+    });
+    byPerson.set(row.personId, {
+      id: row.personId,
+      name: `${row.preferredName ?? row.firstName} ${row.lastName}`,
+      positionName: row.positionName,
+    });
+  }
+
+  return {
+    teams: [...byTeam.values()],
+    positions: [...byPosition.values()],
+    people: [...byPerson.values()],
+  };
+}
+
+/** R11.6. What this person is scheduled as, which is what their notes follow. */
+export async function readerFor(
+  db: Tx,
+  input: { occurrenceId: string; personId: string },
+): Promise<PlanReader> {
+  const rows = await db
+    .select({
+      teamId: servingAssignments.teamId,
+      positionId: servingAssignments.positionId,
+    })
+    .from(servingAssignments)
+    .where(and(
+      eq(servingAssignments.occurrenceId, input.occurrenceId),
+      eq(servingAssignments.personId, input.personId),
+      sql`${servingAssignments.status} <> 'declined'`,
+    ));
+
+  return {
+    personId: input.personId,
+    teamIds: [...new Set(rows.map((r) => r.teamId))],
+    positionIds: [...new Set(rows.map((r) => r.positionId))],
+  };
 }

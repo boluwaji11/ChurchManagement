@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ChevronUp, ChevronDown, Pencil } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Pencil, MessageSquare, X } from "lucide-react";
 import {
   Banner, Button, Card, EmptyState, Field, IconButton, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
@@ -10,7 +10,7 @@ import {
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import type { ItemKind } from "@hearth/db";
-import { saveHeader, saveItem, dropItem, shiftItem } from "./actions";
+import { saveHeader, saveItem, dropItem, shiftItem, saveNote, dropNote } from "./actions";
 
 const KINDS: ItemKind[] = [
   "song", "scripture", "sermon", "prayer", "offering", "announcement", "media", "custom",
@@ -22,6 +22,20 @@ export interface OrderItem {
   title: string;
   description: string | null;
   minutes: number;
+  notes: OrderNote[];
+}
+
+export interface OrderNote {
+  id: string;
+  body: string;
+  audience: string | null;
+}
+
+/** R11.6. Who a note can be addressed to on this gathering. */
+export interface Audience {
+  teams: { id: string; name: string }[];
+  positions: { id: string; name: string; teamName: string }[];
+  people: { id: string; name: string; positionName: string }[];
 }
 
 /** HH:MM from minutes past midnight, wrapping so a late plan reads. */
@@ -53,6 +67,7 @@ export function Order({
   series,
   theme,
   items,
+  audience,
 }: {
   church: string;
   planId: string;
@@ -60,6 +75,7 @@ export function Order({
   series: string | null;
   theme: string | null;
   items: OrderItem[];
+  audience: Audience;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -122,6 +138,34 @@ export function Order({
                     {item.description ? (
                       <span className="text-caption text-fg-muted">{item.description}</span>
                     ) : null}
+
+                    {/* R11.6. The instructions, each labelled with who it is
+                        for, so a leader can see the drummer has been told. */}
+                    {item.notes.length > 0 ? (
+                      <ul className="mt-1 flex flex-col gap-1">
+                        {item.notes.map((note) => (
+                          <li key={note.id} className="flex items-start gap-2">
+                            <MessageSquare
+                              className="mt-0.5 size-3.5 shrink-0 text-fg-subtle"
+                              aria-hidden
+                            />
+                            <span className="text-caption text-fg-muted">
+                              {note.audience ? (
+                                <span className="font-medium text-fg">{note.audience} </span>
+                              ) : null}
+                              {note.body}
+                            </span>
+                            <IconButton
+                              label={t("order.note.remove")}
+                              disabled={pending}
+                              onClick={() => run(() => dropNote(note.id, church))}
+                            >
+                              <X />
+                            </IconButton>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </span>
 
                   <span className="w-12 shrink-0 text-right text-caption text-fg-muted tabular-nums">
@@ -143,6 +187,7 @@ export function Order({
                     >
                       <ChevronDown />
                     </IconButton>
+                    <NoteDialog church={church} itemId={item.id} audience={audience} />
                     <ItemDialog
                       church={church}
                       planId={planId}
@@ -321,6 +366,99 @@ function ItemDialog({
               onChange={(e) => setDescription(e.target.value)}
             />
           </Field>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * R11.6. Writing a note, and saying who it is for.
+ *
+ * The audience is the schedule rather than every team in the church, because a
+ * note addressed to a position nobody is filling is a note nobody reads.
+ */
+function NoteDialog({
+  church,
+  itemId,
+  audience,
+}: {
+  church: string;
+  itemId: string;
+  audience: Audience;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string>();
+  const [body, setBody] = React.useState("");
+  const [who, setWho] = React.useState("everyone");
+  const [pending, startTransition] = React.useTransition();
+
+  const submit = () => {
+    const [kind, id] = who.split(":");
+    startTransition(async () => {
+      const result = await saveNote(
+        {
+          itemId,
+          body,
+          teamId: kind === "team" ? id! : null,
+          positionId: kind === "position" ? id! : null,
+          personId: kind === "person" ? id! : null,
+        },
+        church,
+      );
+      setError(result.error);
+      if (!result.error) {
+        setOpen(false);
+        setBody("");
+        setWho("everyone");
+        router.refresh();
+      }
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <IconButton label={t("order.note.add")}><MessageSquare /></IconButton>
+      </DialogTrigger>
+      <DialogContent title={t("order.note.add")} closeLabel={t("common.close")}>
+        <div className="flex flex-col gap-4">
+          {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
+
+          <Field label={t("order.note.body")} required>
+            <Textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} autoFocus />
+          </Field>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-label text-fg">{t("order.note.who")}</span>
+            <Select value={who} onValueChange={setWho}>
+              <SelectTrigger aria-label={t("order.note.who")}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="everyone">{t("order.note.everyone")}</SelectItem>
+                {audience.teams.map((team) => (
+                  <SelectItem key={team.id} value={`team:${team.id}`}>{team.name}</SelectItem>
+                ))}
+                {audience.positions.map((position) => (
+                  <SelectItem key={position.id} value={`position:${position.id}`}>
+                    {position.teamName} {position.name}
+                  </SelectItem>
+                ))}
+                {audience.people.map((person) => (
+                  <SelectItem key={person.id} value={`person:${person.id}`}>
+                    {person.name} {person.positionName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
