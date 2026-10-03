@@ -40,12 +40,3 @@ function open(payload: string, name: string): string {
 export const encryptNote = (plaintext: string): string => seal(plaintext, "NOTE_ENCRYPTION_KEY");
 export const decryptNote = (payload: string): string => open(payload, "NOTE_ENCRYPTION_KEY");
 
-/**
- * R21.15. A credential a church gave us for its own mail or SMS account.
- *
- * Its own key, separate from the pastoral notes key, so the two can be rotated
- * on their own schedules and a key handed to a job worker that sends mail does
- * not also open counselling notes.
- */
-export const encryptSecret = (plaintext: string): string => seal(plaintext, "SECRET_ENCRYPTION_KEY");
-export const decryptSecret = (payload: string): string => open(payload, "SECRET_ENCRYPTION_KEY");

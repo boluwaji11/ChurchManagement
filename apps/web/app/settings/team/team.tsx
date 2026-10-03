@@ -188,14 +188,7 @@ export function Team({
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle>{t("team.title")}</CardTitle>
-          <InviteDialog
-            church={church}
-            pending={pending}
-            onDone={(said) => {
-              setMessage(said);
-              router.refresh();
-            }}
-          />
+          <InviteDialog church={church} pending={pending} onDone={() => router.refresh()} />
         </div>
         <Separator className="my-4" />
 
@@ -332,7 +325,7 @@ function InviteDialog({
 }: {
   church: string;
   pending: boolean;
-  onDone: (said?: string) => void;
+  onDone: () => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [role, setRole] = React.useState("staff");
@@ -355,13 +348,7 @@ function InviteDialog({
               setFailed(result.error);
               if (!result.error) {
                 setOpen(false);
-                // R16.3. Say whether the message went, not only that the
-                // invitation was recorded. The join link is still on the page.
-                onDone(
-                  result.emailed
-                    ? t("invite.emailed", { email: result.emailed })
-                    : t("invite.notEmailed", { reason: result.notEmailed ?? "" }),
-                );
+                onDone();
               }
             });
           }}

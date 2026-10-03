@@ -68,5 +68,4 @@ export type PermissionAction =
   | "manageRooms" | "manageStations" | "checkIn"
   | "fileIncident" | "readIncidents" | "manageGroups" | "recordGroupAttendance"
   | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy"
-  | "manageTeams" | "manageTeamRoster" | "schedule" | "managePlans"
-  | "manageMessaging";
+  | "manageTeams" | "manageTeamRoster" | "schedule" | "managePlans";

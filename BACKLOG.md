@@ -375,11 +375,10 @@ at an arrangement and R11.4 lands on top of what is already here.
 
 ## E5. GA (1.0)
 
-F16 Communication, then F4 Forms, F17 Portal, F6 Pastoral care, F15 Calendar, F14 Events,
-F18 Reporting, F20 API.
+F4 Forms, F17 Portal, F6 Pastoral care, F15 Calendar, F14 Events, F18 Reporting, F20 API.
 
-**F16 comes first** because two stories already written are waiting on it: HRT-87 group messaging
-and HRT-126 serving reminders. Every other feature in this release sends something.
+**F16 communication is deferred** and is not to be started again until it is asked for. HRT-87 group
+messaging and HRT-126 serving reminders stay waiting on it.
 
 **Anything that takes money is held back to 0.3.** Paid event registration, giving in the portal,
 giving reports and the accounting export are listed here under the feature they belong to, each
@@ -387,35 +386,27 @@ marked for 0.3, so the shape of the feature is on the board while the money is b
 
 ### F16. Communication
 
-A church supplies its own SMTP credentials and its own Twilio account. We never resell a message.
-The shared quota covers transactional mail only: an invitation, a password reset, a check-in
-receipt, a schedule request.
+**Deferred, October 2026.** Built and then taken out again at the church's instruction. Nothing in
+this repo sends email, holds SMTP or Twilio credentials, or keeps a send queue, and nothing is to be
+built here until it is asked for.
 
-**Resend is deferred, October 2026.** Plain SMTP reaches every provider a church is likely to
-already have, Resend's own SMTP endpoint among them, so it is the one worth having first. A Resend
-API key is a second way to reach a service the church can already reach.
-
-**Open and delivery tracking is deferred with it.** R16.7 asks for them "where the provider supports
-it", and SMTP supports neither: it reports what the server said at the moment the message was handed
-over, and nothing afterwards. Reading them needs a provider that posts events back, which is the
-Resend work. Open tracking would also mean a pixel in every message and an HTML body, and that is a
-decision about surveilling a congregation, to be taken on its own rather than as a side effect of
-picking a mail provider. What HRT-142 does build is the half SMTP can answer: hard and soft bounces,
-retries, and taking a dead address out of use.
+What was removed: the SMTP settings screen, the shared transactional allowance and its ledger, the
+composer and template library, audience targeting, the send queue, and bounce handling. The tables
+behind them were dropped in migration 0058.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-137 | The church's own email provider: SMTP, verified by a test send before saving | R16.1, R21.15 | Resolved |
-| HRT-138 | The shared transactional quota, what counts against it, and what happens at the ceiling | R16.3 | Resolved |
-| HRT-139 | The composer: templates, merge fields, and a saved template library | R16.4 | Resolved |
-| HRT-140 | Targeting a send by saved list, group, team, pipeline, tag or lifecycle status | R16.5 | Resolved |
-| HRT-141 | The send queue: scheduled sending, progress, and what happened to each address | R16.6 | Resolved |
-| HRT-142 | Bounces, retries, and invalidating an address the server says is dead | R16.7 | Resolved |
-| HRT-143 | Consent and unsubscribe: one click, honoured across every bulk send, with the footer | R16.8 | New |
-| HRT-144 | The church's own Twilio, and opt-in recorded per person before any SMS | R16.2, R16.8 | New |
-| HRT-145 | Inbound replies into a shared inbox, attached to the person record | R16.9 | New |
-| HRT-146 | Mail-merge letters, Avery labels and envelopes | R16.12 | New |
-| HRT-147 | Birthday and anniversary sends, on the day, from a template | R16.13 | New |
+| HRT-137 | The church's own email provider | R16.1, R21.15 | **Removed, deferred** |
+| HRT-138 | The shared transactional quota | R16.3 | **Removed, deferred** |
+| HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
+| HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
+| HRT-141 | The send queue | R16.6 | **Removed, deferred** |
+| HRT-142 | Bounces and retries | R16.7 | **Removed, deferred** |
+| HRT-143 | Consent and unsubscribe | R16.8 | Deferred |
+| HRT-144 | The church's own Twilio, and opt-in before any SMS | R16.2, R16.8 | Deferred |
+| HRT-145 | Inbound replies into a shared inbox | R16.9 | Deferred |
+| HRT-146 | Mail-merge letters, Avery labels and envelopes | R16.12 | Deferred |
+| HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms
 
@@ -615,8 +606,8 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-143** consent and unsubscribe. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
-| **Order after that** | **1.0**: F16 communication, F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
+| **Next** | **The 0.1 and 0.2 stories still open.** F16 messaging is deferred, and so are finance and the children's paperwork, until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
 ### HRT-16, how to test it
@@ -1341,109 +1332,6 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
-
-### HRT-142, how to test it
-
-**Open tracking is deferred**, written up below. Plain SMTP reports what the server said when the
-message was handed over and nothing after that, so there are no delivery or open events to read.
-
-1. Send to somebody whose address does not exist. The row fails, and **Addresses that bounced** on
-   the Messages screen names them with what the mail server said.
-2. That person leaves every audience. The count on **Who it goes to** drops, and they are counted
-   under "have no email address" instead.
-3. A send with nobody left to reach is refused rather than queued empty.
-4. **Use it again** puts the address back, and they return to every audience. That is the undo for a
-   wrong guess.
-5. A server saying "try again later", a full mailbox, or anything unrecognised leaves the address
-   waiting rather than failing. It is tried on the next pass, three times, and only then given up on.
-   A send still showing **Sending** with nothing moving is one waiting on a retry.
-6. A soft failure never takes an address off the record.
-
-### HRT-141, how to test it
-
-Set up your own mail account first. Bulk sending refuses to run on the shared allowance, which is
-the product working rather than a limitation.
-
-1. **Messages**: pick who it goes to, write a subject and a message, and **Send now** lights up only
-   once all three are there.
-2. The banner says how many it was queued for and how many had no email address.
-3. The bar fills while it goes. The first batch runs while you are looking at the screen, and the
-   page carries the next one every few seconds.
-4. Each address has its own row behind the scenes, so a failure keeps what the mail server said. A
-   send where every address failed reads **Failed** rather than **Sent**.
-5. **Send at** with a date and **Schedule it** queues one for later. It reads **Scheduled** and does
-   not go.
-6. **Stop it** asks first and says that whatever has gone has gone.
-7. With no mail account set up, sending is refused and says to set one up.
-
-The queue is carried outside the browser by `pnpm --filter @hearth/db send-queue`, run by a
-scheduler every minute. It lives in the db package rather than behind a route because finding the
-due sends means reading across every church, and the owner connection never appears in a request
-path. The test at `packages/db/tests/request-path.test.ts` enforces that.
-
-### HRT-140, how to test it
-
-Giving status is held back to 0.3 with the rest of the money. Sending is HRT-141.
-
-1. **Messages** opens on **Who it goes to**. The first list offers Everybody, a saved list, a group,
-   a team, a pipeline, a tag and a lifecycle status.
-2. Pick one and the second list offers that church's own, each with how many it holds, so the right
-   one is recognisable without opening it.
-3. The count underneath reads how many have an email address, and warns separately how many do not.
-   A church sending to a group of forty and reaching thirty-one wants to know about the nine.
-4. Pick something nobody is in. It says so rather than reading zero.
-5. Archive somebody, or mark them deceased. They leave every audience.
-6. A rule-based saved list is resolved when it is counted, so adding somebody who matches the rule
-   changes the number without anybody editing the list.
-
-### HRT-139, how to test it
-
-Who a message goes to is HRT-140 and the sending is HRT-141. What is here is the writing.
-
-1. **Messages** is in the main navigation for Owner and Admin, and nowhere for anybody else.
-2. Write a name, a subject and a message. All three carry the red asterisk.
-3. The merge field buttons drop `{{first_name}}` and the rest in at the cursor, not at the end.
-4. **Preview** shows the message as one real person from your church will read it, updating as you
-   type.
-5. Type `{{pledge_total}}`. A banner says nothing fills it and that it will be sent as written, and
-   the preview shows it unchanged. A field with nothing in the record comes out empty.
-6. **Save to the library** puts it in the list below. Opening it loads it back, and saving again
-   changes that one rather than making a second.
-7. A second template with a name already used is refused.
-8. **Delete** asks first and says the messages already sent are unaffected.
-
-### HRT-138, how to test it
-
-The shared account is unset in development, so a message with no church account recorded as **Not
-sent** is the correct result there. Set up your own account in HRT-137 to watch one go.
-
-1. **Settings → Email** shows **Shared allowance**: 300 a month, what it covers, and the day the
-   count starts again.
-2. Set up your own mail account. The bar is replaced by a line saying sending runs on your own
-   account and the allowance is untouched.
-3. **Settings → Team → Invite** now sends the invitation as well as recording it. The banner says
-   which happened, and the join link is still on the page either way.
-4. The invitation appears under **Lately** with the address, what it was, which account carried it
-   and whether it went.
-5. A message that failed or was refused does not move the bar. Only what actually went out counts,
-   because a church should not be charged for our own failure.
-6. Invite somebody with the mail account removed. The record is still made, the banner says the
-   message did not go, and the ledger says so too.
-
-### HRT-137, how to test it
-
-You need SMTP credentials for a real mailbox. A Gmail app password, a Fastmail app password, Resend's
-own SMTP endpoint or Mailtrap all work.
-
-1. **Settings → Email** is there for Owner and Admin, and not for anybody else.
-2. Fill in the server, the port, the username, the password and the address it sends from. Server,
-   port, username, password and sends-from all carry the red asterisk.
-3. **Test and save** sends a message to your own address first. It only saves once that message has
-   gone, so a bad password leaves nothing saved and shows what the mail server said.
-4. Reload. Everything is there except the password, which reads **New password** and is blank.
-   Change the port alone and save: the stored password is used, and nothing is wiped.
-5. The password is never on the page. View source and search for it.
-6. **Remove the account** asks first, and says that invitations and password resets keep going out.
 
 ### HRT-134, how to test it
 
