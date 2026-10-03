@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Play } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, addressableFor, canManageServices,
-  listTemplates, recentPlans, rosterFor,
+  listTemplates, recentPlans, rosterFor, planHistory,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
@@ -12,6 +12,7 @@ import { AppHeader } from "@/components/app-header";
 import { longDate, readableTime } from "@/lib/dates";
 import { Order } from "./order";
 import { WhoServes } from "./who-serves";
+import { History } from "./history";
 
 export const dynamic = "force-dynamic";
 
@@ -42,9 +43,11 @@ export default async function PlanPage({
     const occurrence = await getOccurrence(tx, id);
     if (!occurrence) return null;
     await ensurePlan(tx, actor, id);
+    const plan = await getPlan(tx, id);
+    if (!plan) return null;
     return {
       occurrence,
-      plan: await getPlan(tx, id),
+      plan,
       // R11.6. Who a note can be addressed to: the schedule for this gathering.
       audience: await addressableFor(tx, id),
       // R11.8. Shapes to start from: what the church has saved, and what it ran.
@@ -52,11 +55,13 @@ export default async function PlanPage({
       sources: await recentPlans(tx, id),
       // R11.9. Who serves, read from the same schedule the serving pages write.
       roster: await rosterFor(tx, id),
+      // R11.12. Who changed what, read out of the append-only audit log.
+      changes: await planHistory(tx, plan.id),
     };
   });
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, audience, templates, sources, roster } = result;
+  const { occurrence, plan, audience, templates, sources, roster, changes } = result;
 
   return (
     <>
@@ -120,8 +125,9 @@ export default async function PlanPage({
           }))}
         />
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col gap-6">
           <WhoServes church={session.tenantSlug} occurrenceId={id} teams={roster} />
+          <History changes={changes} />
         </div>
       </main>
     </>
