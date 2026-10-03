@@ -5,6 +5,7 @@ import { withTenant, findGroups, personForUser, canEditPeople, canReadIncidents 
 import { Button, Card } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppHeader } from "@/components/app-header";
+import { BrandRule } from "@/components/brand-rule";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +59,8 @@ export default async function MemberHomePage({
   return (
     <>
       <AppHeader session={session} />
+      {/* R1.1. The church's colour, on the screen its members are handed. */}
+      <BrandRule tenantId={session.tenantId} role={session.role} />
       <main
         id="main"
         data-density="portal"

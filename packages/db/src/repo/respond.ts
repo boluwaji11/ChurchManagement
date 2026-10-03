@@ -17,6 +17,8 @@ import { InvalidInputError } from "../errors";
 
 export interface ServingRequest {
   churchName: string;
+  /** R1.1. The church's own colour, for a page its volunteer sees. */
+  brandHue: string;
   personName: string;
   teamName: string;
   positionName: string;
@@ -44,6 +46,7 @@ export async function servingRequestFor(token: string): Promise<ServingRequest |
   const rows = await sql<Row[]>`
     select
       ten.name as "churchName",
+      ten.brand_hue::text as "brandHue",
       coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as "personName",
       tm.name as "teamName",
       tp.name as "positionName",

@@ -1,11 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import {
-  withTenant, getOccurrence, getPlan, runningTimes, rosterFor, canManageServices,
+  withTenant, getOccurrence, getPlan, runningTimes, rosterFor, getChurch,
+  canManageServices,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { dayAndMonth, readableTime } from "@/lib/dates";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
+import { BrandRuleFor } from "@/components/brand-rule";
 
 export const dynamic = "force-dynamic";
 
@@ -44,12 +46,14 @@ export default async function PrintPlanPage({
         occurrence,
         plan: await getPlan(tx, id),
         roster: bulletin ? [] : await rosterFor(tx, id),
+        // R1.1. The church's own colour on the sheet it hands out.
+        hue: (await getChurch(tx, session.tenantId))?.brandHue ?? "indigo",
       };
     },
   );
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, roster } = result;
+  const { occurrence, plan, roster, hue } = result;
   const timed = runningTimes(plan.serviceStartsAt, plan.items);
 
   return (
@@ -60,6 +64,8 @@ export default async function PrintPlanPage({
           page margin. A zero margin takes them off, and the padding above puts
           the white space back where we want it. */}
       <style>{"@page { size: auto; margin: 0; }"}</style>
+
+      <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
       <header className="mb-6 border-b border-black pb-3">
         <div className="flex items-baseline justify-between gap-4">

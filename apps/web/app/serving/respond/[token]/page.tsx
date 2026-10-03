@@ -3,6 +3,7 @@ import { EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
 import { Logo } from "@/components/brand";
+import { BrandRuleFor } from "@/components/brand-rule";
 import { dayAndMonth, readableTime } from "@/lib/dates";
 import { Respond } from "./respond";
 
@@ -24,7 +25,12 @@ export default async function RespondPage({
   const request = await servingRequestFor(token);
 
   return (
-    <main id="main" className="mx-auto flex max-w-xl flex-col gap-8 px-4 py-12 sm:px-6">
+    <>
+      {/* R1.1. Their church's colour, so a link out of a message is recognisably
+          from the church that sent it. */}
+      {request ? <BrandRuleFor hue={request.brandHue} className="h-1.5 w-full" /> : null}
+
+      <main id="main" className="mx-auto flex max-w-xl flex-col gap-8 px-4 py-12 sm:px-6">
       <Logo href="/" />
 
       {!request ? (
@@ -54,6 +60,7 @@ export default async function RespondPage({
           <Respond token={token} request={request} />
         </>
       )}
-    </main>
+      </main>
+    </>
   );
 }

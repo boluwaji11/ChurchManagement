@@ -5,6 +5,7 @@ import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
+import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "../../checkin/rooms/print/auto-print";
 
 export const dynamic = "force-dynamic";
@@ -39,12 +40,17 @@ export default async function PrintDirectoryPage({
     );
   }
 
-  const { households, when } = await withTenant(
+  const { households, when, hue } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const now = churchNow(profile?.timezone ?? "America/Chicago");
-      return { households: await memberDirectory(tx, { asOf: now.date }), when: now };
+      return {
+        households: await memberDirectory(tx, { asOf: now.date }),
+        when: now,
+        // R1.1. The church's own colour on the sheet it hands out.
+        hue: profile?.brandHue ?? "indigo",
+      };
     },
   );
 
@@ -55,6 +61,8 @@ export default async function PrintDirectoryPage({
       {/* The browser's own header and footer come off, and the padding above
           puts the white space back where it belongs. */}
       <style>{"@page { size: auto; margin: 0; }"}</style>
+
+      <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
       <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
         <h1 className="font-display text-display">{t("printDirectory.title")}</h1>

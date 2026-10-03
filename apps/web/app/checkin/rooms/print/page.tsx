@@ -4,6 +4,7 @@ import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { AutoPrint } from "./auto-print";
+import { BrandRuleFor } from "@/components/brand-rule";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export default async function RosterPrintPage({
     );
   }
 
-  const { entries, name, churchName, when } = await withTenant(
+  const { entries, name, churchName, when, hue } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
@@ -42,6 +43,8 @@ export default async function RosterPrintPage({
         entries: await roomRoster(tx, service, room),
         name: rooms.find((r) => r.id === room)?.name ?? "",
         churchName: session.tenantName,
+        // R1.1. The church's own colour on the sheet that goes on the wall.
+        hue: profile?.brandHue ?? "indigo",
         when: churchNow(profile?.timezone ?? "America/Chicago"),
       };
     },
@@ -55,6 +58,8 @@ export default async function RosterPrintPage({
           page margin. A zero margin takes them off, and the padding below puts
           the white space back where we want it. */}
       <style>{"@page { size: auto; margin: 0; }"}</style>
+
+      <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
       <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
         <h1 className="font-display text-display">{name}</h1>
