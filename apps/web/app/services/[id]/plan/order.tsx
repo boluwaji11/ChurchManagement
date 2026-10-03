@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ChevronUp, ChevronDown, Pencil, MessageSquare, X } from "lucide-react";
+import {
+  Plus, Trash2, ChevronUp, ChevronDown, Pencil, MessageSquare, X, Paperclip,
+} from "lucide-react";
 import {
   Banner, Button, Card, EmptyState, Field, IconButton, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
@@ -10,7 +12,9 @@ import {
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import type { ItemKind } from "@hearth/db";
-import { saveHeader, saveItem, dropItem, shiftItem, saveNote, dropNote } from "./actions";
+import {
+  saveHeader, saveItem, dropItem, shiftItem, saveNote, dropNote, dropFile, fileLink,
+} from "./actions";
 
 const KINDS: ItemKind[] = [
   "song", "scripture", "sermon", "prayer", "offering", "announcement", "media", "custom",
@@ -23,6 +27,14 @@ export interface OrderItem {
   description: string | null;
   minutes: number;
   notes: OrderNote[];
+  files: OrderFile[];
+}
+
+export interface OrderFile {
+  id: string;
+  key: string;
+  label: string | null;
+  contentType: string;
 }
 
 export interface OrderNote {
@@ -139,6 +151,22 @@ export function Order({
                       <span className="text-caption text-fg-muted">{item.description}</span>
                     ) : null}
 
+                    {/* R11.7. Charts, tracks and sheets, opened through a
+                        signed link because the bucket is private. */}
+                    {item.files.length > 0 ? (
+                      <ul className="mt-1 flex flex-wrap gap-2">
+                        {item.files.map((file) => (
+                          <li key={file.id}>
+                            <Attachment
+                              file={file}
+                              pending={pending}
+                              onRemove={() => run(() => dropFile(file.id, church))}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+
                     {/* R11.6. The instructions, each labelled with who it is
                         for, so a leader can see the drummer has been told. */}
                     {item.notes.length > 0 ? (
@@ -187,6 +215,7 @@ export function Order({
                     >
                       <ChevronDown />
                     </IconButton>
+                    <AttachButton church={church} itemId={item.id} />
                     <NoteDialog church={church} itemId={item.id} audience={audience} />
                     <ItemDialog
                       church={church}
@@ -469,5 +498,93 @@ function NoteDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** R11.7. One file on an item, with a signed link made when it is pressed. */
+function Attachment({
+  file,
+  pending,
+  onRemove,
+}: {
+  file: OrderFile;
+  pending: boolean;
+  onRemove: () => void;
+}) {
+  const [opening, setOpening] = React.useState(false);
+
+  const open = () => {
+    setOpening(true);
+    fileLink(file.key)
+      .then((url) => {
+        if (url) window.open(url, "_blank", "noopener");
+      })
+      .finally(() => setOpening(false));
+  };
+
+  const name = file.label ?? file.key.split("/").pop() ?? file.contentType;
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-0.5">
+      <button
+        type="button"
+        onClick={open}
+        disabled={opening}
+        className="flex items-center gap-1.5 text-caption text-fg underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+      >
+        <Paperclip className="size-3.5 text-fg-muted" aria-hidden />
+        {name}
+      </button>
+      <IconButton label={t("order.file.remove")} disabled={pending} onClick={onRemove}>
+        <X />
+      </IconButton>
+    </span>
+  );
+}
+
+/**
+ * R11.7. Attaching a file.
+ *
+ * It goes through the one upload path, which checks the type, the size and the
+ * quota in the query layer before any bytes are written.
+ */
+function AttachButton({ church, itemId }: { church: string; itemId: string }) {
+  const router = useRouter();
+  const input = React.useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = React.useState(false);
+
+  const send = async (file: File) => {
+    setBusy(true);
+    const form = new FormData();
+    form.set("church", church);
+    form.set("purpose", "plan_item");
+    form.set("itemId", itemId);
+    form.set("file", file);
+    await fetch("/api/upload", { method: "POST", body: form });
+    setBusy(false);
+    router.refresh();
+  };
+
+  return (
+    <>
+      <input
+        ref={input}
+        type="file"
+        className="sr-only"
+        accept="application/pdf,image/png,image/jpeg,image/webp,audio/mpeg,audio/mp4,audio/ogg,audio/wav,text/plain"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void send(file);
+          e.target.value = "";
+        }}
+      />
+      <IconButton
+        label={t("order.file.add")}
+        disabled={busy}
+        onClick={() => input.current?.click()}
+      >
+        <Paperclip />
+      </IconButton>
+    </>
   );
 }

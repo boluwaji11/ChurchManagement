@@ -26,6 +26,22 @@ export const ONE_MIB = 1024 * 1024;
 export const UPLOAD_RULES = {
   logo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 2 * ONE_MIB },
   person_photo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
+  /**
+   * R11.7. What hangs off an item on a service plan: chord charts, a running
+   * order as a PDF, a reference track, a slide image, a lyric sheet.
+   *
+   * No video. Sermon video is a non-goal and a church that uploads one fills
+   * its quota in a single file.
+   */
+  plan_item: {
+    types: [
+      "application/pdf",
+      "image/png", "image/jpeg", "image/webp",
+      "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav",
+      "text/plain",
+    ],
+    maxBytes: 10 * ONE_MIB,
+  },
 } as const;
 
 export type UploadPurpose = keyof typeof UPLOAD_RULES;

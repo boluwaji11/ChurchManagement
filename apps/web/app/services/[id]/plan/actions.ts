@@ -2,11 +2,12 @@
 
 import {
   withTenant, ensurePlan, updatePlan, addItem, updateItem, removeItem, moveItem,
-  addItemNote, removeItemNote,
+  addItemNote, removeItemNote, detachFromItem,
   type ItemKind,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
+import { supabaseServer } from "@/lib/supabase/server";
 
 async function context(church?: string) {
   const session = await requireSession(church);
@@ -123,4 +124,31 @@ export async function dropNote(id: string, church?: string): Promise<PlanResult>
   } catch (error) {
     return { error: explain(error) };
   }
+}
+
+/**
+ * R11.7. Takes a file off an item, and off the bucket.
+ *
+ * A file nothing points at is quota a church is paying for and cannot see.
+ */
+export async function dropFile(id: string, church?: string): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    const removed = await withTenant(ctx, (tx) => detachFromItem(tx, actor, id));
+    if (removed) {
+      const supabase = await supabaseServer();
+      await supabase.storage.from("church").remove([removed.key]);
+    }
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R11.7. A link to the file, signed, because the bucket is private. */
+export async function fileLink(key: string): Promise<string | null> {
+  await requireSession();
+  const supabase = await supabaseServer();
+  const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
+  return signed.data?.signedUrl ?? null;
 }

@@ -1,6 +1,7 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { servicePlans, planItems, planItemNotes } from "../schema/plans";
+import { servicePlans, planItems, planItemNotes, planItemFiles } from "../schema/plans";
+import { storedFiles } from "../schema/tenancy";
 import { teams, teamPositions, servingAssignments } from "../schema/serving";
 import { people } from "../schema/people";
 import { serviceOccurrences } from "../schema/gatherings";
@@ -36,6 +37,19 @@ export interface PlanItem {
   startsAt: string;
   /** R11.6. Instructions on this item, and who each one is for. */
   notes: ItemNote[];
+  /** R11.7. Charts, PDFs, audio and images hanging off it. */
+  files: ItemFile[];
+}
+
+/** R11.7. One file on an item. */
+export interface ItemFile {
+  id: string;
+  itemId: string;
+  fileId: string;
+  key: string;
+  label: string | null;
+  contentType: string;
+  bytes: number;
 }
 
 /**
@@ -174,7 +188,10 @@ export async function getPlan(db: Tx, occurrenceId: string): Promise<ServicePlan
     .where(eq(planItems.planId, row.id))
     .orderBy(asc(planItems.position), asc(planItems.createdAt));
 
-  const notes = await notesForPlan(db, row.id);
+  const [notes, files] = await Promise.all([
+    notesForPlan(db, row.id),
+    filesForPlan(db, row.id),
+  ]);
 
   const timed = runningTimes(
     row.serviceStartsAt,
@@ -182,6 +199,7 @@ export async function getPlan(db: Tx, occurrenceId: string): Promise<ServicePlan
       ...r,
       kind: r.kind as ItemKind,
       notes: notes.filter((n) => n.itemId === r.id),
+      files: files.filter((f) => f.itemId === r.id),
     })),
   );
 
@@ -534,4 +552,87 @@ export async function readerFor(
     teamIds: [...new Set(rows.map((r) => r.teamId))],
     positionIds: [...new Set(rows.map((r) => r.positionId))],
   };
+}
+
+// ---------------------------------------------------------------------------
+// R11.7. Files on an item
+// ---------------------------------------------------------------------------
+
+export async function filesForPlan(db: Tx, planId: string): Promise<ItemFile[]> {
+  return db
+    .select({
+      id: planItemFiles.id,
+      itemId: planItemFiles.itemId,
+      fileId: planItemFiles.fileId,
+      key: storedFiles.key,
+      label: planItemFiles.label,
+      contentType: storedFiles.contentType,
+      bytes: storedFiles.bytes,
+    })
+    .from(planItemFiles)
+    .innerJoin(planItems, eq(planItems.id, planItemFiles.itemId))
+    .innerJoin(storedFiles, eq(storedFiles.id, planItemFiles.fileId))
+    .where(eq(planItems.planId, planId))
+    .orderBy(asc(planItemFiles.position), asc(planItemFiles.createdAt));
+}
+
+/**
+ * R11.7. Hangs an already-uploaded file off an item.
+ *
+ * The bytes went through the one upload path, which checked the type, the size
+ * and the quota before anything was written. This records what the file is for.
+ */
+export async function attachToItem(
+  db: Tx,
+  actor: WriteActor,
+  input: { itemId: string; fileId: string; label?: string | null },
+): Promise<{ id: string }> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+
+  const [last] = await db
+    .select({ at: sql<number>`coalesce(max(${planItemFiles.position}), -1)::int` })
+    .from(planItemFiles)
+    .where(eq(planItemFiles.itemId, input.itemId));
+
+  const [row] = await db
+    .insert(planItemFiles)
+    .values({
+      tenantId: actor.tenantId,
+      itemId: input.itemId,
+      fileId: input.fileId,
+      label: input.label?.trim() || null,
+      position: (last?.at ?? -1) + 1,
+    })
+    .onConflictDoNothing()
+    .returning({ id: planItemFiles.id });
+
+  if (!row) throw new InvalidInputError("order.error.attached");
+  return { id: row.id };
+}
+
+/**
+ * R11.7. Takes a file off an item and says which object to remove.
+ *
+ * The ledger row goes with it, because a file nothing points at is quota a
+ * church is paying for and cannot see.
+ */
+export async function detachFromItem(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+): Promise<{ key: string } | null> {
+  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+
+  const [row] = await db
+    .select({ fileId: planItemFiles.fileId, key: storedFiles.key })
+    .from(planItemFiles)
+    .innerJoin(storedFiles, eq(storedFiles.id, planItemFiles.fileId))
+    .where(eq(planItemFiles.id, id))
+    .limit(1);
+  if (!row) throw new InvalidInputError("order.error.file");
+
+  await db.delete(planItemFiles).where(eq(planItemFiles.id, id));
+  await db.delete(storedFiles).where(eq(storedFiles.id, row.fileId));
+
+  return { key: row.key };
 }

@@ -85,6 +85,12 @@ export default async function PlanPage({
               body: note.body,
               audience: note.audience,
             })),
+            files: item.files.map((file) => ({
+              id: file.id,
+              key: file.key,
+              label: file.label,
+              contentType: file.contentType,
+            })),
           }))}
           audience={audience}
         />

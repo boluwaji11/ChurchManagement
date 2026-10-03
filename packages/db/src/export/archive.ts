@@ -58,6 +58,7 @@ const TABLES = [
   "service_plans",
   "plan_items",
   "plan_item_notes",
+  "plan_item_files",
   "stored_files",
   "demo_records",
   "tenant_members",

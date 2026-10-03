@@ -1,7 +1,7 @@
 import {
   pgTable, uuid, text, integer, timestamp, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { tenants } from "./tenancy";
+import { tenants, storedFiles } from "./tenancy";
 import { serviceOccurrences } from "./gatherings";
 import { teams, teamPositions } from "./serving";
 import { people } from "./people";
@@ -103,5 +103,31 @@ export const planItemNotes = pgTable(
   (t) => [
     index("plan_note_tenant_idx").on(t.tenantId),
     index("plan_note_item_idx").on(t.tenantId, t.itemId),
+  ],
+);
+
+/**
+ * R11.7. A file hanging off an item: a chord chart, a PDF, a reference track.
+ *
+ * The bytes are in the object store and the ledger row is in stored_files. This
+ * is the join, plus the name a musician reads, because "chart.pdf" and the
+ * random key the file is stored under are both useless on a music stand.
+ */
+export const planItemFiles = pgTable(
+  "plan_item_files",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    itemId: uuid("item_id").notNull().references(() => planItems.id, { onDelete: "cascade" }),
+    fileId: uuid("file_id").notNull().references(() => storedFiles.id, { onDelete: "cascade" }),
+    /** What to call it on screen. Falls back to the kind of file it is. */
+    label: text("label"),
+    position: integer("position").notNull().default(0),
+    createdAt: created(),
+  },
+  (t) => [
+    index("plan_file_tenant_idx").on(t.tenantId),
+    index("plan_file_item_idx").on(t.tenantId, t.itemId, t.position),
+    uniqueIndex("plan_file_unique").on(t.itemId, t.fileId),
   ],
 );

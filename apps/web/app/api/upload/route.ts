@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import {
-  withTenant, assertCanStore, recordFile, setChurchLogo, canManageChurch,
+  withTenant, assertCanStore, recordFile, setChurchLogo, attachToItem,
+  canManageChurch, canManageServices,
   type UploadPurpose,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
@@ -15,6 +16,12 @@ const EXTENSION: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
+  "application/pdf": "pdf",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "audio/ogg": "ogg",
+  "audio/wav": "wav",
+  "text/plain": "txt",
 };
 
 /**
@@ -34,6 +41,9 @@ export async function POST(request: Request) {
   const slug = String(form.get("church") ?? "") || undefined;
   const purpose = String(form.get("purpose") ?? "") as UploadPurpose;
   const file = form.get("file");
+  // R11.7. Which item on a service plan the bytes belong to.
+  const itemId = String(form.get("itemId") ?? "") || null;
+  const label = String(form.get("label") ?? "").trim() || null;
 
   const session = await requireSession(slug);
 
@@ -42,6 +52,14 @@ export async function POST(request: Request) {
   }
   if (purpose === "logo" && !canManageChurch(session.role)) {
     return NextResponse.json({ error: t("error.permission.editChurch") }, { status: 403 });
+  }
+  if (purpose === "plan_item") {
+    if (!canManageServices(session.role)) {
+      return NextResponse.json({ error: t("error.permission.managePlans") }, { status: 403 });
+    }
+    if (!itemId) {
+      return NextResponse.json({ error: t("order.error.item") }, { status: 400 });
+    }
   }
 
   const bytes = file.size;
@@ -68,11 +86,14 @@ export async function POST(request: Request) {
 
   try {
     const removed = await withTenant(actor, async (tx) => {
-      await recordFile(tx, actor, {
+      const stored = await recordFile(tx, actor, {
         key, purpose, contentType, bytes, uploadedByUserId: session.userId,
       });
       if (purpose === "logo") {
         return (await setChurchLogo(tx, actor, key)).removed;
+      }
+      if (purpose === "plan_item" && itemId) {
+        await attachToItem(tx, actor, { itemId, fileId: stored.id, label });
       }
       return null;
     });
