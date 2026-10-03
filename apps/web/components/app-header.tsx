@@ -4,7 +4,7 @@ import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
-  canLeadTeams,
+  canLeadTeams, canManageChurch,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
@@ -91,6 +91,11 @@ export async function AppHeader({ session }: { session: Session }) {
                   [t("nav.checkin"), "/checkin"] as const,
                   [t("nav.rooms"), "/checkin/rooms"] as const,
                 ]
+              : []),
+            // R16.4. Writing to the church. Admin and above, because sending
+            // to four hundred people is not a thing a volunteer stumbles into.
+            ...(canManageChurch(session.role)
+              ? [[t("nav.messages"), "/messages"] as const]
               : []),
             // R5.5. The Monday morning screen, for the roles that work it.
             ...(canFollowUp(session.role)

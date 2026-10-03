@@ -71,3 +71,29 @@ export const emailSends = pgTable(
     index("email_send_via_idx").on(t.tenantId, t.via, t.sentAt),
   ],
 );
+
+/**
+ * R16.4. A message a church writes once and sends many times.
+ *
+ * The body carries merge fields as `{{first_name}}`, resolved against each
+ * recipient when the message goes out. Plain text with a small set of names
+ * rather than a template language, because the person writing it is a volunteer
+ * and the failure mode of a template language is a message that goes to four
+ * hundred people reading "undefined".
+ */
+export const messageTemplates = pgTable(
+  "message_templates",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    name: text("name").notNull(),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("message_template_tenant_idx").on(t.tenantId),
+    uniqueIndex("message_template_name_unique").on(t.tenantId, t.name),
+  ],
+);
