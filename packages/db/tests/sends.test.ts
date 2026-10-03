@@ -141,7 +141,7 @@ describe("carrying it", () => {
 
   it("closes as sent, keeping what did not arrive and why", async () => {
     const batch = await run((tx) => nextBatch(tx, sendId));
-    await run((tx) => markRecipient(tx, batch[0]!.id, "failed", "Mailbox unavailable"));
+    await run((tx) => markRecipient(tx, batch[0]!.id, "failed", "550 Mailbox unavailable"));
 
     expect(await run((tx) => finishIfDone(tx, sendId))).toBe(true);
 
@@ -151,14 +151,15 @@ describe("carrying it", () => {
 
     const failures = await run((tx) => sendRecipientsFor(tx, sendId, { status: "failed" }));
     expect(failures).toHaveLength(1);
-    expect(failures[0]!.reason).toBe("Mailbox unavailable");
+    expect(failures[0]!.reason).toBe("550 Mailbox unavailable");
   });
 
   it("calls a send where nothing arrived a failed send", async () => {
     const queued = await run((tx) => queueSend(tx, as(), draft, "Riverside"));
     const batch = await run((tx) => nextBatch(tx, queued.id));
+    // A 5xx, so R16.7 gives up on it rather than queueing it for another pass.
     for (const one of batch) {
-      await run((tx) => markRecipient(tx, one.id, "failed", "No such mailbox"));
+      await run((tx) => markRecipient(tx, one.id, "failed", "550 No such mailbox"));
     }
 
     await run((tx) => finishIfDone(tx, queued.id));
@@ -168,6 +169,15 @@ describe("carrying it", () => {
 
 describe("stopping one", () => {
   it("stops a send that has not finished, and refuses one that has", async () => {
+    // The sends above bounced hard, so R16.7 took those addresses out of use.
+    // This needs somebody reachable of its own.
+    await run((tx) =>
+      createPerson(tx, as(), {
+        firstName: "Dayo", lastName: "Sends", lifecycleStatus: "member",
+        email: "dayo@example.org",
+      } as never),
+    );
+
     const queued = await run((tx) =>
       queueSend(tx, as(), { ...draft, sendAt: "2099-01-01T10:00:00Z" }, "Riverside"),
     );

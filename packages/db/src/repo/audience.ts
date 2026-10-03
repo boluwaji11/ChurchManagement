@@ -246,6 +246,10 @@ export async function recipientsFor(
       eq(contactMethods.personId, people.id),
       eq(contactMethods.kind, "email"),
       eq(contactMethods.isPrimary, true),
+      // R16.7. An address a mail server has already refused for good is not an
+      // address, so somebody holding one counts as unreachable rather than
+      // taking up a slot in every send from now on.
+      eq(contactMethods.isValid, true),
     ))
     .where(and(inArray(people.id, ids), alive()))
     .orderBy(asc(people.lastName), asc(people.firstName));

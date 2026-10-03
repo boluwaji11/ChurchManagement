@@ -7,6 +7,7 @@ import type { AudienceKind } from "@hearth/db/rules";
 import { AudiencePicker, type PickerOptions } from "./audience-picker";
 import { Composer } from "./composer";
 import { Sends } from "./sends";
+import { Bounces, type BouncedRow } from "./bounces";
 
 /**
  * R16.4 to R16.6. Writing it, choosing who gets it, and sending it.
@@ -21,12 +22,14 @@ export function MessagesScreen({
   sample,
   options,
   sends,
+  bounced,
 }: {
   church: string;
   library: MessageTemplate[];
   sample: MergeValues;
   options: PickerOptions;
   sends: SendRow[];
+  bounced: BouncedRow[];
 }) {
   const [draft, setDraft] = React.useState({ subject: "", body: "" });
   const [audience, setAudience] = React.useState<{
@@ -73,6 +76,8 @@ export function MessagesScreen({
           audienceName: audience.name || t("audience.kind.everybody"),
         }}
       />
+
+      <Bounces church={church} rows={bounced} />
     </div>
   );
 }

@@ -14,3 +14,4 @@ export * from "./repo/meeting-dates";
 export * from "./repo/check-rules";
 export * from "./repo/directory-rules";
 export * from "./repo/merge-rules";
+export * from "./repo/bounce-rules";

@@ -1,4 +1,6 @@
-import { pgTable, uuid, text, jsonb, timestamp, uniqueIndex, index } from "drizzle-orm/pg-core";
+import {
+  pgTable, uuid, text, jsonb, integer, timestamp, uniqueIndex, index,
+} from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
@@ -159,6 +161,14 @@ export const sendRecipients = pgTable(
     /** "pending", "sent" or "failed". */
     status: text("status").notNull().default("pending"),
     reason: text("reason"),
+    /**
+     * R16.7. How many times this address has been tried.
+     *
+     * A mail server saying "try later" is a 4xx, and treating that as a dead
+     * address would throw away a message the church meant to send. So a soft
+     * failure stays waiting and is tried again, up to a few times.
+     */
+    attempts: integer("attempts").notNull().default(0),
     sentAt: timestamp("sent_at", { withTimezone: true }),
     createdAt: created(),
   },

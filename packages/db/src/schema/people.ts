@@ -108,6 +108,9 @@ export const contactMethods = pgTable(
     isPrimary: boolean("is_primary").notNull().default(false),
     /** R16.7. Bounces invalidate an address rather than silently failing forever. */
     isValid: boolean("is_valid").notNull().default(true),
+    /** What the mail server said, and when, so somebody can judge it. */
+    invalidReason: text("invalid_reason"),
+    invalidAt: timestamp("invalid_at", { withTimezone: true }),
     createdAt: created(),
   },
   (t) => [index("contact_tenant_idx").on(t.tenantId), index("contact_person_idx").on(t.tenantId, t.personId)],

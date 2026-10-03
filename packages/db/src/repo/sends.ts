@@ -7,6 +7,8 @@ import { canManageChurch } from "./church";
 import { mergeInto, type AudienceChoice } from "./merge-rules";
 import { recipientsFor } from "./audience";
 import { emailConnection } from "./messaging";
+import { classifyBounce, shouldRetry, type Bounce } from "./bounce-rules";
+import { contactMethods, people } from "../schema/people";
 import type { WriteActor } from "./people";
 
 /**
@@ -248,13 +250,17 @@ export async function nextBatch(
   db: Tx,
   sendId: string,
   size = BATCH,
-): Promise<{ id: string; toEmail: string; subject: string; body: string }[]> {
+): Promise<
+  { id: string; personId: string | null; toEmail: string; subject: string; body: string; attempts: number }[]
+> {
   const rows = await db
     .select({
       id: sendRecipients.id,
+      personId: sendRecipients.personId,
       toEmail: sendRecipients.toEmail,
       subject: sendRecipients.subject,
       body: sendRecipients.body,
+      attempts: sendRecipients.attempts,
     })
     .from(sendRecipients)
     .where(and(eq(sendRecipients.sendId, sendId), eq(sendRecipients.status, "pending")))
@@ -271,21 +277,133 @@ export async function markSending(db: Tx, sendId: string): Promise<void> {
     .where(and(eq(sends.id, sendId), eq(sends.status, "scheduled")));
 }
 
-/** R16.6. What happened to one address. */
+/**
+ * R16.6, R16.7. What happened to one address.
+ *
+ * A refusal is read before it is recorded. A server saying "try later" leaves
+ * the address waiting for another pass, because treating that as a dead address
+ * throws away a message the church meant to send. A server saying the mailbox
+ * does not exist is final, and the address comes off the person's record so the
+ * church stops sending into a hole.
+ */
 export async function markRecipient(
   db: Tx,
   id: string,
   status: Exclude<RecipientStatus, "pending">,
   reason?: string | null,
-): Promise<void> {
+): Promise<{ bounce: Bounce; retrying: boolean }> {
+  const trimmed = reason?.slice(0, 500) ?? null;
+
+  if (status === "sent") {
+    await db
+      .update(sendRecipients)
+      .set({ status, reason: null, sentAt: new Date() })
+      .where(eq(sendRecipients.id, id));
+    return { bounce: "unknown", retrying: false };
+  }
+
+  const [row] = await db
+    .select({
+      attempts: sendRecipients.attempts,
+      personId: sendRecipients.personId,
+      toEmail: sendRecipients.toEmail,
+    })
+    .from(sendRecipients)
+    .where(eq(sendRecipients.id, id))
+    .limit(1);
+  if (!row) throw new InvalidInputError("send.error.done");
+
+  const attempts = row.attempts + 1;
+  const bounce = classifyBounce(trimmed);
+  const retrying = shouldRetry(bounce, attempts);
+
   await db
     .update(sendRecipients)
     .set({
-      status,
-      reason: reason?.slice(0, 500) ?? null,
-      sentAt: new Date(),
+      status: retrying ? "pending" : "failed",
+      reason: trimmed,
+      attempts,
+      sentAt: retrying ? null : new Date(),
     })
     .where(eq(sendRecipients.id, id));
+
+  if (!retrying && bounce === "hard" && row.personId) {
+    await invalidateAddress(db, row.personId, row.toEmail, trimmed);
+  }
+
+  return { bounce, retrying };
+}
+
+/**
+ * R16.7. Takes a dead address out of use, keeping it on the record.
+ *
+ * Marked rather than deleted, because somebody has to be able to see that the
+ * address they are looking at is the one that bounced, and why.
+ */
+export async function invalidateAddress(
+  db: Tx,
+  personId: string,
+  email: string,
+  reason: string | null,
+): Promise<void> {
+  await db
+    .update(contactMethods)
+    .set({ isValid: false, invalidReason: reason, invalidAt: new Date() })
+    .where(and(
+      eq(contactMethods.personId, personId),
+      eq(contactMethods.kind, "email"),
+      eq(contactMethods.value, email),
+    ));
+}
+
+/** R16.7. Puts an address back in use, for when somebody has checked it. */
+export async function revalidateAddress(
+  db: Tx,
+  actor: WriteActor,
+  personId: string,
+  email: string,
+): Promise<void> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageMessaging");
+  await db
+    .update(contactMethods)
+    .set({ isValid: true, invalidReason: null, invalidAt: null })
+    .where(and(
+      eq(contactMethods.personId, personId),
+      eq(contactMethods.kind, "email"),
+      eq(contactMethods.value, email),
+    ));
+}
+
+/** R16.7. Every address this church has stopped sending to. */
+export async function bouncedAddresses(
+  db: Tx,
+  limit = 50,
+): Promise<
+  { personId: string; name: string; email: string; reason: string | null; at: string }[]
+> {
+  const rows = await db
+    .select({
+      personId: contactMethods.personId,
+      email: contactMethods.value,
+      reason: contactMethods.invalidReason,
+      at: contactMethods.invalidAt,
+      firstName: people.firstName,
+      preferredName: people.preferredName,
+      lastName: people.lastName,
+    })
+    .from(contactMethods)
+    .innerJoin(people, eq(people.id, contactMethods.personId))
+    .where(and(eq(contactMethods.kind, "email"), eq(contactMethods.isValid, false)))
+    .orderBy(desc(contactMethods.invalidAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    personId: row.personId,
+    name: `${row.preferredName ?? row.firstName} ${row.lastName}`,
+    email: row.email,
+    reason: row.reason,
+    at: row.at?.toISOString() ?? "",
+  }));
 }
 
 /**

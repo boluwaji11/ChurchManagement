@@ -59,6 +59,7 @@ export * from "./repo/transactional";
 export * from "./repo/compose";
 export * from "./repo/audience";
 export * from "./repo/sends";
+export * from "./repo/bounce-rules";
 export * from "./repo/directory";
 export * from "./repo/setup";
 export * from "./repo/value";

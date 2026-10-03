@@ -2,7 +2,7 @@
 
 import {
   withTenant, listMessageTemplates, saveMessageTemplate, removeMessageTemplate,
-  recipientsFor, queueSend, listSends, cancelSend,
+  recipientsFor, queueSend, listSends, cancelSend, revalidateAddress,
   type TemplateInput, type AudienceChoice,
 } from "@hearth/db";
 import { runOneBatch, runDue } from "@/lib/run-sends";
@@ -136,4 +136,19 @@ export async function stopSend(id: string, church?: string): Promise<ComposeResu
 export async function sendList(church?: string) {
   const { ctx } = await context(church);
   return withTenant(ctx, (tx) => listSends(tx));
+}
+
+/** R16.7. Puts a bounced address back in use, once somebody has checked it. */
+export async function restoreAddress(
+  personId: string,
+  email: string,
+  church?: string,
+): Promise<ComposeResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => revalidateAddress(tx, actor, personId, email));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
 }

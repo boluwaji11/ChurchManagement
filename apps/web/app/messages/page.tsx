@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import {
   withTenant, listMessageTemplates, listPeople, getChurch, audienceOptions,
-  listSends, canManageChurch,
+  listSends, bouncedAddresses, canManageChurch,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { PageTitle } from "@/components/section";
@@ -32,7 +32,7 @@ export default async function MessagesPage({
 
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
 
-  const { library, sample, options, sends } = await withTenant(actor, async (tx) => {
+  const { library, sample, options, sends, bounced } = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
     // R16.4. A real person, so the preview reads like a real message.
     const person = (await listPeople(tx, { page: 1, perPage: 1 }))[0];
@@ -43,6 +43,8 @@ export default async function MessagesPage({
       options: await audienceOptions(tx),
       // R16.6. What has been queued and where each one got to.
       sends: await listSends(tx),
+      // R16.7. Addresses a mail server refused for good.
+      bounced: await bouncedAddresses(tx),
       sample: {
         first_name: person?.preferredName ?? person?.firstName ?? session.displayName,
         last_name: person?.lastName ?? "",
@@ -65,6 +67,7 @@ export default async function MessagesPage({
           library={library}
           sample={sample}
           sends={sends}
+          bounced={bounced}
           options={{
             ...options,
             // R16.5. Lifecycle status is a fixed set rather than a table.

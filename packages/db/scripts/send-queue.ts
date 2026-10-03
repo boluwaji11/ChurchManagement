@@ -58,12 +58,13 @@ async function main(): Promise<void> {
         subject: one.subject,
         text: one.body,
       });
-      if (result.sent) sent += 1;
-      else failed += 1;
-
-      await withTenant(context, (tx) =>
+      const marked = await withTenant(context, (tx) =>
         markRecipient(tx, one.id, result.sent ? "sent" : "failed", result.reason),
       );
+
+      if (result.sent) sent += 1;
+      // R16.7. An address waiting for another pass has not failed yet.
+      else if (!marked.retrying) failed += 1;
     }
 
     await withTenant(context, (tx) => finishIfDone(tx, row.id));
