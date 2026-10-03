@@ -1,0 +1,85 @@
+import {
+  pgTable, uuid, text, boolean, integer, timestamp, index, uniqueIndex,
+} from "drizzle-orm/pg-core";
+import { tenants } from "./tenancy";
+
+const pk = () => uuid("id").primaryKey().defaultRandom();
+const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
+const created = () => timestamp("created_at", { withTimezone: true }).defaultNow().notNull();
+const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
+
+/**
+ * R4.1. A form a church builds and puts in front of people.
+ *
+ * A connection card, a prayer request, a volunteer application. The whole value
+ * is R4.4, where a submission becomes a person record or attaches to one, so a
+ * form is a way of getting data in without anybody typing it twice.
+ *
+ * Closed rather than deleted, because a form with answers in it is a record of
+ * what people were asked. Deleting one would delete the question that explains
+ * every answer under it.
+ */
+export const forms = pgTable(
+  "forms",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    name: text("name").notNull(),
+    /** The words at the top of the form, in the church's own voice. */
+    intro: text("intro"),
+    /** The part of the public link that names this form. */
+    slug: text("slug").notNull(),
+    /** "draft", "open" or "closed". A draft has no public link. */
+    status: text("status").notNull().default("draft"),
+    /**
+     * R4.9. How many submissions this form takes before it closes itself.
+     *
+     * Null means no limit. A church running a sign-up for twelve places sets
+     * twelve, and the form closes rather than a volunteer having to watch it.
+     */
+    submissionLimit: integer("submission_limit"),
+    /** What somebody reads after sending it, in the church's own words. */
+    thanks: text("thanks"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("form_tenant_idx").on(t.tenantId),
+    uniqueIndex("form_slug_unique").on(t.tenantId, t.slug),
+  ],
+);
+
+/**
+ * R4.1. One question on a form, or a heading between questions.
+ *
+ * A section is a field with no answer, which keeps the order in one list. A
+ * builder that holds sections and questions in two places is a builder where
+ * dragging a question between sections is a special case.
+ */
+export const formFields = pgTable(
+  "form_fields",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    formId: uuid("form_id").notNull().references(() => forms.id, { onDelete: "cascade" }),
+    /**
+     * "text", "long_text", "number", "date", "select", "multi_select",
+     * "checkbox", "file" or "section".
+     */
+    kind: text("kind").notNull(),
+    label: text("label").notNull(),
+    /** The church's own clarifier under the question. Theirs to write. */
+    help: text("help"),
+    required: boolean("required").notNull().default(false),
+    /** The choices, for a select or a multi-select. */
+    options: text("options").array(),
+    position: integer("position").notNull().default(0),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("form_field_tenant_idx").on(t.tenantId),
+    index("form_field_form_idx").on(t.tenantId, t.formId, t.position),
+  ],
+);

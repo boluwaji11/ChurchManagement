@@ -4,7 +4,7 @@ import { Avatar, Separator } from "@hearth/ui";
 import { Logo } from "./brand";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
-  canLeadTeams,
+  canLeadTeams, canManageChurch,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { churchLogoUrl } from "@/lib/church-logo";
@@ -93,6 +93,11 @@ export async function AppHeader({ session }: { session: Session }) {
                   [t("nav.checkin"), "/checkin"] as const,
                   [t("nav.rooms"), "/checkin/rooms"] as const,
                 ]
+              : []),
+            // R4.1. The forms a church builds. Owner and Admin, because a form
+            // is a question the church is seen to be asking in public.
+            ...(canManageChurch(session.role)
+              ? [[t("form.title"), "/forms"] as const]
               : []),
             // R5.5. The Monday morning screen, for the roles that work it.
             ...(canFollowUp(session.role)
