@@ -15,14 +15,16 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "seed:users": "tsx scripts/seed-users.ts",
-    "metrics": "tsx scripts/metrics.ts"
+    "metrics": "tsx scripts/metrics.ts",
+    "send-queue": "tsx scripts/send-queue.ts"
   },
   "dependencies": {
     "@hearth/i18n": "workspace:*",
     "drizzle-orm": "^0.38.3",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.2",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "@hearth/mail": "workspace:*"
   },
   "devDependencies": {
     "@types/jszip": "^3.4.1",

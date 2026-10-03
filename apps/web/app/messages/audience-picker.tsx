@@ -33,12 +33,16 @@ export interface PickerOptions {
 export function AudiencePicker({
   church,
   options,
+  kind,
+  id,
+  onChange,
 }: {
   church: string;
   options: PickerOptions;
+  kind: AudienceKind;
+  id: string;
+  onChange: (next: { kind: AudienceKind; id: string; name: string }) => void;
 }) {
-  const [kind, setKind] = React.useState<AudienceKind>("everybody");
-  const [id, setId] = React.useState<string>("");
   const [size, setSize] = React.useState<{
     total: number;
     reachable: number;
@@ -81,10 +85,12 @@ export function AudiencePicker({
             <span className="text-label text-fg">{t("audience.kind")}</span>
             <Select
               value={kind}
-              onValueChange={(next) => {
-                setKind(next as AudienceKind);
-                setId("");
-              }}
+              onValueChange={(next) =>
+                onChange({
+                  kind: next as AudienceKind,
+                  id: "",
+                  name: t(`audience.kind.${next}` as never),
+                })}
             >
               <SelectTrigger aria-label={t("audience.kind")}><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -100,7 +106,15 @@ export function AudiencePicker({
           {kind === "everybody" ? null : (
             <div className="flex flex-col gap-1.5">
               <span className="text-label text-fg">{t("audience.which")}</span>
-              <Select value={id} onValueChange={setId}>
+              <Select
+                value={id}
+                onValueChange={(next) =>
+                  onChange({
+                    kind,
+                    id: next,
+                    name: forKind.find((o) => o.id === next)?.name ?? "",
+                  })}
+              >
                 <SelectTrigger aria-label={t("audience.which")}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {forKind.map((option: PickerOption) => (

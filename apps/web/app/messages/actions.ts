@@ -2,9 +2,10 @@
 
 import {
   withTenant, listMessageTemplates, saveMessageTemplate, removeMessageTemplate,
-  recipientsFor,
+  recipientsFor, queueSend, listSends, cancelSend,
   type TemplateInput, type AudienceChoice,
 } from "@hearth/db";
+import { runOneBatch, runDue } from "@/lib/run-sends";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
@@ -75,4 +76,64 @@ export async function audienceSize(
   } catch (error) {
     return { total: 0, reachable: 0, noEmail: 0, error: explain(error) };
   }
+}
+
+export interface QueueResult {
+  error?: string;
+  queued?: number;
+  noEmail?: number;
+}
+
+/**
+ * R16.6. Puts a message in the queue, and carries the first batch straight away.
+ *
+ * The first batch runs here so somebody who presses send watches something
+ * happen. The rest is carried by whatever is calling the job route, which means
+ * a send survives the laptop being closed.
+ */
+export async function queue(
+  input: {
+    subject: string;
+    body: string;
+    audience: AudienceChoice;
+    audienceName: string;
+    sendAt: string | null;
+  },
+  church?: string,
+): Promise<QueueResult> {
+  const session = await requireSession(church);
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  try {
+    const result = await withTenant(actor, (tx) =>
+      queueSend(tx, actor, input, session.tenantName),
+    );
+
+    if (!input.sendAt) await runOneBatch(actor, result.id);
+    return { queued: result.recipients, noEmail: result.noEmail };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R16.6. Carries the next batch of whatever is due, for the screen watching it. */
+export async function nudge(church?: string): Promise<{ working: boolean }> {
+  const session = await requireSession(church);
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const results = await runDue(actor);
+  return { working: results.some((r) => r.attempted > 0 && !r.done) };
+}
+
+export async function stopSend(id: string, church?: string): Promise<ComposeResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => cancelSend(tx, actor, id));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function sendList(church?: string) {
+  const { ctx } = await context(church);
+  return withTenant(ctx, (tx) => listSends(tx));
 }

@@ -27,11 +27,17 @@ export function Composer({
   church,
   library,
   sample,
+  subject,
+  body,
+  onChange,
 }: {
   church: string;
   library: MessageTemplate[];
   /** A real person from this church, so the preview reads like a real message. */
   sample: MergeValues;
+  subject: string;
+  body: string;
+  onChange: (next: { subject: string; body: string }) => void;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -39,9 +45,10 @@ export function Composer({
 
   const [editing, setEditing] = React.useState<string | null>(null);
   const [name, setName] = React.useState("");
-  const [subject, setSubject] = React.useState("");
-  const [body, setBody] = React.useState("");
   const bodyRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const setSubject = (next: string) => onChange({ subject: next, body });
+  const setBody = (next: string) => onChange({ subject, body: next });
 
   const stray = unknownFields(`${subject}\n${body}`);
 

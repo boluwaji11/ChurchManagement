@@ -97,3 +97,73 @@ export const messageTemplates = pgTable(
     uniqueIndex("message_template_name_unique").on(t.tenantId, t.name),
   ],
 );
+
+/**
+ * R16.6. One bulk send, and where it has got to.
+ *
+ * A send is a record before it is an action. A church that closes the laptop
+ * halfway through four hundred messages comes back to a job that carried on,
+ * and a church that scheduled one for Thursday has something to look at on
+ * Wednesday.
+ *
+ * Bulk sending runs on the church's own account, always. The shared allowance
+ * in R16.3 is for the handful of transactional messages that have to work on a
+ * church's first day.
+ */
+export const sends = pgTable(
+  "sends",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    /** How the audience was chosen, kept so the screen can say who it went to. */
+    audienceKind: text("audience_kind").notNull(),
+    audienceId: uuid("audience_id"),
+    audienceName: text("audience_name").notNull(),
+    /** "scheduled", "sending", "sent", "cancelled" or "failed". */
+    status: text("status").notNull().default("scheduled"),
+    /** When it should go. Now, for a send that was not scheduled. */
+    sendAt: timestamp("send_at", { withTimezone: true }).defaultNow().notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    /** Why it stopped, where it did. */
+    reason: text("reason"),
+    createdByUserId: uuid("created_by_user_id"),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("send_tenant_idx").on(t.tenantId, t.createdAt),
+    index("send_due_idx").on(t.status, t.sendAt),
+  ],
+);
+
+/**
+ * R16.6. One address in one send.
+ *
+ * A row a person rather than a count, because the question after a send is
+ * which three did not arrive, and a counter cannot answer it.
+ */
+export const sendRecipients = pgTable(
+  "send_recipients",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    sendId: uuid("send_id").notNull().references(() => sends.id, { onDelete: "cascade" }),
+    personId: uuid("person_id"),
+    toEmail: text("to_email").notNull(),
+    /** The message as this person reads it, merged when the send was queued. */
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    /** "pending", "sent" or "failed". */
+    status: text("status").notNull().default("pending"),
+    reason: text("reason"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdAt: created(),
+  },
+  (t) => [
+    index("send_recipient_tenant_idx").on(t.tenantId),
+    index("send_recipient_send_idx").on(t.sendId, t.status),
+  ],
+);
