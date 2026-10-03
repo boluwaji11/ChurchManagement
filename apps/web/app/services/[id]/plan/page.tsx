@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, addressableFor, canManageServices,
   listTemplates, recentPlans, rosterFor,
@@ -68,6 +68,16 @@ export default async function PlanPage({
         >
           <ArrowLeft className="size-4" /> {occurrence.name}
         </Link>
+
+        <div className="mb-6 flex justify-end">
+          {/* R11.11. Where a leader goes when the gathering is about to start. */}
+          <Link
+            href={`/services/${id}/live?church=${session.tenantSlug}`}
+            className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+          >
+            <Play className="size-4" /> {t("live.open")}
+          </Link>
+        </div>
 
         <PageTitle
           title={t("order.title")}

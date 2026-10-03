@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList, ChevronDown, ListOrdered } from "lucide-react";
+import { Plus, X, Undo2, Repeat, Pencil, Users, ClipboardList, ChevronDown, ListOrdered, Play } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Card, EmptyState, Field, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -383,6 +383,15 @@ function RowActions({
             <DropdownMenuItem asChild>
               <Link href={`/services/${row.id}/plan?church=${church}`}>
                 <ListOrdered /> {t("order.title")}
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {/* R11.11. The screen the gathering is run from, and the one the team
+              follows on their own phones. */}
+          {cancelled ? null : (
+            <DropdownMenuItem asChild>
+              <Link href={`/services/${row.id}/live?church=${church}`}>
+                <Play /> {t("live.open")}
               </Link>
             </DropdownMenuItem>
           )}

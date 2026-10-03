@@ -31,6 +31,17 @@ export const servicePlans = pgTable(
     series: text("series"),
     /** The one idea of the day, in the leader's words. */
     theme: text("theme"),
+    /**
+     * R11.11. Live mode. The item the gathering is on, when the gathering
+     * started, and when that item started.
+     *
+     * Held on the plan rather than in a session, because the team is following
+     * on their own phones and a leader's browser tab is not somewhere a team
+     * can read from. All three are null between gatherings.
+     */
+    liveItemId: uuid("live_item_id"),
+    liveStartedAt: timestamp("live_started_at", { withTimezone: true }),
+    liveItemAt: timestamp("live_item_at", { withTimezone: true }),
     createdAt: created(),
     updatedAt: updated(),
   },
