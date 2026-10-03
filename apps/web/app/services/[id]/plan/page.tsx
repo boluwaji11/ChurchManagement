@@ -77,6 +77,7 @@ export default async function PlanPage({
 
         <Order
           church={session.tenantSlug}
+          occurrenceId={id}
           planId={plan.id}
           serviceStartsAt={plan.serviceStartsAt}
           series={plan.series}

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus, Trash2, ChevronUp, ChevronDown, Pencil, MessageSquare, X, Paperclip,
-  Copy, LayoutList,
+  Copy, LayoutList, Printer,
 } from "lucide-react";
 import {
   Banner, Button, Card, EmptyState, Field, IconButton, Input, Separator, Textarea,
@@ -93,6 +93,7 @@ const fromTime = (hhmm: string): number => {
  */
 export function Order({
   church,
+  occurrenceId,
   planId,
   serviceStartsAt,
   series,
@@ -103,6 +104,7 @@ export function Order({
   sources,
 }: {
   church: string;
+  occurrenceId: string;
   planId: string;
   serviceStartsAt: string;
   series: string | null;
@@ -284,6 +286,13 @@ export function Order({
             planId={planId}
             templates={templates}
             empty={timed.length === 0}
+          />
+
+          {/* R11.10. The full order for the team, the titles for the bulletin. */}
+          <PrintMenu
+            church={church}
+            occurrenceId={occurrenceId}
+            disabled={timed.length === 0}
           />
         </div>
       </Card>
@@ -851,5 +860,42 @@ function TemplateDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** R11.10. The two printed versions of the same plan. */
+function PrintMenu({
+  church,
+  occurrenceId,
+  disabled,
+}: {
+  church: string;
+  occurrenceId: string;
+  disabled: boolean;
+}) {
+  const open = (view: string) => {
+    window.open(
+      `/services/${occurrenceId}/plan/print?church=${church}&view=${view}`,
+      "_blank",
+      "noopener",
+    );
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" disabled={disabled}>
+          <Printer /> {t("print.order.print")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem onSelect={() => open("full")}>
+          {t("print.order.full")}
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => open("bulletin")}>
+          {t("print.order.bulletin")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

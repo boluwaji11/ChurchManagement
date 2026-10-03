@@ -367,7 +367,7 @@ at an arrangement and R11.4 lands on top of what is already here.
 | HRT-129 | Attachments on an item: charts, PDFs, audio, images | R11.7 | Resolved |
 | HRT-130 | Templates, and duplicating last week's plan without its content | R11.8 | Resolved |
 | HRT-131 | Who serves, inline on the plan, writing through to the schedule | R11.9 | Resolved |
-| HRT-132 | The printed order of service, full for the team and short for the bulletin | R11.10 | New |
+| HRT-132 | The printed order of service, full for the team and short for the bulletin | R11.10 | Resolved |
 | HRT-133 | Live mode: current item, next item, elapsed against planned | R11.11 | New |
 | HRT-134 | Plan history: who changed what, and when | R11.12 | New |
 | HRT-135 | Scripture items with the reference, the translation and the resolved text | R11.5 | Blocked on a Bible API (R20.6) |
@@ -477,7 +477,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-132** the printed order of service. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-133** live mode. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **0.4** service planning (F11). HRT-126 waits on a provider. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1203,6 +1203,20 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-132, how to test it
+
+1. **Print** on the order of service offers two versions, each opening in a new tab on the printer
+   dialog.
+2. **The full order** is what the team runs from: the clock down the left, the kind and the
+   description under each title, the notes with who they are for, the minutes down the right, the
+   time it ends, and Who serves at the foot with each position and who is in it.
+3. A declined request is left off the printed roster, because the sheet is a list of who is there.
+4. **For the bulletin** is the titles in order, under the service name, the date, the series and the
+   theme. No times, no minutes, no notes, no roster.
+5. Both come out with no browser header or footer across the page, so there is no URL printed on the
+   sheet handed out.
+6. Print is disabled while the plan is empty, and the pages are refused to anybody below Staff.
 
 ### HRT-131, how to test it
 
