@@ -12,27 +12,40 @@ import { required } from "./env";
  */
 const VERSION = "v1";
 
-const key = (): Buffer => {
-  const raw = Buffer.from(required("NOTE_ENCRYPTION_KEY"), "base64");
+const key = (name: string): Buffer => {
+  const raw = Buffer.from(required(name), "base64");
   if (raw.length !== 32) {
-    throw new Error("NOTE_ENCRYPTION_KEY must be 32 bytes, base64 encoded. Generate: openssl rand -base64 32");
+    throw new Error(`${name} must be 32 bytes, base64 encoded. Generate: openssl rand -base64 32`);
   }
   return raw;
 };
 
-export function encryptNote(plaintext: string): string {
+function seal(plaintext: string, name: string): string {
   const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", key(), iv);
+  const cipher = createCipheriv("aes-256-gcm", key(name), iv);
   const body = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   return [VERSION, iv.toString("base64url"), cipher.getAuthTag().toString("base64url"), body.toString("base64url")].join(".");
 }
 
-export function decryptNote(payload: string): string {
+function open(payload: string, name: string): string {
   const [version, ivPart, tagPart, bodyPart] = payload.split(".");
   if (version !== VERSION || !ivPart || !tagPart || !bodyPart) {
-    throw new Error("Unrecognised confidential note payload.");
+    throw new Error("Unrecognised encrypted payload.");
   }
-  const decipher = createDecipheriv("aes-256-gcm", key(), Buffer.from(ivPart, "base64url"));
+  const decipher = createDecipheriv("aes-256-gcm", key(name), Buffer.from(ivPart, "base64url"));
   decipher.setAuthTag(Buffer.from(tagPart, "base64url"));
   return Buffer.concat([decipher.update(Buffer.from(bodyPart, "base64url")), decipher.final()]).toString("utf8");
 }
+
+export const encryptNote = (plaintext: string): string => seal(plaintext, "NOTE_ENCRYPTION_KEY");
+export const decryptNote = (payload: string): string => open(payload, "NOTE_ENCRYPTION_KEY");
+
+/**
+ * R21.15. A credential a church gave us for its own mail or SMS account.
+ *
+ * Its own key, separate from the pastoral notes key, so the two can be rotated
+ * on their own schedules and a key handed to a job worker that sends mail does
+ * not also open counselling notes.
+ */
+export const encryptSecret = (plaintext: string): string => seal(plaintext, "SECRET_ENCRYPTION_KEY");
+export const decryptSecret = (payload: string): string => open(payload, "SECRET_ENCRYPTION_KEY");

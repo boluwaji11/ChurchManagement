@@ -44,6 +44,8 @@ export default async function SettingsLayout({ children }: { children: React.Rea
           { href: "/settings/church", label: t("settings.tab.church") },
           { href: "/settings/team", label: t("settings.tab.team") },
           { href: "/settings/followups", label: t("settings.tab.followups") },
+          // R16.1. The church's own mail account, which bulk sending runs on.
+          { href: "/settings/mail", label: t("settings.tab.mail") },
         ]
       : []),
     ...(canManageRooms(session.role)

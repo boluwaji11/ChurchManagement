@@ -387,13 +387,17 @@ marked for 0.3, so the shape of the feature is on the board while the money is b
 
 ### F16. Communication
 
-A church supplies its own Resend or SMTP credentials and its own Twilio account. We never resell a
-message. The shared quota covers transactional mail only: an invitation, a password reset, a
-check-in receipt, a schedule request.
+A church supplies its own SMTP credentials and its own Twilio account. We never resell a message.
+The shared quota covers transactional mail only: an invitation, a password reset, a check-in
+receipt, a schedule request.
+
+**Resend is deferred, October 2026.** Plain SMTP reaches every provider a church is likely to
+already have, Resend's own SMTP endpoint among them, so it is the one worth having first. A Resend
+API key is a second way to reach a service the church can already reach.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-137 | The church's own email provider: Resend or SMTP, verified by a test send before saving | R16.1, R21.15 | New |
+| HRT-137 | The church's own email provider: SMTP, verified by a test send before saving | R16.1, R21.15 | Resolved |
 | HRT-138 | The shared transactional quota, what counts against it, and what happens at the ceiling | R16.3 | New |
 | HRT-139 | The composer: templates, merge fields, and a saved template library | R16.4 | New |
 | HRT-140 | Targeting a send by saved list, group, team, pipeline stage, tag or attendance | R16.5 | New |
@@ -603,7 +607,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-137** the church's own email provider. F16 opens 1.0 because HRT-87 and HRT-126 are both waiting on it. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-138** the shared transactional quota. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F16 communication, F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1329,6 +1333,21 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-137, how to test it
+
+You need SMTP credentials for a real mailbox. A Gmail app password, a Fastmail app password, Resend's
+own SMTP endpoint or Mailtrap all work.
+
+1. **Settings → Email** is there for Owner and Admin, and not for anybody else.
+2. Fill in the server, the port, the username, the password and the address it sends from. Server,
+   port, username, password and sends-from all carry the red asterisk.
+3. **Test and save** sends a message to your own address first. It only saves once that message has
+   gone, so a bad password leaves nothing saved and shows what the mail server said.
+4. Reload. Everything is there except the password, which reads **New password** and is blank.
+   Change the port alone and save: the stored password is used, and nothing is wiped.
+5. The password is never on the page. View source and search for it.
+6. **Remove the account** asks first, and says that invitations and password resets keep going out.
 
 ### HRT-134, how to test it
 

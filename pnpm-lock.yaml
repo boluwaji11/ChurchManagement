@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      nodemailer:
+        specifier: ^6.10.1
+        version: 6.10.1
     devDependencies:
       turbo:
         specifier: ^2.3.3
@@ -23,6 +27,9 @@ importers:
       '@hearth/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@hearth/mail':
+        specifier: workspace:*
+        version: link:../../packages/mail
       '@hearth/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -106,6 +113,22 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.4)(lightningcss@1.32.0)
+
+  packages/mail:
+    dependencies:
+      nodemailer:
+        specifier: ^6.10.1
+        version: 6.10.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.4
+      '@types/nodemailer':
+        specifier: ^6.4.24
+        version: 6.4.24
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
   packages/songs:
     devDependencies:
@@ -1717,6 +1740,9 @@ packages:
   '@types/node@22.20.4':
     resolution: {integrity: sha512-zJRE40jpHtKqE/C4fgHrAKQLJuSpzEnP9ff9Y7YtoR3Wd2pwqzlekDeEuUQXjRd+QCYnVnNwuJYmhdk9XV8gvA==}
 
+  '@types/nodemailer@6.4.24':
+    resolution: {integrity: sha512-Ww4u0rT9wQNXh4JiQaIwx3QWdcOFXzOjQA2zc+jtFYNmQiT4mIUqcDin51bDFdkzKubFnQCZNK7FIHlPKQ/q9w==}
+
   '@types/react-dom@19.3.0':
     resolution: {integrity: sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==}
     peerDependencies:
@@ -2288,6 +2314,10 @@ packages:
         optional: true
       sass:
         optional: true
+
+  nodemailer@6.10.1:
+    resolution: {integrity: sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA==}
+    engines: {node: '>=6.0.0'}
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -3757,6 +3787,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/nodemailer@6.4.24':
+    dependencies:
+      '@types/node': 22.20.4
+
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
     dependencies:
       '@types/react': 19.3.0
@@ -4323,6 +4357,8 @@ snapshots:
       - '@babel/core'
       - '@types/node'
       - babel-plugin-macros
+
+  nodemailer@6.10.1: {}
 
   normalize-path@3.0.0: {}
 

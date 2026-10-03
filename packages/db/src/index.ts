@@ -54,6 +54,7 @@ export * from "./repo/plans";
 export * from "./repo/plan-templates";
 export * from "./repo/live";
 export * from "./repo/plan-history";
+export * from "./repo/messaging";
 export * from "./repo/directory";
 export * from "./repo/setup";
 export * from "./repo/value";

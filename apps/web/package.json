@@ -12,6 +12,7 @@
   "dependencies": {
     "@hearth/db": "workspace:*",
     "@hearth/i18n": "workspace:*",
+    "@hearth/mail": "workspace:*",
     "@hearth/ui": "workspace:*",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
