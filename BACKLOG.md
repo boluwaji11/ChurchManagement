@@ -370,13 +370,139 @@ at an arrangement and R11.4 lands on top of what is already here.
 | HRT-132 | The printed order of service, full for the team and short for the bulletin | R11.10 | Resolved |
 | HRT-133 | Live mode: current item, next item, elapsed against planned | R11.11 | Resolved |
 | HRT-134 | Plan history: who changed what, and when | R11.12 | Resolved |
-| HRT-135 | Scripture items with the reference, the translation and the resolved text | R11.5 | Blocked on a Bible API (R20.6) |
+| HRT-135 | Scripture items with the reference, the translation and the resolved text | R11.5 | Blocked on HRT-198, the Bible lookup (R20.3) |
 | HRT-136 | Song items carrying an arrangement, its key and its sequence | R11.4 | Deferred with the song library |
 
 ## E5. GA (1.0)
 
-F4 Forms, F6 Pastoral care, F14 Events, F15 Calendar, F16 Communication, F17 Portal,
+F16 Communication, then F4 Forms, F17 Portal, F6 Pastoral care, F15 Calendar, F14 Events,
 F18 Reporting, F20 API.
+
+**F16 comes first** because two stories already written are waiting on it: HRT-87 group messaging
+and HRT-126 serving reminders. Every other feature in this release sends something.
+
+**Anything that takes money is held back to 0.3.** Paid event registration, giving in the portal,
+giving reports and the accounting export are listed here under the feature they belong to, each
+marked for 0.3, so the shape of the feature is on the board while the money is built last.
+
+### F16. Communication
+
+A church supplies its own Resend or SMTP credentials and its own Twilio account. We never resell a
+message. The shared quota covers transactional mail only: an invitation, a password reset, a
+check-in receipt, a schedule request.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-137 | The church's own email provider: Resend or SMTP, verified by a test send before saving | R16.1, R21.15 | New |
+| HRT-138 | The shared transactional quota, what counts against it, and what happens at the ceiling | R16.3 | New |
+| HRT-139 | The composer: templates, merge fields, and a saved template library | R16.4 | New |
+| HRT-140 | Targeting a send by saved list, group, team, pipeline stage, tag or attendance | R16.5 | New |
+| HRT-141 | The send queue: scheduled sending, progress, and what happened to each address | R16.6 | New |
+| HRT-142 | Delivery, bounces and opens, and invalidating an address the provider says is dead | R16.7 | New |
+| HRT-143 | Consent and unsubscribe: one click, honoured across every bulk send, with the footer | R16.8 | New |
+| HRT-144 | The church's own Twilio, and opt-in recorded per person before any SMS | R16.2, R16.8 | New |
+| HRT-145 | Inbound replies into a shared inbox, attached to the person record | R16.9 | New |
+| HRT-146 | Mail-merge letters, Avery labels and envelopes | R16.12 | New |
+| HRT-147 | Birthday and anniversary sends, on the day, from a template | R16.13 | New |
+
+### F4. Forms
+
+A form is how a church gets data in without typing it. The whole value is R4.4: a submission becomes
+a person record or attaches to one, using the duplicate logic already built in F2.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-148 | The builder: every field type, section headers, required fields and validation | R4.1, R4.9 | New |
+| HRT-149 | Conditional logic, showing and hiding fields on earlier answers | R4.2 | New |
+| HRT-150 | The public link and the snippet a church pastes into its own site | R4.3 | New |
+| HRT-151 | A submission matching a person or creating one, writing custom field answers through | R4.4 | New |
+| HRT-152 | The review queue, for a submission that matched more than one person | R4.5 | New |
+| HRT-153 | Notification on submit, and a submission starting a pipeline | R4.6, R4.7 | New |
+| HRT-154 | The prebuilt forms: connection card, prayer request, membership interest, volunteer application, child information, facility use | R4.8 | New |
+
+### F17. Member and volunteer portal
+
+The portal is the PWA a member installs. It is the same data behind a different door, so almost
+every story here is a view over something already built.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-155 | Magic link sign-in, with a password as an option | R17.1 | New |
+| HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | New |
+| HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | New |
+| HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | New |
+| HRT-159 | Browse groups, ask to join, see my groups | R17.5 | New |
+| HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | New |
+| HRT-161 | Submit a form or a prayer request, and the prayer wall for the ones marked public | R17.9, R17.10 | New |
+| HRT-162 | The announcement feed | R16.11 | New |
+| HRT-163 | Give, see my giving, manage a recurring gift, download a statement | R17.4 | Held to 0.3 with money |
+
+### F6. Pastoral care
+
+The confidential tier is the point. A pastoral note is not an admin note, and R6.2 says every read
+is recorded, which the notes table already does.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-164 | The care log: dated interactions, type, participants, summary, follow-up date | R6.1 | New |
+| HRT-165 | Confidential counselling notes on their own permission tier, every read audited | R6.2 | New |
+| HRT-166 | Prayer requests, member submitted or staff entered, with privacy levels | R6.3 | New |
+| HRT-167 | Hospital and home visits, with admission and discharge, and a visit roster | R6.4 | New |
+| HRT-168 | Care teams, assignment, and who is carrying how much | R6.5 | New |
+| HRT-169 | Benevolence requests, reportable in aggregate without naming anybody | R6.6 | New |
+| HRT-170 | A follow-up set from a care interaction, surfacing in the same queue as the rest | R6.7 | New |
+
+### F15. Calendar and facilities
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-171 | The master calendar: services, events, group meetings and bookings in one view | R15.1 | New |
+| HRT-172 | The public calendar and its subscription feed | R15.2, R20.5 | New |
+| HRT-173 | Rooms, resources and equipment, with capacity and attributes | R15.4 | New |
+| HRT-174 | Booking with conflict detection, including setup and teardown buffers | R15.5 | New |
+| HRT-175 | Facility use requests: the approval step, and what an outside group has to supply | R15.6, R15.7 | New |
+| HRT-176 | Printed monthly and weekly calendars, and the room schedule for the building | R15.8 | New |
+
+### F14. Events and registrations
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-177 | The event record and the public event page | R14.1, R14.2 | New |
+| HRT-178 | Free registration, capacity, and a waitlist that promotes when a place frees | R14.4 | New |
+| HRT-179 | Custom questions per registrant, reusing the form logic | R14.5 | New |
+| HRT-180 | Family registration in one flow, several household members and one submission | R14.6 | New |
+| HRT-181 | Recurring events and event series | R14.9 | New |
+| HRT-182 | Event check-in through the same station, with badges and rosters | R14.10 | New |
+| HRT-183 | Attendee export, printed roster, and the emergency contact sheet | R14.12 | New |
+| HRT-184 | Paid registration, add-ons, discount codes and refunds | R14.3, R14.7, R14.8, R14.11 | Held to 0.3 with money |
+
+### F18. Reporting and analytics
+
+No custom report builder, ever. Around twenty canned reports that answer the questions a small
+church actually asks.
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-185 | The dashboard: attendance, new people, coverage gaps, overdue follow-ups | R18.1 | New |
+| HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | New |
+| HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | New |
+| HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | New |
+| HRT-189 | Group participation and group health | R18.6 | New |
+| HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
+| HRT-191 | Milestone and demographic lists | R18.8 | New |
+| HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | New |
+| HRT-193 | CSV and PDF on every report | R18.10 | New |
+| HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
+
+### F20. Integrations and API
+
+| ID | Story | Req | State |
+|---|---|---|---|
+| HRT-195 | Scoped API keys, rate limits, and a record of what each key did | R20.1, R1.13 | New |
+| HRT-196 | The REST API over people, households, groups, attendance, events and plans | R20.1 | New |
+| HRT-197 | Outbound webhooks on the events worth hearing about | R20.2 | New |
+| HRT-198 | Bible lookup for scripture in plans, with translations. Unblocks HRT-135 | R20.3 | New |
+| HRT-199 | QuickBooks and generic accounting CSV export | R20.4 | Held to 0.3 with money |
 
 ## E6. Hearth Stage (P2)
 
@@ -477,8 +603,8 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **F11 is built out.** HRT-135 waits on a Bible API, HRT-136 is deferred with the song library. The next release is **1.0**. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
-| **Order after that** | **0.4** service planning (F11). HRT-126 waits on a provider. Then **1.0**. Then **0.9** the children's ministry paperwork. Then **0.3** money, last. Songs and the Stage contract are deferred until asked for. |
+| **Next** | **HRT-137** the church's own email provider. F16 opens 1.0 because HRT-87 and HRT-126 are both waiting on it. **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Order after that** | **1.0**: F16 communication, F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
 ### HRT-16, how to test it
