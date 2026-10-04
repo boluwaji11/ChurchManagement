@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { Avatar, Tooltip, cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -64,6 +64,7 @@ export function Sidebar({
   collapsed: boolean;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = React.useState(initial);
   const reopen = useSectionMemory(entries);
 
@@ -122,7 +123,15 @@ export function Sidebar({
           const row = (
             <Link
               // R24.6. Back to the screen this section was left on.
-              href={reopen(entry.href, `${entry.href}?church=${church}`)}
+              href={`${entry.href}?church=${church}`}
+              // R24.6. Back to the screen this section was left on, decided on
+              // the press so the rendered href is the same on both sides.
+              onClick={(event) => {
+                const back = reopen(entry.href);
+                if (!back) return;
+                event.preventDefault();
+                router.push(back);
+              }}
               aria-current={on ? "page" : undefined}
               className={cn(
                 "flex h-9 w-full items-center gap-2.5 rounded-sm text-left text-[13px] font-medium",
@@ -199,6 +208,7 @@ export function Sidebar({
  */
 export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const reopen = useSectionMemory(entries);
   const active = activeHref(entries, pathname);
 
@@ -212,7 +222,13 @@ export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church:
         return (
           <Link
             key={entry.href}
-            href={reopen(entry.href, `${entry.href}?church=${church}`)}
+            href={`${entry.href}?church=${church}`}
+            onClick={(event) => {
+              const back = reopen(entry.href);
+              if (!back) return;
+              event.preventDefault();
+              router.push(back);
+            }}
             aria-current={on ? "page" : undefined}
             className={cn(
               "flex min-h-11 flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px]",

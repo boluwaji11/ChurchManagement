@@ -7,13 +7,21 @@ import { activeHref, type NavTarget } from "./nav-active";
 const KEY = "hearth:section";
 
 /**
+ * The sections that reopen where they were left.
+ *
+ * A short list on purpose. Everywhere else, the nav entry means the screen it
+ * names.
+ */
+const REMEMBERED = ["/settings"];
+
+/**
  * R24.6. Where you were, the last time you were in this section.
  *
- * Pressing People, going to Settings and pressing People again should put
- * somebody back where they left off, not at the top of a list they have
- * already scrolled past. Settings is the sharp case: its entry points at a
- * section with ten screens in it, and landing on the first one every time
- * makes the navigation feel like it forgot.
+ * Only for a section that is a menu of screens rather than a list of records.
+ * Settings is the case it exists for: its entry points at ten screens, and
+ * landing on the first one every time makes the navigation feel like it forgot.
+ * Pressing Groups, by contrast, means the groups, not the group somebody was
+ * last reading, so those sections are left alone.
  *
  * Held in sessionStorage, so it lasts as long as the tab and never follows
  * anybody to another device. Every read and write is guarded: a private window
@@ -47,7 +55,7 @@ export function useSectionMemory(entries: NavTarget[]) {
 
   React.useEffect(() => {
     const section = activeHref(entries, pathname);
-    if (!section) return;
+    if (!section || !REMEMBERED.includes(section)) return;
     const all = read();
     all[section] = query ? `${pathname}?${query}` : pathname;
     write(all);
@@ -55,8 +63,15 @@ export function useSectionMemory(entries: NavTarget[]) {
     // is deliberately not a dependency: the path and the query are what change.
   }, [pathname, query]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** The href to open for a section, which is where it was left. */
-  return React.useCallback((href: string, fallback: string) => {
+  /**
+   * Where a section should reopen, or null for the screen it names.
+   *
+   * Read when the link is pressed rather than while it renders: the server has
+   * no sessionStorage, so an href computed from it would not match what the
+   * browser draws and the tree would fail to hydrate.
+   */
+  return React.useCallback((href: string): string | null => {
+    if (!REMEMBERED.includes(href)) return null;
     const remembered = read()[href];
     // Only within the section it was recorded for. A stale entry pointing
     // somewhere else would send somebody to a screen they did not press.
@@ -64,6 +79,6 @@ export function useSectionMemory(entries: NavTarget[]) {
       || remembered.startsWith(`${href}?`))) {
       return remembered;
     }
-    return fallback;
+    return null;
   }, []);
 }
