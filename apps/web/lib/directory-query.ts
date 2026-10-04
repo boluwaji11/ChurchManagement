@@ -74,7 +74,8 @@ export const pageFromParams = (params: DirectoryParams): number => {
 /** True when the URL narrows the directory, rather than showing all of it. */
 export const isFiltered = (params: DirectoryParams): boolean =>
   Boolean(
-    params.q || params.status || params.tag || params.has || params.missing || params.joined ||
+    params.ids || params.q || params.status || params.tag || params.has ||
+      params.missing || params.joined ||
       params.group || params.serving || params.seen ||
       params.show === "archived" || params.list,
   );

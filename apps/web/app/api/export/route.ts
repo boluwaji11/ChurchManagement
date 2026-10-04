@@ -89,7 +89,11 @@ async function exportView(
 
       // R2.x. A selection exports exactly what was picked, which is why it
       // arrives as ids rather than as the filter they were picked from.
-      const picked = (params.ids ?? "").split(",").filter(Boolean);
+      // Only things shaped like an id. A hand-edited URL should come back
+      // empty rather than reaching the database with nonsense in it.
+      const picked = (params.ids ?? "")
+        .split(",")
+        .filter((one) => /^[0-9a-f-]{36}$/i.test(one));
       if (picked.length > 0) query.ids = picked;
 
       return listPeople(tx, { ...query, viewer: { role: session.role, userId: session.userId } });
