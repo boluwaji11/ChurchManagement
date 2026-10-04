@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, ClipboardList } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { withTenant, listForms, countArchivedForms, canManageChurch } from "@hearth/db";
 import { t, plural } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -57,7 +57,7 @@ export default async function FormsPage({
 
       {forms.length === 0 ? (
         <Empty
-          icon={ClipboardList}
+          icon="form"
           title={putAway ? t("form.archived.none") : t("form.empty")}
           action={putAway ? undefined : <NewFormButton church={session.tenantSlug} />}
         />

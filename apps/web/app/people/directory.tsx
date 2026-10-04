@@ -3,11 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  Search, X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge,
-  ListFilter, Pencil, Copy, Cake, Printer,
-  SlidersHorizontal, Check, Tag, CheckCircle2, Users, SearchX,
-} from "lucide-react";
+import { Search, X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, SlidersHorizontal, Check, Tag, CheckCircle2 } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
   IconButton,
@@ -294,7 +290,7 @@ export function Directory({
 
       {rows.length === 0 ? (
         <Empty
-          icon={filtersOn ? SearchX : Users}
+          icon={filtersOn ? "noResults" : "people"}
           title={filtersOn ? t("directory.noResults.title") : t("people.empty.title")}
           body={filtersOn ? t("directory.noResults.body") : t("people.empty.body")}
           action={

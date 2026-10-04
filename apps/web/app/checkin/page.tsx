@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileWarning, Tag, Printer, Move, Plus, CalendarDays } from "lucide-react";
+import { FileWarning, Tag, Printer, Move, Plus } from "lucide-react";
 import {
   withTenant, listRooms, listOccurrences, listStations, listIncidents, listPeople,
   visitsFor, getChurch,
@@ -215,7 +215,7 @@ export default async function CheckinPage({
           }
         />
       ) : (
-        <Empty icon={CalendarDays} title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
+        <Empty icon="calendar" title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
       )}
     </AppShell>
   );

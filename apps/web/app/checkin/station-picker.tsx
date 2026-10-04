@@ -1,6 +1,5 @@
 "use client";
 
-import { Tablet } from "lucide-react";
 import * as React from "react";
 import Link from "next/link";
 import { Badge, Button, Card } from "@hearth/ui";
@@ -107,7 +106,7 @@ export function StationPicker({
   if (stations.length === 0) {
     return page(
       <Empty
-          icon={Tablet}
+          icon="station"
         title={t("checkin.none.title")}
         body={t("checkin.none.body")}
         action={

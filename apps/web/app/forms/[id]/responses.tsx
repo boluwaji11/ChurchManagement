@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Inbox } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -62,7 +61,7 @@ export function Responses({
     router.push(`${pathname}?${query.toString()}`, { scroll: false });
   };
 
-  if (total === 0) return <Empty icon={Inbox} title={t("form.responses.empty")} />;
+  if (total === 0) return <Empty icon="inbox" title={t("form.responses.empty")} />;
 
   const first = (page - 1) * perPage + 1;
   const upto = Math.min(page * perPage, total);

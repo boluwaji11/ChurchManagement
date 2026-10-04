@@ -34,6 +34,7 @@ export const PERMISSIONS = [
   // R2.x. The people records.
   "people.edit",
   "people.archive",
+  "people.households",
   "people.notes.confidential",
 
   // R13.x. Money. The permission exists now so the rule is not invented later.
@@ -71,7 +72,7 @@ export type Permission = (typeof PERMISSIONS)[number];
  */
 const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
   admin: [
-    "people.edit", "people.archive",
+    "people.edit", "people.archive", "people.households",
     "church.manage", "church.fields", "church.tags",
     "checkin.rooms", "checkin.stations", "checkin.run", "checkin.supervise",
     "checkin.incidents", "checkin.checks",
@@ -79,7 +80,7 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
     "teams.manage", "teams.lead",
   ],
   staff: [
-    "people.edit",
+    "people.edit", "people.households",
     "checkin.run", "checkin.supervise",
     "followups.manage", "groups.manage", "services.manage",
     "teams.manage", "teams.lead",

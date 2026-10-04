@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Plus, Clock, CheckCircle2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Plus, Clock, CheckCircle2 } from "lucide-react";
 import {
   withTenant, listIncidents, listRooms, listPeople, listOccurrences, stillHere, getChurch,
   canReadIncidents, canCheckIn, type Incident,
@@ -108,7 +108,7 @@ export default async function IncidentsPage({
       <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("incident.reports")}</h2>
 
       {incidents.length === 0 ? (
-        <Empty icon={ShieldAlert} title={t("incident.none.title")} action={filing} />
+        <Empty icon="incident" title={t("incident.none.title")} action={filing} />
       ) : (
         incidents.map((incident) => (
           <Report key={incident.id} church={session.tenantSlug} incident={incident} />

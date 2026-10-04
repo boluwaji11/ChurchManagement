@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, X, Search, Plus, Undo2, CircleDot } from "lucide-react";
+import { Check, X, Search, Plus, Undo2 } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Card, Checkbox, HueDot, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -242,7 +242,7 @@ export function Finder({
 
       {shown.length === 0 ? (
         <Empty
-          icon={CircleDot}
+          icon="group"
           title={t("find.none.title")}
           action={
             canManage ? (

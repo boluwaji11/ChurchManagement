@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Minus, Archive, Undo2, DoorOpen } from "lucide-react";
+import { Plus, Minus, Archive, Undo2 } from "lucide-react";
 import {
   HUES,
   Banner, Button, IconButton, Field, HueDot, Input,
@@ -76,7 +76,7 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
 
       {open.length === 0 ? (
         <Empty
-          icon={DoorOpen}
+          icon="room"
           title={t("rooms.none.title")}
           body={t("rooms.none.body")}
           action={<AddRoom church={church} />}

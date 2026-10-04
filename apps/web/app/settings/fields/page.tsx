@@ -1,5 +1,4 @@
 import { withTenant, listCustomFields, canManageCustomFields } from "@hearth/db";
-import { ListPlus } from "lucide-react";
 import { Banner } from "@hearth/ui";
 import { Empty } from "@/components/empty";
 import { requireSession } from "@/lib/session";
@@ -34,7 +33,7 @@ export default async function FieldsPage({
 
         {fields.length === 0 && canManage ? (
           <Empty
-            icon={ListPlus}
+            icon="field"
             title={t("fields.empty.title")}
             body={t("fields.empty.body")}
             action={<NewField church={session.tenantSlug} />}

@@ -657,6 +657,7 @@ export const en = {
   /* R1.6. One line per permission in the matrix. */
   "permission.people.edit": "Add and edit people",
   "permission.people.archive": "Archive a person",
+  "permission.people.households": "Name and merge households",
   "permission.people.notes.confidential": "Read confidential pastoral notes",
   "permission.giving.amounts": "See giving amounts",
   "permission.church.manage": "Change church settings",
@@ -1596,6 +1597,7 @@ export const en = {
   "publicGroups.back": "All groups",
   "error.permission.manageForms": "build the forms",
   "error.permission.editRoles": "change what a role can do",
+  "error.permission.manageHouseholds": "change a household",
   "form.title": "Forms",
   "form.new": "New form",
   "form.name": "Name",

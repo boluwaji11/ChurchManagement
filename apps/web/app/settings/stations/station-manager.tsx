@@ -79,7 +79,7 @@ export function StationManager({
 
       {open.length === 0 ? (
         <Empty
-          icon={Tablet}
+          icon="station"
           title={t("stations.none.title")}
           body={t("stations.none.body")}
           action={

@@ -44,7 +44,7 @@ export function LabelSheet({
   if (labels.length === 0) {
     return (
       <main id="main" className="mx-auto max-w-lg px-4 py-8">
-        <Empty icon={Printer} title={t("labels.none.title")} body={t("labels.none.body")} />
+        <Empty icon="printer" title={t("labels.none.title")} body={t("labels.none.body")} />
       </main>
     );
   }

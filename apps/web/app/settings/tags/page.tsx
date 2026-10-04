@@ -1,5 +1,4 @@
 import { withTenant, listTagsWithCounts, canManageTags, canEditPeople } from "@hearth/db";
-import { Tag } from "lucide-react";
 import { Banner } from "@hearth/ui";
 import { Empty } from "@/components/empty";
 import { requireSession } from "@/lib/session";
@@ -31,7 +30,7 @@ export default async function TagsPage({
 
         {tags.length === 0 && canCreate ? (
           <Empty
-            icon={Tag}
+            icon="tag"
             title={t("tags.empty.title")}
             body={t("tags.empty.body")}
             action={<NewTag church={session.tenantSlug} />}

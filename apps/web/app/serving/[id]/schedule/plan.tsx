@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, UserMinus, TriangleAlert, Link2, CalendarDays } from "lucide-react";
+import { Plus, UserMinus, TriangleAlert, Link2 } from "lucide-react";
 import {
   Banner, Badge, IconButton, Card, Separator,
   Dialog, DialogTrigger, DialogContent,
@@ -85,7 +85,7 @@ export function SchedulePlan({
     });
   };
 
-  if (gatherings.length === 0) return <Empty icon={CalendarDays} title={t("plan.empty")} />;
+  if (gatherings.length === 0) return <Empty icon="calendar" title={t("plan.empty")} />;
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
@@ -236,7 +236,7 @@ function AddDialog({
       <DialogContent title={positionName} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-2">
           {people !== null && people.length === 0 ? (
-            <Empty icon={CalendarDays} title={t("plan.nobody")} />
+            <Empty icon="calendar" title={t("plan.nobody")} />
           ) : null}
 
           {(people ?? [])

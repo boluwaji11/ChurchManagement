@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ShieldCheck, HeartHandshake, Plus } from "lucide-react";
+import { ShieldCheck, Plus } from "lucide-react";
 import { Button, Badge } from "@hearth/ui";
 import { Empty } from "@/components/empty";
 import { t, plural } from "@hearth/i18n";
@@ -41,7 +41,7 @@ export function Teams({
   if (teams.length === 0) {
     return (
       <Empty
-        icon={HeartHandshake}
+        icon="serving"
         title={t("serving.empty")}
         action={
           canManage ? (

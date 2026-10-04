@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Play, Square, ChevronLeft, ChevronRight, ListMusic } from "lucide-react";
+import { Play, Square, ChevronLeft, ChevronRight } from "lucide-react";
 import { Banner, Button, Card } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
@@ -82,7 +82,7 @@ export function Stage({
     .reduce((total, item) => total + item.minutes * 60, 0);
   const drift = sinceStart - plannedSoFar;
 
-  if (live.items.length === 0) return <Empty icon={ListMusic} title={t("order.empty")} />;
+  if (live.items.length === 0) return <Empty icon="order" title={t("order.empty")} />;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>

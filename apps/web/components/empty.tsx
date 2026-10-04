@@ -1,9 +1,41 @@
 "use client";
 
 import * as React from "react";
-import type { LucideIcon } from "lucide-react";
+import {
+  CalendarDays, CalendarX, CircleDot, ClipboardList, DoorOpen, HeartHandshake,
+  History, Inbox, ListMusic, ListPlus, Printer, SearchX, ShieldAlert, Tablet,
+  Tag, Users,
+} from "lucide-react";
 import { EmptyState } from "@hearth/ui";
 import { useChurchMark } from "./church-mark";
+
+/**
+ * The icons an empty state can wear, by name.
+ *
+ * A name rather than the component itself, because most of these screens are
+ * server components and a lucide icon is an object with methods, which cannot
+ * cross into a client component.
+ */
+const ICONS = {
+  calendar: CalendarDays,
+  calendarOff: CalendarX,
+  group: CircleDot,
+  form: ClipboardList,
+  room: DoorOpen,
+  serving: HeartHandshake,
+  history: History,
+  inbox: Inbox,
+  order: ListMusic,
+  field: ListPlus,
+  printer: Printer,
+  noResults: SearchX,
+  incident: ShieldAlert,
+  station: Tablet,
+  tag: Tag,
+  people: Users,
+} as const;
+
+export type EmptyIcon = keyof typeof ICONS;
 
 /**
  * R24.17. An empty state wearing this church's mark.
@@ -13,14 +45,14 @@ import { useChurchMark } from "./church-mark";
  * screen is empty; their own mark at least tells them whose screen it is.
  */
 export function Empty({
-  icon: Icon,
+  icon,
   title,
   body,
   action,
   className,
 }: {
   /** What is missing, for a church that has not uploaded a logo. */
-  icon: LucideIcon;
+  icon: EmptyIcon;
   title: string;
   body?: string;
   /** The same button this page carries in its corner. */
@@ -28,6 +60,7 @@ export function Empty({
   className?: string;
 }) {
   const logoUrl = useChurchMark();
+  const Icon = ICONS[icon];
 
   return (
     <EmptyState

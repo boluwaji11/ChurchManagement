@@ -32,8 +32,12 @@ export const canReadGivingAmounts = (role: Who): boolean =>
 export const CAN_EDIT_PEOPLE: readonly TenantRole[] = rolesWith("people.edit");
 export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = rolesWith("people.archive");
 
+/** R2.1. Who may name, merge and put away a household. */
+export const CAN_MANAGE_HOUSEHOLDS: readonly TenantRole[] = rolesWith("people.households");
+
 export const canEditPeople = (role: Who): boolean => can(role, "people.edit");
 export const canArchivePeople = (role: Who): boolean => can(role, "people.archive");
+export const canManageHouseholds = (role: Who): boolean => can(role, "people.households");
 
 /**
  * Thrown when a role is not permitted to perform a write.
@@ -68,4 +72,4 @@ export type PermissionAction =
   | "fileIncident" | "readIncidents" | "manageGroups" | "recordGroupAttendance"
   | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy"
   | "manageTeams" | "manageTeamRoster" | "schedule" | "managePlans"
-  | "manageForms" | "editRoles";
+  | "manageForms" | "editRoles" | "manageHouseholds";

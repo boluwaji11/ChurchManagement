@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, UserMinus, TriangleAlert, Link2, HeartHandshake } from "lucide-react";
+import { Plus, UserMinus, TriangleAlert, Link2 } from "lucide-react";
 import {
   Banner, Badge, Card, IconButton, Separator,
   Dialog, DialogTrigger, DialogContent,
@@ -84,7 +84,7 @@ export function WhoServes({
       {error ? <Banner tone="danger" title={t("plan.failed")}>{error}</Banner> : null}
 
       {teams.length === 0 ? (
-        <Empty icon={HeartHandshake} title={t("serves.empty")} />
+        <Empty icon="serving" title={t("serves.empty")} />
       ) : (
         <div className="flex flex-col gap-5">
           {teams.map((team) => (
@@ -235,7 +235,7 @@ function PickDialog({
       <DialogContent title={positionName} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-2">
           {people !== null && people.length === 0 ? (
-            <Empty icon={HeartHandshake} title={t("plan.nobody")} />
+            <Empty icon="serving" title={t("plan.nobody")} />
           ) : null}
 
           {(people ?? [])

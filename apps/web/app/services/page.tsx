@@ -1,7 +1,6 @@
 import {
   withTenant, listOccurrences, topUpCalendar, planSummaries, getChurch, canManageServices,
 } from "@hearth/db";
-import { CalendarDays } from "lucide-react";
 import { Empty } from "@/components/empty";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
@@ -120,7 +119,7 @@ export default async function ServicesPage({
             {t("services.upcoming")}
           </h2>
           <Empty
-            icon={CalendarDays}
+            icon="calendar"
             title={t("services.none.title")}
             body={t("services.none.body")}
             action={

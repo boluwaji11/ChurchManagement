@@ -51,23 +51,52 @@ export function FormActions({
   );
 }
 
-/** Whether anything in this form has been touched since it was rendered. */
+/** Every named value in the form, as one comparable string. */
+function snapshot(form: HTMLFormElement): string {
+  const out: string[] = [];
+  for (const [key, value] of new FormData(form).entries()) {
+    out.push(`${key}=${typeof value === "string" ? value : value.name}`);
+  }
+  // Sorted, because a field that re-renders can change the order without
+  // changing a single answer.
+  return out.sort().join("\u0000");
+}
+
+/**
+ * Whether this form says anything different from what it opened with.
+ *
+ * Compared against the values it started with rather than flagged on the first
+ * keystroke, so typing a space and taking it out again leaves Save dead. That
+ * is the honest answer to "do I have unsaved work", and it is the one an undo
+ * gives too.
+ */
 export function useDirty(form: string): boolean {
   const [dirty, setDirty] = React.useState(false);
 
   React.useEffect(() => {
     const element = document.getElementById(form);
-    if (!element) return;
+    if (!(element instanceof HTMLFormElement)) return;
 
-    const touched = () => setDirty(true);
-    element.addEventListener("input", touched);
-    element.addEventListener("change", touched);
-    // A submit is the point of the form, so it stops being unsaved work.
+    const opened = snapshot(element);
+    const compare = () => setDirty(snapshot(element) !== opened);
+
+    /*
+     * Click as well as input: a pill or a switch writes its answer into a
+     * hidden field, and setting a value from code fires no input event. The
+     * form's listener runs before React's, which is attached at the root, so
+     * the comparison waits a tick for the hidden field to catch up.
+     */
+    const later = () => setTimeout(compare, 0);
+
+    element.addEventListener("input", compare);
+    element.addEventListener("change", compare);
+    element.addEventListener("click", later);
     element.addEventListener("submit", () => setDirty(false));
 
     return () => {
-      element.removeEventListener("input", touched);
-      element.removeEventListener("change", touched);
+      element.removeEventListener("input", compare);
+      element.removeEventListener("change", compare);
+      element.removeEventListener("click", later);
     };
   }, [form]);
 

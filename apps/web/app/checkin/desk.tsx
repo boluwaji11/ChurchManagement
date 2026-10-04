@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Check, Undo2, UserCheck, CalendarDays } from "lucide-react";
+import { Search, Check, Undo2, UserCheck } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Card, Checkbox, CodeDisplay, Field, HueDot, Input,
   Separator,
@@ -234,7 +234,7 @@ export function Desk({
   };
 
   if (services.length === 0) {
-    return <Empty icon={CalendarDays} title={t("checkin.noService.title")} body={t("checkin.noService.body")} />;
+    return <Empty icon="calendar" title={t("checkin.noService.title")} body={t("checkin.noService.body")} />;
   }
 
   return (
@@ -400,7 +400,7 @@ export function Desk({
           ))}
         </ul>
       ) : query.trim().length >= 2 && !searching ? (
-        <Empty icon={CalendarDays} title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
+        <Empty icon="calendar" title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
       ) : null}
     </div>
   );
