@@ -1,8 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { t } from "@hearth/i18n";
-import { FormActions } from "@/components/form-actions";
 import type { Campus } from "@hearth/db";
 import { ChurchForm, type ChurchValues } from "../church-form";
 import { Places } from "./places";
@@ -35,16 +33,7 @@ export function ChurchSections({
 
   return (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        {heading}
-        {editing ? (
-          <FormActions
-            form="church-form"
-            label={t("church.save")}
-            onCancel={() => setEditing(false)}
-          />
-        ) : null}
-      </div>
+      {heading}
 
       <ChurchForm
         values={values}

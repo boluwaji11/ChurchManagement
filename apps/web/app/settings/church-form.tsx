@@ -4,6 +4,7 @@ import * as React from "react";
 import { Pencil } from "lucide-react";
 import { Banner, Combobox, Field, IconButton, Input } from "@hearth/ui";
 import { PhoneInput } from "@/components/phone-input";
+import { FormActions } from "@/components/form-actions";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
 import { saveChurch } from "./actions";
 
@@ -85,7 +86,15 @@ export function ChurchForm({
         <div className="flex flex-wrap items-center gap-4">
           {logo}
           <span className="min-w-0 flex-1 text-[17px] font-bold text-fg">{values.name}</span>
-          {canEdit && !editing ? (
+          {/* What commits this form sits on the card it changes, rather than
+              up beside the page's own title. */}
+          {editing ? (
+            <FormActions
+              form="church-form"
+              label={t("church.save")}
+              onCancel={() => onEditing(false)}
+            />
+          ) : canEdit ? (
             <IconButton label={t("church.edit")} variant="ghost" onClick={() => onEditing(true)}>
               <Pencil />
             </IconButton>
