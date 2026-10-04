@@ -4,7 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Pencil, Trash2 } from "lucide-react";
 import {
-  Avatar, Banner, DatePicker, Field, IconButton, Input, Working,
+  Avatar, Banner, Button, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
+  Field, IconButton, Input, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PhoneInput } from "@/components/phone-input";
@@ -86,27 +87,68 @@ export function ProfileForm({
       {error ? <Banner tone="danger" title={t("settings.profile.failed")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-4">
-        {/* R17.1. The face is the control. Pressing it asks for a file, the
-            same way the church's own mark works a screen away. */}
-        <button
-          type="button"
-          onClick={() => file.current?.click()}
-          aria-label={t("profile.photo.change")}
-          className="group relative shrink-0 cursor-pointer rounded-full"
-        >
-          {photoUrl ? (
-            <img
-              src={photoUrl}
-              alt=""
-              className="size-14 rounded-full border border-line object-cover"
-            />
-          ) : (
+        {/* R17.1. The face is the control. With a photo on it, pressing opens
+            it big enough to look at, with the two things anybody wants to do
+            to it. With none, it goes straight to the file picker, because a
+            box asking whether to add a photo before asking which one is a
+            press nobody needed. */}
+        {photoUrl ? (
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                aria-label={t("profile.photo.title")}
+                className="group relative shrink-0 cursor-pointer rounded-full"
+              >
+                <img
+                  src={photoUrl}
+                  alt=""
+                  className="size-14 rounded-full border border-line object-cover"
+                />
+                <span className="absolute inset-0 grid place-items-center rounded-full bg-fg/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <Camera className="size-5 text-surface" aria-hidden />
+                </span>
+              </button>
+            </DialogTrigger>
+
+            <DialogContent title={t("profile.photo.title")} closeLabel={t("common.close")}>
+              <img
+                src={photoUrl}
+                alt=""
+                className="max-h-[60vh] w-full rounded-lg bg-canvas object-contain"
+              />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() =>
+                    startTransition(async () => {
+                      const result = await clearPhoto(church);
+                      setError(result.error);
+                      if (!result.error) router.refresh();
+                    })}
+                >
+                  <Trash2 /> {t("profile.photo.remove")}
+                </Button>
+                <Button type="button" onClick={() => file.current?.click()}>
+                  <Camera /> {t("profile.photo.replace")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <button
+            type="button"
+            onClick={() => file.current?.click()}
+            aria-label={t("profile.photo.add")}
+            className="group relative shrink-0 cursor-pointer rounded-full"
+          >
             <Avatar name={display} id={values.personId} className="size-14 text-[18px] font-semibold" />
-          )}
-          <span className="absolute inset-0 grid place-items-center rounded-full bg-fg/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-            <Camera className="size-5 text-surface" aria-hidden />
-          </span>
-        </button>
+            <span className="absolute inset-0 grid place-items-center rounded-full bg-fg/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+              <Camera className="size-5 text-surface" aria-hidden />
+            </span>
+          </button>
+        )}
 
         <input
           ref={file}
@@ -123,21 +165,6 @@ export function ProfileForm({
           <span className="text-[17px] font-bold text-fg">{display}</span>
           <span className="truncate text-[13px] text-fg-muted">{signedInAs}</span>
         </span>
-
-        {photoUrl ? (
-          <IconButton
-            label={t("profile.photo.remove")}
-            variant="ghost"
-            onClick={() =>
-              startTransition(async () => {
-                const result = await clearPhoto(church);
-                setError(result.error);
-                if (!result.error) router.refresh();
-              })}
-          >
-            <Trash2 />
-          </IconButton>
-        ) : null}
 
         {editing ? (
           <FormActions
