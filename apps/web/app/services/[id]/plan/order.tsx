@@ -7,7 +7,7 @@ import {
   Copy, LayoutList,
 } from "lucide-react";
 import {
-  Banner, Button, EmptyState, Field, IconButton, Input, Separator, Textarea,
+  Banner, Button, Field, IconButton, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
@@ -172,9 +172,9 @@ export function Order({
 
       <section className="overflow-hidden rounded-lg border border-line bg-surface">
         {timed.length === 0 ? (
-          <div className="p-5">
-            <EmptyState title={t("order.empty")} />
-          </div>
+          /* A plain line rather than an illustration: the row under it is the
+             thing to press, and a picture between them only pushes it down. */
+          <p className="px-4 py-6 text-center text-fg-muted">{t("order.empty")}</p>
         ) : (
           <ul className="flex flex-col">
             {timed.map((item, i) => {

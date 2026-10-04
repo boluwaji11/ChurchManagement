@@ -11,8 +11,8 @@ import { AppShell } from "@/components/app-shell";
 import { longDate, readableTime, shortDate } from "@/lib/dates";
 import { churchNow } from "@/lib/church-now";
 import { Order } from "./order";
-import { WhoServes } from "./who-serves";
 import { PlanSide } from "./side";
+import { PlanTabs } from "./tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -73,9 +73,9 @@ export default async function PlanPage({
   const ends = new Date();
   ends.setHours(h ?? 0, (m ?? 0) + minutes, 0, 0);
 
-  const tabs = [...others]
-    .sort((a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt))
-    .slice(0, 6);
+  const tabs = [...others].sort(
+    (a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
+  );
 
   return (
     <AppShell session={session} title={t("order.title")} wide>
@@ -89,25 +89,15 @@ export default async function PlanPage({
           </Link>
 
           {tabs.length > 1 ? (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {tabs.map((one) => (
-                <Link
-                  key={one.id}
-                  href={`/services/${one.id}/plan?church=${session.tenantSlug}`}
-                  aria-current={one.id === id ? "page" : undefined}
-                  className={`flex shrink-0 flex-col rounded-md border px-3.5 py-2 ${
-                    one.id === id
-                      ? "border-primary bg-primary-soft"
-                      : "border-line bg-surface hover:border-line-strong"
-                  }`}
-                >
-                  <span className="whitespace-nowrap text-[12px] font-medium text-fg-subtle">
-                    {shortDate(one.occursOn)} · {readableTime(one.startsAt)}
-                  </span>
-                  <span className="whitespace-nowrap font-semibold text-fg">{one.name}</span>
-                </Link>
-              ))}
-            </div>
+            <PlanTabs
+              church={session.tenantSlug}
+              current={id}
+              tabs={tabs.map((one) => ({
+                id: one.id,
+                when: `${shortDate(one.occursOn)} · ${readableTime(one.startsAt)}`,
+                name: one.name,
+              }))}
+            />
           ) : null}
 
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -156,8 +146,6 @@ export default async function PlanPage({
               minutes: source.minutes,
             }))}
           />
-
-          <WhoServes church={session.tenantSlug} occurrenceId={id} teams={roster} />
         </div>
 
         <PlanSide
