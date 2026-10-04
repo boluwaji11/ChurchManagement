@@ -1,41 +1,22 @@
 "use client";
 
 import * as React from "react";
-import {useRouter } from "next/navigation";
-import { Search, UserMinus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import {
-  Banner,
-  Badge, IconButton, Input, Separator,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Banner, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import type { GroupRole } from "@hearth/db";
-import { findPerson, join, leave, type PersonHit } from "./actions";
-
-export interface RosterEntry {
-  personId: string;
-  name: string;
-  role: string;
-  joinedOn: string;
-  leftOn: string | null;
-}
+import { findPerson, join, type PersonHit } from "./actions";
 
 /**
- * R9.4. Who is in the group.
+ * R9.4. Putting somebody in a group.
  *
- * Adding somebody is the same search the station uses, because a church has one
- * directory and a leader should not have to learn a second way of finding
- * people in it.
+ * The same search the station uses, because a church has one directory and a
+ * leader should not have to learn a second way of finding people in it.
  */
-export function Roster({
-  church,
-  groupId,
-  entries,
-}: {
-  church: string;
-  groupId: string;
-  entries: RosterEntry[];
-}) {
+export function AddMember({ church, groupId }: { church: string; groupId: string }) {
   const router = useRouter();
   const [query, setQuery] = React.useState("");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
@@ -54,7 +35,7 @@ export function Roster({
     return () => clearTimeout(timer);
   }, [query, church]);
 
-  const add = (personId: string) => {
+  const add = (personId: string) =>
     startTransition(async () => {
       const result = await join(groupId, personId, role, church);
       setError(result.error);
@@ -64,54 +45,23 @@ export function Roster({
         router.refresh();
       }
     });
-  };
-
-  const take = (personId: string) => {
-    startTransition(async () => {
-      const result = await leave(groupId, personId, church);
-      setError(result.error);
-      if (!result.error) router.refresh();
-    });
-  };
 
   return (
-    <div className="flex flex-col gap-3" aria-busy={pending}>
+    <div className="flex flex-col gap-2" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
-      <ul className="flex flex-col">
-        {entries.map((entry, i) => (
-          <li key={entry.personId}>
-            {i > 0 ? <Separator className="my-2" /> : null}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="flex items-center gap-2">
-                <span className="text-[length:var(--d-text-body)] text-fg">{entry.name}</span>
-                {entry.role === "member" ? null : (
-                  <Badge tone="neutral">{t(`groups.role.${entry.role}` as never)}</Badge>
-                )}
-              </span>
-              <IconButton
-                label={t("groups.remove")}
-                variant="ghost"
-                onClick={() => take(entry.personId)}
-              >
-                <UserMinus />
-              </IconButton>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex flex-wrap items-end gap-2">
-        <div className="flex min-w-48 flex-1 items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm transition-colors has-[input:focus-visible]:border-fg has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-[var(--ring)]">
-          <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
-          <Input
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex h-[38px] min-w-48 flex-1 items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--ring)]">
+          <Search className="size-[15px] shrink-0 text-fg-subtle" aria-hidden />
+          <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("groups.addPerson")}
             aria-label={t("groups.addPerson")}
             autoComplete="off"
-            className="border-0 bg-transparent shadow-none outline-none focus-visible:outline-none"
+            className="min-w-0 flex-1 border-0 bg-transparent text-[length:var(--d-text-body)] text-fg outline-none placeholder:text-fg-subtle"
           />
-        </div>
+        </label>
 
         <Select value={role} onValueChange={(value) => setRole(value as GroupRole)}>
           <SelectTrigger aria-label={t("groups.role")} className="w-40"><SelectValue /></SelectTrigger>

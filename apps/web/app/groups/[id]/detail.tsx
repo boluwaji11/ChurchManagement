@@ -2,14 +2,16 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check } from "lucide-react";
+import { Check, UserMinus } from "lucide-react";
 import {
-  Avatar, Banner, Button, Tabs, TabsList, TabsTrigger, TabsContent,
+  Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
+  Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import type { Meeting, MeetingPerson } from "@hearth/db";
-import { decide, setOpenToJoin } from "../actions";
-import { record } from "./attendance/actions";
+import { decide, setOpenToJoin, leave } from "../actions";
+import { AddMember } from "../add-member";
+import { record } from "./meeting-actions";
 
 export interface DetailMeeting {
   /** The day, as YYYY-MM-DD. */
@@ -77,6 +79,7 @@ export function GroupDetail({
   const router = useRouter();
   const [tab, setTab] = React.useState("overview");
   const [error, setError] = React.useState<string>();
+  const [removing, setRemoving] = React.useState<DetailMember | null>(null);
   const [pending, startTransition] = React.useTransition();
 
   const run = (work: () => Promise<{ error?: string }>) =>
@@ -193,24 +196,38 @@ export function GroupDetail({
         </TabsContent>
 
         <TabsContent value="members">
-          <section className="overflow-hidden rounded-lg border border-line bg-surface">
-            {members.map((member) => (
-              <div
-                key={member.personId}
-                className="flex min-h-[56px] items-center gap-3 border-b border-sunken px-5 last:border-b-0"
-              >
-                <Avatar
-                  name={member.name}
-                  id={member.personId}
-                  className="size-[34px] text-[12px] font-semibold"
-                />
-                <span className="flex-1 font-medium text-fg">{member.name}</span>
-                <span className="text-[12px] text-fg-muted">
-                  {t(`groups.role.${member.role}` as never)}
-                </span>
-              </div>
-            ))}
-          </section>
+          <div className="flex flex-col gap-4">
+            <section className="overflow-hidden rounded-lg border border-line bg-surface">
+              {members.map((member) => (
+                <div
+                  key={member.personId}
+                  className="flex min-h-[56px] items-center gap-3 border-b border-sunken px-5 last:border-b-0"
+                >
+                  <Avatar
+                    name={member.name}
+                    id={member.personId}
+                    className="size-[34px] text-[12px] font-semibold"
+                  />
+                  <span className="flex-1 font-medium text-fg">{member.name}</span>
+                  <span className="text-[12px] text-fg-muted">
+                    {t(`groups.role.${member.role}` as never)}
+                  </span>
+                  {canManage ? (
+                    <IconButton
+                      label={t("groups.remove")}
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => setRemoving(member)}
+                    >
+                      <UserMinus />
+                    </IconButton>
+                  ) : null}
+                </div>
+              ))}
+            </section>
+
+            {canManage ? <AddMember church={church} groupId={groupId} /> : null}
+          </div>
         </TabsContent>
 
         {canManage ? (
@@ -224,6 +241,28 @@ export function GroupDetail({
           </TabsContent>
         ) : null}
       </Tabs>
+
+      {/* Taking somebody off a roster asks first, the same as every other x. */}
+      <Dialog open={removing !== null} onOpenChange={(open) => (open ? null : setRemoving(null))}>
+        <DialogContent alert title={t("groups.removeTitle")} closeLabel={t("common.close")}>
+          <p className="text-[length:var(--d-text-body)] text-fg">
+            {t("groups.removeBody", { name: removing?.name ?? "" })}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setRemoving(null)}>{t("action.cancel")}</Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                const who = removing;
+                setRemoving(null);
+                if (who) run(() => leave(groupId, who.personId, church));
+              }}
+            >
+              {t("groups.remove")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

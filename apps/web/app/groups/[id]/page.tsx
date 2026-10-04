@@ -232,13 +232,6 @@ export default async function GroupPage({
         <ManageGroup
           church={session.tenantSlug}
           types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
-          roster={roster.map((member) => ({
-            personId: member.personId,
-            name: member.name,
-            role: member.role,
-            joinedOn: member.joinedOn,
-            leftOn: member.leftOn,
-          }))}
           group={{
             id: group.id,
             name: group.name,

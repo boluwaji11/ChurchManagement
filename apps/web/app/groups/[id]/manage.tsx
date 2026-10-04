@@ -2,11 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, ClipboardCheck } from "lucide-react";
-import { Banner, Button, Card, Separator } from "@hearth/ui";
+import { Pencil } from "lucide-react";
+import { Banner, Button, Card } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { archive } from "../actions";
-import { Roster, type RosterEntry } from "../roster";
 import { GroupDialog, ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-form";
 
 /**
@@ -20,12 +19,10 @@ export function ManageGroup({
   church,
   group,
   types,
-  roster,
 }: {
   church: string;
   group: GroupDraft;
   types: GroupTypeOption[];
-  roster: RosterEntry[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -35,16 +32,7 @@ export function ManageGroup({
     <Card className="mt-10 flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.title")}>{error}</Banner> : null}
 
-      <Roster church={church} groupId={group.id} entries={roster} />
-
-      <Separator />
-
       <div className="flex flex-wrap items-center gap-2">
-        <Button asChild>
-          <a href={`/groups/${group.id}/attendance?church=${church}`}>
-            <ClipboardCheck /> {t("meeting.title")}
-          </a>
-        </Button>
         <GroupDialog
           church={church}
           types={types}

@@ -1088,6 +1088,8 @@ export const en = {
   "groups.roster": "Roster",
   "groups.addPerson": "Add someone",
   "groups.remove": "Remove",
+  "groups.removeTitle": "Remove from the group?",
+  "groups.removeBody": "{name} comes off the roster. What they attended stays.",
   "groups.role": "Role",
   "groups.role.leader": "Leader",
   "groups.role.coleader": "Co-leader",
