@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { X } from "lucide-react";
 import {
-  Button, Dialog, DialogContent, DialogFooter,
+  Button, Dialog, DialogContent, DialogFooter, IconButton,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
@@ -15,38 +16,50 @@ import { t } from "@hearth/i18n";
  *
  * Save stays dead until something has been touched, so a reader who opened a
  * record to look at it is not offered a save that would do nothing. Once
- * something has been touched, leaving the page asks first: the browser's own
- * prompt for a reload or a closed tab, and ours for a link inside the product,
- * which the browser never sees.
+ * something has been touched, every way out of the form asks first, in the
+ * product's own words.
  */
 export function FormActions({
   form,
   label,
-  onCancel,
-  cancelLabel,
+  onClose,
+  closeLabel,
 }: {
   /** The id of the form this commits. */
   form: string;
   label: string;
-  /** Given where cancelling is a thing this screen can do in place. */
-  onCancel?: () => void;
-  cancelLabel?: string;
+  /** Given where this form is a panel the screen can close in place. */
+  onClose?: () => void;
+  closeLabel?: string;
 }) {
   const dirty = useDirty(form);
+  const [closing, setClosing] = React.useState(false);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {onCancel ? (
-        <Button type="button" variant="secondary" onClick={onCancel}>
-          {cancelLabel ?? t("action.cancel")}
-        </Button>
+      {onClose ? (
+        <IconButton
+          label={closeLabel ?? t("common.close")}
+          variant="ghost"
+          onClick={() => (dirty ? setClosing(true) : onClose())}
+        >
+          <X />
+        </IconButton>
       ) : null}
 
       <Button type="submit" form={form} disabled={!dirty}>
         {label}
       </Button>
 
-      <LeaveGuard dirty={dirty} />
+      <LeaveGuard
+        dirty={dirty}
+        closing={closing}
+        onKeepEditing={() => setClosing(false)}
+        onDiscard={() => {
+          setClosing(false);
+          onClose?.();
+        }}
+      />
     </div>
   );
 }
@@ -106,22 +119,27 @@ export function useDirty(form: string): boolean {
 /**
  * R24.6. Asks before unsaved work is walked away from.
  *
- * Two paths out of a page, and the browser only knows about one of them. A
- * reload or a closed tab gets the browser's own prompt. A link inside the
- * product never reaches the browser, so the click is caught here and answered
- * with a box of our own.
+ * A link inside the product never reaches the browser, so the click is caught
+ * here and answered with a box of our own. The browser's own prompt is left
+ * alone: it cannot be styled, it cannot be worded, and showing it alongside
+ * this one asks the same question twice in two different voices.
  */
-export function LeaveGuard({ dirty }: { dirty: boolean }) {
+export function LeaveGuard({
+  dirty,
+  closing,
+  onKeepEditing,
+  onDiscard,
+}: {
+  dirty: boolean;
+  /** The screen is trying to close this form in place. */
+  closing?: boolean;
+  onKeepEditing?: () => void;
+  onDiscard?: () => void;
+}) {
   const [leaving, setLeaving] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!dirty) return;
-
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      // Required by Chrome, which ignores the string and shows its own words.
-      event.returnValue = "";
-    };
 
     const catchLink = (event: MouseEvent) => {
       // A modified click is the reader opening a second tab, which leaves this
@@ -142,22 +160,24 @@ export function LeaveGuard({ dirty }: { dirty: boolean }) {
       setLeaving(next.pathname + next.search);
     };
 
-    window.addEventListener("beforeunload", warn);
     document.addEventListener("click", catchLink, true);
-
-    return () => {
-      window.removeEventListener("beforeunload", warn);
-      document.removeEventListener("click", catchLink, true);
-    };
+    return () => document.removeEventListener("click", catchLink, true);
   }, [dirty]);
 
+  const open = leaving !== null || Boolean(closing);
+
+  const stay = () => {
+    setLeaving(null);
+    onKeepEditing?.();
+  };
+
   return (
-    <Dialog open={leaving !== null} onOpenChange={(open) => (open ? null : setLeaving(null))}>
+    <Dialog open={open} onOpenChange={(next) => (next ? null : stay())}>
       <DialogContent alert title={t("unsaved.title")} closeLabel={t("common.close")}>
         <p className="text-[length:var(--d-text-body)] text-fg">{t("unsaved.body")}</p>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => setLeaving(null)}>
+          <Button type="button" variant="ghost" onClick={stay}>
             {t("unsaved.stay")}
           </Button>
           <Button
@@ -166,10 +186,14 @@ export function LeaveGuard({ dirty }: { dirty: boolean }) {
             onClick={() => {
               const to = leaving;
               setLeaving(null);
-              if (to) window.location.href = to;
+              if (to) {
+                window.location.href = to;
+                return;
+              }
+              onDiscard?.();
             }}
           >
-            {t("unsaved.leave")}
+            {leaving !== null ? t("unsaved.leave") : t("unsaved.discard")}
           </Button>
         </DialogFooter>
       </DialogContent>

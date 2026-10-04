@@ -92,7 +92,7 @@ export function ChurchForm({
             <FormActions
               form="church-form"
               label={t("church.save")}
-              onCancel={() => onEditing(false)}
+              onClose={() => onEditing(false)}
             />
           ) : canEdit ? (
             <IconButton label={t("church.edit")} variant="ghost" onClick={() => onEditing(true)}>

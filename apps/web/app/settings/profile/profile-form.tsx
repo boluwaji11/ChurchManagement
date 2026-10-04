@@ -201,7 +201,7 @@ export function ProfileForm({
           <FormActions
             form="profile-form"
             label={t("settings.profile.save")}
-            onCancel={() => setEditing(false)}
+            onClose={() => setEditing(false)}
           />
         ) : (
           <IconButton
