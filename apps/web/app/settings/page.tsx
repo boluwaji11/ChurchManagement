@@ -1,44 +1,20 @@
-import { cookies } from "next/headers";
-import { Badge, Card, CardTitle, Separator } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { redirect } from "next/navigation";
+import { canManageChurch } from "@hearth/db";
 import { requireSession } from "@/lib/session";
-import { SignOutButton } from "@/components/sign-out-button";
-import { ThemeChoice } from "./theme";
-import type { Theme } from "./theme-actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AccountPage() {
+/**
+ * Settings opens on the first section the person can actually change.
+ *
+ * There is no landing page here in the design, and a page whose only content is
+ * a menu that is already on screen is a page nobody wanted.
+ */
+export default async function SettingsPage() {
   const session = await requireSession();
-  const theme = ((await cookies()).get("hearth-theme")?.value ?? "system") as Theme;
-
-  return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardTitle>{t("account.title")}</CardTitle>
-        <Separator className="my-4" />
-        <dl className="mb-5 grid gap-x-8 gap-y-3 sm:grid-cols-2">
-          <div className="flex flex-col">
-            <dt className="text-label text-fg-muted">{t("account.name")}</dt>
-            <dd className="text-[length:var(--d-text-body)] text-fg">{session.displayName}</dd>
-          </div>
-          <div className="flex flex-col">
-            <dt className="text-label text-fg-muted">{t("account.email")}</dt>
-            <dd className="text-[length:var(--d-text-body)] text-fg">{session.email}</dd>
-          </div>
-          <div className="flex flex-col">
-            <dt className="text-label text-fg-muted">{t("account.church")}</dt>
-            <dd className="text-[length:var(--d-text-body)] text-fg">{session.tenantName}</dd>
-          </div>
-          <div className="flex flex-col">
-            <dt className="text-label text-fg-muted">{t("account.role")}</dt>
-            <dd><Badge tone="neutral">{t(`role.${session.role}`)}</Badge></dd>
-          </div>
-        </dl>
-        <SignOutButton />
-      </Card>
-
-      <ThemeChoice current={theme} />
-    </div>
+  redirect(
+    canManageChurch(session.role)
+      ? `/settings/church?church=${session.tenantSlug}`
+      : `/settings/privacy?church=${session.tenantSlug}`,
   );
 }

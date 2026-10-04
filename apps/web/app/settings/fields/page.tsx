@@ -3,6 +3,7 @@ import { Banner, EmptyState } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { FieldManager } from "./field-manager";
 import { t } from "@hearth/i18n";
+import { SettingsHeading } from "../heading";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,8 @@ export default async function FieldsPage({
   const canManage = canManageCustomFields(session.role);
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-heading font-display text-fg">{t("fields.title")}</h2>
+    <div className="flex flex-col gap-5">
+      <SettingsHeading title="settings.tab.fields" lede="settings.lede.fields" />
 
 
         {fields.length === 0 && canManage ? (

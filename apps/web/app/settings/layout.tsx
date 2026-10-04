@@ -1,22 +1,22 @@
 import {
   canManageChurch, canManageCustomFields, canEditPeople, canManageRooms,
-  withTenant, setupProgress,
+  canArchivePeople, withTenant, setupProgress,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
-import { Avatar } from "@hearth/ui";
-import { PageMeta } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
-import { SettingsTabs, type SettingsTab } from "./tabs";
+import { SettingsNav, type SettingsGroup } from "./nav";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Everything a person administers, behind their own name.
+ * R24.6. Everything a church administers, behind one menu.
  *
- * Tags and custom fields used to sit in the main navigation beside the
- * directory, which put the two things a volunteer touches every day next to two
- * they touch twice a year. The directory is the product. This is the drawer.
+ * Built to docs/redesign/design: the sections grouped down the left, the one
+ * being read beside them. Tags and custom fields used to sit in the main
+ * navigation beside the directory, which put the two things a volunteer touches
+ * every day next to two they touch twice a year. The directory is the product.
+ * This is the drawer.
  */
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
@@ -32,48 +32,68 @@ export default async function SettingsLayout({ children }: { children: React.Rea
       )
     : null;
 
-  const tabs: SettingsTab[] = [
-    { href: "/settings", label: t("settings.tab.account") },
-    { href: "/settings/security", label: t("settings.tab.security") },
-    // R3.2. What this person lets the church publish about them.
-    { href: "/settings/privacy", label: t("settings.tab.privacy") },
-    ...(canManageChurch(session.role)
-      ? [
-          ...(setup && !setup.complete
-            ? [{ href: "/setup", label: t("settings.tab.setup") }]
-            : []),
-          { href: "/settings/church", label: t("settings.tab.church") },
-          { href: "/settings/team", label: t("settings.tab.team") },
-          { href: "/settings/followups", label: t("settings.tab.followups") },
-        ]
-      : []),
-    ...(canManageRooms(session.role)
-      ? [
-          { href: "/settings/rooms", label: t("settings.tab.rooms") },
-          { href: "/settings/stations", label: t("settings.tab.stations") },
-        ]
-      : []),
-    ...(canEditPeople(session.role)
-      ? [{ href: "/settings/tags", label: t("settings.tab.tags") }]
-      : []),
-    ...(canManageCustomFields(session.role)
-      ? [{ href: "/settings/fields", label: t("settings.tab.fields") }]
-      : []),
-  ];
+  const groups: SettingsGroup[] = [
+    {
+      title: t("settings.group.church"),
+      items: [
+        ...(setup && !setup.complete
+          ? [{ href: "/setup", label: t("settings.tab.setup") }]
+          : []),
+        ...(canManageChurch(session.role)
+          ? [
+              { href: "/settings/church", label: t("settings.tab.church") },
+              { href: "/settings/team", label: t("settings.tab.team") },
+            ]
+          : []),
+      ],
+    },
+    {
+      title: t("settings.group.checkin"),
+      items: canManageRooms(session.role)
+        ? [
+            { href: "/settings/rooms", label: t("settings.tab.rooms") },
+            { href: "/settings/stations", label: t("settings.tab.stations") },
+          ]
+        : [],
+    },
+    {
+      title: t("settings.group.people"),
+      items: [
+        ...(canEditPeople(session.role)
+          ? [{ href: "/settings/tags", label: t("settings.tab.tags") }]
+          : []),
+        ...(canManageCustomFields(session.role)
+          ? [{ href: "/settings/fields", label: t("settings.tab.fields") }]
+          : []),
+        ...(canManageChurch(session.role)
+          ? [{ href: "/settings/followups", label: t("settings.tab.followups") }]
+          : []),
+      ],
+    },
+    {
+      title: t("settings.group.you"),
+      items: [
+        // R3.2. What this person lets the church publish about them.
+        { href: "/settings/privacy", label: t("settings.tab.privacy") },
+        { href: "/settings/security", label: t("settings.tab.security") },
+        { href: "/settings/appearance", label: t("settings.tab.appearance") },
+      ],
+    },
+    {
+      title: t("settings.group.data"),
+      items: canArchivePeople(session.role)
+        ? [{ href: "/settings/export", label: t("settings.tab.export") }]
+        : [],
+    },
+  ].filter((group) => group.items.length > 0);
 
   return (
-    <AppShell
-      session={session}
-      title={t("nav.settings")}
-    >
-      <div className="mb-6 flex items-center gap-4">
-        <Avatar name={session.displayName} id={session.userId} size="xl" />
-        <PageMeta>{session.displayName}</PageMeta>
+    <AppShell session={session} title={t("nav.settings")}>
+      <div className="flex flex-wrap items-start gap-7">
+        <SettingsNav groups={groups} church={session.tenantSlug} />
+
+        <div className="flex min-w-0 flex-[999_1_400px] flex-col gap-5">{children}</div>
       </div>
-
-      <SettingsTabs tabs={tabs} church={session.tenantSlug} />
-
-      {children}
     </AppShell>
   );
 }

@@ -2,6 +2,7 @@ import { withTenant, personForUser, directoryPreferencesFor, householdHeadIs } f
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
+import { SettingsHeading } from "../heading";
 import { Privacy } from "./privacy";
 
 export const dynamic = "force-dynamic";
@@ -32,18 +33,21 @@ export default async function DirectoryPrivacyPage({
   }
 
   return (
-    <Privacy
-      church={session.tenantSlug}
-      isHead={result.isHead}
-      values={{
-        listed: result.values.listed,
-        showEmail: result.values.showEmail,
-        showPhone: result.values.showPhone,
-        showAddress: result.values.showAddress,
-        showBirthday: result.values.showBirthday,
-        showPhoto: result.values.showPhoto,
-        showChildren: result.values.showChildren,
-      }}
-    />
+    <>
+      <SettingsHeading title="settings.tab.privacy" lede="settings.lede.privacy" />
+      <Privacy
+        church={session.tenantSlug}
+        isHead={result.isHead}
+        values={{
+          listed: result.values.listed,
+          showEmail: result.values.showEmail,
+          showPhone: result.values.showPhone,
+          showAddress: result.values.showAddress,
+          showBirthday: result.values.showBirthday,
+          showPhoto: result.values.showPhoto,
+          showChildren: result.values.showChildren,
+        }}
+      />
+    </>
   );
 }

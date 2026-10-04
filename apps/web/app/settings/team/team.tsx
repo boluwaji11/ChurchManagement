@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, RefreshCw, Copy, DoorOpen } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Card, CardTitle, CodeDisplay, Field, Input, Separator,
+  Avatar, Badge, Banner, Button, IconButton, Card, CardTitle, CodeDisplay, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -17,6 +17,8 @@ export interface Member {
   name: string | null;
   role: string;
   isSelf: boolean;
+  /** Already written the way this church reads a date, or null. */
+  lastSignedIn: string | null;
 }
 
 export interface Invitation {
@@ -185,62 +187,94 @@ export function Team({
         </DialogContent>
       </Dialog>
 
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle>{t("team.title")}</CardTitle>
-          <InviteDialog church={church} pending={pending} onDone={() => router.refresh()} />
-        </div>
-        <Separator className="my-4" />
+      <div className="flex justify-end">
+        <InviteDialog church={church} pending={pending} onDone={() => router.refresh()} />
+      </div>
 
-        <ul className="flex flex-col">
-          {members.map((member, i) => (
-            <li key={member.userId}>
-              {i > 0 ? <Separator className="my-3" /> : null}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="flex min-w-0 flex-col">
-                  <span className="text-[length:var(--d-text-body)] text-fg">
-                    {member.name ?? member.email}
+      {/* R1.4. A row per person: who they are, what they may do, and when they
+          were last here. The three a church checks when somebody leaves. */}
+      <div className="overflow-hidden rounded-[14px] border border-line bg-surface">
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr className="border-b border-line">
+              <th className="px-5 py-3 text-[12px] font-medium text-fg-subtle">
+                {t("team.person")}
+              </th>
+              <th className="w-66 px-5 py-3 text-[12px] font-medium text-fg-subtle">
+                {t("team.roleColumn")}
+              </th>
+              <th className="w-44 px-5 py-3 text-[12px] font-medium text-fg-subtle">
+                {t("team.lastSignedIn")}
+              </th>
+              <th className="w-12 px-2" />
+            </tr>
+          </thead>
+
+          <tbody>
+            {members.map((member) => (
+              <tr key={member.userId} className="border-b border-line last:border-0">
+                <td className="px-5 py-3">
+                  <span className="flex items-center gap-3">
+                    <Avatar
+                      name={member.name ?? member.email}
+                      id={member.userId}
+                      className="size-8 shrink-0 text-[12px] font-semibold"
+                    />
+                    <span className="flex min-w-0 flex-col leading-[18px]">
+                      <span className="truncate font-medium text-fg">
+                        {member.name ?? member.email}
+                      </span>
+                      {member.name ? (
+                        <span className="truncate text-[12px] text-fg-subtle">{member.email}</span>
+                      ) : null}
+                    </span>
                   </span>
-                  {member.name ? (
-                    <span className="text-caption text-fg-muted">{member.email}</span>
-                  ) : null}
-                </span>
+                </td>
 
-                <span className="flex flex-wrap items-center gap-2">
+                <td className="px-5 py-3">
                   {member.isSelf ? (
                     <Badge tone="neutral">{roleName(member.role)}</Badge>
                   ) : (
-                    <>
-                      {/* R1.4. Promoting somebody to owner, or demoting the
-                          person who set the church up, was one stray click on
-                          a dropdown. It is asked for now. */}
-                      <Select value={member.role} onValueChange={(role) => setChanging({ member, role })}>
-                        <SelectTrigger aria-label={t("team.role")} className="min-w-44">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLES.map((role) => (
-                            <SelectItem key={role} value={role}>{roleName(role)}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <IconButton
-                        label={t("team.remove")}
-                        variant="ghost"
-                        disabled={pending}
-                        onClick={() => setRemoving(member)}
-                      >
-                        <X />
-                      </IconButton>
-                    </>
+                    /* R1.4. Promoting somebody to owner, or demoting the person
+                       who set the church up, was one stray click on a dropdown.
+                       It is asked for now. */
+                    <Select
+                      value={member.role}
+                      onValueChange={(role) => setChanging({ member, role })}
+                    >
+                      <SelectTrigger aria-label={t("team.role")} className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((role) => (
+                          <SelectItem key={role} value={role}>{roleName(role)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Card>
+                </td>
+
+                <td className="px-5 py-3 text-[length:var(--d-text-body)] text-fg-muted">
+                  {member.lastSignedIn ?? t("team.neverSignedIn")}
+                </td>
+
+                <td className="px-2 py-3">
+                  {member.isSelf ? null : (
+                    <IconButton
+                      label={t("team.remove")}
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => setRemoving(member)}
+                    >
+                      <X />
+                    </IconButton>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <Card>
         <CardTitle>{t("joining.title")}</CardTitle>

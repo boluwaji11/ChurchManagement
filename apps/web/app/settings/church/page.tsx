@@ -9,6 +9,7 @@ import { Places } from "./places";
 import { ChurchForm } from "../church-form";
 import { LogoAndStorage } from "../logo";
 import { supabaseServer } from "@/lib/supabase/server";
+import { SettingsHeading } from "../heading";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,8 @@ export default async function SettingsPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
+      <SettingsHeading title="settings.tab.church" lede="settings.lede.church" />
         {profile ? (
           <Card>
             <CardTitle>{t("church.logo")}</CardTitle>

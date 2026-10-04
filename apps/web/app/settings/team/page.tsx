@@ -5,7 +5,9 @@ import { headers } from "next/headers";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
+import { SettingsHeading } from "../heading";
 import { Team } from "./team";
+import { longDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -33,19 +35,27 @@ export default async function TeamPage({
   const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
 
   return (
-    <Team
-      church={session.tenantSlug}
-      members={members}
-      invitations={invitations.map((invitation) => ({
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        expiresAt: invitation.expiresAt.toLocaleDateString("en-US", {
-          day: "numeric", month: "long",
-        }),
-      }))}
-      joinCode={code ? formatJoinCode(code) : null}
-      joinLink={code ? `${proto}://${host}/join/${code}` : null}
-    />
+    <>
+      <SettingsHeading title="settings.tab.team" lede="settings.lede.team" />
+      <Team
+        church={session.tenantSlug}
+        members={members.map((member) => ({
+          ...member,
+          lastSignedIn: member.lastSignedInAt
+            ? longDate(member.lastSignedInAt.toISOString().slice(0, 10))
+            : null,
+        }))}
+        invitations={invitations.map((invitation) => ({
+          id: invitation.id,
+          email: invitation.email,
+          role: invitation.role,
+          expiresAt: invitation.expiresAt.toLocaleDateString("en-US", {
+            day: "numeric", month: "long",
+          }),
+        }))}
+        joinCode={code ? formatJoinCode(code) : null}
+        joinLink={code ? `${proto}://${host}/join/${code}` : null}
+      />
+    </>
   );
 }

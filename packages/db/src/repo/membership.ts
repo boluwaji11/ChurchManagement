@@ -345,6 +345,8 @@ export interface TeamMember {
   name: string | null;
   role: TenantRole;
   isSelf: boolean;
+  /** R1.4. When they last signed in, null for somebody who never has. */
+  lastSignedInAt: Date | null;
 }
 
 export interface PendingInvitation {
@@ -365,12 +367,23 @@ export async function listTeam(
   tenantId: string,
   selfUserId?: string | null,
 ): Promise<TeamMember[]> {
+  /*
+   * R1.4. Last signed in comes from the auth schema, which is the only place
+   * that knows. Read on the owner connection, the same one tenant_members
+   * needs, and left-joined so a database without the auth schema answers with
+   * the team and a blank column rather than with an error.
+   */
   const rows = await owner()<
-    { user_id: string; email: string; full_name: string | null; role: string }[]
+    {
+      user_id: string; email: string; full_name: string | null; role: string;
+      last_sign_in_at: Date | null;
+    }[]
   >`
-    select m.user_id, u.email, u.full_name, m.role::text as role
+    select m.user_id, u.email, u.full_name, m.role::text as role,
+           au.last_sign_in_at
       from tenant_members m
       join app_users u on u.id = m.user_id
+      left join auth.users au on au.id = m.user_id
      where m.tenant_id = ${tenantId}
      order by u.email`;
 
@@ -380,6 +393,7 @@ export async function listTeam(
     name: row.full_name,
     role: row.role as TenantRole,
     isSelf: row.user_id === selfUserId,
+    lastSignedInAt: row.last_sign_in_at ?? null,
   }));
 }
 

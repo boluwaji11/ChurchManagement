@@ -29,6 +29,12 @@ export async function GET(request: NextRequest) {
   // people" meant.
   if (isFiltered(params)) return exportView(session, params);
 
+  // R19.8. One table on its own, for a church that wants the people list in a
+  // spreadsheet rather than the whole archive. Built from the same archive, so
+  // a column can never say one thing here and another in the zip.
+  const only = request.nextUrl.searchParams.get("only");
+  if (only) return exportTable(session, only);
+
   let zip: Buffer;
   try {
     const archive = await withTenant(
@@ -57,6 +63,46 @@ export async function GET(request: NextRequest) {
       "Content-Disposition": `attachment; filename="${filename}"`,
       "Content-Length": String(zip.byteLength),
       // A church's entire directory must not sit in a proxy cache.
+      "Cache-Control": "no-store, private",
+    },
+  });
+}
+
+/** R19.8. The tables a church can take one at a time. */
+const SINGLE: Record<string, string> = {
+  people: "people",
+  households: "households",
+  attendance: "attendance_records",
+};
+
+async function exportTable(
+  session: { tenantId: string; role: import("@hearth/db").TenantRole; tenantSlug: string; userId: string; tenantName: string },
+  only: string,
+) {
+  const table = SINGLE[only];
+  if (!table) return new Response("Unknown table", { status: 404 });
+
+  let csv: string;
+  try {
+    const archive = await withTenant(
+      { tenantId: session.tenantId, role: session.role, userId: session.userId },
+      (tx) =>
+        buildArchive(
+          tx,
+          { tenantId: session.tenantId, role: session.role },
+          { name: session.tenantName, slug: session.tenantSlug },
+        ),
+    );
+    csv = archive.csv[table] ?? "";
+  } catch (error) {
+    if (error instanceof PermissionError) return new Response(error.message, { status: 403 });
+    throw error;
+  }
+
+  return new Response(csv, {
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${only}.csv"`,
       "Cache-Control": "no-store, private",
     },
   });

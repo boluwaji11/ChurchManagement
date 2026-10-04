@@ -2,6 +2,7 @@ import { withTenant, listRooms, canManageRooms } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
+import { SettingsHeading } from "../heading";
 import { RoomManager } from "./room-manager";
 
 export const dynamic = "force-dynamic";
@@ -23,18 +24,21 @@ export default async function RoomsPage({
   }
 
   return (
-    <RoomManager
-      church={session.tenantSlug}
-      rooms={rooms.map((r) => ({
-        id: r.id,
-        name: r.name,
-        hue: r.hue,
-        minAgeMonths: r.minAgeMonths,
-        maxAgeMonths: r.maxAgeMonths,
-        capacity: r.capacity,
-        ratio: r.ratio,
-        archived: r.archivedAt !== null,
-      }))}
-    />
+    <>
+      <SettingsHeading title="settings.tab.rooms" lede="settings.lede.rooms" />
+      <RoomManager
+        church={session.tenantSlug}
+        rooms={rooms.map((r) => ({
+          id: r.id,
+          name: r.name,
+          hue: r.hue,
+          minAgeMonths: r.minAgeMonths,
+          maxAgeMonths: r.maxAgeMonths,
+          capacity: r.capacity,
+          ratio: r.ratio,
+          archived: r.archivedAt !== null,
+        }))}
+      />
+    </>
   );
 }

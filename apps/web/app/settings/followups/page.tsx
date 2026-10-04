@@ -2,6 +2,7 @@ import { withTenant, listPipelines, assignableUsers, canManageChurch } from "@he
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
+import { SettingsHeading } from "../heading";
 import { Pipelines } from "./pipelines";
 
 export const dynamic = "force-dynamic";
@@ -28,20 +29,23 @@ export default async function PipelineSettingsPage({
   );
 
   return (
-    <Pipelines
-      church={session.tenantSlug}
-      team={team.map((member) => ({ userId: member.userId, name: member.name }))}
-      rows={rows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        hue: row.hue,
-        ownerUserId: row.ownerUserId,
-        archived: row.archived,
-        steps: row.steps.map((step) => ({
-          id: step.id, name: step.name, dueDays: step.dueDays,
-        })),
-      }))}
-    />
+    <>
+      <SettingsHeading title="settings.tab.followups" lede="settings.lede.followups" />
+      <Pipelines
+        church={session.tenantSlug}
+        team={team.map((member) => ({ userId: member.userId, name: member.name }))}
+        rows={rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          hue: row.hue,
+          ownerUserId: row.ownerUserId,
+          archived: row.archived,
+          steps: row.steps.map((step) => ({
+            id: step.id, name: step.name, dueDays: step.dueDays,
+          })),
+        }))}
+      />
+    </>
   );
 }

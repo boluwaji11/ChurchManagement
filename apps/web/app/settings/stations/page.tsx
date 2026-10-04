@@ -2,6 +2,7 @@ import { withTenant, listStations, canManageStations } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
+import { SettingsHeading } from "../heading";
 import { StationManager } from "./station-manager";
 
 export const dynamic = "force-dynamic";
@@ -26,15 +27,18 @@ export default async function StationsPage({
   }
 
   return (
-    <StationManager
-      church={session.tenantSlug}
-      stations={stations.map((s) => ({
-        id: s.id,
-        name: s.name,
-        mode: s.mode,
-        printer: s.printer,
-        archived: s.archivedAt !== null,
-      }))}
-    />
+    <>
+      <SettingsHeading title="settings.tab.stations" lede="settings.lede.stations" />
+      <StationManager
+        church={session.tenantSlug}
+        stations={stations.map((s) => ({
+          id: s.id,
+          name: s.name,
+          mode: s.mode,
+          printer: s.printer,
+          archived: s.archivedAt !== null,
+        }))}
+      />
+    </>
   );
 }
