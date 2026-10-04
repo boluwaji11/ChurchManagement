@@ -80,7 +80,7 @@ export function PersonForm({
 }: {
   church: string;
   values?: PersonFormValues;
-  households: { id: string; name: string }[];
+  households: { id: string; name: string; members: string[] }[];
   customFields?: FieldDef[];
   customValues?: FieldValues;
   /** R2.x. Every tag the church has, for the row on this screen. */
@@ -244,14 +244,32 @@ export function PersonForm({
         <div className="flex min-w-0 flex-[2_1_280px] flex-col gap-5 md:border-l md:border-line md:pl-6">
           <FormCard title={t("personForm.household")}>
             <div className="flex flex-col gap-3.5">
-              <Field label={t("personForm.household")}>
+              <Field label={t("personForm.householdWhich")}>
                 <Select name="householdId" value={household} onValueChange={setHousehold}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={HOUSEHOLD_NONE}>{t("personForm.householdNone")}</SelectItem>
-                    <SelectItem value={HOUSEHOLD_NEW}>{t("personForm.householdNew")}</SelectItem>
+                    {/* The two answers that are not a household sit above the
+                        rule, so they are not hunted for among forty names. */}
+                    <SelectItem value={HOUSEHOLD_NONE}>
+                      <span className="font-semibold">{t("personForm.householdNone")}</span>
+                    </SelectItem>
+                    <SelectItem value={HOUSEHOLD_NEW}>
+                      <span className="font-semibold">{t("personForm.householdNew")}</span>
+                    </SelectItem>
+
+                    <span aria-hidden className="my-1 block h-px bg-line" />
+
+                    {/* R2.1. Four households called Smith are four identical
+                        words, so each carries who is in it. */}
                     {households.map((h) => (
-                      <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                      <SelectItem key={h.id} value={h.id}>
+                        {h.members.length > 0
+                          ? t("personForm.householdWith", {
+                              name: h.name,
+                              people: h.members.join(", "),
+                            })
+                          : h.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -264,7 +282,7 @@ export function PersonForm({
               ) : null}
 
               {household !== HOUSEHOLD_NONE ? (
-                <Field label={t("personForm.householdRole")}>
+                <Field label={t("personForm.householdRoleShort")}>
                   <Select name="householdRole" defaultValue={values?.householdRole ?? "other"}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>

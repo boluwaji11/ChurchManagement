@@ -687,12 +687,39 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
   };
 }
 
-export async function listHouseholds(db: Tx): Promise<{ id: string; name: string }[]> {
-  return db
-    .select({ id: households.id, name: households.name })
+/**
+ * R2.1. Every household, and who is in it.
+ *
+ * A church of 180 has four households called Smith, and a list of four
+ * identical words is a list nobody can pick from. The names of the people in
+ * each one come back with it, so "Smith" and "Smith" read as "Smith, Mike and
+ * Jane" and "Smith, John".
+ */
+export async function listHouseholds(
+  db: Tx,
+): Promise<{ id: string; name: string; members: string[] }[]> {
+  const rows = await db
+    .select({
+      id: households.id,
+      name: households.name,
+      members: sql<string[]>`coalesce(
+        array(
+          select coalesce(p.preferred_name, p.first_name)
+            from household_memberships hm
+            join people p on p.id = hm.person_id
+           where hm.household_id = households.id
+             and p.archived_at is null
+           order by hm.role, p.first_name
+           limit 4
+        ),
+        '{}'
+      )`,
+    })
     .from(households)
     .where(isNull(households.archivedAt))
     .orderBy(asc(households.name));
+
+  return rows.map((row) => ({ ...row, members: row.members ?? [] }));
 }
 
 /**
