@@ -259,7 +259,7 @@ export const en = {
   "directory.bulkDone": "{count} changed.",
   "directory.bulkMessage": "Message",
   "directory.bulkGroup": "Add to group",
-  "directory.bulkExport": "Export",
+  "directory.bulkExport": "Export selected",
   "directory.messageTitle": "Message {count} people",
   "directory.exportView": "Export",
   "directory.exportAll": "Export everything",
