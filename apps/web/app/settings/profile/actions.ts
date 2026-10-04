@@ -42,12 +42,18 @@ export async function saveProfile(data: FormData): Promise<ProfileResult> {
     );
     if (!person) return { error: t("settings.profile.noRecord") };
 
-    // The name on the account follows the name on the record, so the sidebar
-    // and the person's own screen never disagree about what they are called.
-    await setAccountName(
-      session.userId,
-      `${field(data, "firstName")} ${field(data, "lastName")}`,
-    );
+    /*
+     * The name on the account follows the name on the record, so the sidebar
+     * and the person's own screen never disagree about what they are called.
+     * Both copies: app_users is what the church's own screens read, and the
+     * auth user's metadata is what builds the session on the next request.
+     */
+    const name = `${field(data, "firstName")} ${field(data, "lastName")}`.trim();
+    await setAccountName(session.userId, name);
+    if (name) {
+      const supabase = await supabaseServer();
+      await supabase.auth.updateUser({ data: { full_name: name } });
+    }
     return {};
   } catch (error) {
     return { error: explain(error) };
