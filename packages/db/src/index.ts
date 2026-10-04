@@ -13,7 +13,7 @@ export {
 } from "./repo/tenant-roles";
 export {
   listHouseholdRows, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
-  peopleWithoutHousehold, addToHousehold, removeFromHousehold,
+  peopleWithoutHousehold, addToHousehold, removeFromHousehold, setHouseholdRole,
   type HouseholdRow,
 } from "./repo/households";
 export { InvalidInputError, NameTakenError } from "./errors";

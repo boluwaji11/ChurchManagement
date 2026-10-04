@@ -147,6 +147,28 @@ export async function addToHousehold(
   });
 }
 
+/** R2.1. What somebody is in their household: head, spouse, child or other. */
+export async function setHouseholdRole(
+  db: Tx,
+  actor: WriteActor,
+  householdId: string,
+  personId: string,
+  role: string,
+): Promise<void> {
+  guard(actor);
+
+  const changed = await db
+    .update(householdMemberships)
+    .set({ role: role as "head" | "spouse" | "child" | "other" })
+    .where(and(
+      eq(householdMemberships.householdId, householdId),
+      eq(householdMemberships.personId, personId),
+    ))
+    .returning({ id: householdMemberships.id });
+
+  if (changed.length === 0) throw new InvalidInputError("households.error.missing");
+}
+
 /**
  * R2.1. Takes somebody out of a household.
  *

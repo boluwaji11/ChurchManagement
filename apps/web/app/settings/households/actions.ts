@@ -2,7 +2,7 @@
 
 import {
   withTenant, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
-  peopleWithoutHousehold, addToHousehold, removeFromHousehold,
+  peopleWithoutHousehold, addToHousehold, removeFromHousehold, setHouseholdRole,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -80,6 +80,22 @@ export async function putIn(
   const who = await actor(church);
   try {
     await withTenant(who, (tx) => addToHousehold(tx, who, householdId, personId));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R2.1. What somebody is in their household. */
+export async function setRole(
+  householdId: string,
+  personId: string,
+  role: string,
+  church?: string,
+): Promise<HouseholdResult> {
+  const who = await actor(church);
+  try {
+    await withTenant(who, (tx) => setHouseholdRole(tx, who, householdId, personId, role));
     return {};
   } catch (error) {
     return { error: explain(error) };

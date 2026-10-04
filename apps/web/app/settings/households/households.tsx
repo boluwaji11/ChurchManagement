@@ -10,9 +10,10 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
-import { add, setName, putAway, fold, freePeople, putIn, takeOut } from "./actions";
+import { add, setName, setRole, putAway, fold, freePeople, putIn, takeOut } from "./actions";
 
 export interface HouseholdItem {
   id: string;
@@ -191,7 +192,13 @@ function EditHousehold({
   // Searched on the server rather than filtered here: a church of 500 is not a
   // list to ship to the browser so a box can match six characters against it.
   React.useEffect(() => {
-    if (!open) return;
+    // Nothing until somebody types. A church of 500 opening this box should see
+    // the family it came for, not four hundred names it has to scroll past.
+    if (!open || find.trim().length < 2) {
+      setFree([]);
+      return;
+    }
+
     let live = true;
     setLooking(true);
     const timer = setTimeout(async () => {
@@ -254,17 +261,33 @@ function EditHousehold({
                     <span className="min-w-0 flex-1 truncate font-medium text-fg">
                       {member.name}
                     </span>
-                    <span className="shrink-0 text-[12px] text-fg-subtle">
-                      {t(`householdRole.${member.role}` as never)}
-                    </span>
-                    <IconButton
-                      label={t("households.remove", { name: member.name })}
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() => run(() => takeOut(household.id, member.id, church))}
+
+                    <Select
+                      value={member.role}
+                      onValueChange={(next) =>
+                        run(() => setRole(household.id, member.id, next, church))
+                      }
                     >
-                      <X />
-                    </IconButton>
+                      <SelectTrigger
+                        aria-label={t("personForm.householdRole")}
+                        className="w-36 shrink-0"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {householdRoleOptions().map((one) => (
+                          <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <TakeOut
+                      church={church}
+                      household={household}
+                      member={member}
+                      pending={pending}
+                      run={run}
+                    />
                   </li>
                 ))}
               </ul>
@@ -280,7 +303,9 @@ function EditHousehold({
               placeholder={t("households.addPersonSearch")}
             />
 
-            {looking ? null : free.length === 0 ? (
+            {find.trim().length < 2 ? (
+              <p className="text-[13px] text-fg-subtle">{t("households.addPersonHint")}</p>
+            ) : looking ? null : free.length === 0 ? (
               <p className="text-[13px] text-fg-subtle">{t("households.addPersonNone")}</p>
             ) : (
               <ul className="flex max-h-56 flex-col overflow-auto">
@@ -308,6 +333,63 @@ function EditHousehold({
             )}
           </div>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** R2.1. Taking somebody out asks first: it is a change to two records. */
+function TakeOut({
+  church,
+  household,
+  member,
+  pending,
+  run,
+}: {
+  church: string;
+  household: HouseholdItem;
+  member: HouseholdItem["members"][number];
+  pending: boolean;
+  run: (work: () => Promise<{ error?: string }>) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <IconButton
+          label={t("households.remove", { name: member.name })}
+          variant="ghost"
+          disabled={pending}
+        >
+          <X />
+        </IconButton>
+      </DialogTrigger>
+
+      <DialogContent
+        alert
+        title={t("households.removeTitle", { name: member.name, household: household.name })}
+      >
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">
+          {t("households.removeBody")}
+        </p>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            {t("households.keep")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              run(() => takeOut(household.id, member.id, church));
+              setOpen(false);
+            }}
+          >
+            {t("households.removeAction")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
