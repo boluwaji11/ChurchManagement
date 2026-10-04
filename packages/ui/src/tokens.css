@@ -522,6 +522,7 @@
 
   /* Entrances. Exits are faster, and reduced motion flattens both. */
   @keyframes hearth-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes hearth-slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes hearth-pop { from { opacity: 0; scale: 0.97; } to { opacity: 1; scale: 1; } }
   @keyframes hearth-rise { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
   @keyframes hearth-shake {

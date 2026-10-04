@@ -150,6 +150,7 @@ export default async function PersonPage({
           <NoteForm
             church={session.tenantSlug}
             personId={person.id}
+            name={display}
             canConfidential={canReadConfidentialNotes(session.role)}
             trigger={
               <Button>
@@ -292,6 +293,7 @@ export default async function PersonPage({
               <NoteForm
                 church={session.tenantSlug}
                 personId={person.id}
+                name={display}
                 canConfidential={canReadConfidentialNotes(session.role)}
                 trigger={
                   <Button variant="secondary" className="min-h-[30px] px-2.5 text-[13px]">

@@ -300,6 +300,8 @@ export interface PersonInput {
   /** R8.10. Shown at check-in and printed on the child's label. */
   allergies?: string | null;
   medicalNote?: string | null;
+  /** R2.4. One line, as a church writes it on an envelope. */
+  address?: string | null;
   /** An existing household, or null for none. Ignored when householdName is set. */
   householdId?: string | null;
   /** Creates a household with this name and puts the person in it. */
@@ -347,6 +349,7 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
 
   await setContact(db, actor, row.id, "email", input.email);
   await setContact(db, actor, row.id, "phone", input.phone);
+  await setAddress(db, actor, row.id, input.address);
   await setHousehold(db, actor, row.id, input);
 
   return row;
@@ -389,6 +392,7 @@ export async function updatePerson(
 
   await setContact(db, actor, id, "email", input.email);
   await setContact(db, actor, id, "phone", input.phone);
+  await setAddress(db, actor, id, input.address);
   await setHousehold(db, actor, id, input);
 }
 
@@ -426,6 +430,55 @@ export async function setPersonArchived(
  * corrected phone number reads as one update with a before and an after, not as
  * a deletion followed by an unrelated-looking insert.
  */
+/**
+ * R2.4. The address, written as one line.
+ *
+ * A church types "4412 N Kedzie Ave, Chicago IL 60625" and should not be asked
+ * to break it into five boxes first. The first comma-separated part is the
+ * street and the rest is the town, which is enough to print an envelope and
+ * enough to find somebody by. Undefined leaves whatever is there alone; an
+ * empty string takes it off.
+ */
+async function setAddress(
+  db: Tx,
+  actor: WriteActor,
+  personId: string,
+  value: string | null | undefined,
+): Promise<void> {
+  if (value === undefined) return;
+
+  const [existing] = await db
+    .select({ id: addresses.id })
+    .from(addresses)
+    .where(eq(addresses.personId, personId))
+    .limit(1);
+
+  const line = trimmed(value);
+  if (!line) {
+    if (existing) await db.delete(addresses).where(eq(addresses.id, existing.id));
+    return;
+  }
+
+  const [line1, ...rest] = line.split(",").map((part) => part.trim());
+  const city = rest.join(", ") || null;
+
+  if (existing) {
+    await db
+      .update(addresses)
+      .set({ line1: line1!, city })
+      .where(eq(addresses.id, existing.id));
+    return;
+  }
+
+  await db.insert(addresses).values({
+    tenantId: actor.tenantId,
+    personId,
+    line1: line1!,
+    city,
+    isPrimary: true,
+  });
+}
+
 async function setContact(
   db: Tx,
   actor: WriteActor,

@@ -17,6 +17,8 @@ import { savePerson } from "./actions";
 import { CustomFieldInputs, type FieldDef, type FieldValues } from "./custom-fields";
 
 export interface PersonFormValues {
+  /** R2.4. One line, as a church writes it. */
+  address?: string | null;
   id?: string;
   firstName?: string;
   lastName?: string;
@@ -72,12 +74,18 @@ export function PersonForm({
   households,
   customFields = [],
   customValues = {},
+  tags = [],
+  assignedTags = [],
 }: {
   church: string;
   values?: PersonFormValues;
   households: { id: string; name: string }[];
   customFields?: FieldDef[];
   customValues?: FieldValues;
+  /** R2.x. Every tag the church has, for the row on this screen. */
+  tags?: { id: string; name: string }[];
+  /** Which of them this person already carries. */
+  assignedTags?: string[];
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [errors, setErrors] = React.useState<PersonErrors>({});
@@ -87,6 +95,7 @@ export function PersonForm({
 
   const [household, setHousehold] = React.useState(values?.householdId ?? HOUSEHOLD_NONE);
   const [status, setStatus] = React.useState(values?.lifecycleStatus ?? "visitor");
+  const [chosenTags, setChosenTags] = React.useState<string[]>(assignedTags ?? []);
 
   const revalidate = () => {
     if (!submitted || !formRef.current) return;
@@ -138,9 +147,6 @@ export function PersonForm({
           <Field label={t("personForm.lastName")} error={errors.lastName} required>
             <Input name="lastName" defaultValue={values?.lastName ?? ""} autoComplete="off" />
           </Field>
-          <Field label={t("personForm.preferredName")}>
-            <Input name="preferredName" defaultValue={values?.preferredName ?? ""} autoComplete="off" />
-          </Field>
           <Field label={t("personForm.email")} error={errors.email}>
             <Input name="email" type="email" defaultValue={values?.email ?? ""} />
           </Field>
@@ -149,12 +155,6 @@ export function PersonForm({
           </Field>
           <Field label={t("personForm.dateOfBirth")} error={errors.dateOfBirth}>
             <DateField name="dateOfBirth" defaultValue={values?.dateOfBirth ?? ""} />
-          </Field>
-          <Field label={t("personForm.firstVisit")} error={errors.firstVisitOn}>
-            <DateField name="firstVisitOn" defaultValue={values?.firstVisitOn ?? ""} />
-          </Field>
-          <Field label={t("personForm.membershipDate")} error={errors.membershipDate}>
-            <DateField name="membershipDate" defaultValue={values?.membershipDate ?? ""} />
           </Field>
 
           <Field label={t("personForm.household")}>
@@ -189,13 +189,14 @@ export function PersonForm({
             </Field>
           ) : null}
 
-          {/* R8.10. Two fields a volunteer reads at a check-in desk, so they
-              live on the record rather than in a note somebody has to open. */}
-          <Field label={t("personForm.allergies")} error={errors.allergies}>
-            <Input name="allergies" defaultValue={values?.allergies ?? ""} autoComplete="off" />
-          </Field>
-          <Field label={t("personForm.medicalNote")} error={errors.medicalNote}>
-            <Input name="medicalNote" defaultValue={values?.medicalNote ?? ""} autoComplete="off" />
+          {/* R2.4. One line, as a church writes it on an envelope. */}
+          <Field label={t("personForm.address")} className="sm:col-span-full">
+            <Input
+              name="address"
+              defaultValue={values?.address ?? ""}
+              placeholder={t("personForm.addressPlaceholder")}
+              autoComplete="off"
+            />
           </Field>
         </div>
       </FormCard>
@@ -214,7 +215,7 @@ export function PersonForm({
               className={cn(
                 "h-[34px] rounded-full px-3.5 text-[13px] font-medium",
                 status === o.value
-                  ? "border border-fg bg-fg text-canvas"
+                  ? "border-[1.5px] border-primary bg-primary-soft text-primary"
                   : "border border-line-strong bg-surface text-fg hover:bg-sunken",
               )}
             >
@@ -223,6 +224,39 @@ export function PersonForm({
           ))}
         </div>
       </FormCard>
+
+      {/* R2.x. Tags, as the design puts them: under the status, on the same
+          card, one press each. */}
+      {tags.length > 0 ? (
+        <FormCard title={t("person.tags")}>
+          <input type="hidden" name="tagIds" value={chosenTags.join(",")} />
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => {
+              const on = chosenTags.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() =>
+                    setChosenTags((prev) =>
+                      on ? prev.filter((x) => x !== tag.id) : [...prev, tag.id],
+                    )
+                  }
+                  aria-pressed={on}
+                  className={cn(
+                    "h-[34px] rounded-full px-3.5 text-[13px] font-medium",
+                    on
+                      ? "border-[1.5px] border-primary bg-primary-soft text-primary"
+                      : "border border-line-strong bg-surface text-fg hover:bg-sunken",
+                  )}
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+          </div>
+        </FormCard>
+      ) : null}
 
       {customFields.length > 0 ? (
         <FormCard title={t("person.more")} note={t("personForm.customNote")}>

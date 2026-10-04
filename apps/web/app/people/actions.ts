@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant, createPerson, updatePerson, setPersonArchived,
-  listCustomFields, setCustomValues, coerceCustomValue,
+  listCustomFields, setCustomValues, coerceCustomValue, setPersonTag, listTagsForPerson,
   type CustomFieldDef, type CustomValue,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
@@ -103,6 +103,17 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
       }
 
       await setCustomValues(tx, actor, "person", personId!, custom.values);
+
+      // R2.x. The tag row on the form is the whole set, so whatever is not
+      // ticked comes off as well as whatever is ticked going on.
+      const wanted = String(data.get("tagIds") ?? "").split(",").filter(Boolean);
+      const held = (await listTagsForPerson(tx, personId!)).map((x) => x.id);
+      for (const tagId of wanted) {
+        if (!held.includes(tagId)) await setPersonTag(tx, actor, personId!, tagId, true);
+      }
+      for (const tagId of held) {
+        if (!wanted.includes(tagId)) await setPersonTag(tx, actor, personId!, tagId, false);
+      }
       return null;
     });
 

@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Lock } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
-  Banner, Button, Checkbox, Dialog, DialogTrigger, DialogContent, DialogFooter,
-  Field, Textarea,
+  Banner, Button, Field, Textarea,
+  Sheet, SheetTrigger, SheetContent,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { addNote } from "./note-actions";
@@ -20,11 +21,14 @@ import { addNote } from "./note-actions";
 export function NoteForm({
   church,
   personId,
+  name,
   canConfidential,
   trigger,
 }: {
   church: string;
   personId: string;
+  /** Whose note it is, for the sheet's title. */
+  name: string;
   canConfidential: boolean;
   /** The control that opens it, where the screen wants its own. */
   trigger?: React.ReactNode;
@@ -35,13 +39,29 @@ export function NoteForm({
   const [confidential, setConfidential] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
+  const formId = React.useId();
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         {trigger ?? <Button variant="secondary"><Plus /> {t("notes.add")}</Button>}
-      </DialogTrigger>
-      <DialogContent title={t("notes.add")} closeLabel={t("common.close")}>
+      </SheetTrigger>
+      <SheetContent
+        title={t("notes.addFor", { name })}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" form={formId} loading={pending}>
+              {t("notes.save")}
+            </Button>
+          </>
+        }
+      >
         <form
+          id={formId}
           noValidate
           action={(data) => {
             data.set("church", church);
@@ -61,31 +81,29 @@ export function NoteForm({
         >
           {error ? <Banner tone="danger" title={t("notes.failed")}>{error}</Banner> : null}
 
-          <Field label={t("notes.body")} required>
-            <Textarea name="body" rows={5} autoFocus />
-          </Field>
-
+          {/* R2.7. Who may open it again is the whole difference between the two
+              kinds, so it is the first thing asked rather than a box underneath. */}
           {canConfidential ? (
-            <label className="flex cursor-pointer items-center gap-3">
-              <Checkbox
-                checked={confidential}
-                onCheckedChange={(on) => setConfidential(on === true)}
-              />
-              <span className="flex items-center gap-1.5 text-[length:var(--d-text-body)] text-fg">
-                <Lock className="size-4" aria-hidden />
-                {t("notes.makeConfidential")}
-              </span>
-            </label>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-label text-fg">{t("notes.whoCanRead")}</span>
+              <Select
+                value={confidential ? "confidential" : "general"}
+                onValueChange={(v) => setConfidential(v === "confidential")}
+              >
+                <SelectTrigger aria-label={t("notes.whoCanRead")}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">{t("notes.readStaff")}</SelectItem>
+                  <SelectItem value="confidential">{t("notes.readPastoral")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           ) : null}
 
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button type="submit" loading={pending}>{t("action.save")}</Button>
-          </DialogFooter>
+          <Field label={t("notes.body")} required>
+            <Textarea name="body" rows={6} autoFocus />
+          </Field>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

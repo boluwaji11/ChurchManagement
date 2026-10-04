@@ -66,6 +66,7 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
     medicalNote: str(data, "medicalNote") || null,
     email: str(data, "email") || null,
     phone: str(data, "phone") || null,
+    address: str(data, "address"),
     householdId: householdChoice === HOUSEHOLD_NEW || householdChoice === HOUSEHOLD_NONE ? null : householdChoice,
     householdName: householdChoice === HOUSEHOLD_NEW ? str(data, "householdName") || null : null,
     householdRole: (str(data, "householdRole") || "other") as HouseholdRole,
