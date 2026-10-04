@@ -103,7 +103,7 @@ export {
 } from "./repo/lists";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
-  createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone, linkOrCreatePerson,
+  createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone, linkOrCreatePerson, setAccountName,
   listTeam, listInvitations, setMemberRole, removeMember,
   RESERVED_SLUGS,
   type Membership, type TeamMember, type PendingInvitation,

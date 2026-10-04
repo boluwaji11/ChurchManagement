@@ -1,6 +1,6 @@
 "use server";
 
-import { withTenant, updateOwnProfile, setOwnPhoto } from "@hearth/db";
+import { withTenant, updateOwnProfile, setOwnPhoto, setAccountName } from "@hearth/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { t } from "@hearth/i18n";
 import { explain } from "@/lib/explain";
@@ -41,6 +41,13 @@ export async function saveProfile(data: FormData): Promise<ProfileResult> {
       ),
     );
     if (!person) return { error: t("settings.profile.noRecord") };
+
+    // The name on the account follows the name on the record, so the sidebar
+    // and the person's own screen never disagree about what they are called.
+    await setAccountName(
+      session.userId,
+      `${field(data, "firstName")} ${field(data, "lastName")}`,
+    );
     return {};
   } catch (error) {
     return { error: explain(error) };

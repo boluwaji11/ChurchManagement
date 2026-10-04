@@ -257,6 +257,20 @@ export async function linkOrCreatePerson(input: {
   return made!.id;
 }
 
+/**
+ * R17.1. Keeps the name on the account in step with the name on the record.
+ *
+ * The sidebar, the audit log and every "who did this" read the account, and the
+ * church reads the record. Somebody correcting their own name should not have
+ * to do it twice, and should never see two different names for themselves on
+ * one screen.
+ */
+export async function setAccountName(userId: string, fullName: string): Promise<void> {
+  const name = fullName.trim();
+  if (!name) return;
+  await owner()`update app_users set full_name = ${name} where id = ${userId}`;
+}
+
 /** R1.7. Invite by email with a role and an expiry. Default 14 days. */
 export async function createInvitation(input: {
   tenantId: string;
