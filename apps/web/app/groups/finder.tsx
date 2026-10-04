@@ -1,18 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Check, X, Search, Plus, Undo2 } from "lucide-react";
-import {
-  Badge, Banner, Button, IconButton, Card, Checkbox, HueDot, Input, Separator,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  type Hue,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import { Empty } from "@/components/empty";
 import Link from "next/link";
-import { ask, decide, archive } from "./actions";
-import { GroupDialog } from "./group-form";
+import { useRouter } from "next/navigation";
+import { Check, X, Search, SlidersHorizontal, Image as ImageIcon, Undo2 } from "lucide-react";
+import {
+  Banner, Button, IconButton, Card, Separator,
+  Sheet, SheetContent, SheetTrigger, LIFT,
+} from "@hearth/ui";
+import { t, plural } from "@hearth/i18n";
+import { decide, archive } from "./actions";
 
 export interface FinderGroup {
   id: string;
@@ -32,6 +29,7 @@ export interface FinderGroup {
   online: boolean;
   childrenWelcome: boolean;
   memberCount: number;
+  leaderNames: string[];
   openToJoin: boolean;
   full: boolean;
   mine: boolean;
@@ -54,8 +52,6 @@ export interface FinderRequest {
   message: string | null;
 }
 
-const ANY = "any";
-
 /** R9.2. Putting an archived group back on the lists. */
 async function restore(id: string, church: string): Promise<{ error?: string }> {
   const data = new FormData();
@@ -65,43 +61,41 @@ async function restore(id: string, church: string): Promise<{ error?: string }> 
   return archive(data);
 }
 
-const dayName = (day: number) => {
-  const d = new Date(2024, 0, 7 + day);
-  return d.toLocaleDateString(undefined, { weekday: "long" });
-};
+export const dayName = (day: number) =>
+  new Date(2024, 0, 7 + day).toLocaleDateString("en-US", { weekday: "long" });
 
-const readableTime = (hhmm: string) => {
+export const readableTime = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
   const d = new Date();
   d.setHours(h ?? 0, m ?? 0, 0, 0);
   return d
-    .toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true })
+    .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
     .toLowerCase();
 };
 
-/** "Tuesdays, 7:30pm to 9:00pm", which is how somebody reads it out. */
-function meets(group: FinderGroup): string {
+/** "Wednesdays, 9:30 am", which is how somebody reads it out. */
+export function meets(group: {
+  dayOfWeek: number | null;
+  startsAt: string | null;
+  location: string | null;
+}): string {
   if (group.dayOfWeek === null) return group.location ?? "";
   const day = `${dayName(group.dayOfWeek)}s`;
-  if (!group.startsAt) return day;
-  const span = group.endsAt
-    ? `${readableTime(group.startsAt)} to ${readableTime(group.endsAt)}`
-    : readableTime(group.startsAt);
-  return `${day}, ${span}`;
+  return group.startsAt ? `${day}, ${readableTime(group.startsAt)}` : day;
 }
 
+type Chosen = { type: string[]; day: string[]; taking: string[] };
+const NOTHING: Chosen = { type: [], day: [], taking: [] };
+
 /**
- * R9.5, R9.6. Finding a group, and the answers a leader owes.
+ * R9.5, R9.6. Finding a group.
  *
- * Browsing is by kind first, because the question somebody arrives with is
- * "what does this church have" before it is "which one". Each kind says what it
- * is in the church's own words and how many of it are open, and the groups sit
- * under it.
+ * Built to docs/redesign/design: a box to type in, the count beside it, and
+ * everything else behind one Filter button. A church has tens of groups, so the
+ * filtering happens here and a dropdown costs no round trip.
  *
- * The filters are the ones people actually use: a box to type in, the night,
- * who it is for, whether it meets online, and whether children are welcome.
- * Filtering happens here rather than on the server, because a church has tens
- * of groups and a round trip for a dropdown is a round trip nobody needs.
+ * The cards carry a banner, the kind, whether it is taking people, the name,
+ * when it meets and who leads it. That is the order somebody reads them in.
  */
 export function Finder({
   church,
@@ -118,31 +112,74 @@ export function Finder({
 }) {
   const router = useRouter();
   const [query, setQuery] = React.useState("");
-  const [type, setType] = React.useState(ANY);
-  const [day, setDay] = React.useState(ANY);
-  const [forWhom, setForWhom] = React.useState(ANY);
-  const [online, setOnline] = React.useState(false);
-  const [withChildren, setWithChildren] = React.useState(false);
-  const [includeShut, setIncludeShut] = React.useState(true);
+  const [chosen, setChosen] = React.useState<Chosen>(NOTHING);
+  const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   const text = query.trim().toLowerCase();
   const archivedGroups = groups.filter((group) => group.archived);
-  const shown = groups.filter(
-    (group) =>
-      !group.archived &&
-      (type === ANY || group.typeId === type) &&
-      (day === ANY || String(group.dayOfWeek) === day) &&
-      (forWhom === ANY || group.forWhom === forWhom) &&
-      (!online || group.online) &&
-      (!withChildren || group.childrenWelcome) &&
-      (includeShut || (group.openToJoin && !group.full) || group.mine) &&
-      (text === "" ||
-        group.name.toLowerCase().includes(text) ||
-        (group.description ?? "").toLowerCase().includes(text) ||
-        (group.location ?? "").toLowerCase().includes(text)),
-  );
+  const live = groups.filter((group) => !group.archived);
+
+  const matches = (group: FinderGroup, skip?: keyof Chosen) =>
+    (skip === "type" || chosen.type.length === 0 || chosen.type.includes(group.typeId ?? "")) &&
+    (skip === "day" || chosen.day.length === 0 || chosen.day.includes(String(group.dayOfWeek))) &&
+    (skip === "taking" ||
+      chosen.taking.length === 0 ||
+      chosen.taking.includes(group.openToJoin && !group.full ? "open" : "closed")) &&
+    (text === "" ||
+      group.name.toLowerCase().includes(text) ||
+      group.leaderNames.some((name) => name.toLowerCase().includes(text)) ||
+      (group.description ?? "").toLowerCase().includes(text) ||
+      (group.location ?? "").toLowerCase().includes(text));
+
+  const shown = live.filter((group) => matches(group));
+
+  /** Each option carries how many groups it would leave, ignoring its own section. */
+  const sections = [
+    {
+      k: "type" as const,
+      label: t("groups.type"),
+      opts: types.map((kind) => ({
+        v: kind.id,
+        label: kind.name,
+        n: live.filter((g) => g.typeId === kind.id && matches(g, "type")).length,
+      })),
+    },
+    {
+      k: "day" as const,
+      label: t("find.meetsOn"),
+      opts: [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+        v: String(d),
+        label: dayName(d),
+        n: live.filter((g) => g.dayOfWeek === d && matches(g, "day")).length,
+      })),
+    },
+    {
+      k: "taking" as const,
+      label: t("find.taking"),
+      opts: [
+        {
+          v: "open",
+          label: t("find.open"),
+          n: live.filter((g) => g.openToJoin && !g.full && matches(g, "taking")).length,
+        },
+        {
+          v: "closed",
+          label: t("find.closed"),
+          n: live.filter((g) => (!g.openToJoin || g.full) && matches(g, "taking")).length,
+        },
+      ],
+    },
+  ].map((section) => ({ ...section, opts: section.opts.filter((o) => o.n > 0 || chosen[section.k].includes(o.v)) }));
+
+  const picked = chosen.type.length + chosen.day.length + chosen.taking.length;
+
+  const toggle = (k: keyof Chosen, v: string) =>
+    setChosen((was) => ({
+      ...was,
+      [k]: was[k].includes(v) ? was[k].filter((one) => one !== v) : [...was[k], v],
+    }));
 
   const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
@@ -152,7 +189,7 @@ export function Finder({
     });
 
   return (
-    <div className="flex flex-col gap-6" aria-busy={pending}>
+    <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
 
       {/* R9.6. What this person owes an answer to, above what they are browsing. */}
@@ -196,76 +233,97 @@ export function Finder({
         </Card>
       ) : null}
 
-      {canManage ? (
-        <div>
-          <GroupDialog
-            church={church}
-            types={types.map((kind) => ({ id: kind.id, name: kind.name, hue: kind.hue }))}
-            pending={pending}
-            title={t("groups.add")}
-            trigger={<Button><Plus /> {t("groups.add")}</Button>}
-          />
-        </div>
-      ) : null}
-
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 shadow-sm transition-colors has-[input:focus-visible]:border-fg has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-[var(--ring)]">
-          <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
-          <Input
+      {/* The box, the count, and one Filter button on the right. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex h-[34px] min-w-40 flex-[0_1_240px] items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-2.5 text-fg-subtle focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--ring)]">
+          <Search className="size-[15px] shrink-0" aria-hidden />
+          <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label={t("find.search")}
+            placeholder={t("find.groupOrLeader")}
+            aria-label={t("find.groupOrLeader")}
             autoComplete="off"
-            className="border-0 bg-transparent shadow-none outline-none focus-visible:outline-none"
+            className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-fg outline-none placeholder:text-fg-subtle"
           />
-        </div>
+        </label>
 
-        <div className="flex flex-wrap items-end gap-3">
-          <Filter label={t("find.type")} value={type} onChange={setType} any={t("find.anyType")}
-            options={types.map((k) => ({ value: k.id, label: k.name, hue: k.hue }))} />
+        <span className="text-[13px] text-fg-muted">{plural("find.count", shown.length)}</span>
+        <span className="flex-1" />
 
-          <Filter label={t("find.day")} value={day} onChange={setDay} any={t("find.anyDay")}
-            options={[0, 1, 2, 3, 4, 5, 6].map((d) => ({ value: String(d), label: dayName(d) }))} />
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button variant="secondary" className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
+              <SlidersHorizontal className="size-4" aria-hidden />
+              {picked > 0 ? t("find.filterCount", { count: picked }) : t("find.filter")}
+            </Button>
+          </SheetTrigger>
 
-          <Filter label={t("find.forWhom")} value={forWhom} onChange={setForWhom}
-            any={t("find.anyone")}
-            options={(["men", "women", "young_adults", "students", "parents", "seniors"] as const)
-              .map((a) => ({ value: a, label: t(`groups.audience.${a}` as never) }))} />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-5">
-          <Toggle label={t("find.online")} checked={online} onChange={setOnline} />
-          <Toggle label={t("find.children")} checked={withChildren} onChange={setWithChildren} />
-          <Toggle label={t("find.includeShut")} checked={includeShut} onChange={setIncludeShut} />
-        </div>
+          <SheetContent
+            title={t("find.filterTitle")}
+            closeLabel={t("common.close")}
+            width="380px"
+            footer={
+              <div className="flex w-full items-center gap-2">
+                <Button variant="secondary" onClick={() => setChosen(NOTHING)}>
+                  {t("find.clear")}
+                </Button>
+                <Button className="flex-1" onClick={() => setOpen(false)}>
+                  {plural("find.show", shown.length)}
+                </Button>
+              </div>
+            }
+          >
+            <div className="flex flex-col gap-6">
+              {sections.map((section) => (
+                <div key={section.k} className="flex flex-col gap-2.5">
+                  <div className="text-[12px] font-semibold text-fg-subtle">{section.label}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {section.opts.map((option) => {
+                      const on = chosen[section.k].includes(option.v);
+                      return (
+                        <button
+                          key={option.v}
+                          type="button"
+                          aria-pressed={on}
+                          onClick={() => toggle(section.k, option.v)}
+                          className={
+                            "flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[14px] font-medium transition-colors " +
+                            (on
+                              ? "border-fg bg-fg text-canvas"
+                              : "border-line-strong bg-surface text-fg hover:bg-sunken")
+                          }
+                        >
+                          {option.label}
+                          <span className="text-[12px] opacity-70">{option.n}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {shown.length === 0 ? (
-        <Empty
-          icon="group"
-          title={t("find.none.title")}
-          action={
-            canManage ? (
-              <GroupDialog
-                church={church}
-                types={types.map((kind) => ({ id: kind.id, name: kind.name, hue: kind.hue }))}
-                pending={pending}
-                title={t("groups.add")}
-                trigger={<Button><Plus /> {t("groups.add")}</Button>}
-              />
-            ) : undefined
-          }
-        />
+        <div className="py-12 text-center text-fg-muted">
+          {t("find.noMatch")}{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setChosen(NOTHING);
+              setQuery("");
+            }}
+            className="font-medium text-primary"
+          >
+            {t("find.clearFilters")}
+          </button>
+        </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
           {shown.map((group) => (
-            <GroupCard
-              key={group.id}
-              church={church}
-              group={group}
-              pending={pending}
-              onAsk={() => run(() => ask(group.id, null, church))}
-            />
+            <GroupCard key={group.id} church={church} group={group} />
           ))}
         </div>
       )}
@@ -293,139 +351,70 @@ export function Finder({
   );
 }
 
-function Filter({
-  label,
-  value,
-  onChange,
-  any,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  any: string;
-  options: { value: string; label: string; hue?: string }[];
-}) {
-  return (
-    <div className="flex min-w-40 flex-col gap-1.5">
-      <span className="text-label text-fg">{label}</span>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger aria-label={label}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ANY}>{any}</SelectItem>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.hue ? (
-                <span className="flex items-center gap-2">
-                  <HueDot hue={option.hue as Hue} />
-                  {option.label}
-                </span>
-              ) : (
-                option.label
-              )}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
+/**
+ * One group, as a card.
+ *
+ * A banner across the top in the kind's own colour, and under it the kind, the
+ * name, when it meets, who leads it and how many are in it. The whole card
+ * opens the group, so the name carries a stretched link rather than the card
+ * carrying a click handler.
+ */
+function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
+  const hue = group.typeHue ?? "sky";
+  const leader = group.leaderNames[0];
+  const line = [meets(group), leader ? t("groups.leaders") : null].filter(Boolean);
 
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (on: boolean) => void;
-}) {
   return (
-    <label className="flex cursor-pointer items-center gap-2">
-      <Checkbox checked={checked} onCheckedChange={(on) => onChange(on === true)} />
-      <span className="text-[length:var(--d-text-body)] text-fg">{label}</span>
-    </label>
-  );
-}
-
-function GroupCard({
-  church,
-  group,
-  pending,
-  onAsk,
-}: {
-  church: string;
-  group: FinderGroup;
-  pending: boolean;
-  onAsk: () => void;
-}) {
-  return (
-    /*
-     * The whole tile opens the group. The name carries the link and stretches
-     * over the card, so the tile is one target without nesting a button inside
-     * an anchor: Ask to join sits above it.
-     */
-    <Card className="relative flex flex-col gap-2 overflow-hidden transition-shadow focus-within:shadow-md hover:shadow-md">
-      {/* R9.2. A photograph of eight people round a table says what a paragraph
-          cannot: this is a real group and you would not be the only new one. */}
+    <section
+      className={`relative flex flex-col overflow-hidden rounded-lg border border-line bg-surface ${LIFT}`}
+    >
       {group.photoUrl ? (
-        <img
-          src={group.photoUrl}
-          alt=""
-          className="-mx-[var(--d-pad-card)] -mt-[var(--d-pad-card)] mb-1 h-32 w-[calc(100%+2*var(--d-pad-card))] object-cover"
-        />
-      ) : null}
+        <img src={group.photoUrl} alt="" className="h-[120px] w-full object-cover" />
+      ) : (
+        <div
+          className="grid h-[120px] place-items-center"
+          style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+        >
+          <ImageIcon className="size-[22px] opacity-50" aria-hidden />
+        </div>
+      )}
 
-      <span className="flex flex-wrap items-center gap-2">
-        {group.typeHue ? <HueDot hue={group.typeHue as Hue} /> : null}
+      <div className="flex flex-col gap-2 px-[18px] pt-4 pb-[18px]">
+        <div className="flex items-center gap-2">
+          {group.typeName ? (
+            <span
+              className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+              style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+            >
+              {group.typeName}
+            </span>
+          ) : null}
+          <span
+            className="ml-auto text-[12px] font-medium"
+            style={{
+              color: group.openToJoin && !group.full ? "var(--hue-fern-key)" : "var(--fg-muted)",
+            }}
+          >
+            {group.full ? t("find.full") : group.openToJoin ? t("find.open") : t("find.closed")}
+          </span>
+        </div>
+
         <Link
           href={`/groups/${group.id}?church=${church}`}
-          className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
+          className="font-display text-[22px] leading-[28px] text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {group.name}
         </Link>
-        {group.typeName ? (
-          <span className="text-caption text-fg-muted">{group.typeName}</span>
-        ) : null}
-      </span>
 
-      <span className="text-[length:var(--d-text-body)] text-fg-muted">
-        {meets(group)}
-        {group.dayOfWeek !== null && group.location ? ` ${group.location}` : ""}
-      </span>
+        <div className="text-[13px] text-fg-muted">
+          {leader ? t("find.ledBy", { meets: meets(group), leader }) : line[0]}
+        </div>
 
-      {group.description ? (
-        <span className="line-clamp-3 text-caption text-fg-muted">{group.description}</span>
-      ) : null}
-
-      <span className="flex flex-wrap items-center gap-2">
-        {group.listed ? null : <Badge tone="neutral">{t("groups.unlisted")}</Badge>}
-        {group.forWhom && group.forWhom !== "anyone" ? (
-          <Badge tone="neutral">{t(`groups.audience.${group.forWhom}` as never)}</Badge>
-        ) : null}
-        {group.online ? <Badge tone="neutral">{t("groups.online")}</Badge> : null}
-        {group.childrenWelcome ? (
-          <Badge tone="neutral">{t("groups.childrenWelcome")}</Badge>
-        ) : null}
-      </span>
-
-      <span className="relative mt-auto flex flex-wrap items-center gap-2 pt-1">
-        {group.mine ? (
-          <Badge tone="success">{t("find.member")}</Badge>
-        ) : group.requested === "pending" ? (
-          <Badge tone="neutral">{t("find.asked")}</Badge>
-        ) : group.requested === "approved" ? (
-          <Badge tone="success">{t("find.approved")}</Badge>
-        ) : group.requested === "declined" ? (
-          <Badge tone="neutral">{t("find.declined")}</Badge>
-        ) : group.full ? (
-          <Badge tone="warning">{t("find.full")}</Badge>
-        ) : !group.openToJoin ? (
-          <Badge tone="neutral">{t("find.closed")}</Badge>
-        ) : (
-          <Button disabled={pending} onClick={onAsk}>{t("find.join")}</Button>
-        )}
-      </span>
-    </Card>
+        <div className="text-[13px] text-fg">
+          <strong className="font-semibold">{group.memberCount}</strong>{" "}
+          {t("groups.members").toLowerCase()}
+        </div>
+      </div>
+    </section>
   );
 }

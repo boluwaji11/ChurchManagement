@@ -46,6 +46,13 @@ export interface FoundGroup {
   online: boolean;
   childrenWelcome: boolean;
   memberCount: number;
+  /**
+   * R9.3. Who runs it, named on the card.
+   *
+   * "Led by Maria Carter" is the line somebody reads before anything else about
+   * a group, so it is carried by the list query rather than fetched per card.
+   */
+  leaderNames: string[];
   /** R9.5. Whether the finder offers to ask. */
   openToJoin: boolean;
   /** At or above what it holds, so somebody is not invited to ask for nothing. */
@@ -151,6 +158,20 @@ export async function findGroups(
         select count(*) from group_memberships m
          where m.group_id = ${groups.id} and m.left_on is null
       )`,
+      // Leaders and co-leaders, in the order a church would say them, as one
+      // array so the card does not cost a query each.
+      leaderNames: sql<string[]>`coalesce((
+        select array_agg(
+                 btrim(coalesce(nullif(btrim(p.preferred_name), ''), p.first_name)
+                       || ' ' || coalesce(p.last_name, ''))
+                 order by m.role, p.last_name
+               )
+          from group_memberships m
+          join people p on p.id = m.person_id
+         where m.group_id = ${groups.id}
+           and m.left_on is null
+           and m.role in ('leader', 'coleader')
+      ), '{}')`,
     })
     .from(groups)
     .leftJoin(groupTypes, eq(groupTypes.id, groups.typeId))
@@ -197,6 +218,7 @@ export async function findGroups(
       online: row.online,
       childrenWelcome: row.childrenWelcome,
       memberCount,
+      leaderNames: row.leaderNames ?? [],
       openToJoin: row.openToJoin,
       full: row.capacity !== null && memberCount >= row.capacity,
       mine: mine.has(row.id),

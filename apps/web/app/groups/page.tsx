@@ -89,6 +89,7 @@ export default async function GroupsPage({
           online: group.online,
           childrenWelcome: group.childrenWelcome,
           memberCount: group.memberCount,
+          leaderNames: group.leaderNames,
           openToJoin: group.openToJoin,
           full: group.full,
           mine: group.mine,

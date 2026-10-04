@@ -141,6 +141,48 @@
         </div>
       </sc-if>
     </div>
+    <sc-if value="{{ reqOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeReq }}" style="position:fixed; inset:0; z-index:25; background: oklch(0.142 0.008 75 / 0.35); display:grid; place-items:center; padding:16px;">
+        <div onClick="{{ stop }}" role="dialog" aria-label="Send requests" style="width:min(720px, 100%); max-height:calc(100vh - 32px); background: var(--surface); border-radius:16px; box-shadow: 0 12px 40px oklch(0 0 0 / 0.2); display:flex; flex-direction:column; overflow:hidden;">
+          <div style="display:flex; align-items:flex-start; gap:12px; padding:18px 20px 12px; border-bottom:1px solid var(--c7);">
+            <div style="flex:1;"><div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">{{ reqTitle }}</div><div style="font-size:13px; color: var(--c6); margin-top:2px;">{{ reqSub }}</div></div>
+            <button onClick="{{ closeReq }}" aria-label="Close" style="width:36px; height:36px; border:none; border-radius:10px; background:none; display:grid; place-items:center;"><span data-icon="x" style="width:18px;height:18px;"></span></button>
+          </div>
+          <div style="flex:1; min-height:0; overflow:auto; display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:0 24px; padding:0 20px;">
+            <div style="display:flex; flex-direction:column; padding:8px 0;">
+              <sc-for list="{{ reqList }}" as="r" hint-placeholder-count="5">
+                <button onClick="{{ toggleReq }}" data-name="{{ r.name }}" aria-pressed="{{ r.on }}" style="{{ r.rowStyle }}">
+                  <span style="{{ r.box }}"><span data-icon="check" style="width:13px;height:13px;"></span></span>
+                  <span style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+                    <span style="font-weight:600; font-size:14px;">{{ r.name }}</span>
+                    <span style="font-size:13px; color: var(--c1); white-space:pre-line;">{{ r.slots }}</span>
+                    <span style="font-size:12px; color: {{ r.statusColor }};">{{ r.status }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px; padding:16px 0;">
+              <div style="font-size:12px; font-weight:600; color: var(--c4);">Send by</div>
+              <div style="display:flex; flex-wrap:wrap; background: var(--c12); border-radius:10px; padding:3px; gap:2px; align-self:flex-start;"><sc-for list="{{ reqChannels }}" as="rc" hint-placeholder-count="3"><button onClick="{{ setReqCh }}" data-v="{{ rc.v }}" style="{{ rc.style }}">{{ rc.v }}</button></sc-for></div>
+              <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; font-weight:600; color: var(--c4);">Add a note (optional)<textarea value="{{ reqNote }}" onChange="{{ setReqNote }}" rows="3" placeholder="Rehearsal is Thursday at 7." style="padding:10px 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font:inherit; font-weight:400; color: var(--c1); resize:vertical;"></textarea></label>
+              <div style="font-size:12px; font-weight:600; color: var(--c4);">Preview</div>
+              <div style="display:flex; flex-direction:column; gap:8px; padding:14px; border-radius:12px; background: var(--c0); border:1px solid var(--c7); font-size:13px; line-height:19px;">
+                <span>Hi {{ reqPreviewName }}, can you serve at Grace Fellowship?</span>
+                <span style="white-space:pre-line; font-weight:600;">{{ reqPreviewSlots }}</span>
+                <sc-if value="{{ reqPreviewNote }}" hint-placeholder-val="{{ false }}"><span style="color: var(--c6);">{{ reqPreviewNote }}</span></sc-if>
+                <div style="display:flex; gap:8px; margin-top:4px;"><span style="height:30px; padding:0 12px; border-radius:8px; background: var(--accent-fill); color:white; font-weight:600; display:flex; align-items:center;">Accept</span><span style="height:30px; padding:0 12px; border-radius:8px; border:1px solid var(--c8); font-weight:500; display:flex; align-items:center;">Can't make it</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding:14px 20px; border-top:1px solid var(--c7);">
+            <sc-if value="{{ reqErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px; color: var(--c9);">{{ reqErr }}</span></sc-if>
+            <span style="flex:1;"></span>
+            <button onClick="{{ closeReq }}" style="height:40px; padding:0 16px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500;">Cancel</button>
+            <button onClick="{{ sendReq }}" style="height:40px; padding:0 18px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">{{ reqCta }}</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
     <sc-if value="{{ hasPrimary }}" hint-placeholder-val="{{ true }}">
     <button onClick="{{ primaryClick }}" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;" style-hover="background: var(--accent-fill-hover)"><span data-icon="plus" style="width:16px;height:16px;"></span>{{ primaryAction }}</button>
     </sc-if>
@@ -187,6 +229,42 @@
             <tbody><sc-for list="{{ planItems }}" as="pi" hint-placeholder-count="10"><tr><td style="padding:8px; border-bottom:1px solid var(--c7); font-family: 'JetBrains Mono', monospace; width:56px;">{{ pi.at }}</td><td style="padding:8px; border-bottom:1px solid var(--c7); width:110px; color: var(--c6);">{{ pi.type }}</td><td style="padding:8px; border-bottom:1px solid var(--c7);"><span style="display:block; font-weight:600;">{{ pi.title }}</span><span style="display:block; font-size:12px; color: var(--c6);">{{ pi.who }}</span></td><td style="padding:8px; border-bottom:1px solid var(--c7); text-align:right; font-family: 'JetBrains Mono', monospace;">{{ pi.min }} min</td></tr></sc-for></tbody>
           </table>
           <div style="display:flex; justify-content:flex-end; gap:6px; font-weight:600;"><span>Total</span><span>{{ planTotal }}</span><span>min</span></div>
+        </sc-if>
+        <sc-if value="{{ printLabels }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <div style="font-size:12px; color: var(--c6);">Sends to Welcome desk · Brother QL-820. Each label is shown at its real size, in the order the printer feeds them.</div>
+            <div style="display:flex; flex-wrap:wrap; gap:0.15in; padding:0.2in; background: var(--c12); border-radius:8px;">
+              <div style="{{ lblBox }}">
+                <div style="display:flex; align-items:flex-start; gap:6px;"><span style="flex:1; font-size:15pt; font-weight:700; line-height:1.05;">Leo Park</span><sc-if value="{{ lb.code }}" hint-placeholder-val="{{ true }}"><span style="font-family: 'JetBrains Mono', monospace; font-size:11pt; font-weight:700;">RM19</span></sc-if></div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <sc-if value="{{ lb.room }}" hint-placeholder-val="{{ true }}"><span style="font-size:9pt; font-weight:600;">Nursery</span></sc-if>
+                  <sc-if value="{{ lb.allergy }}" hint-placeholder-val="{{ true }}"><span style="align-self:flex-start; padding:0 4px; border:1.5px solid black; border-radius:2px; font-size:7.5pt; font-weight:700;">ALLERGY: PEANUTS</span></sc-if>
+                  <sc-if value="{{ lb.date }}" hint-placeholder-val="{{ true }}"><span style="font-size:6.5pt;">Sun 5 Oct · 10:00 service</span></sc-if>
+                </div>
+              </div>
+              <div style="{{ lblBox }}">
+                <div style="display:flex; align-items:flex-start; gap:6px;"><span style="flex:1; font-size:15pt; font-weight:700; line-height:1.05;">Mia Lindqvist</span><sc-if value="{{ lb.code }}" hint-placeholder-val="{{ true }}"><span style="font-family: 'JetBrains Mono', monospace; font-size:11pt; font-weight:700;">QF82</span></sc-if></div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <sc-if value="{{ lb.room }}" hint-placeholder-val="{{ true }}"><span style="font-size:9pt; font-weight:600;">Kids 4–6</span></sc-if>
+                  <sc-if value="{{ lb.date }}" hint-placeholder-val="{{ true }}"><span style="font-size:6.5pt;">Sun 5 Oct · 10:00 service</span></sc-if>
+                </div>
+              </div>
+              <sc-if value="{{ lb.parent }}" hint-placeholder-val="{{ true }}">
+                <div style="{{ lblBox }}">
+                  <div style="font-size:7pt; font-weight:600;">PARENT TAG · KEEP THIS</div>
+                  <div style="display:flex; align-items:flex-end; gap:6px;"><span style="flex:1; font-size:9pt; line-height:1.2;">Park family<br>Leo</span><span style="font-family: 'JetBrains Mono', monospace; font-size:18pt; font-weight:700; line-height:1;">RM19</span></div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="font-size:12px; color: var(--c6);">Check that names aren't cut off, the allergy box is easy to see, and the pickup code reads from arm's length.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ printCards }}" hint-placeholder-val="{{ false }}">
+          <table style="width:100%; font-size:13px; border-collapse:collapse;">
+            <thead><tr style="text-align:left;"><th style="padding:6px 8px; border-bottom:1px solid var(--c15); width:28px;"></th><th style="padding:6px 8px; border-bottom:1px solid var(--c15); width:70px;">Day</th><th style="padding:6px 8px; border-bottom:1px solid var(--c15);">Who</th><th style="padding:6px 8px; border-bottom:1px solid var(--c15);">Card for</th><th style="padding:6px 8px; border-bottom:1px solid var(--c15);">Address</th></tr></thead>
+            <tbody><sc-for list="{{ printCardRows }}" as="pc" hint-placeholder-count="8"><tr><td style="padding:8px; border-bottom:1px solid var(--c7);"><span style="display:block; width:14px; height:14px; border:1.5px solid var(--c1); border-radius:3px;"></span></td><td style="padding:8px; border-bottom:1px solid var(--c7);">{{ pc.day }}</td><td style="padding:8px; border-bottom:1px solid var(--c7); font-weight:600;">{{ pc.who }}</td><td style="padding:8px; border-bottom:1px solid var(--c7);">{{ pc.what }}</td><td style="padding:8px; border-bottom:1px solid var(--c7); color: var(--c6);">{{ pc.address }}</td></tr></sc-for></tbody>
+          </table>
+          <div style="font-size:12px; color: var(--c6);">Tick each card as it goes in the post.</div>
         </sc-if>
         <sc-if value="{{ printRosters }}" hint-placeholder-val="{{ false }}">
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
@@ -395,6 +473,7 @@
       <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:auto;">
         <table style="width:100%; min-width:720px;">
           <thead><tr style="text-align:left; font-size:12px; color: var(--c4); font-weight:500;">
+            <th style="width:44px; padding:12px 0 12px 16px; border-bottom:1px solid var(--c7);"><button onClick="{{ toggleSelPage }}" aria-label="Select all on this page" style="{{ selHeadBox }}"><span data-icon="{{ selHeadIcon }}" style="width:13px;height:13px;"></span></button></th>
             <th style="padding:12px 16px; font-weight:500; border-bottom:1px solid var(--c7);">Name</th>
             <th style="padding:12px 16px; font-weight:500; border-bottom:1px solid var(--c7);">Household</th>
             <th style="padding:12px 16px; font-weight:500; border-bottom:1px solid var(--c7);">Status</th>
@@ -404,7 +483,8 @@
           </tr></thead>
           <tbody>
             <sc-for list="{{ filteredPeople }}" as="p" hint-placeholder-count="8">
-              <tr onClick="{{ openPerson }}" data-id="{{ p.id }}" style="cursor:pointer;" style-hover="background: var(--c0)">
+              <tr onClick="{{ openPerson }}" data-id="{{ p.id }}" style="{{ p.rowStyle }}" style-hover="background: var(--c0)">
+                <td style="padding:10px 0 10px 16px; border-bottom:1px solid var(--c12);"><button onClick="{{ toggleSel }}" data-id="{{ p.id }}" aria-label="Select {{ p.name }}" aria-pressed="{{ p.sel }}" style="{{ p.selBox }}"><span data-icon="check" style="width:13px;height:13px;"></span></button></td>
                 <td style="padding:10px 16px; border-bottom:1px solid var(--c12);"><div style="display:flex; align-items:center; gap:10px;"><span style="width:28px; height:28px; border-radius:999px; display:grid; place-items:center; font-size:11px; font-weight:600; background: {{ p.hue.tint }}; color: {{ p.hue.text }};">{{ p.initials }}</span><span style="font-weight:500;">{{ p.name }}</span></div></td>
                 <td style="padding:10px 16px; border-bottom:1px solid var(--c12); color: var(--c6);">{{ p.household }}</td>
                 <td style="padding:10px 16px; border-bottom:1px solid var(--c12);"><span style="{{ p.statusStyle }}">{{ p.status }}</span></td>
@@ -424,6 +504,43 @@
           <button onClick="{{ nextPage }}" aria-label="Next page" style="{{ nextStyle }}"><span data-icon="chevron-right" style="width:16px;height:16px;"></span></button>
         </div>
       </div>
+      <sc-if value="{{ selCount }}" hint-placeholder-val="{{ false }}">
+        <div data-theme="light" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:12; width:max-content; max-width:calc(100vw - 32px); justify-content:center; display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px 8px 8px 16px; border-radius:14px; background: oklch(0.198 0.009 75); color:white; box-shadow: 0 8px 24px oklch(0 0 0 / 0.25);">
+          <span style="font-weight:600; margin-right:4px; white-space:nowrap;">{{ selCount }} selected</span>
+          <sc-if value="{{ selCanAll }}" hint-placeholder-val="{{ false }}"><button onClick="{{ selectAllMatching }}" style="border:none; background:none; color: oklch(0.82 0.08 285); font-weight:500; font-size:13px; padding:0 6px; white-space:nowrap;">Select all {{ filteredCount }}</button></sc-if>
+          <span style="width:1px; height:22px; background: oklch(1 0 0 / 0.18); margin:0 4px;"></span>
+          <button onClick="{{ openBulk }}" data-v="message" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 12px; border:none; border-radius:10px; background: oklch(1 0 0 / 0.08); color:white; font-weight:500; font-size:13px;"><span data-icon="mail" style="width:15px;height:15px;"></span>Message</button>
+          <button onClick="{{ openBulk }}" data-v="tag" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 12px; border:none; border-radius:10px; background: oklch(1 0 0 / 0.08); color:white; font-weight:500; font-size:13px;"><span data-icon="tag" style="width:15px;height:15px;"></span>Add tag</button>
+          <button onClick="{{ openBulk }}" data-v="group" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 12px; border:none; border-radius:10px; background: oklch(1 0 0 / 0.08); color:white; font-weight:500; font-size:13px;"><span data-icon="circle-dot" style="width:15px;height:15px;"></span>Add to group</button>
+          <button onClick="{{ openBulk }}" data-v="status" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 12px; border:none; border-radius:10px; background: oklch(1 0 0 / 0.08); color:white; font-weight:500; font-size:13px;"><span data-icon="badge-check" style="width:15px;height:15px;"></span>Status</button>
+          <button onClick="{{ exportSelected }}" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 12px; border:none; border-radius:10px; background: oklch(1 0 0 / 0.08); color:white; font-weight:500; font-size:13px;"><span data-icon="download" style="width:15px;height:15px;"></span>Export</button>
+          <sc-if value="{{ selIsPair }}" hint-placeholder-val="{{ false }}"><button onClick="{{ mergeSelected }}" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 12px; border:none; border-radius:10px; background: oklch(1 0 0 / 0.08); color:white; font-weight:500; font-size:13px;"><span data-icon="git-merge" style="width:15px;height:15px;"></span>Merge</button></sc-if>
+          <button onClick="{{ clearSel }}" aria-label="Clear selection" style="width:36px; height:36px; border:none; border-radius:10px; background:none; color:white; display:grid; place-items:center;"><span data-icon="x" style="width:16px;height:16px;"></span></button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ bulkOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ closeBulk }}" style="position:fixed; inset:0; z-index:25; background: oklch(0.142 0.008 75 / 0.35); display:grid; place-items:center; padding:16px;">
+          <div onClick="{{ stop }}" role="dialog" aria-label="{{ bulkTitle }}" style="width:min(460px, 100%); background: var(--surface); border-radius:16px; box-shadow: 0 12px 40px oklch(0 0 0 / 0.2); display:flex; flex-direction:column;">
+            <div style="padding:18px 20px 4px;"><div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">{{ bulkTitle }}</div><div style="font-size:13px; color: var(--c6); margin-top:2px;">{{ bulkSub }}</div></div>
+            <div style="padding:16px 20px; display:flex; flex-direction:column; gap:12px;">
+              <sc-if value="{{ bulkIsPick }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; flex-wrap:wrap; gap:8px;"><sc-for list="{{ bulkOpts }}" as="bo" hint-placeholder-count="6"><button onClick="{{ pickBulk }}" data-v="{{ bo.v }}" style="{{ bo.style }}">{{ bo.v }}</button></sc-for></div>
+              </sc-if>
+              <sc-if value="{{ bulkIsMsg }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; background: var(--c12); border-radius:10px; padding:3px; gap:2px; align-self:flex-start;"><sc-for list="{{ msgChannels }}" as="mc" hint-placeholder-count="2"><button onClick="{{ setMsgChannel }}" data-v="{{ mc.v }}" style="{{ mc.style }}">{{ mc.v }}</button></sc-for></div>
+                <sc-if value="{{ msgIsEmail }}" hint-placeholder-val="{{ true }}"><input value="{{ msgSubject }}" onChange="{{ setMsgSubject }}" placeholder="Subject" style="height:40px; padding:0 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font:inherit;"></input></sc-if>
+                <textarea value="{{ msgBody }}" onChange="{{ setMsgBody }}" placeholder="Write your message. {first} becomes each person's first name." rows="5" style="padding:10px 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font:inherit; resize:vertical;"></textarea>
+                <sc-if value="{{ msgMissing }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color: var(--h-amber-x);">{{ msgMissing }}</div></sc-if>
+              </sc-if>
+              <sc-if value="{{ bulkErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color: var(--c9);">{{ bulkErr }}</div></sc-if>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; padding:14px 20px; border-top:1px solid var(--c7);">
+              <button onClick="{{ closeBulk }}" style="height:40px; padding:0 16px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500;">Cancel</button>
+              <button onClick="{{ applyBulk }}" style="height:40px; padding:0 18px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">{{ bulkCta }}</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -969,7 +1086,7 @@
           <span style="font-family: Fraunces, serif; font-size:28px; line-height:34px; min-width:170px; text-align:center;">October 2026</span>
           <button aria-label="Later" style="width:32px; height:32px; border:1px solid var(--c8); border-radius:8px; background: var(--surface); display:grid; place-items:center;"><span data-icon="chevron-right" style="width:16px;height:16px;"></span></button>
         </div>
-        <button style="display:flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;"><span data-icon="printer" style="width:16px;height:16px;"></span>Print card list</button>
+        <button onClick="{{ openPrint }}" data-p="cards" style="display:flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;"><span data-icon="printer" style="width:16px;height:16px;"></span>Print card list</button>
       </div>
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
         <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:18px 20px;"><div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color: var(--c6);"><span style="width:8px; height:8px; border-radius:999px; background: var(--c29);"></span>Birthdays</div><div style="font-family: Fraunces, serif; font-size:40px; line-height:44px; margin-top:10px;">{{ bdayN }}</div></div>
@@ -1337,11 +1454,65 @@
         <span style="flex:1;"></span>
         <sc-if value="{{ servIsTeams }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openFormBtn }}" data-kind="team" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;"><span data-icon="plus" style="width:16px;height:16px;"></span>New team</button></sc-if>
       </div>
-      <sc-if value="{{ servIsTeams }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ teamDetailOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <button onClick="{{ closeTeam }}" style="align-self:flex-start; display:flex; align-items:center; gap:4px; height:32px; padding:0 8px 0 4px; border:none; background:none; color: var(--c6); font-weight:500; font-size:13px;"><span data-icon="chevron-left" style="width:16px;height:16px;"></span>All teams</button>
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px;">
+            <span style="width:14px; height:14px; border-radius:4px; background: {{ tdColor }};"></span>
+            <div style="flex:1; min-width:200px;"><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">{{ tdName }}</div><div style="color: var(--c6); margin-top:2px;">{{ tdSummary }}</div></div>
+            <button onClick="{{ openTeamSchedule }}" data-id="{{ tdId }}" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;"><span data-icon="calendar" style="width:15px;height:15px;"></span>Open schedule</button>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+            <section style="display:flex; flex-direction:column; padding:20px; gap:14px; border-right:1px solid var(--c7);">
+              <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-weight:600; font-size:15px;">Positions</span><span style="font-size:13px; color: var(--c6);">{{ tdPosCount }}</span></div>
+              <div style="display:flex; flex-direction:column;">
+                <sc-for list="{{ tdPositions }}" as="tp" hint-placeholder-count="5">
+                  <div style="display:flex; align-items:center; gap:10px; min-height:48px; border-bottom:1px solid var(--c12);">
+                    <span style="flex:1; font-weight:500;">{{ tp.name }}</span>
+                    <span style="font-size:12px; color: var(--c6);">{{ tp.filled }}</span>
+                    <button onClick="{{ removePos }}" data-i="{{ tp.i }}" aria-label="Remove {{ tp.name }}" style="width:32px; height:32px; border:none; border-radius:8px; background:none; color: var(--c6); display:grid; place-items:center;" style-hover="background: var(--c12)"><span data-icon="trash-2" style="width:15px;height:15px;"></span></button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ tdNoPos }}" hint-placeholder-val="{{ false }}"><div style="padding:14px 0; color: var(--c6); font-size:13px;">No positions yet. Add the first one below.</div></sc-if>
+              </div>
+              <form onSubmit="{{ addPos }}" style="display:flex; gap:8px;">
+                <input value="{{ posDraft }}" onChange="{{ setPosDraft }}" placeholder="New position, e.g. Electric guitar" aria-label="New position" style="flex:1; min-width:0; height:40px; padding:0 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font:inherit;"></input>
+                <button type="submit" style="display:flex; align-items:center; gap:6px; height:40px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;"><span data-icon="plus" style="width:15px;height:15px;"></span>Add</button>
+              </form>
+              <sc-if value="{{ posErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px; color: var(--c9);">{{ posErr }}</div></sc-if>
+            </section>
+            <section style="display:flex; flex-direction:column; padding:20px; gap:14px;">
+              <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-weight:600; font-size:15px;">People</span><span style="font-size:13px; color: var(--c6);">{{ tdPeopleCount }}</span></div>
+              <div style="position:relative;">
+                <span data-icon="user-plus" style="position:absolute; left:12px; top:12px; width:16px; height:16px; color: var(--c6);"></span>
+                <input value="{{ memberQ }}" onChange="{{ setMemberQ }}" placeholder="Add someone from People" aria-label="Add someone to this team" style="width:100%; box-sizing:border-box; height:40px; padding:0 12px 0 36px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font:inherit;"></input>
+                <sc-if value="{{ memberHits }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute; left:0; right:0; top:44px; z-index:5; background: var(--surface); border:1px solid var(--c7); border-radius:12px; box-shadow: 0 8px 24px oklch(0 0 0 / 0.12); padding:4px; display:flex; flex-direction:column;">
+                    <sc-for list="{{ memberHits }}" as="mh" hint-placeholder-count="4">
+                      <button onClick="{{ addMember }}" data-name="{{ mh.name }}" style="display:flex; align-items:center; gap:10px; min-height:44px; padding:0 10px; border:none; border-radius:8px; background:none; text-align:left;" style-hover="background: var(--c12)"><span style="flex:1; font-weight:500;">{{ mh.name }}</span><span style="font-size:12px; color: var(--c6);">{{ mh.status }}</span></button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="display:flex; flex-direction:column;">
+                <sc-for list="{{ tdPeople }}" as="tm" hint-placeholder-count="6">
+                  <div style="display:flex; align-items:center; gap:12px; min-height:56px; border-bottom:1px solid var(--c12);">
+                    <span style="width:34px; height:34px; flex:none; border-radius:50%; background: {{ tm.h.tint }}; color: {{ tm.h.text }}; display:grid; place-items:center; font-size:12px; font-weight:600;">{{ tm.initials }}</span>
+                    <span style="flex:1; min-width:0; display:flex; flex-direction:column;"><span style="font-weight:500;">{{ tm.name }}</span><span style="font-size:12px; color: {{ tm.subColor }};">{{ tm.sub }}</span></span>
+                    <button onClick="{{ removeMember }}" data-name="{{ tm.name }}" aria-label="Remove {{ tm.name }} from team" style="height:32px; padding:0 10px; border:none; border-radius:8px; background:none; color: var(--c6); font-size:13px; font-weight:500;" style-hover="background: var(--c12); color: var(--c9)">Remove</button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ tdNoPeople }}" hint-placeholder-val="{{ false }}"><div style="padding:14px 0; color: var(--c6); font-size:13px;">Nobody on this team yet.</div></sc-if>
+              </div>
+            </section>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ servIsTeamGrid }}" hint-placeholder-val="{{ false }}">
         <div><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">Teams</div><div style="color: var(--c6); margin-top:4px;">{{ teamsSummary }}</div></div>
         <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:14px;">
           <sc-for list="{{ teamCards }}" as="tc" hint-placeholder-count="4">
-            <section style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:14px;">
+            <section onClick="{{ openTeam }}" data-id="{{ tc.id }}" role="button" tabIndex="0" aria-label="Edit {{ tc.name }}" style="cursor:pointer; background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:14px;" style-hover="border-color: var(--c8); box-shadow: 0 2px 8px oklch(0 0 0 / 0.06)">
               <div style="display:flex; align-items:center; gap:10px;"><span style="width:12px; height:12px; border-radius:4px; background: {{ tc.color }};"></span><span style="flex:1; font-family: Fraunces, serif; font-size:21px; line-height:26px;">{{ tc.name }}</span><span style="{{ tc.gapStyle }}">{{ tc.gapText }}</span></div>
               <div style="display:flex; flex-wrap:wrap; gap:6px;"><sc-for list="{{ tc.positions }}" as="pos" hint-placeholder-count="4"><span style="height:26px; padding:0 10px; border-radius:999px; background: var(--c12); font-size:12px; font-weight:500; display:flex; align-items:center;">{{ pos }}</span></sc-for></div>
               <div style="display:flex; align-items:center; gap:10px; border-top:1px solid var(--c12); padding-top:12px;">
@@ -1587,18 +1758,86 @@
   <sc-if value="{{ screen.group }}" hint-placeholder-val="{{ false }}">
     <div data-screen-label="Group" style="display:flex; flex-direction:column; gap:20px;">
       <sc-if value="{{ showGroupBack }}" hint-placeholder-val="{{ true }}"><button onClick="{{ go }}" data-screen="groups" style="align-self:flex-start; display:flex; align-items:center; gap:6px; border:none; background:none; color: var(--c2); font-weight:500; padding:0;"><span data-icon="arrow-left" style="width:16px;height:16px;"></span>Groups</button></sc-if>
-      <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:12px;">
-        <div>
-          <span style="font-size:12px; font-weight:500; padding:2px 8px; border-radius:999px; background: {{ group.hue.tint }}; color: {{ group.hue.text }};">{{ group.type }}</span>
-          <div style="font-family: Fraunces, serif; font-size:32px; line-height:38px; margin-top:8px;">{{ group.name }}</div>
-          <div style="color: var(--c6); margin-top:4px;">{{ group.meets }} · Led by {{ group.leader }}</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:28px; align-items:center;">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <span style="align-self:flex-start; font-size:12px; font-weight:500; padding:2px 8px; border-radius:999px; background: {{ group.hue.tint }}; color: {{ group.hue.text }};">{{ group.type }}</span>
+          <div style="font-family: Fraunces, serif; font-size:36px; line-height:42px; text-wrap:balance;">{{ group.name }}</div>
+          <div style="color: var(--c6);">{{ group.meets }} · Led by {{ group.leader }}</div>
         </div>
-        <div style="display:flex; gap:8px;"><button style="height:36px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500;">Message group</button><button style="height:36px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500;">Edit</button></div>
+        <div style="position:relative;">
+          <div style="{{ gdBannerStyle }}"><sc-if value="{{ gdNoBanner }}" hint-placeholder-val="{{ true }}"><div style="display:flex; flex-direction:column; align-items:center; gap:6px; color: {{ group.hue.text }};"><span data-icon="image-plus" style="width:28px;height:28px;"></span><span style="font-weight:600;">Add a banner</span><span style="font-size:12px;">1600 × 900 works best. JPG or PNG.</span></div></sc-if></div>
+          <label style="position:absolute; right:12px; bottom:12px; display:flex; align-items:center; gap:6px; height:34px; padding:0 12px; border-radius:10px; background: var(--surface); box-shadow: 0 1px 3px oklch(0 0 0 / 0.15); font-size:13px; font-weight:500; cursor:pointer;"><span data-icon="upload" style="width:15px;height:15px;"></span>{{ gdBannerCta }}<input type="file" accept="image/*" onChange="{{ uploadBanner }}" style="display:none;"></input></label>
+          <sc-if value="{{ gdHasBanner }}" hint-placeholder-val="{{ false }}"><button onClick="{{ removeBanner }}" aria-label="Remove banner" style="position:absolute; right:12px; top:12px; width:32px; height:32px; border:none; border-radius:8px; background: var(--surface); box-shadow: 0 1px 3px oklch(0 0 0 / 0.15); display:grid; place-items:center;"><span data-icon="trash-2" style="width:15px;height:15px;"></span></button></sc-if>
+        </div>
       </div>
-      <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start;">
-        <section style="flex:999 1 420px; min-width:0; background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:14px 18px; border-radius:12px; background: var(--c12);">
+        <span style="width:8px; height:8px; border-radius:50%; background: {{ gdOpenDot }};"></span>
+        <span style="flex:1; min-width:140px; font-weight:500;">{{ gdOpenText }}</span>
+        <button onClick="{{ toggleGroupOpen }}" style="display:flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">{{ gdOpenCta }}</button>
+        <button onClick="{{ messageGroup }}" style="display:flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;"><span data-icon="mail" style="width:15px;height:15px;"></span>Message group</button>
+      </div>
+      <div role="tablist" style="display:flex; gap:4px; border-bottom:1px solid var(--c7);"><sc-for list="{{ gdTabs }}" as="gt" hint-placeholder-count="3"><button role="tab" onClick="{{ setGdTab }}" data-v="{{ gt.v }}" aria-selected="{{ gt.on }}" style="{{ gt.style }}">{{ gt.v }}<span style="font-size:12px; color: var(--c6);">{{ gt.n }}</span></button></sc-for></div>
+      <sc-if value="{{ gdIsOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-wrap:wrap; gap:40px; align-items:flex-start;">
+          <div style="flex:999 1 420px; min-width:0; display:flex; flex-direction:column; gap:28px;">
+            <section style="display:flex; flex-direction:column; gap:10px;">
+              <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:24px;">About {{ group.name }}</h2>
+              <p style="margin:0; font-size:15px; line-height:24px; white-space:pre-line; text-wrap:pretty; max-width:68ch;">{{ gdAbout }}</p>
+            </section>
+            <section style="display:flex; flex-direction:column; gap:4px;">
+              <h2 style="margin:0 0 6px; font-family: Fraunces, serif; font-weight:400; font-size:22px;">Upcoming</h2>
+              <sc-for list="{{ gdUpcoming }}" as="ev" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:16px; padding:10px 0;">
+                  <div style="width:72px; height:64px; flex:none; border-radius:10px; background: var(--c12); display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-size:11px; font-weight:600; letter-spacing:0.06em; color: var(--c4);">{{ ev.mon }}</span><span style="font-family: Fraunces, serif; font-size:24px; line-height:26px;">{{ ev.day }}</span></div>
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;"><span style="font-weight:600;">{{ ev.title }}</span><sc-if value="{{ ev.canceled }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px; font-weight:500; padding:1px 8px; border-radius:6px; background: var(--c12); color: var(--c6);">Canceled</span></sc-if></div>
+                    <span style="font-size:13px; color: var(--c6);">{{ ev.when }}</span>
+                  </div>
+                  <sc-if value="{{ ev.canTake }}" hint-placeholder-val="{{ false }}"><button onClick="{{ takeAttendance }}" data-d="{{ ev.label }}" style="height:32px; padding:0 12px; border:1px solid var(--c8); border-radius:8px; background: var(--surface); font-size:13px; font-weight:500; white-space:nowrap;">{{ ev.attLabel }}</button></sc-if>
+                </div>
+              </sc-for>
+            </section>
+            <section style="display:flex; flex-direction:column; gap:4px;">
+              <h2 style="margin:0 0 6px; font-family: Fraunces, serif; font-weight:400; font-size:22px;">Past</h2>
+              <sc-for list="{{ gdPast }}" as="ev" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:16px; padding:10px 0;">
+                  <div style="width:72px; height:64px; flex:none; border-radius:10px; background: var(--c12); display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-size:11px; font-weight:600; letter-spacing:0.06em; color: var(--c4);">{{ ev.mon }}</span><span style="font-family: Fraunces, serif; font-size:24px; line-height:26px;">{{ ev.day }}</span></div>
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;"><span style="font-weight:600;">{{ ev.title }}</span><sc-if value="{{ ev.canceled }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px; font-weight:500; padding:1px 8px; border-radius:6px; background: var(--c12); color: var(--c6);">Canceled</span></sc-if></div>
+                    <span style="font-size:13px; color: var(--c6);">{{ ev.when }}</span>
+                  </div>
+                  <sc-if value="{{ ev.canTake }}" hint-placeholder-val="{{ false }}"><button onClick="{{ takeAttendance }}" data-d="{{ ev.label }}" style="height:32px; padding:0 12px; border:1px solid var(--c8); border-radius:8px; background: var(--surface); font-size:13px; font-weight:500; white-space:nowrap;">{{ ev.attLabel }}</button></sc-if>
+                </div>
+              </sc-for>
+            </section>
+          </div>
+          <aside style="flex:1 1 260px; display:flex; flex-direction:column; gap:24px;">
+            <div style="display:flex; flex-direction:column; gap:10px;"><span style="font-size:12px; font-weight:600; letter-spacing:0.06em; color: var(--c4);">CATEGORIES</span><div style="display:flex; flex-wrap:wrap; gap:6px;"><sc-for list="{{ gdCats }}" as="gc" hint-placeholder-count="4"><span style="font-size:13px; padding:4px 10px; border-radius:6px; background: var(--c12);"><strong style="font-weight:600;">{{ gc.k }}:</strong> {{ gc.v }}</span></sc-for></div></div>
+            <div style="display:flex; flex-direction:column; gap:6px;"><span style="font-size:12px; font-weight:600; letter-spacing:0.06em; color: var(--c4);">SCHEDULE</span><span>{{ gdSchedule }}</span></div>
+            <div style="display:flex; flex-direction:column; gap:6px;"><span style="font-size:12px; font-weight:600; letter-spacing:0.06em; color: var(--c4);">LEADER</span><span>{{ group.leader }}</span></div>
+            <div style="display:flex; flex-direction:column; gap:6px;"><span style="font-size:12px; font-weight:600; letter-spacing:0.06em; color: var(--c4);">LOCATION</span><span style="white-space:pre-line;">{{ gdLocation }}</span></div>
+            <div style="display:flex; flex-direction:column; gap:8px; padding-top:20px; border-top:1px solid var(--c7);">
+              <span style="font-size:12px; font-weight:600; letter-spacing:0.06em; color: var(--c4);">JOIN REQUESTS</span>
+              <sc-if value="{{ joinPending }}" hint-placeholder-val="{{ true }}"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:500;">Grace Miller</span><button onClick="{{ approveJoin }}" style="height:28px; padding:0 10px; border:1px solid var(--c8); border-radius:8px; background: var(--surface); font-size:12px; font-weight:500;">Approve</button></div></sc-if><sc-if value="{{ joinApproved }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px; color: var(--c6);">No requests waiting</span></sc-if>
+            </div>
+          </aside>
+        </div>
+      </sc-if>
+      <sc-if value="{{ gdIsMembers }}" hint-placeholder-val="{{ false }}">
+        <section style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+          <sc-for list="{{ gdMembers }}" as="gm" hint-placeholder-count="8">
+            <div style="display:flex; align-items:center; gap:12px; min-height:56px; padding:0 20px; border-bottom:1px solid var(--c12);">
+              <span style="width:34px; height:34px; flex:none; border-radius:50%; background: {{ gm.h.tint }}; color: {{ gm.h.text }}; display:grid; place-items:center; font-size:12px; font-weight:600;">{{ gm.initials }}</span>
+              <span style="flex:1; font-weight:500;">{{ gm.name }}</span>
+              <span style="font-size:12px; color: var(--c6);">{{ gm.role }}</span>
+            </div>
+          </sc-for>
+        </section>
+      </sc-if>
+      <sc-if value="{{ gdIsAttendance }}" hint-placeholder-val="{{ false }}">
+        <section style="min-width:0; background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
           <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--c7);">
-            <div><div style="font-family: Fraunces, serif; font-size:20px;">Attendance · Wed 1 Oct</div><div style="font-size:12px; color: var(--c4);">Tap a name to mark present</div></div>
+            <div><div style="font-family: Fraunces, serif; font-size:20px;">Attendance · {{ attDate }}</div><div style="font-size:12px; color: var(--c4);">Tap a name to mark present</div></div>
             <div style="font-family: Fraunces, serif; font-size:28px; font-variant-numeric: tabular-nums;">{{ presentCount }}<span style="font-size:14px; color: var(--c4); font-family: Inter, sans-serif;"> / {{ memberCount }}</span></div>
           </div>
           <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
@@ -1613,34 +1852,51 @@
             <button onClick="{{ saveAttendance }}" style="height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Save attendance</button>
           </div>
         </section>
-        <aside style="flex:1 1 240px; display:flex; flex-direction:column; gap:16px;">
-          <section style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:6px;">
-            <div style="font-size:13px; font-weight:500; color: var(--c4);">Average attendance</div>
-            <div style="font-family: Fraunces, serif; font-size:32px; line-height:38px;">{{ group.attendance }}%</div>
-            <div style="font-size:13px; color: var(--c6);">Over the last 8 meetings</div>
-          </section>
-          <section style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:8px;">
-            <div style="font-size:13px; font-weight:500; color: var(--c4);">Join requests</div>
-            <sc-if value="{{ joinPending }}" hint-placeholder-val="{{ true }}"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:500;">Grace Miller</span><button onClick="{{ approveJoin }}" style="height:28px; padding:0 10px; border:1px solid var(--c8); border-radius:8px; background: var(--surface); font-size:12px; font-weight:500;">Approve</button></div></sc-if><sc-if value="{{ joinApproved }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px; color: var(--c6);">No requests waiting</span></sc-if>
-          </section>
-        </aside>
-      </div>
+      </sc-if>
     </div>
   </sc-if>
 
   <sc-if value="{{ screen.groups }}" hint-placeholder-val="{{ false }}">
-    <div data-screen-label="Groups" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
-      <sc-for list="{{ groupList }}" as="g" hint-placeholder-count="6">
-        <section onClick="{{ openGroup }}" data-id="{{ g.id }}" style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:12px; cursor:pointer;" style-hover="border-color: var(--c8); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08)">
-          <span style="align-self:flex-start; font-size:12px; font-weight:500; padding:2px 8px; border-radius:999px; background: {{ g.hue.tint }}; color: {{ g.hue.text }};">{{ g.type }}</span>
-          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">{{ g.name }}</div>
-          <div style="font-size:13px; color: var(--c6);">{{ g.meets }} · Led by {{ g.leader }}</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:12px; border-top:1px solid var(--c12);">
-            <span style="font-size:13px;"><strong style="font-weight:600;">{{ g.members }}</strong> members</span>
-            <span style="font-size:13px; color: var(--c6);">{{ g.attendance }}% attendance</span>
-          </div>
-        </section>
-      </sc-for>
+    <div data-screen-label="Groups" style="display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+        <label style="display:flex; align-items:center; gap:8px; height:34px; padding:0 10px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); color: var(--c4); min-width:160px; flex:0 1 240px;"><span data-icon="search" style="width:15px;height:15px;"></span><input value="{{ gq }}" onChange="{{ setGq }}" placeholder="Group or leader" style="border:none; outline:none; background:transparent; flex:1; min-width:0; font-size:13px;"></input></label>
+        <span style="font-size:13px; color: var(--c6);">{{ gCountLabel }}</span>
+        <span style="flex:1;"></span>
+        <button onClick="{{ toggleGF }}" aria-expanded="{{ gfOpen }}" style="{{ gfBtnStyle }}"><span data-icon="sliders-horizontal" style="width:16px;height:16px;"></span>{{ gfLabel }}</button>
+      </div>
+      <sc-if value="{{ gfOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ toggleGF }}" style="position:fixed; inset:0; background: oklch(0.142 0.008 75 / 0.35); z-index:20; display:flex; justify-content:flex-end;">
+          <aside onClick="{{ stop }}" style="width:min(380px, 100%); height:100%; background: var(--c0); display:flex; flex-direction:column; box-shadow: -8px 0 24px oklch(0 0 0 / 0.12);">
+            <div style="display:flex; align-items:center; gap:12px; padding:18px 24px; border-bottom:1px solid var(--c7);"><span style="flex:1; font-family: Fraunces, serif; font-size:22px;">Filter groups</span><button onClick="{{ toggleGF }}" aria-label="Close" style="width:32px; height:32px; border:none; border-radius:8px; background:none; display:grid; place-items:center;" style-hover="background: var(--c7)"><span data-icon="x" style="width:18px;height:18px;"></span></button></div>
+            <div style="flex:1; overflow:auto; padding:20px 24px; display:flex; flex-direction:column; gap:24px;">
+              <sc-for list="{{ gfSections }}" as="fs" hint-placeholder-count="3">
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <div style="font-size:12px; font-weight:600; color: var(--c4);">{{ fs.label }}</div>
+                  <div style="display:flex; flex-wrap:wrap; gap:8px;"><sc-for list="{{ fs.opts }}" as="fo" hint-placeholder-count="4"><button onClick="{{ toggleGFOpt }}" data-k="{{ fs.k }}" data-v="{{ fo.v }}" aria-pressed="{{ fo.on }}" style="{{ fo.style }}">{{ fo.v }}<span style="font-size:12px; opacity:0.7;">{{ fo.n }}</span></button></sc-for></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:8px; padding:14px 24px; border-top:1px solid var(--c7);">
+              <button onClick="{{ clearGF }}" style="height:40px; padding:0 16px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500;">Clear</button>
+              <button onClick="{{ toggleGF }}" style="flex:1; height:40px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Show {{ gCountLabel }}</button>
+            </div>
+          </aside>
+        </div>
+      </sc-if>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
+        <sc-for list="{{ groupCards }}" as="g" hint-placeholder-count="6">
+          <section onClick="{{ openGroup }}" data-id="{{ g.id }}" style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; cursor:pointer;" style-hover="border-color: var(--c8); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08)">
+            <div style="{{ g.bannerStyle }}"><sc-if value="{{ g.noBanner }}" hint-placeholder-val="{{ true }}"><span data-icon="image" style="width:22px;height:22px; opacity:0.5;"></span></sc-if></div>
+            <div style="padding:16px 18px 18px; display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; font-weight:500; padding:2px 8px; border-radius:999px; background: {{ g.hue.tint }}; color: {{ g.hue.text }};">{{ g.type }}</span><span style="margin-left:auto; font-size:12px; font-weight:500; color: {{ g.openColor }};">{{ g.openLabel }}</span></div>
+              <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">{{ g.name }}</div>
+              <div style="font-size:13px; color: var(--c6);">{{ g.meets }} · Led by {{ g.leader }}</div>
+              <div style="font-size:13px;"><strong style="font-weight:600;">{{ g.members }}</strong> members</div>
+            </div>
+          </section>
+        </sc-for>
+      </div>
+      <sc-if value="{{ gEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:48px 0; text-align:center; color: var(--c6);">No groups match. <button onClick="{{ clearGF }}" style="border:none; background:none; color: var(--c2); font-weight:500; padding:0;">Clear filters</button></div></sc-if>
     </div>
   </sc-if>
 
@@ -2080,7 +2336,7 @@ class Component extends DCLogic {
     const peTagsOn = pe.tags || [];
     const lb = s.lbl || { room: true, allergy: true, code: true, date: true, parent: true };
     const lblDefs = [["room", "Room name"], ["allergy", "Allergies and medical notes"], ["code", "Pickup code"], ["date", "Date and service"], ["parent", "Print a parent tag"]];
-    const pt = { people: ["People", filtered.length + " people"], plan: [svc.title, svc.theme], rosters: ["Room rosters", "Sun 5 Oct · 10:00 service"] }[s.print] || ["", ""];
+    const pt = { people: ["People", filtered.length + " people"], plan: [svc.title, svc.theme], rosters: ["Room rosters", "Sun 5 Oct · 10:00 service"], cards: ["Birthday and anniversary cards", "October 2026"], labels: ["Test labels", (s.lblSize || "Brother 2.4 × 1.1 in") + " · actual size"] }[s.print] || ["", ""];
     const rooms = d ? d.rooms : [];
     return {
       svcCards, openSvc: e => { pickSvc(e); this.setState({ screen: "plan" }); },
@@ -2091,8 +2347,9 @@ class Component extends DCLogic {
       peTags: allTags.map(v => ({ v, style: pill(peTagsOn.includes(v)) })), togglePeTag: e => { const v = e.currentTarget.dataset.v; set({ pe: { ...pe, tags: peTagsOn.includes(v) ? peTagsOn.filter(t => t !== v) : [...peTagsOn, v] } }); },
       savePe: () => { if (!(pe.first || "").trim()) return set({ peErr: "Add a first name to save." }); if (pe.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(pe.email)) return set({ peErr: "That email does not look right. Check for a typo." }); const name = (pe.first.trim() + " " + (pe.last || "").trim()).trim(); set({ screen: "person", personEdits: { ...s.personEdits, [p0.id]: { name, email: pe.email || "—", phone: pe.phone || "—", household: pe.household, status: pe.status, tags: peTagsOn } } }); say(name + " saved."); },
       lb, lblOpts: lblDefs.map(([k, label]) => ({ k, label, ...tog(lb[k]) })), toggleLbl: e => { const k = e.currentTarget.dataset.k; set({ lbl: { ...lb, [k]: !lb[k] } }); },
-      lblSize: s.lblSize || "Brother 2.4 × 1.1 in", setLblSize: e => set({ lblSize: e.target.value }), testLabel: () => say("Test label sent to Welcome desk printer."),
-      printOpen: !!s.print, printPeople: s.print === "people", printPlan: s.print === "plan", printRosters: s.print === "rosters", printTitle: pt[0], printSub: pt[1],
+      lblSize: s.lblSize || "Brother 2.4 × 1.1 in", setLblSize: e => set({ lblSize: e.target.value }), testLabel: () => set({ print: "labels" }),
+      lblBox: (() => { const [w, h] = ({ "Brother 2.4 × 1.1 in": [2.4, 1.1], "Dymo 2.25 × 1.25 in": [2.25, 1.25], "Zebra 2 × 1 in": [2, 1] })[s.lblSize || "Brother 2.4 × 1.1 in"]; return { width: w + "in", height: h + "in", flex: "none", boxSizing: "border-box", padding: "0.08in 0.12in", border: "1px solid var(--c8)", borderRadius: "0.08in", background: "white", color: "black", display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden" }; })(),
+      printOpen: !!s.print, printPeople: s.print === "people", printPlan: s.print === "plan", printRosters: s.print === "rosters", printCards: s.print === "cards", printLabels: s.print === "labels", printTitle: pt[0], printSub: pt[1],
       openPrint: e => set({ print: e.currentTarget.dataset.p }), closePrint: () => set({ print: null }), doPrint: () => window.print(),
       printPeopleRows: filtered.map(p => ({ name: p.name, household: p.household, phone: p.phone, email: p.email })),
       rosterRooms: rooms.map(r => { const k = kids.filter(c => c.room === r.id); return { name: r.name, meta: k.length + " of " + r.capacity + " · " + r.ages, n: k.length, empty: k.length === 0, kids: k.map(c => ({ name: c.name, code: c.code, allergy: c.allergy ? c.allergy.toUpperCase() : "" })) }; }),
@@ -2131,6 +2388,134 @@ class Component extends DCLogic {
       markAllRead: () => set({ notifRead: { ...read, ...Object.fromEntries(list.map((n, i) => [s.persona + i, true])) } }),
       notifs: list.map(([icon, h, body, when, go], i) => { const un = !read[s.persona + i]; return { icon, body, when, go, unread: un, ...hueOf(h), style: { display: "flex", alignItems: "flex-start", gap: "12px", width: "100%", padding: "12px 16px", border: "none", borderBottom: "1px solid var(--c12)", background: un ? "var(--c0)" : "var(--surface)" } }; }),
       openNotif: e => { const go = e.currentTarget.dataset.go; const i = list.findIndex(n => n[4] === go); set({ notifOpen: false, screen: go, notifRead: { ...read, [s.persona + i]: true } }); },
+    };
+  }
+  teamDetail(s, tms, A, dates, people, gapsFor, hueOf, say) {
+    const t = tms.find(x => x.id === s.teamOpen);
+    const base = { openTeam: e => this.setState({ teamOpen: e.currentTarget.dataset.id, posDraft: "", posErr: "", memberQ: "" }), closeTeam: () => this.setState({ teamOpen: null }) };
+    if (!t) return base;
+    const edit = patch => this.setState({ teamEdits: { ...(s.teamEdits || {}), [t.id]: { positions: t.positions, pool: t.pool, ...patch } } });
+    const hues = ["rose", "amber", "citron", "fern", "teal", "sky", "indigo", "violet"];
+    const q = (s.memberQ || "").trim().toLowerCase();
+    const hits = q ? people.filter(p => !t.pool.includes(p.name) && p.name.toLowerCase().includes(q)).slice(0, 5).map(p => ({ name: p.name, status: p.status })) : [];
+    const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+    return { ...base,
+      tdId: t.id, tdName: t.name, tdColor: hueOf(t.hue).base, tdSummary: plural(t.pool.length, "volunteer") + " · " + plural(t.positions.length, "position") + " · " + gapsFor(t) + " open in October",
+      tdPosCount: t.positions.length, tdPeopleCount: t.pool.length, tdNoPos: !t.positions.length, tdNoPeople: !t.pool.length,
+      tdPositions: t.positions.map((name, i) => ({ name, i, filled: dates.filter((_, di) => { const a = A[t.id + "|" + i + "|" + di]; return a && a.status !== "declined"; }).length + " / " + dates.length + " Sundays filled" })),
+      tdPeople: t.pool.map((name, i) => { const n = Object.keys(A).filter(k => k.startsWith(t.id + "|") && A[k].name === name).length; return { name, initials: name.split(" ").map(w => w[0]).join("").slice(0, 2), h: hueOf(hues[(name.length + i) % 8]), sub: n ? "Scheduled " + n + "× in October" : "Not scheduled yet", subColor: "var(--c6)" }; }),
+      posDraft: s.posDraft || "", posErr: s.posErr || "", setPosDraft: e => this.setState({ posDraft: e.target.value, posErr: "" }),
+      addPos: e => { e.preventDefault(); const v = (s.posDraft || "").trim(); if (!v) return this.setState({ posErr: "Type a position name." }); edit({ positions: [...t.positions, v] }); this.setState({ posDraft: "" }); },
+      removePos: e => { const i = Number(e.currentTarget.dataset.i); const name = t.positions[i]; const nx = {}; Object.keys(A).forEach(k => { const [tid, pi, di] = k.split("|"); if (tid !== t.id) return (nx[k] = A[k]); const p = Number(pi); if (p === i) return; nx[tid + "|" + (p > i ? p - 1 : p) + "|" + di] = A[k]; }); edit({ positions: t.positions.filter((_, j) => j !== i) }); this.setState({ assign: nx }); say(name + " removed from " + t.name + "."); },
+      memberQ: s.memberQ || "", setMemberQ: e => this.setState({ memberQ: e.target.value }), memberHits: hits.length ? hits : null,
+      addMember: e => { const n = e.currentTarget.dataset.name; edit({ pool: [...t.pool, n] }); this.setState({ memberQ: "" }); say(n + " added to " + t.name + "."); },
+      removeMember: e => { const n = e.currentTarget.dataset.name; const nx = {}; Object.keys(A).forEach(k => { if (!(k.startsWith(t.id + "|") && A[k].name === n)) nx[k] = A[k]; }); edit({ pool: t.pool.filter(x => x !== n) }); this.setState({ assign: nx }); say(n + " removed from " + t.name + ". Their upcoming slots are open again."); },
+    };
+  }
+  groupVals(s, d, groupList, group, roster, say) {
+    const set = p => this.setState(p);
+    const INFO = {
+      g1: { about: "Women of every age meeting midweek to read Scripture slowly, pray for each other and share a long coffee.\n\nThis fall we're working through Ruth. Childcare is available in Room 104.", ages: "All adult ages", makeup: "Women only", where: "Grace Fellowship, Room 210\n2140 W Addison St, Chicago", place: "Church", open: true },
+      g2: { about: "Breakfast, a short passage and honest conversation before the weekend gets going. Bring a friend; the coffee is strong.", ages: "All adult ages", makeup: "Men only", where: "Fellowship hall\n2140 W Addison St, Chicago", place: "Church", open: true, canceled: 1 },
+      g3: { about: "Eleven weeks exploring the basics of the Christian faith over dinner. No question is off limits and nobody is put on the spot.", ages: "18+", makeup: "Mixed", where: "The Park home, Lakeview\nAddress shared when you join", place: "Home", open: false },
+      g4: { about: "Twenties and thirties sharing a meal, a study and whatever's going on that week. We serve together once a month.", ages: "20s and 30s", makeup: "Mixed", where: "The Loft above the café\n2140 W Addison St, Chicago", place: "Church", open: true },
+      g5: { about: "Vocalists and players who lead Sunday worship. Thursdays are rehearsal; we rotate so nobody plays every week.", ages: "16+", makeup: "Mixed", where: "Sanctuary\n2140 W Addison St, Chicago", place: "Church", open: false },
+      g6: { about: "Reviews the budget, approves spending over $2,000 and reports to the elders each quarter.", ages: "Appointed", makeup: "Mixed", where: "Conference room\n2140 W Addison St, Chicago", place: "Church", open: false },
+    };
+    const info = g => ({ about: (g.desc || "A new group. Add a description so people know what to expect."), ages: "All adult ages", makeup: "Mixed", where: "Location to be confirmed", place: "Church", open: true, ...(INFO[g.id] || {}) });
+    const isOpen = g => (s.gOpen || {})[g.id] ?? info(g).open;
+    const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayOf = g => (g.meets || "").includes("1st Tuesday") ? "Tuesday" : (DAYS.find(dd => (g.meets || "").startsWith(dd)) || "Varies");
+    const banners = s.banners || {};
+    const bannerStyle = (g, h) => banners[g.id] ? { height: h, background: "url(" + banners[g.id] + ") center/cover", display: "grid", placeItems: "center" } : { height: h, background: g.hue.tint || "var(--c12)", color: g.hue.text, display: "grid", placeItems: "center" };
+    // filter
+    const gf = s.gf || { type: [], day: [], status: [] };
+    const q = (s.gq || "").trim().toLowerCase();
+    const match = (g, skip) => (!q || (g.name + " " + g.leader).toLowerCase().includes(q)) && (skip === "type" || !gf.type.length || gf.type.includes(g.type)) && (skip === "day" || !gf.day.length || gf.day.includes(dayOf(g))) && (skip === "status" || !gf.status.length || gf.status.includes(isOpen(g) ? "Open" : "Closed"));
+    const shown = groupList.filter(g => match(g));
+    const vals = { type: [...new Set(groupList.map(g => g.type))], day: DAYS.slice(1).concat("Sunday").filter(dd => groupList.some(g => dayOf(g) === dd)), status: ["Open", "Closed"] };
+    const val = { type: g => g.type, day: dayOf, status: g => isOpen(g) ? "Open" : "Closed" };
+    const chip = on => ({ display: "flex", alignItems: "center", gap: "6px", height: "34px", padding: "0 12px", borderRadius: "999px", border: "1px solid " + (on ? "var(--c1)" : "var(--c8)"), background: on ? "var(--c1)" : "var(--surface)", color: on ? "var(--c0)" : "var(--c1)", fontWeight: 500, fontSize: "13px" });
+    const active = gf.type.length + gf.day.length + gf.status.length;
+    // events
+    const today = new Date(2026, 9, 4);
+    const time = (group.meets || "").split(", ")[1] || "7:00 pm";
+    const wd = DAYS.indexOf(dayOf(group));
+    const dates = [];
+    if ((group.meets || "").includes("1st Tuesday")) { for (let m = 7; m <= 13; m++) { const x = new Date(2026, m, 1); while (x.getDay() !== 2) x.setDate(x.getDate() + 1); dates.push(x); } }
+    else if (wd >= 0) { const x = new Date(today); while (x.getDay() !== wd) x.setDate(x.getDate() - 1); for (let k = -3; k <= 3; k++) { const y = new Date(x); y.setDate(x.getDate() + 7 * k); dates.push(y); } }
+    const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const mk = (dt, past, i) => { const label = DAYS[dt.getDay()].slice(0, 3) + " " + dt.getDate() + " " + MON[dt.getMonth()][0] + MON[dt.getMonth()].slice(1).toLowerCase(); const canceled = past && info(group).canceled === i; const taken = (s.attTaken || {})[group.id + label]; return { mon: MON[dt.getMonth()], day: dt.getDate(), title: group.name, when: DAYS[dt.getDay()] + ", " + MON[dt.getMonth()][0] + MON[dt.getMonth()].slice(1).toLowerCase() + " " + dt.getDate() + " · " + time, canceled, canTake: past && !canceled, attLabel: taken ? taken + " present" : "Take attendance", label }; };
+    const past = dates.filter(x => x < today).reverse().slice(0, 3).map((x, i) => mk(x, true, i));
+    const up = dates.filter(x => x >= today).slice(0, 3).map(x => mk(x, false));
+    const tab = s.gdTab || "Overview";
+    const tabStyle = on => ({ display: "flex", alignItems: "center", gap: "6px", height: "40px", padding: "0 14px", border: "none", borderBottom: "2px solid " + (on ? "var(--c1)" : "transparent"), marginBottom: "-1px", background: "none", fontWeight: on ? 600 : 500, color: on ? "var(--c1)" : "var(--c6)", fontSize: "14px" });
+    const hues = ["rose", "amber", "fern", "teal", "sky", "indigo", "violet"];
+    const H = d && d.people && d.people[0] ? d.people.map(p => p.hue) : [];
+    const gi = info(group); const go = isOpen(group);
+    return {
+      gq: s.gq || "", setGq: e => set({ gq: e.target.value }), gfOpen: !!s.gfOpen, toggleGF: () => set({ gfOpen: !s.gfOpen }),
+      gfLabel: active ? "Filter · " + active : "Filter", gfBtnStyle: { display: "flex", alignItems: "center", gap: "6px", height: "34px", padding: "0 12px", border: "1px solid " + (active || s.gfOpen ? "var(--c2)" : "var(--c8)"), borderRadius: "10px", background: active ? "var(--c43)" : "var(--surface)", color: active ? "var(--c3)" : "var(--c1)", fontWeight: 500, fontSize: "13px" },
+      gfSections: [["type", "Type"], ["day", "Meets on"], ["status", "Taking new members"]].map(([k, label]) => ({ k, label, opts: vals[k].map(v => ({ v, on: gf[k].includes(v), n: groupList.filter(g => match(g, k) && val[k](g) === v).length, style: chip(gf[k].includes(v)) })) })),
+      toggleGFOpt: e => { const { k, v } = e.currentTarget.dataset; const cur = gf[k]; set({ gf: { ...gf, [k]: cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v] } }); },
+      clearGF: () => set({ gf: { type: [], day: [], status: [] }, gq: "" }),
+      gCountLabel: shown.length + (shown.length === 1 ? " group" : " groups"), gEmpty: !shown.length,
+      groupCards: shown.map(g => ({ ...g, bannerStyle: bannerStyle(g, "120px"), noBanner: !banners[g.id], openLabel: isOpen(g) ? "Open" : "Closed", openColor: isOpen(g) ? "var(--c27)" : "var(--c6)" })),
+      gdBannerStyle: { ...bannerStyle(group, "auto"), aspectRatio: "16 / 9", borderRadius: "14px", border: banners[group.id] ? "none" : "1.5px dashed " + (group.hue.base || "var(--c8)") },
+      gdNoBanner: !banners[group.id], gdHasBanner: !!banners[group.id], gdBannerCta: banners[group.id] ? "Replace banner" : "Upload banner",
+      uploadBanner: e => { const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { set({ banners: { ...(this.state.banners || {}), [group.id]: r.result } }); say("Banner added to " + group.name + ". It shows on the group page and in the Groups list."); }; r.readAsDataURL(f); e.target.value = ""; },
+      removeBanner: () => { const b = { ...banners }; delete b[group.id]; set({ banners: b }); },
+      gdOpenText: go ? "Group is open to new members" : "Group is closed to new members", gdOpenDot: go ? "var(--c27)" : "var(--c15)", gdOpenCta: go ? "Close to new members" : "Open to new members",
+      toggleGroupOpen: () => { set({ gOpen: { ...(s.gOpen || {}), [group.id]: !go } }); say(group.name + (go ? " is now closed to new members." : " is now open. It shows on the public groups page.")); },
+      messageGroup: () => say("Message drafted to " + roster.length + " members of " + group.name + "."),
+      gdTabs: [["Overview", ""], ["Members", roster.length], ["Attendance", ""]].map(([v, n]) => ({ v, n, on: tab === v, style: tabStyle(tab === v) })), setGdTab: e => set({ gdTab: e.currentTarget.dataset.v, attDate: s.attDate || (past[0] && past[0].label) || "" }),
+      gdIsOverview: tab === "Overview", gdIsMembers: tab === "Members", gdIsAttendance: tab === "Attendance",
+      gdAbout: gi.about, gdSchedule: (group.meets || "").includes("1st") ? "Meets the first Tuesday of each month" : "Meets weekly on " + dayOf(group) + "s at " + time,
+      gdLocation: gi.where, gdCats: [["Day", dayOf(group)], ["Age range", gi.ages], ["Makeup", gi.makeup], ["Meets at", gi.place], ["Type", group.type]].map(([k, v]) => ({ k, v })),
+      gdUpcoming: up, gdPast: past, attDate: s.attDate || (past[0] && past[0].label) || "",
+      takeAttendance: e => set({ gdTab: "Attendance", attDate: e.currentTarget.dataset.d }),
+      gdMembers: roster.map((name, i) => ({ name, initials: name.split(" ").map(w => w[0]).join("").slice(0, 2), h: H[(name.length + i) % (H.length || 1)] || { tint: "var(--c12)", text: "var(--c1)" }, role: name === group.leader ? "Leader" : "Member" })),
+    };
+  }
+  cbox(on) { return { width: "20px", height: "20px", borderRadius: "6px", border: on ? "none" : "1.5px solid var(--c15)", background: on ? "var(--accent-fill)" : "var(--surface)", color: on ? "white" : "transparent", display: "grid", placeItems: "center", padding: 0, cursor: "pointer" }; }
+  bulkVals(s, filtered, d, say) {
+    const set = p => this.setState(p);
+    const sel = s.sel || {}; const ids = Object.keys(sel).filter(k => sel[k]);
+    const chosen = filtered.filter(p => sel[p.id]); const n = ids.length;
+    const pill = on => ({ height: "36px", padding: "0 14px", borderRadius: "999px", border: on ? "1.5px solid var(--accent-fill)" : "1px solid var(--c8)", background: on ? "var(--c43)" : "var(--surface)", fontWeight: 500, fontSize: "13px" });
+    const tags = ["Volunteer", "New believer", "Baptism class", "Prayer team", "Needs a ride", "Musician", "Hospitality"];
+    const groups = d ? d.groups.map(g => g.name) : [];
+    const mode = s.bulk; const pick = s.bulkPick;
+    const opts = mode === "tag" ? tags : mode === "group" ? groups : mode === "status" ? ["Visitor", "Regular", "Member"] : [];
+    const ch = s.msgChannel || "Email";
+    const noEmail = chosen.filter(p => !p.email || p.email === "—").length, noPhone = chosen.filter(p => !p.phone || p.phone === "—").length;
+    const miss = ch === "Email" ? noEmail : noPhone;
+    const plural = k => k + (k === 1 ? " person" : " people");
+    const titles = { tag: "Add a tag", group: "Add to a group", status: "Change status", message: "Message " + plural(n) };
+    const ctas = { tag: pick ? "Tag " + plural(n) : "Choose a tag", group: pick ? "Add " + plural(n) : "Choose a group", status: pick ? "Set " + plural(n) + " to " + pick : "Choose a status", message: ch === "Email" ? "Send email" : "Send text" };
+    const seg = on => ({ height: "30px", padding: "0 14px", border: "none", borderRadius: "8px", background: on ? "var(--surface)" : "transparent", boxShadow: on ? "0 1px 2px oklch(0 0 0 / 0.08)" : "none", fontWeight: on ? 600 : 500, fontSize: "13px" });
+    const toCsv = list => { const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"'; const csv = ["Name,Status,Household,Email,Phone,Tags", ...list.map(p => [p.name, p.status, p.household, p.email, p.phone, p.tags.join("; ")].map(q).join(","))].join("\n"); const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); const a = document.createElement("a"); a.href = url; a.download = "people-selected.csv"; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
+    return {
+      selCount: n || "", selCanAll: n > 0 && n < filtered.length, selIsPair: n === 2,
+      toggleSel: e => { e.stopPropagation(); const id = e.currentTarget.dataset.id; const nx = { ...sel }; if (nx[id]) delete nx[id]; else nx[id] = true; set({ sel: nx }); },
+      selectAllMatching: () => set({ sel: Object.fromEntries(filtered.map(p => [p.id, true])) }), clearSel: () => set({ sel: {} }),
+      openBulk: e => set({ bulk: e.currentTarget.dataset.v, bulkPick: null, bulkErr: "", msgBody: s.msgBody || "", msgSubject: s.msgSubject || "" }), closeBulk: () => set({ bulk: null }),
+      bulkOpen: !!mode, bulkTitle: titles[mode] || "", bulkSub: mode === "message" ? "" : plural(n) + " selected", bulkIsPick: ["tag", "group", "status"].includes(mode), bulkIsMsg: mode === "message",
+      bulkOpts: opts.map(v => ({ v, style: pill(pick === v) })), pickBulk: e => set({ bulkPick: e.currentTarget.dataset.v, bulkErr: "" }), bulkCta: ctas[mode] || "", bulkErr: s.bulkErr || "",
+      msgChannels: ["Email", "Text"].map(v => ({ v, style: seg(ch === v) })), setMsgChannel: e => set({ msgChannel: e.currentTarget.dataset.v }), msgIsEmail: ch === "Email",
+      msgSubject: s.msgSubject || "", msgBody: s.msgBody || "", setMsgSubject: e => set({ msgSubject: e.target.value, bulkErr: "" }), setMsgBody: e => set({ msgBody: e.target.value, bulkErr: "" }),
+      msgMissing: miss ? plural(miss) + " have no " + (ch === "Email" ? "email" : "mobile number") + " and will be skipped." : "",
+      applyBulk: () => {
+        if (mode === "message") { if (ch === "Email" && !(s.msgSubject || "").trim()) return set({ bulkErr: "Add a subject." }); if (!(s.msgBody || "").trim()) return set({ bulkErr: "Write a message first." }); set({ bulk: null, sel: {}, msgBody: "", msgSubject: "" }); return say((ch === "Email" ? "Email" : "Text") + " sent to " + plural(n - miss) + "."); }
+        if (!pick) return set({ bulkErr: "Pick one first." });
+        const edits = { ...s.personEdits };
+        if (mode === "tag") chosen.forEach(p => { if (!p.tags.includes(pick)) edits[p.id] = { ...(edits[p.id] || {}), tags: [...p.tags, pick] }; });
+        if (mode === "status") chosen.forEach(p => { edits[p.id] = { ...(edits[p.id] || {}), status: pick }; });
+        set({ personEdits: edits, bulk: null, sel: {} });
+        say(mode === "tag" ? plural(n) + " tagged " + pick + "." : mode === "group" ? plural(n) + " added to " + pick + ". Leaders were told." : plural(n) + " set to " + pick + ".");
+      },
+      exportSelected: () => { toCsv(chosen); say(plural(chosen.length) + " exported to people-selected.csv"); },
+      mergeSelected: () => { set({ sel: {}, screen: "duplicates" }); say("Review the merge, then confirm which details to keep."); },
     };
   }
   portalExtra(s) {
@@ -2350,7 +2735,7 @@ class Component extends DCLogic {
     const netKpis = d ? [{ label: "People", value: d.churches.reduce((a, c) => a + c.people, 0).toLocaleString() }, { label: "Attended last Sunday", value: d.churches.reduce((a, c) => a + c.attendance[4], 0).toLocaleString() }, { label: "Giving in September", value: fmt(d.churches.reduce((a, c) => a + c.giving, 0)) }] : [];
 
     // Serving
-    const tms = d ? [...d.teams, ...s.extraTeams] : []; const team = tms.find(t => t.id === s.servTeam) || tms[0] || { positions: [], pool: [], hue: "violet" };
+    const tms = d ? [...d.teams, ...s.extraTeams].map(t => ({ ...t, ...((s.teamEdits || {})[t.id] || {}) })) : []; const team = tms.find(t => t.id === s.servTeam) || tms[0] || { positions: [], pool: [], hue: "violet" };
     const dates = d ? d.servingDates : []; const A = s.assign;
     const conflictFor = (key, name) => { const [, , di] = key.split("|"); if (d.blockouts[name] && d.blockouts[name].includes(Number(di))) return "Blocked out this date"; const dup = Object.keys(A).some(k => k !== key && k.split("|")[2] === di && A[k].name === name); return dup ? "Already serving this Sunday" : ""; };
     const statusIco = { accepted: ["check-circle-2", "var(--c27)"], pending: ["clock", "var(--c26)"], declined: ["x-circle", "var(--c9)"] };
@@ -2363,6 +2748,21 @@ class Component extends DCLogic {
     const pool = team.pool.map((name, i) => { const n = Object.keys(A).filter(k => A[k].name === name).length; const bl = d && d.blockouts[name] ? d.blockouts[name].map(x => dates[x]).join(", ") : ""; const hues = ["rose", "amber", "citron", "fern", "teal", "sky", "indigo", "violet"]; return { name, initials: name.split(" ").map(w => w[0]).join(""), h: hueOf(hues[(name.length + i) % 8]), sub: bl ? "Away " + bl : "Serving " + n + "× this month", subColor: bl ? "var(--c24)" : "var(--c4)" }; });
     const allOpen = tms.reduce((a, t) => a + gapsFor(t), 0); const pendingN = Object.values(A).filter(a => a.status === "pending").length;
     const servSummary = allOpen + " open slots across all teams · " + pendingN + " waiting for a reply";
+    const reqBy = {}; Object.keys(A).forEach(k => { const a = A[k]; if (a.status !== "pending") return; const [tid, pi, di] = k.split("|"); const t = tms.find(x => x.id === tid); if (!t) return; (reqBy[a.name] = reqBy[a.name] || []).push({ k, label: t.positions[pi] + " · " + t.name + " · " + dates[di], sent: a.sentAt }); });
+    const reqSkip = s.reqSkip || {}; const reqCh = s.reqCh || "Email and text";
+    const reqList = Object.keys(reqBy).sort().map((name, i) => { const on = !reqSkip[name]; const items = reqBy[name]; const sent = items.find(x => x.sent); const hues = ["rose", "amber", "fern", "teal", "sky", "indigo", "violet"]; return { name, initials: name.split(" ").map(w => w[0]).join(""), h: hueOf(hues[(name.length + i) % 7]), slots: items.map(x => x.label).join("\n"), status: sent ? "Reminder · first asked " + sent.sent : "Not asked yet", statusColor: sent ? "var(--c26)" : "var(--c4)", on, box: { width: "20px", height: "20px", flex: "none", borderRadius: "6px", border: on ? "none" : "1.5px solid var(--c15)", background: on ? "var(--accent-fill)" : "var(--surface)", color: on ? "white" : "transparent", display: "grid", placeItems: "center", padding: 0 }, rowStyle: { display: "flex", alignItems: "flex-start", gap: "12px", padding: "12px 0", borderBottom: "1px solid var(--c12)", cursor: "pointer", opacity: on ? 1 : 0.55, textAlign: "left", background: "none", border: "none", borderBottomStyle: "solid", width: "100%" } }; });
+    const reqN = reqList.filter(r => r.on).length;
+    const reqSeg = on => ({ height: "30px", padding: "0 12px", border: "none", borderRadius: "8px", background: on ? "var(--surface)" : "transparent", boxShadow: on ? "0 1px 2px oklch(0 0 0 / 0.08)" : "none", fontWeight: on ? 600 : 500, fontSize: "13px" });
+    const reqVals = {
+      reqOpen: !!s.reqOpen, reqList, reqCount: reqN, reqTitle: "Send requests", reqSub: reqList.length + " volunteers have slots waiting for a reply",
+      closeReq: () => this.setState({ reqOpen: false }),
+      toggleReq: e => { const n = e.currentTarget.dataset.name; this.setState({ reqSkip: { ...reqSkip, [n]: !reqSkip[n] }, reqErr: "" }); },
+      reqChannels: ["Email and text", "Email", "Text"].map(v => ({ v, style: reqSeg(reqCh === v) })), setReqCh: e => this.setState({ reqCh: e.currentTarget.dataset.v }),
+      reqNote: s.reqNote || "", setReqNote: e => this.setState({ reqNote: e.target.value }), reqErr: s.reqErr || "",
+      reqPreviewName: (reqList.find(r => r.on) || reqList[0] || { name: "" }).name.split(" ")[0], reqPreviewSlots: (reqList.find(r => r.on) || { slots: "" }).slots, reqPreviewNote: s.reqNote || "",
+      reqCta: reqN ? "Send to " + reqN + (reqN === 1 ? " person" : " people") : "Pick someone",
+      sendReq: () => { if (!reqN) return this.setState({ reqErr: "Pick at least one person." }); const nx = { ...A }; reqList.filter(r => r.on).forEach(r => reqBy[r.name].forEach(x => { nx[x.k] = { ...nx[x.k], sentAt: nx[x.k].sentAt || "Sat 4 Oct" }; })); this.setState({ assign: nx, reqOpen: false }); say("Requests sent to " + reqN + (reqN === 1 ? " person" : " people") + " by " + reqCh.toLowerCase() + ". They can accept or decline from the message without signing in."); },
+    };
 
     // Station
     const famParents = { Carter: "Maria & James Carter", Park: "Daniel Park", Lindqvist: "Hannah Lindqvist", Mensah: "Samuel Mensah", Miller: "Grace Miller", Thompson: "Elijah Thompson", Herrera: "Tomás Herrera" };
@@ -2505,11 +2905,12 @@ class Component extends DCLogic {
       setPersona: e => this.goPersona(e.currentTarget.dataset.persona),
       signIn: () => this.setState({ screen: me.home }), openStation: () => this.goPersona("volunteer"),
       isLogin: !notLogin, isApp, isStation, isPortal, showSidebar: !isMobile, isMobile, screen, nav, mobileNav, go,
+      ...reqVals,
       title: titles[s.screen] || "", primaryAction: actions[s.screen] || "",
       openPalette: () => this.setState({ paletteOpen: true, query: "" }), paletteOpen: s.paletteOpen, query: s.query, setQuery: e => this.setState({ query: e.target.value }), results, closeOverlays, stop: e => e.stopPropagation(),
       pickResult: e => { const { kind, id } = e.currentTarget.dataset; if (kind === "person") this.setState({ screen: "person", personId: Number(id), paletteOpen: false }); else if (kind === "group") this.setState({ screen: "group", groupId: id, paletteOpen: false }); else this.setState({ screen: id, paletteOpen: false }); },
       sheetOpen: s.sheetOpen, form: s.form, statusOptions,
-      primaryClick: () => { if (actions[s.screen] === "Add person") return this.setState({ sheetOpen: true, form: { first: "", last: "", email: "", phone: "", household: "", status: "Visitor" } }); if (s.screen === "forms") { const id = "f" + Date.now(); return this.setState({ formsData: [{ id, name: "Untitled form", status: "Closed", responses: 0, qs: [{ type: "Short answer", label: "Your name", req: true }] }, ...formsData], formId: id }); } if (s.screen === "serving") return say(pendingCount ? "Requests sent to " + pendingCount + " volunteers by email and text. They can reply without signing in." : "Everyone has already replied."); if (s.screen === "checkin" && !unassignedKids.length) return say("Every arriving child is already in a room."); const k = primaryKind[s.screen]; if (k) openForm(k); },
+      primaryClick: () => { if (actions[s.screen] === "Add person") return this.setState({ sheetOpen: true, form: { first: "", last: "", email: "", phone: "", household: "", status: "Visitor" } }); if (s.screen === "forms") { const id = "f" + Date.now(); return this.setState({ formsData: [{ id, name: "Untitled form", status: "Closed", responses: 0, qs: [{ type: "Short answer", label: "Your name", req: true }] }, ...formsData], formId: id }); } if (s.screen === "serving") return pendingCount ? this.setState({ reqOpen: true, reqSkip: {}, reqNote: "", reqErr: "" }) : say("Everyone has already replied."); if (s.screen === "checkin" && !unassignedKids.length) return say("Every arriving child is already in a room."); const k = primaryKind[s.screen]; if (k) openForm(k); },
       formOpen: !!s.fm, fm, closeForm: () => this.setState({ fm: null }), submitForm, openFormBtn: e => openForm(e.currentTarget.dataset.kind),
       setFormVal: e => { const t = e.target; this.setState({ fm: { ...s.fm, vals: { ...s.fm.vals, [t.name]: t.value }, errors: { ...s.fm.errors, [t.name]: "" } } }); },
       flash: s.flash, clearFlash: () => this.setState({ flash: "" }),
@@ -2521,7 +2922,7 @@ class Component extends DCLogic {
       fuDone: e => { const id = e.currentTarget.dataset.id; const f = fus.find(x => x.id === id); this.setState({ followups: fus.map(x => x.id === id ? { ...x, stage: "done" } : x) }); say(f.who + " marked as connected."); },
       logVisit: e => say("Visit logged for " + e.currentTarget.dataset.who + "."),
       batchOpen: s.batchOpen, countBatch: () => { this.setState({ batchOpen: false }); say("Second count matches. The Sep 28 batch of $4,210.00 is closed."); },
-      saveAttendance: () => say("Attendance saved: " + presentCount + " of " + members.length + " at " + group.name + "."),
+      saveAttendance: () => { this.setState({ attTaken: { ...(s.attTaken || {}), [group.id + (s.attDate || "")]: presentCount } }); say("Attendance saved: " + presentCount + " of " + members.length + " at " + group.name + "."); },
       joinPending: !s.joinApproved, joinApproved: s.joinApproved, approveJoin: () => { this.setState({ joinApproved: true, extraMembers: { ...s.extraMembers, [group.id]: [...(s.extraMembers[group.id] || []), "Grace Miller"] } }); say("Grace Miller joined " + group.name + "."); },
       setForm: e => this.setState({ form: { ...s.form, [e.target.name]: e.target.value } }), setStatus: e => this.setState({ form: { ...s.form, status: e.currentTarget.dataset.status } }),
       savePerson: e => { e.preventDefault(); const f = s.form; if (!f.first || !f.last) return; const name = f.first + " " + f.last; const hues = ["rose", "amber", "citron", "fern", "teal", "sky", "indigo", "violet"]; const p = { id: Date.now(), name, initials: (f.first[0] + f.last[0]).toUpperCase(), household: f.household || f.last, status: f.status, hue: hueOf(hues[name.length % 8]), email: f.email || "—", phone: f.phone || "—", tags: f.status === "Visitor" ? ["First visit"] : [], joined: "Oct 2026", groups: [] }; this.setState({ extraPeople: [p, ...s.extraPeople], sheetOpen: false, screen: "people", filter: "all", page: 1 }); },
@@ -2530,14 +2931,18 @@ class Component extends DCLogic {
       fuDrop: e => { const stage = e.currentTarget.dataset.stage; this.setState({ followups: fus.map(f => f.id === s.dragging ? { ...f, stage } : f), dragging: null, dragOver: null }); },
       svc, svcTabs, pickSvc, planItems, planTotal, planOverText: planTotal > 75 ? (planTotal - 75) + " min over the 75 min target" : (75 - planTotal) + " min under the 75 min target", planOverColor: planTotal > 75 ? "var(--c9)" : "var(--c42)", serving,
       planDrop: e => { const to = e.currentTarget.dataset.id, from = s.dragging; if (!from || from === to || !order.includes(from)) return this.setState({ dragging: null, dragOver: null }); const o = order.filter(x => x !== from); o.splice(o.indexOf(to), 0, from); this.setState({ planOrder: o, dragging: null, dragOver: null }); },
-      group, members, presentCount, memberCount: members.length, showGroupBack: s.persona !== "leader", openGroup: e => this.setState({ screen: "group", groupId: e.currentTarget.dataset.id }),
+      ...this.groupVals(s, d, groupList, group, roster, say),
+      group, members, presentCount, memberCount: members.length, showGroupBack: s.persona !== "leader", openGroup: e => this.setState({ screen: "group", groupId: e.currentTarget.dataset.id, gdTab: "Overview" }),
       togglePresent: e => { const n = e.currentTarget.dataset.name; this.setState({ present: { ...s.present, [n]: !s.present[n] } }); },
       tiles, bars, weekEvents, openFollowups,
       tileDragStart: e => this.setState({ dragging: e.currentTarget.dataset.id }),
       tileDrop: e => { const to = e.currentTarget.dataset.id, from = s.dragging; if (!from || from === to) return this.setState({ dragging: null }); const o = s.tileOrder.filter(x => x !== from); o.splice(o.indexOf(to), 0, from); this.setState({ tileOrder: o, dragging: null }); },
       allowDrop,
       exportPeople: () => { const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"'; const csv = ["Name,Status,Household,Email,Phone,Tags,Joined", ...filtered.map(p => [p.name, p.status, p.household, p.email, p.phone, p.tags.join("; "), p.joined].map(q).join(","))].join("\n"); const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); const a = document.createElement("a"); a.href = url; a.download = "people.csv"; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); say(filtered.length + " people exported to people.csv"); },
-      peopleFilters: filters, filteredPeople: pageRows, filteredCount: filtered.length, setFilter: e => this.setState({ filter: e.currentTarget.dataset.filter, page: 1 }),
+      ...this.bulkVals(s, filtered, d, say),
+      peopleFilters: filters, filteredPeople: pageRows.map(p => { const on = !!(s.sel || {})[p.id]; return { ...p, sel: on, rowStyle: { cursor: "pointer", background: on ? "var(--c43)" : "transparent" }, selBox: this.cbox(on) }; }),
+      selHeadBox: this.cbox(pageRows.length > 0 && pageRows.every(p => (s.sel || {})[p.id]) || pageRows.some(p => (s.sel || {})[p.id])), selHeadIcon: pageRows.every(p => (s.sel || {})[p.id]) ? "check" : "minus",
+      toggleSelPage: () => { const sel = { ...(s.sel || {}) }; const all = pageRows.every(p => sel[p.id]); pageRows.forEach(p => { if (all) delete sel[p.id]; else sel[p.id] = true; }); this.setState({ sel }); }, filteredCount: filtered.length, setFilter: e => this.setState({ filter: e.currentTarget.dataset.filter, page: 1 }),
       rangeText, pageItems, prevStyle: arrow(page === 1), nextStyle: arrow(page === pageCount),
       setPage: e => { const p = Number(e.currentTarget.dataset.page); if (p) this.setState({ page: p }); }, prevPage: () => page > 1 && this.setState({ page: page - 1 }), nextPage: () => page < pageCount && this.setState({ page: page + 1 }),
       openPerson: e => this.setState({ screen: "person", personId: Number(e.currentTarget.dataset.id) }),
@@ -2571,6 +2976,7 @@ class Component extends DCLogic {
       setupSteps, setupDoneN, setupLeft: setupDoneN < 5 && !s.setupClosed, closeSetup: () => this.setState({ setupClosed: true }), doSetup: e => { const id = e.currentTarget.dataset.id; this.setState({ setup: { ...s.setup, [id]: !s.setup[id] } }); },
       ...this.settingsVals(s, d, hueOf, say, tog),
       ...this.extraVals({ s, d, say, tog, person, filtered, planItems, svc, svcDefs, pickSvc, kids }),
+      printCardRows: celeb.map(([day, who, kind, note]) => { const p = people.find(x => who.startsWith(x.name.split(" ")[0]) && who.includes(x.name.split(" ").slice(-1)[0])); return { day, who, what: kind + (note ? " · " + note : ""), address: (p && p.address) || (() => { const h = [...who].reduce((t, ch) => t * 31 + ch.charCodeAt(0) >>> 0, 7); return (100 + h % 4800) + " " + ["W Addison St", "N Clark St", "W Belmont Ave", "N Kedzie Ave", "W Irving Park Rd", "N Lincoln Ave"][h % 6] + ", Chicago"; })() }; }),
       showSearch: false, hasPrimary: !!actions[s.screen],
       embedParts, toggleEmbed: e => { const k = e.currentTarget.dataset.k; this.setState({ embed: { ...s.embed, [k]: !s.embed[k] } }); }, accentOpts, setAccent: e => this.setState({ accent: e.currentTarget.dataset.v }),
       embedHeadline, embedBtn: { height: "36px", borderRadius: "9px", background: accents[s.accent][1], color: "white", display: "grid", placeItems: "center", fontWeight: 600, fontSize: "13px" },
@@ -2589,10 +2995,11 @@ class Component extends DCLogic {
       careItems, prayerList: d ? d.prayer : [],
       churchRows, netKpis, openChurch: () => this.goPersona("admin"), ...this.netNotif(s, d, me),
       servViews: ["Schedule", "Teams"].map(v => { const on = (s.servView || "Schedule") === v; return { v, style: { height: "30px", padding: "0 14px", border: "none", borderRadius: "8px", background: on ? "var(--surface)" : "transparent", boxShadow: on ? "0 1px 2px oklch(0 0 0 / 0.08)" : "none", fontWeight: on ? 600 : 500, fontSize: "13px" } }; }),
-      setServView: e => this.setState({ servView: e.currentTarget.dataset.v }), servIsTeams: s.servView === "Teams", servIsSchedule: s.servView !== "Teams",
+      setServView: e => this.setState({ servView: e.currentTarget.dataset.v, teamOpen: null }), servIsTeams: s.servView === "Teams", servIsTeamGrid: s.servView === "Teams" && !s.teamOpen, teamDetailOpen: s.servView === "Teams" && !!s.teamOpen, servIsSchedule: s.servView !== "Teams",
       teamsSummary: tms.length + " teams · " + tms.reduce((a, t) => a + t.pool.length, 0) + " volunteers · " + allOpen + " open spots in October",
       teamCards: tms.map(t => { const g = gapsFor(t); return { id: t.id, name: t.name, color: hueOf(t.hue).base, positions: t.positions, people: t.pool.length + " volunteers · " + t.positions.length + " positions", gapText: g ? g + " open" : "Fully staffed", gapStyle: { height: "24px", padding: "0 10px", borderRadius: "999px", fontSize: "12px", fontWeight: 600, display: "flex", alignItems: "center", background: g ? hueOf("amber").tint : hueOf("fern").tint, color: g ? hueOf("amber").text : hueOf("fern").text } }; }),
-      openTeamSchedule: e => this.setState({ servTeam: e.currentTarget.dataset.id, servView: "Schedule" }),
+      openTeamSchedule: e => { e.stopPropagation(); this.setState({ servTeam: e.currentTarget.dataset.id, servView: "Schedule", teamOpen: null }); },
+      ...this.teamDetail(s, tms, A, dates, people, gapsFor, hueOf, say),
       teamTabs, teamName: team.name, teamHue: hueOf(team.hue), teamGaps: gapsFor(team) + " open", teamCount: tms.length, noTeams: teamTabs.length === 0, teamMenuOpen: s.teamMenu, teamQuery: s.teamQuery, setTeamQuery: e => this.setState({ teamQuery: e.target.value }), toggleTeamMenu: () => this.setState({ teamMenu: !s.teamMenu, teamQuery: "" }), closeTeamMenu: () => this.setState({ teamMenu: false }), newTeam: () => { this.setState({ teamMenu: false }); openForm("team"); }, servRows, servCols, pool, servSummary, setTeam: e => this.setState({ servTeam: e.currentTarget.dataset.id, teamMenu: false }),
       servDragStart: e => { e.stopPropagation(); this.setState({ dragging: e.currentTarget.dataset.name, dragFrom: e.currentTarget.dataset.from || null }); },
       servDrop: e => { const key = e.currentTarget.dataset.key; const name = s.dragging; if (!name || !key) return; const next = { ...A }; const prev = s.dragFrom ? A[s.dragFrom] : null; if (s.dragFrom && s.dragFrom !== key) delete next[s.dragFrom]; next[key] = { name, status: prev ? prev.status : "pending" }; this.setState({ assign: next, dragging: null, dragFrom: null, dragOver: null }); },
