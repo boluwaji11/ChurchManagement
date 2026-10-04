@@ -341,7 +341,7 @@ export const en = {
   "email.current": "You sign in with",
   "email.new": "New email address",
   "email.change": "Change it",
-  "email.row": "Change the address you sign in with",
+  "email.row": "Change email address",
   "email.password": "Your password",
   "email.error.password": "That is not your password.",
   "email.sent": "Check both inboxes. The change takes effect once you confirm it.",
