@@ -63,6 +63,10 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
       maxAgeMonths: room.maxAgeMonths === null ? "" : String(room.maxAgeMonths),
       ratio: room.ratio === null ? "" : String(room.ratio),
       capacity: next <= 0 ? "" : String(next),
+      // Every field goes back, including this one. Leaving it out saved the
+      // room with the default in its place, which quietly re-flagged a hall as
+      // a children's room every time somebody pressed plus.
+      forChildren: room.forChildren ? "1" : "",
     });
 
   return (
@@ -195,12 +199,19 @@ export function RoomSheet({
 }) {
   const [open, setOpen] = React.useState(false);
   const [hue, setHue] = React.useState(room?.hue ?? "sky");
-  // R8.14. Children unless a church says otherwise. A hall booked for adults is
-  // the exception, and the safeguarding rules are the safe default.
-  const [forChildren, setForChildren] = React.useState(room?.forChildren ?? true);
+  // R8.14. A new room is a room. A church says when one holds children, which
+  // is what turns on the age bands, the capacity and the volunteer ratio.
+  const [forChildren, setForChildren] = React.useState(room?.forChildren ?? false);
   // R24.6. Save stays dead until the one field the server refuses blank has
   // something in it, rather than taking the press and answering with an error.
   const [name, setName] = React.useState(room?.name ?? "");
+
+  React.useEffect(() => {
+    if (!open) return;
+    setName(room?.name ?? "");
+    setHue(room?.hue ?? "sky");
+    setForChildren(room?.forChildren ?? false);
+  }, [open, room?.name, room?.hue, room?.forChildren]);
 
   const start = room ? (room.minAgeMonths === null ? null : say(room.minAgeMonths)) : null;
   const end = room ? (room.maxAgeMonths === null ? null : say(room.maxAgeMonths)) : null;
@@ -225,15 +236,15 @@ export function RoomSheet({
         footer={
           <>
             {onArchive ? (
-              <Button
-                type="button"
+              <IconButton
+                label={t("rooms.archive")}
                 variant="ghost"
                 className="mr-auto"
                 disabled={pending}
                 onClick={() => { onArchive(); setOpen(false); }}
               >
-                <Archive /> {t("rooms.archive")}
-              </Button>
+                <Archive />
+              </IconButton>
             ) : null}
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
@@ -297,6 +308,10 @@ export function RoomSheet({
             </div>
           </div>
 
+          {/* R8.14. The age bands, the capacity and the volunteer ratio are
+              what a children's room needs. A hall is a name and a colour. */}
+          {forChildren ? (
+            <>
           <div className="flex flex-wrap gap-4">
             <AgeField
               label={t("rooms.from")}
@@ -334,7 +349,8 @@ export function RoomSheet({
               />
             </Field>
           </div>
-
+            </>
+          ) : null}
         </form>
       </SheetContent>
     </Sheet>

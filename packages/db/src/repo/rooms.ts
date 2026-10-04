@@ -127,9 +127,9 @@ function check(input: RoomInput): {
     maxAgeMonths,
     capacity: positive(input.capacity, "room.error.capacity"),
     ratio: positive(input.ratio, "room.error.ratio"),
-    // R8.14. Children unless a church says otherwise: the safeguarding rules
-    // are the safe default, and an adult room is the exception a church states.
-    forChildren: input.forChildren ?? true,
+    // R8.14. A room is a room until a church says it holds children, which is
+    // what turns on the age bands, the capacity and the volunteer ratio.
+    forChildren: input.forChildren ?? false,
   };
 }
 

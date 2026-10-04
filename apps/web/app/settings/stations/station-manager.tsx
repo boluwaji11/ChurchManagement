@@ -83,27 +83,31 @@ export function StationManager({
           {open.map((station) => (
             <div
               key={station.id}
-              className="flex flex-wrap items-center gap-3 border-b border-sunken py-3 last:border-0"
+              className="relative flex flex-wrap items-center gap-3 border-b border-sunken py-3 last:border-0"
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-sunken text-fg-muted">
+              {/* R24.6. The whole row opens the station. The trigger is a layer
+                  over it rather than a wrapper around it, so the mode switch
+                  stays a control instead of a control inside a control. */}
+              <StationDialog
+                station={station}
+                pending={pending}
+                title={t("stations.editTitle", { name: station.name })}
+                trigger={
+                  <button
+                    type="button"
+                    aria-label={t("stations.editTitle", { name: station.name })}
+                    className="absolute inset-0 cursor-pointer rounded-md"
+                  />
+                }
+                onSave={(fields) => act(saveStation, { id: station.id, ...fields })}
+              />
+
+              <span className="pointer-events-none relative grid size-9 shrink-0 place-items-center rounded-[10px] bg-sunken text-fg-muted">
                 <Tablet className="size-[18px]" aria-hidden />
               </span>
 
-              <span className="flex min-w-0 flex-[1_1_180px] flex-col leading-[18px]">
-                <StationDialog
-                  station={station}
-                  pending={pending}
-                  title={t("stations.editTitle", { name: station.name })}
-                  trigger={
-                    <button
-                      type="button"
-                      className="cursor-pointer truncate text-left font-medium text-fg underline-offset-4 hover:underline"
-                    >
-                      {station.name}
-                    </button>
-                  }
-                  onSave={(fields) => act(saveStation, { id: station.id, ...fields })}
-                />
+              <span className="pointer-events-none relative flex min-w-0 flex-[1_1_180px] flex-col leading-[18px]">
+                <span className="truncate font-medium text-fg">{station.name}</span>
                 <span className="truncate text-[12px] text-fg-subtle">
                   {station.printer === "paper"
                     ? t("stations.noPrinter")
@@ -113,7 +117,7 @@ export function StationManager({
 
               {/* R8.1. The one thing a church flips between services: whether a
                   volunteer is standing at it or a family uses it themselves. */}
-              <div className="flex gap-0.5 rounded-[10px] bg-sunken p-[3px]">
+              <div className="relative flex gap-0.5 rounded-[10px] bg-sunken p-[3px]">
                 {MODES.map((mode) => (
                   <button
                     key={mode}
@@ -133,11 +137,13 @@ export function StationManager({
                 ))}
               </div>
 
-              <ArchiveDialog
-                station={station}
-                pending={pending}
-                onConfirm={() => act(archiveStation, { id: station.id, archived: "1" })}
-              />
+              <span className="relative">
+                <ArchiveDialog
+                  station={station}
+                  pending={pending}
+                  onConfirm={() => act(archiveStation, { id: station.id, archived: "1" })}
+                />
+              </span>
             </div>
           ))}
         </section>
