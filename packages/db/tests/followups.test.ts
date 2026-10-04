@@ -10,7 +10,7 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   seedPipelines, listPipelines, enterPipeline, exitPipeline, completeFollowUp, reopenFollowUp,
   addTask, entriesFor, tasksFor, myFollowUps, unassignedFollowUps, assignFollowUp,
-  pipelineBoard, peopleIn, isInPipeline, DEFAULT_PIPELINES,
+  pipelineBoard, peopleIn, peopleNotIn, isInPipeline, DEFAULT_PIPELINES,
   createPipeline, updatePipeline, saveSteps, setPipelineArchived, assignableUsers,
 } from "../src/repo/followups";
 import { createPerson } from "../src/repo/people";
@@ -297,6 +297,31 @@ describe("another church's follow-ups", () => {
  * process and cannot invent a seventh pipeline or branch one. The other half is
  * that editing a template must not touch the people already in it.
  */
+describe("putting somebody on the board by hand (R5.4)", () => {
+  it("leaves out anybody already in it", async () => {
+    const before = await run((tx) => peopleNotIn(tx, firstVisit));
+    const someone = before[0]!;
+
+    const entry = await run((tx) =>
+      enterPipeline(tx, as(), { pipelineId: firstVisit, personId: someone.id, on: "2026-10-01" }),
+    );
+    const during = await run((tx) => peopleNotIn(tx, firstVisit));
+    expect(during.some((one) => one.id === someone.id)).toBe(false);
+
+    await run((tx) => exitPipeline(tx, as(), { entryId: entry!.id, reason: "test" }));
+    const after = await run((tx) => peopleNotIn(tx, firstVisit));
+    expect(after.some((one) => one.id === someone.id)).toBe(true);
+  });
+
+  it("narrows to what was typed", async () => {
+    const all = await run((tx) => peopleNotIn(tx, firstVisit));
+    const name = all[0]!.name.split(" ")[0]!;
+    const found = await run((tx) => peopleNotIn(tx, firstVisit, name));
+    expect(found.length).toBeGreaterThan(0);
+    expect(found.every((one) => one.name.toLowerCase().includes(name.toLowerCase()))).toBe(true);
+  });
+});
+
 describe("editing the six (R5.2)", () => {
   it("renames one and rewords its steps", async () => {
     const serving = (await run((tx) => listPipelines(tx))).find((p) => p.key === "serving")!;

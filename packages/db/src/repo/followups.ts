@@ -753,6 +753,48 @@ export async function boardEntries(
 }
 
 /** Whether anybody has a pipeline open. Used by the triggers (R5.3). */
+/**
+ * R5.4. People a church could put into a pipeline by hand.
+ *
+ * Anybody with an open entry in it is left out, because offering a name that is
+ * already on the board is offering a mistake, and entering twice is the thing
+ * enterPipeline refuses anyway.
+ */
+export async function peopleNotIn(
+  db: Tx,
+  pipelineId: string,
+  search = "",
+  limit = 20,
+): Promise<{ id: string; name: string }[]> {
+  const needle = search.trim().toLowerCase();
+
+  return db
+    .select({
+      id: people.id,
+      name: sql<string>`coalesce(${people.preferredName}, ${people.firstName}) || ' ' || ${people.lastName}`,
+    })
+    .from(people)
+    .where(
+      and(
+        isNull(people.archivedAt),
+        sql`not exists (
+          select 1 from pipeline_entries pe
+           where pe.person_id = ${people.id}
+             and pe.pipeline_id = ${pipelineId}
+             and pe.status = 'open'
+        )`,
+        needle
+          ? sql`(
+              lower(coalesce(${people.preferredName}, ${people.firstName})) like ${`%${needle}%`}
+              or lower(${people.lastName}) like ${`%${needle}%`}
+            )`
+          : undefined,
+      ),
+    )
+    .orderBy(asc(people.lastName), asc(people.firstName))
+    .limit(limit);
+}
+
 export async function isInPipeline(
   db: Tx,
   personId: string,

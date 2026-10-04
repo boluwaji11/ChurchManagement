@@ -168,7 +168,7 @@ export default async function ServingPage({
     ) : undefined;
 
   return (
-    <AppShell session={session} title={t("serving.title")} action={action} wide>
+    <AppShell session={session} title={t("serving.title")} wide>
       <ServingViews
         church={session.tenantSlug}
         view={view}
@@ -222,6 +222,10 @@ export default async function ServingPage({
             ) : null}
           </div>
         </div>
+
+        {/* The one action for this view sits on the heading's own line, beside
+            the name of what it adds to. */}
+        {view === "teams" ? action : null}
 
         {/* R10.6. What the three marks in the grid mean. */}
         {view === "schedule" ? (
