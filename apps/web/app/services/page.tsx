@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import {
   withTenant, listOccurrences, topUpCalendar, planSummaries, getChurch, canManageServices,
 } from "@hearth/db";
@@ -9,11 +7,15 @@ import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { AddService } from "./add-service";
+import { ServiceBoard, type ServiceCard } from "./board";
 
 export const dynamic = "force-dynamic";
 
 /** How far ahead the screen reads. A church plans a few weeks, not a year. */
 const AHEAD_DAYS = 70;
+
+/** How far back it looks for the two it shows down the right. */
+const PAST_DAYS = 60;
 
 const readableDay = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
@@ -49,7 +51,7 @@ export default async function ServicesPage({
   const session = await requireSession(church);
   const canEdit = canManageServices(session.role);
 
-  const { rows, plans, now } = await withTenant(
+  const { rows, past, plans, now } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // Keeps a repeating service some weeks ahead without anybody maintaining
@@ -65,10 +67,17 @@ export default async function ServicesPage({
         to: shift(clock.date, AHEAD_DAYS),
       });
 
+      // R11.1. What was last held, so a plan can be copied from the week
+      // before without hunting for it.
+      const before = (
+        await listOccurrences(tx, { from: shift(clock.date, -PAST_DAYS), to: clock.date })
+      ).filter((one) => one.occursOn < clock.date).slice(0, 2);
+
       return {
         now: clock,
         rows: list,
-        plans: await planSummaries(tx, list.map((one) => one.id)),
+        past: before,
+        plans: await planSummaries(tx, [...list, ...before].map((one) => one.id)),
       };
     },
   );
@@ -78,6 +87,21 @@ export default async function ServicesPage({
   const upcoming = [...rows].sort(
     (a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
   );
+
+  const card = (one: (typeof rows)[number]): ServiceCard => {
+    const plan = plans.get(one.id);
+    return {
+      id: one.id,
+      href: canEdit
+        ? `/services/${one.id}/plan?church=${session.tenantSlug}`
+        : `/services/${one.id}?church=${session.tenantSlug}`,
+      when: `${readableDay(one.occursOn)} · ${readableTime(one.startsAt)}`,
+      name: plan?.title || one.name,
+      theme: plan?.theme ?? null,
+      items: plan?.items ?? 0,
+      minutes: plan?.minutes ?? 0,
+    };
+  };
 
   return (
     <AppShell
@@ -93,66 +117,10 @@ export default async function ServicesPage({
         {t("services.upcoming")}
       </h2>
 
-      {upcoming.length === 0 ? (
+      {upcoming.length === 0 && past.length === 0 ? (
         <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
       ) : (
-        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
-          {upcoming.map((one, i) => {
-            const plan = plans.get(one.id);
-            const planned = (plan?.items ?? 0) > 0;
-
-            return (
-              <Link
-                key={one.id}
-                href={
-                  canEdit
-                    ? `/services/${one.id}/plan?church=${session.tenantSlug}`
-                    : `/services/${one.id}?church=${session.tenantSlug}`
-                }
-                className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4.5 hover:border-line-strong"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex-1 text-[13px] font-medium text-fg-subtle">
-                    {readableDay(one.occursOn)} · {readableTime(one.startsAt)}
-                  </span>
-                  {i === 0 ? (
-                    <span className="flex h-[22px] items-center rounded-full bg-primary-soft px-2 text-[11px] font-semibold text-primary">
-                      {t("services.next")}
-                    </span>
-                  ) : null}
-                </div>
-
-                <div>
-                  <div className="font-display text-[21px] leading-[26px] text-fg">
-                    {plan?.title || one.name}
-                  </div>
-                  {plan?.theme ? (
-                    <div className="mt-0.5 text-[13px] text-fg-muted">{plan.theme}</div>
-                  ) : null}
-                </div>
-
-                <div className="flex items-center gap-2 border-t border-sunken pt-3 text-[13px]">
-                  {planned ? (
-                    <span className="flex-1 text-fg-muted">
-                      {t("services.planned", {
-                        items: plan?.items ?? 0,
-                        minutes: plan?.minutes ?? 0,
-                      })}
-                    </span>
-                  ) : (
-                    <span
-                      className="flex-1 font-medium"
-                      style={{ color: "var(--hue-amber-key)" }}
-                    >
-                      {t("services.notPlanned")}
-                    </span>
-                  )}
-                  <ChevronRight className="size-4 text-fg-subtle" aria-hidden />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        <ServiceBoard upcoming={upcoming.map(card)} past={past.map(card)} />
       )}
     </AppShell>
   );
