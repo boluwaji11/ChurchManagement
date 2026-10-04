@@ -8,7 +8,7 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import { invite, withdraw, changeRole, removeAccess, newJoinCode, stopJoining } from "./actions";
 
 export interface Member {
@@ -276,6 +276,8 @@ export function Team({
         </table>
       </div>
 
+      <RoleGuide members={members} />
+
       <Card>
         <CardTitle>{t("joining.title")}</CardTitle>
         <Separator className="my-4" />
@@ -348,6 +350,73 @@ export function Team({
           </ul>
         </Card>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * R1.4. What each built-in role can see.
+ *
+ * The dropdown in the table above offers nine words and no way to tell them
+ * apart, which leaves an administrator guessing what they are handing somebody.
+ * Each card says what that role reaches and how many people currently hold it.
+ *
+ * A hue per role, from the same twelve the rest of the product assigns, so a
+ * role reads the same here as it does anywhere a role is shown.
+ */
+const ROLE_HUES: Record<string, string> = {
+  owner: "violet",
+  admin: "indigo",
+  staff: "sky",
+  pastoral: "teal",
+  finance: "fern",
+  group_leader: "citron",
+  team_leader: "amber",
+  checkin_volunteer: "coral",
+  member: "clay",
+};
+
+const GUIDE = [
+  "owner", "admin", "staff", "pastoral", "finance",
+  "group_leader", "team_leader", "checkin_volunteer", "member",
+] as const;
+
+function RoleGuide({ members }: { members: Member[] }) {
+  const held = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const member of members) counts.set(member.role, (counts.get(member.role) ?? 0) + 1);
+    return counts;
+  }, [members]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="font-display text-[22px] leading-7 text-fg">{t("roles.title")}</h2>
+
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
+        {GUIDE.map((role) => (
+          <section
+            key={role}
+            className="flex flex-col gap-1.5 rounded-[14px] border border-line bg-surface p-4"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 font-semibold text-fg">
+                <span
+                  className="size-2 shrink-0 rounded-full"
+                  style={{ background: `var(--hue-${ROLE_HUES[role]}-500)` }}
+                />
+                {roleName(role)}
+              </span>
+              <span className="text-[12px] text-fg-subtle">
+                {plural("roles.people", held.get(role) ?? 0)}
+              </span>
+            </div>
+
+            <p className="text-[13px] leading-[18px] text-fg-muted">
+              {t(`role.${role}.what` as never)}
+            </p>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }

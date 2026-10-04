@@ -300,7 +300,7 @@ export const en = {
   "settings.tab.export": "Export",
   "settings.lede.church": "How your church appears on receipts, labels and your website.",
   "settings.lede.team": "Who can sign in, and what each person can see.",
-  "settings.lede.rooms": "Check-in sends each child to the room that fits their age. Hearth warns when a room is full.",
+  "settings.lede.rooms": "Check-in sends each child to the room that fits their age.",
   "settings.lede.stations": "Tablets and kiosks that run check-in, and the printer each one uses.",
   "settings.lede.tags": "Short labels for filtering People. Removing a tag takes it off everyone.",
   "settings.lede.fields": "Extra details you keep on each person. They show on the profile and in filters.",
@@ -598,6 +598,20 @@ export const en = {
   "role.team_leader": "Team leader",
   "role.checkin_volunteer": "Check-in volunteer",
   "role.member": "Member",
+
+  /* R1.4. What each built-in role can see, as the team screen lists them. */
+  "roles.title": "What each role can see",
+  "roles.people.one": "1 person",
+  "roles.people.other": "{count} people",
+  "role.owner.what": "Everything, including confidential pastoral notes and giving amounts. The one role that cannot be removed.",
+  "role.admin.what": "The whole church except confidential notes and giving amounts. Settings, rooms, stations and who else gets in.",
+  "role.staff.what": "People, services, groups, teams and attendance. Cannot archive a person or change settings.",
+  "role.pastoral.what": "Confidential notes, follow-ups, incident reports and background check status.",
+  "role.finance.what": "Giving amounts, when giving is built. Nothing else beyond the directory.",
+  "role.group_leader.what": "Their own groups and the people in them.",
+  "role.team_leader.what": "Their own teams and the schedule they serve on.",
+  "role.checkin_volunteer.what": "The check-in station, and the children in the rooms they are running.",
+  "role.member.what": "Their own record and household, and whatever the directory publishes.",
 
   // Tags
   "tags.title": "Tags",
