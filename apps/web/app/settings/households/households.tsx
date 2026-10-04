@@ -352,9 +352,7 @@ function Members({
           placeholder={t("households.addPersonSearch")}
         />
 
-        {find.trim().length < 2 ? (
-          <p className="text-[13px] text-fg-subtle">{t("households.addPersonHint")}</p>
-        ) : looking ? null : free.length === 0 ? (
+        {find.trim().length < 2 ? null : looking ? null : free.length === 0 ? (
           <p className="text-[13px] text-fg-subtle">{t("households.addPersonNone")}</p>
         ) : (
           <ul className="flex max-h-56 flex-col overflow-auto">
@@ -570,44 +568,71 @@ function MergeInto({
 }
 
 /**
- * R2.1. A new family: named, then filled.
+ * R2.1. A new family: its name and who is in it, in one box.
  *
- * The same box carries on after the name is saved, because a church adding a
- * household is adding the people in it, and sending them back to the list to
- * find the row they just made is asking them to do the job twice.
+ * The people are held here until the name is saved, so a church answers both
+ * questions in the order it thinks of them rather than creating an empty
+ * household and then being sent to the list to find it.
  */
 export function NewHousehold({ church }: { church: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName_] = React.useState("");
-  const [made, setMade] = React.useState<{ id: string; name: string } | null>(null);
-  const [members, setMembers] = React.useState<HouseholdItem["members"]>([]);
+  const [chosen, setChosen] = React.useState<HouseholdItem["members"]>([]);
+  const [find, setFind] = React.useState("");
+  const [free, setFree] = React.useState<{ id: string; name: string }[]>([]);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   const close = (next: boolean) => {
     setOpen(next);
     if (!next) {
-      // Whatever was built in here is on the list behind it now.
-      if (made) router.refresh();
       setName_("");
-      setMade(null);
-      setMembers([]);
+      setChosen([]);
+      setFind("");
+      setFree([]);
       setError(undefined);
     }
   };
 
+  React.useEffect(() => {
+    if (!open || find.trim().length < 2) {
+      setFree([]);
+      return;
+    }
+
+    let live = true;
+    const timer = setTimeout(async () => {
+      const rows = await freePeople(find, church);
+      if (live) setFree(rows.filter((one) => !chosen.some((m) => m.id === one.id)));
+    }, 200);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [open, find, church, chosen]);
+
   const create = () =>
     startTransition(async () => {
-      const result = await add(name, church);
-      setError(result.error);
-      if (!result.error && result.id) setMade({ id: result.id, name: name.trim() });
-    });
+      const made = await add(name, church);
+      if (made.error || !made.id) {
+        setError(made.error);
+        return;
+      }
 
-  const run = (work: () => Promise<{ error?: string }>) =>
-    startTransition(async () => {
-      const result = await work();
-      setError(result.error);
+      for (const person of chosen) {
+        const put = await putIn(made.id, person.id, church);
+        if (put.error) {
+          setError(put.error);
+          return;
+        }
+        if (person.role !== "other") {
+          await setRole(made.id, person.id, person.role, church);
+        }
+      }
+
+      close(false);
+      router.refresh();
     });
 
   return (
@@ -618,54 +643,121 @@ export function NewHousehold({ church }: { church: string }) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent
-        title={made ? made.name : t("households.add")}
-        closeLabel={t("common.close")}
-        className="max-w-xl"
-      >
+      <DialogContent title={t("households.add")} closeLabel={t("common.close")} className="max-w-xl">
         {error ? <Banner tone="danger" title={t("households.failed")}>{error}</Banner> : null}
 
-        {made ? (
-          <div className="flex flex-col gap-5">
-            <Members
-              church={church}
-              household={{ id: made.id, name: made.name, members, archived: false }}
-              pending={pending}
-              run={run}
-              onAdded={(person) =>
-                setMembers((prev) => [...prev, { ...person, role: "other" }])
-              }
-              onRemoved={(id) => setMembers((prev) => prev.filter((m) => m.id !== id))}
-              onRole={(id, role) =>
-                setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)))
-              }
+        <div className="flex flex-col gap-5">
+          <Field label={t("households.name")} required>
+            <Input
+              value={name}
+              onChange={(e) => setName_(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
+          </Field>
+
+          {chosen.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-label text-fg">{t("households.people")}</span>
+
+              <ul className="flex flex-col">
+                {chosen.map((person) => (
+                  <li
+                    key={person.id}
+                    className="flex items-center gap-2.5 border-b border-sunken py-2 last:border-0"
+                  >
+                    <Avatar
+                      name={person.name}
+                      id={person.id}
+                      className="size-7 text-[11px] font-semibold"
+                    />
+                    <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                      {person.name}
+                    </span>
+
+                    <Select
+                      value={person.role}
+                      onValueChange={(next) =>
+                        setChosen((prev) =>
+                          prev.map((one) => (one.id === person.id ? { ...one, role: next } : one)),
+                        )
+                      }
+                    >
+                      <SelectTrigger
+                        aria-label={t("personForm.householdRole")}
+                        className="w-36 shrink-0"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {householdRoleOptions().map((one) => (
+                          <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <IconButton
+                      label={t("households.remove", { name: person.name })}
+                      variant="ghost"
+                      onClick={() =>
+                        setChosen((prev) => prev.filter((one) => one.id !== person.id))
+                      }
+                    >
+                      <X />
+                    </IconButton>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-2">
+            <span className="text-label text-fg">{t("households.addPerson")}</span>
+
+            <SearchField
+              value={find}
+              onChange={setFind}
+              placeholder={t("households.addPersonSearch")}
             />
 
-            <div className="flex justify-end">
-              <Button type="button" onClick={() => close(false)}>{t("common.done")}</Button>
-            </div>
+            {find.trim().length < 2 ? null : free.length === 0 ? (
+              <p className="text-[13px] text-fg-subtle">{t("households.addPersonNone")}</p>
+            ) : (
+              <ul className="flex max-h-56 flex-col overflow-auto">
+                {free.map((person) => (
+                  <li key={person.id}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setChosen((prev) => [...prev, { ...person, role: "other" }])
+                      }
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-1 py-2 text-left hover:bg-sunken"
+                    >
+                      <Avatar
+                        name={person.name}
+                        id={person.id}
+                        className="size-7 text-[11px] font-semibold"
+                      />
+                      <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                        {person.name}
+                      </span>
+                      <Plus className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        ) : (
-          <>
-            <Field label={t("households.name")} required>
-              <Input
-                value={name}
-                onChange={(e) => setName_(e.target.value)}
-                autoComplete="off"
-                autoFocus
-              />
-            </Field>
+        </div>
 
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => close(false)}>
-                {t("action.cancel")}
-              </Button>
-              <Button type="button" disabled={pending || !name.trim()} onClick={create}>
-                {t("action.add")}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={() => close(false)}>
+            {t("action.cancel")}
+          </Button>
+          <Button type="button" disabled={pending || !name.trim()} onClick={create}>
+            {t("action.add")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

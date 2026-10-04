@@ -574,7 +574,6 @@ export const en = {
   "households.addPerson": "Add somebody",
   "households.addPersonSearch": "Search people with no household",
   "households.addPersonNone": "Nobody with no household matches that",
-  "households.addPersonHint": "Type a name to find somebody",
   "households.removeTitle": "Take {name} out of {household}?",
   "households.removeAction": "Take them out",
   "households.removeBody": "Their own record stays. They stop being shown as part of this family.",
@@ -2164,7 +2163,6 @@ export const en = {
   "customValue.multiSelect": "Choose from the options for {label}.",
 
   // Generic
-  "common.done": "Done",
   "common.close": "Close",
   "hue.rose": "Rose",
   "hue.amber": "Amber",
