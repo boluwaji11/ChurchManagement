@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  Button, Input, Field, Banner, cn,
+  Input, Field, Banner, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { DateField } from "@/components/date-field";
+import { FormActions } from "@/components/form-actions";
 import { t } from "@hearth/i18n";
 import type { HouseholdOption } from "@hearth/db";
 import {
@@ -124,27 +125,13 @@ function FormCard({
   );
 }
 
-/** R24.6. The form's two buttons, for a page that puts them beside its title. */
-export function PersonFormActions({
-  church,
-  personId,
-  editing,
-}: {
-  church: string;
-  personId?: string;
-  editing: boolean;
-}) {
+/** R24.6. The form's Save, for a page that puts it beside the title. */
+export function PersonFormActions({ editing }: { editing: boolean }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button asChild variant="secondary">
-        <Link href={personId ? `/people/${personId}?church=${church}` : `/people?church=${church}`}>
-          {t("action.cancel")}
-        </Link>
-      </Button>
-      <Button type="submit" form="person-form">
-        {editing ? t("personForm.submitEdit") : t("personForm.submitAdd")}
-      </Button>
-    </div>
+    <FormActions
+      form="person-form"
+      label={editing ? t("personForm.submitEdit") : t("personForm.submitAdd")}
+    />
   );
 }
 
@@ -330,10 +317,14 @@ export function PersonForm({
                     {/* The two answers that are not a household sit above the
                         rule, so they are not hunted for among forty names. */}
                     <SelectItem value={HOUSEHOLD_NONE}>
-                      <span className="font-semibold">{t("personForm.householdNone")}</span>
+                      <span className="font-semibold text-primary">
+                        {t("personForm.householdNone")}
+                      </span>
                     </SelectItem>
                     <SelectItem value={HOUSEHOLD_NEW}>
-                      <span className="font-semibold">{t("personForm.householdNew")}</span>
+                      <span className="font-semibold text-primary">
+                        {t("personForm.householdNew")}
+                      </span>
                     </SelectItem>
 
                     <span aria-hidden className="my-1 block h-px bg-line" />

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { CircleDot } from "lucide-react";
 import { notFound } from "next/navigation";
 import { publicChurch, publicGroups } from "@hearth/db";
-import { Card, EmptyState } from "@hearth/ui";
+import { Card } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { supabaseServer } from "@/lib/supabase/server";
 import { GroupLine } from "./line";
@@ -54,7 +56,7 @@ export default async function PublicGroupsPage({
         </h1>
 
         {groups.length === 0 ? (
-          <EmptyState title={t("publicGroups.none")} />
+          <Empty icon={CircleDot} title={t("publicGroups.none")} />
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {groups.map((group) => (

@@ -46,7 +46,7 @@ export default async function NewPersonPage({
           {t("personForm.addHeading")}
         </h2>
         {permitted ? (
-          <PersonFormActions church={session.tenantSlug} editing={false} />
+          <PersonFormActions editing={false} />
         ) : null}
       </div>
 

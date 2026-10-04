@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, Plus, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Plus, Clock, CheckCircle2, ShieldAlert } from "lucide-react";
 import {
   withTenant, listIncidents, listRooms, listPeople, listOccurrences, stillHere, getChurch,
   canReadIncidents, canCheckIn, type Incident,
 } from "@hearth/db";
-import { Banner, Button, EmptyState } from "@hearth/ui";
+import { Banner, Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -107,7 +108,7 @@ export default async function IncidentsPage({
       <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("incident.reports")}</h2>
 
       {incidents.length === 0 ? (
-        <EmptyState title={t("incident.none.title")} />
+        <Empty icon={ShieldAlert} title={t("incident.none.title")} action={filing} />
       ) : (
         incidents.map((incident) => (
           <Report key={incident.id} church={session.tenantSlug} incident={incident} />

@@ -6,17 +6,18 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Search, X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge,
   ListFilter, Pencil, Copy, Cake, Printer,
-  SlidersHorizontal, Check, Tag, CheckCircle2,
+  SlidersHorizontal, Check, Tag, CheckCircle2, Users, SearchX,
 } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
-  IconButton, EmptyState,
+  IconButton,
   Select, SelectTrigger, SelectContent, SelectItem,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   Tabs, TabsList, TabsTrigger,
   cn, type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
 import { Pages } from "@/components/pages";
@@ -292,7 +293,8 @@ export function Directory({
       ) : null}
 
       {rows.length === 0 ? (
-        <EmptyState
+        <Empty
+          icon={filtersOn ? SearchX : Users}
           title={filtersOn ? t("directory.noResults.title") : t("people.empty.title")}
           body={filtersOn ? t("directory.noResults.body") : t("people.empty.body")}
           action={

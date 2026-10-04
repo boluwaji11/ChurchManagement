@@ -1,6 +1,7 @@
 import { servingRequestFor } from "@hearth/db";
-import { EmptyState } from "@hearth/ui";
+import { CalendarX } from "lucide-react";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { PageTitle } from "@/components/section";
 import { Logo } from "@/components/brand";
 import { BrandRuleFor } from "@/components/brand-rule";
@@ -34,9 +35,9 @@ export default async function RespondPage({
       <Logo href="/" />
 
       {!request ? (
-        <EmptyState title={t("respond.gone.title")} />
+        <Empty icon={CalendarX} title={t("respond.gone.title")} />
       ) : request.past ? (
-        <EmptyState title={t("respond.past.title")} />
+        <Empty icon={CalendarX} title={t("respond.past.title")} />
       ) : (
         <>
           <div className="flex flex-col gap-2">

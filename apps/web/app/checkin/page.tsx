@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileWarning, Tag, Printer, Move, Plus } from "lucide-react";
+import { FileWarning, Tag, Printer, Move, Plus, CalendarDays } from "lucide-react";
 import {
   withTenant, listRooms, listOccurrences, listStations, listIncidents, listPeople,
   visitsFor, getChurch,
@@ -7,8 +7,9 @@ import {
   type RoomRosterEntry,
 } from "@hearth/db";
 import { serviceNow } from "@hearth/db/rules";
-import { Banner, Button, EmptyState } from "@hearth/ui";
+import { Banner, Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -214,7 +215,7 @@ export default async function CheckinPage({
           }
         />
       ) : (
-        <EmptyState title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
+        <Empty icon={CalendarDays} title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
       )}
     </AppShell>
   );

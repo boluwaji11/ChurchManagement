@@ -1,54 +1,46 @@
 import * as React from "react";
 import { cn } from "../lib/cn";
-import { HUES } from "./hue";
 
 /**
- * An illustration, not a grey icon and an apology. A church's first week in the
- * product should feel like an invitation. (R24.17)
+ * R24.17. A screen with nothing on it yet.
+ *
+ * The church's own mark, what is missing, and the way to put something there.
+ * A church's first week in the product should read as an invitation, and the
+ * action that fills the screen belongs here rather than only in the corner:
+ * this is where the reader is already looking.
  */
 export function EmptyState({
+  mark,
   title,
   body,
   action,
   className,
 }: {
+  /** The church's logo, or an icon naming what is missing. */
+  mark?: React.ReactNode;
   title: string;
   /** Only where the title leaves something unanswered. Most do not. */
   body?: string;
+  /** What fills the screen. The same button the page carries in its corner. */
   action?: React.ReactNode;
   className?: string;
 }) {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-line-strong",
-        "bg-sunken/40 px-6 py-12 text-center",
+        "flex flex-col items-center justify-center gap-4 rounded-[14px] border border-dashed border-line-strong",
+        "bg-sunken/40 px-6 py-14 text-center",
         className,
       )}
     >
-      <svg
-        viewBox="0 0 160 96"
-        className="h-24 w-40"
-        role="img"
-        aria-label="An empty room, waiting"
-      >
-        {/* A hearth: a warm room waiting to be filled. Drawn in spectrum hues. */}
-        <rect x="14" y="30" width="132" height="54" rx="8" fill="var(--hue-amber-tint)" />
-        <path d="M14 38 L80 8 L146 38" fill="none" stroke="var(--hue-amber-700)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="58" y="52" width="44" height="32" rx="4" fill="var(--hue-amber-tint)" stroke="var(--hue-amber-500)" strokeWidth="2" />
-        <path d="M80 78 C 72 70, 74 64, 80 58 C 86 64, 88 70, 80 78 Z" fill="var(--hue-rose-500)" />
-        {HUES.slice(0, 4).map((h, i) => (
-          <circle key={h} cx={28 + i * 7} cy={72} r={3} fill={`var(--hue-${h}-500)`} opacity={0.75} />
-        ))}
-        {HUES.slice(4, 8).map((h, i) => (
-          <circle key={h} cx={112 + i * 7} cy={72} r={3} fill={`var(--hue-${h}-500)`} opacity={0.75} />
-        ))}
-      </svg>
-      <div className="flex flex-col gap-1.5 max-w-sm">
+      {mark}
+
+      <div className="flex max-w-sm flex-col gap-1.5">
         <h3 className="font-display text-heading text-fg">{title}</h3>
         {body ? <p className="text-[length:var(--d-text-body)] text-fg-muted">{body}</p> : null}
       </div>
-      {action}
+
+      {action ? <div className="flex flex-wrap items-center justify-center gap-2">{action}</div> : null}
     </div>
   );
 }

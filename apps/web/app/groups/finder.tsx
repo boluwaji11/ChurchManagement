@@ -2,13 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, X, Search, Plus, Undo2 } from "lucide-react";
+import { Check, X, Search, Plus, Undo2, CircleDot } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Card, Checkbox, EmptyState, HueDot, Input, Separator,
+  Badge, Banner, Button, IconButton, Card, Checkbox, HueDot, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import Link from "next/link";
 import { ask, decide, archive } from "./actions";
 import { GroupDialog } from "./group-form";
@@ -240,7 +241,8 @@ export function Finder({
       </div>
 
       {shown.length === 0 ? (
-        <EmptyState
+        <Empty
+          icon={CircleDot}
           title={t("find.none.title")}
           action={
             canManage ? (

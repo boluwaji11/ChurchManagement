@@ -326,6 +326,7 @@ export default async function ServingPage({
         teams={
           <Teams
             church={session.tenantSlug}
+            canManage={canManage}
             teams={data.teams.map((team) => ({
               id: team.id,
               name: team.name,

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ClipboardList } from "lucide-react";
 import { withTenant, listForms, countArchivedForms, canManageChurch } from "@hearth/db";
-import { EmptyState } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Empty } from "@/components/empty";
 import { NewFormButton } from "./new-form";
 
 export const dynamic = "force-dynamic";
@@ -56,7 +56,11 @@ export default async function FormsPage({
       ) : null}
 
       {forms.length === 0 ? (
-        <EmptyState title={putAway ? t("form.archived.none") : t("form.empty")} />
+        <Empty
+          icon={ClipboardList}
+          title={putAway ? t("form.archived.none") : t("form.empty")}
+          action={putAway ? undefined : <NewFormButton church={session.tenantSlug} />}
+        />
       ) : (
         <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
           {forms.map((form) => {

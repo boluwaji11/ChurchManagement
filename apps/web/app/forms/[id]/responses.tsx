@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { Inbox } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Dialog, DialogTrigger, DialogContent, EmptyState } from "@hearth/ui";
+import { Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import type { FormAnswer, FormFieldDef } from "@hearth/db/rules";
 import { Pages } from "@/components/pages";
 
@@ -60,7 +62,7 @@ export function Responses({
     router.push(`${pathname}?${query.toString()}`, { scroll: false });
   };
 
-  if (total === 0) return <EmptyState title={t("form.responses.empty")} />;
+  if (total === 0) return <Empty icon={Inbox} title={t("form.responses.empty")} />;
 
   const first = (page - 1) * perPage + 1;
   const upto = Math.min(page * perPage, total);

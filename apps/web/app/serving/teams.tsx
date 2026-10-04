@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
-import { Button, EmptyState, Badge } from "@hearth/ui";
+import { ShieldCheck, HeartHandshake, Plus } from "lucide-react";
+import { Button, Badge } from "@hearth/ui";
+import { Empty } from "@/components/empty";
 import { t, plural } from "@hearth/i18n";
 
 export interface TeamCard {
@@ -28,8 +29,32 @@ export interface TeamCard {
  * team is made of, how many people it has, and how much of this month is still
  * to fill.
  */
-export function Teams({ church, teams }: { church: string; teams: TeamCard[] }) {
-  if (teams.length === 0) return <EmptyState title={t("serving.empty")} />;
+export function Teams({
+  church,
+  teams,
+  canManage,
+}: {
+  church: string;
+  teams: TeamCard[];
+  canManage?: boolean;
+}) {
+  if (teams.length === 0) {
+    return (
+      <Empty
+        icon={HeartHandshake}
+        title={t("serving.empty")}
+        action={
+          canManage ? (
+            <Button asChild>
+              <Link href={`/serving?church=${church}&view=teams&add=1`}>
+                <Plus /> {t("serving.addTeam")}
+              </Link>
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

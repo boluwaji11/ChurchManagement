@@ -58,7 +58,7 @@ export default async function EditPersonPage({
           {t("personForm.editHeading", { name: display })}
         </h2>
         {canEditPeople(session) ? (
-          <PersonFormActions church={session.tenantSlug} personId={id} editing />
+          <PersonFormActions editing />
         ) : null}
       </div>
 

@@ -79,7 +79,7 @@ const CHIP = "flex h-9 items-center justify-center rounded-full px-3.5 text-labe
  * was a form sitting there asking to be filled in on a screen somebody opened
  * to read.
  */
-function NewTag({ church }: { church: string }) {
+export function NewTag({ church }: { church: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");

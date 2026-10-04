@@ -2,14 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Minus, Archive, Undo2 } from "lucide-react";
+import { Plus, Minus, Archive, Undo2, DoorOpen } from "lucide-react";
 import {
   HUES,
-  Banner, Button, IconButton, EmptyState, Field, HueDot, Input,
+  Banner, Button, IconButton, Field, HueDot, Input,
   Sheet, SheetTrigger, SheetContent, Switch,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { ageLine, say } from "@/lib/room-ages";
 import { createRoom, saveRoom, archiveRoom } from "./actions";
 
@@ -74,7 +75,12 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
       {error ? <Banner tone="danger" title={t("rooms.failed")}>{error}</Banner> : null}
 
       {open.length === 0 ? (
-        <EmptyState title={t("rooms.none.title")} body={t("rooms.none.body")} />
+        <Empty
+          icon={DoorOpen}
+          title={t("rooms.none.title")}
+          body={t("rooms.none.body")}
+          action={<AddRoom church={church} />}
+        />
       ) : (
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
           {open.map((room) => (

@@ -1,5 +1,7 @@
 import { withTenant, listCustomFields, canManageCustomFields } from "@hearth/db";
-import { Banner, EmptyState } from "@hearth/ui";
+import { ListPlus } from "lucide-react";
+import { Banner } from "@hearth/ui";
+import { Empty } from "@/components/empty";
 import { requireSession } from "@/lib/session";
 import { FieldManager, NewField } from "./field-manager";
 import { t } from "@hearth/i18n";
@@ -31,7 +33,12 @@ export default async function FieldsPage({
 
 
         {fields.length === 0 && canManage ? (
-          <EmptyState title={t("fields.empty.title")} body={t("fields.empty.body")} />
+          <Empty
+            icon={ListPlus}
+            title={t("fields.empty.title")}
+            body={t("fields.empty.body")}
+            action={<NewField church={session.tenantSlug} />}
+          />
         ) : null}
 
         {!canManage ? (

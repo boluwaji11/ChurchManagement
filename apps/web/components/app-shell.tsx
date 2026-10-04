@@ -12,6 +12,7 @@ import { NotificationBell } from "./shell/bell";
 import { when } from "@/lib/when";
 import { navFor } from "./shell/nav";
 import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
+import { ChurchMarkProvider } from "./church-mark";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Session } from "@/lib/session";
 
@@ -132,7 +133,9 @@ export async function AppShell({
         >
           {/* Every screen in the design is a column with 28px between its
               blocks. */}
-          <div className="flex flex-col gap-7">{children}</div>
+          <ChurchMarkProvider logoUrl={logoUrl}>
+            <div className="flex flex-col gap-7">{children}</div>
+          </ChurchMarkProvider>
         </main>
       </div>
 

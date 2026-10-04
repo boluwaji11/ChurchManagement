@@ -1,7 +1,9 @@
 import { withTenant, listTagsWithCounts, canManageTags, canEditPeople } from "@hearth/db";
-import { Banner, EmptyState } from "@hearth/ui";
+import { Tag } from "lucide-react";
+import { Banner } from "@hearth/ui";
+import { Empty } from "@/components/empty";
 import { requireSession } from "@/lib/session";
-import { TagManager } from "./tag-manager";
+import { TagManager, NewTag } from "./tag-manager";
 import { t } from "@hearth/i18n";
 import { SettingsHeading } from "../heading";
 
@@ -28,7 +30,12 @@ export default async function TagsPage({
 
 
         {tags.length === 0 && canCreate ? (
-          <EmptyState title={t("tags.empty.title")} body={t("tags.empty.body")} />
+          <Empty
+            icon={Tag}
+            title={t("tags.empty.title")}
+            body={t("tags.empty.body")}
+            action={<NewTag church={session.tenantSlug} />}
+          />
         ) : null}
 
         {!canCreate && !canManage ? (

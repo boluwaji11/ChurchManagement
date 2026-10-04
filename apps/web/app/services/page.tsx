@@ -1,7 +1,8 @@
 import {
   withTenant, listOccurrences, topUpCalendar, planSummaries, getChurch, canManageServices,
 } from "@hearth/db";
-import { EmptyState } from "@hearth/ui";
+import { CalendarDays } from "lucide-react";
+import { Empty } from "@/components/empty";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -118,7 +119,16 @@ export default async function ServicesPage({
           <h2 className="font-display text-[28px] leading-[34px] text-fg">
             {t("services.upcoming")}
           </h2>
-          <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
+          <Empty
+            icon={CalendarDays}
+            title={t("services.none.title")}
+            body={t("services.none.body")}
+            action={
+              canEdit ? (
+                <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+              ) : undefined
+            }
+          />
         </>
       ) : (
         <ServiceBoard

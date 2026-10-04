@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Search, Check, Undo2, UserCheck } from "lucide-react";
+import { Search, Check, Undo2, UserCheck, CalendarDays } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Card, Checkbox, CodeDisplay, EmptyState, Field, HueDot, Input,
+  Badge, Banner, Button, IconButton, Card, Checkbox, CodeDisplay, Field, HueDot, Input,
   Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { openLabels } from "./open-labels";
 import { serviceNow } from "@hearth/db/rules";
 import { checkIn, undo, type FoundMatch, type FoundPerson } from "./actions";
@@ -233,7 +234,7 @@ export function Desk({
   };
 
   if (services.length === 0) {
-    return <EmptyState title={t("checkin.noService.title")} body={t("checkin.noService.body")} />;
+    return <Empty icon={CalendarDays} title={t("checkin.noService.title")} body={t("checkin.noService.body")} />;
   }
 
   return (
@@ -399,7 +400,7 @@ export function Desk({
           ))}
         </ul>
       ) : query.trim().length >= 2 && !searching ? (
-        <EmptyState title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
+        <Empty icon={CalendarDays} title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
       ) : null}
     </div>
   );

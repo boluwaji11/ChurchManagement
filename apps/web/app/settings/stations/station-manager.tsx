@@ -4,11 +4,12 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Archive, Undo2, Tablet } from "lucide-react";
 import {
-  Banner, Button, IconButton, EmptyState, Field, Input, cn,
+  Banner, Button, IconButton, Field, Input, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { createStation, saveStation, archiveStation } from "./actions";
 
 const MODES = ["desk", "kiosk"] as const;
@@ -77,7 +78,19 @@ export function StationManager({
       </div>
 
       {open.length === 0 ? (
-        <EmptyState title={t("stations.none.title")} body={t("stations.none.body")} />
+        <Empty
+          icon={Tablet}
+          title={t("stations.none.title")}
+          body={t("stations.none.body")}
+          action={
+            <StationDialog
+              pending={pending}
+              title={t("stations.add")}
+              trigger={<Button><Plus /> {t("stations.add")}</Button>}
+              onSave={(fields) => act(createStation, fields)}
+            />
+          }
+        />
       ) : (
         <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
           {open.map((station) => (

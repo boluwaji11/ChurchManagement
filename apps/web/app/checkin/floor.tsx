@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle } from "lucide-react";
-import { Banner, EmptyState } from "@hearth/ui";
+import { AlertTriangle, DoorOpen } from "lucide-react";
+import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import type { Board, RoomRosterEntry, ArrivingChild } from "@hearth/db";
 import { floor, place } from "./actions";
 
@@ -82,7 +83,7 @@ export function Floor({
   const ageOf = (roomId: string) => rooms.find((r) => r.roomId === roomId)?.ages ?? null;
 
   if (!data.board || data.board.rooms.length === 0) {
-    return <EmptyState title={t("board.noRooms.title")} body={t("board.noRooms.body")} />;
+    return <Empty icon={DoorOpen} title={t("board.noRooms.title")} body={t("board.noRooms.body")} />;
   }
 
   return (

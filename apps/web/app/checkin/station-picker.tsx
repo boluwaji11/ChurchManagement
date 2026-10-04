@@ -1,9 +1,11 @@
 "use client";
 
+import { Tablet } from "lucide-react";
 import * as React from "react";
 import Link from "next/link";
-import { Badge, Button, Card, EmptyState } from "@hearth/ui";
+import { Badge, Button, Card } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { claim } from "./actions";
 import { Desk, type DeskRoom, type DeskService } from "./desk";
 import { Kiosk } from "./kiosk";
@@ -104,7 +106,8 @@ export function StationPicker({
 
   if (stations.length === 0) {
     return page(
-      <EmptyState
+      <Empty
+          icon={Tablet}
         title={t("checkin.none.title")}
         body={t("checkin.none.body")}
         action={

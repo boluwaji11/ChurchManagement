@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { Printer } from "lucide-react";
-import { Button, EmptyState, STOCK, printCss, stockOf, type Stock } from "@hearth/ui";
+import { Button, STOCK, printCss, stockOf, type Stock } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import type { LabelPair } from "@hearth/db";
 import { DEFAULT_LABEL_LAYOUT, type LabelLayout } from "@hearth/db/rules";
 
@@ -43,7 +44,7 @@ export function LabelSheet({
   if (labels.length === 0) {
     return (
       <main id="main" className="mx-auto max-w-lg px-4 py-8">
-        <EmptyState title={t("labels.none.title")} body={t("labels.none.body")} />
+        <Empty icon={Printer} title={t("labels.none.title")} body={t("labels.none.body")} />
       </main>
     );
   }

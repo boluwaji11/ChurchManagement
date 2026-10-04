@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Check, Search } from "lucide-react";
+import { Check, Search, CalendarDays } from "lucide-react";
 import {
   Banner,
-  Checkbox, Button, Card, EmptyState, Field, HueDot, Input, type Hue } from "@hearth/ui";
+  Checkbox, Button, Card, Field, HueDot, Input, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { openLabels } from "./open-labels";
 import { serviceNow } from "@hearth/db/rules";
 import { checkIn, type FoundMatch } from "./actions";
@@ -177,7 +178,7 @@ export function Kiosk({
   if (services.length === 0) {
     return (
       <div data-density="station">
-        <EmptyState title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
+        <Empty icon={CalendarDays} title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
       </div>
     );
   }
@@ -348,7 +349,7 @@ export function Kiosk({
           ))}
 
           {query.trim().length >= 2 && matches.length === 0 && !searching ? (
-            <EmptyState title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
+            <Empty icon={CalendarDays} title={t("checkin.nobody.title")} body={t("checkin.nobody.body")} />
           ) : null}
         </>
       )}

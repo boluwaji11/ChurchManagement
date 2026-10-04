@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { FormActions } from "@/components/form-actions";
 import type { Campus } from "@hearth/db";
 import { ChurchForm, type ChurchValues } from "../church-form";
 import { Places } from "./places";
@@ -21,17 +21,31 @@ export function ChurchSections({
   campus,
   canEdit,
   logo,
+  heading,
 }: {
   church: string;
   values: ChurchValues;
   campus: Campus | null;
   canEdit: boolean;
   logo: React.ReactNode;
+  /** The page's title, so the buttons that commit this form can sit beside it. */
+  heading: React.ReactNode;
 }) {
   const [editing, setEditing] = React.useState(false);
 
   return (
     <>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        {heading}
+        {editing ? (
+          <FormActions
+            form="church-form"
+            label={t("church.save")}
+            onCancel={() => setEditing(false)}
+          />
+        ) : null}
+      </div>
+
       <ChurchForm
         values={values}
         canEdit={canEdit}
@@ -42,14 +56,7 @@ export function ChurchSections({
 
       <Places church={church} campus={campus} canEdit={canEdit} editing={editing} />
 
-      {editing ? (
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
-            {t("action.cancel")}
-          </Button>
-          <Button type="submit" form="church-form">{t("church.save")}</Button>
-        </div>
-      ) : null}
+
     </>
   );
 }

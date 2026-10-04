@@ -1,5 +1,7 @@
-import { Card, EmptyState } from "@hearth/ui";
+import { Card } from "@hearth/ui";
+import { History as HistoryIcon } from "lucide-react";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import type { PlanChange } from "@hearth/db";
 
 /** The fields worth naming. Anything else is reported as a change without one. */
@@ -35,7 +37,7 @@ export function History({ changes }: { changes: PlanChange[] }) {
       <span className="font-display text-heading text-fg">{t("history.title")}</span>
 
       {changes.length === 0 ? (
-        <EmptyState title={t("history.empty")} />
+        <Empty icon={HistoryIcon} title={t("history.empty")} />
       ) : (
         <ul className="flex flex-col gap-2">
           {changes.map((change) => {
