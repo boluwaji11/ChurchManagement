@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { ProfileForm } from "./profile-form";
-import { toAddress } from "@/components/address-fields";
+import { toAddress } from "@/lib/address";
 import { ThemeChoice } from "../theme";
 import type { Theme } from "../theme-actions";
 import { supabaseServer } from "@/lib/supabase/server";

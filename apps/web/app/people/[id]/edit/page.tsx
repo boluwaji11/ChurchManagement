@@ -9,7 +9,7 @@ import { Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PersonForm, PersonFormActions } from "../../person-form";
-import { toAddress } from "@/components/address-fields";
+import { toAddress } from "@/lib/address";
 import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";

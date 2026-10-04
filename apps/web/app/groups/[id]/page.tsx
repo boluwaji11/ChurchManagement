@@ -152,12 +152,43 @@ export default async function GroupPage({
 
   return (
     <AppShell session={session}>
-      <Link
-        href={`/groups?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("groups.title")}
-      </Link>
+      {/* The way back on the left, and what this church may do to the group on
+          the right, as the icons every other record page carries. */}
+      <div className="flex items-center gap-3">
+        <Link
+          href={`/groups?church=${session.tenantSlug}`}
+          className="inline-flex items-center gap-1.5 font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" /> {t("groups.title")}
+        </Link>
+
+        <span className="flex-1" />
+
+        {manage ? (
+          <ManageGroup
+            church={session.tenantSlug}
+            types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
+            group={{
+              id: group.id,
+              name: group.name,
+              description: group.description,
+              typeId: group.typeId,
+              dayOfWeek: group.dayOfWeek,
+              startsAt: group.startsAt,
+              endsAt: group.endsAt,
+              frequency: group.frequency,
+              location: group.location,
+              address: group.address,
+              capacity: group.capacity,
+              forWhom: group.forWhom,
+              online: group.online,
+              childrenWelcome: group.childrenWelcome,
+              openToJoin: group.openToJoin,
+              listed: group.listed,
+            }}
+          />
+        ) : null}
+      </div>
 
       {/* The kind, the name and when it meets on the left, the banner beside
           them, on one line until the screen is too narrow for two. */}
@@ -179,12 +210,6 @@ export default async function GroupPage({
               ? t("find.ledBy", { meets: meetsLine, leader: group.leaders.map((l) => l.name).join(", ") })
               : meetsLine}
           </div>
-
-          {!group.mine && group.openToJoin && !group.full && group.requested !== "pending" ? (
-            <div className="mt-1">
-              <JoinButton church={session.tenantSlug} groupId={group.id} />
-            </div>
-          ) : null}
         </div>
 
         <GroupBanner
@@ -202,6 +227,11 @@ export default async function GroupPage({
         groupId={group.id}
         canManage={manage}
         openToJoin={group.openToJoin}
+        join={
+          !group.mine && group.openToJoin && !group.full && group.requested !== "pending" ? (
+            <JoinButton church={session.tenantSlug} groupId={group.id} />
+          ) : null
+        }
         about={group.description}
         upcoming={upcomingMeetings(
           { dayOfWeek: group.dayOfWeek, frequency: group.frequency },
@@ -228,30 +258,6 @@ export default async function GroupPage({
         }
       />
 
-      {manage ? (
-        <ManageGroup
-          church={session.tenantSlug}
-          types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
-          group={{
-            id: group.id,
-            name: group.name,
-            description: group.description,
-            typeId: group.typeId,
-            dayOfWeek: group.dayOfWeek,
-            startsAt: group.startsAt,
-            endsAt: group.endsAt,
-            frequency: group.frequency,
-            location: group.location,
-            address: group.address,
-            capacity: group.capacity,
-            forWhom: group.forWhom,
-            online: group.online,
-            childrenWelcome: group.childrenWelcome,
-            openToJoin: group.openToJoin,
-            listed: group.listed,
-          }}
-        />
-      ) : null}
     </AppShell>
   );
 }

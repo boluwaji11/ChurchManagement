@@ -46,6 +46,7 @@ export function GroupDetail({
   groupId,
   canManage,
   openToJoin,
+  join,
   about,
   upcoming,
   past,
@@ -63,6 +64,8 @@ export function GroupDetail({
   groupId: string;
   canManage: boolean;
   openToJoin: boolean;
+  /** R9.5. Asking to come, where this reader may. */
+  join?: React.ReactNode;
   about: string | null;
   upcoming: DetailMeeting[];
   past: DetailMeeting[];
@@ -102,6 +105,8 @@ export function GroupDetail({
         <span className="min-w-[140px] flex-1 font-medium text-fg">
           {openToJoin ? t("group.openText") : t("group.closedText")}
         </span>
+        {join}
+
         {canManage ? (
           <Button
             variant="secondary"
@@ -117,7 +122,7 @@ export function GroupDetail({
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="overview">{t("group.tab.overview")}</TabsTrigger>
-          <TabsTrigger value="members" className="gap-1.5">
+          <TabsTrigger value="members" className="inline-flex items-center gap-1.5">
             {t("group.tab.members")}
             <span className="text-[12px] text-fg-muted">{members.length}</span>
           </TabsTrigger>

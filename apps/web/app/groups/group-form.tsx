@@ -255,17 +255,20 @@ export function ArchiveDialog({
   name,
   pending,
   onConfirm,
+  trigger,
 }: {
   name: string;
   pending: boolean;
   onConfirm: () => void;
+  /** What opens it, where the screen wants something other than a button. */
+  trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost"><Archive /> {t("groups.archive")}</Button>
+        {trigger ?? <Button variant="ghost"><Archive /> {t("groups.archive")}</Button>}
       </DialogTrigger>
       <DialogContent alert title={t("groups.archiveTitle", { name })}>
         <div className="flex flex-col gap-4">

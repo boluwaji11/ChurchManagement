@@ -12,7 +12,8 @@ import { t } from "@hearth/i18n";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions } from "@/components/form-actions";
 import { longDate } from "@/lib/dates";
-import { AddressFields, type AddressValues } from "@/components/address-fields";
+import { AddressFields } from "@/components/address-fields";
+import { oneLineAddress, type AddressValues } from "@/lib/address";
 import { maritalOptions, schoolOptions, UNSAID } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
 
@@ -26,13 +27,6 @@ const DATE_LABELS = () => ({
   year: t("date.year"),
   today: t("date.today"),
 });
-
-/** The address as one line, for reading rather than editing. */
-const oneLine = (a: AddressValues) =>
-  [a.line1, a.line2, a.city, [a.region, a.postalCode].filter(Boolean).join(" ")]
-    .map((part) => part?.trim())
-    .filter(Boolean)
-    .join(", ");
 
 /**
  * A field somebody may leave unanswered.
@@ -289,7 +283,7 @@ export function ProfileForm({
               t("settings.profile.birthday"),
               values.dateOfBirth ? longDate(values.dateOfBirth) : "",
             ],
-            [t("person.address"), oneLine(values.address)],
+            [t("person.address"), oneLineAddress(values.address)],
             [
               t("person.maritalStatus"),
               values.maritalStatus ? t(`marital.${values.maritalStatus}` as never) : "",

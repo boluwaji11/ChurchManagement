@@ -17,7 +17,8 @@ import {
   maritalOptions, schoolOptions, UNSAID,
   type PersonErrors,
 } from "@/lib/person-input";
-import { AddressFields, emptyAddress, type AddressValues } from "@/components/address-fields";
+import { AddressFields } from "@/components/address-fields";
+import { emptyAddress, type AddressValues } from "@/lib/address";
 import { savePerson } from "./actions";
 import { CustomFieldInputs, type FieldDef, type FieldValues } from "./custom-fields";
 
