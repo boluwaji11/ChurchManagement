@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Download } from "lucide-react";
-import { Banner, Button, Working } from "@hearth/ui";
+import { Banner, IconButton, Working } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
 /**
@@ -58,14 +58,14 @@ export function DownloadRow({
         <Banner tone="danger" title={t("settings.tab.export")}>{error}</Banner>
       ) : null}
 
-      <Button
-        variant="secondary"
-        className="min-h-[34px] px-3 text-[13px]"
+      <IconButton
+        label={t("settings.export.download")}
+        variant="ghost"
         disabled={busy}
         onClick={() => void run()}
       >
-        <Download /> {t("settings.export.download")}
-      </Button>
+        <Download />
+      </IconButton>
     </>
   );
 }

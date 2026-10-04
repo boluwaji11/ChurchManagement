@@ -8,7 +8,11 @@ import { DownloadRow } from "./download";
 
 export const dynamic = "force-dynamic";
 
-/** R19.8. What can be taken, what is in it, and the file it arrives as. */
+/**
+ * R19.8. What can be taken, what is in it, and the name the browser saves it
+ * under. The file name is not drawn: a church recognises "People", and
+ * "people.csv" is a detail of the download rather than a choice to read.
+ */
 const ROWS: Array<{ name: MessageKey; what: MessageKey; file: string; only?: string }> = [
   { name: "settings.export.people", what: "settings.export.peopleWhat", file: "people.csv", only: "people" },
   { name: "settings.export.households", what: "settings.export.householdsWhat", file: "households.csv", only: "households" },
@@ -41,8 +45,6 @@ export default async function ExportPage() {
               <span className="block font-medium text-fg">{t(row.name)}</span>
               <span className="block text-[12px] text-fg-subtle">{t(row.what)}</span>
             </span>
-
-            <span className="font-mono text-[12px] text-fg-subtle">{row.file}</span>
 
             <DownloadRow church={session.tenantSlug} only={row.only} file={row.file} />
           </div>
