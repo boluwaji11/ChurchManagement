@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, XCircle, X, AlertTriangle } from "lucide-react";
-import { Avatar, Banner, Combobox, cn } from "@hearth/ui";
+import { CheckCircle2, Clock, XCircle, X, AlertTriangle, Plus } from "lucide-react";
+import { Avatar, Banner, Button, Combobox, Input, cn } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
-import { schedule, unschedule } from "./actions";
+import { schedule, unschedule, whoCouldFill, savePosition } from "./actions";
+import type { PlanCandidate } from "@hearth/db";
 
 export interface GridService {
   id: string;
@@ -44,6 +45,140 @@ export interface GridVolunteer {
   away: boolean;
 }
 
+/** R10.2. One more position on this team, from the bottom of its grid. */
+function AddPosition({ church, teamId }: { church: string; teamId: string }) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+
+  const save = () => {
+    if (!name.trim()) return;
+    startTransition(async () => {
+      const result = await savePosition(
+        null,
+        { teamId, name: name.trim(), needed: 1, withChildren: false, requiresCheck: false },
+        church,
+      );
+      setError(result.error);
+      if (!result.error) {
+        setName("");
+        setOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex w-full items-center gap-2 border-t border-line bg-sunken px-4 py-3 text-left font-medium text-primary hover:bg-line"
+      >
+        <Plus className="size-4" aria-hidden /> {t("serving.addPosition")}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-line bg-sunken px-4 py-3">
+      <Input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") save();
+          if (e.key === "Escape") setOpen(false);
+        }}
+        aria-label={t("serving.position.name")}
+        className="max-w-[260px]"
+      />
+      <Button onClick={save} disabled={pending || !name.trim()}>{t("action.add")}</Button>
+      <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+      {error ? <span className="text-[12px] text-danger-text">{error}</span> : null}
+    </div>
+  );
+}
+
+/**
+ * R10.3. Filling one slot.
+ *
+ * The list is this team's own people, with the ones who play this position
+ * first, because a leader filling Drums is choosing between drummers.
+ */
+function FillSlot({
+  church,
+  teamId,
+  positionId,
+  occurrenceId,
+  onFilled,
+}: {
+  church: string;
+  teamId: string;
+  positionId: string;
+  occurrenceId: string;
+  onFilled: () => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [who, setWho] = React.useState<PlanCandidate[]>([]);
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+
+  const look = () => {
+    setOpen(true);
+    startTransition(async () => {
+      setWho(await whoCouldFill({ teamId, positionId, occurrenceId }, church));
+    });
+  };
+
+  const pick = (personId: string) => {
+    startTransition(async () => {
+      const result = await schedule(
+        { occurrenceId, teamId, positionId, personId, anyway: true },
+        church,
+      );
+      setError(result.error);
+      if (!result.error) {
+        setOpen(false);
+        onFilled();
+      }
+    });
+  };
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={look}
+        className="w-full cursor-pointer rounded-sm px-1 py-0.5 text-left text-[12px] text-fg-subtle hover:bg-sunken hover:text-fg"
+      >
+        {t("serving.openSlot")}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Combobox
+        aria-label={t("serving.fill")}
+        options={who.map((one) => ({
+          value: one.personId,
+          label: one.name,
+          keywords: one.plays ? t("serving.fill.plays") : undefined,
+        }))}
+        value=""
+        onChange={pick}
+        emptyLabel={t("serving.fill.none")}
+        clearLabel={t("date.clear")}
+        disabled={pending}
+      />
+      {error ? <span className="text-[11px] text-danger-text">{error}</span> : null}
+    </div>
+  );
+}
+
 /** R10.6. What a reply looks like in a cell. */
 const LOOK = {
   accepted: { icon: CheckCircle2, hue: "fern" },
@@ -66,6 +201,7 @@ export function ScheduleGrid({
   services,
   slots,
   volunteers,
+  canManage,
   onTeam,
 }: {
   church: string;
@@ -75,6 +211,8 @@ export function ScheduleGrid({
   services: GridService[];
   slots: GridSlot[];
   volunteers: GridVolunteer[];
+  /** Whether this person may change the team itself. */
+  canManage: boolean;
   onTeam: (id: string) => void;
 }) {
   const router = useRouter();
@@ -133,9 +271,6 @@ export function ScheduleGrid({
           clearLabel={t("date.clear")}
           clearable={false}
         />
-        <span className="text-[13px] text-fg-subtle">
-          {plural("serving.teamCount", teams.length)}
-        </span>
       </div>
 
       <div className="flex flex-wrap items-start gap-5">
@@ -238,9 +373,13 @@ export function ScheduleGrid({
                           ) : null}
                         </>
                       ) : (
-                        <span className="px-1 text-[12px] text-fg-subtle">
-                          {t("serving.openSlot")}
-                        </span>
+                        <FillSlot
+                          church={church}
+                          teamId={team.id}
+                          positionId={position.id}
+                          occurrenceId={service.id}
+                          onFilled={() => router.refresh()}
+                        />
                       )}
                     </div>
                   );
@@ -248,6 +387,9 @@ export function ScheduleGrid({
               </React.Fragment>
             ))}
           </div>
+
+          {/* R10.2. A position the rota is missing, added where it is missed. */}
+          {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
         </section>
 
         {/* R10.3. Who is on this team, with what they are already doing, so a

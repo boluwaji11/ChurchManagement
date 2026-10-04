@@ -1,8 +1,9 @@
+import * as React from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  withTenant, listTeams, getTeam, getChurch, answerCounts, upcomingServices,
+  withTenant, listTeams, getTeam, getChurch, answerCounts, listOccurrences,
   assignmentsForTeam, assignmentsForPerson, blockoutsFor, openSlots,
   canManageTeams, canLeadTeams,
 } from "@hearth/db";
@@ -18,6 +19,32 @@ import { SendRequests } from "./send-requests";
 
 export const dynamic = "force-dynamic";
 
+/** One of the three controls that move the schedule a month at a time. */
+function MonthStep({
+  church,
+  at,
+  team,
+  label,
+  children,
+}: {
+  church: string;
+  at: string;
+  team?: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  const query = new URLSearchParams({ church, at, ...(team ? { team } : {}) });
+  return (
+    <Link
+      href={`/serving?${query.toString()}`}
+      aria-label={label}
+      className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
+    >
+      {children}
+    </Link>
+  );
+}
+
 /** How many gatherings the grid shows. A month of weekends, as the design draws. */
 const COLUMNS = 4;
 
@@ -31,7 +58,9 @@ const COLUMNS = 4;
 export default async function ServingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string; view?: string; team?: string }>;
+  searchParams: Promise<{
+    church?: string; archived?: string; view?: string; team?: string; at?: string;
+  }>;
 }) {
   const params = await searchParams;
   const session = await requireSession(params.church);
@@ -43,6 +72,7 @@ export default async function ServingPage({
   const canManage = canManageTeams(session.role);
   const showArchived = canManage && params.archived === "1";
   const view = params.view === "teams" ? "teams" : "schedule";
+  const asked = /^\d{4}-\d{2}$/.test(params.at ?? "") ? params.at! : null;
 
   const data = await withTenant(
     { tenantId: session.tenantId, role: session.role },
@@ -53,7 +83,25 @@ export default async function ServingPage({
       const live = found.filter((one) => one.archivedAt === null);
 
       const chosen = live.find((one) => one.id === params.team) ?? live[0] ?? null;
-      const services = await upcomingServices(tx, { from: clock.date, limit: COLUMNS });
+
+      /*
+       * R10.3. A month at a time. The month in the URL, so a leader planning
+       * December can send somebody the link to it.
+       */
+      const month = asked ?? clock.date.slice(0, 7);
+      const [y, m] = month.split("-").map(Number);
+      const last = new Date(Date.UTC(y!, m!, 0)).getUTCDate();
+      const services = (
+        await listOccurrences(tx, {
+          from: `${month}-01`,
+          to: `${month}-${String(last).padStart(2, "0")}`,
+        })
+      )
+        .sort(
+          (a, b) =>
+            a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
+        )
+        .slice(0, COLUMNS);
 
       const team = chosen ? await getTeam(tx, chosen.id) : null;
       const slots =
@@ -98,6 +146,7 @@ export default async function ServingPage({
 
       return {
         clock,
+        month,
         pending,
         teams: found,
         live,
@@ -122,9 +171,16 @@ export default async function ServingPage({
   const waiting = Object.values(data.counts).reduce((n, one) => n + one.pending, 0);
   const stillOpen = data.live.reduce((n, one) => n + openOf(one.id), 0);
 
-  const month = new Date(`${data.clock.date}T00:00:00`).toLocaleDateString(undefined, {
+  const month = new Date(`${data.month}-01T00:00:00`).toLocaleDateString(undefined, {
     month: "long",
+    ...(data.month.slice(0, 4) === data.clock.date.slice(0, 4) ? {} : { year: "numeric" }),
   });
+
+  const shiftMonth = (by: number) => {
+    const [y, m] = data.month.split("-").map(Number);
+    const at = new Date(Date.UTC(y!, m! - 1 + by, 1));
+    return `${at.getUTCFullYear()}-${String(at.getUTCMonth() + 1).padStart(2, "0")}`;
+  };
 
   const action =
     view === "teams" ? (
@@ -162,14 +218,55 @@ export default async function ServingPage({
       <ServingViews
         church={session.tenantSlug}
         view={view}
+        canManage={canManage}
         heading={
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-[28px] leading-[34px] text-fg">
-            {view === "teams"
-              ? t("serving.view.teams")
-              : t("serving.schedule.title", { month })}
-          </h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display text-[28px] leading-[34px] text-fg">
+              {view === "teams"
+                ? t("serving.view.teams")
+                : t("serving.schedule.title", { month })}
+            </h2>
+
+            {view === "schedule" ? (
+              <span className="flex items-center gap-2">
+                <MonthStep
+                  church={session.tenantSlug}
+                  at={shiftMonth(-1)}
+                  team={data.chosen?.id}
+                  label={t("serving.earlier")}
+                >
+                  <ChevronLeft className="size-4" aria-hidden />
+                </MonthStep>
+                <MonthStep
+                  church={session.tenantSlug}
+                  at={data.clock.date.slice(0, 7)}
+                  team={data.chosen?.id}
+                  label={t("serving.now")}
+                >
+                  <span
+                    aria-hidden
+                    className="size-2 rounded-full"
+                    style={{
+                      background:
+                        data.month === data.clock.date.slice(0, 7)
+                          ? "var(--color-fg)"
+                          : "var(--color-fg-subtle)",
+                    }}
+                  />
+                </MonthStep>
+                <MonthStep
+                  church={session.tenantSlug}
+                  at={shiftMonth(1)}
+                  team={data.chosen?.id}
+                  label={t("serving.later")}
+                >
+                  <ChevronRight className="size-4" aria-hidden />
+                </MonthStep>
+              </span>
+            ) : null}
+          </div>
           <p className="mt-1 text-fg-muted">
             {view === "teams"
               ? plural("serving.teamCount", data.live.length)

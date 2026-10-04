@@ -17,6 +17,7 @@ export function ServingViews({
   view,
   heading,
   schedule,
+  canManage,
   teams: teamsView,
 }: {
   church: string;
@@ -30,6 +31,8 @@ export function ServingViews({
     slots: GridSlot[];
     volunteers: GridVolunteer[];
   } | null;
+  /** Whether this person may change a team. */
+  canManage: boolean;
   teams: React.ReactNode;
   /** The heading and its summary, which sit under the two tabs. */
   heading: React.ReactNode;
@@ -79,6 +82,7 @@ export function ServingViews({
           services={schedule.services}
           slots={schedule.slots}
           volunteers={schedule.volunteers}
+          canManage={canManage}
           onTeam={(id) => go({ team: id })}
         />
       ) : (
