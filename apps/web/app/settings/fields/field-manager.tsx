@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
 import {
   Banner, Button, IconButton, Input, Textarea, Field,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -172,15 +173,54 @@ function FieldSheet({
         footer={
           <>
             {field ? (
-              <IconButton
-                label={t("fields.deleteOne", { name: field.label })}
-                variant="ghost"
-                className="mr-auto"
-                disabled={pending}
-                onClick={() => setConfirming(true)}
-              >
-                <Trash2 />
-              </IconButton>
+              /*
+               * Deleting a field takes every answer recorded in it with it, so
+               * it asks in a box of its own. The one place a confirmation sits
+               * over a pane rather than inside it: an inline red panel in the
+               * middle of a form is a warning somebody scrolls past.
+               */
+              <Dialog open={confirming} onOpenChange={setConfirming}>
+                <DialogTrigger asChild>
+                  <IconButton
+                    label={t("fields.deleteOne", { name: field.label })}
+                    variant="ghost"
+                    className="mr-auto"
+                    disabled={pending}
+                  >
+                    <Trash2 />
+                  </IconButton>
+                </DialogTrigger>
+
+                <DialogContent
+                  alert
+                  title={t("fields.deleteOne", { name: field.label })}
+                  closeLabel={t("common.close")}
+                >
+                  <p className="text-[length:var(--d-text-body)] text-fg">
+                    {t("fields.deleteBody")}
+                  </p>
+
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
+                      {t("fields.keep")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      disabled={pending}
+                      onClick={() => {
+                        const data = new FormData();
+                        data.set("church", church);
+                        data.set("id", field.id);
+                        setConfirming(false);
+                        void run(removeField, data);
+                      }}
+                    >
+                      {t("fields.deleteAction", { name: field.label })}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             ) : null}
 
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
@@ -198,25 +238,6 @@ function FieldSheet({
         }
       >
         {error ? <Banner tone="danger" title={t("fields.failed")}>{error}</Banner> : null}
-
-        {confirming && field ? (
-          <form
-            action={(d) => run(removeField, d)}
-            className="flex flex-col gap-3 rounded-[14px] border border-danger bg-surface p-4"
-          >
-            <input type="hidden" name="church" value={church} />
-            <input type="hidden" name="id" value={field.id} />
-            <p className="text-[length:var(--d-text-body)] text-fg">{t("fields.deleteBody")}</p>
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
-                {t("fields.keep")}
-              </Button>
-              <Button type="submit" variant="danger" loading={pending}>
-                {t("fields.deleteAction", { name: field.label })}
-              </Button>
-            </div>
-          </form>
-        ) : null}
 
         <form
           id="field-form"
