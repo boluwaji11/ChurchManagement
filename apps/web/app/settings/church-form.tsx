@@ -192,13 +192,23 @@ export function ChurchForm({
 const EMPTY = "\u2014";
 
 /**
+ * A church writes "example.com" rather than a scheme, so one is put in front of
+ * it to make a link. An address that already carries one is left as written.
+ */
+function href(website: string | null): string | undefined {
+  const clean = website?.trim();
+  if (!clean) return undefined;
+  return /^https?:\/\//i.test(clean) ? clean : `https://${clean}`;
+}
+
+/**
  * R1.1. The profile as a church reads it back.
  *
  * The same grid the form uses, so switching into editing moves nothing on the
  * screen except the boxes appearing around the words.
  */
 function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: string }) {
-  const rows: Array<[string, string | null]> = [
+  const rows: Array<[string, string | null, string?]> = [
     [t("church.name"), values.name],
     [t("church.legalName"), values.legalName],
     [t("church.address"), [values.addressLine1, values.addressLine2].filter(Boolean).join(", ")],
@@ -207,17 +217,30 @@ function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: s
     [t("church.postalCode"), values.postalCode],
     [t("church.country"), values.country],
     [t("church.phone"), values.phone],
-    [t("church.website"), values.website],
+    [t("church.website"), values.website, href(values.website)],
     [t("church.timezone"), values.timezone.replace(/_/g, " ")],
   ];
 
   return (
     <dl className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
-      {rows.map(([label, value]) => (
+      {rows.map(([label, value, link]) => (
         <div key={label} className="flex min-w-0 flex-col gap-0.5">
           <dt className="text-label text-fg-subtle">{label}</dt>
           <dd className="truncate text-[length:var(--d-text-body)] text-fg">
-            {value?.trim() ? value : EMPTY}
+            {!value?.trim() ? (
+              EMPTY
+            ) : link ? (
+              <a
+                href={link}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                {value}
+              </a>
+            ) : (
+              value
+            )}
           </dd>
         </div>
       ))}
