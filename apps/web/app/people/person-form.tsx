@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  Input, Field, Banner, cn,
+  Avatar, Input, Field, Banner, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { PhoneInput } from "@/components/phone-input";
@@ -83,14 +83,11 @@ function HouseholdMembers({
               href={`/people/${member.id}?church=${church}`}
               className="flex items-center gap-2.5"
             >
-              <span className="absolute -left-6 grid size-6 place-items-center rounded-full border-2 border-surface bg-sunken text-[10px] font-semibold text-fg-muted">
-                {member.name
-                  .split(/\s+/)
-                  .slice(0, 2)
-                  .map((part) => part[0] ?? "")
-                  .join("")
-                  .toUpperCase()}
-              </span>
+              <Avatar
+                name={member.name}
+                id={member.id}
+                className="absolute -left-6 size-6 border-2 border-surface text-[10px] font-semibold"
+              />
               <span className="min-w-0 flex-1 truncate font-medium text-primary">
                 {member.name}
               </span>

@@ -23,17 +23,6 @@ export const dynamic = "force-dynamic";
 /** What a field with nothing in it reads as. */
 const EMPTY = "—";
 
-/** First letters, for the household faces. */
-function initialsOf(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0] ?? "")
-    .join("")
-    .toUpperCase();
-}
-
 /**
  * R24.6. One card in the person's grid.
  *
@@ -231,9 +220,11 @@ export default async function PersonPage({
           {household && household.members.length > 0 ? (
             household.members.map((m) => (
               <span key={m.id} className="flex items-center gap-2.5">
-                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-sunken text-[11px] font-semibold text-fg-muted">
-                  {initialsOf(m.displayName)}
-                </span>
+                <Avatar
+                  name={m.displayName}
+                  id={m.id}
+                  className="size-7 text-[11px] font-semibold"
+                />
                 <span className="min-w-0 flex-1 truncate font-medium text-fg">{m.displayName}</span>
                 <span className="text-[13px] text-fg-subtle">
                   {t(`householdRole.${m.role}` as never)}
