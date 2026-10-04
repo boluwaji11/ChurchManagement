@@ -7,8 +7,8 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
-import Link from "next/link";
 import { Board, DragHint, type BoardCard, type BoardStage } from "./board";
+import { PipelinePicker } from "./pipeline-picker";
 
 export const dynamic = "force-dynamic";
 
@@ -93,25 +93,12 @@ export default async function FollowUpsPage({
 
   return (
     <AppShell session={session} title={t("queue.title")}>
-      {/* A church runs several of these at once, and the design draws one. The
-          pills are how you get to the others. */}
       {pipelines.length > 1 ? (
-        <div className="flex flex-wrap gap-2">
-          {pipelines.map((one) => (
-            <Link
-              key={one.id}
-              href={`/followups?church=${session.tenantSlug}&pipeline=${one.id}`}
-              aria-current={one.id === pipeline?.id ? "page" : undefined}
-              className={`flex h-[34px] items-center rounded-full px-3.5 text-[13px] font-medium ${
-                one.id === pipeline?.id
-                  ? "border border-fg bg-fg text-canvas"
-                  : "border border-line-strong bg-surface text-fg hover:bg-sunken"
-              }`}
-            >
-              {one.name}
-            </Link>
-          ))}
-        </div>
+        <PipelinePicker
+          church={session.tenantSlug}
+          pipelines={pipelines.map((one) => ({ id: one.id, name: one.name }))}
+          current={pipeline?.id ?? ""}
+        />
       ) : null}
 
       <div className="flex flex-wrap items-end justify-between gap-3">

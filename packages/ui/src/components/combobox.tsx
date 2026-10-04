@@ -19,6 +19,8 @@ export interface ComboboxProps {
   /** Shown when nothing matches what was typed. */
   emptyLabel: string;
   clearLabel: string;
+  /** False where the field always holds one of its options. */
+  clearable?: boolean;
   "aria-label"?: string;
   id?: string;
   disabled?: boolean;
@@ -46,6 +48,7 @@ export function Combobox({
   placeholder,
   emptyLabel,
   clearLabel,
+  clearable = true,
   id,
   disabled,
   className,
@@ -163,7 +166,7 @@ export function Combobox({
           {...rest}
         />
 
-        {chosen && !disabled ? (
+        {chosen && clearable && !disabled ? (
           <button
             type="button"
             aria-label={clearLabel}

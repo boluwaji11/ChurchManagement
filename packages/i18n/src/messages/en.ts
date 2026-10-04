@@ -998,6 +998,7 @@ export const en = {
   "board.waiting.one": "{count} day",
   "board.waiting.other": "{count} days",
   "board.none.title": "Nobody in this one",
+  "board.noPipeline": "No pipeline by that name",
   "queue.week": "This week",
   "queue.later": "Later",
   "queue.nobody": "Nobody has these",
