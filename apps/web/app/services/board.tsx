@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ChevronRight, LayoutGrid, List } from "lucide-react";
-import { Button, cn } from "@hearth/ui";
+import { cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
 export interface ServiceCard {
@@ -82,13 +82,13 @@ export function ServiceBoard({
           )}
 
           {shown < upcoming.length ? (
-            <Button
-              variant="secondary"
-              className="self-start"
+            <button
+              type="button"
               onClick={() => setShown((n) => n + PAGE)}
+              className="self-start rounded-sm px-1 py-1 font-medium text-primary hover:underline"
             >
               {t("services.showMore")}
-            </Button>
+            </button>
           ) : null}
         </div>
 

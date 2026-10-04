@@ -16,7 +16,7 @@ import {
 import { t } from "@hearth/i18n";
 import type { ItemKind } from "@hearth/db";
 import {
-  saveHeader, saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
+  saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
   keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom,
 } from "./actions";
 
@@ -298,10 +298,6 @@ export function Order({
         />
       </section>
 
-      {/* R11.1. The series and the theme sit under the order rather than over
-          it: they are filled in once and read from the heading afterwards. */}
-      <Header church={church} planId={planId} series={series} theme={theme} />
-
       <div className="flex flex-wrap items-center gap-2">
         {/* R11.8. The same shape most weeks, filled in differently. The kinds,
             the titles and the lengths come over. Last week's notes, files and
@@ -320,55 +316,6 @@ export function Order({
           empty={timed.length === 0}
         />
       </div>
-    </div>
-  );
-}
-
-/** R11.1. The series and the theme, which a church fills in once a term. */
-function Header({
-  church,
-  planId,
-  series,
-  theme,
-}: {
-  church: string;
-  planId: string;
-  series: string | null;
-  theme: string | null;
-}) {
-  const router = useRouter();
-  const [values, setValues] = React.useState({ series: series ?? "", theme: theme ?? "" });
-  const [pending, startTransition] = React.useTransition();
-
-  const save = () => {
-    startTransition(async () => {
-      await saveHeader(
-        planId,
-        { series: values.series || null, theme: values.theme || null },
-        church,
-      );
-      router.refresh();
-    });
-  };
-
-  return (
-    <div className="grid gap-4 sm:grid-cols-2" aria-busy={pending}>
-      <Field label={t("order.series")}>
-        <Input
-          value={values.series}
-          onChange={(e) => setValues({ ...values, series: e.target.value })}
-          onBlur={save}
-          autoComplete="off"
-        />
-      </Field>
-      <Field label={t("order.theme")}>
-        <Input
-          value={values.theme}
-          onChange={(e) => setValues({ ...values, theme: e.target.value })}
-          onBlur={save}
-          autoComplete="off"
-        />
-      </Field>
     </div>
   );
 }

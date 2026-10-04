@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
 /** How many show at a time, and how many each press adds. */
@@ -48,9 +47,13 @@ export function PlanTabs({
       ))}
 
       {shown < tabs.length ? (
-        <Button variant="secondary" onClick={() => setShown((n) => n + PAGE)}>
+        <button
+          type="button"
+          onClick={() => setShown((n) => n + PAGE)}
+          className="rounded-sm px-1 py-1 font-medium text-primary hover:underline"
+        >
           {t("services.showMore")}
-        </Button>
+        </button>
       ) : null}
     </div>
   );
