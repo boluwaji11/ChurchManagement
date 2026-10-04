@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
-import { Banner, Button, Dialog, DialogTrigger, DialogContent, Working } from "@hearth/ui";
+import { Trash2, Upload } from "lucide-react";
+import { Banner, IconButton, Dialog, DialogTrigger, DialogContent, Working } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearLogo } from "./actions";
 
@@ -65,22 +65,19 @@ export function ChurchLogo({
   };
 
   return (
-    <section
-      className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
-      aria-busy={busy}
-    >
+    <div className="flex flex-col gap-3" aria-busy={busy}>
       <Working open={busy} label={t("church.logo.uploading")} />
 
       {error ? <Banner tone="danger" title={t("church.logo")}>{error}</Banner> : null}
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex items-center gap-4">
         {logoUrl ? (
           <Dialog>
             <DialogTrigger asChild>
               <button
                 type="button"
                 aria-label={t("church.logo.view")}
-                className="size-16 shrink-0 cursor-pointer overflow-hidden rounded-[14px] border border-line bg-canvas p-1 hover:border-line-strong"
+                className="size-14 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-line bg-canvas p-1 hover:border-line-strong"
               >
                 <img
                   src={logoUrl}
@@ -100,12 +97,12 @@ export function ChurchLogo({
         ) : (
           /* R1.1. The church's first letter until there is a logo, which is
              what the design draws and what a label prints meanwhile. */
-          <span className="grid size-16 shrink-0 place-items-center rounded-[14px] bg-primary font-display text-[26px] text-primary-fg">
+          <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg">
             {churchName.trim().charAt(0).toUpperCase()}
           </span>
         )}
 
-        <span className="flex-[1_1_220px] font-semibold text-fg">{t("church.logo")}</span>
+        <span className="flex-1 font-medium text-fg">{t("church.logo")}</span>
 
         {canEdit ? (
           <>
@@ -119,24 +116,24 @@ export function ChurchLogo({
                 if (file) void upload(file);
               }}
             />
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1">
               {logoUrl ? (
-                <Button type="button" variant="ghost" onClick={remove}>
-                  <X /> {t("church.logo.remove")}
-                </Button>
+                <IconButton label={t("church.logo.remove")} variant="ghost" onClick={remove}>
+                  <Trash2 />
+                </IconButton>
               ) : null}
-              <Button
-                type="button"
+              <IconButton
+                label={t("church.logo.upload")}
                 variant="secondary"
                 disabled={busy}
                 onClick={() => input.current?.click()}
               >
-                {t("church.logo.upload")}
-              </Button>
+                <Upload />
+              </IconButton>
             </div>
           </>
         ) : null}
       </div>
-    </section>
+    </div>
   );
 }

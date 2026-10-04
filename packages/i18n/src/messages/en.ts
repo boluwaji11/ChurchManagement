@@ -331,6 +331,7 @@ export const en = {
   "place.campus": "Campus",
   "place.failed": "That did not save. Try again.",
   "church.logo.uploading": "Uploading",
+  "church.details": "Details",
   "settings.export.building": "Building your export",
   "settings.export.failed": "That export did not finish. Try again.",
   "import.running": "Working through your file",
@@ -601,8 +602,6 @@ export const en = {
 
   /* R1.4. What each built-in role can see, as the team screen lists them. */
   "roles.title": "What each role can see",
-  "roles.people.one": "1 person",
-  "roles.people.other": "{count} people",
   "role.owner.what": "Everything, including confidential pastoral notes and giving amounts. The one role that cannot be removed.",
   "role.admin.what": "The whole church except confidential notes and giving amounts. Settings, rooms, stations and who else gets in.",
   "role.staff.what": "People, services, groups, teams and attendance. Cannot archive a person or change settings.",

@@ -41,11 +41,17 @@ export default async function SettingsPage({
     <div className="flex flex-col gap-5">
       <SettingsHeading title="settings.tab.church" lede="settings.lede.church" />
         {profile ? (
-          <ChurchLogo
-            church={session.tenantSlug}
-            churchName={session.tenantName}
-            logoUrl={logoUrl}
+          <ChurchForm
+            values={profile}
             canEdit={canManageChurch(session.role)}
+            logo={
+              <ChurchLogo
+                church={session.tenantSlug}
+                churchName={session.tenantName}
+                logoUrl={logoUrl}
+                canEdit={canManageChurch(session.role)}
+              />
+            }
           />
         ) : null}
 
@@ -54,13 +60,6 @@ export default async function SettingsPage({
           campus={campus}
           canEdit={canManageChurch(session.role)}
         />
-
-        {profile ? (
-          <ChurchForm
-            values={profile}
-            canEdit={canManageChurch(session.role)}
-          />
-        ) : null}
     </div>
   );
 }

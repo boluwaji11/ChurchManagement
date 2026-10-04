@@ -31,9 +31,12 @@ function timezones(): string[] {
 export function ChurchForm({
   values,
   canEdit,
+  logo,
 }: {
   values: ChurchValues;
   canEdit: boolean;
+  /** R1.1. The logo row, which opens this section. */
+  logo?: React.ReactNode;
 }) {
   const [timezone, setTimezone] = React.useState(values.timezone);
   const [country, setCountry] = React.useState(values.country || "US");
@@ -68,7 +71,16 @@ export function ChurchForm({
 
       {/* R1.1. The design lays these out as a grid that fills the room it has
           rather than two fixed columns, so a wide screen reads three across. */}
-      <section className="rounded-[14px] border border-line bg-surface p-5">
+      <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
+        <span className="font-semibold text-fg">{t("church.details")}</span>
+
+        {logo ? (
+          <>
+            {logo}
+            <hr className="border-0 border-t border-line" />
+          </>
+        ) : null}
+
         <form action={save} noValidate className="flex flex-col gap-4">
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
             <Field label={t("church.name")} required>

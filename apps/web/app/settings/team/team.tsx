@@ -2,13 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, RefreshCw, Copy, DoorOpen } from "lucide-react";
+import { Plus, X, RefreshCw, Copy, DoorOpen, HelpCircle } from "lucide-react";
 import {
   Avatar, Badge, Banner, Button, IconButton, Card, CardTitle, CodeDisplay, Field, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { invite, withdraw, changeRole, removeAccess, newJoinCode, stopJoining } from "./actions";
 
 export interface Member {
@@ -28,8 +29,10 @@ export interface Invitation {
   expiresAt: string;
 }
 
+/** R1.4. The built-in roles, widest reach first, which is the order they read in. */
 const ROLES = [
-  "owner", "admin", "staff", "pastoral", "finance", "group_leader", "checkin_volunteer", "member",
+  "owner", "admin", "staff", "pastoral", "finance",
+  "group_leader", "team_leader", "checkin_volunteer", "member",
 ] as const;
 
 const roleName = (role: string) => t(`role.${role}` as never);
@@ -201,7 +204,10 @@ export function Team({
                 {t("team.person")}
               </th>
               <th className="w-66 px-5 py-3 text-[12px] font-medium text-fg-subtle">
-                {t("team.roleColumn")}
+                <span className="flex items-center gap-1">
+                  {t("team.roleColumn")}
+                  <RoleGuide />
+                </span>
               </th>
               <th className="w-44 px-5 py-3 text-[12px] font-medium text-fg-subtle">
                 {t("team.lastSignedIn")}
@@ -275,8 +281,6 @@ export function Team({
           </tbody>
         </table>
       </div>
-
-      <RoleGuide members={members} />
 
       <Card>
         <CardTitle>{t("joining.title")}</CardTitle>
@@ -357,9 +361,10 @@ export function Team({
 /**
  * R1.4. What each built-in role can see.
  *
- * The dropdown in the table above offers nine words and no way to tell them
- * apart, which leaves an administrator guessing what they are handing somebody.
- * Each card says what that role reaches and how many people currently hold it.
+ * The dropdown offers nine words and no way to tell them apart, which leaves an
+ * administrator guessing what they are handing somebody. The question mark on
+ * the Role column opens this: the roles down a single line, widest reach at the
+ * top, each saying what it reaches.
  *
  * A hue per role, from the same twelve the rest of the product assigns, so a
  * role reads the same here as it does anywhere a role is shown.
@@ -376,48 +381,44 @@ const ROLE_HUES: Record<string, string> = {
   member: "clay",
 };
 
-const GUIDE = [
-  "owner", "admin", "staff", "pastoral", "finance",
-  "group_leader", "team_leader", "checkin_volunteer", "member",
-] as const;
-
-function RoleGuide({ members }: { members: Member[] }) {
-  const held = React.useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const member of members) counts.set(member.role, (counts.get(member.role) ?? 0) + 1);
-    return counts;
-  }, [members]);
-
+function RoleGuide() {
   return (
-    <div className="flex flex-col gap-3">
-      <h2 className="font-display text-[22px] leading-7 text-fg">{t("roles.title")}</h2>
+    <Sheet>
+      <SheetTrigger asChild>
+        <IconButton
+          label={t("roles.title")}
+          variant="ghost"
+          className="size-6 min-h-0 [&_svg]:size-4"
+        >
+          <HelpCircle />
+        </IconButton>
+      </SheetTrigger>
 
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
-        {GUIDE.map((role) => (
-          <section
-            key={role}
-            className="flex flex-col gap-1.5 rounded-[14px] border border-line bg-surface p-4"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 font-semibold text-fg">
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: `var(--hue-${ROLE_HUES[role]}-500)` }}
-                />
-                {roleName(role)}
-              </span>
-              <span className="text-[12px] text-fg-subtle">
-                {plural("roles.people", held.get(role) ?? 0)}
-              </span>
-            </div>
+      <SheetContent title={t("roles.title")} closeLabel={t("common.close")}>
+        {/* The line runs behind the dots, so the roles read as one ladder from
+            the whole church down to one person's own record. */}
+        <ol className="relative flex flex-col gap-5 pl-6">
+          <span
+            aria-hidden
+            className="absolute top-2 bottom-2 left-[5px] w-px bg-line-strong"
+          />
 
-            <p className="text-[13px] leading-[18px] text-fg-muted">
-              {t(`role.${role}.what` as never)}
-            </p>
-          </section>
-        ))}
-      </div>
-    </div>
+          {ROLES.map((role) => (
+            <li key={role} className="relative">
+              <span
+                aria-hidden
+                className="absolute top-1.5 -left-6 size-[11px] rounded-full border-2 border-canvas"
+                style={{ background: `var(--hue-${ROLE_HUES[role]}-500)` }}
+              />
+              <span className="block font-semibold text-fg">{roleName(role)}</span>
+              <span className="block text-[13px] leading-[18px] text-fg-muted">
+                {t(`role.${role}.what` as never)}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </SheetContent>
+    </Sheet>
   );
 }
 
