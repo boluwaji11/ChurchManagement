@@ -105,7 +105,7 @@ export default async function IncidentsPage({
         <ArrowLeft className="size-4" /> {t("checkin.title")}
       </Link>
 
-      <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("incident.reports")}</h2>
+      <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("incident.reports")}</h2>
 
       {incidents.length === 0 ? (
         <Empty icon="incident" title={t("incident.none.title")} action={filing} />

@@ -155,7 +155,7 @@ export function Sidebar({
             "flex w-full items-center gap-2.5 text-left",
             collapsed
               ? "justify-center rounded-md border border-transparent p-1"
-              : "rounded-md border border-line bg-surface p-2 hover:border-line-strong",
+              : "rounded-md border border-line bg-surface p-2 hover:bg-sunken",
           )}
         >
           <Avatar name={personName} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />

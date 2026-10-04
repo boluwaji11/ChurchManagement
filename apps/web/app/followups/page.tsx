@@ -109,7 +109,7 @@ export default async function FollowUpsPage({
             current={pipeline?.id ?? ""}
           />
         ) : (
-          <h2 className="font-display text-[28px] leading-[34px] text-fg">
+          <h2 className="font-display text-[22px] leading-[28px] text-fg">
             {pipeline?.name ?? t("queue.title")}
           </h2>
         )}

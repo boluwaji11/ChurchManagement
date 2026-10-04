@@ -39,7 +39,7 @@ export function ThemeChoice({ current }: { current: Theme }) {
             "flex flex-[1_1_140px] cursor-pointer flex-col items-start gap-2.5 rounded-[14px] bg-surface p-4 text-left font-medium",
             chosen === value
               ? "border-[1.5px] border-primary text-fg"
-              : "border border-line text-fg-muted hover:border-line-strong hover:text-fg",
+              : "border border-line text-fg-muted hover:bg-sunken hover:text-fg",
           )}
         >
           <Icon className="size-5" aria-hidden />

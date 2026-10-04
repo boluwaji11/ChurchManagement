@@ -8,6 +8,7 @@ import {
   Banner, Button, IconButton, Field, HueDot, Input,
   Sheet, SheetTrigger, SheetContent, Switch,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  LIFT,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
@@ -86,7 +87,7 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
           {open.map((room) => (
             <section
               key={room.id}
-              className="relative flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 hover:border-line-strong"
+              className={`relative flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 ${LIFT}`}
             >
               {/* R24.6. The whole tile opens the room. The trigger is a layer
                   over the card rather than a wrapper around it, so the capacity

@@ -23,7 +23,7 @@ export function SettingsHeading({
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0 flex-1">
-        <h2 className="font-display text-[28px] leading-[34px] text-fg">{t(title)}</h2>
+        <h2 className="font-display text-[22px] leading-[28px] text-fg">{t(title)}</h2>
         <p className="mt-1 text-fg-muted">{t(lede)}</p>
       </div>
       {action}

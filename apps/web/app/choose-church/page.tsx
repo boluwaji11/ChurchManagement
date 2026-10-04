@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Church, Plus } from "lucide-react";
 import { membershipsForUser, canEditPeople, canReadIncidents } from "@hearth/db";
-import { Banner, Button } from "@hearth/ui";
+import { Banner, Button, LIFT } from "@hearth/ui";
 import { currentUser } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
 import { BrandBar } from "@/components/brand";
@@ -57,7 +57,7 @@ export default async function ChooseChurch({
                     ? "/people"
                     : "/home"
                 }?church=${m.tenantSlug}`}
-                className="group flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm transition-[border-color,box-shadow] duration-fast hover:border-line-strong hover:shadow-md"
+                className={`group flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm ${LIFT}`}
               >
                 <span className="flex items-center gap-3">
                   <Church className="size-5 text-fg-muted" aria-hidden />

@@ -180,7 +180,7 @@ export default async function ServingPage({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-display text-[28px] leading-[34px] text-fg">
+            <h2 className="font-display text-[22px] leading-[28px] text-fg">
               {view === "teams"
                 ? t("serving.view.teams")
                 : t("serving.schedule.title", { month })}

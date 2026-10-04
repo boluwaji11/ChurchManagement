@@ -121,7 +121,7 @@ export default async function CelebrationsPage({
           does with this list: print it. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="mr-1.5 font-display text-[28px] leading-[34px] text-fg">
+          <span className="mr-1.5 font-display text-[22px] leading-[28px] text-fg">
             {heading}
           </span>
           <Link

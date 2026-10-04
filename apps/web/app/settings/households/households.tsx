@@ -8,6 +8,7 @@ import {
   Avatar, Banner, Button, Field, IconButton, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  LIFT,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { householdRoleOptions } from "@/lib/person-input";
@@ -78,7 +79,7 @@ export function HouseholdList({
           {open.map((household) => (
             <article
               key={household.id}
-              className="relative flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 hover:border-line-strong"
+              className={`relative flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 ${LIFT}`}
             >
               {/* R24.6. The whole card opens the family. The trigger is a layer
                   over it rather than a wrapper around it, so merge, archive and

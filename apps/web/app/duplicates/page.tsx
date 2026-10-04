@@ -106,7 +106,7 @@ export default async function DuplicatesPage({
       </Link>
 
       <div>
-        <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("merge.heading")}</h2>
+        <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("merge.heading")}</h2>
         <p className="mt-1 text-fg-muted">{t("merge.lede")}</p>
       </div>
 

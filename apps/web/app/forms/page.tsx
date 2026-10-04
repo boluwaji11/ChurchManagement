@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { withTenant, listForms, countArchivedForms, canManageChurch } from "@hearth/db";
+import { LIFT } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -69,7 +70,7 @@ export default async function FormsPage({
               <li key={form.id} className="contents">
                 <Link
                   href={`/forms/${form.id}?church=${session.tenantSlug}`}
-                  className="flex cursor-pointer flex-col gap-2.5 rounded-[14px] border border-line bg-surface p-5 hover:border-line-strong hover:shadow-md"
+                  className={`flex cursor-pointer flex-col gap-2.5 rounded-[14px] border border-line bg-surface p-5 ${LIFT}`}
                 >
                   <span className="font-display text-[22px] leading-7 text-fg">{form.name}</span>
                   <span className="flex flex-wrap items-center gap-2">

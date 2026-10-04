@@ -42,7 +42,7 @@ export default async function NewPersonPage({
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[28px] leading-[34px] text-fg">
+        <h2 className="font-display text-[22px] leading-[28px] text-fg">
           {t("personForm.addHeading")}
         </h2>
         {permitted ? (

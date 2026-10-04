@@ -105,7 +105,7 @@ export default async function PlanPage({
 
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="font-display text-[28px] leading-[34px] text-fg">
+              <h2 className="font-display text-[22px] leading-[28px] text-fg">
                 {`${longDate(occurrence.occursOn)} · ${readableTime(occurrence.startsAt)}`}
               </h2>
               {plan.theme ? <p className="mt-1 text-fg-muted">{plan.theme}</p> : null}

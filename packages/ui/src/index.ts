@@ -30,3 +30,4 @@ export { CriticalBanner, CodeDisplay, OfflineBar, BlockingInterrupt } from "./co
 export { StatTile } from "./components/stat-tile";
 export { EmptyState } from "./components/empty-state";
 export { Table, Thead, Th, Tr, Td } from "./components/table";
+export { LIFT } from "./lib/lift";

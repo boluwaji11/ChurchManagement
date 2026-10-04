@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ChevronRight, LayoutGrid, List, Plus, Minus } from "lucide-react";
-import { cn } from "@hearth/ui";
+import { cn, LIFT } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
 export interface ServiceCard {
@@ -44,7 +44,7 @@ export function ServiceBoard({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[28px] leading-[34px] text-fg">{title}</h2>
+        <h2 className="font-display text-[22px] leading-[28px] text-fg">{title}</h2>
 
         <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
           {([
@@ -182,7 +182,7 @@ function Card({
   return (
     <Link
       href={service.href}
-      className={`flex flex-col gap-3 rounded-lg border border-line p-4.5 hover:border-line-strong ${
+      className={`flex flex-col gap-3 rounded-lg border border-line p-4.5 ${LIFT} ${
         quiet ? "bg-sunken" : "bg-surface"
       }`}
     >

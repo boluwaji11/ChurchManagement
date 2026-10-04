@@ -5,8 +5,10 @@ import { FlameMark } from "../brand";
  * R24.6. The bar across the top of a page.
  *
  * 14px of padding with 24px at the sides, a hairline under it, the canvas
- * behind it, and 12px between its parts. The title is Fraunces at 20px over a
- * 24px line and takes the room that is left.
+ * behind it, and 12px between its parts. The page's own name is Fraunces at 28px
+ * over a 34px line and takes the room that is left. It is set larger than a
+ * heading on the page under it, so the screen somebody is on reads louder than
+ * a block within it.
  *
  * On the right, the one action that belongs to this page. One, because a row of
  * six filled buttons tells a volunteer nothing about which to press. A page's
@@ -45,7 +47,7 @@ export function TopBar({
         <FlameMark size={28} logoUrl={logoUrl} />
       </span>
       {title ? (
-        <h1 className="min-w-0 flex-1 truncate font-display text-[20px] leading-6 text-fg">
+        <h1 className="min-w-0 flex-1 truncate font-display text-[28px] leading-[34px] text-fg">
           {title}
         </h1>
       ) : (

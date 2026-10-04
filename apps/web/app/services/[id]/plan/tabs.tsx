@@ -72,7 +72,7 @@ export function PlanTabs({
           className={`flex shrink-0 flex-col rounded-md border px-3.5 py-2 ${
             one.id === current
               ? "border-primary bg-primary-soft"
-              : "border-line bg-surface hover:border-line-strong"
+              : "border-line bg-surface hover:bg-sunken"
           }`}
         >
           <span className="whitespace-nowrap text-[12px] font-medium text-fg-subtle">

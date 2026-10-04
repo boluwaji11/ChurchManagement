@@ -77,7 +77,7 @@ export function ChurchLogo({
               <button
                 type="button"
                 aria-label={t("church.logo.view")}
-                className="size-14 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-line bg-canvas p-1 hover:border-line-strong"
+                className="size-14 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-line bg-canvas p-1 hover:bg-sunken"
               >
                 <img
                   src={logoUrl}

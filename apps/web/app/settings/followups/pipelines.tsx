@@ -7,6 +7,7 @@ import {
   Badge, Banner, Button, IconButton, Field, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  LIFT,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
@@ -103,7 +104,7 @@ export function Pipelines({
       {rows.map((row) => (
         <section
           key={row.id}
-          className={`relative flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface px-5 py-4.5 hover:border-line-strong ${
+          className={`relative flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface px-5 py-4.5 ${LIFT} ${
             row.archived ? "opacity-55" : ""
           }`}
         >

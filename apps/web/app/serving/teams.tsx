@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ShieldCheck, Plus } from "lucide-react";
-import { Button, Badge } from "@hearth/ui";
+import { Button, Badge, LIFT } from "@hearth/ui";
 import { Empty } from "@/components/empty";
 import { t, plural } from "@hearth/i18n";
 
@@ -64,7 +64,7 @@ export function Teams({
             {/* R24.x. The whole tile opens the team. The title carries the
                 link and stretches over the card, so the markup stays an anchor
                 around text rather than an anchor around buttons. */}
-            <section className="relative flex h-full cursor-pointer flex-col gap-3.5 rounded-lg border border-line bg-surface p-4.5 transition-shadow hover:border-line-strong hover:shadow-md focus-within:shadow-md">
+            <section className={`relative flex h-full cursor-pointer flex-col gap-3.5 rounded-lg border border-line bg-surface p-4.5 focus-within:shadow-md ${LIFT}`}>
               <div className="flex items-center gap-2.5">
                 <span
                   className="size-3 shrink-0 rounded-[4px]"

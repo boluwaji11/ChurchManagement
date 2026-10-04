@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Users, HandCoins, CalendarDays, HeartHandshake } from "lucide-react";
-import { StatTile, Card, CardTitle, CardDescription, Badge } from "@hearth/ui";
+import { StatTile, Card, CardTitle, CardDescription, Badge, LIFT } from "@hearth/ui";
 import { PageTitle, Section } from "@/components/section";
 
 export default function Overview() {
@@ -69,7 +69,7 @@ export default function Overview() {
             <Link
               key={href as string}
               href={href as string}
-              className="group flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm transition-[border-color,box-shadow] duration-fast ease-out hover:border-line-strong hover:shadow-md"
+              className={`group flex items-start justify-between gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm ${LIFT}`}
             >
               <span className="flex flex-col gap-1">
                 <span className="text-title text-fg">{label}</span>

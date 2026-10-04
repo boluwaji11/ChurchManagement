@@ -35,7 +35,7 @@ export default async function ImportPage({
         <ArrowLeft className="size-4" /> {t("people.title")}
       </Link>
 
-      <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("import.heading")}</h2>
+      <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("import.heading")}</h2>
 
       {canEditPeople(session) ? (
         <ImportWizard

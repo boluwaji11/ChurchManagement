@@ -101,7 +101,7 @@ export default async function TeamPage({
             style={{ background: `var(--hue-${team.hue}-500)` }}
           />
           <div>
-            <h2 className="font-display text-[28px] leading-[34px] text-fg">{team.name}</h2>
+            <h2 className="font-display text-[22px] leading-[28px] text-fg">{team.name}</h2>
             {team.description ? (
               <p className="mt-1 text-fg-muted">{team.description}</p>
             ) : null}

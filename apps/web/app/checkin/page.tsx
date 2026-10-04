@@ -141,7 +141,7 @@ export default async function CheckinPage({
     <AppShell session={session} title={t("checkin.title")} action={action}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-[28px] leading-[34px] text-fg">
+          <h2 className="font-display text-[22px] leading-[28px] text-fg">
             {service
               ? t("checkin.serviceAt", { name: service.name, time: service.readableTime })
               : t("checkin.noService.title")}

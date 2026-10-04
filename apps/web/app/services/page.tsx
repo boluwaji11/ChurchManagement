@@ -115,7 +115,7 @@ export default async function ServicesPage({
     >
       {upcoming.length === 0 && past.length === 0 ? (
         <>
-          <h2 className="font-display text-[28px] leading-[34px] text-fg">
+          <h2 className="font-display text-[22px] leading-[28px] text-fg">
             {t("services.upcoming")}
           </h2>
           <Empty

@@ -695,7 +695,7 @@ function StartFrom({
       type="button"
       disabled={pending}
       onClick={pick}
-      className="flex w-full cursor-pointer flex-col rounded-md border border-line bg-surface px-4 py-3 text-left hover:border-line-strong hover:bg-sunken disabled:opacity-50"
+      className="flex w-full cursor-pointer flex-col rounded-md border border-line bg-surface px-4 py-3 text-left hover:bg-sunken disabled:opacity-50"
     >
       <span className="font-medium text-fg">{label}</span>
       <span className="text-[13px] text-fg-muted">{detail}</span>

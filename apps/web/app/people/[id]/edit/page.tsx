@@ -54,7 +54,7 @@ export default async function EditPersonPage({
       {/* The two buttons that commit this form sit with its title, where the
           reader's eye already is when they decide they are done. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[28px] leading-[34px] text-fg">
+        <h2 className="font-display text-[22px] leading-[28px] text-fg">
           {t("personForm.editHeading", { name: display })}
         </h2>
         {canEditPeople(session) ? (

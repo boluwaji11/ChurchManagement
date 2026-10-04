@@ -137,7 +137,7 @@ export function Builder({
           }}
           aria-label={t("form.name")}
           autoComplete="off"
-          className="min-w-0 flex-[1_1_300px] border-b border-dashed border-line-strong bg-transparent py-0.5 font-display text-[28px] leading-[34px] text-fg outline-none focus-visible:border-primary"
+          className="min-w-0 flex-[1_1_300px] border-b border-dashed border-line-strong bg-transparent py-0.5 font-display text-[22px] leading-[28px] text-fg outline-none focus-visible:border-primary"
         />
 
         <StatusSwitch
