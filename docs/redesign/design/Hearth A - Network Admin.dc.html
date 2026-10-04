@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>html, body { margin:0; padding:0; }</style></helmet>
+<dc-import name="Hearth A - Warm Office" persona="network" theme="{{ theme }}" layout="{{ layout }}" hint-size="100%,100vh" style="display:flex; flex-direction:column; min-height:100vh;"></dc-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'auto'|'desktop'|'mobile'&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;,&quot;auto&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'|'auto'&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { theme: this.props.theme ?? "light", layout: this.props.layout ?? "auto" }; }
+}
+</script>
+</body>
+</html>

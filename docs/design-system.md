@@ -1,5 +1,10 @@
 # Design system
 
+> **October 2026.** A full design pass over the product is reconciled in
+> [redesign/README.md](redesign/README.md): the prototypes, how its tokens map onto these, the
+> three hue values we kept, and what in it is not being built. The shell, the navigation and any
+> screen's layout follow that file.
+
 Hearth has to look better than the software it replaces.
 
 Requirement IDs refer to [../PRD.md](../PRD.md). This document is the source of truth for tokens,

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,50&family=Inter:wght@400..700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root, [data-theme="light"] { --h-rose-t: oklch(0.938 0.042 10); --h-rose-b: oklch(0.635 0.168 12); --h-rose-x: oklch(0.505 0.152 14); --h-amber-t: oklch(0.942 0.048 72); --h-amber-b: oklch(0.732 0.156 70); --h-amber-x: oklch(0.572 0.132 62); --h-citron-t: oklch(0.944 0.05 105); --h-citron-b: oklch(0.742 0.148 110); --h-citron-x: oklch(0.582 0.126 108); --h-fern-t: oklch(0.938 0.044 142); --h-fern-b: oklch(0.662 0.148 145); --h-fern-x: oklch(0.522 0.128 147); --h-teal-t: oklch(0.936 0.04 196); --h-teal-b: oklch(0.648 0.118 200); --h-teal-x: oklch(0.508 0.104 202); --h-sky-t: oklch(0.936 0.042 232); --h-sky-b: oklch(0.642 0.138 238); --h-sky-x: oklch(0.505 0.128 240); --h-indigo-t: oklch(0.934 0.044 268); --h-indigo-b: oklch(0.612 0.156 272); --h-indigo-x: oklch(0.478 0.142 274); --h-violet-t: oklch(0.936 0.046 296); --h-violet-b: oklch(0.622 0.168 300); --h-violet-x: oklch(0.488 0.152 302); --surface: white; --accent-fill: oklch(0.455 0.118 285); --accent-fill-hover: oklch(0.382 0.098 285); --c0: oklch(0.985 0.003 75); --c1: oklch(0.198 0.009 75); --c2: oklch(0.455 0.118 285); --c3: oklch(0.382 0.098 285); --c4: oklch(0.556 0.014 75); --c5: oklch(0.742 0.162 62); --c6: oklch(0.442 0.013 75); --c7: oklch(0.925 0.008 75); --c8: oklch(0.863 0.01 75); --c9: oklch(0.558 0.198 25); --c10: oklch(0.95 0.05 150); --c11: oklch(0.42 0.11 150); --c12: oklch(0.967 0.005 75); --c13: oklch(0.366 0.012 75); --c14: oklch(0.262 0.01 75); --c15: oklch(0.706 0.013 75); --c16: oklch(0.505 0.225 20); --c17: oklch(0.938 0.044 142); --c18: oklch(0.42 0.11 147); --c19: oklch(0.975 0.018 70); --c20: oklch(0.895 0.082 70); --c21: oklch(0.925 0.05 70); --c22: oklch(0.662 0.148 145); --c23: oklch(0.842 0.118 68); --c24: oklch(0.552 0.138 48); --c25: oklch(0.652 0.108 285); --c26: oklch(0.572 0.132 62); --c27: oklch(0.582 0.132 155); --c28: oklch(0.942 0.048 72); --c29: oklch(0.635 0.168 12); --c30: oklch(0.622 0.168 300); --c31: oklch(0.302 0.074 285); --c32: oklch(0.975 0.006 285); --c33: oklch(0.863 0.04 285); --c34: oklch(0.936 0.042 285); --c35: oklch(0.142 0.008 75); --c36: oklch(0.75 0.16 150); --c37: oklch(0.936 0.042 232); --c38: oklch(0.505 0.128 240); --c39: oklch(0.936 0.046 296); --c40: oklch(0.488 0.152 302); --c41: oklch(0.642 0.138 238); --c42: oklch(0.522 0.128 147); --c43: oklch(0.968 0.012 285); --c44: oklch(0.612 0.156 272); --c45: oklch(0.866 0.048 285); --c46: oklch(0.732 0.156 70); --c47: oklch(0.742 0.148 110); --c48: oklch(0.648 0.118 200); --c49: oklch(0.958 0.03 25); --c50: oklch(0.508 0.104 202); --c51: oklch(0.72 0.17 30); color-scheme: light; }
+  html[data-theme="dark"] { --h-rose-t: oklch(0.32 0.059 10); --h-rose-b: oklch(0.635 0.168 12); --h-rose-x: oklch(0.82 0.122 14); --h-amber-t: oklch(0.32 0.067 72); --h-amber-b: oklch(0.732 0.156 70); --h-amber-x: oklch(0.82 0.106 62); --h-citron-t: oklch(0.32 0.070 105); --h-citron-b: oklch(0.742 0.148 110); --h-citron-x: oklch(0.82 0.101 108); --h-fern-t: oklch(0.32 0.062 142); --h-fern-b: oklch(0.662 0.148 145); --h-fern-x: oklch(0.82 0.102 147); --h-teal-t: oklch(0.32 0.056 196); --h-teal-b: oklch(0.648 0.118 200); --h-teal-x: oklch(0.82 0.083 202); --h-sky-t: oklch(0.32 0.059 232); --h-sky-b: oklch(0.642 0.138 238); --h-sky-x: oklch(0.82 0.102 240); --h-indigo-t: oklch(0.32 0.062 268); --h-indigo-b: oklch(0.612 0.156 272); --h-indigo-x: oklch(0.82 0.114 274); --h-violet-t: oklch(0.32 0.064 296); --h-violet-b: oklch(0.622 0.168 300); --h-violet-x: oklch(0.82 0.122 302); --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --c0: oklch(0.155 0.003 75); --c1: oklch(0.942 0.009 75); --c2: oklch(0.62 0.118 285); --c3: oklch(0.584 0.098 285); --c4: oklch(0.584 0.014 75); --c5: oklch(0.742 0.162 62); --c6: oklch(0.698 0.013 75); --c7: oklch(0.215 0.008 75); --c8: oklch(0.277 0.01 75); --c9: oklch(0.672 0.198 25); --c10: oklch(0.27 0.035 150); --c11: oklch(0.603 0.11 150); --c12: oklch(0.173 0.005 75); --c13: oklch(0.774 0.012 75); --c14: oklch(0.878 0.01 75); --c15: oklch(0.434 0.013 75); --c16: oklch(0.645 0.225 20); --c17: oklch(0.27 0.031 142); --c18: oklch(0.603 0.11 147); --c19: oklch(0.165 0.018 70); --c20: oklch(0.38 0.057 70); --c21: oklch(0.27 0.035 70); --c22: oklch(0.662 0.148 145); --c23: oklch(0.38 0.083 68); --c24: oklch(0.669 0.138 48); --c25: oklch(0.652 0.108 285); --c26: oklch(0.572 0.132 62); --c27: oklch(0.582 0.132 155); --c28: oklch(0.27 0.034 72); --c29: oklch(0.635 0.168 12); --c30: oklch(0.622 0.168 300); --c31: oklch(0.544 0.074 285); --c32: oklch(0.165 0.006 285); --c33: oklch(0.38 0.028 285); --c34: oklch(0.27 0.029 285); --c35: oklch(0.95 0.008 75); --c36: oklch(0.75 0.16 150); --c37: oklch(0.27 0.029 232); --c38: oklch(0.645 0.128 240); --c39: oklch(0.27 0.032 296); --c40: oklch(0.637 0.152 302); --c41: oklch(0.642 0.138 238); --c42: oklch(0.654 0.128 147); --c43: oklch(0.172 0.012 285); --c44: oklch(0.612 0.156 272); --c45: oklch(0.38 0.034 285); --c46: oklch(0.732 0.156 70); --c47: oklch(0.742 0.148 110); --c48: oklch(0.648 0.118 200); --c49: oklch(0.27 0.021 25); --c50: oklch(0.647 0.104 202); --c51: oklch(0.72 0.17 30); color-scheme: dark; }
+  @media (prefers-color-scheme: dark) { html[data-theme="auto"] { --h-rose-t: oklch(0.32 0.059 10); --h-rose-b: oklch(0.635 0.168 12); --h-rose-x: oklch(0.82 0.122 14); --h-amber-t: oklch(0.32 0.067 72); --h-amber-b: oklch(0.732 0.156 70); --h-amber-x: oklch(0.82 0.106 62); --h-citron-t: oklch(0.32 0.070 105); --h-citron-b: oklch(0.742 0.148 110); --h-citron-x: oklch(0.82 0.101 108); --h-fern-t: oklch(0.32 0.062 142); --h-fern-b: oklch(0.662 0.148 145); --h-fern-x: oklch(0.82 0.102 147); --h-teal-t: oklch(0.32 0.056 196); --h-teal-b: oklch(0.648 0.118 200); --h-teal-x: oklch(0.82 0.083 202); --h-sky-t: oklch(0.32 0.059 232); --h-sky-b: oklch(0.642 0.138 238); --h-sky-x: oklch(0.82 0.102 240); --h-indigo-t: oklch(0.32 0.062 268); --h-indigo-b: oklch(0.612 0.156 272); --h-indigo-x: oklch(0.82 0.114 274); --h-violet-t: oklch(0.32 0.064 296); --h-violet-b: oklch(0.622 0.168 300); --h-violet-x: oklch(0.82 0.122 302); --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --c0: oklch(0.155 0.003 75); --c1: oklch(0.942 0.009 75); --c2: oklch(0.62 0.118 285); --c3: oklch(0.584 0.098 285); --c4: oklch(0.584 0.014 75); --c5: oklch(0.742 0.162 62); --c6: oklch(0.698 0.013 75); --c7: oklch(0.215 0.008 75); --c8: oklch(0.277 0.01 75); --c9: oklch(0.672 0.198 25); --c10: oklch(0.27 0.035 150); --c11: oklch(0.603 0.11 150); --c12: oklch(0.173 0.005 75); --c13: oklch(0.774 0.012 75); --c14: oklch(0.878 0.01 75); --c15: oklch(0.434 0.013 75); --c16: oklch(0.645 0.225 20); --c17: oklch(0.27 0.031 142); --c18: oklch(0.603 0.11 147); --c19: oklch(0.165 0.018 70); --c20: oklch(0.38 0.057 70); --c21: oklch(0.27 0.035 70); --c22: oklch(0.662 0.148 145); --c23: oklch(0.38 0.083 68); --c24: oklch(0.669 0.138 48); --c25: oklch(0.652 0.108 285); --c26: oklch(0.572 0.132 62); --c27: oklch(0.582 0.132 155); --c28: oklch(0.27 0.034 72); --c29: oklch(0.635 0.168 12); --c30: oklch(0.622 0.168 300); --c31: oklch(0.544 0.074 285); --c32: oklch(0.165 0.006 285); --c33: oklch(0.38 0.028 285); --c34: oklch(0.27 0.029 285); --c35: oklch(0.95 0.008 75); --c36: oklch(0.75 0.16 150); --c37: oklch(0.27 0.029 232); --c38: oklch(0.645 0.128 240); --c39: oklch(0.27 0.032 296); --c40: oklch(0.637 0.152 302); --c41: oklch(0.642 0.138 238); --c42: oklch(0.654 0.128 147); --c43: oklch(0.172 0.012 285); --c44: oklch(0.612 0.156 272); --c45: oklch(0.38 0.034 285); --c46: oklch(0.732 0.156 70); --c47: oklch(0.742 0.148 110); --c48: oklch(0.648 0.118 200); --c49: oklch(0.27 0.021 25); --c50: oklch(0.647 0.104 202); --c51: oklch(0.72 0.17 30); color-scheme: dark; } }
+  html, body { margin:0; padding:0; background: var(--c0); color: var(--c1); font-family: Inter, system-ui, sans-serif; font-size:14px; line-height:20px; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: var(--c2); text-decoration: none; } a:hover { color: var(--c3); text-decoration: underline; }
+  input { font: inherit; color: inherit; }
+  input::placeholder { color: var(--c4); }
+  button { font: inherit; cursor: pointer; }
+  table { border-collapse: collapse; }
+  span[data-icon] { display: inline-flex; width: 18px; height: 18px; flex: none; align-items: center; justify-content: center; }
+  span[data-icon] svg { width: 100%; height: 100%; stroke-width: 1.75; }
+</style>
+</helmet>
+
+<div data-screen-label="States and messages" style="min-height:100vh; padding:0 32px 64px; background: var(--c0); color: var(--c1);">
+  <header style="display:flex; flex-direction:column; gap:14px; padding:28px 0 24px;">
+    <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:10px; background: var(--c5);"></span><div><h1 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:22px; line-height:26px;">States and messages</h1><div style="font-size:12px; color: var(--c4);">Empty, error and loading states, and the emails Hearth sends</div></div></div>
+    <nav style="display:flex; flex-wrap:wrap; gap:8px;"><a href="#empty" style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; display:flex; align-items:center; text-decoration:none; color: var(--c1);">Empty states</a><a href="#emails" style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; display:flex; align-items:center; text-decoration:none; color: var(--c1);">Emails</a><a href="#errors" style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; display:flex; align-items:center; text-decoration:none; color: var(--c1);">Errors and loading</a></nav>
+  </header>
+
+  <section id="empty" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--c7);">
+    <div><div style="font-size:12px; font-weight:600; color: var(--c4);">01</div><h2 style="margin:4px 0 0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Empty and first-run states</h2><p style="margin:4px 0 0; color: var(--c6); max-width:720px; text-wrap:pretty;">What a brand-new church sees before it has any data. Each one says what belongs here and offers the one or two actions that fill it.</p></div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:24px; align-items:start;">
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Dashboard · day one</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-amber-t); color: var(--h-amber-x);"><span data-icon="sparkles" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">Grace Fellowship is ready</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">Start by bringing in your people. Everything else (check-in, giving, groups) builds on that list.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Import a spreadsheet</button><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">Add one person</button></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">People</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-teal-t); color: var(--h-teal-x);"><span data-icon="users" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">No one here yet</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">Import from a spreadsheet or another church system, or add people one at a time. Members who sign up on your website appear here on their own.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Import people</button><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">Add person</button></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Giving</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-indigo-t); color: var(--h-indigo-x);"><span data-icon="hand-coins" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">No gifts recorded yet</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">Connect the church's bank account to take gifts online, or record cash and checks by hand.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Connect bank account</button><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">Record a gift</button></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Groups</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-fern-t); color: var(--h-fern-x);"><span data-icon="circle-dot" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">No groups yet</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">Small groups, classes and ministry teams all live here. Public groups show up in the group finder on your website.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">New group</button></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Follow-ups</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-sky-t); color: var(--h-sky-x);"><span data-icon="user-plus" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">Nobody to follow up with</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">First-time visitors and new sign-ups land in New automatically, so nothing slips.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Start follow-up</button></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Check-in</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-violet-t); color: var(--h-violet-x);"><span data-icon="baby" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">Add rooms before your first Sunday</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">Check-in sends each child to the room that fits their age and warns you when a room is full.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Set up rooms</button><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">Pair a tablet</button></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Search · no results</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-rose-t); color: var(--h-rose-x);"><span data-icon="search-x" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">No one matches “Okafor”</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">Check the spelling, search by email or phone, or clear the filters you have on.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Clear filters</button><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">Add Okafor</button></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Member · groups</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; min-height:300px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-citron-t); color: var(--h-citron-x);"><span data-icon="heart-handshake" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">You're not in a group yet</div>
+          <p style="margin:0; max-width:340px; color: var(--c6); text-wrap:pretty;">Groups meet through the week across Chicago. Find one that fits your schedule.</p>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:6px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Find a group</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="emails" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--c7);">
+    <div><div style="font-size:12px; font-weight:600; color: var(--c4);">02</div><h2 style="margin:4px 0 0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Notifications and emails</h2><p style="margin:4px 0 0; color: var(--c6); max-width:720px; text-wrap:pretty;">Every email is from the church, not from Hearth. Each has one clear action, works without images, and ends with a link to email preferences.</p></div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap:24px; align-items:start;">
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Staff invitation</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+          <div style="padding:14px 20px; border-bottom:1px solid var(--c7); background: var(--c0);"><div style="font-weight:600;">Maria Carter invited you to Grace Fellowship</div><div style="font-size:12px; color: var(--c4); margin-top:2px;">Grace Fellowship via Hearth · to pastor@gracefellowship.org</div></div>
+          <div style="padding:28px 28px 32px; display:flex; flex-direction:column; gap:16px; max-width:560px;">
+            <span style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:10px; background: var(--c5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:16px;height:16px;"></span></span><span style="font-family: Fraunces, serif; font-size:19px;">Grace Fellowship</span></span>
+            <div style="font-family: Fraunces, serif; font-size:24px; line-height:30px;">Join the Grace Fellowship team</div>
+            <p style="margin:0; line-height:22px;">Maria Carter added you as <strong>Pastoral</strong>. You'll be able to see people, follow-ups, services and confidential care notes.</p>
+            <button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px; align-self:flex-start; height:44px; padding:0 20px; font-size:15px;">Accept invitation</button>
+            <p style="margin:0; font-size:13px; color: var(--c6);">This link works for 7 days. Didn't expect this? You can ignore it.</p>
+            <div style="font-size:12px; color: var(--c4); border-top:1px solid var(--c12); padding-top:14px;">Grace Fellowship · 1420 W Addison St, Chicago · <a href="#">Email preferences</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Serving request</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+          <div style="padding:14px 20px; border-bottom:1px solid var(--c7); background: var(--c0);"><div style="font-weight:600;">Can you serve on Sunday 12 October?</div><div style="font-size:12px; color: var(--c4); margin-top:2px;">Hospitality team · to hannah.l@gmail.com</div></div>
+          <div style="padding:28px 28px 32px; display:flex; flex-direction:column; gap:16px; max-width:560px;">
+            <span style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:10px; background: var(--c5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:16px;height:16px;"></span></span><span style="font-family: Fraunces, serif; font-size:19px;">Grace Fellowship</span></span>
+            <div style="font-family: Fraunces, serif; font-size:24px; line-height:30px;">Welcome desk, Sunday 12 October</div>
+            <div style="display:flex; flex-direction:column; gap:4px; padding:14px 16px; border-radius:12px; background: var(--c12);"><span style="font-weight:600;">Arrive 9:15 am · Main lobby</span><span style="font-size:14px; color: var(--c6);">With Lena Fischer and Peter Novak</span></div>
+            <div style="display:flex; flex-wrap:wrap; gap:10px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px; height:44px; padding:0 20px; font-size:15px;">I'll be there</button><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; height:44px; padding:0 20px; font-size:15px;">I can't make it</button></div>
+            <p style="margin:0; font-size:13px; color: var(--c6);">One tap answers. No sign-in needed.</p>
+            <div style="font-size:12px; color: var(--c4); border-top:1px solid var(--c12); padding-top:14px;">Grace Fellowship · 1420 W Addison St, Chicago · <a href="#">Email preferences</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Giving receipt</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+          <div style="padding:14px 20px; border-bottom:1px solid var(--c7); background: var(--c0);"><div style="font-weight:600;">Your gift to Grace Fellowship</div><div style="font-size:12px; color: var(--c4); margin-top:2px;">Grace Fellowship · to hannah.l@gmail.com</div></div>
+          <div style="padding:28px 28px 32px; display:flex; flex-direction:column; gap:16px; max-width:560px;">
+            <span style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:10px; background: var(--c5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:16px;height:16px;"></span></span><span style="font-family: Fraunces, serif; font-size:19px;">Grace Fellowship</span></span>
+            <div style="font-family: Fraunces, serif; font-size:24px; line-height:30px;">Thank you, Hannah</div>
+            <table style="width:100%; font-size:14px; border-collapse:collapse;"><tbody>
+              <tr><td style="padding:8px 0; color: var(--c6); border-bottom:1px solid var(--c12);">Date</td><td style="padding:8px 0; text-align:right; border-bottom:1px solid var(--c12);">Sun 5 Oct 2026</td></tr>
+              <tr><td style="padding:8px 0; color: var(--c6); border-bottom:1px solid var(--c12);">Fund</td><td style="padding:8px 0; text-align:right; border-bottom:1px solid var(--c12);">General</td></tr>
+              <tr><td style="padding:8px 0; color: var(--c6); border-bottom:1px solid var(--c12);">Paid with</td><td style="padding:8px 0; text-align:right; border-bottom:1px solid var(--c12);">Visa •••• 4242</td></tr>
+              <tr><td style="padding:10px 0; font-weight:600;">Amount</td><td style="padding:10px 0; text-align:right; font-weight:600;">$51.75</td></tr>
+            </tbody></table>
+            <p style="margin:0; font-size:13px; color: var(--c6); line-height:20px;">No goods or services were provided in exchange for this gift. Keep this email for your tax records. Your year-end statement arrives in January.</p>
+            <a href="#" style="font-weight:500;">Manage recurring gifts</a>
+            <div style="font-size:12px; color: var(--c4); border-top:1px solid var(--c12); padding-top:14px;">Grace Fellowship · 1420 W Addison St, Chicago · <a href="#">Email preferences</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Daily follow-up digest (staff)</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+          <div style="padding:14px 20px; border-bottom:1px solid var(--c7); background: var(--c0);"><div style="font-weight:600;">3 follow-ups are due today</div><div style="font-size:12px; color: var(--c4); margin-top:2px;">Hearth · to maria.carter@gmail.com · 7:00 am</div></div>
+          <div style="padding:28px 28px 32px; display:flex; flex-direction:column; gap:16px; max-width:560px;">
+            <span style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:10px; background: var(--c5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:16px;height:16px;"></span></span><span style="font-family: Fraunces, serif; font-size:19px;">Grace Fellowship</span></span>
+            <div style="font-family: Fraunces, serif; font-size:24px; line-height:30px;">Good morning, Maria</div>
+            <div style="display:flex; flex-direction:column; border:1px solid var(--c7); border-radius:12px; overflow:hidden;">
+              <div style="display:flex; gap:12px; padding:12px 14px; border-bottom:1px solid var(--c12);"><span style="flex:1;"><span style="display:block; font-weight:600;">Elijah Thompson</span><span style="display:block; font-size:13px; color: var(--c6);">Pastor call · first visit Oct 5</span></span><span style="font-size:13px; color: var(--h-amber-x); font-weight:600;">Due today</span></div>
+              <div style="display:flex; gap:12px; padding:12px 14px; border-bottom:1px solid var(--c12);"><span style="flex:1;"><span style="display:block; font-weight:600;">Fiona Garcia</span><span style="display:block; font-size:13px; color: var(--c6);">Coffee invite</span></span><span style="font-size:13px; color: var(--h-amber-x); font-weight:600;">Due today</span></div>
+              <div style="display:flex; gap:12px; padding:12px 14px;"><span style="flex:1;"><span style="display:block; font-weight:600;">Victor Santos</span><span style="display:block; font-size:13px; color: var(--c6);">Welcome text</span></span><span style="font-size:13px; color: var(--h-rose-x); font-weight:600;">2 days late</span></div>
+            </div>
+            <button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px; align-self:flex-start; height:44px; padding:0 20px; font-size:15px;">Open follow-ups</button>
+            <div style="font-size:12px; color: var(--c4); border-top:1px solid var(--c12); padding-top:14px;">Grace Fellowship · 1420 W Addison St, Chicago · <a href="#">Email preferences</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="errors" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--c7);">
+    <div><div style="font-size:12px; font-weight:600; color: var(--c4);">03</div><h2 style="margin:4px 0 0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Errors and loading</h2><p style="margin:4px 0 0; color: var(--c6); max-width:720px; text-wrap:pretty;">Say what happened, whether anything was lost, and what to do next. Never blame the person, and never show a code without a plain sentence.</p></div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap:24px; align-items:start;">
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Check-in station · offline</div>
+        <div data-theme="light" style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden; background: var(--c0);">
+          <div style="display:flex; align-items:center; gap:10px; padding:12px 18px; background: var(--h-amber-t); color: var(--h-amber-x); font-weight:600;"><span data-icon="wifi-off" style="width:18px;height:18px;"></span><span style="flex:1;">Offline. Check-ins are saved on this tablet.</span><span style="font-weight:500;">3 waiting to sync</span></div>
+          <div style="padding:24px; display:flex; flex-direction:column; gap:12px;">
+            <div style="font-family: Fraunces, serif; font-size:26px; line-height:32px;">Find your family</div>
+            <div style="height:56px; border:2px solid var(--c6); border-radius:12px; background: var(--surface); display:flex; align-items:center; padding:0 16px; color: var(--c4); font-size:18px;">Last name or last 4 of phone</div>
+            <div style="font-size:14px; color: var(--c6);">Labels still print. Everything uploads as soon as the Wi-Fi is back.</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Check-in station · printer</div>
+        <div data-theme="light" style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:24px; display:flex; flex-direction:column; gap:14px; background: var(--c0);">
+          <span style="width:48px; height:48px; border-radius:14px; display:grid; place-items:center; background: var(--h-rose-t); color: var(--h-rose-x);"><span data-icon="printer" style="width:24px;height:24px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:24px; line-height:30px;">The label printer isn't responding</div>
+          <p style="margin:0; color: var(--c6);">Mia and Leo are checked in. Check the printer is on and has labels, then try again.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:10px;"><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px; height:52px; padding:0 22px; font-size:17px;">Try again</button><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; height:52px; padding:0 22px; font-size:17px;">Continue without labels</button></div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Import · rows that need a look</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; overflow:hidden;">
+          <div style="padding:16px 18px; border-bottom:1px solid var(--c7);"><div style="font-weight:600;">186 people ready, 4 need a look</div><div style="font-size:13px; color: var(--c6);">Fix them here or skip them. You can import the rest now.</div></div>
+          <div style="display:flex; flex-direction:column;">
+            <div style="display:flex; gap:12px; align-items:center; padding:12px 18px; border-bottom:1px solid var(--c12);"><span style="font-family: 'JetBrains Mono', monospace; font-size:12px; color: var(--c4); width:52px;">Row 14</span><span style="flex:1; font-size:14px;">Grace Miller · email “grace.miller.gmail.com” is missing an @</span><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; height:30px;">Fix</button></div>
+            <div style="display:flex; gap:12px; align-items:center; padding:12px 18px; border-bottom:1px solid var(--c12);"><span style="font-family: 'JetBrains Mono', monospace; font-size:12px; color: var(--c4); width:52px;">Row 22</span><span style="flex:1; font-size:14px;">Daniel Park is already in People</span><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; height:30px;">Merge</button></div>
+            <div style="display:flex; gap:12px; align-items:center; padding:12px 18px; border-bottom:1px solid var(--c12);"><span style="font-family: 'JetBrains Mono', monospace; font-size:12px; color: var(--c4); width:52px;">Row 57</span><span style="flex:1; font-size:14px;">No first or last name</span><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; height:30px;">Skip</button></div>
+            <div style="display:flex; gap:12px; align-items:center; padding:12px 18px;"><span style="font-family: 'JetBrains Mono', monospace; font-size:12px; color: var(--c4); width:52px;">Row 103</span><span style="flex:1; font-size:14px;">Birthday “31/02/1988” isn't a real date</span><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; height:30px;">Fix</button></div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; padding:14px 18px; border-top:1px solid var(--c7);"><button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">Skip all 4</button><button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Import 186 people</button></div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Giving · payment declined (member)</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:14px;">
+          <div role="alert" style="display:flex; gap:10px; padding:14px 16px; border-radius:12px; background: var(--h-rose-t); color: var(--h-rose-x);"><span data-icon="alert-circle" style="width:20px;height:20px; flex:none;"></span><span style="font-size:14px;">Your bank declined this card because it expired in September. Nothing was charged. Choose another way to pay.</span></div>
+          <div style="font-size:13px; color: var(--c6);">Live in Member Portal → Give. Recurring gifts that fail email the giver once, retry in 3 days, then pause.</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">No access</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--c12); color: var(--c6);"><span data-icon="lock" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">Giving is for the Finance role</div>
+          <p style="margin:0; max-width:320px; color: var(--c6);">Ask Maria Carter or another administrator to add it to your account.</p>
+          <button style="height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px;">Ask for access</button>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Something went wrong</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:32px 28px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
+          <span style="width:56px; height:56px; border-radius:16px; display:grid; place-items:center; background: var(--h-amber-t); color: var(--h-amber-x);"><span data-icon="cloud-off" style="width:26px;height:26px;"></span></span>
+          <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">We couldn't load People</div>
+          <p style="margin:0; max-width:320px; color: var(--c6);">Your data is safe. This is usually a connection blip, so try again in a moment.</p>
+          <button style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600; font-size:13px;">Try again</button>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; font-weight:600; color: var(--c4);">Loading · People list</div>
+        <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:8px 18px;">
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--c12);"><span style="width:36px; height:36px; border-radius:999px; background: var(--c12);"></span><span style="flex:1; display:flex; flex-direction:column; gap:6px;"><span style="width:48%; height:12px; border-radius:6px; background: var(--c12);"></span><span style="width:30%; height:10px; border-radius:6px; background: var(--c12);"></span></span><span style="width:64px; height:22px; border-radius:999px; background: var(--c12);"></span></div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--c12);"><span style="width:36px; height:36px; border-radius:999px; background: var(--c12);"></span><span style="flex:1; display:flex; flex-direction:column; gap:6px;"><span style="width:56%; height:12px; border-radius:6px; background: var(--c12);"></span><span style="width:24%; height:10px; border-radius:6px; background: var(--c12);"></span></span><span style="width:64px; height:22px; border-radius:999px; background: var(--c12);"></span></div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px 0;"><span style="width:36px; height:36px; border-radius:999px; background: var(--c12);"></span><span style="flex:1; display:flex; flex-direction:column; gap:6px;"><span style="width:40%; height:12px; border-radius:6px; background: var(--c12);"></span><span style="width:34%; height:10px; border-radius:6px; background: var(--c12);"></span></span><span style="width:64px; height:22px; border-radius:999px; background: var(--c12);"></span></div>
+          <div style="font-size:12px; color: var(--c4); padding:8px 0 4px;">Shapes match the real rows so nothing jumps when data arrives. Show only after 300 ms.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;,&quot;auto&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'|'auto'&quot;}}">
+class Component extends DCLogic {
+  applyTheme() { const t = this.props.theme || "light"; if (document.documentElement.dataset.theme !== t) document.documentElement.dataset.theme = t; }
+  componentDidMount() { this.applyTheme(); this.icons(); }
+  componentDidUpdate() { this.applyTheme(); this.icons(); }
+  icons() {
+    const L = window.lucide; if (!L || !L.icons) { if (!this._r) this._r = setTimeout(() => { this._r = null; this.icons(); }, 300); return; }
+    document.querySelectorAll("span[data-icon]").forEach(el => { const n = el.getAttribute("data-icon"); if (!n || el.getAttribute("data-drawn") === n) return; const k = n.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(""); const ic = L.icons[k]; if (!ic) return; el.innerHTML = ""; el.appendChild(L.createElement(ic)); el.setAttribute("data-drawn", n); });
+  }
+}
+</script>
+</body>
+</html>

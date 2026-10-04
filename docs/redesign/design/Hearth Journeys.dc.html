@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,50&family=Inter:wght@400..700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root, [data-theme="light"] { --surface: white; --accent-fill: oklch(0.455 0.118 285); --accent-fill-hover: oklch(0.382 0.098 285); --jy0: oklch(0.967 0.005 75); --jy1: oklch(0.198 0.009 75); --jy2: oklch(0.455 0.118 285); --jy3: oklch(0.382 0.098 285); --jy4: oklch(0.742 0.162 62); --jy5: oklch(0.556 0.014 75); --jy6: oklch(0.863 0.01 75); --jy7: oklch(0.936 0.04 196); --jy8: oklch(0.508 0.104 202); --jy9: oklch(0.934 0.044 268); --jy10: oklch(0.478 0.142 274); --jy11: oklch(0.936 0.046 296); --jy12: oklch(0.488 0.152 302); --jy13: oklch(0.942 0.048 72); --jy14: oklch(0.572 0.132 62); --jy15: oklch(0.936 0.042 232); --jy16: oklch(0.505 0.128 240); --jy17: oklch(0.944 0.05 105); --jy18: oklch(0.582 0.126 108); --jy19: oklch(0.938 0.042 10); --jy20: oklch(0.505 0.152 14); --jy21: oklch(0.925 0.008 75); --jy22: oklch(0.442 0.013 75); --jy23: oklch(0.706 0.013 75); --jy24: oklch(0.985 0.003 75); color-scheme: light; }
+  html[data-theme="dark"] { --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --jy0: oklch(0.173 0.005 75); --jy1: oklch(0.942 0.009 75); --jy2: oklch(0.62 0.118 285); --jy3: oklch(0.584 0.098 285); --jy4: oklch(0.742 0.162 62); --jy5: oklch(0.584 0.014 75); --jy6: oklch(0.277 0.01 75); --jy7: oklch(0.27 0.028 196); --jy8: oklch(0.647 0.104 202); --jy9: oklch(0.27 0.031 268); --jy10: oklch(0.632 0.142 274); --jy11: oklch(0.27 0.032 296); --jy12: oklch(0.637 0.152 302); --jy13: oklch(0.27 0.034 72); --jy14: oklch(0.572 0.132 62); --jy15: oklch(0.27 0.029 232); --jy16: oklch(0.645 0.128 240); --jy17: oklch(0.27 0.035 105); --jy18: oklch(0.582 0.126 108); --jy19: oklch(0.27 0.029 10); --jy20: oklch(0.645 0.152 14); --jy21: oklch(0.215 0.008 75); --jy22: oklch(0.698 0.013 75); --jy23: oklch(0.434 0.013 75); --jy24: oklch(0.155 0.003 75); color-scheme: dark; }
+  @media (prefers-color-scheme: dark) { html[data-theme="auto"] { --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --jy0: oklch(0.173 0.005 75); --jy1: oklch(0.942 0.009 75); --jy2: oklch(0.62 0.118 285); --jy3: oklch(0.584 0.098 285); --jy4: oklch(0.742 0.162 62); --jy5: oklch(0.584 0.014 75); --jy6: oklch(0.277 0.01 75); --jy7: oklch(0.27 0.028 196); --jy8: oklch(0.647 0.104 202); --jy9: oklch(0.27 0.031 268); --jy10: oklch(0.632 0.142 274); --jy11: oklch(0.27 0.032 296); --jy12: oklch(0.637 0.152 302); --jy13: oklch(0.27 0.034 72); --jy14: oklch(0.572 0.132 62); --jy15: oklch(0.27 0.029 232); --jy16: oklch(0.645 0.128 240); --jy17: oklch(0.27 0.035 105); --jy18: oklch(0.582 0.126 108); --jy19: oklch(0.27 0.029 10); --jy20: oklch(0.645 0.152 14); --jy21: oklch(0.215 0.008 75); --jy22: oklch(0.698 0.013 75); --jy23: oklch(0.434 0.013 75); --jy24: oklch(0.155 0.003 75); color-scheme: dark; } }
+  html, body { margin:0; padding:0; background: var(--jy0); color: var(--jy1); font-family: Inter, system-ui, sans-serif; font-size:14px; line-height:20px; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: var(--jy2); text-decoration: none; } a:hover { color: var(--jy3); text-decoration: underline; }
+  button { font: inherit; cursor: pointer; color: inherit; }
+</style>
+</helmet>
+
+<div data-screen-label="Journeys" style="min-height:100vh; padding:0 32px 64px; display:flex; flex-direction:column;">
+  <header style="display:flex; flex-direction:column; gap:16px; padding:28px 0 24px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="width:32px; height:32px; border-radius:10px; background: var(--jy4);"></span>
+      <div><h1 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:22px; line-height:26px;">Getting into Hearth</h1><div style="font-size:12px; color: var(--jy5);">From the website to the first screen, by persona</div></div>
+    </div>
+    <nav style="display:flex; flex-wrap:wrap; gap:8px;">
+    <a href="#admin" style="display:flex; align-items:center; gap:8px; height:36px; padding:0 12px 0 6px; border-radius:999px; border:1px solid var(--jy6); background: var(--surface); color: var(--jy1); font-weight:500; text-decoration:none;"><span style="width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:10px; font-weight:600; background: var(--jy7); color: var(--jy8);">MC</span>Administrator</a>
+    <a href="#pastor" style="display:flex; align-items:center; gap:8px; height:36px; padding:0 12px 0 6px; border-radius:999px; border:1px solid var(--jy6); background: var(--surface); color: var(--jy1); font-weight:500; text-decoration:none;"><span style="width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:10px; font-weight:600; background: var(--jy9); color: var(--jy10);">MS</span>Senior pastor</a>
+    <a href="#leader" style="display:flex; align-items:center; gap:8px; height:36px; padding:0 12px 0 6px; border-radius:999px; border:1px solid var(--jy6); background: var(--surface); color: var(--jy1); font-weight:500; text-decoration:none;"><span style="width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:10px; font-weight:600; background: var(--jy11); color: var(--jy12);">SM</span>Group leader</a>
+    <a href="#volunteer" style="display:flex; align-items:center; gap:8px; height:36px; padding:0 12px 0 6px; border-radius:999px; border:1px solid var(--jy6); background: var(--surface); color: var(--jy1); font-weight:500; text-decoration:none;"><span style="width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:10px; font-weight:600; background: var(--jy13); color: var(--jy14);">RB</span>Check-in volunteer</a>
+    <a href="#member" style="display:flex; align-items:center; gap:8px; height:36px; padding:0 12px 0 6px; border-radius:999px; border:1px solid var(--jy6); background: var(--surface); color: var(--jy1); font-weight:500; text-decoration:none;"><span style="width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:10px; font-weight:600; background: var(--jy15); color: var(--jy16);">HL</span>Member</a>
+    <a href="#visitor" style="display:flex; align-items:center; gap:8px; height:36px; padding:0 12px 0 6px; border-radius:999px; border:1px solid var(--jy6); background: var(--surface); color: var(--jy1); font-weight:500; text-decoration:none;"><span style="width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:10px; font-weight:600; background: var(--jy17); color: var(--jy18);">ET</span>First-time visitor</a>
+    <a href="#network" style="display:flex; align-items:center; gap:8px; height:36px; padding:0 12px 0 6px; border-radius:999px; border:1px solid var(--jy6); background: var(--surface); color: var(--jy1); font-weight:500; text-decoration:none;"><span style="width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:10px; font-weight:600; background: var(--jy19); color: var(--jy20);">AW</span>Network admin</a>
+    </nav>
+  </header>
+
+  <section id="admin" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--jy21);">
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+      <div style="flex:1 1 420px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: var(--jy7); color: var(--jy8);">MC</span><span style="font-size:13px; font-weight:600; color: var(--jy22);">Administrator</span></div>
+        <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Maria starts the church on Hearth</h2>
+        <p style="margin:0; max-width:720px; color: var(--jy22); text-wrap:pretty;">The first person in. She signs up from the website, creates the church, and becomes its Owner.</p>
+      </div>
+      <div style="display:flex; gap:8px;"><button onClick="{{ startPresent }}" style="display:flex; align-items:center; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Step through</button><a href="Hearth A - Warm Office.dc.html" style="display:flex; align-items:center; height:36px; padding:0 14px; border:1px solid var(--jy6); border-radius:10px; background: var(--surface); font-weight:500; color: var(--jy1); text-decoration:none;">Open prototype →</a></div>
+    </div>
+    <div style="display:flex; gap:24px; overflow-x:auto; padding-bottom:12px;">
+      <div data-screen-label="Administrator 1" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">1</span><span style="font-weight:600;">Finds Hearth</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Maria, the church secretary, lands on the website and chooses Start your church.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="landing" hl="start" name="Maria Carter" email="maria.carter@gmail.com" role="Administrator" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Administrator 2" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">2</span><span style="font-weight:600;">Creates an account</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Name, email and a password. Hearth sends one email to confirm the address.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/sign-up</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signup" name="Maria Carter" email="maria.carter@gmail.com" role="Administrator" signup-sub="Free for every church. No card needed." hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Administrator 3" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">3</span><span style="font-weight:600;">Creates the church</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Name, city and size. Hearth creates Grace Fellowship with Maria as Owner.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/create-church</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="createChurch" name="Maria Carter" email="maria.carter@gmail.com" role="Administrator" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Administrator 4" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">4</span><span style="font-weight:600;">Signs in</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Every visit after this starts at the sign-in page.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/sign-in</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signin" hl="continue" name="Maria Carter" email="maria.carter@gmail.com" role="Administrator" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Administrator 5" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">5</span><span style="font-weight:600;">Lands on the dashboard</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">The setup checklist stays at the top until rooms, giving and the team are in place.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/grace-fellowship</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="appHome" home="admin" name="Maria Carter" email="maria.carter@gmail.com" role="Administrator" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pastor" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--jy21);">
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+      <div style="flex:1 1 420px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: var(--jy9); color: var(--jy10);">MS</span><span style="font-size:13px; font-weight:600; color: var(--jy22);">Senior pastor</span></div>
+        <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Pastor Mike is invited in</h2>
+        <p style="margin:0; max-width:720px; color: var(--jy22); text-wrap:pretty;">Staff never sign up on their own. An administrator invites them with a role, and the role decides what they see.</p>
+      </div>
+      <div style="display:flex; gap:8px;"><button onClick="{{ startPresent }}" style="display:flex; align-items:center; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Step through</button><a href="Hearth A - Pastor.dc.html" style="display:flex; align-items:center; height:36px; padding:0 14px; border:1px solid var(--jy6); border-radius:10px; background: var(--surface); font-weight:500; color: var(--jy1); text-decoration:none;">Open prototype →</a></div>
+    </div>
+    <div style="display:flex; gap:24px; overflow-x:auto; padding-bottom:12px;">
+      <div data-screen-label="Senior pastor 1" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">1</span><span style="font-weight:600;">Gets an invitation</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Maria invites him from Settings, Team and roles, with the Pastoral role.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">mail · inbox</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="inviteEmail" name="Mike Sullivan" email="pastor@gracefellowship.org" role="Senior pastor" email-subject="Maria Carter invited you to Grace Fellowship" email-body="Maria Carter added you to Grace Fellowship on Hearth as Pastoral. Accept to choose a password and sign in." email-cta="Accept invitation" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Senior pastor 2" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">2</span><span style="font-weight:600;">Chooses a password</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">The link already knows his church and role. He only picks a password.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/join/invite</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="acceptInvite" name="Mike Sullivan" email="pastor@gracefellowship.org" role="Pastoral" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Senior pastor 3" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">3</span><span style="font-weight:600;">Signs in</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">From then on he signs in like anyone else.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/sign-in</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signin" hl="continue" name="Mike Sullivan" email="pastor@gracefellowship.org" role="Senior pastor" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Senior pastor 4" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">4</span><span style="font-weight:600;">Lands on his home</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Care list, prayer requests, Sunday and newcomers. Confidential notes are visible to the Pastoral role only.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/grace-fellowship</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="appHome" home="pastor" name="Mike Sullivan" email="pastor@gracefellowship.org" role="Senior pastor" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="leader" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--jy21);">
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+      <div style="flex:1 1 420px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: var(--jy11); color: var(--jy12);">SM</span><span style="font-size:13px; font-weight:600; color: var(--jy22);">Group leader</span></div>
+        <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Samuel gets access to his group</h2>
+        <p style="margin:0; max-width:720px; color: var(--jy22); text-wrap:pretty;">Group leaders are invited the same way, and only ever see their own groups and the people in them.</p>
+      </div>
+      <div style="display:flex; gap:8px;"><button onClick="{{ startPresent }}" style="display:flex; align-items:center; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Step through</button><a href="Hearth A - Group Leader.dc.html" style="display:flex; align-items:center; height:36px; padding:0 14px; border:1px solid var(--jy6); border-radius:10px; background: var(--surface); font-weight:500; color: var(--jy1); text-decoration:none;">Open prototype →</a></div>
+    </div>
+    <div style="display:flex; gap:24px; overflow-x:auto; padding-bottom:12px;">
+      <div data-screen-label="Group leader 1" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">1</span><span style="font-weight:600;">Gets an invitation</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Sent when Maria makes him leader of Young adults.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">mail · inbox</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="inviteEmail" name="Samuel Mensah" email="sam.mensah@gmail.com" role="Group leader" email-subject="You're now leading Young adults" email-body="Maria Carter added you to Grace Fellowship on Hearth as leader of Young adults. Accept to choose a password and sign in." email-cta="Accept invitation" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Group leader 2" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">2</span><span style="font-weight:600;">Chooses a password</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">One field. The group is already attached.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/join/invite</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="acceptInvite" name="Samuel Mensah" email="sam.mensah@gmail.com" role="Group leader · Young adults" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Group leader 3" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">3</span><span style="font-weight:600;">Signs in</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Usually on his phone, on the way to group night.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/sign-in</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signin" hl="continue" name="Samuel Mensah" email="sam.mensah@gmail.com" role="Group leader" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Group leader 4" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">4</span><span style="font-weight:600;">Lands on his group</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Attendance in under a minute, and nothing else in the church.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/grace-fellowship</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="appHome" home="leader" name="Samuel Mensah" email="sam.mensah@gmail.com" role="Group leader" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="volunteer" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--jy21);">
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+      <div style="flex:1 1 420px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: var(--jy13); color: var(--jy14);">RB</span><span style="font-size:13px; font-weight:600; color: var(--jy22);">Check-in volunteer</span></div>
+        <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Ruth opens the check-in station</h2>
+        <p style="margin:0; max-width:720px; color: var(--jy22); text-wrap:pretty;">Volunteers at check-in do not need an account. The tablet is paired to the church once, then stays in station mode.</p>
+      </div>
+      <div style="display:flex; gap:8px;"><button onClick="{{ startPresent }}" style="display:flex; align-items:center; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Step through</button><a href="Hearth A - Check-in Station.dc.html" style="display:flex; align-items:center; height:36px; padding:0 14px; border:1px solid var(--jy6); border-radius:10px; background: var(--surface); font-weight:500; color: var(--jy1); text-decoration:none;">Open prototype →</a></div>
+    </div>
+    <div style="display:flex; gap:24px; overflow-x:auto; padding-bottom:12px;">
+      <div data-screen-label="Check-in volunteer 1" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">1</span><span style="font-weight:600;">Opens the station</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">On the kids wing tablet, Ruth taps Open a check-in station.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/sign-in</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signin" hl="station" name="Ruth Bennett" role="Check-in volunteer" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Check-in volunteer 2" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">2</span><span style="font-weight:600;">Pairs the tablet</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">She types the six-digit code an administrator shows in Settings, Stations.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/station</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="stationPair" name="Ruth Bennett" role="Check-in volunteer" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Check-in volunteer 3" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">3</span><span style="font-weight:600;">Ready for families</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Large targets, no navigation. It stays like this until someone unpairs it.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/station</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="stationHome" name="Ruth Bennett" role="Check-in volunteer" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="member" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--jy21);">
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+      <div style="flex:1 1 420px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: var(--jy15); color: var(--jy16);">HL</span><span style="font-size:13px; font-weight:600; color: var(--jy22);">Member</span></div>
+        <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Hannah signs up on her church's website</h2>
+        <p style="margin:0; max-width:720px; color: var(--jy22); text-wrap:pretty;">Hearth sits inside the church's own website. Members create an account there and are in straight away, with no request and no approval.</p>
+      </div>
+      <div style="display:flex; gap:8px;"><button onClick="{{ startPresent }}" style="display:flex; align-items:center; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Step through</button><a href="Hearth A - Member Web.dc.html" style="display:flex; align-items:center; height:36px; padding:0 14px; border:1px solid var(--jy6); border-radius:10px; background: var(--surface); font-weight:500; color: var(--jy1); text-decoration:none;">Open prototype →</a></div>
+    </div>
+    <div style="display:flex; gap:24px; overflow-x:auto; padding-bottom:12px;">
+      <div data-screen-label="Member 1" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">1</span><span style="font-weight:600;">Visits the church website</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">My account on gracefellowship.org opens the Hearth panel, styled to sit inside the church's site.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="churchSite" hl="create" name="Hannah Lindqvist" email="hannah.l@gmail.com" role="Member" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Member 2" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">2</span><span style="font-weight:600;">Creates an account</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Name, email and a password, without leaving the church's website. The office sees her as a new person.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org/my-account</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signup" name="Hannah Lindqvist" email="hannah.l@gmail.com" role="Member" signup-sub="On Grace Fellowship's website" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Member 3" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">3</span><span style="font-weight:600;">Lands on her home</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Serving requests, kids check-in, giving and groups.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org/my-account</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="memberHome" name="Hannah Lindqvist" email="hannah.l@gmail.com" role="Member" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Member 4" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">4</span><span style="font-weight:600;">Signs in next time</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">From My account on the website, or on her phone.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org/my-account</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signin" hl="continue" name="Hannah Lindqvist" email="hannah.l@gmail.com" role="Member" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="visitor" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--jy21);">
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+      <div style="flex:1 1 420px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: var(--jy17); color: var(--jy18);">ET</span><span style="font-size:13px; font-weight:600; color: var(--jy22);">First-time visitor</span></div>
+        <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Elijah finds a group before he has an account</h2>
+        <p style="margin:0; max-width:720px; color: var(--jy22); text-wrap:pretty;">The group finder is embedded on the church website and public. No leader names and no rosters, only what a stranger needs to decide.</p>
+      </div>
+      <div style="display:flex; gap:8px;"><button onClick="{{ startPresent }}" style="display:flex; align-items:center; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Step through</button><a href="Hearth A - Member Web.dc.html" style="display:flex; align-items:center; height:36px; padding:0 14px; border:1px solid var(--jy6); border-radius:10px; background: var(--surface); font-weight:500; color: var(--jy1); text-decoration:none;">Open prototype →</a></div>
+    </div>
+    <div style="display:flex; gap:24px; overflow-x:auto; padding-bottom:12px;">
+      <div data-screen-label="First-time visitor 1" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">1</span><span style="font-weight:600;">Browses groups</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Groups on the church website shows every group the church has made public.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org/groups</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="publicGroups" hl="groups" name="Elijah Thompson" email="e.thompson@gmail.com" role="First-time visitor" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="First-time visitor 2" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">2</span><span style="font-weight:600;">Opens one</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">When and where it meets and roughly how big it is.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org/groups/young-adults</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="publicGroup" name="Elijah Thompson" email="e.thompson@gmail.com" role="First-time visitor" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="First-time visitor 3" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">3</span><span style="font-weight:600;">Joins</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Join this group asks for an account, created on the spot. He is added to the group and the leader is told.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org/my-account</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signup" name="Elijah Thompson" email="e.thompson@gmail.com" role="First-time visitor" signup-sub="To join Young adults" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="First-time visitor 4" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">4</span><span style="font-weight:600;">Lands on his home</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">With Young adults already listed under his groups.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">gracefellowship.org/my-account</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="memberHome" name="Elijah Thompson" email="e.thompson@gmail.com" role="First-time visitor" site="{{ true }}" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="network" style="display:flex; flex-direction:column; gap:20px; padding:32px 0; border-top:1px solid var(--jy21);">
+    <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+      <div style="flex:1 1 420px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="width:32px; height:32px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: var(--jy19); color: var(--jy20);">AW</span><span style="font-size:13px; font-weight:600; color: var(--jy22);">Network admin</span></div>
+        <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:28px; line-height:34px;">Ann looks across five churches</h2>
+        <p style="margin:0; max-width:720px; color: var(--jy22); text-wrap:pretty;">One sign-in, several churches. After signing in she picks a church or the whole network.</p>
+      </div>
+      <div style="display:flex; gap:8px;"><button onClick="{{ startPresent }}" style="display:flex; align-items:center; height:36px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Step through</button><a href="Hearth A - Network Admin.dc.html" style="display:flex; align-items:center; height:36px; padding:0 14px; border:1px solid var(--jy6); border-radius:10px; background: var(--surface); font-weight:500; color: var(--jy1); text-decoration:none;">Open prototype →</a></div>
+    </div>
+    <div style="display:flex; gap:24px; overflow-x:auto; padding-bottom:12px;">
+      <div data-screen-label="Network admin 1" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">1</span><span style="font-weight:600;">Goes to sign in</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Straight past the marketing.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="landing" hl="signin" name="Ann Walker" email="ann.walker@nilnetwork.org" role="Network admin" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Network admin 2" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">2</span><span style="font-weight:600;">Signs in</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">One account, linked to every church she belongs to.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/sign-in</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="signin" hl="continue" name="Ann Walker" email="ann.walker@nilnetwork.org" role="Network admin" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Network admin 3" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">3</span><span style="font-weight:600;">Picks where to go</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">A single church, or the network overview.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/choose-church</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="chooseChurch" name="Ann Walker" email="ann.walker@nilnetwork.org" role="Network admin" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+      <div data-screen-label="Network admin 4" data-step="" style="flex:none; width:384px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-height:84px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="width:24px; height:24px; flex:none; border-radius:999px; background: var(--jy1); color:white; display:grid; place-items:center; font-size:12px; font-weight:600;">4</span><span style="font-weight:600;">Lands on the network</span></div>
+          <p style="margin:0; font-size:13px; line-height:19px; color: var(--jy22); text-wrap:pretty;">Attendance, giving and health for each church.</p>
+        </div>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid var(--jy6); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08);">
+          <div style="display:flex; align-items:center; gap:6px; height:28px; padding:0 10px; background: var(--jy21); border-bottom:1px solid var(--jy6);">
+            <span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span><span style="width:8px; height:8px; border-radius:999px; background: var(--jy23);"></span>
+            <span style="flex:1; margin-left:6px; height:18px; border-radius:6px; background: var(--jy24); font-size:10px; line-height:18px; padding:0 8px; color: var(--jy22); font-family: 'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden;">hearth.church/grace-fellowship</span>
+          </div>
+          <div style="width:1280px; height:780px; zoom:0.3; overflow:hidden;"><dc-import name="JourneyScreen" screen="appHome" home="network" name="Ann Walker" email="ann.walker@nilnetwork.org" role="Network admin" hint-size="1280px,780px"></dc-import></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <sc-if value="{{ presenting }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:50; background: var(--surface); display:flex; flex-direction:column;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:14px 24px; border-bottom:1px solid var(--jy21);">
+        <span style="flex:1; font-family: Fraunces, serif; font-size:20px;">{{ presentTitle }}</span>
+        <button onClick="{{ prev }}" style="height:38px; padding:0 16px; border:1px solid var(--jy21); border-radius:10px; background: var(--surface); font-weight:500;">← Previous</button>
+        <span style="min-width:64px; text-align:center; font-variant-numeric: tabular-nums;">{{ counter }}</span>
+        <button onClick="{{ next }}" style="height:38px; padding:0 16px; border:1px solid var(--jy21); border-radius:10px; background: var(--surface); font-weight:500;">Next →</button>
+        <button onClick="{{ stopPresent }}" aria-label="Close" style="height:38px; padding:0 14px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Done</button>
+      </div>
+      <div ref="{{ stageRef }}" style="flex:1; min-height:0; display:grid; place-items:center; overflow:hidden; padding:24px;"></div>
+      <div style="padding:0 24px 16px; text-align:center; font-size:13px; opacity:0.7;">Arrow keys move between steps. Esc closes.</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;,&quot;auto&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'|'auto'&quot;}}">
+class Component extends DCLogic {
+  state = { present: null, idx: 0 };
+  stageRef = React.createRef();
+  applyTheme() { const t = this.props.theme || "light"; if (document.documentElement.dataset.theme !== t) document.documentElement.dataset.theme = t; }
+  componentDidMount() { this.applyTheme(); this._k = e => { if (!this.state.present) return; if (e.key === "ArrowRight") this.step(1); if (e.key === "ArrowLeft") this.step(-1); if (e.key === "Escape") this.setState({ present: null }); }; window.addEventListener("keydown", this._k); this._r = () => this.state.present && this.paint(); window.addEventListener("resize", this._r); }
+  componentWillUnmount() { window.removeEventListener("keydown", this._k); window.removeEventListener("resize", this._r); }
+  componentDidUpdate() { this.applyTheme(); if (this.state.present) this.paint(); }
+  cells() { return this.state.present ? [...document.querySelectorAll("#" + this.state.present + " [data-step]")] : []; }
+  step(d) { const n = this.cells().length; this.setState(s => ({ idx: Math.max(0, Math.min(n - 1, s.idx + d)) })); }
+  paint() {
+    const stage = this.stageRef.current, src = this.cells()[this.state.idx]; if (!stage || !src) return;
+    const z = Math.max(0.25, Math.min((stage.clientWidth - 48) / 1280, (stage.clientHeight - 190) / 780, 0.9));
+    const c = src.cloneNode(true); c.removeAttribute("data-step"); c.style.width = Math.round(1280 * z) + "px"; c.style.gap = "16px";
+    const zoomEl = [...c.querySelectorAll("div")].find(el => el.style.zoom); if (zoomEl) zoomEl.style.zoom = String(z);
+    const t = c.querySelector("p"); if (t) { t.style.fontSize = "16px"; t.style.lineHeight = "24px"; t.style.maxWidth = "760px"; }
+    stage.replaceChildren(c);
+  }
+  renderVals() {
+    const s = this.state; const n = this.cells().length;
+    const sec = s.present ? document.getElementById(s.present) : null;
+    return {
+      presenting: !!s.present, stageRef: this.stageRef,
+      presentTitle: sec ? (sec.querySelector("h2")?.textContent || "") : "",
+      counter: s.present ? (s.idx + 1) + " of " + (n || 1) : "",
+      startPresent: e => this.setState({ present: e.currentTarget.closest("section").id, idx: 0 }),
+      stopPresent: () => this.setState({ present: null }), prev: () => this.step(-1), next: () => this.step(1),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -39,7 +39,7 @@
       "900": "oklch(0.362 0.082 45)"
     }
   },
-  "$spectrum": "Hue ramps. Twelve are defined so any stored value always renders, but only eight ship as the palette: rose, amber, citron, fern, teal, sky, indigo, violet. Those eight are evenly spread and are what auto-assignment draws from. Twelve read as a paint chart, and the four held back sat too close to their neighbours to tell apart at a glance, which is the only thing a hue is for here. 100 tints an area, 500 is the identity, 700 is text-safe, 900 pairs for dark.",
+  "$spectrum": "Hue ramps. Twelve are defined so any stored value always renders, but only eight ship as the palette: rose, amber, citron, fern, teal, sky, indigo, violet. Those eight are evenly spread and are what auto-assignment draws from. Twelve read as a paint chart, and the four held back sat too close to their neighbours to tell apart at a glance, which is the only thing a hue is for here. The October 2026 redesign came back with amber, citron and fern text a little lighter than these; see docs/redesign/README.md. The values here are darker and clear 4.5:1 on white with room, so they stay. 100 tints an area, 500 is the identity, 700 is text-safe, 900 pairs for dark.",
   "spectrum": {
     "rose": {
       "100": "oklch(0.938 0.042 10)",

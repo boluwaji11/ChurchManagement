@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,50&family=Inter:wght@400..700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root, [data-theme="light"] { --h-rose-t: oklch(0.938 0.042 10); --h-rose-b: oklch(0.635 0.168 12); --h-rose-x: oklch(0.505 0.152 14); --h-amber-t: oklch(0.942 0.048 72); --h-amber-b: oklch(0.732 0.156 70); --h-amber-x: oklch(0.572 0.132 62); --h-citron-t: oklch(0.944 0.05 105); --h-citron-b: oklch(0.742 0.148 110); --h-citron-x: oklch(0.582 0.126 108); --h-fern-t: oklch(0.938 0.044 142); --h-fern-b: oklch(0.662 0.148 145); --h-fern-x: oklch(0.522 0.128 147); --h-teal-t: oklch(0.936 0.04 196); --h-teal-b: oklch(0.648 0.118 200); --h-teal-x: oklch(0.508 0.104 202); --h-sky-t: oklch(0.936 0.042 232); --h-sky-b: oklch(0.642 0.138 238); --h-sky-x: oklch(0.505 0.128 240); --h-indigo-t: oklch(0.934 0.044 268); --h-indigo-b: oklch(0.612 0.156 272); --h-indigo-x: oklch(0.478 0.142 274); --h-violet-t: oklch(0.936 0.046 296); --h-violet-b: oklch(0.622 0.168 300); --h-violet-x: oklch(0.488 0.152 302); --surface: white; --accent-fill: oklch(0.455 0.118 285); --accent-fill-hover: oklch(0.382 0.098 285); --mw0: oklch(0.985 0.003 75); --mw1: oklch(0.198 0.009 75); --mw2: oklch(0.455 0.118 285); --mw3: oklch(0.382 0.098 285); --mw4: oklch(0.925 0.008 75); --mw5: oklch(0.742 0.162 62); --mw6: oklch(0.936 0.042 232); --mw7: oklch(0.505 0.128 240); --mw8: oklch(0.442 0.013 75); --mw9: oklch(0.863 0.01 75); --mw10: oklch(0.622 0.168 300); --mw11: oklch(0.936 0.046 296); --mw12: oklch(0.488 0.152 302); --mw13: oklch(0.967 0.005 75); --mw14: oklch(0.556 0.014 75); --mw15: oklch(0.642 0.138 238); --mw16: oklch(0.582 0.132 155); --mw17: oklch(0.968 0.012 285); --mw18: oklch(0.938 0.044 142); --mw19: oklch(0.522 0.128 147); --mw20: oklch(0.942 0.048 72); --mw21: oklch(0.572 0.132 62); color-scheme: light; }
+  html[data-theme="dark"] { --h-rose-t: oklch(0.32 0.059 10); --h-rose-b: oklch(0.635 0.168 12); --h-rose-x: oklch(0.82 0.122 14); --h-amber-t: oklch(0.32 0.067 72); --h-amber-b: oklch(0.732 0.156 70); --h-amber-x: oklch(0.82 0.106 62); --h-citron-t: oklch(0.32 0.070 105); --h-citron-b: oklch(0.742 0.148 110); --h-citron-x: oklch(0.82 0.101 108); --h-fern-t: oklch(0.32 0.062 142); --h-fern-b: oklch(0.662 0.148 145); --h-fern-x: oklch(0.82 0.102 147); --h-teal-t: oklch(0.32 0.056 196); --h-teal-b: oklch(0.648 0.118 200); --h-teal-x: oklch(0.82 0.083 202); --h-sky-t: oklch(0.32 0.059 232); --h-sky-b: oklch(0.642 0.138 238); --h-sky-x: oklch(0.82 0.102 240); --h-indigo-t: oklch(0.32 0.062 268); --h-indigo-b: oklch(0.612 0.156 272); --h-indigo-x: oklch(0.82 0.114 274); --h-violet-t: oklch(0.32 0.064 296); --h-violet-b: oklch(0.622 0.168 300); --h-violet-x: oklch(0.82 0.122 302); --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --mw0: oklch(0.155 0.003 75); --mw1: oklch(0.942 0.009 75); --mw2: oklch(0.62 0.118 285); --mw3: oklch(0.584 0.098 285); --mw4: oklch(0.215 0.008 75); --mw5: oklch(0.742 0.162 62); --mw6: oklch(0.27 0.029 232); --mw7: oklch(0.645 0.128 240); --mw8: oklch(0.698 0.013 75); --mw9: oklch(0.277 0.01 75); --mw10: oklch(0.622 0.168 300); --mw11: oklch(0.27 0.032 296); --mw12: oklch(0.637 0.152 302); --mw13: oklch(0.173 0.005 75); --mw14: oklch(0.584 0.014 75); --mw15: oklch(0.642 0.138 238); --mw16: oklch(0.582 0.132 155); --mw17: oklch(0.172 0.012 285); --mw18: oklch(0.27 0.031 142); --mw19: oklch(0.654 0.128 147); --mw20: oklch(0.27 0.034 72); --mw21: oklch(0.572 0.132 62); color-scheme: dark; }
+  @media (prefers-color-scheme: dark) { html[data-theme="auto"] { --h-rose-t: oklch(0.32 0.059 10); --h-rose-b: oklch(0.635 0.168 12); --h-rose-x: oklch(0.82 0.122 14); --h-amber-t: oklch(0.32 0.067 72); --h-amber-b: oklch(0.732 0.156 70); --h-amber-x: oklch(0.82 0.106 62); --h-citron-t: oklch(0.32 0.070 105); --h-citron-b: oklch(0.742 0.148 110); --h-citron-x: oklch(0.82 0.101 108); --h-fern-t: oklch(0.32 0.062 142); --h-fern-b: oklch(0.662 0.148 145); --h-fern-x: oklch(0.82 0.102 147); --h-teal-t: oklch(0.32 0.056 196); --h-teal-b: oklch(0.648 0.118 200); --h-teal-x: oklch(0.82 0.083 202); --h-sky-t: oklch(0.32 0.059 232); --h-sky-b: oklch(0.642 0.138 238); --h-sky-x: oklch(0.82 0.102 240); --h-indigo-t: oklch(0.32 0.062 268); --h-indigo-b: oklch(0.612 0.156 272); --h-indigo-x: oklch(0.82 0.114 274); --h-violet-t: oklch(0.32 0.064 296); --h-violet-b: oklch(0.622 0.168 300); --h-violet-x: oklch(0.82 0.122 302); --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --mw0: oklch(0.155 0.003 75); --mw1: oklch(0.942 0.009 75); --mw2: oklch(0.62 0.118 285); --mw3: oklch(0.584 0.098 285); --mw4: oklch(0.215 0.008 75); --mw5: oklch(0.742 0.162 62); --mw6: oklch(0.27 0.029 232); --mw7: oklch(0.645 0.128 240); --mw8: oklch(0.698 0.013 75); --mw9: oklch(0.277 0.01 75); --mw10: oklch(0.622 0.168 300); --mw11: oklch(0.27 0.032 296); --mw12: oklch(0.637 0.152 302); --mw13: oklch(0.173 0.005 75); --mw14: oklch(0.584 0.014 75); --mw15: oklch(0.642 0.138 238); --mw16: oklch(0.582 0.132 155); --mw17: oklch(0.172 0.012 285); --mw18: oklch(0.27 0.031 142); --mw19: oklch(0.654 0.128 147); --mw20: oklch(0.27 0.034 72); --mw21: oklch(0.572 0.132 62); color-scheme: dark; } }
+  html, body { margin:0; padding:0; background: var(--mw0); color: var(--mw1); font-family: Inter, system-ui, sans-serif; font-size:15px; line-height:22px; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: var(--mw2); text-decoration: none; } a:hover { color: var(--mw3); text-decoration: underline; }
+  button { font: inherit; cursor: pointer; color: inherit; }
+  table { border-collapse: collapse; }
+  span[data-icon] { display: inline-flex; width: 18px; height: 18px; flex: none; align-items: center; justify-content: center; }
+  span[data-icon] svg { width: 100%; height: 100%; stroke-width: 1.75; }
+</style>
+</helmet>
+
+<div data-screen-label="Member web" style="min-height:100vh; display:flex; flex-direction:column;">
+  <header style="border-bottom:1px solid var(--mw4); background: var(--mw0); position:sticky; top:0; z-index:5;">
+    <div style="max-width:1120px; margin:0 auto; padding:0 24px; display:flex; align-items:center; gap:24px; min-height:64px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="width:32px; height:32px; border-radius:10px; background: var(--mw5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:16px;height:16px;"></span></span>
+        <span style="font-family: Fraunces, serif; font-size:19px;">Grace Fellowship</span>
+      </div>
+      <nav style="display:flex; gap:4px; flex:1; flex-wrap:wrap;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ setTab }}" data-id="{{ t.id }}" style="{{ t.style }}">{{ t.label }}</button>
+        </sc-for>
+      </nav>
+      <button onClick="{{ cycleTheme }}" aria-label="{{ themeLabel }}" title="{{ themeLabel }}" style="width:36px; height:36px; border:1px solid var(--mw4); border-radius:10px; background: var(--surface); display:grid; place-items:center;"><span data-icon="{{ themeIcon }}" style="width:16px;height:16px;"></span></button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="width:36px; height:36px; border-radius:999px; background: var(--mw6); color: var(--mw7); display:grid; place-items:center; font-size:13px; font-weight:600;">HL</span>
+        <span style="font-weight:500; font-size:14px;">Hannah Lindqvist</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex:1; width:100%; max-width:1120px; margin:0 auto; padding:32px 24px 96px; display:flex; flex-direction:column; gap:28px;">
+
+    <sc-if value="{{ tab.home }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="font-family: Fraunces, serif; font-size:36px; line-height:42px;">Hello, Hannah</div>
+        <div style="color: var(--mw8); margin-top:4px;">Sunday 5 October · Service at 10:00 am</div>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+        <div style="flex:999 1 480px; min-width:0; display:flex; flex-direction:column; gap:16px;">
+          <h2 style="margin:0; font-family: Fraunces, serif; font-weight:400; font-size:22px; line-height:28px;">This week</h2>
+          <section style="background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
+            <div style="flex:1 1 260px; display:flex; flex-direction:column; gap:4px;">
+              <span style="align-self:flex-start; font-size:12px; font-weight:500; padding:2px 8px; border-radius:999px; background: var(--mw6); color: var(--mw7);">Hospitality team</span>
+              <span style="font-weight:600; font-size:17px; margin-top:6px;">You are scheduled to serve</span>
+              <span style="color: var(--mw8);">Sun 5 Oct · 9:15 am · Welcome desk</span>
+            </div>
+            <sc-if value="{{ servePending }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; gap:8px;">
+                <button onClick="{{ serveDecline }}" style="height:40px; padding:0 14px; border:1px solid var(--mw9); border-radius:10px; background: var(--surface); font-weight:500;">Can't make it</button>
+                <button onClick="{{ serveAccept }}" style="height:40px; padding:0 16px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Accept</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ serveDone }}" hint-placeholder-val="{{ false }}"><span style="display:flex; align-items:center; gap:8px; font-weight:500; color: {{ serveColor }};"><span data-icon="{{ serveIcon }}" style="width:20px;height:20px;"></span>{{ serveText }}</span></sc-if>
+          </section>
+          <section style="background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
+            <span style="width:12px; align-self:stretch; min-height:44px; border-radius:6px; background: var(--mw10);"></span>
+            <div style="flex:1 1 220px; display:flex; flex-direction:column; gap:2px;">
+              <span style="font-weight:600; font-size:17px;">Check Mia in before you arrive</span>
+              <span style="color: var(--mw8);">Kids 4–6 · Kids wing · labels print when you scan in</span>
+            </div>
+            <sc-if value="{{ kidNotIn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ checkKidIn }}" style="height:40px; padding:0 16px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Check Mia in</button></sc-if>
+            <sc-if value="{{ kidIn }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; align-items:center; gap:14px; padding:10px 16px; border-radius:12px; background: var(--mw11);">
+                <span style="font-size:13px; font-weight:500; color: var(--mw12);">Pickup code</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size:26px; line-height:30px;">QF82</span>
+              </div>
+            </sc-if>
+          </section>
+          <section style="background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:8px 20px;">
+            <sc-for list="{{ events }}" as="e" hint-placeholder-count="3">
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--mw13);">
+                <div style="width:52px; display:flex; flex-direction:column; align-items:center; line-height:18px;"><span style="font-size:12px; font-weight:500; color: var(--mw14);">{{ e.dow }}</span><span style="font-family: Fraunces, serif; font-size:22px; line-height:26px;">{{ e.day }}</span></div>
+                <span style="width:8px; height:8px; border-radius:999px; background: {{ e.hue.base }};"></span>
+                <div style="flex:1 1 200px; line-height:20px;"><div style="font-weight:500;">{{ e.title }}</div><div style="font-size:13px; color: var(--mw8);">{{ e.time }} · {{ e.room }}</div></div>
+                <button onClick="{{ register }}" data-id="{{ e.id }}" style="{{ e.btnStyle }}">{{ e.btnText }}</button>
+              </div>
+            </sc-for>
+          </section>
+        </div>
+        <aside style="flex:1 1 300px; display:flex; flex-direction:column; gap:16px;">
+          <section style="background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:8px;">
+            <span style="font-size:13px; font-weight:500; color: var(--mw14);">Given in 2026</span>
+            <span style="font-family: Fraunces, serif; font-size:36px; line-height:42px;">$1,240</span>
+            <span style="font-size:14px; color: var(--mw8);">$50 every month to General</span>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button onClick="{{ setTab }}" data-id="give" style="flex:1; height:40px; border:none; border-radius:10px; background: var(--accent-fill); color:white; font-weight:600;">Give</button>
+              <button style="flex:1; height:40px; border:1px solid var(--mw9); border-radius:10px; background: var(--surface); font-weight:500; font-size:14px;">2025 statement</button>
+            </div>
+          </section>
+          <section style="background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:10px;">
+            <span style="font-size:13px; font-weight:500; color: var(--mw14);">My groups</span>
+            <div style="display:flex; align-items:center; gap:10px;"><span style="width:8px; height:8px; border-radius:999px; background: var(--mw15);"></span><span style="flex:1; font-weight:500;">Hospitality</span><span style="font-size:13px; color: var(--mw14);">Sundays</span></div>
+            <button onClick="{{ setTab }}" data-id="groups" style="align-self:flex-start; border:none; background:none; padding:0; color: var(--mw2); font-weight:500; font-size:14px;">Find another group</button>
+          </section>
+          <section style="background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:10px;">
+            <span style="font-size:13px; font-weight:500; color: var(--mw14);">Household</span>
+            <sc-for list="{{ household }}" as="m" hint-placeholder-count="3"><div style="display:flex; justify-content:space-between;"><span style="font-weight:500;">{{ m.name }}</span><span style="font-size:13px; color: var(--mw14);">{{ m.role }}</span></div></sc-for>
+          </section>
+        </aside>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tab.give }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family: Fraunces, serif; font-size:36px; line-height:42px;">Give</div>
+      <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+        <section style="flex:1 1 380px; background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:24px; display:flex; flex-direction:column; gap:18px;">
+          <sc-if value="{{ notGiven }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; flex-direction:column; gap:8px;"><span style="font-size:14px; font-weight:500;">Amount</span>
+              <div style="display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:8px;">
+                <sc-for list="{{ amountOpts }}" as="a" hint-placeholder-count="4"><button onClick="{{ setAmount }}" data-v="{{ a.v }}" style="{{ a.style }}">${{ a.v }}</button></sc-for>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;"><span style="font-size:14px; font-weight:500;">Fund</span>
+              <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <sc-for list="{{ fundOpts }}" as="fo" hint-placeholder-count="4"><button onClick="{{ setFund }}" data-v="{{ fo.name }}" style="{{ fo.style }}"><span style="width:8px; height:8px; border-radius:999px; background: {{ fo.hue.base }};"></span>{{ fo.name }}</button></sc-for>
+              </div>
+            </div>
+            <div style="display:flex; background: var(--mw4); border-radius:12px; padding:4px;">
+              <sc-for list="{{ freqOpts }}" as="fq" hint-placeholder-count="2"><button onClick="{{ setFreq }}" data-v="{{ fq.v }}" style="{{ fq.style }}">{{ fq.v }}</button></sc-for>
+            </div>
+            <button onClick="{{ giveNow }}" style="height:48px; border:none; border-radius:12px; background: var(--accent-fill); color:white; font-weight:600; font-size:16px;">{{ giveLabel }}</button>
+            <span style="font-size:13px; color: var(--mw8); text-align:center;">Goes straight to Grace Fellowship's own account.</span>
+          </sc-if>
+          <sc-if value="{{ given }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; padding:12px 0;">
+              <span style="width:56px; height:56px; border-radius:999px; background: var(--mw16); color:white; display:grid; place-items:center;"><span data-icon="check" style="width:28px;height:28px;"></span></span>
+              <div style="font-family: Fraunces, serif; font-size:26px; line-height:32px;">Thank you, Hannah</div>
+              <div style="color: var(--mw8);">{{ givenText }}</div>
+              <button onClick="{{ giveAgain }}" style="height:40px; padding:0 16px; border:1px solid var(--mw9); border-radius:10px; background: var(--surface); font-weight:500; margin-top:6px;">Give again</button>
+            </div>
+          </sc-if>
+        </section>
+        <section style="flex:999 1 420px; min-width:0; background: var(--surface); border:1px solid var(--mw4); border-radius:16px; overflow:auto;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px 8px;"><span style="font-family: Fraunces, serif; font-size:22px;">Your giving</span><button style="height:34px; padding:0 12px; border:1px solid var(--mw9); border-radius:10px; background: var(--surface); font-weight:500; font-size:13px; display:flex; align-items:center; gap:6px;"><span data-icon="download" style="width:16px;height:16px;"></span>2025 statement</button></div>
+          <table style="width:100%; min-width:420px;">
+            <tbody>
+              <sc-for list="{{ history }}" as="g" hint-placeholder-count="6">
+                <tr>
+                  <td style="padding:12px 20px; border-top:1px solid var(--mw13); color: var(--mw8); font-size:14px;">{{ g.date }}</td>
+                  <td style="padding:12px 20px; border-top:1px solid var(--mw13);"><span style="display:inline-flex; align-items:center; gap:6px; font-size:14px;"><span style="width:8px; height:8px; border-radius:999px; background: {{ g.hue.base }};"></span>{{ g.fund }}</span></td>
+                  <td style="padding:12px 20px; border-top:1px solid var(--mw13); color: var(--mw14); font-size:14px;">{{ g.method }}</td>
+                  <td style="padding:12px 20px; border-top:1px solid var(--mw13); text-align:right; font-family: 'JetBrains Mono', monospace; font-size:14px;">{{ g.amount }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tab.groups }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:12px;">
+        <div><div style="font-family: Fraunces, serif; font-size:36px; line-height:42px;">Find a group</div><div style="color: var(--mw8); margin-top:4px;">Groups meet in homes and at church through the week.</div></div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <sc-for list="{{ typeOpts }}" as="ty" hint-placeholder-count="4"><button onClick="{{ setType }}" data-v="{{ ty.v }}" style="{{ ty.style }}">{{ ty.v }}</button></sc-for>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="6">
+          <section style="background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:10px;">
+            <span style="align-self:flex-start; font-size:12px; font-weight:500; padding:2px 8px; border-radius:999px; background: {{ g.hue.tint }}; color: {{ g.hue.text }};">{{ g.type }}</span>
+            <div style="font-family: Fraunces, serif; font-size:22px; line-height:28px;">{{ g.name }}</div>
+            <div style="font-size:14px; color: var(--mw8);">{{ g.meets }} · Led by {{ g.leader }}</div>
+            <button onClick="{{ requestJoin }}" data-id="{{ g.id }}" style="{{ g.btnStyle }}">{{ g.btnText }}</button>
+          </section>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tab.serving }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family: Fraunces, serif; font-size:36px; line-height:42px;">Serving</div>
+      <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+        <section style="flex:999 1 460px; min-width:0; background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:8px 20px;">
+          <sc-for list="{{ schedule }}" as="sv" hint-placeholder-count="4">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--mw13);">
+              <div style="width:64px; line-height:18px;"><div style="font-size:12px; font-weight:500; color: var(--mw14);">Sun</div><div style="font-family: Fraunces, serif; font-size:20px;">{{ sv.date }}</div></div>
+              <div style="flex:1 1 200px;"><div style="font-weight:500;">{{ sv.role }}</div><div style="font-size:13px; color: var(--mw8);">Hospitality · 9:15 am</div></div>
+              <span style="{{ sv.style }}"><span data-icon="{{ sv.icon }}" style="width:14px;height:14px;"></span>{{ sv.state }}</span>
+            </div>
+          </sc-for>
+        </section>
+        <aside style="flex:1 1 280px; background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:12px;">
+          <span style="font-weight:600;">Dates you're away</span>
+          <span style="font-size:14px; color: var(--mw8);">Your team lead won't schedule you on these Sundays.</span>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <sc-for list="{{ awayOpts }}" as="a" hint-placeholder-count="4"><button onClick="{{ toggleAway }}" data-v="{{ a.v }}" style="{{ a.style }}">{{ a.v }}</button></sc-for>
+          </div>
+        </aside>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tab.household }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family: Fraunces, serif; font-size:36px; line-height:42px;">My household</div>
+      <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+        <section style="flex:1 1 320px; background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:12px;">
+          <span style="font-weight:600;">People</span>
+          <sc-for list="{{ household }}" as="m" hint-placeholder-count="3">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="width:36px; height:36px; border-radius:999px; display:grid; place-items:center; font-size:12px; font-weight:600; background: {{ m.hue.tint }}; color: {{ m.hue.text }};">{{ m.initials }}</span>
+              <span style="flex:1;"><span style="display:block; font-weight:500;">{{ m.name }}</span><span style="display:block; font-size:13px; color: var(--mw14);">{{ m.role }}</span></span>
+            </div>
+          </sc-for>
+        </section>
+        <section style="flex:999 1 420px; min-width:0; background: var(--surface); border:1px solid var(--mw4); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:4px;">
+          <span style="font-weight:600;">What the church directory shows</span>
+          <span style="font-size:14px; color: var(--mw8); margin-bottom:8px;">You choose. Staff can always reach you.</span>
+          <sc-for list="{{ privacy }}" as="p" hint-placeholder-count="4">
+            <button onClick="{{ togglePrivacy }}" data-k="{{ p.k }}" style="display:flex; align-items:center; gap:14px; padding:12px 0; border:none; border-top:1px solid var(--mw13); background:none; text-align:left; min-height:48px;">
+              <span style="flex:1;"><span style="display:block; font-weight:500;">{{ p.label }}</span><span style="display:block; font-size:13px; color: var(--mw14);">{{ p.value }}</span></span>
+              <span style="{{ p.track }}"><span style="{{ p.knob }}"></span></span>
+            </button>
+          </sc-for>
+        </section>
+      </div>
+    </sc-if>
+  </main>
+
+  <div style="position:fixed; right:16px; bottom:16px; z-index:20; display:flex; gap:8px;">
+    <a href="Hearth A - Member Portal.dc.html" style="display:flex; align-items:center; gap:6px; height:38px; padding:0 14px; border-radius:999px; border:1px solid var(--mw9); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08); font-size:13px; font-weight:500; color: var(--mw1);"><span data-icon="smartphone" style="width:15px;height:15px;"></span>Phone version</a>
+    <a href="Hearth A - Warm Office.dc.html" style="display:flex; align-items:center; gap:6px; height:38px; padding:0 14px; border-radius:999px; border:1px solid var(--mw9); background: var(--surface); box-shadow: 0 2px 4px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.08); font-size:13px; font-weight:500; color: var(--mw1);"><span data-icon="layout-dashboard" style="width:15px;height:15px;"></span>Admin view</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;,&quot;auto&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;'light'|'dark'|'auto'&quot;}}">
+class Component extends DCLogic {
+  state = { tab: "home", data: null, serveResp: null, kidIn: false, amount: 50, fund: "General", freq: "Once", given: false, joinReq: {}, gtype: "All", reg: {}, away: { "Oct 19": true }, privacy: { phone: true, email: true, address: false, birthday: true } };
+  applyTheme() { const t = this.state.theme || this.props.theme || "auto"; if (document.documentElement.dataset.theme !== t) document.documentElement.dataset.theme = t; }
+  async componentDidMount() { this.applyTheme(); const data = await import("./data.js"); this.setState({ data }); this.icons(); }
+  componentDidUpdate() { this.applyTheme(); this.icons(); }
+  icons() {
+    const L = window.lucide; if (!L || !L.icons) { if (!this._r) this._r = setTimeout(() => { this._r = null; this.icons(); }, 300); return; }
+    document.querySelectorAll("span[data-icon]").forEach(el => { const n = el.getAttribute("data-icon"); if (!n || el.getAttribute("data-drawn") === n) return; const k = n.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(""); if (!L.icons[k]) return; el.innerHTML = ""; el.appendChild(L.createElement(L.icons[k])); el.setAttribute("data-drawn", n); });
+  }
+  renderVals() {
+    const th = this.state.theme || this.props.theme || "auto"; const nextTh = { auto: "light", light: "dark", dark: "auto" }[th];
+    const themeVals = { themeIcon: { auto: "monitor", light: "sun", dark: "moon" }[th], themeLabel: "Theme: " + { auto: "match device", light: "light", dark: "dark" }[th] + ". Click for " + { auto: "match device", light: "light", dark: "dark" }[nextTh] + ".", cycleTheme: () => this.setState({ theme: nextTh }) };
+    const s = this.state, d = s.data;
+    const hue = n => d ? d.hue(n) : { tint: "", base: "", text: "" };
+    const tabs = [["home", "Home"], ["give", "Give"], ["groups", "Groups"], ["serving", "Serving"], ["household", "My household"]].map(([id, label]) => ({ id, label, style: { height: "64px", padding: "0 12px", border: "none", borderBottom: "2px solid " + (s.tab === id ? "var(--mw2)" : "transparent"), background: "none", fontWeight: s.tab === id ? 600 : 500, color: s.tab === id ? "var(--mw1)" : "var(--mw8)", fontSize: "15px" } }));
+    const chip = on => ({ height: "44px", borderRadius: "12px", border: "1px solid " + (on ? "var(--mw2)" : "var(--mw9)"), background: on ? "var(--mw17)" : "var(--surface)", color: on ? "var(--mw3)" : "var(--mw1)", fontWeight: 600, fontSize: "15px" });
+    const pill = on => ({ height: "36px", padding: "0 14px", borderRadius: "999px", border: "1px solid " + (on ? "var(--mw1)" : "var(--mw9)"), background: on ? "var(--mw1)" : "var(--surface)", color: on ? "white" : "var(--mw1)", fontWeight: 500, fontSize: "14px" });
+    const evDefs = [{ id: "e1", dow: "Tue", day: 7, title: "Food pantry", time: "10:00 am", room: "Lobby", h: "teal", reg: true }, { id: "e2", dow: "Fri", day: 10, title: "Young adults", time: "7:30 pm", room: "Fellowship hall", h: "fern", reg: false }, { id: "e3", dow: "Sat", day: 18, title: "Fall family picnic", time: "12:00 pm", room: "Lincoln Park", h: "amber", reg: true }];
+    const events = evDefs.map(e => { const on = !!s.reg[e.id]; return { ...e, hue: hue(e.h), btnText: e.reg ? (on ? "Registered" : "Register") : "Add to calendar", btnStyle: { height: "36px", padding: "0 14px", borderRadius: "10px", border: on ? "none" : "1px solid var(--mw9)", background: on ? "var(--mw18)" : "var(--surface)", color: on ? "var(--mw19)" : "var(--mw1)", fontWeight: 500, fontSize: "14px" } }; });
+    const fmt = n => "$" + n.toFixed(2);
+    const history = [["Oct 1", "General", "Monthly", 50], ["Sep 21", "Missions", "Card", 40], ["Sep 1", "General", "Monthly", 50], ["Aug 1", "General", "Monthly", 50], ["Jul 13", "Building", "Card", 100], ["Jul 1", "General", "Monthly", 50]].map(([date, fund, method, a]) => ({ date, fund, method, amount: fmt(a), hue: d ? (d.funds.find(f => f.name === fund) || {}).hue || {} : {} }));
+    const allGroups = d ? d.groups.filter(g => g.type !== "Committee") : [];
+    const typeOpts = ["All", "Small group", "Class", "Ministry team"].map(v => ({ v, style: pill(s.gtype === v) }));
+    const groups = allGroups.filter(g => s.gtype === "All" || g.type === s.gtype).map(g => { const req = !!s.joinReq[g.id]; return { ...g, btnText: req ? "Request sent to " + g.leader.split(" ")[0] : "Ask to join", btnStyle: { marginTop: "6px", height: "40px", borderRadius: "10px", border: req ? "none" : "1px solid var(--mw9)", background: req ? "var(--mw18)" : "var(--surface)", color: req ? "var(--mw19)" : "var(--mw1)", fontWeight: 600, fontSize: "14px" } }; });
+    const stateStyle = (bg, fg) => ({ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 500, padding: "3px 10px", borderRadius: "999px", background: bg, color: fg });
+    const firstState = s.serveResp === "declined" ? ["Declined", "x-circle", stateStyle("var(--mw13)", "var(--mw8)")] : s.serveResp === "accepted" ? ["Accepted", "check-circle-2", stateStyle("var(--mw18)", "var(--mw19)")] : ["Waiting for you", "clock", stateStyle("var(--mw20)", "var(--mw21)")];
+    const schedule = [{ date: "Oct 5", role: "Welcome desk", st: firstState }, { date: "Oct 12", role: "Coffee", st: ["Accepted", "check-circle-2", stateStyle("var(--mw18)", "var(--mw19)")] }, { date: "Oct 26", role: "Welcome desk", st: ["Accepted", "check-circle-2", stateStyle("var(--mw18)", "var(--mw19)")] }].map(x => ({ date: x.date, role: x.role, state: x.st[0], icon: x.st[1], style: x.st[2] }));
+    const awayOpts = ["Oct 5", "Oct 12", "Oct 19", "Oct 26", "Nov 2", "Nov 9"].map(v => ({ v, style: pill(!!s.away[v]) }));
+    const household = [{ name: "Hannah Lindqvist", role: "You", initials: "HL", hue: hue("sky") }, { name: "Erik Lindqvist", role: "Spouse", initials: "EL", hue: hue("teal") }, { name: "Mia Lindqvist", role: "Child, 9", initials: "ML", hue: hue("violet") }];
+    const privacy = [["phone", "Phone", "(847) 555-0133"], ["email", "Email", "hannah.l@gmail.com"], ["address", "Address", "2210 W Foster Ave, Chicago"], ["birthday", "Birthday", "22 October"]].map(([k, label, value]) => { const on = !!s.privacy[k]; return { k, label, value, track: { width: "44px", height: "26px", borderRadius: "999px", background: on ? "var(--mw2)" : "var(--mw9)", position: "relative", flex: "none", transition: "background 140ms" }, knob: { position: "absolute", top: "3px", left: on ? "21px" : "3px", width: "20px", height: "20px", borderRadius: "999px", background: "var(--surface)", boxShadow: "0 1px 2px oklch(0 0 0 / 0.2)", transition: "left 140ms cubic-bezier(0.16, 1, 0.3, 1)" } }; });
+    return { ...themeVals,
+      tabs, tab: { [s.tab]: true }, setTab: e => this.setState({ tab: e.currentTarget.dataset.id }),
+      servePending: !s.serveResp, serveDone: !!s.serveResp, serveText: s.serveResp === "accepted" ? "You're on. See you at 9:15." : "Declined. Your team lead will find cover.", serveIcon: s.serveResp === "accepted" ? "check-circle-2" : "x-circle", serveColor: s.serveResp === "accepted" ? "var(--mw19)" : "var(--mw8)",
+      serveAccept: () => this.setState({ serveResp: "accepted" }), serveDecline: () => this.setState({ serveResp: "declined" }),
+      kidIn: s.kidIn, kidNotIn: !s.kidIn, checkKidIn: () => this.setState({ kidIn: true }),
+      events, register: e => { const id = e.currentTarget.dataset.id; this.setState({ reg: { ...s.reg, [id]: !s.reg[id] } }); },
+      household,
+      amountOpts: [25, 50, 100, 250].map(v => ({ v, style: chip(s.amount === v) })),
+      fundOpts: d ? d.funds.map(f => ({ ...f, style: { ...chip(s.fund === f.name), display: "flex", alignItems: "center", gap: "8px", padding: "0 14px", height: "40px", fontSize: "14px", fontWeight: 500 } })) : [],
+      freqOpts: ["Once", "Monthly"].map(v => ({ v, style: { flex: 1, height: "38px", border: "none", borderRadius: "9px", background: s.freq === v ? "var(--surface)" : "transparent", fontWeight: 600, fontSize: "14px", boxShadow: s.freq === v ? "0 1px 2px oklch(0 0 0 / 0.06)" : "none" } })),
+      setAmount: e => this.setState({ amount: Number(e.currentTarget.dataset.v) }), setFund: e => this.setState({ fund: e.currentTarget.dataset.v }), setFreq: e => this.setState({ freq: e.currentTarget.dataset.v }),
+      giveLabel: "Give $" + s.amount + (s.freq === "Monthly" ? " monthly" : ""), giveNow: () => this.setState({ given: true }), given: s.given, notGiven: !s.given, giveAgain: () => this.setState({ given: false }),
+      givenText: "$" + s.amount + " to " + s.fund + (s.freq === "Monthly" ? ", every month" : "") + ". A receipt is on its way to your email.",
+      history, typeOpts, setType: e => this.setState({ gtype: e.currentTarget.dataset.v }), groups, requestJoin: e => { const id = e.currentTarget.dataset.id; this.setState({ joinReq: { ...s.joinReq, [id]: true } }); },
+      schedule, awayOpts, toggleAway: e => { const v = e.currentTarget.dataset.v; this.setState({ away: { ...s.away, [v]: !s.away[v] } }); },
+      privacy, togglePrivacy: e => { const k = e.currentTarget.dataset.k; this.setState({ privacy: { ...s.privacy, [k]: !s.privacy[k] } }); },
+    };
+  }
+}
+</script>
+
+</body>
+</html>

@@ -60,6 +60,21 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-5 | Replace native browser validation with our own field messages | R24.6 | Closed |
 | HRT-6 | Dark-mode status colours, and stop tinting invalid inputs | R24.5, R24.10 | Closed |
 | HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.6, R24.18 | Resolved |
+| HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Resolved |
+| HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | New |
+| HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | New |
+| HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | New |
+| HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | New |
+| HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
+| HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
+| HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | New |
+| HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | New |
+
+The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
+reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
+built are in [docs/redesign/README.md](docs/redesign/README.md). Giving, songs, the email mockups and
+the multi-church overview are drawn in the design and are not being built. CLAUDE.md is the authority
+and a design file does not move it.
 
 ### F1. Tenancy, roles and administration
 
@@ -606,7 +621,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-150** the public link and the embed snippet. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-201** the shell: sidebar, top bar, bottom tabs. Then HRT-202 role navigation, HRT-203 the dashboard, HRT-204 People, HRT-205 the palette, HRT-206 states, HRT-207 notifications, HRT-208 the remaining screens. **HRT-150** the public form link waits behind the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 

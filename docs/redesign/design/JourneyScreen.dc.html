@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,50&family=Inter:wght@400..700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root, [data-theme="light"] { --surface: white; --accent-fill: oklch(0.455 0.118 285); --accent-fill-hover: oklch(0.382 0.098 285); --js0: oklch(0.967 0.005 75); --js1: oklch(0.198 0.009 75); --js2: oklch(0.455 0.118 285); --js3: oklch(0.382 0.098 285); --js4: oklch(0.985 0.003 75); --js5: oklch(0.742 0.162 62); --js6: oklch(0.442 0.013 75); --js7: oklch(0.552 0.138 48); --js8: oklch(0.863 0.01 75); --js9: oklch(0.945 0.006 75); --js10: oklch(0.556 0.014 75); --js11: oklch(0.925 0.008 75); --js12: oklch(0.968 0.012 285); --js13: oklch(0.366 0.012 75); --js14: oklch(0.975 0.006 285); --js15: oklch(0.302 0.074 285); --js16: oklch(0.242 0.056 285); --js17: oklch(0.94 0.012 285); --js18: oklch(0.915 0.016 285); --js19: oklch(0.975 0.018 70); --js20: oklch(0.895 0.082 70); --js21: oklch(0.582 0.132 155); --js22: oklch(0.706 0.013 75); --js23: oklch(0.75 0.16 150); --js24: oklch(0.622 0.168 300); color-scheme: light; }
+  html[data-theme="dark"] { --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --js0: oklch(0.173 0.005 75); --js1: oklch(0.942 0.009 75); --js2: oklch(0.62 0.118 285); --js3: oklch(0.584 0.098 285); --js4: oklch(0.155 0.003 75); --js5: oklch(0.742 0.162 62); --js6: oklch(0.698 0.013 75); --js7: oklch(0.669 0.138 48); --js8: oklch(0.277 0.01 75); --js9: oklch(0.195 0.006 75); --js10: oklch(0.584 0.014 75); --js11: oklch(0.215 0.008 75); --js12: oklch(0.172 0.012 285); --js13: oklch(0.774 0.012 75); --js14: oklch(0.165 0.006 285); --js15: oklch(0.544 0.074 285); --js16: oklch(0.52 0.056 285); --js17: oklch(0.2 0.012 285); --js18: oklch(0.225 0.016 285); --js19: oklch(0.165 0.018 70); --js20: oklch(0.38 0.057 70); --js21: oklch(0.582 0.132 155); --js22: oklch(0.434 0.013 75); --js23: oklch(0.75 0.16 150); --js24: oklch(0.622 0.168 300); color-scheme: dark; }
+  @media (prefers-color-scheme: dark) { html[data-theme="auto"] { --surface: oklch(0.215 0.008 75); --accent-fill: oklch(0.5 0.13 285); --accent-fill-hover: oklch(0.45 0.13 285); --js0: oklch(0.173 0.005 75); --js1: oklch(0.942 0.009 75); --js2: oklch(0.62 0.118 285); --js3: oklch(0.584 0.098 285); --js4: oklch(0.155 0.003 75); --js5: oklch(0.742 0.162 62); --js6: oklch(0.698 0.013 75); --js7: oklch(0.669 0.138 48); --js8: oklch(0.277 0.01 75); --js9: oklch(0.195 0.006 75); --js10: oklch(0.584 0.014 75); --js11: oklch(0.215 0.008 75); --js12: oklch(0.172 0.012 285); --js13: oklch(0.774 0.012 75); --js14: oklch(0.165 0.006 285); --js15: oklch(0.544 0.074 285); --js16: oklch(0.52 0.056 285); --js17: oklch(0.2 0.012 285); --js18: oklch(0.225 0.016 285); --js19: oklch(0.165 0.018 70); --js20: oklch(0.38 0.057 70); --js21: oklch(0.582 0.132 155); --js22: oklch(0.434 0.013 75); --js23: oklch(0.75 0.16 150); --js24: oklch(0.622 0.168 300); color-scheme: dark; } }
+  html, body { margin:0; padding:0; background: var(--js0); color: var(--js1); font-family: Inter, system-ui, sans-serif; font-size:14px; line-height:20px; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: var(--js2); text-decoration: none; } a:hover { color: var(--js3); text-decoration: underline; }
+  button { font: inherit; cursor: pointer; color: inherit; }
+</style>
+</helmet>
+<div style="width:1280px; height:780px; overflow:hidden; font-family: Inter, system-ui, sans-serif; color: var(--js1);">
+<sc-if value="{{ is.landing }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; background: var(--js4); display:flex; flex-direction:column;">
+    <div style="display:flex; align-items:center; gap:32px; padding:28px 64px;">
+      <span style="display:flex; align-items:center; gap:12px;"><span style="width:40px; height:40px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:28px;">Hearth</span></span>
+      <span style="font-size:18px; color: var(--js6);">Features</span><span style="font-size:18px; color: var(--js6);">Why it is free</span><span style="font-size:18px; color: var(--js6);">Trust</span>
+      <span style="flex:1;"></span>
+      <span style="{{ linkSignin }}">Sign in</span>
+    </div>
+    <div style="flex:1; display:flex; gap:56px; padding:40px 64px 0; align-items:flex-start;">
+      <div style="flex:1; display:flex; flex-direction:column; gap:24px; padding-top:40px;">
+        <span style="font-size:18px; font-weight:600; color: var(--js7);">Free for every church, every feature</span>
+        <span style="font-family: Fraunces, serif; font-size:72px; line-height:76px;">Church software every church can afford.</span>
+        <span style="font-size:22px; line-height:32px; color: var(--js6);">People, check-in, giving, groups and Sunday planning for churches of 50 to 500.</span>
+        <div style="display:flex; gap:16px; margin-top:12px;">
+          <span style="{{ btnStart }}">Start your church</span>
+          <span style="{{ btnJoin }}">See how it works</span>
+        </div>
+      </div>
+      <div style="width:520px; height:460px; border-radius:24px; border:1px solid var(--js8); background: repeating-linear-gradient(135deg, var(--js0) 0 14px, var(--js9) 14px 28px); display:grid; place-items:center; font-family: 'JetBrains Mono', monospace; font-size:18px; color: var(--js10);">product shot</div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.signup }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:grid; place-items:center; background: var(--js4);">
+    <div style="width:520px; display:flex; flex-direction:column; gap:28px;">
+      <div style="text-align:center;"><div style="font-family: Fraunces, serif; font-size:48px; line-height:54px;">Create your account</div><div style="font-size:20px; color: var(--js6); margin-top:8px;">{{ signupSub }}</div></div>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:36px; display:flex; flex-direction:column; gap:22px;">
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Your name<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">{{ name }}</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Email<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">{{ email }}</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Password<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400; letter-spacing:4px;">••••••••••</span></div>
+        <span style="{{ btnPrimary }}">Continue</span>
+      </div>
+      <div style="text-align:center; font-size:18px; color: var(--js6);">Already have an account? <span style="color: var(--js2); font-weight:500;">Sign in</span></div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.createChurch }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:grid; place-items:center; background: var(--js4);">
+    <div style="width:620px; display:flex; flex-direction:column; gap:28px;">
+      <div><div style="font-size:18px; color: var(--js10); font-weight:500;">Step 2 of 2</div><div style="font-family: Fraunces, serif; font-size:48px; line-height:54px; margin-top:6px;">Tell us about your church</div></div>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:36px; display:flex; flex-direction:column; gap:22px;">
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Church name<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">Grace Fellowship</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">City<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">Chicago, IL</span></div>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:18px; font-weight:500;">Sunday attendance
+          <div style="display:flex; gap:10px;"><span style="flex:1; height:52px; border:1px solid var(--js8); border-radius:12px; display:grid; place-items:center; font-weight:400;">Under 100</span><span style="flex:1; height:52px; border:2px solid var(--js2); background: var(--js12); color: var(--js3); border-radius:12px; display:grid; place-items:center;">100 to 250</span><span style="flex:1; height:52px; border:1px solid var(--js8); border-radius:12px; display:grid; place-items:center; font-weight:400;">250 to 500</span></div>
+        </div>
+        <span style="{{ btnPrimary }}">Create Grace Fellowship</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.inviteEmail }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; background: var(--js0);">
+    <div style="width:280px; padding:32px 24px; display:flex; flex-direction:column; gap:14px; border-right:1px solid var(--js11); font-size:18px; color: var(--js6);"><span style="font-weight:600; color: var(--js1);">Inbox</span><span>Starred</span><span>Sent</span></div>
+    <div style="flex:1; padding:40px 56px; display:flex; flex-direction:column; gap:20px; background: var(--surface);">
+      <div style="font-size:30px; font-weight:600; line-height:38px;">{{ emailSubject }}</div>
+      <div style="font-size:17px; color: var(--js6);">Grace Fellowship via Hearth · to {{ email }}</div>
+      <div style="border-top:1px solid var(--js11); padding-top:28px; display:flex; flex-direction:column; gap:20px; max-width:640px;">
+        <span style="display:flex; align-items:center; gap:12px;"><span style="width:44px; height:44px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:26px;">Grace Fellowship</span></span>
+        <span style="font-size:20px; line-height:30px;">{{ emailBody }}</span>
+        <span style="{{ btnPrimarySmall }}">{{ emailCta }}</span>
+        <span style="font-size:16px; color: var(--js10);">This link works for 7 days.</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.acceptInvite }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:grid; place-items:center; background: var(--js4);">
+    <div style="width:540px; display:flex; flex-direction:column; gap:26px; align-items:stretch;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;">
+        <span style="width:64px; height:64px; border-radius:18px; background: var(--js5);"></span>
+        <span style="font-family: Fraunces, serif; font-size:44px; line-height:50px;">Join Grace Fellowship</span>
+        <span style="font-size:18px; font-weight:500; padding:4px 14px; border-radius:999px; background: var(--js12); color: var(--js3);">{{ role }}</span>
+      </div>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:36px; display:flex; flex-direction:column; gap:22px;">
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Email<span style="height:56px; border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400; background: var(--js0); color: var(--js6);">{{ email }}</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Choose a password<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; letter-spacing:4px;">••••••••••</span></div>
+        <span style="{{ btnPrimary }}">Join</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.signin }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:grid; place-items:center; background: var(--js4);">
+    <div style="width:500px; display:flex; flex-direction:column; gap:28px;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;"><span style="width:64px; height:64px; border-radius:18px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:48px; line-height:54px;">Welcome back</span></div>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:36px; display:flex; flex-direction:column; gap:22px;">
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Email<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">{{ signinEmail }}</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Password<span style="height:56px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; letter-spacing:4px;">{{ signinPw }}</span></div>
+        <span style="{{ btnContinue }}">Continue</span>
+      </div>
+      <sc-if value="{{ showStationLink }}" hint-placeholder-val="{{ true }}"><div style="text-align:center; font-size:17px; color: var(--js6);">Volunteer at check-in? <span style="{{ linkStation }}">Open a check-in station</span></div></sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.stationPair }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; flex-direction:column; background: var(--js4);">
+    <div style="height:56px; background: var(--js1); color:white; display:flex; align-items:center; padding:0 32px; font-size:20px; font-weight:600;">Not paired yet</div>
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px;">
+      <span style="font-family: Fraunces, serif; font-size:56px; line-height:62px;">Pair this tablet</span>
+      <span style="font-size:24px; color: var(--js13);">Enter the code from Settings → Stations</span>
+      <div style="display:flex; gap:14px;">
+        <sc-for list="{{ codeDigits }}" as="cd" hint-placeholder-count="6"><span style="width:84px; height:104px; border:3px solid var(--js13); border-radius:16px; display:grid; place-items:center; font-family: 'JetBrains Mono', monospace; font-size:56px; background: var(--surface);">{{ cd }}</span></sc-for>
+      </div>
+      <span style="{{ btnStation }}">Start station · Kids wing</span>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.joinLink }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:grid; place-items:center; background: var(--js4);">
+    <div style="width:560px; display:flex; flex-direction:column; gap:26px;">
+      <div style="display:flex; flex-direction:column; gap:12px;"><span style="display:flex; align-items:center; gap:12px;"><span style="width:48px; height:48px; border-radius:14px; background: var(--js5);"></span><span style="font-size:20px; font-weight:600;">Grace Fellowship · Chicago</span></span><span style="font-family: Fraunces, serif; font-size:48px; line-height:54px;">Join Grace Fellowship</span><span style="font-size:20px; line-height:30px; color: var(--js6);">Tell us who you are and the church office will add you.</span></div>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:32px; display:flex; flex-direction:column; gap:18px;">
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Name<span style="height:54px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">{{ name }}</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Email<span style="height:54px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">{{ email }}</span></div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:18px; font-weight:500;">Phone<span style="height:54px; border:1px solid var(--js8); border-radius:12px; padding:0 16px; display:flex; align-items:center; font-weight:400;">(847) 555-0133</span></div>
+        <span style="{{ btnPrimary }}">Ask to join</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.chooseChurch }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:grid; place-items:center; background: var(--js4);">
+    <div style="width:620px; display:flex; flex-direction:column; gap:24px;">
+      <span style="font-family: Fraunces, serif; font-size:48px; line-height:54px;">Where to?</span>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; overflow:hidden;">
+        <div style="display:flex; align-items:center; gap:16px; padding:22px 28px; background: var(--js12); box-shadow: inset 4px 0 0 var(--js2); font-size:22px; font-weight:600;"><span style="flex:1;">Northern Illinois Network</span><span style="font-size:17px; font-weight:500; color: var(--js3);">All 5 churches</span></div>
+        <sc-for list="{{ churches }}" as="c" hint-placeholder-count="5"><div style="display:flex; align-items:center; gap:16px; padding:18px 28px; border-top:1px solid var(--js11); font-size:20px;"><span style="flex:1;">{{ c.name }}</span><span style="font-size:16px; color: var(--js10);">{{ c.city }}</span></div></sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.churchSite }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; flex-direction:column; background: var(--js14);">
+    <div style="display:flex; align-items:center; gap:30px; padding:24px 64px; border-bottom:1px solid var(--js11); background: var(--surface);">
+      <span style="font-family: Georgia, serif; font-size:30px; color: var(--js15);">Grace Fellowship</span>
+      <span style="flex:1;"></span>
+      <span style="font-size:18px; color: var(--js6);">About</span><span style="font-size:18px; color: var(--js6);">Sundays</span><span style="{{ siteGroups }}">Groups</span><span style="font-size:18px; color: var(--js6);">Give</span><span style="{{ siteAccount }}">My account</span>
+    </div>
+    <div style="flex:1; display:flex; gap:48px; padding:56px 64px; align-items:flex-start;">
+      <div style="flex:1; display:flex; flex-direction:column; gap:20px;">
+        <span style="font-family: Georgia, serif; font-size:64px; line-height:70px; color: var(--js16);">Welcome home.</span>
+        <span style="font-size:22px; line-height:32px; color: var(--js13);">Sundays at 10:00 am · 4412 N Kedzie Ave, Chicago</span>
+        <div style="height:260px; border-radius:16px; background: repeating-linear-gradient(135deg, var(--js17) 0 14px, var(--js18) 14px 28px); display:grid; place-items:center; font-family: 'JetBrains Mono', monospace; font-size:18px; color: var(--js10);">church photo</div>
+      </div>
+      <div style="width:420px; background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:32px; display:flex; flex-direction:column; gap:18px; box-shadow: 0 12px 32px oklch(0 0 0 / 0.08);">
+        <span style="font-size:15px; font-weight:600; color: var(--js10);">My Grace Fellowship</span>
+        <span style="font-family: Fraunces, serif; font-size:34px; line-height:40px;">Give, join a group, check your kids in</span>
+        <span style="{{ btnCreate }}">Create an account</span>
+        <span style="text-align:center; font-size:18px; color: var(--js6);">Already have one? <span style="color: var(--js2); font-weight:600;">Sign in</span></span>
+        <span style="font-size:14px; color: var(--js10); text-align:center;">Powered by Hearth</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.publicGroups }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; flex-direction:column; background: var(--js14);">
+    <div style="display:flex; align-items:center; gap:30px; padding:24px 64px; border-bottom:1px solid var(--js11); background: var(--surface);">
+      <span style="font-family: Georgia, serif; font-size:30px; color: var(--js15);">Grace Fellowship</span>
+      <span style="flex:1;"></span>
+      <span style="font-size:18px; color: var(--js6);">About</span><span style="font-size:18px; color: var(--js6);">Sundays</span><span style="{{ siteGroups }}">Groups</span><span style="font-size:18px; color: var(--js6);">Give</span><span style="{{ siteAccount }}">My account</span>
+    </div>
+    <div style="padding:44px 64px; display:flex; flex-direction:column; gap:28px;">
+      <span style="font-family: Fraunces, serif; font-size:48px; line-height:54px;">Groups at Grace Fellowship</span>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:22px;">
+        <sc-for list="{{ publicGroups }}" as="g" hint-placeholder-count="6">
+          <div style="{{ g.style }}">
+            <div style="height:110px; background: repeating-linear-gradient(135deg, var(--js17) 0 12px, var(--js18) 12px 24px);"></div>
+            <div style="padding:20px 22px; display:flex; flex-direction:column; gap:6px;"><span style="font-family: Fraunces, serif; font-size:26px; line-height:32px;">{{ g.name }}</span><span style="font-size:17px; color: var(--js6);">{{ g.meets }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.publicGroup }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; flex-direction:column; background: var(--js14);">
+    <div style="display:flex; align-items:center; gap:30px; padding:24px 64px; border-bottom:1px solid var(--js11); background: var(--surface);">
+      <span style="font-family: Georgia, serif; font-size:30px; color: var(--js15);">Grace Fellowship</span>
+      <span style="flex:1;"></span>
+      <span style="font-size:18px; color: var(--js6);">About</span><span style="font-size:18px; color: var(--js6);">Sundays</span><span style="{{ siteGroups }}">Groups</span><span style="font-size:18px; color: var(--js6);">Give</span><span style="{{ siteAccount }}">My account</span>
+    </div>
+    <div style="width:760px; margin:0 auto; padding:40px 0; display:flex; flex-direction:column; gap:20px;">
+      <span style="font-size:18px; color: var(--js6);">← All groups</span>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; overflow:hidden;">
+        <div style="height:170px; background: repeating-linear-gradient(135deg, var(--js17) 0 14px, var(--js18) 14px 28px); display:grid; place-items:center; font-family: 'JetBrains Mono', monospace; font-size:16px; color: var(--js10);">group photo</div>
+        <div style="padding:30px 34px; display:flex; flex-direction:column; gap:14px;">
+          <span style="font-family: Fraunces, serif; font-size:44px; line-height:50px;">Young adults</span>
+          <span style="font-size:20px; color: var(--js6);">Fridays, 7:30 pm · Fellowship hall · about 20 people</span>
+          <span style="font-size:19px; line-height:29px;">Dinner, a short talk and plenty of time to talk. For people in their twenties and early thirties.</span>
+          <span style="{{ btnJoinGroup }}">Join this group</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.appHome }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; background: var(--js4);">
+    <div style="width:260px; background: var(--js0); border-right:1px solid var(--js11); padding:28px 18px; display:flex; flex-direction:column; gap:6px;">
+      <span style="display:flex; align-items:center; gap:12px; padding:0 10px 22px;"><span style="width:40px; height:40px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:24px;">Hearth</span></span>
+      <sc-for list="{{ nav }}" as="nv" hint-placeholder-count="5"><span style="{{ nv.style }}">{{ nv.label }}</span></sc-for>
+    </div>
+    <div style="flex:1; padding:40px 48px; display:flex; flex-direction:column; gap:26px;">
+      <sc-if value="{{ showSetup }}" hint-placeholder-val="{{ false }}">
+        <div style="background: var(--js19); border:1px solid var(--js20); border-radius:18px; padding:20px 26px; display:flex; flex-direction:column; gap:16px;">
+          <span style="font-size:20px; font-weight:600;">Finish setting up Grace Fellowship</span>
+          <div style="display:flex; align-items:center;"><span style="width:28px; height:28px; border-radius:999px; background: var(--js21);"></span><span style="flex:1; height:3px; background: var(--js20);"></span><span style="width:28px; height:28px; border-radius:999px; border:2px solid var(--js22); background: var(--surface);"></span><span style="flex:1; height:3px; background: var(--js20);"></span><span style="width:28px; height:28px; border-radius:999px; border:2px solid var(--js22); background: var(--surface);"></span><span style="flex:1; height:3px; background: var(--js20);"></span><span style="width:28px; height:28px; border-radius:999px; border:2px solid var(--js22); background: var(--surface);"></span><span style="flex:1; height:3px; background: var(--js20);"></span><span style="width:28px; height:28px; border-radius:999px; border:2px solid var(--js22); background: var(--surface);"></span></div>
+        </div>
+      </sc-if>
+      <div><div style="font-family: Fraunces, serif; font-size:44px; line-height:50px;">{{ homeTitle }}</div><div style="font-size:20px; color: var(--js6); margin-top:6px;">{{ homeSub }}</div></div>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
+        <sc-for list="{{ cards }}" as="cd" hint-placeholder-count="3"><div style="background: var(--surface); border:1px solid var(--js11); border-radius:18px; padding:22px 24px;"><div style="font-size:17px; font-weight:500; color: var(--js6);">{{ cd.label }}</div><div style="font-family: Fraunces, serif; font-size:48px; line-height:56px; margin-top:8px;">{{ cd.value }}</div></div></sc-for>
+      </div>
+      <div style="background: var(--surface); border:1px solid var(--js11); border-radius:18px; padding:8px 26px;">
+        <sc-for list="{{ rows }}" as="rw" hint-placeholder-count="4"><div style="display:flex; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--js0); font-size:19px;"><span style="font-weight:500;">{{ rw.a }}</span><span style="color: var(--js6);">{{ rw.b }}</span></div></sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.stationHome }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; flex-direction:column; background: var(--js4);">
+    <div style="height:56px; background: var(--js1); color:white; display:flex; align-items:center; gap:14px; padding:0 32px; font-size:20px;"><span style="width:14px; height:14px; border-radius:999px; background: var(--js23);"></span><span style="font-weight:600;">Online</span><span>Station 2 · Kids wing</span></div>
+    <div style="width:820px; margin:0 auto; padding:48px 0; display:flex; flex-direction:column; gap:28px;">
+      <span style="font-family: Fraunces, serif; font-size:60px; line-height:66px;">Find your family</span>
+      <span style="height:96px; border:3px solid var(--js6); border-radius:18px; background: var(--surface); display:flex; align-items:center; padding:0 28px; font-size:30px; color: var(--js10);">Last name or last 4 of phone</span>
+      <span style="height:104px; border:3px solid var(--js8); border-radius:18px; background: var(--surface); display:flex; flex-direction:column; justify-content:center; padding:0 28px;"><span style="font-size:30px; font-weight:600;">Maria and James Carter</span><span style="font-size:22px; color: var(--js13);">2 children</span></span>
+      <span style="height:104px; border:3px solid var(--js8); border-radius:18px; background: var(--surface); display:flex; flex-direction:column; justify-content:center; padding:0 28px;"><span style="font-size:30px; font-weight:600;">Daniel Park</span><span style="font-size:22px; color: var(--js13);">1 child</span></span>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ is.memberHome }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%; display:flex; flex-direction:column; background: var(--js4);">
+    <div style="height:84px; border-bottom:1px solid var(--js11); display:flex; align-items:center; gap:36px; padding:0 64px; font-size:19px;"><span style="display:flex; align-items:center; gap:12px;"><span style="width:40px; height:40px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:24px;">Grace Fellowship</span></span><span style="font-weight:600; border-bottom:3px solid var(--js2); padding:28px 0;">Home</span><span style="color: var(--js6);">Give</span><span style="color: var(--js6);">Groups</span><span style="color: var(--js6);">Serving</span><span style="color: var(--js6);">My household</span></div>
+    <div style="padding:44px 64px; display:flex; flex-direction:column; gap:26px;">
+      <span style="font-family: Fraunces, serif; font-size:52px; line-height:58px;">Hello, Hannah</span>
+      <div style="display:flex; gap:24px;">
+        <div style="flex:2; display:flex; flex-direction:column; gap:18px;">
+          <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:26px; display:flex; align-items:center; gap:18px;"><span style="flex:1;"><span style="display:block; font-size:22px; font-weight:600;">You are scheduled to serve</span><span style="display:block; font-size:18px; color: var(--js6);">Sun 5 Oct · Welcome desk</span></span><span style="height:52px; padding:0 22px; border-radius:12px; background: var(--accent-fill); color:white; display:grid; place-items:center; font-size:18px; font-weight:600;">Accept</span></div>
+          <div style="background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:26px; display:flex; align-items:center; gap:18px;"><span style="width:14px; height:56px; border-radius:7px; background: var(--js24);"></span><span style="flex:1;"><span style="display:block; font-size:22px; font-weight:600;">Check Mia in before you arrive</span><span style="display:block; font-size:18px; color: var(--js6);">Kids 4–6 · Kids wing</span></span></div>
+        </div>
+        <div style="flex:1; background: var(--surface); border:1px solid var(--js11); border-radius:20px; padding:26px; display:flex; flex-direction:column; gap:8px;"><span style="font-size:18px; color: var(--js10);">Given in 2026</span><span style="font-family: Fraunces, serif; font-size:52px; line-height:58px;">$1,240</span><span style="height:52px; margin-top:12px; border-radius:12px; background: var(--accent-fill); color:white; display:grid; place-items:center; font-size:18px; font-weight:600;">Give</span></div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:780},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;landing&quot;,&quot;signup&quot;,&quot;createChurch&quot;,&quot;inviteEmail&quot;,&quot;acceptInvite&quot;,&quot;signin&quot;,&quot;stationPair&quot;,&quot;joinLink&quot;,&quot;chooseChurch&quot;,&quot;churchSite&quot;,&quot;publicGroups&quot;,&quot;publicGroup&quot;,&quot;appHome&quot;,&quot;stationHome&quot;,&quot;memberHome&quot;],&quot;default&quot;:&quot;landing&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hl&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;start&quot;,&quot;create&quot;,&quot;groups&quot;,&quot;signin&quot;,&quot;station&quot;,&quot;continue&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;home&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;admin&quot;,&quot;pastor&quot;,&quot;leader&quot;,&quot;network&quot;],&quot;default&quot;:&quot;admin&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;name&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Maria Carter&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;maria.carter@gmail.com&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;signupSub&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;emailSubject&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;emailBody&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;emailCta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;site&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, hl = p.hl || "", screen = p.screen || "landing";
+    const ring = "0 0 0 6px oklch(0.742 0.162 62 / 0.55)";
+    const btn = (on, primary) => ({ height: "64px", padding: "0 28px", borderRadius: "14px", display: "grid", placeItems: "center", fontSize: "20px", fontWeight: 600, background: primary ? "var(--accent-fill)" : "var(--surface)", color: primary ? "white" : "var(--js1)", border: primary ? "none" : "1px solid var(--js8)", boxShadow: on ? ring : "none" });
+    const homes = {
+      admin: { nav: ["Dashboard", "People", "Follow-ups", "Check-in", "Giving", "Calendar"], title: "Good morning, Maria", sub: "Friday 3 October", setup: true, cards: [["Sunday attendance", "212"], ["Giving in September", "$38,420"], ["First-time visitors", "6"]], rows: [["Worship rehearsal", "Thu 7:00 pm"], ["Men's breakfast", "Sat 8:00 am"], ["Sunday service", "Sun 10:00 am"]] },
+      pastor: { nav: ["Home", "People", "Follow-ups", "Services", "Songs", "Serving"], title: "Good evening, Pastor Mike", sub: "Four people could use a call this week", cards: [["Care list", "4"], ["Prayer requests", "3"], ["Newcomers", "5"]], rows: [["Kwame Boateng", "Absent 4 Sundays"], ["Esther Lund", "In hospital"], ["Peter Novak", "Bereavement"]] },
+      leader: { nav: ["My group", "Calendar"], title: "Young adults", sub: "Fridays, 7:30 pm · 12 members", cards: [["Last meeting", "8 / 12"], ["Average", "65%"], ["Join requests", "1"]], rows: [["Daniel Park", "Present"], ["Grace Miller", "Present"], ["Elijah Thompson", "Absent"]] },
+      network: { nav: ["Churches", "Reports"], title: "Northern Illinois Network", sub: "5 churches", cards: [["People", "771"], ["Attended Sunday", "702"], ["Giving in September", "$118,420"]], rows: [["Grace Fellowship", "Healthy"], ["Riverside Chapel", "Declining"], ["Living Word", "Needs setup"]] },
+    };
+    const hm = homes[p.home] || homes.admin;
+    const isPublic = screen.startsWith("public");
+    return {
+      is: { [screen]: true }, name: p.name || "", email: p.email || "", role: p.role || "",
+      signupSub: p.signupSub || "", emailSubject: p.emailSubject || "", emailBody: p.emailBody || "", emailCta: p.emailCta || "",
+      showStationLink: !p.site, signinEmail: hl === "station" ? "" : (p.email || ""), signinPw: hl === "station" ? "" : "••••••••••",
+      btnStart: btn(hl === "start", true), btnJoin: btn(false, false), btnCreate: btn(hl === "create", true), btnJoinGroup: { ...btn(true, true), alignSelf: "flex-start", marginTop: "8px" },
+      siteGroups: { fontSize: "18px", fontWeight: hl === "groups" || isPublic ? 600 : 400, color: isPublic ? "var(--js15)" : "var(--js6)", padding: "8px 12px", borderRadius: "10px", boxShadow: hl === "groups" ? ring : "none" },
+      siteAccount: { fontSize: "18px", fontWeight: 600, color: "white", background: "var(--js15)", padding: "10px 18px", borderRadius: "999px", boxShadow: hl === "create" ? ring : "none" },
+      linkSignin: { fontSize: "18px", fontWeight: 600, color: "var(--js2)", padding: "10px 16px", borderRadius: "10px", boxShadow: hl === "signin" ? ring : "none" },
+      linkStation: { color: "var(--js2)", fontWeight: 600, padding: "4px 8px", borderRadius: "8px", boxShadow: hl === "station" ? ring : "none" },
+      btnContinue: { ...btn(hl === "continue", true), opacity: hl === "station" ? 0.4 : 1 },
+      btnPrimary: btn(true, true), btnPrimarySmall: { ...btn(true, true), alignSelf: "flex-start" }, btnStation: { ...btn(true, true), height: "80px", fontSize: "26px", padding: "0 40px" },
+      nav: hm.nav.map((label, j) => ({ label, style: { padding: "12px 14px", borderRadius: "10px", fontSize: "18px", fontWeight: 500, background: j === 0 ? "var(--surface)" : "transparent", color: j === 0 ? "var(--js1)" : "var(--js6)" } })),
+      homeTitle: hm.title, homeSub: hm.sub, showSetup: !!hm.setup, cards: hm.cards.map(([label, value]) => ({ label, value })), rows: hm.rows.map(([a, b]) => ({ a, b })),
+      codeDigits: ["4", "8", "2", "9", "1", "3"],
+      publicGroups: [["Young adults", "Fridays, 7:30 pm"], ["Wednesday Women", "Wednesdays, 9:30 am"], ["Men's breakfast", "Saturdays, 8:00 am"], ["Alpha course", "Mondays, 7:00 pm"], ["Food pantry team", "Tuesdays, 10:00 am"], ["Parents of little ones", "Sundays, 12:00 pm"]].map(([name, meets], i) => ({ name, meets, style: { background: "var(--surface)", border: "1px solid var(--js11)", borderRadius: "18px", overflow: "hidden", boxShadow: i === 0 && hl === "groups" ? ring : "none" } })),
+      churches: [{ name: "Grace Fellowship", city: "Chicago" }, { name: "New Hope Community", city: "Evanston" }, { name: "Riverside Chapel", city: "Joliet" }, { name: "St. Andrew's", city: "Oak Park" }, { name: "Living Word", city: "Aurora" }],
+    };
+  }
+}
+</script>
+</body>
+</html>
