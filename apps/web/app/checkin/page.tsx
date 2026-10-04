@@ -136,7 +136,11 @@ export default async function CheckinPage({
             <ToolLink href={`/incidents?church=${session.tenantSlug}`}>
               <FileWarning /> {t("incident.title")}
               {data.openIncidents > 0 ? (
-                <span className="rounded-full bg-danger-soft px-1.5 text-[11px] font-semibold text-danger-text">
+                <span
+                  data-numeric
+                  className="rounded-full px-1.5 text-[11px] font-semibold"
+                  style={{ background: "var(--hue-amber-500)", color: "var(--color-fg)" }}
+                >
                   {data.openIncidents}
                 </span>
               ) : null}
