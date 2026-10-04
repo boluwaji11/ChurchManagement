@@ -219,6 +219,16 @@ export function Directory({
 
         <span className="flex-1" />
 
+        <FilterDrawer
+          tags={tags}
+          counts={counts}
+          matching={matching}
+          params={params}
+          setParam={setParam}
+          onClear={() => router.replace(pathname, { scroll: false })}
+          narrowing={narrowing}
+        />
+
         {canArchive ? (
           <ToolButton href={`/duplicates?church=${church}`}>
             <Copy /> {t("merge.title")}
@@ -241,16 +251,6 @@ export function Directory({
         <ToolButton href={exportHref}>
           <Download /> {t("directory.exportView")}
         </ToolButton>
-
-        <FilterDrawer
-          tags={tags}
-          counts={counts}
-          matching={matching}
-          params={params}
-          setParam={setParam}
-          onClear={() => router.replace(pathname, { scroll: false })}
-          narrowing={narrowing}
-        />
 
         {canEdit ? (
           <ToolButton href={`/import?church=${church}`}>

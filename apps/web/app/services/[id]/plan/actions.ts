@@ -1,7 +1,7 @@
 "use server";
 
 import {
-  withTenant, ensurePlan, updatePlan, addItem, updateItem, removeItem, moveItem,
+  withTenant, ensurePlan, updatePlan, addItem, updateItem, removeItem, moveItem, reorderItems,
   addItemNote, removeItemNote, detachFromItem,
   saveAsTemplate, renameTemplate, removeTemplate, applyTemplate, copyPlan,
   type ItemKind,
@@ -87,6 +87,21 @@ export async function shiftItem(
 }
 
 /** R11.1. Opening the editor is what creates the plan. */
+/** R11.2. The whole order, as dropped. One write rather than a run of swaps. */
+export async function reorder(
+  planId: string,
+  ids: string[],
+  church?: string,
+): Promise<PlanResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => reorderItems(tx, actor, planId, ids));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
 export async function startPlan(occurrenceId: string, church?: string): Promise<PlanResult> {
   const { actor, ctx } = await context(church);
   try {

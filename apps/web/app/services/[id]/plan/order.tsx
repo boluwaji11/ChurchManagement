@@ -3,20 +3,20 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Trash2, ChevronUp, ChevronDown, Pencil, MessageSquare, X, Paperclip,
-  Copy, LayoutList, Printer,
+  Plus, Trash2, GripVertical, Pencil, MessageSquare, X, Paperclip,
+  Copy, LayoutList,
 } from "lucide-react";
 import {
-  Banner, Button, Card, EmptyState, Field, IconButton, Input, Separator, Textarea,
+  Banner, Button, EmptyState, Field, IconButton, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import type { ItemKind } from "@hearth/db";
 import {
-  saveHeader, saveItem, dropItem, shiftItem, saveNote, dropNote, dropFile, fileLink,
+  saveHeader, saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
   keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom,
 } from "./actions";
 
@@ -91,6 +91,18 @@ const fromTime = (hhmm: string): number => {
  * rather than fetched, so lengthening the sermon by five minutes moves the
  * whole afternoon as the number is typed.
  */
+/** R24.4. A hue a kind, so a song reads as a song down the whole plan. */
+const KIND_HUE: Record<string, string> = {
+  song: "violet",
+  scripture: "sky",
+  sermon: "indigo",
+  prayer: "teal",
+  offering: "amber",
+  announcement: "citron",
+  media: "rose",
+  custom: "clay",
+};
+
 export function Order({
   church,
   occurrenceId,
@@ -125,7 +137,26 @@ export function Order({
     at += item.minutes;
     return row;
   });
-  const total = at - start;
+
+  const [dragging, setDragging] = React.useState<string | null>(null);
+
+  /**
+   * R11.2. Dropping an item on another puts it in that place.
+   *
+   * The whole order is sent rather than a direction, so a card moved five rows
+   * is one write and the plan is never half reordered.
+   */
+  const dropOn = (overId: string) => {
+    const from = items.findIndex((one) => one.id === dragging);
+    const to = items.findIndex((one) => one.id === overId);
+    setDragging(null);
+    if (from === -1 || to === -1 || from === to) return;
+
+    const order = items.map((one) => one.id);
+    const [moved] = order.splice(from, 1);
+    order.splice(to, 0, moved!);
+    run(() => reorder(planId, order, church));
+  };
 
   const run = (work: () => Promise<{ error?: string }>) => {
     startTransition(async () => {
@@ -139,41 +170,46 @@ export function Order({
     <div className="flex flex-col gap-6" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
 
-      <Header church={church} planId={planId} series={series} theme={theme} />
-
-      <Card className="flex flex-col gap-3 p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <span className="font-display text-heading text-fg">
-            {t("order.endsAt", { time: toTime(at) })}
-          </span>
-          <span className="text-caption text-fg-muted tabular-nums">
-            {plural("order.runs", total)}
-          </span>
-        </div>
-
-        <Separator />
-
+      <section className="overflow-hidden rounded-lg border border-line bg-surface">
         {timed.length === 0 ? (
-          <EmptyState title={t("order.empty")} />
+          <div className="p-5">
+            <EmptyState title={t("order.empty")} />
+          </div>
         ) : (
           <ul className="flex flex-col">
-            {timed.map((item, i) => (
-              <li key={item.id}>
-                {i > 0 ? <Separator className="my-2" /> : null}
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="w-20 shrink-0 text-caption text-fg-muted tabular-nums">
+            {timed.map((item, i) => {
+              const hue = KIND_HUE[item.kind] ?? "clay";
+
+              return (
+                <li
+                  key={item.id}
+                  draggable
+                  onDragStart={() => setDragging(item.id)}
+                  onDragEnd={() => setDragging(null)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => dropOn(item.id)}
+                  className="flex flex-wrap items-center gap-3 border-b border-sunken px-4 py-3 last:border-0"
+                >
+                  <GripVertical className="size-4 shrink-0 cursor-grab text-line-strong" aria-hidden />
+
+                  <span data-numeric className="w-[52px] shrink-0 font-mono text-[12px] text-fg-subtle">
                     {toTime(item.startsAt)}
                   </span>
 
+                  <span
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium"
+                    style={{
+                      background: `var(--hue-${hue}-tint)`,
+                      color: `var(--hue-${hue}-key)`,
+                    }}
+                  >
+                    {t(`order.kind.${item.kind}` as never)}
+                  </span>
+
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className="text-[length:var(--d-text-body)] text-fg">{item.title}</span>
-                      <span className="text-caption text-fg-muted">
-                        {t(`order.kind.${item.kind}` as never)}
-                      </span>
-                    </span>
+                    <span className="font-medium text-fg">{item.title}</span>
                     {item.description ? (
-                      <span className="text-caption text-fg-muted">{item.description}</span>
+                      <span className="text-[12px] text-fg-subtle">{item.description}</span>
                     ) : null}
 
                     {/* R11.7. Charts, tracks and sheets, opened through a
@@ -202,7 +238,7 @@ export function Order({
                               className="mt-0.5 size-3.5 shrink-0 text-fg-subtle"
                               aria-hidden
                             />
-                            <span className="text-caption text-fg-muted">
+                            <span className="text-[12px] text-fg-muted">
                               {note.audience ? (
                                 <span className="font-medium text-fg">{note.audience} </span>
                               ) : null}
@@ -221,34 +257,18 @@ export function Order({
                     ) : null}
                   </span>
 
-                  <span className="w-12 shrink-0 text-right text-caption text-fg-muted tabular-nums">
-                    {item.minutes}
+                  <span data-numeric className="shrink-0 font-mono text-[13px] text-fg-muted">
+                    {t("order.runsMin", { count: item.minutes })}
                   </span>
 
-                  <span className="flex items-center gap-0.5">
-                    <IconButton
-                      label={t("order.up")}
-                      disabled={pending || i === 0}
-                      onClick={() => run(() => shiftItem(planId, item.id, "up", church))}
-                    >
-                      <ChevronUp />
-                    </IconButton>
-                    <IconButton
-                      label={t("order.down")}
-                      disabled={pending || i === timed.length - 1}
-                      onClick={() => run(() => shiftItem(planId, item.id, "down", church))}
-                    >
-                      <ChevronDown />
-                    </IconButton>
+                  <span className="flex shrink-0 items-center gap-0.5">
                     <AttachButton church={church} itemId={item.id} />
                     <NoteDialog church={church} itemId={item.id} audience={audience} />
                     <ItemDialog
                       church={church}
                       planId={planId}
                       item={item}
-                      trigger={
-                        <IconButton label={t("action.edit")}><Pencil /></IconButton>
-                      }
+                      trigger={<IconButton label={t("action.edit")}><Pencil /></IconButton>}
                     />
                     <IconButton
                       label={t("order.remove")}
@@ -258,44 +278,48 @@ export function Order({
                       <Trash2 />
                     </IconButton>
                   </span>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
 
-        <div className="flex flex-wrap items-center gap-2">
-          <ItemDialog
-            church={church}
-            planId={planId}
-            trigger={<Button variant="secondary"><Plus /> {t("order.add")}</Button>}
-          />
+        <ItemDialog
+          church={church}
+          planId={planId}
+          trigger={
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 border-t border-line bg-sunken px-4 py-3 text-left font-medium text-primary hover:bg-line"
+            >
+              <Plus className="size-4" /> {t("order.add")}
+            </button>
+          }
+        />
+      </section>
 
-          {/* R11.8. The same shape most weeks, filled in differently. The kinds,
-              the titles and the lengths come over. Last week's notes, files and
-              theme stay with last week. */}
-          <StartFrom
-            church={church}
-            planId={planId}
-            templates={templates}
-            sources={sources}
-            disabled={pending}
-          />
-          <TemplateDialog
-            church={church}
-            planId={planId}
-            templates={templates}
-            empty={timed.length === 0}
-          />
+      {/* R11.1. The series and the theme sit under the order rather than over
+          it: they are filled in once and read from the heading afterwards. */}
+      <Header church={church} planId={planId} series={series} theme={theme} />
 
-          {/* R11.10. The full order for the team, the titles for the bulletin. */}
-          <PrintMenu
-            church={church}
-            occurrenceId={occurrenceId}
-            disabled={timed.length === 0}
-          />
-        </div>
-      </Card>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* R11.8. The same shape most weeks, filled in differently. The kinds,
+            the titles and the lengths come over. Last week's notes, files and
+            theme stay with last week. */}
+        <StartFrom
+          church={church}
+          planId={planId}
+          templates={templates}
+          sources={sources}
+          disabled={pending}
+        />
+        <TemplateDialog
+          church={church}
+          planId={planId}
+          templates={templates}
+          empty={timed.length === 0}
+        />
+      </div>
     </div>
   );
 }
@@ -860,42 +884,5 @@ function TemplateDialog({
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-/** R11.10. The two printed versions of the same plan. */
-function PrintMenu({
-  church,
-  occurrenceId,
-  disabled,
-}: {
-  church: string;
-  occurrenceId: string;
-  disabled: boolean;
-}) {
-  const open = (view: string) => {
-    window.open(
-      `/services/${occurrenceId}/plan/print?church=${church}&view=${view}`,
-      "_blank",
-      "noopener",
-    );
-  };
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" disabled={disabled}>
-          <Printer /> {t("print.order.print")}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem onSelect={() => open("full")}>
-          {t("print.order.full")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => open("bulletin")}>
-          {t("print.order.bulletin")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
