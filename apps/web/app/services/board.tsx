@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronRight, LayoutGrid, List } from "lucide-react";
+import { ChevronRight, LayoutGrid, List, Plus } from "lucide-react";
 import { cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
@@ -85,9 +85,9 @@ export function ServiceBoard({
             <button
               type="button"
               onClick={() => setShown((n) => n + PAGE)}
-              className="self-start rounded-sm px-1 py-1 font-medium text-primary hover:underline"
+              className="flex items-center gap-1.5 self-start rounded-sm px-1 py-1 font-medium text-primary hover:underline"
             >
-              {t("services.showMore")}
+              <Plus className="size-4" aria-hidden /> {t("services.showMore")}
             </button>
           ) : null}
         </div>

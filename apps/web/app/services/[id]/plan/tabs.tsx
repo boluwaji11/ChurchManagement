@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { t } from "@hearth/i18n";
 
 /** How many show at a time, and how many each press adds. */
@@ -50,9 +51,9 @@ export function PlanTabs({
         <button
           type="button"
           onClick={() => setShown((n) => n + PAGE)}
-          className="rounded-sm px-1 py-1 font-medium text-primary hover:underline"
+          className="flex items-center gap-1.5 rounded-sm px-1 py-1 font-medium text-primary hover:underline"
         >
-          {t("services.showMore")}
+          <Plus className="size-4" aria-hidden /> {t("services.showMore")}
         </button>
       ) : null}
     </div>

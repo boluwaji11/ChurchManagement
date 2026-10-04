@@ -188,11 +188,14 @@ export function Order({
                   onDragEnd={() => setDragging(null)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => dropOn(item.id)}
-                  className="flex flex-wrap items-center gap-3 border-b border-sunken px-4 py-3 last:border-0"
+                  className="flex flex-wrap items-center gap-2.5 border-b border-sunken px-4 py-3 last:border-0"
                 >
                   <GripVertical className="size-4 shrink-0 cursor-grab text-line-strong" aria-hidden />
 
-                  <span data-numeric className="w-[52px] shrink-0 font-mono text-[12px] text-fg-subtle">
+                  <span
+                    data-numeric
+                    className="w-[72px] shrink-0 whitespace-nowrap font-mono text-[12px] text-fg-subtle"
+                  >
                     {toTime(item.startsAt)}
                   </span>
 
@@ -257,11 +260,14 @@ export function Order({
                     ) : null}
                   </span>
 
-                  <span data-numeric className="shrink-0 font-mono text-[13px] text-fg-muted">
+                  <span
+                    data-numeric
+                    className="shrink-0 whitespace-nowrap font-mono text-[13px] text-fg-muted"
+                  >
                     {t("order.runsMin", { count: item.minutes })}
                   </span>
 
-                  <span className="flex shrink-0 items-center gap-0.5">
+                  <span className="flex shrink-0 items-center gap-0 [&_button]:size-8">
                     <AttachButton church={church} itemId={item.id} />
                     <NoteDialog church={church} itemId={item.id} audience={audience} />
                     <ItemDialog
