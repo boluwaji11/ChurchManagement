@@ -158,9 +158,7 @@ export function Sidebar({
         <div
           className={cn(
             "flex w-full items-center gap-2.5 text-left",
-            collapsed
-              ? "justify-center rounded-md border border-transparent p-1"
-              : "rounded-md border border-line bg-surface p-2",
+            collapsed ? "justify-center p-1" : "px-1 py-2",
           )}
         >
           <Avatar name={personName} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
