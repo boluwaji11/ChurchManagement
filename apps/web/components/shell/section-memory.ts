@@ -7,15 +7,6 @@ import { activeHref, type NavTarget } from "./nav-active";
 const KEY = "hearth:section";
 
 /**
- * A path segment that is an id rather than a screen.
- *
- * A record's page is not where a section reopens: pressing Groups means the
- * groups, not the one group somebody happened to read last. Everything else in
- * a section is a screen, and a screen is worth coming back to.
- */
-const RECORD = /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\/|$)/i;
-
-/**
  * R24.6. Where you were, the last time you were in this section.
  *
  * Pressing People, going to Settings and pressing People again should put
@@ -23,9 +14,9 @@ const RECORD = /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\
  * had, rather than at the top of a list they already scrolled past. Settings is
  * the sharpest case: its entry points at a section with ten screens in it.
  *
- * A record's own page is the exception. Pressing Groups means the groups, not
- * the one group somebody read last, so a record leaves the section pointing at
- * its list.
+ * A record's own page counts: somebody reading a person, checking a setting and
+ * pressing People again means that person, not the directory they already found
+ * them in.
  *
  * Held in sessionStorage, so it lasts as long as the tab and never follows
  * anybody to another device. Every read and write is guarded: a private window
@@ -62,13 +53,7 @@ export function useSectionMemory(entries: NavTarget[]) {
     if (!section) return;
 
     const all = read();
-    // A record's own page leaves the section pointing at its list, so coming
-    // back lands somewhere that still makes sense tomorrow.
-    all[section] = RECORD.test(pathname)
-      ? section
-      : query
-        ? `${pathname}?${query}`
-        : pathname;
+    all[section] = query ? `${pathname}?${query}` : pathname;
     write(all);
     // entries is rebuilt on every render of the server component above, so it
     // is deliberately not a dependency: the path and the query are what change.
@@ -81,15 +66,30 @@ export function useSectionMemory(entries: NavTarget[]) {
    * no sessionStorage, so an href computed from it would not match what the
    * browser draws and the tree would fail to hydrate.
    */
-  return React.useCallback((href: string): string | null => {
-    const remembered = read()[href];
-    if (remembered === href) return null;
-    // Only within the section it was recorded for. A stale entry pointing
-    // somewhere else would send somebody to a screen they did not press.
-    if (remembered && (remembered === href || remembered.startsWith(`${href}/`)
-      || remembered.startsWith(`${href}?`))) {
-      return remembered;
-    }
-    return null;
-  }, []);
+  return React.useCallback(
+    (href: string): string | null => {
+      const remembered = read()[href];
+      if (!remembered || remembered === href) return null;
+
+      /*
+       * Only somewhere this section actually owns. A section's entry is not
+       * always its root: Settings points at /settings/church while owning the
+       * whole of /settings, and People owns Duplicates and Import. Checking
+       * against the href alone threw those away, which is why Settings kept
+       * reopening at the top.
+       */
+      const owns = entries.find((one) => one.href === href)?.owns ?? [href];
+      const inside = owns.some(
+        (prefix) =>
+          remembered === prefix ||
+          remembered.startsWith(`${prefix}/`) ||
+          remembered.startsWith(`${prefix}?`),
+      );
+
+      return inside ? remembered : null;
+    },
+    // Rebuilt on every render of the server component above, and only its
+    // hrefs are read, which do not change between renders.
+    [entries], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 }
