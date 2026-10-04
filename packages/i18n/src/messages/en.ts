@@ -313,7 +313,7 @@ export const en = {
   "settings.lede.privacy": "What other members see about you. Staff with access always see your full record.",
   "settings.lede.security": "Your password and the devices signed in as you.",
   "settings.lede.appearance": "Only changes Hearth on this device. Live service mode and printouts stay light.",
-  "settings.lede.export": "Take a copy of your church's data.",
+  "settings.lede.export": "Download a copy of your church's data.",
   "settings.export.people": "People",
   "settings.export.peopleWhat": "Everyone, with contact details and custom fields",
   "settings.export.households": "Households",
