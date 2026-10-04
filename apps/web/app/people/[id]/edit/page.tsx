@@ -42,7 +42,7 @@ export default async function EditPersonPage({
   return (
     <AppShell
       session={session}
-      max="max-w-[760px]"
+      max="max-w-[1080px]"
     >
       <Link
         href={`/people/${id}?church=${session.tenantSlug}`}
