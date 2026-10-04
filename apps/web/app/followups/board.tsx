@@ -18,6 +18,8 @@ export interface BoardCard {
   stepId: string | null;
   stage: string;
   late: boolean;
+  /** The day the step is due, which is the order a column reads in. */
+  dueOn: string | null;
 }
 
 export interface BoardStage {

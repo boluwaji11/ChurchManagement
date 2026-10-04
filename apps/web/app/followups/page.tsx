@@ -79,22 +79,27 @@ export default async function FollowUpsPage({
       ]
     : [];
 
-  const cards: BoardCard[] = entries.map((entry) => {
-    const next = entry.steps.find((step) => step.doneAt === null);
-    return {
-      entryId: entry.id,
-      personId: entry.personId,
-      who: entry.personName,
-      owner: next
-        ? next.dueOn
-          ? t("board.due", { date: shortDate(next.dueOn) })
-          : t("board.noDate")
-        : t("board.finished"),
-      stepId: next?.id ?? null,
-      stage: next ? String(next.position) : "done",
-      late: Boolean(next?.dueOn && next.dueOn < today),
-    };
-  });
+  const cards: BoardCard[] = entries
+    .map((entry) => {
+      const next = entry.steps.find((step) => step.doneAt === null);
+      return {
+        entryId: entry.id,
+        personId: entry.personId,
+        who: entry.personName,
+        owner: next
+          ? next.dueOn
+            ? t("board.due", { date: shortDate(next.dueOn) })
+            : t("board.noDate")
+          : t("board.finished"),
+        stepId: next?.id ?? null,
+        stage: next ? String(next.position) : "done",
+        late: Boolean(next?.dueOn && next.dueOn < today),
+        dueOn: next?.dueOn ?? null,
+      };
+    })
+    // Soonest first down every column, so the top card is the one to answer
+    // next. Anybody with no date sits under the people who have one.
+    .sort((a, b) => (a.dueOn ?? "9999-12-31").localeCompare(b.dueOn ?? "9999-12-31"));
 
   return (
     <AppShell session={session} title={t("queue.title")}>
