@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, Merge, Pencil, Plus, Search, Undo2 } from "lucide-react";
+import { Archive, Merge, Pencil, Plus, Undo2, X } from "lucide-react";
 import {
   Avatar, Banner, Button, Field, IconButton, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -11,7 +11,8 @@ import {
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
-import { add, setName, putAway, fold } from "./actions";
+import { SearchField } from "@/components/search-field";
+import { add, setName, putAway, fold, freePeople, putIn, takeOut } from "./actions";
 
 export interface HouseholdItem {
   id: string;
@@ -61,19 +62,11 @@ export function HouseholdList({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("households.failed")}>{error}</Banner> : null}
 
-      <div className="relative">
-        <Search
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle"
-          aria-hidden
-        />
-        <Input
-          value={find}
-          onChange={(e) => setFind(e.target.value)}
-          placeholder={t("households.search")}
-          aria-label={t("households.search")}
-          className="pl-9"
-        />
-      </div>
+      <SearchField
+        value={find}
+        onChange={setFind}
+        placeholder={t("households.search")}
+      />
 
       {open.length === 0 && archived.length === 0 ? (
         <Empty icon="noResults" title={t("households.noResults")} />
@@ -92,7 +85,7 @@ export function HouseholdList({
                 </h3>
 
                 <div className="flex shrink-0 items-center gap-0.5">
-                  <Rename household={household} pending={pending} run={run} church={church} />
+                  <EditHousehold household={household} pending={pending} run={run} church={church} />
                   <MergeInto
                     household={household}
                     others={households.filter((one) => !one.archived && one.id !== household.id)}
@@ -163,7 +156,15 @@ export function HouseholdList({
   );
 }
 
-function Rename({
+/**
+ * R2.1. A household: its name, and who is in it.
+ *
+ * The pencil opens the family rather than a single text box, because renaming
+ * is rarely why somebody came here. Adding offers only people in no household,
+ * since somebody lives in one at a time and offering a name already in another
+ * is offering a mistake.
+ */
+function EditHousehold({
   church,
   household,
   pending,
@@ -176,16 +177,41 @@ function Rename({
 }) {
   const [open, setOpen] = React.useState(false);
   const [name, setName_] = React.useState(household.name);
+  const [find, setFind] = React.useState("");
+  const [free, setFree] = React.useState<{ id: string; name: string }[]>([]);
+  const [looking, setLooking] = React.useState(false);
 
   React.useEffect(() => {
-    if (open) setName_(household.name);
+    if (open) {
+      setName_(household.name);
+      setFind("");
+    }
   }, [open, household.name]);
+
+  // Searched on the server rather than filtered here: a church of 500 is not a
+  // list to ship to the browser so a box can match six characters against it.
+  React.useEffect(() => {
+    if (!open) return;
+    let live = true;
+    setLooking(true);
+    const timer = setTimeout(async () => {
+      const rows = await freePeople(find, church);
+      if (live) {
+        setFree(rows);
+        setLooking(false);
+      }
+    }, 200);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [open, find, church, household.members.length]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <IconButton
-          label={t("households.rename", { name: household.name })}
+          label={t("households.edit", { name: household.name })}
           variant="ghost"
           disabled={pending}
         >
@@ -193,31 +219,95 @@ function Rename({
         </IconButton>
       </DialogTrigger>
 
-      <DialogContent title={household.name} closeLabel={t("common.close")}>
-        <Field label={t("households.name")} required>
-          <Input
-            value={name}
-            onChange={(e) => setName_(e.target.value)}
-            autoComplete="off"
-            autoFocus
-          />
-        </Field>
+      <DialogContent title={household.name} closeLabel={t("common.close")} className="max-w-xl">
+        <div className="flex flex-col gap-5">
+          <Field label={t("households.name")} required>
+            <Input
+              value={name}
+              onChange={(e) => setName_(e.target.value)}
+              onBlur={() => {
+                if (name.trim() && name.trim() !== household.name) {
+                  run(() => setName(household.id, name, church));
+                }
+              }}
+              autoComplete="off"
+            />
+          </Field>
 
-        <DialogFooter>
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-            {t("action.cancel")}
-          </Button>
-          <Button
-            type="button"
-            disabled={pending || !name.trim()}
-            onClick={() => {
-              run(() => setName(household.id, name, church));
-              setOpen(false);
-            }}
-          >
-            {t("action.save")}
-          </Button>
-        </DialogFooter>
+          <div className="flex flex-col gap-2">
+            <span className="text-label text-fg">{t("households.people")}</span>
+
+            {household.members.length === 0 ? (
+              <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
+            ) : (
+              <ul className="flex flex-col">
+                {household.members.map((member) => (
+                  <li
+                    key={member.id}
+                    className="flex items-center gap-2.5 border-b border-sunken py-2 last:border-0"
+                  >
+                    <Avatar
+                      name={member.name}
+                      id={member.id}
+                      className="size-7 text-[11px] font-semibold"
+                    />
+                    <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                      {member.name}
+                    </span>
+                    <span className="shrink-0 text-[12px] text-fg-subtle">
+                      {t(`householdRole.${member.role}` as never)}
+                    </span>
+                    <IconButton
+                      label={t("households.remove", { name: member.name })}
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => run(() => takeOut(household.id, member.id, church))}
+                    >
+                      <X />
+                    </IconButton>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-label text-fg">{t("households.addPerson")}</span>
+
+            <SearchField
+              value={find}
+              onChange={setFind}
+              placeholder={t("households.addPersonSearch")}
+            />
+
+            {looking ? null : free.length === 0 ? (
+              <p className="text-[13px] text-fg-subtle">{t("households.addPersonNone")}</p>
+            ) : (
+              <ul className="flex max-h-56 flex-col overflow-auto">
+                {free.map((person) => (
+                  <li key={person.id}>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => run(() => putIn(household.id, person.id, church))}
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-1 py-2 text-left hover:bg-sunken"
+                    >
+                      <Avatar
+                        name={person.name}
+                        id={person.id}
+                        className="size-7 text-[11px] font-semibold"
+                      />
+                      <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                        {person.name}
+                      </span>
+                      <Plus className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

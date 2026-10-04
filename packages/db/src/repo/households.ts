@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { households, householdMemberships } from "../schema/people";
+import { households, householdMemberships, people } from "../schema/people";
 import { PermissionError, canManageHouseholds } from "../roles";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
@@ -81,6 +81,92 @@ export async function createHousehold(
     .returning({ id: households.id });
 
   return row!;
+}
+
+/**
+ * R2.1. People a church could put into a household.
+ *
+ * Only those in none, because somebody can live in one household at a time and
+ * offering a name that is already in another is offering a mistake.
+ */
+export async function peopleWithoutHousehold(
+  db: Tx,
+  search = "",
+  limit = 20,
+): Promise<{ id: string; name: string }[]> {
+  const needle = search.trim();
+
+  const rows = await db
+    .select({
+      id: people.id,
+      name: sql<string>`coalesce(${people.preferredName}, ${people.firstName}) || ' ' || ${people.lastName}`,
+    })
+    .from(people)
+    .where(
+      and(
+        isNull(people.archivedAt),
+        sql`not exists (
+          select 1 from household_memberships hm where hm.person_id = ${people.id}
+        )`,
+        needle
+          ? sql`(
+              lower(coalesce(${people.preferredName}, ${people.firstName})) like ${`%${needle.toLowerCase()}%`}
+              or lower(${people.lastName}) like ${`%${needle.toLowerCase()}%`}
+            )`
+          : undefined,
+      ),
+    )
+    .orderBy(asc(people.lastName), asc(people.firstName))
+    .limit(limit);
+
+  return rows;
+}
+
+/** R2.1. Puts somebody into a household. */
+export async function addToHousehold(
+  db: Tx,
+  actor: WriteActor,
+  householdId: string,
+  personId: string,
+  role = "other",
+): Promise<void> {
+  guard(actor);
+
+  const [already] = await db
+    .select({ id: householdMemberships.id })
+    .from(householdMemberships)
+    .where(eq(householdMemberships.personId, personId))
+    .limit(1);
+  if (already) throw new InvalidInputError("households.error.alreadyIn");
+
+  await db.insert(householdMemberships).values({
+    tenantId: actor.tenantId,
+    householdId,
+    personId,
+    role: role as "head" | "spouse" | "child" | "other",
+  });
+}
+
+/**
+ * R2.1. Takes somebody out of a household.
+ *
+ * Their own record is untouched. They stop being shown as living with this
+ * family and can be put into another.
+ */
+export async function removeFromHousehold(
+  db: Tx,
+  actor: WriteActor,
+  householdId: string,
+  personId: string,
+): Promise<void> {
+  guard(actor);
+
+  await db
+    .delete(householdMemberships)
+    .where(and(
+      eq(householdMemberships.householdId, householdId),
+      eq(householdMemberships.personId, personId),
+    ));
 }
 
 export async function renameHousehold(

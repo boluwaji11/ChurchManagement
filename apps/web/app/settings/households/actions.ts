@@ -2,6 +2,7 @@
 
 import {
   withTenant, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
+  peopleWithoutHousehold, addToHousehold, removeFromHousehold,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -55,6 +56,45 @@ export async function putAway(
   const who = await actor(church);
   try {
     await withTenant(who, (tx) => setHouseholdArchived(tx, who, id, archived));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R2.1. People a church could put into a household: those in none. */
+export async function freePeople(
+  search: string,
+  church?: string,
+): Promise<{ id: string; name: string }[]> {
+  const who = await actor(church);
+  return withTenant(who, (tx) => peopleWithoutHousehold(tx, search));
+}
+
+/** R2.1. Putting somebody into a household from the household's own screen. */
+export async function putIn(
+  householdId: string,
+  personId: string,
+  church?: string,
+): Promise<HouseholdResult> {
+  const who = await actor(church);
+  try {
+    await withTenant(who, (tx) => addToHousehold(tx, who, householdId, personId));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R2.1. Taking somebody out. Their own record is untouched. */
+export async function takeOut(
+  householdId: string,
+  personId: string,
+  church?: string,
+): Promise<HouseholdResult> {
+  const who = await actor(church);
+  try {
+    await withTenant(who, (tx) => removeFromHousehold(tx, who, householdId, personId));
     return {};
   } catch (error) {
     return { error: explain(error) };
