@@ -28,6 +28,20 @@ export interface ShellEntry extends NavTarget {
  *
  * Hidden under 768px, where the tab bar takes over.
  */
+/**
+ * R24.6. The church's own name at the top of the sidebar, sized to fit.
+ *
+ * "Grace Chapel" and "Riverside Community Fellowship of the Valley" both have
+ * to live in 168px over two lines, so the type steps down as the name grows
+ * rather than truncating a church out of its own name.
+ */
+function nameSize(name: string): React.CSSProperties {
+  const length = name.trim().length;
+  if (length <= 16) return { fontSize: 18, lineHeight: "22px" };
+  if (length <= 30) return { fontSize: 15, lineHeight: "19px" };
+  return { fontSize: 13, lineHeight: "17px" };
+}
+
 export function Sidebar({
   entries,
   churchName,
@@ -35,6 +49,7 @@ export function Sidebar({
   roleName,
   userId,
   church,
+  logoUrl,
   collapsed: initial,
 }: {
   entries: ShellEntry[];
@@ -43,6 +58,8 @@ export function Sidebar({
   roleName: string;
   userId: string;
   church: string;
+  /** R1.1. This church's own logo, where it has uploaded one. */
+  logoUrl?: string | null;
   collapsed: boolean;
 }) {
   const pathname = usePathname();
@@ -68,12 +85,14 @@ export function Sidebar({
       )}
     >
       <div className={cn("flex items-center", collapsed ? "flex-col gap-2" : "gap-2.5 pl-2")}>
-        <Link href="/choose-church" className="flex min-w-0 items-center gap-2.5" aria-label={t("app.name")}>
-          <FlameMark />
+        <Link href="/choose-church" className="flex min-w-0 items-center gap-2.5" aria-label={churchName}>
+          <FlameMark logoUrl={logoUrl} />
           {collapsed ? null : (
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="font-display text-[18px] leading-5 text-fg">{t("app.name")}</span>
-              <span className="truncate text-[12px] text-fg-subtle">{churchName}</span>
+            <span
+              className="min-w-0 flex-1 font-display text-fg [overflow-wrap:anywhere] line-clamp-2"
+              style={nameSize(churchName)}
+            >
+              {churchName}
             </span>
           )}
         </Link>

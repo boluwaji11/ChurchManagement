@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cookies } from "next/headers";
 import {
-  withTenant, countUnread, listNotifications, NOTIFICATION_LOOK,
+  withTenant, countUnread, listNotifications, NOTIFICATION_LOOK, getChurch,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { DemoBanner } from "./demo-banner";
@@ -12,6 +12,7 @@ import { NotificationBell } from "./shell/bell";
 import { when } from "@/lib/when";
 import { navFor } from "./shell/nav";
 import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
+import { supabaseServer } from "@/lib/supabase/server";
 import type { Session } from "@/lib/session";
 
 /**
@@ -58,8 +59,22 @@ export async function AppShell({
     async (tx) => ({
       unread: await countUnread(tx, session.userId),
       notifications: await listNotifications(tx, session.userId),
+      // R1.1. The church's own mark, for the sidebar and the phone's top bar.
+      logoKey: (await getChurch(tx, session.tenantId))?.logoKey ?? null,
     }),
   );
+
+  /*
+   * The bucket is private, so the logo is served through a signed URL with an
+   * hour on it. Every staff screen is force-dynamic, so a reader who leaves a
+   * tab open overnight gets a fresh one on their next navigation.
+   */
+  let logoUrl: string | null = null;
+  if (counts.logoKey) {
+    const supabase = await supabaseServer();
+    const signed = await supabase.storage.from("church").createSignedUrl(counts.logoKey, 3600);
+    logoUrl = signed.data?.signedUrl ?? null;
+  }
 
   const entries: ShellEntry[] = navFor(session.role).map(({ icon: Icon, ...rest }) => ({
     ...rest,
@@ -75,6 +90,7 @@ export async function AppShell({
         roleName={t(`role.${session.role}` as never)}
         userId={session.userId}
         church={session.tenantSlug}
+        logoUrl={logoUrl}
         collapsed={collapsed}
       />
 
@@ -85,6 +101,7 @@ export async function AppShell({
         <TopBar
           title={title}
           action={action}
+          logoUrl={logoUrl}
           bell={
             <NotificationBell
               church={session.tenantSlug}

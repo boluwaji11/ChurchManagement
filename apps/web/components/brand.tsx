@@ -32,17 +32,32 @@ export function Mark({ className }: { className?: string }) {
  * sizes. 32px with a 10px radius down the side, 28px with an 8px radius in the
  * top bar on a phone.
  */
-export function FlameMark({ size = 32 }: { size?: 32 | 28 }) {
+export function FlameMark({ size = 32, logoUrl }: { size?: 32 | 28; logoUrl?: string | null }) {
+  const box = {
+    width: size,
+    height: size,
+    borderRadius: size === 32 ? 10 : 8,
+  } as const;
+
+  /*
+   * R1.1. A church that has uploaded a logo sees its own logo here, on every
+   * screen, rather than ours. Contained rather than cropped, because a wordmark
+   * and a round crest both have to survive a 32px square.
+   */
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt=""
+        aria-hidden
+        className="shrink-0 border border-line bg-surface object-contain p-0.5"
+        style={box}
+      />
+    );
+  }
+
   return (
-    <span
-      aria-hidden
-      className="grid shrink-0 place-items-center bg-ember-500 text-white"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size === 32 ? 10 : 8,
-      }}
-    >
+    <span aria-hidden className="grid shrink-0 place-items-center bg-ember-500 text-white" style={box}>
       <Flame style={{ width: size === 32 ? 16 : 14, height: size === 32 ? 16 : 14 }} />
     </span>
   );

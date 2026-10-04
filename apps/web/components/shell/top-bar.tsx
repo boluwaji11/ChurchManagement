@@ -22,6 +22,7 @@ export function TopBar({
   title,
   action,
   bell,
+  logoUrl,
   children,
 }: {
   /**
@@ -33,13 +34,15 @@ export function TopBar({
   action?: React.ReactNode;
   /** R24.6. The notification bell, which every screen carries. */
   bell?: React.ReactNode;
+  /** R1.1. This church's own logo, where it has uploaded one. */
+  logoUrl?: string | null;
   /** Anything that sits between the title and the action. */
   children?: React.ReactNode;
 }) {
   return (
     <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-canvas px-6 py-3.5">
       <span className="md:hidden">
-        <FlameMark size={28} />
+        <FlameMark size={28} logoUrl={logoUrl} />
       </span>
       {title ? (
         <h1 className="min-w-0 flex-1 truncate font-display text-[20px] leading-6 text-fg">

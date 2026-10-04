@@ -4,7 +4,7 @@ import * as React from "react";
 import { Plus, Search, Printer, Check, MoreHorizontal, Download } from "lucide-react";
 import {
   Button, IconButton, Input, Textarea, Field, Badge, Chip, Avatar, Card, CardTitle,
-  CardDescription, Separator, Skeleton, Spinner, Progress, Checkbox, Switch, RadioGroup,
+  CardDescription, Separator, Skeleton, Spinner, Progress, Working, Checkbox, Switch, RadioGroup,
   RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, DatePicker, TimePicker, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
   TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
@@ -268,6 +268,7 @@ export default function Components() {
           </Dialog>
           <Spinner />
           <Skeleton className="h-9 w-40" />
+          <WorkingDemo />
         </Row>
       </Section>
 
@@ -366,5 +367,26 @@ function TimeDemo() {
       placeholder="9:00 AM"
       labels={{ open: "Open the times", clear: "Clear" }}
     />
+  );
+}
+
+/**
+ * The busy overlay, which covers the screen, so the gallery shows it behind a
+ * button rather than on page load.
+ */
+function WorkingDemo() {
+  const [open, setOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const timer = setTimeout(() => setOpen(false), 2200);
+    return () => clearTimeout(timer);
+  }, [open]);
+
+  return (
+    <>
+      <Button variant="secondary" onClick={() => setOpen(true)}>Show Working</Button>
+      <Working open={open} label="Building your export" />
+    </>
   );
 }

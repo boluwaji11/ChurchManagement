@@ -10,7 +10,7 @@ export { Avatar } from "./components/avatar";
 export { HUES, ALL_HUES, HueDot, HueTag, hueForId, type Hue, type PaletteHue } from "./components/hue";
 export { Card, CardHeader, CardTitle, CardDescription } from "./components/card";
 export { Separator } from "./components/separator";
-export { Skeleton, Spinner, Progress } from "./components/feedback";
+export { Skeleton, Spinner, Progress, Working } from "./components/feedback";
 export { Checkbox } from "./components/checkbox";
 export { Switch } from "./components/switch";
 export { RadioGroup, RadioItem } from "./components/radio-group";

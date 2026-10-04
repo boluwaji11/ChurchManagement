@@ -58,3 +58,34 @@ export function Progress({
     </div>
   );
 }
+
+/**
+ * R24.6. The screen is busy.
+ *
+ * A panel in the middle of the screen for work the reader has to wait through:
+ * a logo uploading, an import running, an export being built. It sits over the
+ * page because the answer to "did my click do anything" belongs where the eye
+ * already is, and it holds the pointer off the controls underneath while the
+ * work runs.
+ *
+ * Under prefers-reduced-motion the ring stops turning and the words carry it.
+ */
+export function Working({ open, label }: { open: boolean; label: string }) {
+  if (!open) return null;
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-[60] grid place-items-center bg-overlay"
+    >
+      <span className="flex items-center gap-3 rounded-[14px] border border-line bg-surface px-5 py-4 shadow-lg">
+        <span
+          aria-hidden
+          className="size-5 animate-spin rounded-full border-2 border-line-strong border-t-primary motion-reduce:animate-none"
+        />
+        <span className="text-[length:var(--d-text-body)] font-medium text-fg">{label}</span>
+      </span>
+    </div>
+  );
+}

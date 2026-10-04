@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
-import { Download } from "lucide-react";
 import { canArchivePeople } from "@hearth/db";
-import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import type { MessageKey } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
+import { DownloadRow } from "./download";
 
 export const dynamic = "force-dynamic";
 
@@ -45,14 +44,7 @@ export default async function ExportPage() {
 
             <span className="font-mono text-[12px] text-fg-subtle">{row.file}</span>
 
-            <Button variant="secondary" className="min-h-[34px] px-3 text-[13px]" asChild>
-              <a
-                href={`/api/export?church=${session.tenantSlug}${row.only ? `&only=${row.only}` : ""}`}
-                download
-              >
-                <Download /> {t("settings.export.download")}
-              </a>
-            </Button>
+            <DownloadRow church={session.tenantSlug} only={row.only} file={row.file} />
           </div>
         ))}
       </section>

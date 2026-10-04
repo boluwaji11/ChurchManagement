@@ -3,36 +3,28 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import { Banner, Button, Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
+import { Banner, Button, Dialog, DialogTrigger, DialogContent, Working } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearLogo } from "./actions";
 
 /**
  * R1.1. The church logo.
  *
- * The quota from R1.16 is enforced on the way in and stays out of sight. A
- * church of this size will not come near two gibibytes with a logo and some
- * photographs, so a bar reading 282 kB of 2.1 GB only asks somebody to worry
- * about a number that will never move. The warning appears if it ever does.
+ * It prints on a check-in label and sits at the top of the sidebar, so this is
+ * the one place a church sets how it looks everywhere else. The storage quota
+ * from R1.16 is enforced on the way in and stays out of sight: a church of this
+ * size will never come near two gibibytes with a logo and some photographs, so
+ * a number that never moves is a number nobody should be reading.
  */
-export function LogoAndStorage({
+export function ChurchLogo({
   church,
   churchName,
   logoUrl,
-  fraction,
-  used,
-  quota,
-  warning,
   canEdit,
 }: {
   church: string;
   churchName: string;
   logoUrl: string | null;
-  fraction: number;
-  /** Already written, "1.2 GB". */
-  used: string;
-  quota: string;
-  warning: boolean;
   canEdit: boolean;
 }) {
   const router = useRouter();
@@ -40,8 +32,6 @@ export function LogoAndStorage({
   const [, startTransition] = React.useTransition();
   const [busy, setBusy] = React.useState(false);
   const input = React.useRef<HTMLInputElement>(null);
-
-  const percent = Math.round(fraction * 100);
 
   const upload = async (file: File) => {
     setBusy(true);
@@ -79,6 +69,8 @@ export function LogoAndStorage({
       className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
       aria-busy={busy}
     >
+      <Working open={busy} label={t("church.logo.uploading")} />
+
       {error ? <Banner tone="danger" title={t("church.logo")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-4">
@@ -113,20 +105,7 @@ export function LogoAndStorage({
           </span>
         )}
 
-        <div className="flex flex-[1_1_220px] flex-col gap-2">
-          <span className="font-semibold text-fg">{t("church.logo")}</span>
-
-          <span className="h-1.5 overflow-hidden rounded-full bg-line">
-            <span
-              className={warning ? "block h-full bg-danger" : "block h-full bg-primary"}
-              style={{ width: `${Math.max(percent, 1)}%` }}
-            />
-          </span>
-
-          <span className="text-[12px] text-fg-subtle">
-            {t("storage.used", { used, quota })}
-          </span>
-        </div>
+        <span className="flex-[1_1_220px] font-semibold text-fg">{t("church.logo")}</span>
 
         {canEdit ? (
           <>
@@ -158,10 +137,6 @@ export function LogoAndStorage({
           </>
         ) : null}
       </div>
-
-      {warning ? (
-        <Banner tone="warning" title={t("storage.warning", { percent: String(percent) })} />
-      ) : null}
     </section>
   );
 }

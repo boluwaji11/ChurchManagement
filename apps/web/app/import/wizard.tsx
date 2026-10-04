@@ -7,7 +7,7 @@ import { AlertTriangle, Check, FileSpreadsheet } from "lucide-react";
 import {
   Button, Card, CardTitle, Separator, Banner, Badge,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  RadioGroup, RadioItem, Spinner,
+  RadioGroup, RadioItem, Spinner, Working,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import {
@@ -139,6 +139,10 @@ export function ImportWizard({
   return (
     <div className="flex flex-col gap-6">
       <Steps current={step} />
+
+      {/* R19.2. Reading a file, building the preview and writing the rows all
+          take long enough that the screen has to say so. */}
+      <Working open={busy} label={t("import.running")} />
 
       {error ? <Banner tone="danger" title={t("import.failed")}>{error}</Banner> : null}
 
