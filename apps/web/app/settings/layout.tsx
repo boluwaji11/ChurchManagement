@@ -60,6 +60,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     {
       title: t("settings.group.people"),
       items: [
+        ...(canManageHouseholds(session)
+          ? [{ href: "/settings/households", label: t("settings.tab.households") }]
+          : []),
         ...(canEditPeople(session)
           ? [{ href: "/settings/tags", label: t("settings.tab.tags") }]
           : []),
@@ -74,9 +77,6 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     {
       title: t("settings.group.you"),
       items: [
-        ...(canManageHouseholds(session)
-          ? [{ href: "/settings/households", label: t("settings.tab.households") }]
-          : []),
         // R3.2. What this person lets the church publish about them.
         { href: "/settings/privacy", label: t("settings.tab.privacy") },
         { href: "/settings/security", label: t("settings.tab.security") },

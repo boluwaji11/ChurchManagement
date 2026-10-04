@@ -1,7 +1,7 @@
 "use server";
 
 import {
-  withTenant, renameHousehold, setHouseholdArchived, mergeHouseholds,
+  withTenant, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -18,6 +18,17 @@ async function actor(church?: string) {
     userId: session.userId,
     permissions: session.permissions,
   };
+}
+
+/** R2.1. A new family, named before anybody is put in it. */
+export async function add(name: string, church?: string): Promise<HouseholdResult> {
+  const who = await actor(church);
+  try {
+    await withTenant(who, (tx) => createHousehold(tx, who, name));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
 }
 
 /** R2.1. What a church calls this family. */

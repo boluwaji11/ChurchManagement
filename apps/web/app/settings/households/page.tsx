@@ -4,7 +4,7 @@ import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { Empty } from "@/components/empty";
 import { SettingsHeading } from "../heading";
-import { HouseholdList } from "./households";
+import { HouseholdList, NewHousehold } from "./households";
 
 export const dynamic = "force-dynamic";
 
@@ -32,13 +32,18 @@ export default async function HouseholdsPage({
 
   return (
     <>
-      <SettingsHeading title="settings.tab.households" lede="settings.lede.households" />
+      <SettingsHeading
+        title="settings.tab.households"
+        lede="settings.lede.households"
+        action={rows.length > 0 ? <NewHousehold church={session.tenantSlug} /> : undefined}
+      />
 
       {rows.length === 0 ? (
         <Empty
           icon="people"
           title={t("households.empty.title")}
           body={t("households.empty.body")}
+          action={<NewHousehold church={session.tenantSlug} />}
         />
       ) : (
         <HouseholdList church={session.tenantSlug} households={rows} />

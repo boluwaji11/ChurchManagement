@@ -64,6 +64,25 @@ export async function listHouseholdRows(
   }));
 }
 
+/** R2.1. A family named before anybody is put in it. */
+export async function createHousehold(
+  db: Tx,
+  actor: WriteActor,
+  name: string,
+): Promise<{ id: string }> {
+  guard(actor);
+
+  const title = clean(name);
+  if (!title) throw new InvalidInputError("households.error.name");
+
+  const [row] = await db
+    .insert(households)
+    .values({ tenantId: actor.tenantId, name: title })
+    .returning({ id: households.id });
+
+  return row!;
+}
+
 export async function renameHousehold(
   db: Tx,
   actor: WriteActor,

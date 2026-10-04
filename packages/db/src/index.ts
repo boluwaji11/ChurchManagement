@@ -12,7 +12,7 @@ export {
   permissionsFor, ensureBuiltIns, type ChurchRole,
 } from "./repo/tenant-roles";
 export {
-  listHouseholdRows, renameHousehold, setHouseholdArchived, mergeHouseholds,
+  listHouseholdRows, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
   type HouseholdRow,
 } from "./repo/households";
 export { InvalidInputError, NameTakenError } from "./errors";

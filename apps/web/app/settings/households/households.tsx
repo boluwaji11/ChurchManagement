@@ -3,14 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, Merge, Undo2 } from "lucide-react";
+import { Archive, Merge, Pencil, Plus, Search, Undo2 } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { setName, putAway, fold } from "./actions";
+import { Empty } from "@/components/empty";
+import { add, setName, putAway, fold } from "./actions";
 
 export interface HouseholdItem {
   id: string;
@@ -19,12 +20,23 @@ export interface HouseholdItem {
   archived: boolean;
 }
 
+/** Two letters for a face, from whatever the church wrote the name as. */
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .toUpperCase();
+}
+
 /**
  * R2.1. Every household, and what a church can do with one.
  *
  * A household used to exist only as a side effect of editing a person, which
  * left a church with no way to see a family, rename it, or put two halves of
- * the same one back together. A row each, with its people under it.
+ * the same one back together.
  */
 export function HouseholdList({
   church,
@@ -35,6 +47,7 @@ export function HouseholdList({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
+  const [find, setFind] = React.useState("");
   const [pending, startTransition] = React.useTransition();
 
   const run = (work: () => Promise<{ error?: string }>) =>
@@ -44,64 +57,92 @@ export function HouseholdList({
       if (!result.error) router.refresh();
     });
 
-  const open = households.filter((one) => !one.archived);
-  const archived = households.filter((one) => one.archived);
+  // A church with forty families looks for one by its name, or by the name of
+  // somebody in it, which is how a volunteer actually remembers a household.
+  const needle = find.trim().toLowerCase();
+  const matches = (one: HouseholdItem) =>
+    !needle ||
+    one.name.toLowerCase().includes(needle) ||
+    one.members.some((m) => m.name.toLowerCase().includes(needle));
+
+  const open = households.filter((one) => !one.archived && matches(one));
+  const archived = households.filter((one) => one.archived && matches(one));
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("households.failed")}>{error}</Banner> : null}
 
-      <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
-        {open.map((household) => (
-          <div
-            key={household.id}
-            className="flex flex-wrap items-start gap-3 border-b border-sunken py-3.5 last:border-0"
-          >
-            <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1.5">
-              <span className="font-medium text-fg">{household.name}</span>
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle"
+          aria-hidden
+        />
+        <Input
+          value={find}
+          onChange={(e) => setFind(e.target.value)}
+          placeholder={t("households.search")}
+          aria-label={t("households.search")}
+          className="pl-9"
+        />
+      </div>
+
+      {open.length === 0 && archived.length === 0 ? (
+        <Empty icon="noResults" title={t("households.noResults")} />
+      ) : null}
+
+      {open.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          {open.map((household) => (
+            <article
+              key={household.id}
+              className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
+            >
+              <div className="flex items-center gap-3">
+                <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold text-fg">
+                  {household.name}
+                </h3>
+
+                <div className="flex shrink-0 items-center gap-0.5">
+                  <Rename household={household} pending={pending} run={run} church={church} />
+                  <MergeInto
+                    household={household}
+                    others={households.filter((one) => !one.archived && one.id !== household.id)}
+                    pending={pending}
+                    run={run}
+                    church={church}
+                  />
+                  <ArchiveOne household={household} pending={pending} run={run} church={church} />
+                </div>
+              </div>
 
               {household.members.length === 0 ? (
-                <span className="text-[13px] text-fg-subtle">{t("households.nobody")}</span>
+                <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
               ) : (
-                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                <ul className="grid gap-x-4 gap-y-2 [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))]">
                   {household.members.map((member) => (
-                    <Link
-                      key={member.id}
-                      href={`/people/${member.id}?church=${church}`}
-                      className="text-[13px] text-primary underline-offset-4 hover:underline"
-                    >
-                      {member.name}
-                      <span className="text-fg-subtle">
-                        {" "}
-                        {t(`householdRole.${member.role}` as never)}
-                      </span>
-                    </Link>
+                    <li key={member.id}>
+                      <Link
+                        href={`/people/${member.id}?church=${church}`}
+                        className="flex items-center gap-2.5 rounded-md py-1 hover:bg-sunken"
+                      >
+                        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-sunken text-[11px] font-semibold text-fg-muted">
+                          {initialsOf(member.name)}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] font-medium text-fg">
+                          {member.name}
+                        </span>
+                        <span className="shrink-0 text-[12px] text-fg-subtle">
+                          {t(`householdRole.${member.role}` as never)}
+                        </span>
+                      </Link>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
-            </div>
-
-            <div className="flex shrink-0 items-center gap-0.5">
-              <Rename household={household} pending={pending} run={run} church={church} />
-              <MergeInto
-                household={household}
-                others={open.filter((one) => one.id !== household.id)}
-                pending={pending}
-                run={run}
-                church={church}
-              />
-              <IconButton
-                label={t("households.archive", { name: household.name })}
-                variant="ghost"
-                disabled={pending}
-                onClick={() => run(() => putAway(household.id, true, church))}
-              >
-                <Archive />
-              </IconButton>
-            </div>
-          </div>
-        ))}
-      </section>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       {archived.length === 0 ? null : (
         <section className="flex flex-col gap-2">
@@ -154,14 +195,23 @@ function Rename({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="min-h-[34px] px-2.5 text-[13px]">
-          {t("households.rename")}
-        </Button>
+        <IconButton
+          label={t("households.rename", { name: household.name })}
+          variant="ghost"
+          disabled={pending}
+        >
+          <Pencil />
+        </IconButton>
       </DialogTrigger>
 
       <DialogContent title={household.name} closeLabel={t("common.close")}>
         <Field label={t("households.name")} required>
-          <Input value={name} onChange={(e) => setName_(e.target.value)} autoComplete="off" autoFocus />
+          <Input
+            value={name}
+            onChange={(e) => setName_(e.target.value)}
+            autoComplete="off"
+            autoFocus
+          />
         </Field>
 
         <DialogFooter>
@@ -177,6 +227,58 @@ function Rename({
             }}
           >
             {t("action.save")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** R2.1. Archiving asks first: it takes a family off every screen at once. */
+function ArchiveOne({
+  church,
+  household,
+  pending,
+  run,
+}: {
+  church: string;
+  household: HouseholdItem;
+  pending: boolean;
+  run: (work: () => Promise<{ error?: string }>) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <IconButton
+          label={t("households.archive", { name: household.name })}
+          variant="ghost"
+          disabled={pending}
+        >
+          <Archive />
+        </IconButton>
+      </DialogTrigger>
+
+      <DialogContent alert title={t("households.archiveTitle", { name: household.name })}>
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">
+          {t("households.archiveBody")}
+        </p>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            {t("households.keep")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              run(() => putAway(household.id, true, church));
+              setOpen(false);
+            }}
+          >
+            <Archive /> {t("households.archiveAction")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -247,6 +349,58 @@ function MergeInto({
             }}
           >
             {t("households.mergeAction", { name: household.name })}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** R2.1. The one action this screen carries, beside its title. */
+export function NewHousehold({ church }: { church: string }) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [name, setName_] = React.useState("");
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+
+  const save = () =>
+    startTransition(async () => {
+      const result = await add(name, church);
+      setError(result.error);
+      if (!result.error) {
+        setName_("");
+        setOpen(false);
+        router.refresh();
+      }
+    });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus /> {t("households.add")}
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent title={t("households.add")} closeLabel={t("common.close")}>
+        {error ? <Banner tone="danger" title={t("households.failed")}>{error}</Banner> : null}
+
+        <Field label={t("households.name")} required>
+          <Input
+            value={name}
+            onChange={(e) => setName_(e.target.value)}
+            autoComplete="off"
+            autoFocus
+          />
+        </Field>
+
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            {t("action.cancel")}
+          </Button>
+          <Button type="button" disabled={pending || !name.trim()} onClick={save}>
+            {t("action.add")}
           </Button>
         </DialogFooter>
       </DialogContent>
