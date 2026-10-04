@@ -557,7 +557,7 @@ function FilterDrawer({
         className={cn(
           "flex h-[34px] items-center gap-1.5 rounded-md border px-3 text-[13px] font-medium [&_svg]:size-4",
           narrowing > 0
-            ? "border-accent bg-accent-soft text-accent"
+            ? "border-primary bg-primary-soft text-primary"
             : "border-line-strong bg-surface text-fg hover:bg-sunken",
         )}
       >
@@ -585,6 +585,7 @@ function FilterDrawer({
                 {statuses.map(([value, n]) => (
                   <ChipButton
                     key={value}
+                    tone="ink"
                     on={status === value}
                     onClick={() => setParam({ status: value === "all" ? undefined : value })}
                   >
@@ -631,7 +632,7 @@ function FilterDrawer({
                   <span
                     className={cn(
                       "grid size-4 place-items-center rounded-[4px] [&_svg]:size-[11px]",
-                      missing ? "bg-accent text-white" : "border border-line-strong text-transparent",
+                      missing ? "bg-primary text-white" : "border border-line-strong text-transparent",
                     )}
                   >
                     <Check />
@@ -663,14 +664,22 @@ function FilterGroup({ label, children }: { label: string; children: React.React
   );
 }
 
-/** A 34px pill. On, it takes the accent and a heavier edge. */
+/**
+ * A 34px pill. Two kinds, as the design has them.
+ *
+ * A status is one of a set, so the chosen one is filled in ink and reads white:
+ * it is answering "which of these". A tag is a thing you switch on, so it takes
+ * the accent and a heavier edge and leaves the rest alone.
+ */
 function ChipButton({
   on,
   onClick,
+  tone = "accent",
   children,
 }: {
   on: boolean;
   onClick: () => void;
+  tone?: "ink" | "accent";
   children: React.ReactNode;
 }) {
   return (
@@ -680,9 +689,9 @@ function ChipButton({
       aria-pressed={on}
       className={cn(
         "flex h-[34px] items-center gap-2 rounded-full px-3.5 text-[13px] font-medium",
-        on
-          ? "border-[1.5px] border-accent bg-accent-soft text-accent"
-          : "border border-line-strong bg-surface text-fg-muted hover:bg-sunken",
+        !on && "border border-line-strong bg-surface text-fg hover:bg-sunken",
+        on && tone === "ink" && "border border-fg bg-fg text-canvas",
+        on && tone === "accent" && "border-[1.5px] border-primary bg-primary-soft text-primary",
       )}
     >
       {children}

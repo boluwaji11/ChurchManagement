@@ -86,7 +86,7 @@ export function NotificationBell({
                     void readAll(church);
                     setOpen(false);
                   }}
-                  className="text-[13px] font-medium text-accent"
+                  className="text-[13px] font-medium text-primary"
                 >
                   {t("bell.markAll")}
                 </button>
@@ -125,7 +125,7 @@ export function NotificationBell({
                         <span className="mt-0.5 block text-[12px] text-fg-subtle">{item.when}</span>
                       </span>
                       {item.unread ? (
-                        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-accent" />
+                        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
                       ) : null}
                     </button>
                   );

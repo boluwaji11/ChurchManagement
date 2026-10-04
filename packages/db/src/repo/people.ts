@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, inArray, isNull, sql, count, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql, count, type SQL } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people, households, householdMemberships, contactMethods, tags, personTags } from "../schema/people";
+import { people, households, householdMemberships, contactMethods, addresses, tags, personTags } from "../schema/people";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { visiblePeople, type Viewer } from "./scope";
 import { requireRoomForPeople } from "./provisional";
@@ -649,4 +649,101 @@ export async function countPeople(db: Tx, opts: DirectoryQuery = {}): Promise<nu
     .from(people)
     .where(where.length > 0 ? and(...where) : undefined);
   return Number(rows[0]?.n ?? 0);
+}
+
+export interface HouseholdCard {
+  id: string;
+  name: string;
+  members: { id: string; displayName: string; role: string }[];
+}
+
+/**
+ * R2.4. The household a person belongs to, and who else is in it.
+ *
+ * The person's own page shows it, so the person asking is holding one record
+ * and wants the family around it: who the spouse is, how many children, who to
+ * ring if this one does not answer.
+ */
+export async function householdFor(db: Tx, personId: string): Promise<HouseholdCard | null> {
+  const [mine] = await db
+    .select({ householdId: householdMemberships.householdId })
+    .from(householdMemberships)
+    .where(and(eq(householdMemberships.personId, personId), isNull(householdMemberships.endedOn)))
+    .limit(1);
+  if (!mine?.householdId) return null;
+
+  const [household] = await db
+    .select({ id: households.id, name: households.name })
+    .from(households)
+    .where(eq(households.id, mine.householdId))
+    .limit(1);
+  if (!household) return null;
+
+  const members = await db
+    .select({
+      id: people.id,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
+      role: householdMemberships.role,
+    })
+    .from(householdMemberships)
+    .innerJoin(people, eq(people.id, householdMemberships.personId))
+    .where(
+      and(
+        eq(householdMemberships.householdId, mine.householdId),
+        isNull(householdMemberships.endedOn),
+        isNull(people.archivedAt),
+      ),
+    )
+    .orderBy(asc(people.lastName), asc(people.firstName));
+
+  return {
+    id: household.id,
+    name: household.name,
+    members: members.map((m) => ({
+      id: m.id,
+      displayName: `${m.preferredName ?? m.firstName} ${m.lastName}`,
+      role: m.role,
+    })),
+  };
+}
+
+/**
+ * R2.4. The address to put on an envelope.
+ *
+ * Their own if they have one, otherwise the household's, because a church
+ * writes one address for the family and the person's page should still show it.
+ */
+export async function addressFor(db: Tx, personId: string): Promise<string | null> {
+  const [mine] = await db
+    .select({ householdId: householdMemberships.householdId })
+    .from(householdMemberships)
+    .where(and(eq(householdMemberships.personId, personId), isNull(householdMemberships.endedOn)))
+    .limit(1);
+
+  const rows = await db
+    .select({
+      line1: addresses.line1,
+      line2: addresses.line2,
+      city: addresses.city,
+      region: addresses.region,
+      postalCode: addresses.postalCode,
+      personId: addresses.personId,
+    })
+    .from(addresses)
+    .where(
+      mine?.householdId
+        ? or(eq(addresses.personId, personId), eq(addresses.householdId, mine.householdId))
+        : eq(addresses.personId, personId),
+    );
+
+  // Their own wins over the household's.
+  const row = rows.find((r) => r.personId === personId) ?? rows[0];
+  if (!row) return null;
+
+  const town = [row.city, row.region].filter(Boolean).join(" ");
+  return [row.line1, row.line2, [town, row.postalCode].filter(Boolean).join(" ")]
+    .filter(Boolean)
+    .join(", ");
 }

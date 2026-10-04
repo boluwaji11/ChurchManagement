@@ -204,7 +204,7 @@ export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church:
             aria-current={on ? "page" : undefined}
             className={cn(
               "flex min-h-11 flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px]",
-              on ? "font-semibold text-accent" : "font-medium text-fg-subtle",
+              on ? "font-semibold text-primary" : "font-medium text-fg-subtle",
             )}
           >
             <span className="grid place-items-center [&_svg]:size-[22px]">{entry.icon}</span>

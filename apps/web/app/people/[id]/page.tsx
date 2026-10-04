@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Lock, FileText, Pencil } from "lucide-react";
+import { ArrowLeft, Lock, FileText, Plus } from "lucide-react";
 import {
-  withTenant, getPerson, getPersonForEdit, listNotesForPerson, listTagsForPerson, listsForPerson,
+  withTenant, getPerson, getPersonForEdit, householdFor, addressFor, listNotesForPerson, listTagsForPerson, listsForPerson,
   personTimeline,
   listTagsWithCounts, listCustomFields, getCustomValues, canEditPeople, canArchivePeople,
   listRelationships, listPeople, listMilestones, servingForPerson,
@@ -43,18 +43,64 @@ function showValue(type: string, value: unknown): string {
 }
 
 /** One field of a record, and a way to act on it when there is one. */
-function Detail({ label, value, href }: { label: string; value: string; href?: string }) {
+/** What a field with nothing in it reads as. */
+const EMPTY = "\u2014";
+
+/** First letters, for the household faces. */
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .toUpperCase();
+}
+
+/**
+ * R24.6. One card in the person's grid.
+ *
+ * A quiet heading at 13px rather than a title, because the card's contents are
+ * the thing being read and the heading is only saying which card this is.
+ */
+function InfoCard({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex flex-col">
-      <dt className="text-label text-fg-muted">{label}</dt>
-      <dd className="text-[length:var(--d-text-body)] text-fg">
-        {href ? (
-          <a href={href} className="underline-offset-4 hover:underline">{value}</a>
-        ) : (
-          value
-        )}
-      </dd>
-    </div>
+    <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-[13px] font-medium text-fg-subtle">{title}</h3>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** R2.2. The same pill the directory uses, so a status looks the same anywhere. */
+const STATUS_HUE: Record<string, string> = {
+  member: "fern",
+  regular_attender: "sky",
+  visitor: "amber",
+  inactive: "clay",
+  deceased: "clay",
+};
+
+function PersonStatus({ status }: { status: string }) {
+  const hue = STATUS_HUE[status] ?? "clay";
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium"
+      style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+    >
+      {lifecycleLabel(status)}
+    </span>
   );
 }
 
@@ -91,6 +137,10 @@ export default async function PersonPage({
         id,
       ),
       contact: await getPersonForEdit(tx, id),
+      // R2.4. The family around this record, for the card the design gives it.
+      household: await householdFor(tx, id),
+      // R2.4. Theirs, or the household's, which is what a church writes.
+      address: await addressFor(tx, id),
       allTags: await listTagsWithCounts(tx),
       fields: await listCustomFields(tx, "person"),
       fieldValues: await getCustomValues(tx, "person", id),
@@ -119,7 +169,7 @@ export default async function PersonPage({
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
   const {
-    person, notes, tags, contact, allTags, fields, fieldValues, relationships, everyone, serving, upcoming, away, frequency,
+    person, notes, tags, contact, household, address, allTags, fields, fieldValues, relationships, everyone, serving, upcoming, away, frequency,
     milestones, pipelines, entries, tasks, today, checks, onLists, history,
   } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
@@ -128,27 +178,49 @@ export default async function PersonPage({
   return (
     <AppShell
       session={session}
-      title={display}
+      title={t("person.title")}
       action={
         canEditPeople(session.role) ? (
           <Button asChild>
-            <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
-              <Pencil /> {t("action.edit")}
-            </Link>
+            <a href="#notes">
+              <Plus /> {t("person.addNote")}
+            </a>
           </Button>
         ) : undefined
       }
     >
       <Link
         href={`/people?church=${session.tenantSlug}`}
-        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("people.title")}
       </Link>
 
-      <div className="mb-8 flex items-center gap-4">
-        <Avatar name={display} id={person.id} size="xl" />
-        <Badge tone="primary">{lifecycleLabel(person.lifecycleStatus)}</Badge>
+      {/* 72px avatar, the name in Fraunces at 32, and under it the one line
+          that places them: what they are to the church, whose household, and
+          since when. */}
+      <div className="flex flex-wrap items-center gap-5">
+        <Avatar name={display} id={person.id} className="size-[72px] text-[24px] font-semibold" />
+        <div className="min-w-[200px] flex-1">
+          <div className="font-display text-[32px] leading-[38px] text-fg">{display}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <PersonStatus status={person.lifecycleStatus} />
+            <span className="text-[13px] text-fg-muted">
+              {[
+                household ? t("person.ofHousehold", { name: household.name }) : null,
+                person.membershipDate ? t("person.joinedOn", { date: longDate(person.membershipDate) }) : null,
+              ].filter(Boolean).join(" \u00b7 ")}
+            </span>
+          </div>
+        </div>
+
+        {canEditPeople(session.role) ? (
+          <Button variant="secondary" asChild>
+            <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
+              {t("action.edit")}
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       {saved ? <Banner tone="success" title={t("person.saved")} className="mb-6" /> : null}
@@ -172,59 +244,109 @@ export default async function PersonPage({
         * the church is doing about them. On a phone it is one column and the
         * record comes first, which is what somebody looking them up came for.
         */}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      <div className="flex flex-col">
+      {/* One column, as the design has it. The old two-column split put the
+          church's follow-up work in a narrow rail beside the record, and the
+          record is what somebody opened this page for. */}
 
-      <Card className="mb-6">
-        <CardTitle>{t("person.details")}</CardTitle>
-        <Separator className="my-4" />
-        <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-          <Detail label={t("person.firstName")} value={person.firstName} />
-          <Detail label={t("person.lastName")} value={person.lastName} />
-          <Detail
-            label={t("person.email")}
-            value={contact?.email ?? t("person.notRecorded")}
-            href={contact?.email ? `mailto:${contact.email}` : undefined}
-          />
-          <Detail
-            label={t("person.phone")}
-            value={contact?.phone ?? t("person.notRecorded")}
-            href={contact?.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined}
-          />
-          <Detail
-            label={t("person.dateOfBirth")}
-            value={person.dateOfBirth ? longDate(person.dateOfBirth) : t("person.notRecorded")}
-          />
-          <Detail
-            label={t("person.firstVisit")}
-            value={person.firstVisitOn ? longDate(person.firstVisitOn) : t("person.notRecorded")}
-          />
-          <Detail
-            label={t("person.membershipDate")}
-            value={person.membershipDate ? longDate(person.membershipDate) : t("person.notAMember")}
-          />
-          <Detail label={t("person.status")} value={lifecycleLabel(person.lifecycleStatus)} />
-        </dl>
+      {/* The design's card grid: what we hold about them, who they live with,
+          and what they are part of. It wraps at 280px, so one column on a
+          phone and three on a desk. */}
+      <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+        <InfoCard title={t("person.contact")}>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[length:var(--d-text-body)]">
+            <dt className="text-fg-subtle">{t("person.email")}</dt>
+            <dd className="min-w-0 truncate text-fg">
+              {contact?.email ? (
+                <a href={`mailto:${contact.email}`} className="underline-offset-4 hover:underline">
+                  {contact.email}
+                </a>
+              ) : EMPTY}
+            </dd>
 
-        {/* R8.10. What a label printed a warning about, where somebody can
-            read it. The station shows these at the moment of check-in; this is
-            where the church keeps them. */}
-        {contact?.allergies || contact?.medicalNote ? (
-          <>
-            <Separator className="my-4" />
-            <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+            <dt className="text-fg-subtle">{t("person.phone")}</dt>
+            <dd className="text-fg tabular-nums">
+              {contact?.phone ? (
+                <a
+                  href={`tel:${contact.phone.replace(/[^+\d]/g, "")}`}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {contact.phone}
+                </a>
+              ) : EMPTY}
+            </dd>
+
+            <dt className="text-fg-subtle">{t("person.address")}</dt>
+            <dd className="text-fg">{address ?? EMPTY}</dd>
+
+            <dt className="text-fg-subtle">{t("person.dateOfBirth")}</dt>
+            <dd className="text-fg">
+              {person.dateOfBirth ? longDate(person.dateOfBirth) : EMPTY}
+            </dd>
+
+            <dt className="text-fg-subtle">{t("person.firstVisit")}</dt>
+            <dd className="text-fg">
+              {person.firstVisitOn ? longDate(person.firstVisitOn) : EMPTY}
+            </dd>
+          </dl>
+
+          {/* R8.10. What a label printed a warning about, where the church
+              keeps it. The station shows these at the moment of check-in. */}
+          {contact?.allergies || contact?.medicalNote ? (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 border-t border-line pt-3 text-[length:var(--d-text-body)]">
               {contact.allergies ? (
-                <Detail label={t("personForm.allergies")} value={contact.allergies} />
+                <>
+                  <dt className="text-fg-subtle">{t("personForm.allergies")}</dt>
+                  <dd className="text-fg">{contact.allergies}</dd>
+                </>
               ) : null}
               {contact.medicalNote ? (
-                <Detail label={t("personForm.medicalNote")} value={contact.medicalNote} />
+                <>
+                  <dt className="text-fg-subtle">{t("personForm.medicalNote")}</dt>
+                  <dd className="text-fg">{contact.medicalNote}</dd>
+                </>
               ) : null}
             </dl>
-          </>
-        ) : null}
+          ) : null}
+        </InfoCard>
 
+        <InfoCard title={t("person.household")}>
+          {household && household.members.length > 0 ? (
+            household.members.map((m) => (
+              <Link
+                key={m.id}
+                href={`/people/${m.id}?church=${session.tenantSlug}`}
+                className="flex items-center gap-2.5"
+              >
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-sunken text-[11px] font-semibold text-fg-muted">
+                  {initialsOf(m.displayName)}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-medium text-fg">{m.displayName}</span>
+                <span className="text-[13px] text-fg-subtle">
+                  {t(`householdRole.${m.role}` as never)}
+                </span>
+              </Link>
+            ))
+          ) : (
+            <p className="text-[13px] text-fg-muted">{t("person.noHousehold")}</p>
+          )}
+        </InfoCard>
 
-      </Card>
+        <InfoCard title={t("person.groupsAndTeams")}>
+          {serving.length === 0 ? (
+            <p className="text-[13px] text-fg-muted">{t("person.noGroups")}</p>
+          ) : (
+            serving.map((team) => (
+              <span key={team.teamId} className="flex items-center gap-2.5">
+                <span
+                  className="size-2 shrink-0 rounded-full"
+                  style={{ background: `var(--hue-${team.hue}-500)` }}
+                />
+                <span className="font-medium text-fg">{team.teamName}</span>
+              </span>
+            ))
+          )}
+        </InfoCard>
+      </div>
 
       {fields.length > 0 ? (
         <Card className="mb-6">
@@ -374,13 +496,22 @@ export default async function PersonPage({
         />
       </Card>
 
-      <Card className="mb-6">
-        <CardTitle>{t("timeline.title")}</CardTitle>
-        <Separator className="my-4" />
+      {/* Full width, because it is the one thing on this screen that is read
+          top to bottom rather than glanced at. */}
+      <InfoCard
+        title={t("person.timeline")}
+        action={
+          canEditPeople(session.role) ? (
+            <Button variant="secondary" asChild className="min-h-[30px] px-2.5 text-[13px]">
+              <a href="#notes">{t("person.addNote")}</a>
+            </Button>
+          ) : null
+        }
+      >
         <Timeline entries={history} />
-      </Card>
+      </InfoCard>
 
-      <Card>
+      <Card id="notes">
         <div className="flex items-center justify-between gap-4">
           <CardTitle>{t("person.notes")}</CardTitle>
           <Badge tone="neutral">{t(`role.${session.role}`)}</Badge>
@@ -453,9 +584,7 @@ export default async function PersonPage({
           </div>
         ) : null}
 
-      </div>
 
-      <aside className="flex flex-col">
         {canFollowUp(session.role) ? (
         <Card className="mb-6">
           <CardTitle>{t("person.followups")}</CardTitle>
@@ -529,8 +658,6 @@ export default async function PersonPage({
             />
           </Card>
         ) : null}
-      </aside>
-      </div>
     </AppShell>
   );
 }
