@@ -2,11 +2,11 @@
   "$comment": "One system, three densities. Office is a desk. Station is a Sunday kiosk. Portal is a phone. A component is written once and resolves these at runtime.",
   "modes": {
     "office": {
-      "$use": "Maria at a desk on a Tuesday. Dense, keyboard-first, calm.",
+      "$use": "Maria at a desk on a Tuesday. Dense, keyboard-first, calm. The October 2026 redesign sets the numbers: 40px buttons and inputs, 36px rows, 16px icons inside a control, 14px of padding either side, a 10px radius.",
       "text-body": "0.875rem", "leading-body": "1.25rem",
-      "tap": "2rem", "tap-touch": "2.75rem", "row-h": "2.25rem",
-      "gutter": "1rem", "pad-card": "1rem", "pad-control-x": "0.75rem",
-      "icon": "1.25rem", "radius-control": "10px", "content-max": "90rem"
+      "tap": "2.5rem", "tap-touch": "2.75rem", "row-h": "2.25rem",
+      "gutter": "1rem", "pad-card": "1rem", "pad-control-x": "0.875rem",
+      "icon": "1rem", "radius-control": "10px", "content-max": "80rem"
     },
     "station": {
       "$use": "Ruth at check-in, Sunday 09:58, forty families queuing. Unmissable, fast, zero ambiguity.",

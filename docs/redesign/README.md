@@ -164,12 +164,41 @@ An entry's sidebar label is the same word as its title. The one difference is Pe
 prototype's nav says People and the screen is also People; ours said Directory in both places and
 now says People.
 
-### Still off the design, with a reason
+### The measurements the shell is built to
 
-**Rooms and Incidents are top-level sidebar entries here.** The prototype folds both under Check-in,
-alongside Labels. Our Check-in screen is the station picker and carries no links to them yet, so
-removing the entries would strand two screens. They fold in when HRT-208 rebuilds Check-in.
+Taken from `Hearth A - Warm Office.dc.html` rather than approximated.
 
-**The brand mark is three rising embers, not a flame in a square.** The prototype draws a flame
-because it needed something to draw. Ours ships as the favicon, the app icon and the sign-in mark,
-and it inherits the accent token so it follows the theme.
+| Part | The design |
+|---|---|
+| Sidebar | 232px, 64px collapsed. 20px padding, 12px at the sides (10px collapsed). 24px between its three blocks. `--c12` behind it, hairline on the right. 200ms on `cubic-bezier(0.16, 1, 0.3, 1)`. |
+| Brand | A 32px ember square, 10px radius, white flame at 16px. "Hearth" in Fraunces 18/20 over the church's name at 12px. |
+| Collapse toggle | 30px square, 8px radius, `panel-left-close` and `panel-left-open` at 18px. |
+| Nav row | 36px tall, **8px radius**, 2px between rows, 10px gap, 10px side padding, 13px at weight 500, icon 18px. Current row is `--surface` with `--c1` and a 1px/3px shadow; the rest are `--c6`. Count right-aligned at 12px. |
+| Person row | 10px radius, hairline border, `--surface`. 32px round avatar on its hue, name 13px/500, role 12px, `chevrons-up-down` at 16px. |
+| Sign out | 36px, 8px radius, `--c6`, `log-out` at 18px. |
+| Top bar | 14px padding, 24px at the sides, hairline under, canvas behind, 12px gaps. Title in Fraunces **20/24**. Action 36px, 14px side padding, 10px radius. |
+| Body | **28px top, 24px sides, 96px bottom. 1280px maximum, left aligned.** Each screen is a column with 28px between its blocks. |
+| Tab bar | Five entries, 6px padding over the safe area, 22px icons, 11px labels, current one in the accent at 600. |
+| Office density | 40px buttons and inputs, 36px rows, 16px icons inside a control, 14px side padding, 10px radius. |
+| Icons | Lucide at **1.75 stroke**, 16px in a control and 18px in the navigation. |
+| Radius | 8 for small controls and menu rows, 10 for buttons and inputs, 12 to 14 for cards, full for pills. |
+
+Three of these moved our own tokens, because the tokens were the thing that was off: `--radius-sm`
+went from 6px to 8px, office density went from 32px taps and 20px icons to 40px and 16px, and every
+Lucide icon now draws at 1.75 through one rule in the base layer.
+
+**There is no search box in the top bar.** `showSearch` is false in the prototype and the brief says
+it plainly: Cmd+K opens the palette from anywhere, and lists carry their own inline search.
+
+**Rooms, Labels and Incidents are reached from Check-in**, as the design has them, rather than taking
+three rows down the side.
+
+### Still to come, by story
+
+The bell in the top bar is HRT-207. It needs somewhere to read notifications from, and the
+prototype's list is sample data, so it arrives with its source rather than as a control that does
+nothing. The palette behind Cmd+K is HRT-205.
+
+The in-context help button (R22.2) is not in the design's top bar and has come out of the chrome.
+`apps/web/components/help.tsx` is still there and is now unreferenced, so R22.2 needs somewhere to
+live.

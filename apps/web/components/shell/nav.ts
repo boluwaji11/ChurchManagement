@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Users, UserPlus, Baby, DoorOpen, ListMusic, HandHeart, CircleDot,
-  ClipboardList, ShieldAlert, Settings, Home,
+  Users, UserPlus, Baby, ListMusic, HandHeart, CircleDot,
+  ClipboardList, Settings, Home,
 } from "lucide-react";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
@@ -14,11 +14,14 @@ import type { NavTarget } from "./nav-active";
  * R24.6. What goes down the side of the app.
  *
  * One list, read by the sidebar on a desktop and by the tab bar on a phone, so
- * the two can never drift. The order is the order a church works in rather than
- * the order the features were built.
+ * the two can never drift.
  *
- * HRT-202 scopes this per role properly, giving a pastor and a group leader
- * their own list. This holds the entries the roles already reach today.
+ * The order is the design's: People, Follow-ups, Check-in, Services, Serving,
+ * Groups, Forms, Settings. Dashboard joins it at the top in HRT-203. The
+ * design's Giving, Songs, Calendar, Reports and Churches entries are the
+ * deferred ones and are named in docs/redesign/README.md.
+ *
+ * HRT-202 gives a pastor and a group leader their own list.
  */
 export interface NavEntry extends NavTarget {
   /** Resolved by this module, so the sidebar stays a plain list of strings. */
@@ -30,33 +33,44 @@ export function navFor(role: TenantRole): NavEntry[] {
   const staff = canEditPeople(role) || canReadIncidents(role);
   const out: NavEntry[] = [];
 
+  /*
+   * R3.1. Somebody who is not staff has one screen, and it is the one that is
+   * theirs. Without this they would open the app onto a groups list.
+   */
+  if (!staff && !canCheckIn(role) && !canFollowUp(role) && !canLeadTeams(role)) {
+    out.push({ label: t("nav.home"), href: "/home", icon: Home });
+  }
+
   // R3.1. One directory each. Staff work in the church's records; a member sees
   // what the rest of the church chose to publish.
-  if (staff) {
-    out.push({
-      label: t("nav.directory"),
-      href: "/people",
-      icon: Users,
-      owns: ["/people", "/duplicates", "/import", "/fields", "/tags"],
-    });
-  } else {
-    out.push({ label: t("nav.directory"), href: "/directory", icon: Users });
-  }
+  out.push(
+    staff
+      ? {
+          label: t("nav.directory"),
+          href: "/people",
+          icon: Users,
+          owns: ["/people", "/duplicates", "/import", "/fields", "/tags"],
+        }
+      : { label: t("nav.directory"), href: "/directory", icon: Users },
+  );
 
   // R5.5. The Monday morning screen, for the roles that work it.
   if (canFollowUp(role)) {
     out.push({ label: t("nav.followups"), href: "/followups", icon: UserPlus });
   }
 
-  // R8.x. The screens for whoever is on the door while a service runs.
+  /*
+   * R8.x. One entry for check-in, which is what the design has. The rooms
+   * board, the labels and the incident log are reached from the check-in
+   * screen rather than taking three rows of their own.
+   */
   if (canCheckIn(role)) {
     out.push({
       label: t("nav.checkin"),
       href: "/checkin",
       icon: Baby,
-      owns: ["/checkin"],
+      owns: ["/checkin", "/incidents"],
     });
-    out.push({ label: t("nav.rooms"), href: "/checkin/rooms", icon: DoorOpen });
   }
 
   // R7.x. Attendance is recorded by the church, not by the congregation.
@@ -78,21 +92,7 @@ export function navFor(role: TenantRole): NavEntry[] {
     out.push({ label: t("form.title"), href: "/forms", icon: ClipboardList });
   }
 
-  // R8.13. Only the roles that handle safeguarding have anywhere to go.
-  if (canReadIncidents(role)) {
-    out.push({ label: t("nav.incidents"), href: "/incidents", icon: ShieldAlert });
-  }
-
   out.push({ label: t("nav.settings"), href: "/settings", icon: Settings });
-
-  /*
-   * R3.1. Somebody who is not staff has one screen. Without this they would
-   * open the app onto a directory and a groups list with no way back to the
-   * thing that was actually theirs.
-   */
-  if (!staff && !canCheckIn(role) && !canFollowUp(role) && !canLeadTeams(role)) {
-    out.unshift({ label: t("nav.home"), href: "/home", icon: Home });
-  }
 
   return out;
 }

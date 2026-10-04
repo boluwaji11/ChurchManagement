@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { t } from "@hearth/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
-import { SignOutButton } from "./sign-out-button";
 import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";
 import { TopBar } from "./shell/top-bar";
 import { navFor } from "./shell/nav";
@@ -62,7 +61,6 @@ export async function AppShell({
         userId={session.userId}
         church={session.tenantSlug}
         collapsed={collapsed}
-        signOut={<SignOutButton compact />}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -71,16 +69,19 @@ export async function AppShell({
 
         <TopBar title={title} action={action} />
 
-        {/* The tab bar sits over the bottom of the page on a phone, so the
-            body keeps enough room underneath to reach its last control. */}
+        {/* 28px above, 24px at the sides, 96px below, and it stops growing at
+            1280px. Left-aligned rather than centred, which is what the design
+            does and what keeps the navigation and the content in one column of
+            reading. The 96px is also what keeps a phone's last control clear of
+            the tab bar. */}
         <main
           id="main"
           {...(density ? { "data-density": density } : {})}
-          className={`flex-1 px-4 pt-6 pb-24 sm:px-6 md:pb-10 ${
-            wide ? "" : `mx-auto w-full ${max ?? "max-w-7xl"}`
-          }`}
+          className={`w-full flex-1 px-6 pt-7 pb-24 ${wide ? "" : max ?? "max-w-[1280px]"}`}
         >
-          {children}
+          {/* Every screen in the design is a column with 28px between its
+              blocks. */}
+          <div className="flex flex-col gap-7">{children}</div>
         </main>
       </div>
 

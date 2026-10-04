@@ -275,15 +275,15 @@
 :root, [data-density="office"] {
   --d-text-body: 0.875rem;
   --d-leading-body: 1.25rem;
-  --d-tap: 2rem;
+  --d-tap: 2.5rem;
   --d-tap-touch: 2.75rem;
   --d-row-h: 2.25rem;
   --d-gutter: 1rem;
   --d-pad-card: 1rem;
-  --d-pad-control-x: 0.75rem;
-  --d-icon: 1.25rem;
+  --d-pad-control-x: 0.875rem;
+  --d-icon: 1rem;
   --d-radius-control: 10px;
-  --d-content-max: 90rem;
+  --d-content-max: 80rem;
 }
 
 [data-density="station"] {
@@ -495,7 +495,7 @@
   --text-code--letter-spacing: 0;
 
   /* Radius. Larger surfaces, larger radius. Pills for badges only. */
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
@@ -548,6 +548,11 @@
 
   /* Tabular figures everywhere a number is compared to another number. */
   table, [data-numeric] { font-variant-numeric: tabular-nums; }
+
+  /* Lucide at 1.75, which is the weight the redesign draws every icon at. A CSS
+     property beats the attribute the library writes, so this reaches all of
+     them without a prop on every call site. */
+  svg.lucide { stroke-width: 1.75; }
 
   /* A focus ring that is never removed, in any state, for any reason. (R24.15) */
   :focus-visible {

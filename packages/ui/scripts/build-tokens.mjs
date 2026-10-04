@@ -189,6 +189,11 @@ w(`@layer base {
   /* Tabular figures everywhere a number is compared to another number. */
   table, [data-numeric] { font-variant-numeric: tabular-nums; }
 
+  /* Lucide at 1.75, which is the weight the redesign draws every icon at. A CSS
+     property beats the attribute the library writes, so this reaches all of
+     them without a prop on every call site. */
+  svg.lucide { stroke-width: 1.75; }
+
   /* A focus ring that is never removed, in any state, for any reason. (R24.15) */
   :focus-visible {
     outline: 2px solid var(--ring);

@@ -1565,6 +1565,8 @@ export const en = {
   "board.failed": "That did not save. Try again.",
   "board.title": "Room rosters",
   "board.print": "Print",
+  "checkin.labels": "Labels",
+  "checkin.rosters": "Room rosters",
   "history.title": "History",
   "history.empty": "No changes recorded yet",
   "history.insert": "Added {what}",

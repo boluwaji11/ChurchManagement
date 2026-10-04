@@ -1,7 +1,11 @@
+import Link from "next/link";
+import { FileWarning, Tag, Printer } from "lucide-react";
 import {
   withTenant, listStations, listRooms, listOccurrences, getChurch, canManageStations,
+  canReadIncidents,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
+import { Button } from "@hearth/ui";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -49,6 +53,28 @@ export default async function CheckinPage({
 
   return (
     <AppShell session={session} title={t("checkin.title")}>
+      {/* The three screens that belong to check-in. The design reaches them
+          from here rather than giving each a row down the side. */}
+      <div className="flex flex-wrap items-center gap-3.5">
+        {canReadIncidents(session.role) ? (
+          <Button variant="secondary" asChild>
+            <Link href={`/incidents?church=${session.tenantSlug}`}>
+              <FileWarning /> {t("incident.title")}
+            </Link>
+          </Button>
+        ) : null}
+        <Button variant="secondary" asChild>
+          <Link href={`/checkin/labels?church=${session.tenantSlug}`}>
+            <Tag /> {t("checkin.labels")}
+          </Link>
+        </Button>
+        <Button variant="secondary" asChild>
+          <Link href={`/checkin/rooms?church=${session.tenantSlug}`}>
+            <Printer /> {t("checkin.rosters")}
+          </Link>
+        </Button>
+      </div>
+
       <StationPicker
         church={session.tenantSlug}
         now={now}

@@ -1,5 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
+import { Flame } from "lucide-react";
 import { cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
@@ -20,6 +21,29 @@ export function Mark({ className }: { className?: string }) {
           style={{ height: `${0.55 + i * 0.225}em`, opacity: 0.45 + i * 0.275 }}
         />
       ))}
+    </span>
+  );
+}
+
+/**
+ * The mark as the redesign draws it: a flame on an ember square.
+ *
+ * Used in the app chrome, where the sidebar and the top bar carry it at two
+ * sizes. 32px with a 10px radius down the side, 28px with an 8px radius in the
+ * top bar on a phone.
+ */
+export function FlameMark({ size = 32 }: { size?: 32 | 28 }) {
+  return (
+    <span
+      aria-hidden
+      className="grid shrink-0 place-items-center bg-ember-500 text-white"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size === 32 ? 10 : 8,
+      }}
+    >
+      <Flame style={{ width: size === 32 ? 16 : 14, height: size === 32 ? 16 : 14 }} />
     </span>
   );
 }
