@@ -199,14 +199,18 @@ export function Order({
                     {toTime(item.startsAt)}
                   </span>
 
-                  <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium"
-                    style={{
-                      background: `var(--hue-${hue}-tint)`,
-                      color: `var(--hue-${hue}-key)`,
-                    }}
-                  >
-                    {t(`order.kind.${item.kind}` as never)}
+                  {/* A column of its own, so every title starts at the same
+                      place however long the kind's word is. */}
+                  <span className="w-[118px] shrink-0">
+                    <span
+                      className="inline-flex rounded-full px-2 py-0.5 text-[12px] font-medium"
+                      style={{
+                        background: `var(--hue-${hue}-tint)`,
+                        color: `var(--hue-${hue}-key)`,
+                      }}
+                    >
+                      {t(`order.kind.${item.kind}` as never)}
+                    </span>
                   </span>
 
                   <span className="flex min-w-0 flex-1 flex-col">
