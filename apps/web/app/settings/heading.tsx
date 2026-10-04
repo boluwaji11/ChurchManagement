@@ -21,7 +21,9 @@ export function SettingsHeading({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
+    // A hairline under the name and its line, so every settings section starts
+    // with the same rule and the page below it reads as its own block.
+    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
       <div className="min-w-0 flex-1">
         <h2 className="font-display text-[22px] leading-[28px] text-fg">{t(title)}</h2>
         <p className="mt-1 text-fg-muted">{t(lede)}</p>
