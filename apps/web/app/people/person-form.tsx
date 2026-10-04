@@ -17,6 +17,7 @@ import {
   maritalOptions, schoolOptions, UNSAID,
   type PersonErrors,
 } from "@/lib/person-input";
+import { AddressFields, emptyAddress, type AddressValues } from "@/components/address-fields";
 import { savePerson } from "./actions";
 import { CustomFieldInputs, type FieldDef, type FieldValues } from "./custom-fields";
 
@@ -26,11 +27,10 @@ export interface CampusOption {
 }
 
 export interface PersonFormValues {
+  address?: AddressValues;
   campusId?: string | null;
   maritalStatus?: string | null;
   schoolLevel?: string | null;
-  /** R2.4. One line, as a church writes it. */
-  address?: string | null;
   id?: string;
   firstName?: string;
   lastName?: string;
@@ -135,29 +135,30 @@ function FormCard({
 /**
  * A field somebody may leave unanswered.
  *
- * A native select, because there are sixteen school years and a list of pills
- * that long is a wall. "Not said" is a real answer and sits first.
+ * A list rather than pills, because there are sixteen school years and a row of
+ * pills that long is a wall. "Not said" is a real answer and sits first.
  */
 function Picker({
   name,
   value,
   options,
+  label,
 }: {
   name: string;
   value: string | null;
   options: { value: string; label: string }[];
+  label: string;
 }) {
   return (
-    <select
-      name={name}
-      defaultValue={value ?? UNSAID}
-      className="h-[var(--d-tap)] w-full rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
-    >
-      <option value={UNSAID}>{t("person.unsaid")}</option>
-      {options.map((one) => (
-        <option key={one.value} value={one.value}>{one.label}</option>
-      ))}
-    </select>
+    <Select name={name} defaultValue={value ?? UNSAID}>
+      <SelectTrigger aria-label={label}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={UNSAID}>{t("person.unsaid")}</SelectItem>
+        {options.map((one) => (
+          <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -270,6 +271,7 @@ export function PersonForm({
               name="maritalStatus"
               value={values?.maritalStatus ?? null}
               options={maritalOptions()}
+              label={t("person.maritalStatus")}
             />
           </Field>
 
@@ -280,6 +282,7 @@ export function PersonForm({
               name="schoolLevel"
               value={values?.schoolLevel ?? null}
               options={schoolOptions()}
+              label={t("person.schoolLevel")}
             />
           </Field>
 
@@ -290,20 +293,13 @@ export function PersonForm({
                 name="campusId"
                 value={values?.campusId ?? null}
                 options={campuses.map((one) => ({ value: one.id, label: one.name }))}
+                label={t("person.campus")}
               />
             </Field>
           ) : null}
 
 
-          {/* R2.4. One line, as a church writes it on an envelope. */}
-          <Field label={t("personForm.address")} className="sm:col-span-full">
-            <Input
-              name="address"
-              defaultValue={values?.address ?? ""}
-              placeholder={t("personForm.addressPlaceholder")}
-              autoComplete="off"
-            />
-          </Field>
+          <AddressFields values={values?.address ?? emptyAddress()} />
         </div>
       </FormCard>
 

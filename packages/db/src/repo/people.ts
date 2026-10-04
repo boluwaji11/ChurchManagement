@@ -363,6 +363,14 @@ export interface WriteActor {
   permissions?: readonly Permission[] | null;
 }
 
+export interface AddressInput {
+  line1: string | null;
+  line2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postalCode?: string | null;
+}
+
 export interface PersonInput {
   firstName: string;
   lastName: string;
@@ -376,8 +384,14 @@ export interface PersonInput {
   /** R8.10. Shown at check-in and printed on the child's label. */
   allergies?: string | null;
   medicalNote?: string | null;
-  /** R2.4. One line, as a church writes it on an envelope. */
-  address?: string | null;
+  /**
+   * R2.4. Where they live.
+   *
+   * The parts, because a church running a mail merge needs the city, the state
+   * and the postcode as their own answers. A plain string is still accepted,
+   * split on its first comma, for the importers that only have one line.
+   */
+  address?: string | AddressInput | null;
   /** R1.2. Which campus they belong to. Null where the church has one. */
   campusId?: string | null;
   /** R2.1. Single, married, widowed, and so on. */
@@ -531,7 +545,7 @@ async function setAddress(
   db: Tx,
   actor: WriteActor,
   personId: string,
-  value: string | null | undefined,
+  value: string | AddressInput | null | undefined,
 ): Promise<void> {
   if (value === undefined) return;
 
@@ -541,30 +555,61 @@ async function setAddress(
     .where(eq(addresses.personId, personId))
     .limit(1);
 
-  const line = trimmed(value);
-  if (!line) {
+  // A string is one line from an importer: everything before the first comma is
+  // the street and the rest is the city, which is the most that can be read out
+  // of it honestly.
+  const parts: AddressInput =
+    typeof value === "string" || value === null
+      ? (() => {
+          const line = trimmed(value);
+          if (!line) return { line1: null };
+          const [first, ...rest] = line.split(",").map((part) => part.trim());
+          return { line1: first ?? null, city: rest.join(", ") || null };
+        })()
+      : value;
+
+  const line1 = trimmed(parts.line1);
+  if (!line1) {
     if (existing) await db.delete(addresses).where(eq(addresses.id, existing.id));
     return;
   }
 
-  const [line1, ...rest] = line.split(",").map((part) => part.trim());
-  const city = rest.join(", ") || null;
+  const row = {
+    line1,
+    line2: trimmed(parts.line2),
+    city: trimmed(parts.city),
+    region: trimmed(parts.region),
+    postalCode: trimmed(parts.postalCode),
+  };
 
   if (existing) {
-    await db
-      .update(addresses)
-      .set({ line1: line1!, city })
-      .where(eq(addresses.id, existing.id));
+    await db.update(addresses).set(row).where(eq(addresses.id, existing.id));
     return;
   }
 
   await db.insert(addresses).values({
     tenantId: actor.tenantId,
     personId,
-    line1: line1!,
-    city,
+    ...row,
     isPrimary: true,
   });
+}
+
+/** R2.4. The parts of somebody's own address, for a form that edits them. */
+export async function addressPartsFor(db: Tx, personId: string): Promise<AddressInput> {
+  const [row] = await db
+    .select({
+      line1: addresses.line1,
+      line2: addresses.line2,
+      city: addresses.city,
+      region: addresses.region,
+      postalCode: addresses.postalCode,
+    })
+    .from(addresses)
+    .where(eq(addresses.personId, personId))
+    .limit(1);
+
+  return row ?? { line1: null };
 }
 
 async function setContact(
@@ -696,7 +741,7 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
     campusId: person.campusId,
     maritalStatus: person.maritalStatus,
     schoolLevel: person.schoolLevel,
-    address: await addressFor(db, id),
+    address: await addressPartsFor(db, id),
     email: contacts.find((c) => c.kind === "email")?.value ?? null,
     phone: contacts.find((c) => c.kind === "phone")?.value ?? null,
     householdId: membership?.householdId ?? null,
@@ -1074,8 +1119,8 @@ export async function updateOwnProfile(
     lastName: string;
     phone?: string | null;
     dateOfBirth?: string | null;
-    /** R2.4. One line, as a church writes it on an envelope. */
-    address?: string | null;
+    /** R2.4. Where they live, in the parts a letter needs. */
+    address?: string | AddressInput | null;
     campusId?: string | null;
     maritalStatus?: string | null;
     schoolLevel?: string | null;

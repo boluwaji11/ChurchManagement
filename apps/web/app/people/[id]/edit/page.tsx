@@ -2,13 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, getPersonForEdit, addressFor, listHouseholds, listCustomFields, getCustomValues,
+  withTenant, getPersonForEdit, listHouseholds, listCustomFields, getCustomValues,
   listTagsWithCounts, listTagsForPerson, listCampuses, canEditPeople,
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PersonForm, PersonFormActions } from "../../person-form";
+import { toAddress } from "@/components/address-fields";
 import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
@@ -30,14 +31,13 @@ export default async function EditPersonPage({
     customFields: await listCustomFields(tx, "person"),
     campuses: await listCampuses(tx),
     customValues: await getCustomValues(tx, "person", id),
-    address: await addressFor(tx, id),
     tags: await listTagsWithCounts(tx),
     assigned: await listTagsForPerson(tx, id),
   }));
 
   // Another church's person is reported exactly like a person who does not exist.
   if (!result.person) notFound();
-  const { person, households, customFields, customValues, address, tags, assigned, campuses } = result;
+  const { person, households, customFields, customValues, tags, assigned, campuses } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
 
   return (
@@ -80,7 +80,7 @@ export default async function EditPersonPage({
           assignedTags={assigned.map((x) => x.id)}
           values={{
             id: person.id,
-            address,
+            address: toAddress(person.address as never),
             firstName: person.firstName,
             lastName: person.lastName,
             preferredName: person.preferredName,

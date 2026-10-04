@@ -6,11 +6,13 @@ import { Camera, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import {
   Avatar, Banner, Button, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, IconButton, Input, Working,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions } from "@/components/form-actions";
 import { longDate } from "@/lib/dates";
+import { AddressFields, type AddressValues } from "@/components/address-fields";
 import { maritalOptions, schoolOptions, UNSAID } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
 
@@ -25,27 +27,40 @@ const DATE_LABELS = () => ({
   today: t("date.today"),
 });
 
-/** A field somebody may leave unanswered. */
+/** The address as one line, for reading rather than editing. */
+const oneLine = (a: AddressValues) =>
+  [a.line1, a.line2, a.city, [a.region, a.postalCode].filter(Boolean).join(" ")]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(", ");
+
+/**
+ * A field somebody may leave unanswered.
+ *
+ * The product's own Select rather than a native one, so it is drawn by Hearth
+ * on every platform instead of by whatever the operating system feels like.
+ */
 function Choice({
   name,
   value,
   options,
+  label,
 }: {
   name: string;
   value: string | null;
   options: { value: string; label: string }[];
+  label: string;
 }) {
   return (
-    <select
-      name={name}
-      defaultValue={value ?? UNSAID}
-      className="h-[var(--d-tap)] w-full rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
-    >
-      <option value={UNSAID}>{t("person.unsaid")}</option>
-      {options.map((one) => (
-        <option key={one.value} value={one.value}>{one.label}</option>
-      ))}
-    </select>
+    <Select name={name} defaultValue={value ?? UNSAID}>
+      <SelectTrigger aria-label={label}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={UNSAID}>{t("person.unsaid")}</SelectItem>
+        {options.map((one) => (
+          <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -55,8 +70,8 @@ export interface ProfileValues {
   lastName: string;
   phone: string;
   dateOfBirth: string;
-  /** R2.4. One line, as a church writes it on an envelope. */
-  address: string;
+  /** R2.4. Where they live, in the parts a letter needs. */
+  address: AddressValues;
   maritalStatus: string | null;
   schoolLevel: string | null;
   anniversary: string;
@@ -274,7 +289,7 @@ export function ProfileForm({
               t("settings.profile.birthday"),
               values.dateOfBirth ? longDate(values.dateOfBirth) : "",
             ],
-            [t("person.address"), values.address],
+            [t("person.address"), oneLine(values.address)],
             [
               t("person.maritalStatus"),
               values.maritalStatus ? t(`marital.${values.maritalStatus}` as never) : "",
@@ -338,17 +353,15 @@ export function ProfileForm({
             />
           </Field>
 
-          {/* R2.4. One line, as somebody writes it on an envelope. */}
-          <Field label={t("person.address")} className="sm:col-span-full">
-            <Input
-              name="address"
-              defaultValue={values.address}
-              autoComplete="street-address"
-            />
-          </Field>
+          <AddressFields values={values.address} />
 
           <Field label={t("person.maritalStatus")}>
-            <Choice name="maritalStatus" value={values.maritalStatus} options={maritalOptions()} />
+            <Choice
+              name="maritalStatus"
+              value={values.maritalStatus}
+              options={maritalOptions()}
+              label={t("person.maritalStatus")}
+            />
           </Field>
 
           <Field label={t("person.anniversary")}>
@@ -361,7 +374,12 @@ export function ProfileForm({
           </Field>
 
           <Field label={t("person.schoolLevel")}>
-            <Choice name="schoolLevel" value={values.schoolLevel} options={schoolOptions()} />
+            <Choice
+              name="schoolLevel"
+              value={values.schoolLevel}
+              options={schoolOptions()}
+              label={t("person.schoolLevel")}
+            />
           </Field>
 
           {campuses.length > 1 ? (
@@ -370,6 +388,7 @@ export function ProfileForm({
                 name="campusId"
                 value={values.campusId}
                 options={campuses.map((one) => ({ value: one.id, label: one.name }))}
+                label={t("person.campus")}
               />
             </Field>
           ) : null}

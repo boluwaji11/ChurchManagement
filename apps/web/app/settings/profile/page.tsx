@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { ProfileForm } from "./profile-form";
+import { toAddress } from "@/components/address-fields";
 import { ThemeChoice } from "../theme";
 import type { Theme } from "../theme-actions";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -76,7 +77,7 @@ export default async function ProfilePage({
               lastName: result.person.lastName,
               phone: result.contact?.phone ?? "",
               dateOfBirth: result.person.dateOfBirth ?? "",
-              address: result.contact?.address ?? "",
+              address: toAddress(result.contact?.address as never),
               maritalStatus: result.person.maritalStatus,
               schoolLevel: result.person.schoolLevel,
               anniversary: result.anniversary ?? "",
