@@ -120,7 +120,7 @@ export function ProfileForm({
         />
 
         <span className="flex min-w-0 flex-1 flex-col leading-5">
-          <span className="font-medium text-fg">{display}</span>
+          <span className="text-[17px] font-bold text-fg">{display}</span>
           <span className="truncate text-[13px] text-fg-muted">{signedInAs}</span>
         </span>
 
@@ -168,7 +168,7 @@ export function ProfileForm({
             ],
           ].map(([label, value]) => (
             <div key={label} className="flex min-w-0 flex-col gap-0.5">
-              <dt className="text-label text-fg-subtle">{label}</dt>
+              <dt className="text-label font-semibold text-fg">{label}</dt>
               <dd className="truncate text-[length:var(--d-text-body)] text-fg">
                 {value?.trim() ? value : EMPTY}
               </dd>
