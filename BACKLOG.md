@@ -92,7 +92,7 @@ and a design file does not move it.
 | HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | Resolved |
 | HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | New |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8, R21.4 | Deferred to later in 0.1, product surface first |
-| HRT-14 | Active session list with remote revoke | R1.10 | Closed |
+| HRT-14 | Active session list with remote revoke | R1.10 | Cut |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | Resolved |
 | HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
@@ -797,24 +797,15 @@ Every date on a person's record, a milestone and a custom field.
 5. **Limits.** A milestone cannot be given a future date, and those days are greyed and refuse the
    press.
 
-### HRT-14, how to test it
+### HRT-14, cut
 
-Press your email in the top right. Every device holding a live sign-in is listed.
+The device list and remote revoke came out in October 2026. A church of this size has one admin and
+one laptop, and a screen listing browser strings answered a question nobody was asking. R1.10 came
+out of the PRD with it.
 
-1. **Two devices.** Sign in on your phone as well. Both appear, named by browser and platform, with
-   the address and when each was last used. The one you are reading is marked.
-2. **End one.** Sign out a device from the other device. Reload on the signed-out one: back to the
-   sign-in page. It cannot mint a new token either, because the refresh tokens go with the session.
-3. **End the rest.** "Sign out everywhere else" keeps the device you are on. That is the press
-   somebody makes from a friend's laptop after using the church office computer.
-4. **It is yours only.** The list is narrowed to your own user inside the database function, so
-   another admin's devices never appear, and a session id typed into the form revokes nothing.
-
-The session records belong to Supabase Auth, in a schema the app role cannot read. Reaching them
-with the service role key would put that key in a request path, which it may never be in. Two
-security-definer functions stand at that boundary instead, both narrowed by the verified user id.
-
-On a database without Supabase Auth, including CI, the functions are absent and the card says so.
+What a church still has: signing out ends the session on that device, and a password change
+invalidates the refresh tokens everywhere. What it no longer has: ending a session on a device that
+is not in front of them. If a laptop is lost, the answer is to change the password.
 
 ### HRT-45, how to test it
 

@@ -328,7 +328,6 @@ later feature can be trusted with a counselling note or a giving record.
 | R1.7 | 0.1 | User invitation by email with role assignment, expiry, and revocation. |
 | R1.8 | 0.1 | Password auth plus TOTP multi-factor. MFA mandatory for Owner, Admin, and Finance. |
 | R1.9 | 1.0 | Google SSO. |
-| R1.10 | 0.1 | Active session list per user, with remote revoke. |
 | R1.11 | 0.1 | **Immutable append-only audit log** recording actor, action, entity, before and after values, timestamp, IP. Covers every write to people, giving, notes, permissions, and check-in. |
 | R1.12 | 0.1 | Custom fields on Person, Household, Group, Event, and Donation. Types: text, number, date, select, multi-select, boolean, file. |
 | R1.13 | 0.1 | Freeform tags on Person and Household, with tag management and merge. |

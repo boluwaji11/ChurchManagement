@@ -2,33 +2,67 @@
 
 import { headers } from "next/headers";
 import { t } from "@hearth/i18n";
+import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { explainAuth } from "@/lib/auth-errors";
-import { requireSession } from "@/lib/session";
 
 export interface PasswordResult {
   error?: string;
 }
 
+const PASSWORD_LENGTH = 10;
+
+const field = (data: FormData, name: string) => String(data.get(name) ?? "");
+
 /**
- * R1.8. Changing a password.
+ * R1.8. Proving it is really them, before an authentication change.
  *
- * The current one is checked by signing in with it. Supabase will change a
- * password on an open session without asking, and an open session on a shared
- * church laptop is exactly the case this has to refuse.
+ * Supabase will change an email address or a password on the strength of an
+ * open session alone. An open session is a laptop somebody walked away from,
+ * so both changes ask for the password first.
  */
+async function withPassword(email: string, password: string): Promise<boolean> {
+  if (!password) return false;
+  const supabase = await supabaseServer();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  return !error;
+}
+
+/** R1.8. Changing a password. */
 export async function changePassword(data: FormData): Promise<PasswordResult> {
   const session = await requireSession();
-  const current = String(data.get("current") ?? "");
-  const next = String(data.get("next") ?? "");
+  const current = field(data, "current");
+  const next = field(data, "next");
+  const again = field(data, "confirm");
 
-  if (next.length < 10) return { error: t("signUp.error.password") };
+  if (next.length < PASSWORD_LENGTH) return { error: t("signUp.error.password") };
+  if (next !== again) return { error: t("password.error.match") };
+  if (!(await withPassword(session.email, current))) return { error: t("password.error.wrong") };
 
   const supabase = await supabaseServer();
-  const check = await supabase.auth.signInWithPassword({ email: session.email, password: current });
-  if (check.error) return { error: t("password.error.wrong") };
-
   const { error } = await supabase.auth.updateUser({ password: next });
+  return error ? { error: explainAuth(error) } : {};
+}
+
+/**
+ * R1.8. Changing the address somebody signs in with.
+ *
+ * Supabase sends a confirmation to the new address, and the change lands only
+ * when it is answered. Nothing in our own tables moves here: app_users follows
+ * on the next sign-in, and the person's record follows that.
+ */
+export async function changeEmail(data: FormData): Promise<PasswordResult> {
+  const session = await requireSession();
+  const next = field(data, "email").trim().toLowerCase();
+
+  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(next)) return { error: t("email.error.format") };
+  if (next === session.email.toLowerCase()) return { error: t("email.error.same") };
+  if (!(await withPassword(session.email, field(data, "password")))) {
+    return { error: t("email.error.password") };
+  }
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.auth.updateUser({ email: next });
   return error ? { error: explainAuth(error) } : {};
 }
 
@@ -41,26 +75,7 @@ export async function emailMeALink(): Promise<PasswordResult> {
 
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.resetPasswordForEmail(session.email, {
-    redirectTo: `${proto}://${host}/auth/callback?next=/reset`,
+    redirectTo: `${proto}://${host}/reset`,
   });
-  return error ? { error: explainAuth(error) } : {};
-}
-
-/**
- * R1.8. Changing the address you sign in with.
- *
- * Supabase sends a confirmation to both the old and the new address, and the
- * change lands only when it is answered. Nothing in our own tables moves here:
- * app_users follows on the next sign-in, and the record's email follows that.
- */
-export async function changeEmail(data: FormData): Promise<PasswordResult> {
-  const session = await requireSession();
-  const next = String(data.get("email") ?? "").trim().toLowerCase();
-
-  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(next)) return { error: t("email.error.format") };
-  if (next === session.email.toLowerCase()) return { error: t("email.error.same") };
-
-  const supabase = await supabaseServer();
-  const { error } = await supabase.auth.updateUser({ email: next });
   return error ? { error: explainAuth(error) } : {};
 }

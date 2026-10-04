@@ -85,7 +85,6 @@ export * from "./repo/meeting-dates";
 export * from "./repo/match";
 export * from "./repo/checkout";
 export * from "./repo/which-service";
-export * from "./repo/sessions";
 export * from "./repo/storage";
 export * from "./demo/load";
 export * from "./demo/church";

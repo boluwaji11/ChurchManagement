@@ -394,7 +394,7 @@ A client that hits 429 is a client with a bug.
 |---|---|---|
 | `change_seq` column and per-tenant sequence on every synced table | R11.14, R12.13 | Set by the same trigger that writes the audit entry |
 | Device principal: table, token hashing, scope enforcement in the query layer | R11.14, R1.5 | Not a row in the user table, and not a role |
-| Pairing code generation in the platform UI, with the device list and revoke | R1.10 | Sits with the active session list, which already exists |
+| Pairing code generation in the platform UI, with the device list and revoke | S0.4 | Stage's own device list, built when pairing is |
 | The nine routes in this document under `/api/stage/v1` | R11.14, R12.13 | Field-level permission applied at the query layer |
 | Idempotent `song_usage` insert keyed on `client_id` | R12.9, R12.10 | Feeds the CCLI export that already exists in 0.4. Stage's own local export is validated against the same fixture, so the two agree. |
 | `POST /api/stage/v1/songs/promote`, with the duplicate check | R12.1 to R12.5, R12.12 | Reuses the manual-entry validation R12.12 already needs |

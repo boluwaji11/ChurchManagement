@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Pencil, Trash2 } from "lucide-react";
+import { Camera, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import {
-  Avatar, Banner, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
+  Avatar, Banner, Button, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, IconButton, Input, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -54,6 +54,7 @@ export function ProfileForm({
   const [editing, setEditing] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [busy, setBusy] = React.useState(false);
+  const [dropping, setDropping] = React.useState(false);
   const [birthday, setBirthday] = React.useState(values.dateOfBirth);
   const [, startTransition] = React.useTransition();
   const file = React.useRef<HTMLInputElement>(null);
@@ -117,27 +118,51 @@ export function ProfileForm({
                 alt=""
                 className="max-h-[60vh] w-full rounded-lg bg-canvas object-contain"
               />
-              <DialogFooter>
-                <IconButton
-                  label={t("profile.photo.remove")}
-                  variant="ghost"
-                  onClick={() =>
-                    startTransition(async () => {
-                      const result = await clearPhoto(church);
-                      setError(result.error);
-                      if (!result.error) router.refresh();
-                    })}
-                >
-                  <Trash2 />
-                </IconButton>
-                <IconButton
-                  label={t("profile.photo.replace")}
-                  variant="ghost"
-                  onClick={() => file.current?.click()}
-                >
-                  <Camera />
-                </IconButton>
-              </DialogFooter>
+              {/* The confirmation happens here rather than in a second box on
+                  top of this one. A dialog that opens a dialog means the flow
+                  is wrong. */}
+              {dropping ? (
+                <>
+                  <p className="mt-4 text-[length:var(--d-text-body)] text-fg-muted">
+                    {t("profile.photo.removeBody")}
+                  </p>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setDropping(false)}>
+                      {t("profile.photo.keep")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      onClick={() =>
+                        startTransition(async () => {
+                          setDropping(false);
+                          const result = await clearPhoto(church);
+                          setError(result.error);
+                          if (!result.error) router.refresh();
+                        })}
+                    >
+                      <Trash2 /> {t("profile.photo.remove")}
+                    </Button>
+                  </DialogFooter>
+                </>
+              ) : (
+                <DialogFooter>
+                  <IconButton
+                    label={t("profile.photo.remove")}
+                    variant="ghost"
+                    onClick={() => setDropping(true)}
+                  >
+                    <Trash2 />
+                  </IconButton>
+                  <IconButton
+                    label={t("profile.photo.replace")}
+                    variant="ghost"
+                    onClick={() => file.current?.click()}
+                  >
+                    <RefreshCw />
+                  </IconButton>
+                </DialogFooter>
+              )}
             </DialogContent>
           </Dialog>
         ) : (
