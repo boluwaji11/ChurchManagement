@@ -138,9 +138,18 @@ export function Combobox({
 
   return (
     <div ref={root} className={cn("relative", className)}>
+      {/* The whole field is the control. A press on its padding, or on the
+          chevron, opens the list, because a box with an arrow on it that only
+          answers a press on its text reads as broken. */}
       <div
+        onMouseDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          e.preventDefault();
+          setOpen(true);
+          input.current?.focus();
+        }}
         className={cn(
-          "flex items-center gap-1 bg-surface rounded-[var(--d-radius-control)]",
+          "flex cursor-pointer items-center gap-1 bg-surface rounded-[var(--d-radius-control)]",
           "border border-line-strong shadow-sm",
           "transition-[border-color,box-shadow] duration-instant ease-out",
           "hover:border-fg-subtle focus-within:border-fg-subtle",
@@ -191,7 +200,26 @@ export function Combobox({
           </button>
         ) : null}
 
-        <ChevronDown className="mr-2 size-4 shrink-0 opacity-60" aria-hidden />
+        <button
+          type="button"
+          // The input carries the combobox role and every keyboard path into
+          // the list, so this is a target for the pointer and nothing else.
+          aria-hidden
+          tabIndex={-1}
+          disabled={disabled}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (open) {
+              setOpen(false);
+              return;
+            }
+            setOpen(true);
+            input.current?.focus();
+          }}
+          className="mr-1 shrink-0 cursor-pointer rounded-md p-1 text-fg-subtle hover:bg-sunken hover:text-fg"
+        >
+          <ChevronDown className="size-4 opacity-60" aria-hidden />
+        </button>
       </div>
 
       {open ? (
