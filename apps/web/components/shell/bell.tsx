@@ -98,7 +98,7 @@ export function NotificationBell({
               {items.length === 0 ? (
                 /* The same empty state every other screen uses, sized down to
                    the panel it sits in. */
-                <Empty icon="inbox" title={t("bell.empty")} className="gap-3 px-4 py-8 [&_h3]:font-sans [&_h3]:text-[15px] [&_h3]:font-semibold" />
+                <Empty icon="inbox" title={t("bell.empty")} className="gap-3 px-4 py-8 [&_h3]:font-sans [&_h3]:text-[15px] [&_h3]:font-normal [&_h3]:text-fg-muted" />
               ) : (
                 items.map((item) => {
                   const Icon = ICONS[item.kind] ?? Bell;
