@@ -325,8 +325,8 @@ function MergeInto({
                   <span className="flex items-baseline gap-1.5">
                     {one.name}
                     {one.members.length > 0 ? (
-                      <span className="text-[13px] text-primary">
-                        {one.members.map((m) => m.name.split(" ")[0]).join(", ")}
+                      <span className="text-[13px] text-fg-muted">
+                        ({one.members.map((m) => m.name.split(" ")[0]).join(", ")})
                       </span>
                     ) : null}
                   </span>

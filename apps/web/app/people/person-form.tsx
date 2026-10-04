@@ -336,8 +336,8 @@ export function PersonForm({
                         <span className="flex items-baseline gap-1.5">
                           {h.name}
                           {h.members.length > 0 ? (
-                            <span className="text-[13px] text-primary">
-                              {h.members.map((m) => m.name.split(" ")[0]).join(", ")}
+                            <span className="text-[13px] text-fg-muted">
+                              ({h.members.map((m) => m.name.split(" ")[0]).join(", ")})
                             </span>
                           ) : null}
                         </span>
