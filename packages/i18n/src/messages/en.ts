@@ -543,6 +543,7 @@ export const en = {
 
   // The person form
   "personForm.addTitle": "Add person",
+  "personForm.addHeading": "New person",
   "personForm.editHeading": "Edit {name}",
   "personForm.section.details": "Details",
   "personForm.address": "Address",
@@ -561,6 +562,7 @@ export const en = {
   "personForm.phonePlaceholder": "(512) 555 0148",
   "personForm.household": "Household",
   "personForm.householdNone": "Not in a household",
+  "personForm.householdWho": "Already in it",
   "personForm.householdWhich": "Which one",
   "personForm.householdRoleShort": "Their role",
   "personForm.householdWith": "{name} ({people})",

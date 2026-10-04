@@ -695,24 +695,32 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
  * each one come back with it, so "Smith" and "Smith" read as "Smith, Mike and
  * Jane" and "Smith, John".
  */
-export async function listHouseholds(
-  db: Tx,
-): Promise<{ id: string; name: string; members: string[] }[]> {
+export interface HouseholdOption {
+  id: string;
+  name: string;
+  /** Who is in it, so two households called Smith can be told apart. */
+  members: { id: string; name: string; role: string }[];
+}
+
+export async function listHouseholds(db: Tx): Promise<HouseholdOption[]> {
   const rows = await db
     .select({
       id: households.id,
       name: households.name,
-      members: sql<string[]>`coalesce(
-        array(
-          select coalesce(p.preferred_name, p.first_name)
-            from household_memberships hm
-            join people p on p.id = hm.person_id
-           where hm.household_id = households.id
-             and p.archived_at is null
-           order by hm.role, p.first_name
-           limit 4
+      members: sql<HouseholdOption["members"]>`coalesce(
+        (
+          select json_agg(m order by m.role, m.name)
+            from (
+              select p.id,
+                     coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
+                     hm.role::text as role
+                from household_memberships hm
+                join people p on p.id = hm.person_id
+               where hm.household_id = households.id
+                 and p.archived_at is null
+            ) m
         ),
-        '{}'
+        '[]'::json
       )`,
     })
     .from(households)

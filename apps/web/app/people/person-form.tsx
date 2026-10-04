@@ -9,6 +9,7 @@ import {
 import { PhoneInput } from "@/components/phone-input";
 import { DateField } from "@/components/date-field";
 import { t } from "@hearth/i18n";
+import type { HouseholdOption } from "@hearth/db";
 import {
   parsePerson, personErrors, hasErrors,
   lifecycleOptions, householdRoleOptions, HOUSEHOLD_NEW, HOUSEHOLD_NONE,
@@ -49,6 +50,60 @@ export interface PersonFormValues {
  * problem rather than left to hunt for it.
  */
 /** The design's form card: a bold heading, no rule under it. */
+/**
+ * R2.1. Who is already in the household this person is being put into.
+ *
+ * One thread down the faces, so the household reads as a household rather than
+ * as a list, and each name opens that person.
+ */
+function HouseholdMembers({
+  church,
+  self,
+  members,
+}: {
+  church: string;
+  /** The person being edited, who is not news to the person editing them. */
+  self?: string;
+  members: HouseholdOption["members"];
+}) {
+  const others = members.filter((m) => m.id !== self);
+  if (others.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-label text-fg-subtle">{t("personForm.householdWho")}</span>
+
+      <ol className="relative flex flex-col gap-3 pl-6">
+        <span aria-hidden className="absolute top-3 bottom-3 left-[11px] w-px bg-line" />
+
+        {others.map((member) => (
+          <li key={member.id} className="relative">
+            <Link
+              href={`/people/${member.id}?church=${church}`}
+              className="flex items-center gap-2.5"
+            >
+              <span className="absolute -left-6 grid size-6 place-items-center rounded-full border-2 border-surface bg-sunken text-[10px] font-semibold text-fg-muted">
+                {member.name
+                  .split(/\s+/)
+                  .slice(0, 2)
+                  .map((part) => part[0] ?? "")
+                  .join("")
+                  .toUpperCase()}
+              </span>
+              <span className="min-w-0 flex-1 truncate font-medium text-primary">
+                {member.name}
+              </span>
+              <span className="shrink-0 text-[12px] text-fg-subtle">
+                {t(`householdRole.${member.role}` as never)}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function FormCard({
   title,
   note,
@@ -69,6 +124,30 @@ function FormCard({
   );
 }
 
+/** R24.6. The form's two buttons, for a page that puts them beside its title. */
+export function PersonFormActions({
+  church,
+  personId,
+  editing,
+}: {
+  church: string;
+  personId?: string;
+  editing: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button asChild variant="secondary">
+        <Link href={personId ? `/people/${personId}?church=${church}` : `/people?church=${church}`}>
+          {t("action.cancel")}
+        </Link>
+      </Button>
+      <Button type="submit" form="person-form">
+        {editing ? t("personForm.submitEdit") : t("personForm.submitAdd")}
+      </Button>
+    </div>
+  );
+}
+
 export function PersonForm({
   church,
   values,
@@ -80,7 +159,7 @@ export function PersonForm({
 }: {
   church: string;
   values?: PersonFormValues;
-  households: { id: string; name: string; members: string[] }[];
+  households: HouseholdOption[];
   customFields?: FieldDef[];
   customValues?: FieldValues;
   /** R2.x. Every tag the church has, for the row on this screen. */
@@ -92,7 +171,7 @@ export function PersonForm({
   const [errors, setErrors] = React.useState<PersonErrors>({});
   const [formError, setFormError] = React.useState<string>();
   const [submitted, setSubmitted] = React.useState(false);
-  const [pending, setPending] = React.useState(false);
+  const [, setPending] = React.useState(false);
 
   const [household, setHousehold] = React.useState(values?.householdId ?? HOUSEHOLD_NONE);
   const [status, setStatus] = React.useState(values?.lifecycleStatus ?? "visitor");
@@ -130,7 +209,7 @@ export function PersonForm({
   const editing = Boolean(values?.id);
 
   return (
-    <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-5">
+    <form id="person-form" ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-5">
       <input type="hidden" name="church" value={church} />
       {values?.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
@@ -263,12 +342,14 @@ export function PersonForm({
                         words, so each carries who is in it. */}
                     {households.map((h) => (
                       <SelectItem key={h.id} value={h.id}>
-                        {h.members.length > 0
-                          ? t("personForm.householdWith", {
-                              name: h.name,
-                              people: h.members.join(", "),
-                            })
-                          : h.name}
+                        <span className="flex items-baseline gap-1.5">
+                          {h.name}
+                          {h.members.length > 0 ? (
+                            <span className="text-[13px] text-primary">
+                              {h.members.map((m) => m.name.split(" ")[0]).join(", ")}
+                            </span>
+                          ) : null}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -293,21 +374,17 @@ export function PersonForm({
                   </Select>
                 </Field>
               ) : null}
+
+              <HouseholdMembers
+                church={church}
+                self={values?.id}
+                members={households.find((h) => h.id === household)?.members ?? []}
+              />
             </div>
           </FormCard>
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button asChild variant="secondary">
-          <Link href={values?.id ? `/people/${values.id}?church=${church}` : `/people?church=${church}`}>
-            {t("action.cancel")}
-          </Link>
-        </Button>
-        <Button type="submit" loading={pending}>
-          {editing ? t("personForm.submitEdit") : t("personForm.submitAdd")}
-        </Button>
-      </div>
     </form>
   );
 }

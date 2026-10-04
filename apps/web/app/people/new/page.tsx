@@ -4,7 +4,7 @@ import { withTenant, listHouseholds, listCustomFields, canEditPeople } from "@he
 import { Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
-import { PersonForm } from "../person-form";
+import { PersonForm, PersonFormActions } from "../person-form";
 import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +40,15 @@ export default async function NewPersonPage({
       >
         <ArrowLeft className="size-4" /> {t("people.title")}
       </Link>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-[28px] leading-[34px] text-fg">
+          {t("personForm.addHeading")}
+        </h2>
+        {permitted ? (
+          <PersonFormActions church={session.tenantSlug} editing={false} />
+        ) : null}
+      </div>
 
       {permitted ? (
         <PersonForm

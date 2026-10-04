@@ -8,7 +8,7 @@ import {
 import { Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
-import { PersonForm } from "../../person-form";
+import { PersonForm, PersonFormActions } from "../../person-form";
 import { t } from "@hearth/i18n";
 
 export const dynamic = "force-dynamic";
@@ -51,9 +51,16 @@ export default async function EditPersonPage({
         <ArrowLeft className="size-4" /> {display}
       </Link>
 
-      <h2 className="font-display text-[28px] leading-[34px] text-fg">
-        {t("personForm.editHeading", { name: display })}
-      </h2>
+      {/* The two buttons that commit this form sit with its title, where the
+          reader's eye already is when they decide they are done. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-[28px] leading-[34px] text-fg">
+          {t("personForm.editHeading", { name: display })}
+        </h2>
+        {canEditPeople(session) ? (
+          <PersonFormActions church={session.tenantSlug} personId={id} editing />
+        ) : null}
+      </div>
 
       {person.archivedAt ? (
         <Banner tone="warning" title={t("personForm.archivedNotice.title")} className="">

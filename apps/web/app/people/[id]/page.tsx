@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import {
   withTenant, getPerson, getPersonForEdit, householdFor, addressFor,
   personTimeline, servingForPerson, groupsForPerson,
@@ -137,21 +137,6 @@ export default async function PersonPage({
   return (
     <AppShell
       session={session}
-      action={
-        canEdit ? (
-          <NoteForm
-            church={session.tenantSlug}
-            personId={person.id}
-            name={display}
-            canConfidential={canReadConfidentialNotes(session)}
-            trigger={
-              <Button>
-                <Plus /> {t("person.addNote")}
-              </Button>
-            }
-          />
-        ) : undefined
-      }
     >
       <Link
         href={`/people?church=${session.tenantSlug}`}
