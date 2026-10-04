@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import {
-  withTenant, buildArchive, zipArchive, listPeople, resolveList, toCsv, PermissionError,
+  withTenant, buildArchive, buildView, zipArchive, listPeople, resolveList, toCsv, PermissionError,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import {
@@ -29,9 +29,9 @@ export async function GET(request: NextRequest) {
   // people" meant.
   if (isFiltered(params)) return exportView(session, params);
 
-  // R19.8. One table on its own, for a church that wants the people list in a
-  // spreadsheet rather than the whole archive. Built from the same archive, so
-  // a column can never say one thing here and another in the zip.
+  // R19.8. One file on its own, for a church that wants the people list in a
+  // spreadsheet rather than the whole archive. Joined and named rather than a
+  // table dump: the archive is the thing written to be read back in.
   const only = request.nextUrl.searchParams.get("only");
   if (only) return exportTable(session, only);
 
@@ -68,13 +68,6 @@ export async function GET(request: NextRequest) {
   });
 }
 
-/** R19.8. The tables a church can take one at a time. */
-const SINGLE: Record<string, string> = {
-  people: "people",
-  households: "households",
-  attendance: "attendance_records",
-};
-
 async function exportTable(
   session: {
     tenantId: string;
@@ -86,25 +79,18 @@ async function exportTable(
   },
   only: string,
 ) {
-  const table = SINGLE[only];
-  if (!table) return new Response("Unknown table", { status: 404 });
-
-  let csv: string;
+  let csv: string | null;
   try {
-    const archive = await withTenant(
+    csv = await withTenant(
       { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
-      (tx) =>
-        buildArchive(
-          tx,
-          { tenantId: session.tenantId, role: session.role },
-          { name: session.tenantName, slug: session.tenantSlug },
-        ),
+      (tx) => buildView(tx, { tenantId: session.tenantId, role: session.role }, only),
     );
-    csv = archive.csv[table] ?? "";
   } catch (error) {
     if (error instanceof PermissionError) return new Response(error.message, { status: 403 });
     throw error;
   }
+
+  if (csv === null) return new Response("Unknown table", { status: 404 });
 
   return new Response(csv, {
     headers: {

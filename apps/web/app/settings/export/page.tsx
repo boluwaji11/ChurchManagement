@@ -17,6 +17,14 @@ const ROWS: Array<{ name: MessageKey; what: MessageKey; file: string; only?: str
   { name: "settings.export.people", what: "settings.export.peopleWhat", file: "people.csv", only: "people" },
   { name: "settings.export.households", what: "settings.export.householdsWhat", file: "households.csv", only: "households" },
   { name: "settings.export.attendance", what: "settings.export.attendanceWhat", file: "attendance.csv", only: "attendance" },
+  { name: "settings.export.checkin", what: "settings.export.checkinWhat", file: "checkin.csv", only: "checkin" },
+  { name: "settings.export.groups", what: "settings.export.groupsWhat", file: "groups.csv", only: "groups" },
+  { name: "settings.export.teams", what: "settings.export.teamsWhat", file: "teams.csv", only: "teams" },
+  { name: "settings.export.serving", what: "settings.export.servingWhat", file: "serving.csv", only: "serving" },
+  { name: "settings.export.followups", what: "settings.export.followupsWhat", file: "followups.csv", only: "followups" },
+  { name: "settings.export.milestones", what: "settings.export.milestonesWhat", file: "milestones.csv", only: "milestones" },
+  { name: "settings.export.checks", what: "settings.export.checksWhat", file: "checks.csv", only: "checks" },
+  { name: "settings.export.forms", what: "settings.export.formsWhat", file: "forms.csv", only: "forms" },
   { name: "settings.export.everything", what: "settings.export.everythingWhat", file: "hearth-export.zip" },
 ];
 
