@@ -33,7 +33,14 @@ export default async function PipelineSettingsPage({
       <SettingsHeading
         title="settings.tab.followups"
         lede="settings.lede.followups"
-        action={rows.length > 0 ? <NewPipeline church={session.tenantSlug} /> : undefined}
+        action={
+          rows.length > 0 ? (
+            <NewPipeline
+              church={session.tenantSlug}
+              team={team.map((member) => ({ userId: member.userId, name: member.name }))}
+            />
+          ) : undefined
+        }
       />
       <Pipelines
         church={session.tenantSlug}

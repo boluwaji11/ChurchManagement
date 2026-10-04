@@ -930,7 +930,13 @@ export interface StepInput {
 export async function createPipeline(
   db: Tx,
   actor: { tenantId: string; role: TenantRole },
-  input: { name: string; description?: string | null; hue?: string },
+  input: {
+    name: string;
+    description?: string | null;
+    hue?: string;
+    ownerUserId?: string | null;
+    steps?: StepInput[];
+  },
 ): Promise<Pipeline> {
   if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
 
@@ -958,18 +964,24 @@ export async function createPipeline(
       name,
       description: trim(input.description),
       hue,
+      ownerUserId: input.ownerUserId ?? null,
       position: existing.reduce((high, one) => Math.max(high, one.position + 1), 0),
     })
     .returning({ id: pipelines.id });
 
-  // A stage with no step is a stage nobody can work, so it starts with one.
-  await db.insert(pipelineSteps).values({
-    tenantId: actor.tenantId,
-    pipelineId: row!.id,
-    name,
-    dueDays: 7,
-    position: 0,
-  });
+  const steps = (input.steps ?? []).filter((step) => trim(step.name));
+  if (steps.length > 0) {
+    await saveSteps(db, actor, row!.id, steps);
+  } else {
+    // A stage with no step is a stage nobody can work, so it starts with one.
+    await db.insert(pipelineSteps).values({
+      tenantId: actor.tenantId,
+      pipelineId: row!.id,
+      name,
+      dueDays: 7,
+      position: 0,
+    });
+  }
 
   const [after] = (await listPipelines(db, { includeArchived: true })).filter(
     (one) => one.id === row!.id,

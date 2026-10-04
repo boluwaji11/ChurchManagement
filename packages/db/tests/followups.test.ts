@@ -345,6 +345,16 @@ describe("editing the six (R5.2)", () => {
     expect(made.steps).toHaveLength(1);
     expect(made.archived).toBe(false);
 
+    const filled = await run((tx) =>
+      createPipeline(tx, as(), {
+        name: "Prayer",
+        ownerUserId: pastor,
+        steps: [{ name: "Pray with them", dueDays: 14 }, { name: "Ring them", dueDays: 2 }],
+      }),
+    );
+    expect(filled.ownerUserId).toBe(pastor);
+    expect(filled.steps.map((step) => step.name)).toEqual(["Ring them", "Pray with them"]);
+
     const again = await run((tx) => createPipeline(tx, as(), { name: "Welcome home" }));
     expect(again.key).toBe("welcome_home_2");
 

@@ -10,6 +10,21 @@ export interface PipelineResult {
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
+/** The step rows a stage form posts, in the order the boxes were filled. */
+function stepsFrom(data: FormData) {
+  const names = data.getAll("stepName").map(String);
+  const days = data.getAll("stepDays").map(String);
+  const ids = data.getAll("stepId").map(String);
+
+  return names
+    .map((name, i) => ({
+      id: ids[i] || undefined,
+      name: name.trim(),
+      dueDays: Number(days[i] ?? ""),
+    }))
+    .filter((step) => step.name !== "");
+}
+
 async function context(church?: string) {
   const session = await requireSession(church);
   return { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
@@ -19,17 +34,7 @@ async function context(church?: string) {
 export async function savePipeline(data: FormData): Promise<PipelineResult> {
   const ctx = await context(field(data, "church") || undefined);
 
-  const names = data.getAll("stepName").map(String);
-  const days = data.getAll("stepDays").map(String);
-  const ids = data.getAll("stepId").map(String);
-
-  const steps = names
-    .map((name, i) => ({
-      id: ids[i] || undefined,
-      name: name.trim(),
-      dueDays: Number(days[i] ?? ""),
-    }))
-    .filter((step) => step.name !== "");
+  const steps = stepsFrom(data);
 
   try {
     await withTenant(ctx, (tx) =>
@@ -69,6 +74,8 @@ export async function addPipeline(data: FormData): Promise<PipelineResult> {
       createPipeline(tx, ctx, {
         name: field(data, "name"),
         description: field(data, "description") || null,
+        ownerUserId: field(data, "ownerUserId") || null,
+        steps: stepsFrom(data),
       }),
     );
     return {};

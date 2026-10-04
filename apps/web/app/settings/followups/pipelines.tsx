@@ -91,7 +91,7 @@ export function Pipelines({
         icon="order"
         title={t("pipelines.none.title")}
         body={t("pipelines.none.body")}
-        action={<NewPipeline church={church} />}
+        action={<NewPipeline church={church} team={team} />}
       />
     );
   }
@@ -288,60 +288,19 @@ function AddStep({
   );
 }
 
-/** R5.2. A stage of this church's own, named where it is made. */
-export function NewPipeline({ church }: { church: string }) {
-  const router = useRouter();
+/** R5.2. A stage of this church's own, filled in where it is made. */
+export function NewPipeline({ church, team }: { church: string; team: TeamMember[] }) {
   const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState("");
-  const [error, setError] = React.useState<string>();
-  const [pending, setPending] = React.useState(false);
-
-  const save = async () => {
-    setError(undefined);
-    setPending(true);
-    try {
-      const data = new FormData();
-      data.set("church", church);
-      data.set("name", name);
-      const result = await addPipeline(data);
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-      setName("");
-      setOpen(false);
-      router.refresh();
-    } finally {
-      setPending(false);
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button><Plus /> {t("pipelines.add")}</Button>
       </DialogTrigger>
-
-      <DialogContent title={t("pipelines.addTitle")} closeLabel={t("common.close")}>
-        {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
-
-        <Field label={t("pipelines.name")} required>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="off"
-            autoFocus
-          />
-        </Field>
-
-        <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-            {t("action.cancel")}
-          </Button>
-          <Button type="button" disabled={pending || !name.trim()} onClick={() => void save()}>
-            {t("action.add")}
-          </Button>
-        </div>
+      <DialogContent title={t("pipelines.addTitle")} closeLabel={t("common.close")} className="max-w-xl">
+        {open ? (
+          <StageForm church={church} team={team} onDone={() => setOpen(false)} />
+        ) : null}
       </DialogContent>
     </Dialog>
   );
@@ -360,12 +319,54 @@ function EditDialog({
   pending: boolean;
   trigger: React.ReactNode;
 }) {
-  const router = useRouter();
   const [open, setOpen] = React.useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent title={row.name} closeLabel={t("common.close")} className="max-w-xl">
+        {/* Mounted with the box, so a stage edited, closed and opened again
+            starts from what was saved rather than from what was typed. */}
+        {open ? (
+          <StageForm
+            church={church}
+            row={row}
+            team={team}
+            pending={pending}
+            onDone={() => setOpen(false)}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * R5.2. One stage, whether it is being made or being changed.
+ *
+ * A church making its own stage needs the same four things as one editing the
+ * six it was given: what it is called, what it is for, who it lands on, and
+ * the steps. One form, so the two never drift apart.
+ */
+function StageForm({
+  church,
+  row,
+  team,
+  pending,
+  onDone,
+}: {
+  church: string;
+  /** The stage being changed, where there is one. */
+  row?: PipelineRow;
+  team: TeamMember[];
+  pending?: boolean;
+  onDone: () => void;
+}) {
+  const router = useRouter();
   const [error, setError] = React.useState<string>();
-  const [owner, setOwner] = React.useState(row.ownerUserId ?? NOBODY);
+  const [owner, setOwner] = React.useState(row?.ownerUserId ?? NOBODY);
   const [steps, setSteps] = React.useState<{ key: string; id: string; name: string; days: string }[]>(
-    row.steps.map((step) => ({
+    (row?.steps ?? []).map((step) => ({
       key: step.id, id: step.id, name: step.name, days: String(step.dueDays),
     })),
   );
@@ -375,112 +376,109 @@ function EditDialog({
     setSteps((all) => all.map((step) => (step.key === key ? { ...step, ...patch } : step)));
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent title={row.name} closeLabel={t("common.close")} className="max-w-xl">
-        <form
-          noValidate
-          action={(data) => {
-            data.set("church", church);
-            data.set("id", row.id);
-            data.set("ownerUserId", owner === NOBODY ? "" : owner);
-            startTransition(async () => {
-              const result = await savePipeline(data);
-              setError(result.error);
-              if (!result.error) {
-                setOpen(false);
-                router.refresh();
-              }
-            });
-          }}
-          className="flex flex-col gap-4"
-        >
-          {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
+    <form
+      noValidate
+      action={(data) => {
+        data.set("church", church);
+        if (row) data.set("id", row.id);
+        data.set("ownerUserId", owner === NOBODY ? "" : owner);
+        startTransition(async () => {
+          const result = await (row ? savePipeline(data) : addPipeline(data));
+          setError(result.error);
+          if (!result.error) {
+            onDone();
+            router.refresh();
+          }
+        });
+      }}
+      className="flex flex-col gap-4"
+    >
+      {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
 
-          <Field label={t("pipelines.name")} required>
-            <Input name="name" defaultValue={row.name} autoComplete="off" />
-          </Field>
+      <Field label={t("pipelines.name")} required>
+        <Input name="name" defaultValue={row?.name ?? ""} autoComplete="off" autoFocus={!row} />
+      </Field>
 
-          <Field label={t("pipelines.description")}>
-            <Textarea name="description" rows={2} defaultValue={row.description ?? ""} />
-          </Field>
+      <Field label={t("pipelines.description")}>
+        <Textarea name="description" rows={2} defaultValue={row?.description ?? ""} />
+      </Field>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-label text-fg">{t("pipelines.owner")}</span>
-            <Select value={owner} onValueChange={setOwner}>
-              <SelectTrigger aria-label={t("pipelines.owner")}><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NOBODY}>{t("pipelines.nobody")}</SelectItem>
-                {team.map((member) => (
-                  <SelectItem key={member.userId} value={member.userId}>{member.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
-          <div className="flex flex-col gap-3">
-            <span className="text-label text-fg">{t("pipelines.steps")}</span>
-
-            {steps.map((step) => (
-              <div key={step.key} className="flex flex-wrap items-end gap-2">
-                <input type="hidden" name="stepId" value={step.id} />
-                <div className="min-w-48 flex-1">
-                  <Field label={t("pipelines.step")} required>
-                    <Input
-                      name="stepName"
-                      value={step.name}
-                      onChange={(e) => change(step.key, { name: e.target.value })}
-                      autoComplete="off"
-                    />
-                  </Field>
-                </div>
-                <div className="w-24">
-                  <Field label={t("pipelines.days")}>
-                    <Input
-                      name="stepDays"
-                      inputMode="numeric"
-                      value={step.days}
-                      onChange={(e) => change(step.key, { days: e.target.value })}
-                    />
-                  </Field>
-                </div>
-                <IconButton
-                  label={t("pipelines.removeStep")}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setSteps((all) => all.filter((s) => s.key !== step.key))}
-                >
-                  <X />
-                </IconButton>
-              </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-label text-fg">{t("pipelines.owner")}</span>
+        <Select value={owner} onValueChange={setOwner}>
+          <SelectTrigger aria-label={t("pipelines.owner")}><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NOBODY}>{t("pipelines.nobody")}</SelectItem>
+            {team.map((member) => (
+              <SelectItem key={member.userId} value={member.userId}>{member.name}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-            <div>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() =>
-                  setSteps((all) => [
-                    ...all,
-                    { key: `new-${all.length}-${Date.now()}`, id: "", name: "", days: "7" },
-                  ])
-                }
-              >
-                <Plus /> {t("pipelines.addStep")}
-              </Button>
+      <Separator />
+
+      <div className="flex flex-col gap-3">
+        <span className="text-label text-fg">{t("pipelines.steps")}</span>
+
+        {steps.map((step) => (
+          <div key={step.key} className="flex flex-wrap items-end gap-2">
+            <input type="hidden" name="stepId" value={step.id} />
+            <div className="min-w-48 flex-1">
+              <Field label={t("pipelines.step")} required>
+                <Input
+                  name="stepName"
+                  value={step.name}
+                  onChange={(e) => change(step.key, { name: e.target.value })}
+                  autoComplete="off"
+                />
+              </Field>
             </div>
+            <div className="w-24">
+              <Field label={t("pipelines.days")}>
+                <Input
+                  name="stepDays"
+                  inputMode="numeric"
+                  value={step.days}
+                  onChange={(e) => change(step.key, { days: e.target.value })}
+                />
+              </Field>
+            </div>
+            <IconButton
+              label={t("pipelines.removeStep")}
+              type="button"
+              variant="ghost"
+              onClick={() => setSteps((all) => all.filter((s) => s.key !== step.key))}
+            >
+              <X />
+            </IconButton>
           </div>
+        ))}
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() =>
+              setSteps((all) => [
+                ...all,
+                { key: `new-${all.length}-${Date.now()}`, id: "", name: "", days: "7" },
+              ])
+            }
+          >
+            <Plus /> {t("pipelines.addStep")}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <Button type="button" variant="ghost" onClick={onDone}>
+          {t("action.cancel")}
+        </Button>
+        <Button type="submit" disabled={pending || saving}>
+          {row ? t("action.save") : t("action.add")}
+        </Button>
+      </div>
+    </form>
   );
 }
