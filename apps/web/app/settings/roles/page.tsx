@@ -14,7 +14,7 @@ export default async function RolesPage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageChurch(session)) redirect(`/settings/privacy?church=${session.tenantSlug}`);
+  if (!canManageChurch(session)) redirect(`/settings/profile?church=${session.tenantSlug}`);
 
   const roles = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },

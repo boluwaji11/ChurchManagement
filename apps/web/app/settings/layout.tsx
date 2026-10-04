@@ -78,7 +78,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
       title: t("settings.group.you"),
       items: [
         // R3.2. What this person lets the church publish about them.
-        { href: "/settings/privacy", label: t("settings.tab.privacy") },
+        { href: "/settings/profile", label: t("settings.tab.profile") },
         { href: "/settings/security", label: t("settings.tab.security") },
         { href: "/settings/appearance", label: t("settings.tab.appearance") },
       ],

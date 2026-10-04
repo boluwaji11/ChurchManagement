@@ -37,7 +37,7 @@ const ROWS: Array<{ name: MessageKey; what: MessageKey; file: string; only?: str
  */
 export default async function ExportPage() {
   const session = await requireSession();
-  if (!canArchivePeople(session)) redirect(`/settings/privacy?church=${session.tenantSlug}`);
+  if (!canArchivePeople(session)) redirect(`/settings/profile?church=${session.tenantSlug}`);
 
   return (
     <>

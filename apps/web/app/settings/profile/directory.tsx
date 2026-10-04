@@ -42,7 +42,7 @@ type Key = keyof PrivacyValues;
  * written under it, and the entry itself beside them, so turning something off
  * shows the entry shrink rather than describing what will happen.
  */
-export function Privacy({
+export function DirectoryEntry({
   church,
   values,
   details,

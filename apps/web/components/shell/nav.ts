@@ -104,7 +104,7 @@ export function navFor(role: TenantRole): NavEntry[] {
    */
   out.push({
     label: t("nav.settings"),
-    href: canManageChurch(role) ? "/settings/church" : "/settings/privacy",
+    href: canManageChurch(role) ? "/settings/church" : "/settings/profile",
     owns: ["/settings", "/setup"],
     icon: Settings,
   });
