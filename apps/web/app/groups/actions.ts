@@ -3,7 +3,7 @@
 import {
   withTenant, createGroup, updateGroup, setGroupArchived,
   addToGroup, removeFromGroup, lookupPeople, getChurch,
-  requestToJoin, decideRequest, setGroupPhoto,
+  requestToJoin, decideRequest, setGroupPhoto, setGroupOpen,
   type GroupRole,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
@@ -196,6 +196,21 @@ export async function clearGroupPhoto(
       const supabase = await supabaseServer();
       await supabase.storage.from("church").remove([removed.removed]);
     }
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R9.5. The one press that opens a group to new people, or shuts it. */
+export async function setOpenToJoin(
+  id: string,
+  open: boolean,
+  church?: string,
+): Promise<GroupResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setGroupOpen(tx, actor, id, open));
     return {};
   } catch (error) {
     return { error: explain(error) };

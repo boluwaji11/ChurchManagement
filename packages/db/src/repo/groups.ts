@@ -441,6 +441,28 @@ export async function updateGroup(
 }
 
 /**
+ * R9.5. Whether the group is taking new people.
+ *
+ * Its own write rather than a trip through updateGroup, because this is one
+ * press on the group's page and the rest of the record is not in hand.
+ */
+export async function setGroupOpen(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  openToJoin: boolean,
+): Promise<void> {
+  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+
+  const changed = await db
+    .update(groups)
+    .set({ openToJoin, updatedAt: new Date() })
+    .where(eq(groups.id, id))
+    .returning({ id: groups.id });
+  if (changed.length === 0) throw new InvalidInputError("group.error.missing");
+}
+
+/**
  * Archiving a group.
  *
  * Its roster and its attendance stay where they are. A group that ran for three

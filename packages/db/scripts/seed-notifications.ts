@@ -18,6 +18,14 @@ const LINES = [
   { kind: "followup_assigned", key: "bell.followupAssigned", params: { name: "Bella Castro" }, href: "/followups", ago: 2 * DAY, read: false },
   { kind: "duplicate", key: "bell.duplicate", params: { count: 3 }, href: "/duplicates", ago: 4 * DAY, read: true },
   { kind: "serving_accepted", key: "bell.servingAccepted", params: { name: "Tyler Carter", team: "Greeters", date: "Oct 19" }, href: "/serving", ago: 6 * DAY, read: true },
+  { kind: "join_request", key: "bell.joinRequest", params: { name: "Felix Adler", group: "Alpha course" }, href: "/groups", ago: 8 * DAY, read: true },
+  { kind: "form_response", key: "bell.formResponse", params: { form: "Connection card" }, href: "/forms", ago: 11 * DAY, read: true },
+  { kind: "incident", key: "bell.incident", params: { room: "Room 104" }, href: "/checkin", ago: 14 * DAY, read: true },
+  { kind: "followup_assigned", key: "bell.followupAssigned", params: { name: "Nathan Adler" }, href: "/followups", ago: 17 * DAY, read: true },
+  { kind: "duplicate", key: "bell.duplicate", params: { count: 2 }, href: "/duplicates", ago: 21 * DAY, read: true },
+  { kind: "serving_declined", key: "bell.servingDeclined", params: { name: "Rachel Ortiz", team: "Greeters", date: "Sep 14" }, href: "/serving", ago: 26 * DAY, read: true },
+  // Past the keep window on purpose: it is written and must never appear.
+  { kind: "join_request", key: "bell.joinRequest", params: { name: "Too Old", group: "Nowhere" }, href: "/groups", ago: 40 * DAY, read: true },
 ];
 
 async function main() {

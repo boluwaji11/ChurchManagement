@@ -14,6 +14,18 @@ import type { TenantRole } from "../roles";
  * Each kind carries its own icon and hue, which is what makes a panel of eight
  * readable at a glance rather than eight identical grey lines.
  */
+/**
+ * R24.6. How long a notification is kept.
+ *
+ * A bell is a list of what to do about this week, so a line from April is
+ * noise. Older rows are deleted on the next write rather than kept forever,
+ * which also keeps the table bounded without a job to run.
+ */
+export const NOTIFICATION_KEEP_DAYS = 30;
+
+/** How many the panel opens with, before Show more. */
+export const NOTIFICATION_PAGE = 10;
+
 export const NOTIFICATION_KINDS = [
   "join_request", "serving_declined", "serving_accepted",
   "incident", "followup_assigned", "duplicate", "form_response",
@@ -39,6 +51,8 @@ export interface Notification {
   href: string | null;
   unread: boolean;
   createdAt: string;
+  /** Set on the last line when more are waiting behind it. */
+  more?: boolean;
 }
 
 export interface NotifyInput {
@@ -46,6 +60,23 @@ export interface NotifyInput {
   messageKey: string;
   params?: Record<string, string | number>;
   href?: string | null;
+}
+
+/** Only the last 30 days are ever read, whatever is still in the table. */
+const recent = () =>
+  sql`${notifications.createdAt} > now() - ${sql.raw(`interval '${NOTIFICATION_KEEP_DAYS} days'`)}`;
+
+/**
+ * R24.6. Drops everything past the keep window for this church.
+ *
+ * Called on the write path, because that is the only thing that runs on its
+ * own schedule here, and a church that stops generating notifications has no
+ * rows piling up to clear.
+ */
+export async function pruneNotifications(db: Tx): Promise<void> {
+  await db
+    .delete(notifications)
+    .where(sql`${notifications.createdAt} <= now() - ${sql.raw(`interval '${NOTIFICATION_KEEP_DAYS} days'`)}`);
 }
 
 /** R24.6. Tells specific people. */
@@ -68,6 +99,8 @@ export async function notifyUsers(
       href: input.href ?? null,
     })),
   );
+
+  await pruneNotifications(db);
 }
 
 /**
@@ -97,7 +130,7 @@ export async function countUnread(db: Tx, userId: string): Promise<number> {
   const [row] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(notifications)
-    .where(and(eq(notifications.userId, userId), sql`${notifications.readAt} is null`));
+    .where(and(eq(notifications.userId, userId), sql`${notifications.readAt} is null`, recent()));
   return row?.n ?? 0;
 }
 
@@ -105,16 +138,30 @@ export async function countUnread(db: Tx, userId: string): Promise<number> {
 export async function listNotifications(
   db: Tx,
   userId: string,
-  limit = 20,
+  opts: {
+    limit?: number;
+    /** The createdAt of the last line already on screen, for Show more. */
+    before?: string | null;
+  } = {},
 ): Promise<Notification[]> {
+  const limit = opts.limit ?? NOTIFICATION_PAGE;
+
   const rows = await db
     .select()
     .from(notifications)
-    .where(eq(notifications.userId, userId))
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        recent(),
+        opts.before ? sql`${notifications.createdAt} < ${new Date(opts.before)}` : undefined,
+      ),
+    )
     .orderBy(desc(notifications.createdAt))
-    .limit(limit);
+    // One more than asked for, so the panel knows whether to offer Show more
+    // without a second count.
+    .limit(limit + 1);
 
-  return rows.map((row) => ({
+  return rows.slice(0, limit).map((row) => ({
     id: row.id,
     kind: row.kind as NotificationKind,
     messageKey: row.messageKey,
@@ -122,7 +169,9 @@ export async function listNotifications(
     href: row.href,
     unread: row.readAt === null,
     createdAt: row.createdAt.toISOString(),
-  }));
+    /** True on the last row returned when there is at least one more behind it. */
+    more: false,
+  })).map((one, i, all) => (i === all.length - 1 ? { ...one, more: rows.length > limit } : one));
 }
 
 /** R24.6. One of them, read. */
@@ -138,5 +187,5 @@ export async function markAllRead(db: Tx, userId: string): Promise<void> {
   await db
     .update(notifications)
     .set({ readAt: new Date() })
-    .where(and(eq(notifications.userId, userId), sql`${notifications.readAt} is null`));
+    .where(and(eq(notifications.userId, userId), sql`${notifications.readAt} is null`, recent()));
 }

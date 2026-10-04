@@ -116,6 +116,8 @@ export async function AppShell({
                 href: one.href,
                 unread: one.unread,
                 when: when(one.createdAt),
+                at: one.createdAt,
+                more: one.more ?? false,
               }))}
             />
           }

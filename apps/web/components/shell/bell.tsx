@@ -8,7 +8,7 @@ import {
 import { cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
-import { readOne, readAll } from "./bell-actions";
+import { readOne, readAll, olderThan } from "./bell-actions";
 
 export interface BellItem {
   id: string;
@@ -20,6 +20,10 @@ export interface BellItem {
   unread: boolean;
   /** Already turned into words on the server, which holds the clock. */
   when: string;
+  /** The raw timestamp, which is the cursor Show more reads from. */
+  at: string;
+  /** Set on the last line when more are waiting behind it. */
+  more: boolean;
 }
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -50,6 +54,21 @@ export function NotificationBell({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  // The first ten come from the server with the page. Show more appends.
+  const [shown, setShown] = React.useState(items);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => setShown(items), [items]);
+
+  const last = shown[shown.length - 1];
+
+  const showMore = () => {
+    if (!last || loading) return;
+    setLoading(true);
+    void olderThan(last.at, church)
+      .then((next) => setShown((was) => [...was, ...next]))
+      .finally(() => setLoading(false));
+  };
 
   const open1 = (item: BellItem) => {
     setOpen(false);
@@ -95,12 +114,12 @@ export function NotificationBell({
             </div>
 
             <div className="max-h-[420px] overflow-auto">
-              {items.length === 0 ? (
+              {shown.length === 0 ? (
                 /* The same empty state every other screen uses, sized down to
                    the panel it sits in. */
                 <Empty icon="inbox" title={t("bell.empty")} className="gap-3 px-4 py-8 [&_h3]:font-sans [&_h3]:text-[15px] [&_h3]:font-normal [&_h3]:text-fg-muted" />
               ) : (
-                items.map((item) => {
+                shown.map((item) => {
                   const Icon = ICONS[item.kind] ?? Bell;
                   return (
                     <button
@@ -134,6 +153,17 @@ export function NotificationBell({
                   );
                 })
               )}
+
+              {last?.more ? (
+                <button
+                  type="button"
+                  onClick={showMore}
+                  disabled={loading}
+                  className="w-full py-3 text-[13px] font-medium text-primary hover:bg-canvas disabled:opacity-60"
+                >
+                  {t("bell.more")}
+                </button>
+              ) : null}
             </div>
           </div>
         </>

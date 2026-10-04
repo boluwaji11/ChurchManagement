@@ -1,19 +1,21 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, MapPin } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import {
   withTenant, groupPage, personForUser, getChurch, upcomingMeetings,
-  listGroupTypes, groupRoster, canManageGroups,
+  listGroupTypes, groupRoster, canManageGroups, pendingRequests,
+  openMeeting, lastMeetingDay, canRecordFor,
+  type Meeting, type MeetingPerson,
 } from "@hearth/db";
-import { Badge, Card, Separator } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
-import { GroupPhoto } from "../photo";
+import { GroupBanner } from "../banner";
 import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { JoinButton } from "./join-button";
 import { ManageGroup } from "./manage";
+import { GroupDetail, type DetailMeeting } from "./detail";
 
 export const dynamic = "force-dynamic";
 
@@ -29,17 +31,15 @@ const readableTime = (hhmm: string) => {
     .toLowerCase();
 };
 
-const longDate = (iso: string) =>
-  new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric",
-  });
+const asDate = (iso: string) => new Date(`${iso}T00:00:00`);
 
 /**
  * R9.5. A group's own page.
  *
- * The page somebody lands on from the finder, deciding whether to turn up on
- * Tuesday. It answers in this order: what is it, when and where, who runs it,
- * and may I come. Everything else is below the fold.
+ * Built to docs/redesign/design: the kind and the name on the left with the
+ * banner beside them, a line saying whether it is taking people, and three tabs
+ * underneath. It answers in the order somebody asks: what is it, when and
+ * where, who runs it, and may I come.
  */
 export default async function GroupPage({
   params,
@@ -55,18 +55,46 @@ export default async function GroupPage({
 
   const manage = canManageGroups(session);
 
-  const { group, today, types, roster } = await withTenant(actor, async (tx) => {
+  const data = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
     const self = await personForUser(tx, session.userId);
+    const group = await groupPage(tx, id, { personId: self, manage });
+    if (!group) return null;
+
+    const today = churchNow(profile?.timezone ?? "America/Chicago").date;
+
+    /*
+     * R9.7. The register for the day it last met, opened here so the tab has
+     * something to show the moment it is pressed. A leader who cannot record
+     * for this group never sees the tab, so the meeting is never created for
+     * them either.
+     */
+    let meeting: Meeting | null = null;
+    let people: MeetingPerson[] = [];
+    let metOn = "";
+    if (manage || (await canRecordFor(tx, actor, id))) {
+      metOn = lastMeetingDay(group.dayOfWeek, today);
+      const opened = await openMeeting(tx, actor, { groupId: id, metOn });
+      meeting = opened.meeting;
+      people = opened.people;
+    }
+
     return {
-      group: await groupPage(tx, id, { personId: self, manage }),
-      today: churchNow(profile?.timezone ?? "America/Chicago").date,
+      group,
+      today,
+      metOn,
+      meeting,
+      people,
       types: manage ? await listGroupTypes(tx) : [],
-      roster: manage ? await groupRoster(tx, id) : [],
+      roster: await groupRoster(tx, id),
+      requests: manage
+        ? (await pendingRequests(tx, actor)).filter((one) => one.groupId === id)
+        : [],
     };
   });
 
-  if (!group) notFound();
+  if (!data) notFound();
+  const { group, today, metOn, meeting, people, types, roster, requests } = data;
 
   // R9.2. The bucket is private, so the picture is served through a link signed
   // for an hour. A leaked path is then a leak with an expiry.
@@ -77,11 +105,16 @@ export default async function GroupPage({
     photoUrl = signed.data?.signedUrl ?? null;
   }
 
-  const next = upcomingMeetings(
-    { dayOfWeek: group.dayOfWeek, frequency: group.frequency },
-    today,
-    3,
-  );
+  const span = group.startsAt
+    ? group.endsAt
+      ? `${readableTime(group.startsAt)} to ${readableTime(group.endsAt)}`
+      : readableTime(group.startsAt)
+    : "";
+
+  const meetsLine =
+    group.dayOfWeek === null
+      ? (group.location ?? "")
+      : `${dayName(group.dayOfWeek)}s${span ? `, ${span}` : ""}`;
 
   const schedule =
     group.dayOfWeek === null
@@ -89,172 +122,111 @@ export default async function GroupPage({
       : t("group.meets", {
           frequency: t(`groups.frequency.${group.frequency ?? "weekly"}` as never).toLowerCase(),
           day: dayName(group.dayOfWeek),
-          span: group.startsAt
-            ? group.endsAt
-              ? `${readableTime(group.startsAt)} to ${readableTime(group.endsAt)}`
-              : readableTime(group.startsAt)
-            : "",
+          span,
         });
 
+  /** A date tile and a line, which is all a meeting shows here. */
+  const tile = (iso: string, canTake: boolean): DetailMeeting => {
+    const d = asDate(iso);
+    return {
+      on: iso,
+      mon: d.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
+      day: String(d.getDate()),
+      when:
+        d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) +
+        (group.startsAt ? ` · ${readableTime(group.startsAt)}` : ""),
+      canTake,
+    };
+  };
+
+  const categories = [
+    group.dayOfWeek !== null ? { k: t("group.cat.day"), v: dayName(group.dayOfWeek) } : null,
+    group.forWhom && group.forWhom !== "anyone"
+      ? { k: t("group.cat.forWhom"), v: t(`groups.audience.${group.forWhom}` as never) }
+      : null,
+    group.location ? { k: t("group.cat.meetsAt"), v: group.location } : null,
+    group.typeName ? { k: t("group.cat.type"), v: group.typeName } : null,
+  ].filter(Boolean) as { k: string; v: string }[];
+
+  const hue = group.typeHue ?? "sky";
+
   return (
-    <AppShell
-      session={session}
-      title={group.name}
-    >
-      <nav className="mb-6 flex flex-wrap items-center gap-1 text-caption text-fg-muted">
-        <Link
-          href={`/groups?church=${session.tenantSlug}`}
-          className="rounded px-1 py-0.5 hover:text-fg"
-        >
-          {t("groups.title")}
-        </Link>
-        {group.typeName ? (
-          <>
-            <ChevronRight className="size-4" aria-hidden />
-            <span>{group.typeName}</span>
-          </>
-        ) : null}
-      </nav>
+    <AppShell session={session}>
+      <Link
+        href={`/groups?church=${session.tenantSlug}`}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("groups.title")}
+      </Link>
 
-      <Card className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <span className="text-[length:var(--d-text-body)] text-fg">
-          {group.mine
-            ? t("find.member")
-            : group.requested === "pending"
-              ? t("find.asked")
-              : group.requested === "declined"
-                ? t("find.declined")
-                : group.full
-                  ? t("find.full")
-                  : group.openToJoin
-                    ? t("group.isOpen")
-                    : t("find.closed")}
-        </span>
-
-        {!group.mine && group.openToJoin && !group.full && group.requested !== "pending" ? (
-          <JoinButton church={session.tenantSlug} groupId={group.id} />
-        ) : null}
-      </Card>
-
-      <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-6">
-          {photoUrl || manage ? (
-            <GroupPhoto
-              church={session.tenantSlug}
-              groupId={group.id}
-              groupName={group.name}
-              photoUrl={photoUrl}
-              canEdit={manage}
-            />
+      {/* The kind, the name and when it meets on the left, the banner beside
+          them, on one line until the screen is too narrow for two. */}
+      <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+        <div className="flex flex-col gap-2.5">
+          {group.typeName ? (
+            <span
+              className="self-start rounded-full px-2 py-0.5 text-[12px] font-medium"
+              style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+            >
+              {group.typeName}
+            </span>
           ) : null}
+          <div className="font-display text-[36px] leading-[42px] text-balance text-fg">
+            {group.name}
+          </div>
+          <div className="text-fg-muted">
+            {group.leaders.length > 0
+              ? t("find.ledBy", { meets: meetsLine, leader: group.leaders.map((l) => l.name).join(", ") })
+              : meetsLine}
+          </div>
 
-          {group.description ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-heading text-fg">{t("group.about", { name: group.name })}</h2>
-              <p className="whitespace-pre-wrap text-[length:var(--d-text-body)] text-fg">
-                {group.description}
-              </p>
-            </section>
-          ) : null}
-
-          {next.length > 0 ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-heading text-fg">{t("group.upcoming")}</h2>
-              <ul className="flex flex-col">
-                {next.map((date, i) => (
-                  <li key={date}>
-                    {i > 0 ? <Separator className="my-2" /> : null}
-                    <span className="text-[length:var(--d-text-body)] text-fg">
-                      {longDate(date)}
-                      {group.startsAt ? (
-                        <span className="ml-2 text-fg-muted">
-                          {readableTime(group.startsAt)}
-                          {group.endsAt ? ` to ${readableTime(group.endsAt)}` : ""}
-                        </span>
-                      ) : null}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          {group.past.length > 0 ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-heading text-fg">{t("group.past")}</h2>
-              <ul className="flex flex-col">
-                {group.past.map((meeting, i) => (
-                  <li key={meeting.metOn}>
-                    {i > 0 ? <Separator className="my-2" /> : null}
-                    <span className="flex items-center justify-between gap-3 text-[length:var(--d-text-body)]">
-                      <span className="text-fg">{longDate(meeting.metOn)}</span>
-                      <span className="text-fg-muted">
-                        {plural("group.came", meeting.present)}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+          {!group.mine && group.openToJoin && !group.full && group.requested !== "pending" ? (
+            <div className="mt-1">
+              <JoinButton church={session.tenantSlug} groupId={group.id} />
+            </div>
           ) : null}
         </div>
 
-        <aside className="flex flex-col gap-6 lg:w-72 lg:shrink-0">
-          <section className="flex flex-col gap-2">
-            <h2 className="text-label text-fg-muted">{t("group.categories")}</h2>
-            <div className="flex flex-wrap gap-2">
-              {group.dayOfWeek !== null ? (
-                <Badge tone="neutral">{dayName(group.dayOfWeek)}</Badge>
-              ) : null}
-              {group.typeName ? <Badge tone="neutral">{group.typeName}</Badge> : null}
-              {group.forWhom && group.forWhom !== "anyone" ? (
-                <Badge tone="neutral">
-                  {t(`groups.audience.${group.forWhom}` as never)}
-                </Badge>
-              ) : null}
-              {group.online ? <Badge tone="neutral">{t("groups.online")}</Badge> : null}
-              {group.childrenWelcome ? (
-                <Badge tone="neutral">{t("groups.childrenWelcome")}</Badge>
-              ) : null}
-              {group.location ? <Badge tone="neutral">{group.location}</Badge> : null}
-            </div>
-          </section>
-
-          {schedule ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-label text-fg-muted">{t("group.schedule")}</h2>
-              <p className="text-[length:var(--d-text-body)] text-fg">{schedule}</p>
-            </section>
-          ) : null}
-
-          {group.leaders.length > 0 ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-label text-fg-muted">{t("groups.leaders")}</h2>
-              <p className="text-[length:var(--d-text-body)] text-fg">
-                {group.leaders.map((l) => l.name).join(", ")}
-              </p>
-            </section>
-          ) : null}
-
-          {group.address ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-label text-fg-muted">{t("group.where")}</h2>
-              <p className="whitespace-pre-wrap text-[length:var(--d-text-body)] text-fg">
-                {group.address}
-              </p>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(group.address)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 text-[length:var(--d-text-body)] text-fg-muted underline underline-offset-4 hover:text-fg"
-              >
-                <MapPin className="size-4" aria-hidden />
-                {t("group.directions")}
-              </a>
-            </section>
-          ) : null}
-        </aside>
+        <GroupBanner
+          church={session.tenantSlug}
+          groupId={group.id}
+          groupName={group.name}
+          photoUrl={photoUrl}
+          hue={hue}
+          canEdit={manage}
+        />
       </div>
+
+      <GroupDetail
+        church={session.tenantSlug}
+        groupId={group.id}
+        canManage={manage}
+        openToJoin={group.openToJoin}
+        about={group.description}
+        upcoming={upcomingMeetings(
+          { dayOfWeek: group.dayOfWeek, frequency: group.frequency },
+          today,
+          3,
+        ).map((iso) => tile(iso, false))}
+        past={group.past.slice(0, 3).map((one) => tile(one.metOn, true))}
+        categories={categories}
+        schedule={schedule}
+        leaders={group.leaders.map((one) => one.name)}
+        location={[group.location, group.address].filter(Boolean).join("\n")}
+        requests={requests.map((one) => ({ id: one.id, personName: one.personName }))}
+        members={roster
+          .filter((one) => !one.leftOn)
+          .map((one) => ({ personId: one.personId, name: one.name, role: one.role }))}
+        meeting={meeting}
+        people={people}
+        attendanceDate={
+          metOn
+            ? asDate(metOn).toLocaleDateString("en-US", {
+                weekday: "short", day: "numeric", month: "short",
+              })
+            : ""
+        }
+      />
 
       {manage ? (
         <ManageGroup
