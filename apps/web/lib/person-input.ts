@@ -75,6 +75,7 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
       city: str(data, "addressCity") || null,
       region: str(data, "addressRegion") || null,
       postalCode: str(data, "addressPostalCode") || null,
+      country: str(data, "addressCountry") || "US",
     },
     campusId: str(data, "campusId") || null,
     maritalStatus: pick(data, "maritalStatus"),

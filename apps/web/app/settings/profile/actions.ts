@@ -46,6 +46,7 @@ export async function saveProfile(data: FormData): Promise<ProfileResult> {
             city: field(data, "addressCity") || null,
             region: field(data, "addressRegion") || null,
             postalCode: field(data, "addressPostalCode") || null,
+      country: field(data, "addressCountry") || "US",
           },
           anniversary: field(data, "anniversary") || null,
           campusId: pick(data, "campusId"),

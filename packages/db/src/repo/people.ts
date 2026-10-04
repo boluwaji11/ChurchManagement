@@ -367,8 +367,11 @@ export interface AddressInput {
   line1: string | null;
   line2?: string | null;
   city?: string | null;
+  /** The state, province or county, by whatever the country calls it. */
   region?: string | null;
   postalCode?: string | null;
+  /** ISO 3166-1 alpha-2. Defaults to US, which is what the column does. */
+  country?: string | null;
 }
 
 export interface PersonInput {
@@ -580,6 +583,7 @@ async function setAddress(
     city: trimmed(parts.city),
     region: trimmed(parts.region),
     postalCode: trimmed(parts.postalCode),
+    country: trimmed(parts.country) ?? "US",
   };
 
   if (existing) {
@@ -604,6 +608,7 @@ export async function addressPartsFor(db: Tx, personId: string): Promise<Address
       city: addresses.city,
       region: addresses.region,
       postalCode: addresses.postalCode,
+      country: addresses.country,
     })
     .from(addresses)
     .where(eq(addresses.personId, personId))
