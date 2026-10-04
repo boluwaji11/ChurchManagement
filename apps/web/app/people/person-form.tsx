@@ -61,7 +61,7 @@ function FormCard({
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5">
       <div>
-        <span className="font-semibold text-fg">{title}</span>
+        <span className="text-[15px] font-bold text-fg">{title}</span>
         {note ? <span className="block text-[13px] text-fg-subtle">{note}</span> : null}
       </div>
       {children}

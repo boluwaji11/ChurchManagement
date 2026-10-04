@@ -53,7 +53,7 @@ function InfoCard({
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[13px] font-semibold text-fg">{title}</h3>
+        <h3 className="text-[15px] font-bold text-fg">{title}</h3>
         {action}
       </div>
       {children}
