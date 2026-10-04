@@ -2,8 +2,6 @@ import {
   withTenant, getChurch, canManageChurch,
   getStorageUsage, primaryCampus, listLocations,
 } from "@hearth/db";
-import { Card, CardTitle, Separator } from "@hearth/ui";
-import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { Places } from "./places";
 import { ChurchForm } from "../church-form";
@@ -12,6 +10,18 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { SettingsHeading } from "../heading";
 
 export const dynamic = "force-dynamic";
+
+/** Bytes as a church reads them: "1.2 GB", "282 kB". */
+function size(bytes: number): string {
+  const units = ["B", "kB", "MB", "GB", "TB"];
+  let value = bytes;
+  let at = 0;
+  while (value >= 1000 && at < units.length - 1) {
+    value /= 1000;
+    at += 1;
+  }
+  return `${at === 0 ? value : value.toFixed(value < 10 ? 1 : 0)} ${units[at]}`;
+}
 
 export default async function SettingsPage({
   searchParams,
@@ -45,18 +55,16 @@ export default async function SettingsPage({
     <div className="flex flex-col gap-5">
       <SettingsHeading title="settings.tab.church" lede="settings.lede.church" />
         {profile ? (
-          <Card>
-            <CardTitle>{t("church.logo")}</CardTitle>
-            <Separator className="my-4" />
-            <LogoAndStorage
-              church={session.tenantSlug}
-              churchName={session.tenantName}
-              logoUrl={logoUrl}
-              fraction={usage.fraction}
-              warning={usage.warning}
-              canEdit={canManageChurch(session.role)}
-            />
-          </Card>
+          <LogoAndStorage
+            church={session.tenantSlug}
+            churchName={session.tenantName}
+            logoUrl={logoUrl}
+            fraction={usage.fraction}
+            used={size(usage.usedBytes)}
+            quota={size(usage.quotaBytes)}
+            warning={usage.warning}
+            canEdit={canManageChurch(session.role)}
+          />
         ) : null}
 
         <Places

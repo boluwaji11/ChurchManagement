@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Banner, Button, Card, CardTitle, Combobox, Field, Input, Separator } from "@hearth/ui";
+import { Banner, Button, Combobox, Field, Input } from "@hearth/ui";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
 import { saveChurch } from "./actions";
 
@@ -62,26 +62,25 @@ export function ChurchForm({
 
 
   return (
-    <div className="flex flex-col gap-6" aria-busy={pending}>
+    <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("church.title")}>{error}</Banner> : null}
       {saved && !error ? <Banner tone="success" title={t("church.saved")} /> : null}
 
-      <Card>
-        <CardTitle>{t("church.title")}</CardTitle>
-        <Separator className="my-4" />
-
+      {/* R1.1. The design lays these out as a grid that fills the room it has
+          rather than two fixed columns, so a wide screen reads three across. */}
+      <section className="rounded-[14px] border border-line bg-surface p-5">
         <form action={save} noValidate className="flex flex-col gap-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
             <Field label={t("church.name")} required>
               <Input name="name" defaultValue={values.name} disabled={!canEdit} />
             </Field>
             <Field label={t("church.legalName")}>
               <Input name="legalName" defaultValue={values.legalName ?? ""} disabled={!canEdit} />
             </Field>
-            <Field label={t("church.address")} className="sm:col-span-2">
+            <Field label={t("church.address")} className="[grid-column:1/-1]">
               <Input name="addressLine1" defaultValue={values.addressLine1 ?? ""} disabled={!canEdit} />
             </Field>
-            <Field label={t("church.addressLine2")} className="sm:col-span-2">
+            <Field label={t("church.addressLine2")} className="[grid-column:1/-1]">
               <Input name="addressLine2" defaultValue={values.addressLine2 ?? ""} disabled={!canEdit} />
             </Field>
             <Field label={t("church.city")}>
@@ -147,13 +146,12 @@ export function ChurchForm({
           </div>
 
           {canEdit ? (
-            <div>
-              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={pending}>{t("church.save")}</Button>
             </div>
           ) : null}
         </form>
-      </Card>
-
+      </section>
     </div>
   );
 }

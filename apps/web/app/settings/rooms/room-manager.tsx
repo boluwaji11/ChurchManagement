@@ -2,18 +2,20 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Archive, Undo2, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Minus, Archive, Undo2, ChevronUp, ChevronDown } from "lucide-react";
 import {
   HUES,
-  Banner, Button, IconButton, Card, EmptyState, Field, HueDot, Input, Separator,
+  Banner, Button, IconButton, EmptyState, Field, HueDot, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { ageLine, say } from "@/lib/room-ages";
 import { createRoom, saveRoom, archiveRoom, moveRoom } from "./actions";
 
+
+/** What a card shows where a church has not said. */
+const EMPTY = "\u2014";
 
 export interface RoomItem {
   id: string;
@@ -60,115 +62,185 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
     act(moveRoom, { ids: [...next, ...archived].map((r) => r.id).join(",") });
   };
 
-  return (
-    <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("rooms.failed")}>{error}</Banner> : null}
+  const setCapacity = (room: RoomItem, next: number) =>
+    act(saveRoom, {
+      id: room.id,
+      name: room.name,
+      hue: room.hue,
+      minAgeMonths: room.minAgeMonths === null ? "" : String(room.minAgeMonths),
+      maxAgeMonths: room.maxAgeMonths === null ? "" : String(room.maxAgeMonths),
+      ratio: room.ratio === null ? "" : String(room.ratio),
+      capacity: next <= 0 ? "" : String(next),
+    });
 
-      <div>
-        <RoomDialog
-          church={church}
-          pending={pending}
-          trigger={<Button><Plus /> {t("rooms.add")}</Button>}
-          title={t("rooms.add")}
-          onSave={(fields) => act(createRoom, fields)}
-        />
-      </div>
+  return (
+    <div className="flex flex-col gap-5" aria-busy={pending}>
+      {error ? <Banner tone="danger" title={t("rooms.failed")}>{error}</Banner> : null}
 
       {open.length === 0 ? (
         <EmptyState title={t("rooms.none.title")} body={t("rooms.none.body")} />
       ) : (
-        <Card>
-          <ul className="flex flex-col">
-            {open.map((room, i) => (
-              <li key={room.id}>
-                {i > 0 ? <Separator className="my-3" /> : null}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <HueDot hue={room.hue as Hue} />
-                    <div className="min-w-0">
-                      <div className="truncate text-[length:var(--d-text-body)] text-fg">{room.name}</div>
-                      <div className="flex flex-wrap gap-x-3 text-caption text-fg-muted">
-                        {ageLine(room) ? <span>{ageLine(room)}</span> : null}
-                        {room.capacity === null ? null : (
-                          <span>{t("rooms.holds", { n: room.capacity })}</span>
-                        )}
-                        {room.ratio === null ? null : (
-                          <span>{t("rooms.perVolunteer", { n: room.ratio })}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
+          {open.map((room, i) => (
+            <section
+              key={room.id}
+              className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4"
+            >
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="size-3 shrink-0 rounded-[4px]"
+                  style={{ background: `var(--hue-${room.hue}-500)` }}
+                />
 
-                  <div className="flex flex-wrap items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      aria-label={t("rooms.moveUp")}
-                      disabled={i === 0 || pending}
-                      onClick={() => move(i, -1)}
+                <RoomDialog
+                  church={church}
+                  room={room}
+                  pending={pending}
+                  trigger={
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 cursor-pointer truncate text-left font-semibold text-fg underline-offset-4 hover:underline"
                     >
-                      <ChevronUp />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      aria-label={t("rooms.moveDown")}
-                      disabled={i === open.length - 1 || pending}
-                      onClick={() => move(i, 1)}
-                    >
-                      <ChevronDown />
-                    </Button>
-                    <RoomDialog
-                      church={church}
-                      room={room}
-                      pending={pending}
-                      trigger={<IconButton
-                        label={t("rooms.edit")}
-                        variant="ghost"
-                      >
-                        <Pencil />
-                      </IconButton>}
-                      title={t("rooms.editTitle", { name: room.name })}
-                      onSave={(fields) => act(saveRoom, { id: room.id, ...fields })}
-                    />
-                    <ArchiveDialog
-                      room={room}
-                      pending={pending}
-                      onConfirm={() => act(archiveRoom, { id: room.id, archived: "1" })}
-                    />
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
+                      {room.name}
+                    </button>
+                  }
+                  title={t("rooms.editTitle", { name: room.name })}
+                  onSave={(fields) => act(saveRoom, { id: room.id, ...fields })}
+                />
 
-      {archived.length === 0 ? null : (
-        <Card>
-          <h2 className="mb-3 text-title text-fg">{t("rooms.archived")}</h2>
-          <ul className="flex flex-col">
-            {archived.map((room, i) => (
-              <li key={room.id}>
-                {i > 0 ? <Separator className="my-3" /> : null}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 text-fg-subtle">
-                    <HueDot hue={room.hue as Hue} />
-                    <span className="text-[length:var(--d-text-body)]">{room.name}</span>
-                  </div>
+                <span className="shrink-0 text-[12px] text-fg-subtle">{ageLine(room)}</span>
+              </div>
+
+              {/* R8.15. Capacity is the number a church changes most, and it
+                  changes by one, so it is two buttons rather than a form. */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-label text-fg-muted">{t("rooms.capacity")}</span>
+                <div className="flex items-center gap-1.5">
                   <IconButton
-                    label={t("rooms.restore")}
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => act(archiveRoom, { id: room.id, archived: "0" })}
+                    label={t("rooms.fewer")}
+                    variant="secondary"
+                    className="size-8 min-h-0 rounded-lg"
+                    disabled={pending || (room.capacity ?? 0) <= 0}
+                    onClick={() => setCapacity(room, (room.capacity ?? 0) - 1)}
                   >
-                    <Undo2 />
+                    <Minus />
+                  </IconButton>
+                  <span className="min-w-7 text-center font-semibold text-fg tabular-nums">
+                    {room.capacity ?? EMPTY}
+                  </span>
+                  <IconButton
+                    label={t("rooms.more")}
+                    variant="secondary"
+                    className="size-8 min-h-0 rounded-lg"
+                    disabled={pending}
+                    onClick={() => setCapacity(room, (room.capacity ?? 0) + 1)}
+                  >
+                    <Plus />
                   </IconButton>
                 </div>
-              </li>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 text-label">
+                <span className="text-fg-muted">{t("rooms.ratioLabel")}</span>
+                <span className="font-medium text-fg">
+                  {room.ratio === null ? EMPTY : `1:${room.ratio}`}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-0.5">
+                <IconButton
+                  label={t("rooms.moveUp")}
+                  variant="ghost"
+                  disabled={i === 0 || pending}
+                  onClick={() => move(i, -1)}
+                >
+                  <ChevronUp />
+                </IconButton>
+                <IconButton
+                  label={t("rooms.moveDown")}
+                  variant="ghost"
+                  disabled={i === open.length - 1 || pending}
+                  onClick={() => move(i, 1)}
+                >
+                  <ChevronDown />
+                </IconButton>
+                <ArchiveDialog
+                  room={room}
+                  pending={pending}
+                  onConfirm={() => act(archiveRoom, { id: room.id, archived: "1" })}
+                />
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
+      <NewRoom church={church} pending={pending} onAdd={(name) => act(createRoom, { name })} />
+
+      {archived.length === 0 ? null : (
+        <section className="flex flex-col gap-2">
+          <span className="text-[12px] font-medium text-fg-subtle">{t("rooms.archived")}</span>
+          <div className="rounded-[14px] border border-line bg-surface px-5 py-1">
+            {archived.map((room) => (
+              <div
+                key={room.id}
+                className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
+              >
+                <span
+                  className="size-3 shrink-0 rounded-[4px]"
+                  style={{ background: `var(--hue-${room.hue}-500)` }}
+                />
+                <span className="flex-1 text-fg-subtle">{room.name}</span>
+                <IconButton
+                  label={t("rooms.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => act(archiveRoom, { id: room.id, archived: "0" })}
+                >
+                  <Undo2 />
+                </IconButton>
+              </div>
             ))}
-          </ul>
-        </Card>
+          </div>
+        </section>
       )}
     </div>
+  );
+}
+
+/** R8.14. A room starts as a name. Everything else is set on the card. */
+function NewRoom({
+  church,
+  pending,
+  onAdd,
+}: {
+  church: string;
+  pending: boolean;
+  onAdd: (name: string) => void;
+}) {
+  const [name, setName] = React.useState("");
+
+  return (
+    <form
+      className="flex flex-wrap gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+        onAdd(name.trim());
+        setName("");
+      }}
+    >
+      <input type="hidden" value={church} />
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder={t("rooms.newName")}
+        aria-label={t("rooms.newName")}
+        autoComplete="off"
+        className="min-w-50 flex-1 sm:max-w-90"
+      />
+      <Button type="submit" disabled={pending}>{t("rooms.add")}</Button>
+    </form>
   );
 }
 

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { KeyRound, Mail } from "lucide-react";
-import { Banner, Button, Card, CardTitle, Field, Input, Separator } from "@hearth/ui";
+import { Banner, Button, Field, Input } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { check, minLength, requiredValue } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
@@ -40,10 +40,7 @@ export function Password() {
   });
 
   return (
-    <Card>
-      <CardTitle>{t("password.title")}</CardTitle>
-      <Separator className="my-4" />
-
+    <section className="rounded-[14px] border border-line bg-surface p-5">
       {error ? <Banner tone="danger" title={t("password.title")} className="mb-4">{error}</Banner> : null}
       {message ? <Banner tone="success" title={message} className="mb-4" /> : null}
 
@@ -54,7 +51,7 @@ export function Password() {
         onInput={form.revalidate}
         className="flex flex-col gap-4"
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
           <Field
             label={t("password.current")}
             htmlFor="current"
@@ -89,6 +86,6 @@ export function Password() {
           </Button>
         </div>
       </form>
-    </Card>
+    </section>
   );
 }

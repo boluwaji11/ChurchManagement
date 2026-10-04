@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Banner, Button, Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearLogo } from "./actions";
@@ -20,6 +20,8 @@ export function LogoAndStorage({
   churchName,
   logoUrl,
   fraction,
+  used,
+  quota,
   warning,
   canEdit,
 }: {
@@ -27,6 +29,9 @@ export function LogoAndStorage({
   churchName: string;
   logoUrl: string | null;
   fraction: number;
+  /** Already written, "1.2 GB". */
+  used: string;
+  quota: string;
   warning: boolean;
   canEdit: boolean;
 }) {
@@ -70,7 +75,10 @@ export function LogoAndStorage({
   };
 
   return (
-    <div className="flex flex-col gap-4" aria-busy={busy}>
+    <section
+      className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
+      aria-busy={busy}
+    >
       {error ? <Banner tone="danger" title={t("church.logo")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-4">
@@ -80,12 +88,12 @@ export function LogoAndStorage({
               <button
                 type="button"
                 aria-label={t("church.logo.view")}
-                className="rounded-md border border-line bg-canvas p-1 hover:border-fg-subtle"
+                className="size-16 shrink-0 cursor-pointer overflow-hidden rounded-[14px] border border-line bg-canvas p-1 hover:border-line-strong"
               >
                 <img
                   src={logoUrl}
                   alt={t("church.logo.alt", { church: churchName })}
-                  className="h-16 w-auto max-w-48 object-contain"
+                  className="size-full object-contain"
                 />
               </button>
             </DialogTrigger>
@@ -98,13 +106,30 @@ export function LogoAndStorage({
             </DialogContent>
           </Dialog>
         ) : (
-          <div className="flex h-16 w-24 items-center justify-center rounded-md border border-dashed border-line-strong text-fg-subtle">
-            <ImagePlus className="size-5" aria-hidden />
-          </div>
+          /* R1.1. The church's first letter until there is a logo, which is
+             what the design draws and what a label prints meanwhile. */
+          <span className="grid size-16 shrink-0 place-items-center rounded-[14px] bg-primary font-display text-[26px] text-primary-fg">
+            {churchName.trim().charAt(0).toUpperCase()}
+          </span>
         )}
 
+        <div className="flex flex-[1_1_220px] flex-col gap-2">
+          <span className="font-semibold text-fg">{t("church.logo")}</span>
+
+          <span className="h-1.5 overflow-hidden rounded-full bg-line">
+            <span
+              className={warning ? "block h-full bg-danger" : "block h-full bg-primary"}
+              style={{ width: `${Math.max(percent, 1)}%` }}
+            />
+          </span>
+
+          <span className="text-[12px] text-fg-subtle">
+            {t("storage.used", { used, quota })}
+          </span>
+        </div>
+
         {canEdit ? (
-          <div className="flex flex-wrap items-center gap-3">
+          <>
             <input
               ref={input}
               type="file"
@@ -115,26 +140,28 @@ export function LogoAndStorage({
                 if (file) void upload(file);
               }}
             />
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={busy}
-              onClick={() => input.current?.click()}
-            >
-              <ImagePlus /> {t("church.logo.upload")}
-            </Button>
-            {logoUrl ? (
-              <Button type="button" variant="ghost" onClick={remove}>
-                <X /> {t("church.logo.remove")}
+            <div className="flex flex-wrap items-center gap-2">
+              {logoUrl ? (
+                <Button type="button" variant="ghost" onClick={remove}>
+                  <X /> {t("church.logo.remove")}
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => input.current?.click()}
+              >
+                {t("church.logo.upload")}
               </Button>
-            ) : null}
-          </div>
+            </div>
+          </>
         ) : null}
       </div>
 
       {warning ? (
         <Banner tone="warning" title={t("storage.warning", { percent: String(percent) })} />
       ) : null}
-    </div>
+    </section>
   );
 }

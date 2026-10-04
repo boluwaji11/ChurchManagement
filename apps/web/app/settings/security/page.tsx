@@ -1,5 +1,5 @@
 import { withTenant, listSessions, describeDevice } from "@hearth/db";
-import { Banner, Card, CardTitle, Separator } from "@hearth/ui";
+import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession, currentSessionId } from "@/lib/session";
 import { Sessions } from "../sessions";
@@ -27,11 +27,7 @@ export default async function SecurityPage() {
       <SettingsHeading title="settings.tab.security" lede="settings.lede.security" />
       <Password />
 
-      <Card>
-        <CardTitle>{t("session.title")}</CardTitle>
-        <Separator className="my-4" />
-
-        {sessions === null ? (
+      {sessions === null ? (
           <Banner tone="info" title={t("session.unavailable")} />
         ) : (
           <Sessions
@@ -48,9 +44,8 @@ export default async function SecurityPage() {
                 current: s.id === currentId,
               };
             })}
-          />
-        )}
-      </Card>
+        />
+      )}
     </div>
   );
 }

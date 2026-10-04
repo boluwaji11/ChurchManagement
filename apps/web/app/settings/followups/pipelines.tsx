@@ -4,10 +4,9 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, Pencil, Power } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Card, Field, HueTag, Input, Separator, Textarea,
+  Badge, Banner, Button, IconButton, Field, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { savePipeline, switchPipeline } from "./actions";
@@ -63,41 +62,143 @@ export function Pipelines({
       if (!result.error) router.refresh();
     });
 
+  /** R5.2. Writes the whole step list back, which is what the action takes. */
+  const writeSteps = (
+    row: PipelineRow,
+    steps: Array<{ id: string; name: string; dueDays: number }>,
+  ) => {
+    const data = new FormData();
+    data.set("church", church);
+    data.set("id", row.id);
+    data.set("name", row.name);
+    data.set("description", row.description ?? "");
+    data.set("ownerUserId", row.ownerUserId ?? "");
+    for (const step of steps) {
+      data.append("stepId", step.id);
+      data.append("stepName", step.name);
+      data.append("stepDays", String(step.dueDays));
+    }
+    run(() => savePipeline(data));
+  };
+
   return (
-    <div className="flex flex-col gap-4" aria-busy={pending}>
+    <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
 
       {rows.map((row) => (
-        <Card key={row.id} className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="flex flex-wrap items-center gap-2">
-              <HueTag hue={row.hue as Hue}>{row.name}</HueTag>
-              {row.archived ? <Badge tone="neutral">{t("pipelines.off")}</Badge> : null}
-              <span className="text-caption text-fg-muted">
-                {row.steps.map((step) => t("pipelines.stepAfter", { name: step.name, count: String(step.dueDays) })).join(", ")}
-              </span>
+        <section
+          key={row.id}
+          className="flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface px-5 py-4.5"
+        >
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span
+              className="size-3 shrink-0 rounded-[4px]"
+              style={{ background: `var(--hue-${row.hue}-500)` }}
+            />
+            <span className="flex-1 font-display text-[20px] text-fg">{row.name}</span>
+
+            {row.archived ? <Badge tone="neutral">{t("pipelines.off")}</Badge> : null}
+
+            <span className="text-label text-fg-subtle">
+              {t("pipelines.ownedBy", {
+                name: team.find((one) => one.userId === row.ownerUserId)?.name
+                  ?? t("pipelines.nobody"),
+              })}
             </span>
 
-            <span className="flex flex-wrap items-center gap-1">
-              <EditDialog church={church} row={row} team={team} pending={pending} />
-              <Button
-                variant="ghost"
-                disabled={pending}
-                onClick={() => run(() => switchPipeline(row.id, !row.archived, church))}
-              >
-                <Power /> {row.archived ? t("pipelines.on") : t("pipelines.turnOff")}
-              </Button>
-            </span>
+            <EditDialog church={church} row={row} team={team} pending={pending} />
+
+            <IconButton
+              label={row.archived ? t("pipelines.on") : t("pipelines.turnOff")}
+              variant="ghost"
+              disabled={pending}
+              onClick={() => run(() => switchPipeline(row.id, !row.archived, church))}
+            >
+              <Power />
+            </IconButton>
           </div>
 
-          {row.description ? (
-            <span className="text-[length:var(--d-text-body)] text-fg-muted">
-              {row.description}
-            </span>
+          {row.steps.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {row.steps.map((step, at) => (
+                <span
+                  key={step.id}
+                  className="flex h-10 items-center gap-2 rounded-[10px] border border-line bg-canvas pr-1.5 pl-3"
+                >
+                  <span className="text-[11px] font-semibold text-fg-subtle tabular-nums">
+                    {at + 1}
+                  </span>
+                  <span className="text-label font-medium text-fg">{step.name}</span>
+                  <span className="text-[12px] text-fg-subtle">
+                    {t("pipelines.dueIn", { count: String(step.dueDays) })}
+                  </span>
+                  <IconButton
+                    label={t("pipelines.removeOne", { name: step.name })}
+                    className="size-6 min-h-0 rounded-full [&_svg]:size-3.5"
+                    disabled={pending}
+                    onClick={() =>
+                      writeSteps(
+                        row,
+                        row.steps.filter((one) => one.id !== step.id),
+                      )}
+                  >
+                    <X />
+                  </IconButton>
+                </span>
+              ))}
+            </div>
           ) : null}
-        </Card>
+
+          <AddStep
+            pending={pending}
+            onAdd={(name) =>
+              writeSteps(row, [
+                ...row.steps.map((one) => ({ id: one.id, name: one.name, dueDays: one.dueDays })),
+                { id: "", name, dueDays: 7 },
+              ])}
+          />
+
+          {row.description ? (
+            <span className="text-fg-muted">{row.description}</span>
+          ) : null}
+        </section>
       ))}
     </div>
+  );
+}
+
+/** R5.2. A step starts as a name. Its due day is set when it is edited. */
+function AddStep({
+  pending,
+  onAdd,
+}: {
+  pending: boolean;
+  onAdd: (name: string) => void;
+}) {
+  const [name, setName] = React.useState("");
+
+  return (
+    <form
+      className="flex flex-wrap gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+        onAdd(name.trim());
+        setName("");
+      }}
+    >
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder={t("pipelines.addStep")}
+        aria-label={t("pipelines.step")}
+        autoComplete="off"
+        className="min-w-50 flex-1"
+      />
+      <Button type="submit" variant="secondary" disabled={pending}>
+        {t("pipelines.addStep")}
+      </Button>
+    </form>
   );
 }
 

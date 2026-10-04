@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Archive, Undo2 } from "lucide-react";
+import { Plus, Archive, Undo2, Tablet } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Card, EmptyState, Field, Input, Separator,
+  Banner, Button, IconButton, EmptyState, Field, Input, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -55,11 +55,19 @@ export function StationManager({
   const open = stations.filter((s) => !s.archived);
   const archived = stations.filter((s) => s.archived);
 
+  const setMode = (station: StationItem, mode: string) =>
+    act(saveStation, {
+      id: station.id,
+      name: station.name,
+      printer: station.printer,
+      mode,
+    });
+
   return (
-    <div className="flex flex-col gap-6" aria-busy={pending}>
+    <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("stations.failed")}>{error}</Banner> : null}
 
-      <div>
+      <div className="flex justify-end">
         <StationDialog
           pending={pending}
           title={t("stations.add")}
@@ -71,68 +79,92 @@ export function StationManager({
       {open.length === 0 ? (
         <EmptyState title={t("stations.none.title")} body={t("stations.none.body")} />
       ) : (
-        <Card>
-          <ul className="flex flex-col">
-            {open.map((station, i) => (
-              <li key={station.id}>
-                {i > 0 ? <Separator className="my-3" /> : null}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[length:var(--d-text-body)] text-fg">{station.name}</span>
-                      <Badge tone="neutral">{t(`stations.mode.${station.mode}` as never)}</Badge>
-                      <Badge tone="neutral">{t(`stations.printer.${station.printer}` as never)}</Badge>
-                    </div>
-                  </div>
+        <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
+          {open.map((station) => (
+            <div
+              key={station.id}
+              className="flex flex-wrap items-center gap-3 border-b border-sunken py-3 last:border-0"
+            >
+              <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-sunken text-fg-muted">
+                <Tablet className="size-[18px]" aria-hidden />
+              </span>
 
-                  <div className="flex flex-wrap items-center gap-1">
-                    <StationDialog
-                      station={station}
-                      pending={pending}
-                      title={t("stations.editTitle", { name: station.name })}
-                      trigger={<IconButton
-                        label={t("stations.edit")}
-                        variant="ghost"
-                      >
-                        <Pencil />
-                      </IconButton>}
-                      onSave={(fields) => act(saveStation, { id: station.id, ...fields })}
-                    />
-                    <ArchiveDialog
-                      station={station}
-                      pending={pending}
-                      onConfirm={() => act(archiveStation, { id: station.id, archived: "1" })}
-                    />
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
+              <span className="flex min-w-0 flex-[1_1_180px] flex-col leading-[18px]">
+                <StationDialog
+                  station={station}
+                  pending={pending}
+                  title={t("stations.editTitle", { name: station.name })}
+                  trigger={
+                    <button
+                      type="button"
+                      className="cursor-pointer truncate text-left font-medium text-fg underline-offset-4 hover:underline"
+                    >
+                      {station.name}
+                    </button>
+                  }
+                  onSave={(fields) => act(saveStation, { id: station.id, ...fields })}
+                />
+                <span className="truncate text-[12px] text-fg-subtle">
+                  {station.printer === "paper"
+                    ? t("stations.noPrinter")
+                    : t(`stations.printer.${station.printer}` as never)}
+                </span>
+              </span>
+
+              {/* R8.1. The one thing a church flips between services: whether a
+                  volunteer is standing at it or a family uses it themselves. */}
+              <div className="flex gap-0.5 rounded-[10px] bg-sunken p-[3px]">
+                {MODES.map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    aria-pressed={station.mode === mode}
+                    disabled={pending}
+                    onClick={() => setMode(station, mode)}
+                    className={cn(
+                      "h-7.5 cursor-pointer rounded-[7px] px-3 text-label font-medium",
+                      station.mode === mode
+                        ? "bg-surface text-fg shadow-sm"
+                        : "text-fg-muted hover:text-fg",
+                    )}
+                  >
+                    {t(`stations.mode.${mode}` as never)}
+                  </button>
+                ))}
+              </div>
+
+              <ArchiveDialog
+                station={station}
+                pending={pending}
+                onConfirm={() => act(archiveStation, { id: station.id, archived: "1" })}
+              />
+            </div>
+          ))}
+        </section>
       )}
 
       {archived.length === 0 ? null : (
-        <Card>
-          <h2 className="mb-3 text-title text-fg">{t("stations.archived")}</h2>
-          <ul className="flex flex-col">
-            {archived.map((station, i) => (
-              <li key={station.id}>
-                {i > 0 ? <Separator className="my-3" /> : null}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[length:var(--d-text-body)] text-fg-subtle">{station.name}</span>
-                  <IconButton
-                    label={t("stations.restore")}
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => act(archiveStation, { id: station.id, archived: "0" })}
-                  >
-                    <Undo2 />
-                  </IconButton>
-                </div>
-              </li>
+        <section className="flex flex-col gap-2">
+          <span className="text-[12px] font-medium text-fg-subtle">{t("stations.archived")}</span>
+          <div className="rounded-[14px] border border-line bg-surface px-5 py-1">
+            {archived.map((station) => (
+              <div
+                key={station.id}
+                className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
+              >
+                <span className="flex-1 text-fg-subtle">{station.name}</span>
+                <IconButton
+                  label={t("stations.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => act(archiveStation, { id: station.id, archived: "0" })}
+                >
+                  <Undo2 />
+                </IconButton>
+              </div>
             ))}
-          </ul>
-        </Card>
+          </div>
+        </section>
       )}
     </div>
   );
