@@ -121,6 +121,9 @@ export default async function CelebrationsPage({
           does with this list: print it. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
+          <span className="mr-1.5 font-display text-[28px] leading-[34px] text-fg">
+            {heading}
+          </span>
           <Link
             href={link({ at: earlier })}
             aria-label={t("celebrations.earlier")}
@@ -128,9 +131,6 @@ export default async function CelebrationsPage({
           >
             <ChevronLeft className="size-4" aria-hidden />
           </Link>
-          <span className="min-w-[170px] text-center font-display text-[28px] leading-[34px] text-fg">
-            {heading}
-          </span>
           <Link
             href={link({ at: today })}
             aria-label={t("calendar.now")}

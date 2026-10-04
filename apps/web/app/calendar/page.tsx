@@ -134,6 +134,9 @@ export default async function CalendarPage({
     <AppShell session={session} title={t("calendar.title")} wide>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
+          <span className="mr-1.5 font-display text-[22px] leading-7 text-fg">
+            {span(from, to)}
+          </span>
           <Link
             href={link(shift(from, -7))}
             aria-label={t("calendar.earlier")}
@@ -160,9 +163,6 @@ export default async function CalendarPage({
           >
             <ChevronRight className="size-4" aria-hidden />
           </Link>
-          <span className="ml-1.5 font-display text-[22px] leading-7 text-fg">
-            {span(from, to)}
-          </span>
         </div>
       </div>
 
