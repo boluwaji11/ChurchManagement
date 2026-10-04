@@ -109,7 +109,9 @@ export function ProfileForm({
               </button>
             </DialogTrigger>
 
-            <DialogContent title={t("profile.photo.title")} closeLabel={t("common.close")}>
+            {/* No heading over it. The picture is the whole content, and the
+                words "Your photo" above somebody's face say nothing. */}
+            <DialogContent title={t("profile.photo.title")} hideTitle closeLabel={t("common.close")}>
               <img
                 src={photoUrl}
                 alt=""
