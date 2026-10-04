@@ -18,6 +18,7 @@ import {
   type PersonErrors,
 } from "@/lib/person-input";
 import { AddressFields } from "@/components/address-fields";
+import { Picker } from "@/components/picker";
 import { emptyAddress, type AddressValues } from "@/lib/address";
 import { savePerson } from "./actions";
 import { CustomFieldInputs, type FieldDef, type FieldValues } from "./custom-fields";
@@ -133,36 +134,6 @@ function FormCard({
 }
 
 /** R24.6. The form's Save, for a page that puts it beside the title. */
-/**
- * A field somebody may leave unanswered.
- *
- * A list rather than pills, because there are sixteen school years and a row of
- * pills that long is a wall. It opens blank: an unanswered question is an empty
- * box rather than a row reading "not said".
- */
-function Picker({
-  name,
-  value,
-  options,
-  label,
-}: {
-  name: string;
-  value: string | null;
-  options: { value: string; label: string }[];
-  label: string;
-}) {
-  return (
-    <Select name={name} defaultValue={value ?? undefined}>
-      <SelectTrigger aria-label={label}><SelectValue placeholder="" /></SelectTrigger>
-      <SelectContent>
-        {options.map((one) => (
-          <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
 export function PersonFormActions({ editing }: { editing: boolean }) {
   return (
     <FormActions
@@ -270,7 +241,7 @@ export function PersonForm({
           <Field label={t("person.maritalStatus")}>
             <Picker
               name="maritalStatus"
-              value={values?.maritalStatus ?? null}
+              defaultValue={values?.maritalStatus ?? null}
               options={maritalOptions()}
               label={t("person.maritalStatus")}
             />
@@ -281,7 +252,7 @@ export function PersonForm({
           <Field label={t("person.schoolLevel")}>
             <Picker
               name="schoolLevel"
-              value={values?.schoolLevel ?? null}
+              defaultValue={values?.schoolLevel ?? null}
               options={schoolOptions()}
               label={t("person.schoolLevel")}
             />
@@ -292,7 +263,7 @@ export function PersonForm({
             <Field label={t("person.campus")}>
               <Picker
                 name="campusId"
-                value={values?.campusId ?? null}
+                defaultValue={values?.campusId ?? null}
                 options={campuses.map((one) => ({ value: one.id, label: one.name }))}
                 label={t("person.campus")}
               />

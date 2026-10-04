@@ -6,13 +6,13 @@ import { Camera, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import {
   Avatar, Banner, Button, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, IconButton, Input, Working,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
 import { longDate } from "@/lib/dates";
 import { AddressFields } from "@/components/address-fields";
+import { Picker } from "@/components/picker";
 import { oneLineAddress, type AddressValues } from "@/lib/address";
 import { maritalOptions, schoolOptions } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
@@ -27,39 +27,6 @@ const DATE_LABELS = () => ({
   year: t("date.year"),
   today: t("date.today"),
 });
-
-/**
- * A field somebody may leave unanswered.
- *
- * It opens blank rather than offering "not said" as an answer: an unanswered
- * question is an empty box, and a list that leads with a non-answer makes the
- * reader skip a line before they reach anything true.
- *
- * The product's own Select rather than a native one, so it is drawn by Hearth
- * on every platform instead of by whatever the operating system feels like.
- */
-function Choice({
-  name,
-  value,
-  options,
-  label,
-}: {
-  name: string;
-  value: string | null;
-  options: { value: string; label: string }[];
-  label: string;
-}) {
-  return (
-    <Select name={name} defaultValue={value ?? undefined}>
-      <SelectTrigger aria-label={label}><SelectValue placeholder="" /></SelectTrigger>
-      <SelectContent>
-        {options.map((one) => (
-          <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
 
 export interface ProfileValues {
   personId: string;
@@ -357,9 +324,9 @@ export function ProfileForm({
           <AddressFields values={values.address} />
 
           <Field label={t("person.maritalStatus")}>
-            <Choice
+            <Picker
               name="maritalStatus"
-              value={values.maritalStatus}
+              defaultValue={values.maritalStatus}
               options={maritalOptions()}
               label={t("person.maritalStatus")}
             />
@@ -375,9 +342,9 @@ export function ProfileForm({
           </Field>
 
           <Field label={t("person.schoolLevel")}>
-            <Choice
+            <Picker
               name="schoolLevel"
-              value={values.schoolLevel}
+              defaultValue={values.schoolLevel}
               options={schoolOptions()}
               label={t("person.schoolLevel")}
             />
@@ -385,9 +352,9 @@ export function ProfileForm({
 
           {campuses.length > 1 ? (
             <Field label={t("person.campus")}>
-              <Choice
+              <Picker
                 name="campusId"
-                value={values.campusId}
+                defaultValue={values.campusId}
                 options={campuses.map((one) => ({ value: one.id, label: one.name }))}
                 label={t("person.campus")}
               />
