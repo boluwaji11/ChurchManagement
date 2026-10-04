@@ -13,6 +13,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { ageLine } from "@/lib/room-ages";
 import { Floor, type FloorStart } from "./floor";
+import { CheckInSheet } from "./check-in-sheet";
 
 export const dynamic = "force-dynamic";
 
@@ -95,11 +96,16 @@ export default async function CheckinPage({
   const checkedIn = (data.board?.rooms ?? []).reduce((n, r) => n + r.present, 0);
 
   const action = (
-    <Button asChild>
-      <Link href={`/checkin/station?church=${session.tenantSlug}`}>
-        <Plus /> {t("checkin.check")}
-      </Link>
-    </Button>
+    <CheckInSheet
+      church={session.tenantSlug}
+      waiting={data.waiting.map((child) => ({ visitId: child.visitId, name: child.name }))}
+      rooms={data.rooms.map((room) => ({ id: room.id, name: room.name }))}
+      trigger={
+        <Button>
+          <Plus /> {t("checkin.check")}
+        </Button>
+      }
+    />
   );
 
   if (!canSupervise(session.role)) {
