@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lte, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import {
   teams, teamPositions, teamMembers, teamMemberPositions,
@@ -697,5 +697,79 @@ export async function rosterFor(db: Tx, occurrenceId: string): Promise<PlanRoste
     });
   }
 
+  return out;
+}
+
+/**
+ * R10.4. Who on this team is away, across the dates on screen.
+ *
+ * One query for the whole grid rather than one a slot, because the schedule
+ * screen asks the same question of twenty cells at once.
+ */
+export async function blockoutsFor(
+  db: Tx,
+  personIds: string[],
+  window: { from: string; to: string },
+): Promise<Blockout[]> {
+  if (personIds.length === 0) return [];
+
+  return db
+    .select({
+      id: blockoutDates.id,
+      personId: blockoutDates.personId,
+      startsOn: sql<string>`${blockoutDates.startsOn}::text`,
+      endsOn: sql<string>`${blockoutDates.endsOn}::text`,
+      reason: blockoutDates.reason,
+    })
+    .from(blockoutDates)
+    .where(and(
+      inArray(blockoutDates.personId, personIds),
+      lte(blockoutDates.startsOn, window.to),
+      gte(blockoutDates.endsOn, window.from),
+    ))
+    .orderBy(asc(blockoutDates.startsOn));
+}
+
+/**
+ * R10.3. How many slots each team still has to fill across these gatherings.
+ *
+ * Counted as what the positions ask for against what has been scheduled, so a
+ * declined request reads as an open slot, which is what it is.
+ */
+export async function openSlots(
+  db: Tx,
+  occurrenceIds: string[],
+): Promise<Record<string, number>> {
+  const out: Record<string, number> = {};
+  if (occurrenceIds.length === 0) return out;
+
+  const wanted = await db
+    .select({
+      teamId: teamPositions.teamId,
+      needed: sql<number>`coalesce(sum(${teamPositions.needed}), 0)::int`,
+    })
+    .from(teamPositions)
+    .where(isNull(teamPositions.archivedAt))
+    .groupBy(teamPositions.teamId);
+
+  const taken = await db
+    .select({
+      teamId: servingAssignments.teamId,
+      filled: sql<number>`count(*)::int`,
+    })
+    .from(servingAssignments)
+    .where(and(
+      inArray(servingAssignments.occurrenceId, occurrenceIds),
+      ne(servingAssignments.status, "declined"),
+    ))
+    .groupBy(servingAssignments.teamId);
+
+  const filled = new Map(taken.map((row) => [row.teamId, row.filled]));
+  for (const row of wanted) {
+    out[row.teamId] = Math.max(
+      0,
+      row.needed * occurrenceIds.length - (filled.get(row.teamId) ?? 0),
+    );
+  }
   return out;
 }

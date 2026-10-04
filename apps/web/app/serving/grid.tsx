@@ -1,0 +1,299 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Clock, XCircle, X, AlertTriangle } from "lucide-react";
+import { Avatar, Banner, Combobox, cn } from "@hearth/ui";
+import { t, plural } from "@hearth/i18n";
+import { schedule, unschedule } from "./actions";
+
+export interface GridService {
+  id: string;
+  /** "Sun 5 Oct", as the column head reads. */
+  label: string;
+}
+
+export interface GridTeam {
+  id: string;
+  name: string;
+  hue: string;
+  open: number;
+}
+
+export interface GridSlot {
+  positionId: string;
+  occurrenceId: string;
+  assignmentId: string | null;
+  personName: string | null;
+  status: "accepted" | "pending" | "declined" | null;
+  /** R10.4. What is wrong with this one: away that day, or doubled up. */
+  warning: string | null;
+}
+
+export interface GridPosition {
+  id: string;
+  name: string;
+  needed: number;
+}
+
+export interface GridVolunteer {
+  personId: string;
+  name: string;
+  /** How much they are already doing, or the day they are away. */
+  note: string;
+  away: boolean;
+}
+
+/** R10.6. What a reply looks like in a cell. */
+const LOOK = {
+  accepted: { icon: CheckCircle2, hue: "fern" },
+  pending: { icon: Clock, hue: "amber" },
+  declined: { icon: XCircle, hue: "rose" },
+} as const;
+
+/**
+ * R10.3, R10.4. One team's month: a row per position, a column per gathering.
+ *
+ * A leader fills a rota by looking across a month rather than one service at a
+ * time, so the whole month is the screen and a volunteer is dragged from the
+ * list beside it onto the slot they are taking.
+ */
+export function ScheduleGrid({
+  church,
+  teams,
+  team,
+  positions,
+  services,
+  slots,
+  volunteers,
+  onTeam,
+}: {
+  church: string;
+  teams: GridTeam[];
+  team: GridTeam;
+  positions: GridPosition[];
+  services: GridService[];
+  slots: GridSlot[];
+  volunteers: GridVolunteer[];
+  onTeam: (id: string) => void;
+}) {
+  const router = useRouter();
+  const [dragging, setDragging] = React.useState<GridVolunteer | null>(null);
+  const [over, setOver] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+
+  const key = (positionId: string, occurrenceId: string) => `${positionId}:${occurrenceId}`;
+  const at = new Map(slots.map((slot) => [key(slot.positionId, slot.occurrenceId), slot]));
+
+  const drop = (positionId: string, occurrenceId: string) => {
+    const who = dragging;
+    setDragging(null);
+    setOver(null);
+    if (!who) return;
+
+    startTransition(async () => {
+      const result = await schedule(
+        { occurrenceId, teamId: team.id, positionId, personId: who.personId, anyway: false },
+        church,
+      );
+      setError(result.error);
+      router.refresh();
+    });
+  };
+
+  const take = (assignmentId: string) => {
+    startTransition(async () => {
+      const result = await unschedule(assignmentId, church);
+      setError(result.error);
+      router.refresh();
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-4" aria-busy={pending}>
+      {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Combobox
+          aria-label={t("serving.view.teams")}
+          className="w-full max-w-[320px]"
+          options={teams.map((one) => ({
+            value: one.id,
+            // The count rides the name, so the box says which team is short
+            // before it is opened.
+            label: `${one.name} · ${
+              one.open > 0 ? plural("serving.gaps", one.open) : t("serving.full")
+            }`,
+            keywords: one.name,
+          }))}
+          value={team.id}
+          onChange={onTeam}
+          emptyLabel={t("serving.noTeam")}
+          clearLabel={t("date.clear")}
+          clearable={false}
+        />
+        <span className="text-[13px] text-fg-subtle">
+          {plural("serving.teamCount", teams.length)}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-start gap-5">
+        <section className="flex-[999_1_560px] overflow-auto rounded-lg border border-line bg-surface">
+          <div
+            className="grid min-w-[760px]"
+            style={{
+              gridTemplateColumns: `150px repeat(${services.length}, minmax(150px, 1fr))`,
+            }}
+          >
+            <div className="border-b border-line px-4 py-3 text-[12px] font-medium text-fg-subtle">
+              {t("serving.position")}
+            </div>
+
+            {services.map((service) => {
+              const filled = slots.filter(
+                (slot) => slot.occurrenceId === service.id && slot.assignmentId,
+              ).length;
+              const needed = positions.reduce((n, position) => n + position.needed, 0);
+
+              return (
+                <div
+                  key={service.id}
+                  className="flex items-baseline justify-between gap-2 border-b border-line border-l border-l-sunken px-3 py-2.5"
+                >
+                  <span className="min-w-0 truncate font-semibold text-fg">{service.label}</span>
+                  <span
+                    className="shrink-0 text-[12px] font-medium"
+                    style={{
+                      color:
+                        filled >= needed ? "var(--hue-fern-key)" : "var(--color-danger-text)",
+                    }}
+                  >
+                    {filled} / {needed}
+                  </span>
+                </div>
+              );
+            })}
+
+            {positions.map((position) => (
+              <React.Fragment key={position.id}>
+                <div className="flex items-center border-b border-sunken px-4 py-3 text-[13px] font-medium text-fg">
+                  {position.name}
+                </div>
+
+                {services.map((service) => {
+                  const slot = at.get(key(position.id, service.id));
+                  const spot = key(position.id, service.id);
+                  const look = slot?.status ? LOOK[slot.status] : null;
+
+                  return (
+                    <div
+                      key={service.id}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setOver(spot);
+                      }}
+                      onDragLeave={() => setOver((was) => (was === spot ? null : was))}
+                      onDrop={() => drop(position.id, service.id)}
+                      className={cn(
+                        "flex flex-col gap-1 border-b border-sunken border-l border-l-sunken p-2",
+                        over === spot && "bg-primary-soft",
+                      )}
+                    >
+                      {slot?.assignmentId && look ? (
+                        <>
+                          <div
+                            className="flex items-center gap-1.5 rounded-sm px-2 py-1.5"
+                            style={{ background: `var(--hue-${look.hue}-tint)` }}
+                          >
+                            <look.icon
+                              className="size-3.5 shrink-0"
+                              style={{ color: `var(--hue-${look.hue}-key)` }}
+                              aria-hidden
+                            />
+                            <span
+                              className={cn(
+                                "min-w-0 flex-1 truncate text-[13px] font-medium text-fg",
+                                slot.status === "declined" && "line-through",
+                              )}
+                            >
+                              {slot.personName}
+                            </span>
+                            <button
+                              type="button"
+                              aria-label={t("serving.unschedule")}
+                              disabled={pending}
+                              onClick={() => take(slot.assignmentId!)}
+                              className="grid size-5 place-items-center rounded-sm text-fg-subtle hover:bg-surface hover:text-fg"
+                            >
+                              <X className="size-3" aria-hidden />
+                            </button>
+                          </div>
+
+                          {slot.warning ? (
+                            <span className="flex items-center gap-1 text-[11px] font-medium leading-[14px] text-danger-text">
+                              <AlertTriangle className="size-3 shrink-0" aria-hidden />
+                              {slot.warning}
+                            </span>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span className="px-1 text-[12px] text-fg-subtle">
+                          {t("serving.openSlot")}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </section>
+
+        {/* R10.3. Who is on this team, with what they are already doing, so a
+            leader spreads the load rather than asking the same four people. */}
+        <aside className="flex flex-[1_1_240px] flex-col gap-2 rounded-lg border border-line bg-surface p-4 lg:sticky lg:top-[84px]">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-semibold text-fg">
+              {t("serving.volunteers", { team: team.name })}
+            </span>
+            <span className="text-[12px] text-fg-subtle">{t("serving.dragOnto")}</span>
+          </div>
+
+          {volunteers.length === 0 ? (
+            <p className="text-[13px] text-fg-muted">{t("serving.roster.empty")}</p>
+          ) : (
+            volunteers.map((one) => (
+              <div
+                key={one.personId}
+                draggable
+                onDragStart={(e) => {
+                  setDragging(one);
+                  e.dataTransfer.effectAllowed = "copy";
+                  e.dataTransfer.setData("text/plain", one.personId);
+                }}
+                onDragEnd={() => setDragging(null)}
+                className="flex cursor-grab items-center gap-2.5 rounded-md border border-line bg-canvas px-2.5 py-2"
+              >
+                <Avatar name={one.name} id={one.personId} className="size-7 text-[11px] font-semibold" />
+                <span className="min-w-0 flex-1 leading-4">
+                  <span className="block truncate text-[13px] font-medium text-fg">
+                    {one.name}
+                  </span>
+                  <span
+                    className="block truncate text-[12px]"
+                    style={{
+                      color: one.away ? "var(--hue-amber-key)" : "var(--color-fg-subtle)",
+                    }}
+                  >
+                    {one.note}
+                  </span>
+                </span>
+              </div>
+            ))
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
