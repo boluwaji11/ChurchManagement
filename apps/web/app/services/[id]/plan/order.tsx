@@ -706,6 +706,7 @@ function StartFrom({
     items: ShapeItem[];
     apply: () => Promise<{ error?: string }>;
   } | null>(null);
+  const [failed, setFailed] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   const summary = (items: number, minutes: number) =>
@@ -719,6 +720,7 @@ function StartFrom({
   ) => {
     startTransition(async () => {
       const result = await shapeOf(source, church);
+      setFailed(result.error);
       if (result.items) setLooking({ label, items: result.items, apply });
     });
   };
@@ -727,7 +729,9 @@ function StartFrom({
     const chosen = looking;
     if (!chosen) return;
     startTransition(async () => {
-      await chosen.apply();
+      const result = await chosen.apply();
+      setFailed(result.error);
+      if (result.error) return;
       setLooking(null);
       setOpen(false);
       router.refresh();
@@ -753,7 +757,10 @@ function StartFrom({
       open={open}
       onOpenChange={(on) => {
         setOpen(on);
-        if (!on) setLooking(null);
+        if (!on) {
+          setLooking(null);
+          setFailed(undefined);
+        }
       }}
     >
       <DialogTrigger asChild>
@@ -766,6 +773,10 @@ function StartFrom({
         title={looking ? looking.label : t("order.start.title")}
         closeLabel={t("common.close")}
       >
+        {failed ? (
+          <Banner tone="danger" title={t("order.failed")} className="mb-4">{failed}</Banner>
+        ) : null}
+
         {looking ? (
           <div className="flex flex-col gap-4">
             {/* Read first: what these items are, before they land on a plan
