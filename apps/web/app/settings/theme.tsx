@@ -7,11 +7,11 @@ import { cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { setTheme, type Theme } from "./theme-actions";
 
-/** The design's order: the two a person picks, then the one that asks the device. */
+/** The default leads, then the two that override it. */
 const CHOICES: { value: Theme; icon: typeof Sun }[] = [
+  { value: "system", icon: Monitor },
   { value: "light", icon: Sun },
   { value: "dark", icon: Moon },
-  { value: "system", icon: Monitor },
 ];
 
 /** R24.x. Three choices, and the default asks the device. */
