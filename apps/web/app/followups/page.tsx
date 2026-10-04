@@ -2,7 +2,7 @@ import {
   withTenant, getChurch, listPipelines, peopleIn, canFollowUp,
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -89,32 +89,22 @@ export default async function FollowUpsPage({
     };
   });
 
-  const overdue = cards.filter((c) => c.late).length;
-
   return (
     <AppShell session={session} title={t("queue.title")}>
-      {pipelines.length > 1 ? (
-        <PipelinePicker
-          church={session.tenantSlug}
-          pipelines={pipelines.map((one) => ({ id: one.id, name: one.name }))}
-          current={pipeline?.id ?? ""}
-        />
-      ) : null}
-
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+      {/* The pipeline names itself, so the board carries no heading of its
+          own. The hint sits beside the picker. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {pipelines.length > 1 ? (
+          <PipelinePicker
+            church={session.tenantSlug}
+            pipelines={pipelines.map((one) => ({ id: one.id, name: one.name }))}
+            current={pipeline?.id ?? ""}
+          />
+        ) : (
           <h2 className="font-display text-[28px] leading-[34px] text-fg">
             {pipeline?.name ?? t("queue.title")}
           </h2>
-          <p className="mt-1 text-fg-muted">
-            {[
-              plural("board.inPipeline", cards.length),
-              overdue > 0 ? plural("board.overdue", overdue) : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        </div>
+        )}
         <DragHint />
       </div>
 
