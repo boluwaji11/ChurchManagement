@@ -87,7 +87,7 @@ export function Positions({
         {positions.map((position) => (
           <li
             key={position.id}
-            className="flex items-center gap-3 border-b border-sunken py-3 first:pt-0"
+            className="flex items-center gap-3 border-b border-sunken py-1.5"
           >
             <span className="min-w-0 flex-1 truncate font-medium text-fg">{position.name}</span>
             {canManage ? (

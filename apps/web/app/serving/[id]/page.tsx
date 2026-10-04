@@ -4,7 +4,7 @@ import { ArrowLeft, CalendarDays, Pencil } from "lucide-react";
 import {
   withTenant, getTeam, canManageTeams, canLeadTeams, leadsTeam,
 } from "@hearth/db";
-import { Button } from "@hearth/ui";
+import { Button, IconButton } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -99,9 +99,9 @@ export default async function TeamPage({
               }}
               title={t("serving.editTeam")}
               trigger={
-                <Button variant="secondary">
-                  <Pencil /> {t("action.edit")}
-                </Button>
+                <IconButton label={t("action.edit")} variant="secondary">
+                  <Pencil />
+                </IconButton>
               }
             />
             <ArchiveTeam church={session.tenantSlug} id={team.id} name={team.name} />
