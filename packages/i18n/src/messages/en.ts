@@ -304,7 +304,7 @@ export const en = {
   "settings.lede.stations": "Tablets and kiosks that run check-in, and the printer each one uses.",
   "settings.lede.tags": "Short labels for filtering People. Removing a tag takes it off everyone.",
   "settings.lede.fields": "Extra details you keep on each person. They show on the profile and in filters.",
-  "settings.lede.followups": "The steps each journey goes through, in your church's own words. Due days count from the day someone joins it.",
+  "settings.lede.followups": "The steps each journey goes through, in your church's own words.",
   "settings.title.privacy": "Your directory entry",
   "settings.lede.privacy": "What other members see about you. Staff with access always see your full record.",
   "settings.lede.security": "Your password and the devices signed in as you.",
