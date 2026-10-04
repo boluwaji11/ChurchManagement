@@ -1,6 +1,6 @@
 import {
   canManageChurch, canManageCustomFields, canEditPeople, canManageRooms,
-  canArchivePeople, withTenant, setupProgress,
+  canArchivePeople, canManageHouseholds, withTenant, setupProgress,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
@@ -74,6 +74,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     {
       title: t("settings.group.you"),
       items: [
+        ...(canManageHouseholds(session)
+          ? [{ href: "/settings/households", label: t("settings.tab.households") }]
+          : []),
         // R3.2. What this person lets the church publish about them.
         { href: "/settings/privacy", label: t("settings.tab.privacy") },
         { href: "/settings/security", label: t("settings.tab.security") },

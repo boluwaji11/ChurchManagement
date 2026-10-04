@@ -3,6 +3,7 @@ import {
   PERMISSIONS, ROLE_PERMISSIONS, TENANT_ROLES, can, rolesWith,
   canEditPeople, canArchivePeople, canReadConfidentialNotes, canReadGivingAmounts,
 } from "../src/roles";
+import { canManageHouseholds } from "../src/roles";
 import { canManageChurch } from "../src/repo/church";
 import { canManageRooms } from "../src/repo/rooms";
 import { canManageStations } from "../src/repo/stations";
@@ -28,6 +29,7 @@ import { CAN_SUPERVISE } from "../src/repo/supervisor";
 const EXPECTED: Record<string, readonly string[]> = {
   canEditPeople: ["owner", "admin", "staff"],
   canArchivePeople: ["owner", "admin"],
+  canManageHouseholds: ["owner", "admin", "staff"],
   canReadConfidentialNotes: ["owner", "pastoral"],
   canReadGivingAmounts: ["owner", "finance"],
   canManageChurch: ["owner", "admin"],
@@ -47,7 +49,7 @@ const EXPECTED: Record<string, readonly string[]> = {
 };
 
 const CHECKS = {
-  canEditPeople, canArchivePeople, canReadConfidentialNotes, canReadGivingAmounts,
+  canEditPeople, canArchivePeople, canManageHouseholds, canReadConfidentialNotes, canReadGivingAmounts,
   canManageChurch, canManageCustomFields, canManageTags, canManageRooms,
   canManageStations, canCheckIn, canReadIncidents, canFileIncident, canSeeChecks,
   canFollowUp, canManageGroups, canManageServices, canManageTeams, canLeadTeams,
