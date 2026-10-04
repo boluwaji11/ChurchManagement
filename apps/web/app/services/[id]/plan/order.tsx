@@ -7,7 +7,7 @@ import {
   Copy, LayoutList,
 } from "lucide-react";
 import {
-  Banner, Button, Field, IconButton, Input, Separator, Textarea,
+  Banner, Button, Field, IconButton, Input, Separator, Textarea, cn,
   Dialog, DialogTrigger, DialogContent,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
@@ -139,22 +139,34 @@ export function Order({
   });
 
   const [dragging, setDragging] = React.useState<string | null>(null);
+  /** The row the pointer is over, and which side of it the item would land. */
+  const [over, setOver] = React.useState<{ id: string; after: boolean } | null>(null);
 
   /**
-   * R11.2. Dropping an item on another puts it in that place.
+   * R11.2. Dragging an item to where it should be.
    *
-   * The whole order is sent rather than a direction, so a card moved five rows
-   * is one write and the plan is never half reordered.
+   * The line is drawn above or below the row under the pointer depending on
+   * which half it is over, so what lands is what was shown. The whole order
+   * goes in one write, so a card moved five rows is one change and the plan is
+   * never half reordered.
    */
-  const dropOn = (overId: string) => {
-    const from = items.findIndex((one) => one.id === dragging);
-    const to = items.findIndex((one) => one.id === overId);
+  const dropHere = () => {
+    const id = dragging;
+    const target = over;
     setDragging(null);
-    if (from === -1 || to === -1 || from === to) return;
+    setOver(null);
+    if (!id || !target || target.id === id) return;
 
     const order = items.map((one) => one.id);
-    const [moved] = order.splice(from, 1);
-    order.splice(to, 0, moved!);
+    const from = order.indexOf(id);
+    if (from === -1) return;
+
+    order.splice(from, 1);
+    const at = order.indexOf(target.id);
+    if (at === -1) return;
+
+    order.splice(target.after ? at + 1 : at, 0, id);
+    if (order.every((one, i) => one === items[i]?.id)) return;
     run(() => reorder(planId, order, church));
   };
 
@@ -184,11 +196,35 @@ export function Order({
                 <li
                   key={item.id}
                   draggable
-                  onDragStart={() => setDragging(item.id)}
-                  onDragEnd={() => setDragging(null)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => dropOn(item.id)}
-                  className="flex flex-col border-b border-sunken last:border-0"
+                  onDragStart={(e) => {
+                    setDragging(item.id);
+                    e.dataTransfer.effectAllowed = "move";
+                    // Firefox starts no drag at all without something on it.
+                    e.dataTransfer.setData("text/plain", item.id);
+                  }}
+                  onDragEnd={() => {
+                    setDragging(null);
+                    setOver(null);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    const box = e.currentTarget.getBoundingClientRect();
+                    const after = e.clientY > box.top + box.height / 2;
+                    setOver((was) =>
+                      was?.id === item.id && was.after === after ? was : { id: item.id, after },
+                    );
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    dropHere();
+                  }}
+                  className={cn(
+                    "flex flex-col border-b border-sunken last:border-0",
+                    dragging === item.id && "opacity-40",
+                    over?.id === item.id && !over.after && "shadow-[inset_0_2px_0_0_var(--color-primary)]",
+                    over?.id === item.id && over.after && "shadow-[inset_0_-2px_0_0_var(--color-primary)]",
+                  )}
                 >
                   <div className="flex flex-wrap items-center gap-2.5 px-4 py-3">
                     <GripVertical
@@ -205,7 +241,9 @@ export function Order({
                       trigger={
                         <button
                           type="button"
-                          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-sm text-left hover:text-primary"
+                          // The tappable part says so: the hand, and the row
+                          // lifting under it.
+                          className="-mx-2 flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-md px-2 py-1 text-left transition-colors duration-instant hover:bg-sunken"
                         >
                           <span
                             data-numeric
