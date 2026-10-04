@@ -59,12 +59,17 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
   }
 
   return (
-    <ol className="flex flex-col gap-3">
+    <ol className="flex flex-col">
       {entries.map((entry) => {
         const confidential = entry.kind === "note" && entry.code === "confidential";
 
         return (
-          <li key={entry.id} className="grid grid-cols-[90px_12px_1fr] items-start gap-3">
+          // A hairline under every entry so one date's row reads as one row,
+          // which a two-line date made hard to see.
+          <li
+            key={entry.id}
+            className="grid grid-cols-[90px_12px_1fr] items-start gap-3 border-b border-line py-3 first:pt-0 last:border-0 last:pb-0"
+          >
             <span data-numeric className="pt-0.5 text-[12px] text-fg-subtle">
               {longDate(entry.on)}
             </span>

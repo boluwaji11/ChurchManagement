@@ -473,7 +473,7 @@ export const en = {
   "notes.whoCanRead": "Who can read it",
   "notes.readStaff": "Staff",
   "notes.readPastoral": "Pastoral only",
-  "notes.body": "The note",
+  "notes.body": "Description",
   "notes.makeConfidential": "Pastoral, and restricted",
   "notes.failed": "That did not save. Try again.",
   "notes.error.empty": "Write the note first.",
