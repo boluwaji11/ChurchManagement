@@ -7,6 +7,7 @@ import {
   HUES,
   Banner, Button, IconButton, EmptyState, Field, HueDot, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -92,8 +93,7 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                   style={{ background: `var(--hue-${room.hue}-500)` }}
                 />
 
-                <RoomDialog
-                  church={church}
+                <RoomSheet
                   room={room}
                   pending={pending}
                   trigger={
@@ -175,8 +175,6 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
         </div>
       )}
 
-      <NewRoom church={church} pending={pending} onAdd={(name) => act(createRoom, { name })} />
-
       {archived.length === 0 ? null : (
         <section className="flex flex-col gap-2">
           <span className="text-[12px] font-medium text-fg-subtle">{t("rooms.archived")}</span>
@@ -208,52 +206,19 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
   );
 }
 
-/** R8.14. A room starts as a name. Everything else is set on the card. */
-function NewRoom({
-  church,
-  pending,
-  onAdd,
-}: {
-  church: string;
-  pending: boolean;
-  onAdd: (name: string) => void;
-}) {
-  const [name, setName] = React.useState("");
-
-  return (
-    <form
-      className="flex flex-wrap gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!name.trim()) return;
-        onAdd(name.trim());
-        setName("");
-      }}
-    >
-      <input type="hidden" value={church} />
-      <Input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder={t("rooms.newName")}
-        aria-label={t("rooms.newName")}
-        autoComplete="off"
-        className="min-w-50 flex-1 sm:max-w-90"
-      />
-      <Button type="submit" disabled={pending}>{t("rooms.add")}</Button>
-    </form>
-  );
-}
-
-/** Adding a room and editing one ask for the same six things. */
-function RoomDialog({
-  church,
+/**
+ * R8.14. Adding a room and editing one ask for the same six things.
+ *
+ * In the right-hand pane, where every other form in the product opens, so the
+ * card grid behind it stays where the reader left it.
+ */
+export function RoomSheet({
   room,
   pending,
   trigger,
   title,
   onSave,
 }: {
-  church: string;
   room?: RoomItem;
   pending: boolean;
   trigger: React.ReactNode;
@@ -278,10 +243,24 @@ function RoomDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent title={title} closeLabel={t("common.close")}>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent
+        title={title}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" form="room-form" disabled={pending}>
+              {t("action.save")}
+            </Button>
+          </>
+        }
+      >
         <form
+          id="room-form"
           action={(data) => {
             onSave({
               name: String(data.get("name") ?? ""),
@@ -360,15 +339,41 @@ function RoomDialog({
             </Field>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
-          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/**
+ * R8.14. The one action this screen carries, at the top right beside its title.
+ *
+ * A new room is six fields rather than a name in a box, because a room nobody
+ * gave an age band to is a room the station cannot route a child into.
+ */
+export function AddRoom({ church }: { church: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <RoomSheet
+      pending={pending}
+      title={t("rooms.add")}
+      trigger={
+        <Button>
+          <Plus /> {t("rooms.add")}
+        </Button>
+      }
+      onSave={(fields) => {
+        const data = new FormData();
+        data.set("church", church);
+        for (const [k, v] of Object.entries(fields)) data.set(k, v);
+        startTransition(async () => {
+          await createRoom(data);
+          router.refresh();
+        });
+      }}
+    />
   );
 }
 

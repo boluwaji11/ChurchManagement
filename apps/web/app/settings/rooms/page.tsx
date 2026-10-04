@@ -3,7 +3,7 @@ import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
-import { RoomManager } from "./room-manager";
+import { RoomManager, AddRoom } from "./room-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,11 @@ export default async function RoomsPage({
 
   return (
     <>
-      <SettingsHeading title="settings.tab.rooms" lede="settings.lede.rooms" />
+      <SettingsHeading
+        title="settings.tab.rooms"
+        lede="settings.lede.rooms"
+        action={<AddRoom church={session.tenantSlug} />}
+      />
       <RoomManager
         church={session.tenantSlug}
         rooms={rooms.map((r) => ({

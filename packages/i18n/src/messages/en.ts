@@ -1793,7 +1793,6 @@ export const en = {
   "rooms.ratioLabel": "Adults to children",
   "rooms.fewer": "Fewer",
   "rooms.more": "More",
-  "rooms.newName": "New room name",
   "stations.failed": "That did not save. Try again.",
   "stations.title": "Stations",
   "stations.add": "Pair a station",
