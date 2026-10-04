@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, X, Power } from "lucide-react";
 import {
   Badge, Banner, Button, Combobox, IconButton, Field, Input, Separator, Textarea,
-  Dialog, DialogTrigger, DialogContent,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   LIFT,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -194,18 +194,16 @@ export function Pipelines({
                   <span className="text-[12px] opacity-70">
                     {t("pipelines.dueIn", { count: String(step.dueDays) })}
                   </span>
-                  <IconButton
-                    label={t("pipelines.removeOne", { name: step.name })}
-                    className="pointer-events-auto size-6 min-h-0 rounded-full text-inherit [&_svg]:size-3.5"
-                    disabled={pending}
-                    onClick={() =>
+                  <RemoveStep
+                    stage={row.name}
+                    step={step}
+                    pending={pending}
+                    onRemove={() =>
                       writeSteps(
                         row,
                         row.steps.filter((one) => one.id !== step.id),
                       )}
-                  >
-                    <X />
-                  </IconButton>
+                  />
                 </span>
               </React.Fragment>
             ))}
@@ -226,6 +224,58 @@ export function Pipelines({
         </section>
       ))}
     </div>
+  );
+}
+
+/** R5.2. Taking a step off a stage, which is asked before it is done. */
+function RemoveStep({
+  stage,
+  step,
+  pending,
+  onRemove,
+}: {
+  stage: string;
+  step: StepRow;
+  pending: boolean;
+  onRemove: () => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <IconButton
+          label={t("pipelines.removeOne", { name: step.name })}
+          className="pointer-events-auto size-6 min-h-0 rounded-full text-inherit [&_svg]:size-3.5"
+          disabled={pending}
+        >
+          <X />
+        </IconButton>
+      </DialogTrigger>
+
+      <DialogContent alert title={t("pipelines.removeTitle", { name: step.name, stage })}>
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">
+          {t("pipelines.removeBody")}
+        </p>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            {t("pipelines.keepStep")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              setOpen(false);
+              onRemove();
+            }}
+          >
+            {t("pipelines.removeAction")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
