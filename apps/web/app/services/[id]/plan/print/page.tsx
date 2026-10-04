@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import {
-  withTenant, getOccurrence, getPlan, runningTimes, rosterFor,
+  withTenant, getOccurrence, getPlan, runningTimes,
   canManageServices,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -44,13 +44,12 @@ export default async function PrintPlanPage({
       return {
         occurrence,
         plan: await getPlan(tx, id),
-        roster: bulletin ? [] : await rosterFor(tx, id),
       };
     },
   );
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, roster } = result;
+  const { occurrence, plan } = result;
   const timed = runningTimes(plan.serviceStartsAt, plan.items);
 
   return (
@@ -126,33 +125,6 @@ export default async function PrintPlanPage({
             {t("print.order.ends", { time: readableTime(timed.endsAt) })}
           </p>
 
-          {/* R11.9. Who is doing what, so the sheet on the music stand is the
-              sheet that says who is missing. */}
-          {roster.length > 0 ? (
-            <section className="mt-8">
-              <h2 className="mb-2 border-b border-black pb-1 font-display text-heading">
-                {t("print.order.serving")}
-              </h2>
-              <ul className="flex flex-col gap-2 text-[length:var(--d-text-body)]">
-                {roster.map((team) => (
-                  <li key={team.id}>
-                    <strong>{team.name}</strong>
-                    <ul className="flex flex-col">
-                      {team.positions.map((position) => (
-                        <li key={position.id}>
-                          {position.name}:{" "}
-                          {position.entries
-                            .filter((entry) => entry.status !== "declined")
-                            .map((entry) => entry.personName)
-                            .join(", ")}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
         </>
       )}
     </main>

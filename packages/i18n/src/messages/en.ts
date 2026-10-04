@@ -1567,6 +1567,7 @@ export const en = {
   "services.upcoming": "Upcoming services",
   "services.past": "Past services",
   "services.showMore": "Show more",
+  "services.showLess": "Show less",
   "services.noPast": "Nothing held yet",
   "services.noPlan": "No plan available",
   "services.next": "Next",
