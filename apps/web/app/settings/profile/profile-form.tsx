@@ -37,16 +37,12 @@ const EMPTY = <span aria-hidden className="inline-block h-px w-3 bg-line-strong 
 export function ProfileForm({
   church,
   signedInAs,
-  role,
-  churchName,
   photoUrl,
   values,
 }: {
   church: string;
   /** The address this person signs in with, which changes under Security. */
   signedInAs: string;
-  role: string;
-  churchName: string;
   photoUrl: string | null;
   values: ProfileValues;
 }) {
@@ -123,13 +119,10 @@ export function ProfileForm({
                 <IconButton
                   label={t("profile.photo.remove")}
                   variant="ghost"
-                  onClick={() => {
-                    // The photograph closes and the question takes its place.
-                    // One box at a time: a dialog on top of a dialog is a
-                    // stack nobody can read the bottom of.
-                    setShowing(false);
-                    setDropping(true);
-                  }}
+                  // The photograph stays open behind the question, so the
+                  // thing being removed is still on screen while it is asked
+                  // about.
+                  onClick={() => setDropping(true)}
                 >
                   <Trash2 />
                 </IconButton>
@@ -174,7 +167,10 @@ export function ProfileForm({
                     setDropping(false);
                     const result = await clearPhoto(church);
                     setError(result.error);
-                    if (!result.error) router.refresh();
+                    if (!result.error) {
+                      setShowing(false);
+                      router.refresh();
+                    }
                   })}
               >
                 <Trash2 /> {t("profile.photo.remove")}
@@ -283,17 +279,6 @@ export function ProfileForm({
         </div>
       </form>
 
-      {/* R1.6. Neither of these is this person's to change, so they sit under
-          the card rather than inside a form that cannot touch them. The church
-          leads, because which church somebody is signed in to is the thing
-          worth reading twice. */}
-      <div className="flex flex-col gap-1 border-t border-line pt-4">
-        <span className="text-[15px] font-bold text-fg">{t("settings.profile.church")}</span>
-        <span className="text-[length:var(--d-text-body)] text-fg">{churchName}</span>
-        <span className="text-[13px] text-fg-muted">
-          {t("settings.profile.roleIs", { role })}
-        </span>
-      </div>
     </div>
   );
 }

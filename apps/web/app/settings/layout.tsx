@@ -80,7 +80,6 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         // R3.2. What this person lets the church publish about them.
         { href: "/settings/profile", label: t("settings.tab.profile") },
         { href: "/settings/security", label: t("settings.tab.security") },
-        { href: "/settings/appearance", label: t("settings.tab.appearance") },
       ],
     },
     {

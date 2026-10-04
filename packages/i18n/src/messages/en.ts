@@ -303,7 +303,7 @@ export const en = {
   "settings.group.people": "People",
   "settings.group.you": "You",
   "settings.group.data": "Data",
-  "settings.tab.appearance": "Appearance",
+  "settings.tab.appearance": "App appearance",
   "settings.tab.export": "Export",
   "settings.lede.church": "How your church appears on receipts, labels and your website.",
   "settings.lede.team": "Who can sign in, and what each person can see.",
@@ -352,7 +352,6 @@ export const en = {
   "profile.error.name": "Enter your first and last name.",
 
   "settings.lede.security": "Change your email address and password.",
-  "settings.lede.appearance": "How Hearth looks on this device.",
   "settings.lede.export": "Download a copy of your church's data.",
   "settings.export.people": "People",
   "settings.export.peopleWhat": "Everyone, with contact details, address, tags and custom fields",

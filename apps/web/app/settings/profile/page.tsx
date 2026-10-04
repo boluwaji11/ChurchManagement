@@ -3,9 +3,12 @@ import {
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { cookies } from "next/headers";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { ProfileForm } from "./profile-form";
+import { ThemeChoice } from "../theme";
+import type { Theme } from "../theme-actions";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +27,7 @@ export default async function ProfilePage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
+  const theme = ((await cookies()).get("hearth-theme")?.value ?? "system") as Theme;
 
   const result = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -57,8 +61,6 @@ export default async function ProfilePage({
           <ProfileForm
             church={session.tenantSlug}
             signedInAs={session.email}
-            role={t(`role.${session.role}` as never)}
-            churchName={session.tenantName}
             photoUrl={photoUrl}
             values={{
               personId: result.personId,
@@ -74,6 +76,24 @@ export default async function ProfilePage({
           {t("settings.profile.noRecord")}
         </Banner>
       )}
+
+      {/* R1.6. Which church somebody is signed in to and what they may do in
+          it. Neither is theirs to change, so it sits outside the card the
+          pencil opens. */}
+      <section className="flex flex-col gap-1">
+        <span className="text-[15px] font-bold text-fg">{t("settings.profile.church")}</span>
+        <span className="text-[length:var(--d-text-body)] text-fg">{session.tenantName}</span>
+        <span className="text-[13px] text-fg-muted">
+          {t("settings.profile.roleIs", { role: t(`role.${session.role}` as never) })}
+        </span>
+      </section>
+
+      {/* R24.x. Light, dark, or whatever this device is set to. It lived on a
+          menu item of its own for one row of three buttons. */}
+      <section className="flex flex-col gap-3">
+        <span className="text-[15px] font-bold text-fg">{t("settings.tab.appearance")}</span>
+        <ThemeChoice current={theme} />
+      </section>
     </>
   );
 }
