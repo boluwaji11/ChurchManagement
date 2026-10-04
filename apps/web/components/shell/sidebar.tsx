@@ -152,12 +152,13 @@ export function Sidebar({
       </nav>
 
       <div className="mt-auto flex flex-col gap-3">
-        {/* Who is signed in, and nothing more. It used to open Settings, which
-            is its own row two inches above, and the chevrons promised a switch
-            it never made. */}
-        <div
+        {/* Who is signed in, and the way to their own screen. It used to open
+            Settings, which is its own row two inches above, and the chevrons
+            promised a church switch it never made. */}
+        <Link
+          href={`/settings/profile?church=${church}`}
           className={cn(
-            "flex w-full items-center gap-2.5 text-left",
+            "flex w-full items-center gap-2.5 rounded-md text-left hover:bg-line",
             collapsed ? "justify-center p-1" : "px-1 py-2",
           )}
         >
@@ -168,7 +169,7 @@ export function Sidebar({
               <span className="truncate text-[12px] text-fg-subtle">{roleName}</span>
             </span>
           )}
-        </div>
+        </Link>
 
         <form action="/auth/sign-out" method="post" className="contents">
           <Tooltip content={t("action.signOut")} side="right">
