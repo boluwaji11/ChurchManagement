@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Users, UserPlus, Baby, ListMusic, HandHeart, CircleDot,
+  Users, UserPlus, Baby, Calendar, ListMusic, HandHeart, CircleDot,
   ClipboardList, Settings, Home,
 } from "lucide-react";
 import {
@@ -16,10 +16,10 @@ import type { NavTarget } from "./nav-active";
  * One list, read by the sidebar on a desktop and by the tab bar on a phone, so
  * the two can never drift.
  *
- * The order is the design's: People, Follow-ups, Check-in, Services, Serving,
- * Groups, Forms, Settings. Dashboard joins it at the top in HRT-203. The
- * design's Giving, Songs, Calendar, Reports and Churches entries are the
- * deferred ones and are named in docs/redesign/README.md.
+ * The order is the design's: People, Follow-ups, Check-in, Calendar, Services,
+ * Serving, Groups, Forms, Settings. Dashboard joins it at the top in HRT-203.
+ * The design's Giving, Songs, Reports and Churches entries are the deferred
+ * ones and are named in docs/redesign/README.md.
  *
  * HRT-202 gives a pastor and a group leader their own list.
  */
@@ -71,6 +71,11 @@ export function navFor(role: TenantRole): NavEntry[] {
       icon: Baby,
       owns: ["/checkin", "/incidents"],
     });
+  }
+
+  // R15.1. Everything the church has on, in one week.
+  if (canManageServices(role)) {
+    out.push({ label: t("nav.calendar"), href: "/calendar", icon: Calendar });
   }
 
   // R7.x. Attendance is recorded by the church, not by the congregation.

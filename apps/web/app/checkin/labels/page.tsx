@@ -45,8 +45,6 @@ export default async function LabelsPage({
         <ArrowLeft className="size-4" /> {t("checkin.title")}
       </Link>
 
-      <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("labels.title")}</h2>
-
       <LabelLayoutForm church={session.tenantSlug} initial={layout} />
     </AppShell>
   );
