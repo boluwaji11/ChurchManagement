@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, inArray, or, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { pipelines, pipelineSteps, pipelineEntries, followUps } from "../schema/followups";
 import { people } from "../schema/people";
@@ -717,6 +717,37 @@ export async function peopleIn(
   );
 }
 
+/** How long somebody stays in the last column after their last step is answered. */
+export const CONNECTED_DAYS = 30;
+
+/**
+ * R5.5. What the board shows: everybody still in the pipeline, and everybody
+ * who finished it recently.
+ *
+ * A card that reaches the last column has to stay on the board. Dropping it the
+ * moment the last step is answered reads as the drag having failed, and leaves
+ * nowhere to drag it back from.
+ */
+export async function boardEntries(
+  db: Tx,
+  pipelineId: string,
+  closedSince: Date,
+): Promise<PipelineEntry[]> {
+  return entriesWhere(
+    db,
+    and(
+      eq(pipelineEntries.pipelineId, pipelineId),
+      or(
+        eq(pipelineEntries.status, "open"),
+        and(
+          eq(pipelineEntries.status, "done"),
+          gte(pipelineEntries.closedAt, closedSince),
+        ),
+      ),
+    ) as never,
+  );
+}
+
 /** Whether anybody has a pipeline open. Used by the triggers (R5.3). */
 export async function isInPipeline(
   db: Tx,
@@ -1017,4 +1048,45 @@ export async function countOpenFollowUps(db: Tx): Promise<number> {
     .from(followUps)
     .where(sql`${followUps.doneAt} is null`);
   return row?.n ?? 0;
+}
+
+/**
+ * R5.5. Moving somebody to a stage of their pipeline, in one move.
+ *
+ * The board is a row of stages and a card is dragged to one of them, which is
+ * not the same as answering one step: dragging two columns along answers two,
+ * and dragging back puts them back to being unanswered. Done in one
+ * transaction, so a card never lands between two stages.
+ *
+ * `position` is the step they are then waiting on. Past the last step means
+ * every step is answered, which is what the board's last column stands for.
+ */
+export async function setEntryStage(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole; userId?: string | null },
+  entryId: string,
+  position: number,
+): Promise<void> {
+  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+
+  const steps = await db
+    .select({
+      id: followUps.id,
+      position: followUps.position,
+      doneAt: followUps.doneAt,
+    })
+    .from(followUps)
+    .where(eq(followUps.entryId, entryId))
+    .orderBy(asc(followUps.position));
+
+  if (steps.length === 0) throw new InvalidInputError("followup.error.task");
+
+  for (const step of steps) {
+    const shouldBeDone = step.position < position;
+    if (shouldBeDone && step.doneAt === null) {
+      await completeFollowUp(db, actor, { id: step.id });
+    } else if (!shouldBeDone && step.doneAt !== null) {
+      await reopenFollowUp(db, actor, step.id);
+    }
+  }
 }

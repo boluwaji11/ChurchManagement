@@ -1,5 +1,5 @@
 import {
-  withTenant, getChurch, listPipelines, peopleIn, canFollowUp,
+  withTenant, getChurch, listPipelines, boardEntries, CONNECTED_DAYS, canFollowUp,
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -46,7 +46,13 @@ export default async function FollowUpsPage({
       const chosen = all.find((p) => p.id === params.pipeline) ?? all[0];
       return {
         pipelines: all,
-        entries: chosen ? await peopleIn(tx, chosen.id) : [],
+        entries: chosen
+          ? await boardEntries(
+              tx,
+              chosen.id,
+              new Date(Date.now() - CONNECTED_DAYS * 24 * 60 * 60 * 1000),
+            )
+          : [],
         today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
       };
     },
@@ -79,10 +85,12 @@ export default async function FollowUpsPage({
       entryId: entry.id,
       personId: entry.personId,
       who: entry.personName,
-      why: next?.title ?? entry.reason,
-      owner: next?.dueOn
-        ? t("board.due", { date: shortDate(next.dueOn) })
-        : t("board.noDate"),
+      why: next?.title ?? t(`board.reason.${entry.reason}` as never),
+      owner: next
+        ? next.dueOn
+          ? t("board.due", { date: shortDate(next.dueOn) })
+          : t("board.noDate")
+        : t("board.finished"),
       stepId: next?.id ?? null,
       stage: next ? String(next.position) : "done",
       late: Boolean(next?.dueOn && next.dueOn < today),

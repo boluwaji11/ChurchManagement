@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { notifyRoles } from "./notifications";
 import { incidentReports, checkinRooms } from "../schema/checkin";
@@ -68,6 +68,10 @@ export interface Incident {
   guardianNotified: boolean;
   notifiedAt: Date | null;
   reportedBy: string | null;
+  /** R8.13. Who wrote it, where that user is somebody the church holds. */
+  reportedByName: string | null;
+  /** The room's hue, so the pill reads as that room everywhere. */
+  roomHue: string | null;
   createdAt: Date;
 }
 
@@ -188,6 +192,7 @@ async function incidentsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Inc
       lastName: people.lastName,
       preferredName: people.preferredName,
       roomName: checkinRooms.name,
+      roomHue: checkinRooms.hue,
       serviceName: serviceOccurrences.name,
     })
     .from(incidentReports)
@@ -196,6 +201,27 @@ async function incidentsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Inc
     .leftJoin(serviceOccurrences, eq(serviceOccurrences.id, incidentReports.occurrenceId))
     .where(where)
     .orderBy(desc(incidentReports.occurredOn), desc(incidentReports.createdAt));
+
+  // R8.13. Who wrote it. Its own lookup rather than a second join on people,
+  // which is one query for a page of reports.
+  const userIds = [...new Set(rows.map((r) => r.reportedBy).filter(Boolean))] as string[];
+  const reporters = new Map<string, string>();
+  if (userIds.length > 0) {
+    const names = await db
+      .select({
+        appUserId: people.appUserId,
+        firstName: people.firstName,
+        lastName: people.lastName,
+        preferredName: people.preferredName,
+      })
+      .from(people)
+      .where(inArray(people.appUserId, userIds));
+    for (const n of names) {
+      if (n.appUserId) {
+        reporters.set(n.appUserId, `${n.preferredName?.trim() || n.firstName} ${n.lastName}`);
+      }
+    }
+  }
 
   return rows.map((r) => ({
     id: r.id,
@@ -212,6 +238,8 @@ async function incidentsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Inc
     guardianNotified: r.guardianNotified,
     notifiedAt: r.notifiedAt,
     reportedBy: r.reportedBy,
+    reportedByName: r.reportedBy ? (reporters.get(r.reportedBy) ?? null) : null,
+    roomHue: r.roomHue,
     createdAt: r.createdAt,
   }));
 }

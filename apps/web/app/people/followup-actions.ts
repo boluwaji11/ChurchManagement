@@ -2,7 +2,7 @@
 
 import {
   withTenant, getChurch, enterPipeline, exitPipeline, completeFollowUp, reopenFollowUp,
-  addTask, assignFollowUp,
+  addTask, assignFollowUp, setEntryStage,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -51,6 +51,21 @@ export async function finishStep(
   const { ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => completeFollowUp(tx, ctx, { id, outcome }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R5.5. A card dragged to a stage, forwards or back. */
+export async function moveToStage(
+  entryId: string,
+  position: number,
+  church?: string,
+): Promise<FollowUpResult> {
+  const { ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setEntryStage(tx, ctx, entryId, position));
     return {};
   } catch (error) {
     return { error: explain(error) };

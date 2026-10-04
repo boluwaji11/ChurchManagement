@@ -16,7 +16,6 @@ export function Notify({ church, id }: { church: string; id: string }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Button
-        variant="secondary"
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
@@ -26,7 +25,7 @@ export function Notify({ church, id }: { church: string; id: string }) {
           })
         }
       >
-        {t("incident.markNotified")}
+        {t("incident.markTold")}
       </Button>
       {error ? <Banner tone="danger" title={t("incident.failed")}>{error}</Banner> : null}
     </div>

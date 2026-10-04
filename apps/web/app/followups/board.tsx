@@ -4,8 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Move } from "lucide-react";
+import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { finishStep } from "../people/followup-actions";
+import { moveToStage } from "../people/followup-actions";
 
 export interface BoardCard {
   entryId: string;
@@ -48,30 +49,36 @@ export function Board({
   const [dragging, setDragging] = React.useState<string | null>(null);
   const [over, setOver] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
+  const [error, setError] = React.useState<string>();
 
   const drop = (stageId: string) => {
     setOver(null);
     const card = cards.find((c) => c.entryId === dragging);
     setDragging(null);
-    if (!card || !card.stepId || card.stage === stageId) return;
+    if (!card || card.stage === stageId) return;
 
-    // Only forward. A card dragged back would have to un-complete a step, and
-    // undoing one is its own decision rather than a side effect of a drag.
-    const from = stages.findIndex((s) => s.id === card.stage);
-    const to = stages.findIndex((s) => s.id === stageId);
-    if (to <= from) return;
+    // The stage a card lands on is the step it is then waiting on, and the one
+    // at the end means every step is answered. Dragging two columns along
+    // answers two; dragging back leaves them to be answered again.
+    const target = stages.findIndex((s) => s.id === stageId);
+    if (target < 0) return;
+    const position = stageId === "done" ? stages.length : Number(stageId);
 
     startTransition(async () => {
-      await finishStep(card.stepId!, church);
+      const result = await moveToStage(card.entryId, position, church);
+      setError(result.error);
       router.refresh();
     });
   };
 
   return (
-    <div
-      className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(210px,1fr))]"
-      aria-busy={pending}
-    >
+    <div className="flex flex-col gap-3">
+      {error ? <Banner tone="danger" title={t("board.failed")}>{error}</Banner> : null}
+
+      <div
+        className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(210px,1fr))]"
+        aria-busy={pending}
+      >
       {stages.map((stage) => {
         const inStage = cards.filter((c) => c.stage === stage.id);
         return (
@@ -119,8 +126,9 @@ export function Board({
               ))}
             </div>
           </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

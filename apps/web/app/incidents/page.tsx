@@ -1,9 +1,16 @@
-import { withTenant, listIncidents, canReadIncidents, type Incident } from "@hearth/db";
-import { Badge, Banner, Card, EmptyState, Separator } from "@hearth/ui";
+import Link from "next/link";
+import { ArrowLeft, Plus, Clock, CheckCircle2 } from "lucide-react";
+import {
+  withTenant, listIncidents, listRooms, listPeople, listOccurrences, getChurch,
+  canReadIncidents, canCheckIn, type Incident,
+} from "@hearth/db";
+import { Banner, Button, EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { churchNow } from "@/lib/church-now";
 import { Notify } from "./notify";
+import { FileReport } from "./file-report";
 
 export const dynamic = "force-dynamic";
 
@@ -29,78 +36,130 @@ export default async function IncidentsPage({
 
   if (!canReadIncidents(session.role)) {
     return (
-      <AppShell
-        session={session}
-        title={t("incident.title")}
-      >
+      <AppShell session={session} title={t("incident.title")}>
         <Banner tone="info" title={t("incident.title")}>{t("forbidden.askAdmin")}</Banner>
       </AppShell>
     );
   }
 
-  const incidents = await withTenant(
-    { tenantId: session.tenantId, role: session.role },
-    (tx) => listIncidents(tx, { role: session.role }),
+  const { incidents, rooms, people, services, today } = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    async (tx) => {
+      const profile = await getChurch(tx, session.tenantId);
+      const clock = churchNow(profile?.timezone ?? "America/Chicago");
+      return {
+        incidents: await listIncidents(tx, { role: session.role }),
+        rooms: await listRooms(tx),
+        people: await listPeople(tx, { sort: "name" }),
+        services: await listOccurrences(tx, { from: clock.date, to: clock.date }),
+        today: clock.date,
+      };
+    },
   );
 
+  const filing = canCheckIn(session.role) ? (
+    <FileReport
+      church={session.tenantSlug}
+      today={today}
+      people={people.map((p) => ({ id: p.id, name: p.displayName }))}
+      rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
+      services={services.map((s) => ({ id: s.id, name: s.name }))}
+      trigger={
+        <Button>
+          <Plus /> {t("incident.add")}
+        </Button>
+      }
+    />
+  ) : undefined;
+
   return (
-    <AppShell
-      session={session}
-      title={t("incident.title")}
-    >
+    <AppShell session={session} title={t("incident.title")} action={filing} max="max-w-[760px]">
+      <Link
+        href={`/checkin?church=${session.tenantSlug}`}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("checkin.title")}
+      </Link>
+
+      <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("incident.reports")}</h2>
+
       {incidents.length === 0 ? (
         <EmptyState title={t("incident.none.title")} />
       ) : (
-        <div className="flex flex-col gap-4">
-          {incidents.map((incident) => (
-            <Report key={incident.id} church={session.tenantSlug} incident={incident} />
-          ))}
-        </div>
+        incidents.map((incident) => (
+          <Report key={incident.id} church={session.tenantSlug} incident={incident} />
+        ))
       )}
     </AppShell>
   );
 }
 
+/** One report: who, when, where, what happened, and whether the parent knows. */
 function Report({ church, incident }: { church: string; incident: Incident }) {
+  const hue = incident.roomHue ?? "sky";
+  const told = incident.guardianNotified;
+
   return (
-    <Card className="flex flex-col gap-3">
+    <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-heading text-fg">{incident.personName}</span>
-        <span className="text-caption text-fg-muted">{day(incident.occurredOn)}</span>
+        <h3 className="font-display text-[22px] leading-7 text-fg">{incident.personName}</h3>
+        <span className="text-[12px] text-fg-subtle">{day(incident.occurredOn)}</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {incident.roomName ? <Badge tone="neutral">{incident.roomName}</Badge> : null}
-        {incident.serviceName ? <Badge tone="neutral">{incident.serviceName}</Badge> : null}
-        {incident.guardianNotified ? (
-          <Badge tone="success">
-            {t("incident.toldOn", {
-              on: incident.notifiedAt ? day(incident.notifiedAt.toISOString().slice(0, 10)) : "",
-            })}
-          </Badge>
-        ) : (
-          <Badge tone="warning">{t("incident.notTold")}</Badge>
-        )}
+        {incident.roomName ? (
+          <span
+            className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+            style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+          >
+            {incident.roomName}
+          </span>
+        ) : null}
+        {incident.serviceName ? (
+          <span className="rounded-full bg-sunken px-2 py-0.5 text-[12px] font-medium text-fg-muted">
+            {incident.serviceName}
+          </span>
+        ) : null}
+        <span
+          className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium"
+          style={{
+            background: `var(--hue-${told ? "fern" : "amber"}-tint)`,
+            color: `var(--hue-${told ? "fern" : "amber"}-key)`,
+          }}
+        >
+          {told ? (
+            <CheckCircle2 className="size-3.5" aria-hidden />
+          ) : (
+            <Clock className="size-3.5" aria-hidden />
+          )}
+          {told
+            ? t("incident.toldOn", {
+                on: incident.notifiedAt
+                  ? day(incident.notifiedAt.toISOString().slice(0, 10))
+                  : "",
+              })
+            : t("incident.notTold")}
+        </span>
       </div>
 
-      <Separator />
+      <div className="flex flex-col gap-2 border-t border-line pt-3">
+        <p className="whitespace-pre-wrap text-pretty text-fg">{incident.description}</p>
+        <p className="whitespace-pre-wrap text-pretty text-fg-muted">{incident.action}</p>
+        <span className="text-[12px] text-fg-subtle">
+          {[
+            incident.reportedByName
+              ? t("incident.reportedBy", { name: incident.reportedByName })
+              : null,
+            incident.volunteers
+              ? t("incident.witnessedBy", { names: incident.volunteers })
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </span>
+      </div>
 
-      <p className="whitespace-pre-wrap text-[length:var(--d-text-body)] text-fg">
-        {incident.description}
-      </p>
-      <p className="whitespace-pre-wrap text-[length:var(--d-text-body)] text-fg-muted">
-        {incident.action}
-      </p>
-
-      {incident.volunteers ? (
-        <p className="text-caption text-fg-muted">{incident.volunteers}</p>
-      ) : null}
-
-      {incident.guardianNotified ? null : (
-        <div>
-          <Notify church={church} id={incident.id} />
-        </div>
-      )}
-    </Card>
+      {told ? null : <Notify church={church} id={incident.id} />}
+    </section>
   );
 }
