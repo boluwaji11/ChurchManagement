@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Printer, Play } from "lucide-react";
+import { Printer } from "lucide-react";
 import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import type { ServingTeam } from "./who-serves";
@@ -63,13 +63,6 @@ export function PlanSide({
           })}
         </section>
       ) : null}
-
-      {/* R11.11. Where a leader goes when the gathering is about to start. */}
-      <Button asChild className="justify-center">
-        <Link href={`/services/${occurrenceId}/live?church=${church}`}>
-          <Play /> {t("order.goLive")}
-        </Link>
-      </Button>
 
       {canPrint ? (
         <Button variant="secondary" asChild className="justify-center">

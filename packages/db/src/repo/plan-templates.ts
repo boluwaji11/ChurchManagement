@@ -286,3 +286,36 @@ export async function copyPlan(
 
   return { added: rows.length };
 }
+
+export interface ShapeItem {
+  kind: string;
+  title: string;
+  minutes: number;
+}
+
+/** R11.8. What a saved shape holds, for reading before it is used. */
+export async function templateItems(db: Tx, templateId: string): Promise<ShapeItem[]> {
+  return db
+    .select({
+      kind: planTemplateItems.kind,
+      title: planTemplateItems.title,
+      minutes: planTemplateItems.minutes,
+    })
+    .from(planTemplateItems)
+    .where(eq(planTemplateItems.templateId, templateId))
+    .orderBy(asc(planTemplateItems.position), asc(planTemplateItems.createdAt));
+}
+
+/** R11.8. What a plan already run holds, for the same reading. */
+export async function planItemsFor(db: Tx, occurrenceId: string): Promise<ShapeItem[]> {
+  return db
+    .select({
+      kind: planItems.kind,
+      title: planItems.title,
+      minutes: planItems.minutes,
+    })
+    .from(planItems)
+    .innerJoin(servicePlans, eq(servicePlans.id, planItems.planId))
+    .where(eq(servicePlans.occurrenceId, occurrenceId))
+    .orderBy(asc(planItems.position), asc(planItems.createdAt));
+}

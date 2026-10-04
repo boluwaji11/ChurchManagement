@@ -8,16 +8,14 @@ import {
 } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Input, Separator, Textarea, cn,
-  Dialog, DialogTrigger, DialogContent,
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import type { ItemKind } from "@hearth/db";
+import type { ItemKind, ShapeItem } from "@hearth/db";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
-  keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom,
+  keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom, shapeOf,
 } from "./actions";
 
 const KINDS: ItemKind[] = [
@@ -603,20 +601,36 @@ function Attachment({
       .finally(() => setOpening(false));
   };
 
-  const name = file.label ?? file.key.split("/").pop() ?? file.contentType;
+  const full = file.label ?? file.key.split("/").pop() ?? file.contentType;
+
+  /*
+   * A key is a uuid and a label can be a sentence, so neither reads on a row.
+   * The eye wants the kind of thing it is and a way to open it: the first
+   * words, then the extension.
+   */
+  const dot = full.lastIndexOf(".");
+  const stem = dot > 0 ? full.slice(0, dot) : full;
+  const ext = dot > 0 ? full.slice(dot) : "";
+  const name = (stem.length > 18 ? `${stem.slice(0, 18)}…` : stem) + ext;
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-0.5">
+    <span className="inline-flex max-w-full items-center gap-0.5 rounded-full border border-line px-2 py-0.5">
       <button
         type="button"
         onClick={open}
         disabled={opening}
-        className="flex items-center gap-1.5 text-caption text-fg underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+        title={full}
+        className="flex min-w-0 items-center gap-1.5 text-[12px] text-fg-muted underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
       >
-        <Paperclip className="size-3.5 text-fg-muted" aria-hidden />
-        {name}
+        <Paperclip className="size-3.5 shrink-0" aria-hidden />
+        <span className="truncate">{name}</span>
       </button>
-      <IconButton label={t("order.file.remove")} disabled={pending} onClick={onRemove}>
+      <IconButton
+        label={t("order.file.remove")}
+        disabled={pending}
+        onClick={onRemove}
+        className="size-6"
+      >
         <X />
       </IconButton>
     </span>
@@ -685,65 +699,154 @@ function StartFrom({
   disabled: boolean;
 }) {
   const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [looking, setLooking] = React.useState<{
+    label: string;
+    items: ShapeItem[];
+    apply: () => Promise<{ error?: string }>;
+  } | null>(null);
   const [pending, startTransition] = React.useTransition();
-
-  const run = (work: () => Promise<{ error?: string }>) => {
-    startTransition(async () => {
-      await work();
-      router.refresh();
-    });
-  };
 
   const summary = (items: number, minutes: number) =>
     t("order.summary", { items: String(items), minutes: String(minutes) });
 
+  /** R11.8. Nothing is copied until it has been read. */
+  const look = (
+    label: string,
+    source: Parameters<typeof shapeOf>[0],
+    apply: () => Promise<{ error?: string }>,
+  ) => {
+    startTransition(async () => {
+      const result = await shapeOf(source, church);
+      if (result.items) setLooking({ label, items: result.items, apply });
+    });
+  };
+
+  const use = () => {
+    const chosen = looking;
+    if (!chosen) return;
+    startTransition(async () => {
+      await chosen.apply();
+      setLooking(null);
+      setOpen(false);
+      router.refresh();
+    });
+  };
+
+  /** One choice in the dialog: what it is, and how long it runs. */
+  const choice = (key: string, label: string, detail: string, pick: () => void) => (
+    <button
+      key={key}
+      type="button"
+      disabled={pending}
+      onClick={pick}
+      className="flex w-full cursor-pointer flex-col rounded-md border border-line bg-surface px-4 py-3 text-left hover:border-line-strong hover:bg-sunken disabled:opacity-50"
+    >
+      <span className="font-medium text-fg">{label}</span>
+      <span className="text-[13px] text-fg-muted">{detail}</span>
+    </button>
+  );
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Dialog
+      open={open}
+      onOpenChange={(on) => {
+        setOpen(on);
+        if (!on) setLooking(null);
+      }}
+    >
+      <DialogTrigger asChild>
         <Button variant="ghost" disabled={disabled || pending}>
           <Copy /> {t("order.start")}
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="max-w-xs">
-        {sources.length === 0 ? (
-          <DropdownMenuItem disabled>{t("order.recent.none")}</DropdownMenuItem>
-        ) : (
-          sources.map((source) => (
-            <DropdownMenuItem
-              key={source.occurrenceId}
-              onSelect={() => run(() => copyFrom(planId, source.occurrenceId, church))}
-            >
-              <span className="flex flex-col">
-                <span>{source.label}</span>
-                <span className="text-caption text-fg-muted">
-                  {summary(source.items, source.minutes)}
-                </span>
-              </span>
-            </DropdownMenuItem>
-          ))
-        )}
+      </DialogTrigger>
 
-        <DropdownMenuSeparator />
+      <DialogContent
+        title={looking ? looking.label : t("order.start.title")}
+        closeLabel={t("common.close")}
+      >
+        {looking ? (
+          <div className="flex flex-col gap-4">
+            {/* Read first: what these items are, before they land on a plan
+                somebody may already have worked on. */}
+            <ul className="flex max-h-[50vh] flex-col overflow-y-auto rounded-md border border-line">
+              {looking.items.map((item, i) => (
+                <li
+                  key={`${item.title}-${i}`}
+                  className="flex items-center gap-3 border-b border-sunken px-3.5 py-2.5 last:border-0"
+                >
+                  <span className="w-[110px] shrink-0 text-[13px] text-fg-subtle">
+                    {t(`order.kind.${item.kind}` as never)}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-fg">{item.title}</span>
+                  <span data-numeric className="shrink-0 font-mono text-[13px] text-fg-muted">
+                    {t("order.runsMin", { count: item.minutes })}
+                  </span>
+                </li>
+              ))}
+            </ul>
 
-        {templates.length === 0 ? (
-          <DropdownMenuItem disabled>{t("order.template.none")}</DropdownMenuItem>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setLooking(null)}>
+                {t("order.start.back")}
+              </Button>
+              <Button onClick={use} disabled={pending}>
+                {t("order.start.use")}
+              </Button>
+            </DialogFooter>
+          </div>
         ) : (
-          templates.map((template) => (
-            <DropdownMenuItem
-              key={template.id}
-              onSelect={() => run(() => useTemplate(planId, template.id, church))}
-            >
-              <span className="flex flex-col">
-                <span>{template.name}</span>
-                <span className="text-caption text-fg-muted">
-                  {summary(template.items, template.minutes)}
-                </span>
-              </span>
-            </DropdownMenuItem>
-          ))
+          <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+            <section className="flex flex-col gap-2">
+              <h3 className="text-[13px] font-medium text-fg-subtle">
+                {t("order.start.templates")}
+              </h3>
+              {templates.length === 0 ? (
+                <p className="text-[13px] text-fg-muted">{t("order.template.none")}</p>
+              ) : (
+                templates.map((template) =>
+                  choice(
+                    template.id,
+                    template.name,
+                    summary(template.items, template.minutes),
+                    () =>
+                      look(
+                        template.name,
+                        { kind: "template", id: template.id },
+                        () => useTemplate(planId, template.id, church),
+                      ),
+                  ),
+                )
+              )}
+            </section>
+
+            {/* R11.8. A plan the church already ran is the other shape to start
+                from, and usually the better one. The last two, because the one
+                before that is a different season. */}
+            <section className="flex flex-col gap-2">
+              <h3 className="text-[13px] font-medium text-fg-subtle">{t("order.recent")}</h3>
+              {sources.length === 0 ? (
+                <p className="text-[13px] text-fg-muted">{t("order.recent.none")}</p>
+              ) : (
+                sources.slice(0, 2).map((source) =>
+                  choice(
+                    source.occurrenceId,
+                    source.label,
+                    summary(source.items, source.minutes),
+                    () =>
+                      look(
+                        source.label,
+                        { kind: "plan", occurrenceId: source.occurrenceId },
+                        () => copyFrom(planId, source.occurrenceId, church),
+                      ),
+                  ),
+                )
+              )}
+            </section>
+          </div>
         )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </DialogContent>
+    </Dialog>
   );
 }
 

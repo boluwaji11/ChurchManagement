@@ -3,6 +3,7 @@
 import {
   withTenant, ensurePlan, updatePlan, addItem, updateItem, removeItem, moveItem, reorderItems,
   addItemNote, removeItemNote, detachFromItem,
+  templateItems, planItemsFor, type ShapeItem,
   saveAsTemplate, renameTemplate, removeTemplate, applyTemplate, copyPlan,
   type ItemKind,
 } from "@hearth/db";
@@ -233,6 +234,24 @@ export async function copyFrom(
   try {
     await withTenant(ctx, (tx) => copyPlan(tx, actor, { planId, fromOccurrenceId }));
     return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R11.8. What a shape holds, read before it is pushed onto the plan. */
+export async function shapeOf(
+  source: { kind: "template"; id: string } | { kind: "plan"; occurrenceId: string },
+  church?: string,
+): Promise<{ items?: ShapeItem[]; error?: string }> {
+  const { ctx } = await context(church);
+  try {
+    const items = await withTenant(ctx, (tx) =>
+      source.kind === "template"
+        ? templateItems(tx, source.id)
+        : planItemsFor(tx, source.occurrenceId),
+    );
+    return { items };
   } catch (error) {
     return { error: explain(error) };
   }
