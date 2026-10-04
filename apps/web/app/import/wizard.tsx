@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Upload, ArrowRight, ArrowLeft, CheckCircle2, RotateCcw } from "lucide-react";
+import { Upload, ArrowRight, ArrowLeft, CheckCircle2, RotateCcw, FileSpreadsheet } from "lucide-react";
 import {
-  Button, Card, CardTitle, Separator, Banner, Badge, Field, Table, Thead, Th, Tr, Td,
+  Button, Card, CardTitle, Separator, Banner, Badge, Table, Thead, Th, Tr, Td,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   RadioGroup, RadioItem, Spinner,
 } from "@hearth/ui";
@@ -163,63 +163,117 @@ export function ImportWizard({ church }: { church: string }) {
   );
 }
 
+/**
+ * R19.1. Where you are in the import, as the design draws it.
+ *
+ * A numbered dot per step joined by a rule, the done ones ticked in jade, the
+ * one you are on filled in ink. Four steps, so somebody who stops halfway knows
+ * what is left.
+ */
 function Steps({ current }: { current: Step }) {
-  const order = ["file", "map", "preview"] as const;
+  const order = ["file", "map", "preview", "done"] as const;
   const labels: Record<(typeof order)[number], string> = {
     file: t("import.step.file"),
     map: t("import.step.map"),
     preview: t("import.step.preview"),
+    done: t("import.step.done"),
   };
-  const index = current === "done" ? order.length : order.indexOf(current as (typeof order)[number]);
+  const index = order.indexOf(current as (typeof order)[number]);
 
   return (
-    <ol className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      {order.map((s, i) => (
-        <li key={s} className="flex items-center gap-3">
-          {i > 0 ? <span aria-hidden className="text-fg-subtle">/</span> : null}
-          <span
-            className={
-              i < index
-                ? "text-label text-fg-muted"
-                : i === index
-                  ? "text-label text-fg"
-                  : "text-label text-fg-subtle"
-            }
-            aria-current={i === index ? "step" : undefined}
-          >
-            {labels[s]}
-          </span>
-        </li>
-      ))}
+    <ol className="flex items-center overflow-x-auto">
+      {order.map((s, i) => {
+        const done = i < index;
+        const now = i === index;
+        return (
+          <li key={s} className="flex flex-none items-center">
+            <span
+              aria-current={now ? "step" : undefined}
+              className={`flex flex-none items-center gap-2 text-[13px] whitespace-nowrap ${
+                now ? "font-semibold text-fg" : done ? "font-medium text-fg" : "font-medium text-fg-subtle"
+              }`}
+            >
+              <span
+                className="grid size-6 place-items-center rounded-full text-[12px] font-semibold"
+                style={{
+                  background: done
+                    ? "var(--hue-jade-500)"
+                    : now
+                      ? "var(--color-primary)"
+                      : "var(--color-sunken)",
+                  color: done || now ? "white" : "var(--color-fg-subtle)",
+                }}
+              >
+                {done ? "\u2713" : i + 1}
+              </span>
+              {labels[s]}
+            </span>
+            {i < order.length - 1 ? (
+              <span
+                aria-hidden
+                className="mx-2.5 h-0.5 min-w-6 flex-[1_1_24px] rounded-sm"
+                style={{ background: done ? "var(--hue-jade-500)" : "var(--color-line)" }}
+              />
+            ) : null}
+          </li>
+        );
+      })}
     </ol>
   );
 }
 
+/**
+ * R19.1. The drop zone.
+ *
+ * One target the whole width of the screen, because the first thing a church
+ * does here is hand over a file they exported from whatever they were using
+ * before, and the hard part should not be finding where to put it.
+ */
 function ChooseFile({ busy, onFile }: { busy: boolean; onFile: (f: File) => void }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [over, setOver] = React.useState(false);
+
+  const take = (file?: File | null) => {
+    if (file) onFile(file);
+  };
 
   return (
-    <Card>
-      <CardTitle>{t("import.step.file")}</CardTitle>
-      <Separator className="my-4" />
-      <Field label={t("import.file")}>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".xlsx,.xls,.csv,.tsv,.txt"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) onFile(file);
-          }}
-          className="block w-full text-[length:var(--d-text-body)] text-fg file:mr-4 file:rounded-[var(--d-radius-control)] file:border-0 file:bg-primary file:px-4 file:py-2 file:text-label file:text-primary-fg hover:file:brightness-110"
-        />
-      </Field>
-      {busy ? (
-        <p className="mt-4 flex items-center gap-2 text-caption text-fg-muted">
-          <Spinner /> {t("import.step.file")}
-        </p>
-      ) : null}
-    </Card>
+    <>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setOver(false);
+          take(e.dataTransfer.files?.[0]);
+        }}
+        className={`flex flex-col items-center gap-2.5 rounded-lg border-2 border-dashed bg-surface px-6 py-12 text-fg-muted ${
+          over ? "border-primary" : "border-line-strong"
+        }`}
+      >
+        {busy ? (
+          <Spinner />
+        ) : (
+          <FileSpreadsheet className="size-8 text-primary" aria-hidden />
+        )}
+        <span className="text-[16px] font-semibold text-fg">{t("import.drop")}</span>
+        <span className="text-[13px]">{t("import.recognised")}</span>
+      </button>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".xlsx,.xls,.csv,.tsv,.txt"
+        onChange={(e) => take(e.target.files?.[0])}
+        className="hidden"
+      />
+    </>
   );
 }
 

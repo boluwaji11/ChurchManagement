@@ -1,5 +1,7 @@
 import { withTenant, listImports, canEditPeople, canArchivePeople } from "@hearth/db";
 import { Banner } from "@hearth/ui";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -24,7 +26,17 @@ export default async function ImportPage({
     <AppShell
       session={session}
       title={t("import.title")}
+      max="max-w-[880px]"
     >
+      <Link
+        href={`/people?church=${session.tenantSlug}`}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("people.title")}
+      </Link>
+
+      <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("import.heading")}</h2>
+
       {canEditPeople(session.role) ? (
         <div className="flex flex-col gap-8">
           <ImportWizard church={session.tenantSlug} />

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import {
   withTenant, listCelebrations, monthWindow, weekWindow, getChurch, canEditPeople,
   type CelebrationWindow,
 } from "@hearth/db";
-import { Button, Table, Thead, Th, Tr, Td, HueTag, EmptyState, StatTile } from "@hearth/ui";
+import { HueTag } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -60,7 +60,7 @@ export default async function CelebrationsPage({
 
   const view: View = params.view === "week" ? "week" : "month";
 
-  const { celebrations, today, at, window } = await withTenant(
+  const { celebrations, at, window } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const church = await getChurch(tx, session.tenantId);
@@ -108,78 +108,107 @@ export default async function CelebrationsPage({
     <AppShell
       session={session}
       title={t("celebrations.title")}
+      max="max-w-[880px]"
     >
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1 rounded-lg border border-line bg-surface p-1">
-          {(["month", "week"] as View[]).map((option) => (
-            <Button
-              key={option}
-              variant={option === view ? "primary" : "ghost"}
-              asChild
-            >
-              <Link href={link({ view: option })}>
-                {t(option === "month" ? "celebrations.view.month" : "celebrations.view.week")}
-              </Link>
-            </Button>
-          ))}
-        </div>
+      <Link
+        href={`/people?church=${session.tenantSlug}`}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("people.title")}
+      </Link>
 
+      {/* The month either side of a 28px heading, and the one thing a church
+          does with this list: print it. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button variant="secondary" asChild>
-            <Link href={link({ at: earlier })} aria-label={t("celebrations.earlier")}>
-              <ChevronLeft aria-hidden />
-            </Link>
-          </Button>
-          <span className="min-w-48 text-center text-body-lg font-medium text-fg">
+          <Link
+            href={link({ at: earlier })}
+            aria-label={t("celebrations.earlier")}
+            className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
+          >
+            <ChevronLeft className="size-4" aria-hidden />
+          </Link>
+          <span className="min-w-[170px] text-center font-display text-[28px] leading-[34px] text-fg">
             {heading}
           </span>
-          <Button variant="secondary" asChild>
-            <Link href={link({ at: later })} aria-label={t("celebrations.later")}>
-              <ChevronRight aria-hidden />
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href={link({ at: today })}>
-              {t(view === "week" ? "celebrations.now.week" : "celebrations.now.month")}
-            </Link>
-          </Button>
+          <Link
+            href={link({ at: later })}
+            aria-label={t("celebrations.later")}
+            className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
+          >
+            <ChevronRight className="size-4" aria-hidden />
+          </Link>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
+            {(["month", "week"] as View[]).map((option) => (
+              <Link
+                key={option}
+                href={link({ view: option })}
+                className={`h-7 rounded-sm px-3 text-[13px] font-medium leading-7 ${
+                  option === view ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
+                }`}
+              >
+                {t(option === "month" ? "celebrations.view.month" : "celebrations.view.week")}
+              </Link>
+            ))}
+          </div>
+          <Link
+            href={`/people/print?church=${session.tenantSlug}`}
+            target="_blank"
+            className="flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
+          >
+            <Printer /> {t("celebrations.print")}
+          </Link>
         </div>
       </div>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
-        <StatTile label={t("celebrations.birthdays")} value={String(birthdays.length)} hue="rose" />
-        <StatTile
-          label={t("celebrations.anniversaries")}
-          value={String(anniversaries.length)}
-          hue="violet"
-        />
+      {/* Two counts, each with its hue, the number in Fraunces at 40. */}
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+        {[
+          { label: t("celebrations.birthdays"), n: birthdays.length, hue: "rose" },
+          { label: t("celebrations.anniversaries"), n: anniversaries.length, hue: "violet" },
+        ].map((tile) => (
+          <div key={tile.label} className="rounded-lg border border-line bg-surface px-5 py-4.5">
+            <div className="flex items-center gap-2 text-[13px] font-medium text-fg-muted">
+              <span
+                className="size-2 rounded-full"
+                style={{ background: `var(--hue-${tile.hue}-500)` }}
+              />
+              {tile.label}
+            </div>
+            <div className="mt-2.5 font-display text-[40px] leading-[44px] text-fg">{tile.n}</div>
+          </div>
+        ))}
       </div>
 
       {celebrations.length === 0 ? (
-        <EmptyState
-          title={view === "week"
+        <div className="rounded-lg border border-line bg-surface p-7 text-center text-fg-muted">
+          {view === "week"
             ? t("celebrations.empty.week")
             : t("celebrations.empty.month", { span: heading })}
-        />
+        </div>
       ) : (
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>{t("celebrations.day")}</Th>
-              <Th>{t("celebrations.who")}</Th>
-              <Th>{t("celebrations.what")}</Th>
-            </Tr>
-          </Thead>
+        <div className="overflow-auto rounded-lg border border-line bg-surface">
+         <table className="w-full min-w-[520px] border-collapse">
+          <thead>
+            <tr className="text-left text-[12px] font-medium text-fg-subtle">
+              <th className="w-[90px] border-b border-line px-4 py-3 font-medium">{t("celebrations.day")}</th>
+              <th className="border-b border-line px-4 py-3 font-medium">{t("celebrations.who")}</th>
+              <th className="border-b border-line px-4 py-3 font-medium">{t("celebrations.what")}</th>
+            </tr>
+          </thead>
           <tbody>
             {days.map((day) =>
               celebrations
                 .filter((c) => c.on === day)
                 .map((c, index) => (
-                  <Tr key={`${c.kind}-${c.personId}`}>
-                    <Td className="whitespace-nowrap text-fg-muted">
+                  <tr key={`${c.kind}-${c.personId}`}>
+                    <td className="whitespace-nowrap border-b border-sunken px-4 py-2.5 text-fg-muted">
                       {index === 0 ? shortDate(day) : null}
-                    </Td>
-                    <Td>
+                    </td>
+                    <td className="border-b border-sunken px-4 py-2.5">
                       <Link
                         href={`/people/${c.personId}?church=${session.tenantSlug}`}
                         className="font-medium text-fg underline-offset-4 hover:underline"
@@ -188,8 +217,8 @@ export default async function CelebrationsPage({
                           ? t("celebrations.couple", { one: c.name, two: c.partnerName })
                           : c.name}
                       </Link>
-                    </Td>
-                    <Td className="whitespace-nowrap">
+                    </td>
+                    <td className="whitespace-nowrap border-b border-sunken px-4 py-2.5">
                       <span className="flex items-center gap-2">
                         <HueTag hue={c.kind === "birthday" ? "rose" : "violet"}>
                           {c.kind === "birthday"
@@ -204,12 +233,13 @@ export default async function CelebrationsPage({
                           </span>
                         )}
                       </span>
-                    </Td>
-                  </Tr>
+                    </td>
+                  </tr>
                 )),
             )}
           </tbody>
-        </Table>
+         </table>
+        </div>
       )}
     </AppShell>
   );

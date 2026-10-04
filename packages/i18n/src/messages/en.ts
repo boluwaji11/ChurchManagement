@@ -588,6 +588,10 @@ export const en = {
 
   // Import
   "import.title": "Import",
+  "import.heading": "Import people",
+  "import.step.done": "Done",
+  "import.drop": "Drop a CSV or Excel file, or choose one",
+  "import.recognised": "Exports from Planning Center, Breeze and ChurchTrac are recognised automatically",
   "import.step.file": "Choose a file",
   "import.step.map": "Match the columns",
   "import.detected": "{name} export",
@@ -1136,6 +1140,7 @@ export const en = {
   "check.error.completed": "Enter the day it was completed.",
   "check.error.expiry": "The expiry has to be after the day it was completed.",
   "celebrations.title": "Celebrations",
+  "celebrations.print": "Print card list",
   "celebrations.open": "Celebrations",
   "celebrations.view.month": "Month",
   "celebrations.view.week": "Week",
