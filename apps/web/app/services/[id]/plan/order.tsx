@@ -188,106 +188,119 @@ export function Order({
                   onDragEnd={() => setDragging(null)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => dropOn(item.id)}
-                  className="flex flex-wrap items-center gap-2.5 border-b border-sunken px-4 py-3 last:border-0"
+                  className="flex flex-col border-b border-sunken last:border-0"
                 >
-                  <GripVertical className="size-4 shrink-0 cursor-grab text-line-strong" aria-hidden />
+                  <div className="flex flex-wrap items-center gap-2.5 px-4 py-3">
+                    <GripVertical
+                      className="size-4 shrink-0 cursor-grab text-line-strong"
+                      aria-hidden
+                    />
 
-                  <span
-                    data-numeric
-                    className="w-[72px] shrink-0 whitespace-nowrap font-mono text-[12px] text-fg-subtle"
-                  >
-                    {toTime(item.startsAt)}
-                  </span>
-
-                  {/* A column of its own, so every title starts at the same
-                      place however long the kind's word is. */}
-                  <span className="w-[118px] shrink-0">
-                    <span
-                      className="inline-flex rounded-full px-2 py-0.5 text-[12px] font-medium"
-                      style={{
-                        background: `var(--hue-${hue}-tint)`,
-                        color: `var(--hue-${hue}-key)`,
-                      }}
-                    >
-                      {t(`order.kind.${item.kind}` as never)}
-                    </span>
-                  </span>
-
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="font-medium text-fg">{item.title}</span>
-                    {item.description ? (
-                      <span className="text-[12px] text-fg-subtle">{item.description}</span>
-                    ) : null}
-
-                    {/* R11.7. Charts, tracks and sheets, opened through a
-                        signed link because the bucket is private. */}
-                    {item.files.length > 0 ? (
-                      <ul className="mt-1 flex flex-wrap gap-2">
-                        {item.files.map((file) => (
-                          <li key={file.id}>
-                            <Attachment
-                              file={file}
-                              pending={pending}
-                              onRemove={() => run(() => dropFile(file.id, church))}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-
-                    {/* R11.6. The instructions, each labelled with who it is
-                        for, so a leader can see the drummer has been told. */}
-                    {item.notes.length > 0 ? (
-                      <ul className="mt-1 flex flex-col gap-1">
-                        {item.notes.map((note) => (
-                          <li key={note.id} className="flex items-start gap-2">
-                            <MessageSquare
-                              className="mt-0.5 size-3.5 shrink-0 text-fg-subtle"
-                              aria-hidden
-                            />
-                            <span className="text-[12px] text-fg-muted">
-                              {note.audience ? (
-                                <span className="font-medium text-fg">{note.audience} </span>
-                              ) : null}
-                              {note.body}
-                            </span>
-                            <IconButton
-                              label={t("order.note.remove")}
-                              disabled={pending}
-                              onClick={() => run(() => dropNote(note.id, church))}
-                            >
-                              <X />
-                            </IconButton>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </span>
-
-                  <span
-                    data-numeric
-                    className="shrink-0 whitespace-nowrap font-mono text-[13px] text-fg-muted"
-                  >
-                    {t("order.runsMin", { count: item.minutes })}
-                  </span>
-
-                  <span className="flex shrink-0 items-center gap-0 [&_button]:size-8">
-                    <AttachButton church={church} itemId={item.id} />
-                    <NoteDialog church={church} itemId={item.id} audience={audience} />
+                    {/* R11.2. The item itself opens it. The three icons beside
+                        it are the things that are not editing it. */}
                     <ItemDialog
                       church={church}
                       planId={planId}
                       item={item}
-                      trigger={<IconButton label={t("action.edit")}><Pencil /></IconButton>}
+                      trigger={
+                        <button
+                          type="button"
+                          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-sm text-left hover:text-primary"
+                        >
+                          <span
+                            data-numeric
+                            className="w-[72px] shrink-0 whitespace-nowrap font-mono text-[12px] text-fg-subtle"
+                          >
+                            {toTime(item.startsAt)}
+                          </span>
+
+                          {/* A column of its own, so every title starts at the
+                              same place however long the kind's word is. */}
+                          <span className="w-[118px] shrink-0">
+                            <span
+                              className="inline-flex rounded-full px-2 py-0.5 text-[12px] font-medium"
+                              style={{
+                                background: `var(--hue-${hue}-tint)`,
+                                color: `var(--hue-${hue}-key)`,
+                              }}
+                            >
+                              {t(`order.kind.${item.kind}` as never)}
+                            </span>
+                          </span>
+
+                          <span className="flex min-w-0 flex-1 flex-col">
+                            <span className="truncate font-medium text-fg">{item.title}</span>
+                            {item.description ? (
+                              <span className="truncate text-[12px] text-fg-subtle">
+                                {item.description}
+                              </span>
+                            ) : null}
+                          </span>
+                        </button>
+                      }
                     />
-                    <IconButton
-                      label={t("order.remove")}
-                      disabled={pending}
-                      onClick={() => run(() => dropItem(item.id, church))}
+
+                    <span
+                      data-numeric
+                      className="shrink-0 whitespace-nowrap font-mono text-[13px] text-fg-muted"
                     >
-                      <Trash2 />
-                    </IconButton>
-                  </span>
+                      {t("order.runsMin", { count: item.minutes })}
+                    </span>
+
+                    <span className="flex shrink-0 items-center gap-0 [&_button]:size-8">
+                      <AttachButton church={church} itemId={item.id} />
+                      <NoteDialog church={church} itemId={item.id} audience={audience} />
+                      <IconButton
+                        label={t("order.remove")}
+                        disabled={pending}
+                        onClick={() => run(() => dropItem(item.id, church))}
+                      >
+                        <Trash2 />
+                      </IconButton>
+                    </span>
+                  </div>
+
+                  {/* R11.7, R11.6. What is attached to the item and what the
+                      team has been told, under the line they belong to. */}
+                  {item.files.length > 0 || item.notes.length > 0 ? (
+                    <div className="flex flex-col gap-1 px-4 pb-3 pl-[136px]">
+                      {item.files.length > 0 ? (
+                        <ul className="flex flex-wrap gap-2">
+                          {item.files.map((file) => (
+                            <li key={file.id}>
+                              <Attachment
+                                file={file}
+                                pending={pending}
+                                onRemove={() => run(() => dropFile(file.id, church))}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+
+                      {item.notes.map((note) => (
+                        <div key={note.id} className="flex items-start gap-2">
+                          <MessageSquare
+                            className="mt-0.5 size-3.5 shrink-0 text-fg-subtle"
+                            aria-hidden
+                          />
+                          <span className="text-[12px] text-fg-muted">
+                            {note.audience ? (
+                              <span className="font-medium text-fg">{note.audience} </span>
+                            ) : null}
+                            {note.body}
+                          </span>
+                          <IconButton
+                            label={t("order.note.remove")}
+                            disabled={pending}
+                            onClick={() => run(() => dropNote(note.id, church))}
+                          >
+                            <X />
+                          </IconButton>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </li>
               );
             })}

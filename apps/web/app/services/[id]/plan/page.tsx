@@ -73,9 +73,12 @@ export default async function PlanPage({
   const ends = new Date();
   ends.setHours(h ?? 0, (m ?? 0) + minutes, 0, 0);
 
-  const tabs = [...others].sort(
-    (a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
-  );
+  // The one being read is always a tab, even once it has happened, so the
+  // strip never loses the plan it is sitting on.
+  const tabs = [
+    ...(others.some((one) => one.id === id) ? [] : [occurrence]),
+    ...others,
+  ].sort((a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt));
 
   return (
     <AppShell session={session} title={t("order.title")} wide>
