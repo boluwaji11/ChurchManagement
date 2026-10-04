@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { serviceOccurrences } from "../schema/gatherings";
 import { serviceTimes } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
+import { can, rolesWith } from "../permissions";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -20,9 +21,9 @@ import type { WriteActor } from "./people";
  * Staff plan services, so this is wider than the church settings that produced
  * the pattern. Cancelling a service is not renaming the church.
  */
-export const CAN_MANAGE_SERVICES: readonly TenantRole[] = ["owner", "admin", "staff"];
+export const CAN_MANAGE_SERVICES: readonly TenantRole[] = rolesWith("services.manage");
 export const canManageServices = (role: TenantRole): boolean =>
-  CAN_MANAGE_SERVICES.includes(role);
+  can(role, "services.manage");
 
 export type OccurrenceStatus = "scheduled" | "cancelled";
 

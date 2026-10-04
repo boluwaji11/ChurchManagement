@@ -4,6 +4,7 @@ import { groups, groupTypes, groupMemberships } from "../schema/groups";
 import { people } from "../schema/people";
 import { storedFiles } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
+import { can, rolesWith } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -22,8 +23,8 @@ import type { WriteActor } from "./people";
  */
 
 /** Groups are pastoral structure, so creating and editing one is staff and up. */
-export const CAN_MANAGE_GROUPS: readonly TenantRole[] = ["owner", "admin", "staff", "pastoral"];
-export const canManageGroups = (role: TenantRole): boolean => CAN_MANAGE_GROUPS.includes(role);
+export const CAN_MANAGE_GROUPS: readonly TenantRole[] = rolesWith("groups.manage");
+export const canManageGroups = (role: TenantRole): boolean => can(role, "groups.manage");
 
 /** R9.4. What somebody is in a group. */
 export const GROUP_ROLES = ["leader", "coleader", "member"] as const;

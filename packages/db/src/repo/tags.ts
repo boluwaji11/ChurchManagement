@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, sql, count, ne } from "drizzle-orm";
 import type { Tx } from "../client";
 import { tags, personTags, people } from "../schema/people";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
+import { can, rolesWith } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -35,8 +36,8 @@ export interface TagRow {
  * who may edit a person may do it. A volunteer who cannot invent a tag mid-task
  * writes it in the notes field instead, which is worse.
  */
-export const CAN_MANAGE_TAGS: readonly TenantRole[] = ["owner", "admin"];
-export const canManageTags = (role: TenantRole): boolean => CAN_MANAGE_TAGS.includes(role);
+export const CAN_MANAGE_TAGS: readonly TenantRole[] = rolesWith("church.tags");
+export const canManageTags = (role: TenantRole): boolean => can(role, "church.tags");
 
 /** Trimmed, internal whitespace collapsed. "  Youth   choir " becomes "Youth choir". */
 export const normaliseTagName = (raw: string): string => raw.trim().replace(/\s+/g, " ");

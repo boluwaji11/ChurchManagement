@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { teams, teamPositions, teamMembers, teamMemberPositions } from "../schema/serving";
 import { people } from "../schema/people";
 import { PermissionError, type TenantRole } from "../roles";
+import { can, rolesWith } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import { TAG_HUES, type TagHue } from "./tags";
 import type { WriteActor } from "./people";
@@ -20,8 +21,8 @@ import type { WriteActor } from "./people";
  */
 
 /** Teams are church structure, so creating one is staff and up. */
-export const CAN_MANAGE_TEAMS: readonly TenantRole[] = ["owner", "admin", "staff"];
-export const canManageTeams = (role: TenantRole): boolean => CAN_MANAGE_TEAMS.includes(role);
+export const CAN_MANAGE_TEAMS: readonly TenantRole[] = rolesWith("teams.manage");
+export const canManageTeams = (role: TenantRole): boolean => can(role, "teams.manage");
 
 /**
  * A team leader runs the schedule for the team they lead, and nothing else.
@@ -31,8 +32,7 @@ export const canManageTeams = (role: TenantRole): boolean => CAN_MANAGE_TEAMS.in
  * checked against the roster, so the permission follows the person being made
  * a leader rather than something set twice.
  */
-export const canLeadTeams = (role: TenantRole): boolean =>
-  canManageTeams(role) || role === "team_leader";
+export const canLeadTeams = (role: TenantRole): boolean => can(role, "teams.lead");
 
 /** R10.4. What somebody is on a team. */
 export const TEAM_ROLES = ["leader", "member"] as const;

@@ -2,17 +2,16 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Minus, Archive, Undo2, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Minus, Archive, Undo2 } from "lucide-react";
 import {
   HUES,
   Banner, Button, IconButton, EmptyState, Field, HueDot, Input,
-  Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { ageLine, say } from "@/lib/room-ages";
-import { createRoom, saveRoom, archiveRoom, moveRoom } from "./actions";
+import { createRoom, saveRoom, archiveRoom } from "./actions";
 
 
 /** What a card shows where a church has not said. */
@@ -56,13 +55,6 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
   const open = rooms.filter((r) => !r.archived);
   const archived = rooms.filter((r) => r.archived);
 
-  const move = (index: number, by: number) => {
-    const next = [...open];
-    const [row] = next.splice(index, 1);
-    next.splice(index + by, 0, row!);
-    act(moveRoom, { ids: [...next, ...archived].map((r) => r.id).join(",") });
-  };
-
   const setCapacity = (room: RoomItem, next: number) =>
     act(saveRoom, {
       id: room.id,
@@ -82,39 +74,44 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
         <EmptyState title={t("rooms.none.title")} body={t("rooms.none.body")} />
       ) : (
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
-          {open.map((room, i) => (
+          {open.map((room) => (
             <section
               key={room.id}
-              className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4"
+              className="relative flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 hover:border-line-strong"
             >
-              <div className="flex items-center gap-2.5">
+              {/* R24.6. The whole tile opens the room. The trigger is a layer
+                  over the card rather than a wrapper around it, so the capacity
+                  buttons stay buttons instead of controls nested in a control. */}
+              <RoomSheet
+                room={room}
+                pending={pending}
+                trigger={
+                  <button
+                    type="button"
+                    aria-label={t("rooms.editTitle", { name: room.name })}
+                    className="absolute inset-0 z-0 cursor-pointer rounded-[14px]"
+                  />
+                }
+                title={t("rooms.editTitle", { name: room.name })}
+                onSave={(fields) => act(saveRoom, { id: room.id, ...fields })}
+                onArchive={() => act(archiveRoom, { id: room.id, archived: "1" })}
+              />
+
+              <div className="pointer-events-none relative flex items-center gap-2.5">
                 <span
                   className="size-3 shrink-0 rounded-[4px]"
                   style={{ background: `var(--hue-${room.hue}-500)` }}
                 />
-
-                <RoomSheet
-                  room={room}
-                  pending={pending}
-                  trigger={
-                    <button
-                      type="button"
-                      className="min-w-0 flex-1 cursor-pointer truncate text-left font-semibold text-fg underline-offset-4 hover:underline"
-                    >
-                      {room.name}
-                    </button>
-                  }
-                  title={t("rooms.editTitle", { name: room.name })}
-                  onSave={(fields) => act(saveRoom, { id: room.id, ...fields })}
-                />
-
+                <span className="min-w-0 flex-1 truncate font-semibold text-fg">{room.name}</span>
                 <span className="shrink-0 text-[12px] text-fg-subtle">{ageLine(room)}</span>
               </div>
 
               {/* R8.15. Capacity is the number a church changes most, and it
                   changes by one, so it is two buttons rather than a form. */}
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-label text-fg-muted">{t("rooms.capacity")}</span>
+              <div className="relative flex items-center justify-between gap-2">
+                <span className="pointer-events-none text-label text-fg-muted">
+                  {t("rooms.capacity")}
+                </span>
                 <div className="flex items-center gap-1.5">
                   <IconButton
                     label={t("rooms.fewer")}
@@ -126,7 +123,7 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                     <Minus />
                   </IconButton>
                   <span className="min-w-7 text-center font-semibold text-fg tabular-nums">
-                    {room.capacity ?? EMPTY}
+                    {room.capacity ?? 0}
                   </span>
                   <IconButton
                     label={t("rooms.more")}
@@ -140,35 +137,11 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-2 text-label">
+              <div className="pointer-events-none relative flex items-center justify-between gap-2 text-label">
                 <span className="text-fg-muted">{t("rooms.ratioLabel")}</span>
                 <span className="font-medium text-fg">
                   {room.ratio === null ? EMPTY : `1:${room.ratio}`}
                 </span>
-              </div>
-
-              <div className="flex items-center justify-end gap-0.5">
-                <IconButton
-                  label={t("rooms.moveUp")}
-                  variant="ghost"
-                  disabled={i === 0 || pending}
-                  onClick={() => move(i, -1)}
-                >
-                  <ChevronUp />
-                </IconButton>
-                <IconButton
-                  label={t("rooms.moveDown")}
-                  variant="ghost"
-                  disabled={i === open.length - 1 || pending}
-                  onClick={() => move(i, 1)}
-                >
-                  <ChevronDown />
-                </IconButton>
-                <ArchiveDialog
-                  room={room}
-                  pending={pending}
-                  onConfirm={() => act(archiveRoom, { id: room.id, archived: "1" })}
-                />
               </div>
             </section>
           ))}
@@ -218,12 +191,15 @@ export function RoomSheet({
   trigger,
   title,
   onSave,
+  onArchive,
 }: {
   room?: RoomItem;
   pending: boolean;
   trigger: React.ReactNode;
   title: string;
   onSave: (fields: Record<string, string>) => void;
+  /** R8.14. Archiving an existing room, which is undone from the shelf below. */
+  onArchive?: () => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [hue, setHue] = React.useState(room?.hue ?? "sky");
@@ -250,6 +226,17 @@ export function RoomSheet({
         closeLabel={t("common.close")}
         footer={
           <>
+            {onArchive ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="mr-auto"
+                disabled={pending}
+                onClick={() => { onArchive(); setOpen(false); }}
+              >
+                <Archive /> {t("rooms.archive")}
+              </Button>
+            ) : null}
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
@@ -415,47 +402,5 @@ function AgeField({
         </Select>
       </div>
     </div>
-  );
-}
-
-function ArchiveDialog({
-  room,
-  pending,
-  onConfirm,
-}: {
-  room: RoomItem;
-  pending: boolean;
-  onConfirm: () => void;
-}) {
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <IconButton
-          label={t("rooms.archive")}
-          variant="ghost"
-        >
-          <Archive />
-        </IconButton>
-      </DialogTrigger>
-      <DialogContent alert title={t("rooms.archiveTitle", { name: room.name })}>
-        <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
-          {t("rooms.archiveBody")}
-        </p>
-        <DialogFooter>
-          <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
-            {t("rooms.keep")}
-          </Button>
-          <Button
-            variant="danger"
-            disabled={pending}
-            onClick={() => { onConfirm(); setOpen(false); }}
-          >
-            <Archive /> {t("rooms.archiveAction", { name: room.name })}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

@@ -35,7 +35,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
     >
       {groups.map((group) => (
         <div key={group.title} className="flex flex-col gap-0.5">
-          <span className="px-2.5 pb-1 text-[11px] font-semibold text-fg-subtle">
+          <span className="px-2.5 pb-1 text-[11px] font-bold tracking-wide text-fg uppercase">
             {group.title}
           </span>
 

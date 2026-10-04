@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { customFields, customFieldValues } from "../schema/custom-fields";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
+import { can, rolesWith } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -40,9 +41,9 @@ export type CustomValue = string | number | boolean | string[] | null;
  * Defining a field changes the shape of every record of that kind, so it stays
  * with Owner and Admin. Filling one in is ordinary editing.
  */
-export const CAN_MANAGE_CUSTOM_FIELDS: readonly TenantRole[] = ["owner", "admin"];
+export const CAN_MANAGE_CUSTOM_FIELDS: readonly TenantRole[] = rolesWith("church.fields");
 export const canManageCustomFields = (role: TenantRole): boolean =>
-  CAN_MANAGE_CUSTOM_FIELDS.includes(role);
+  can(role, "church.fields");
 
 /** "Allergy notes" becomes "allergy_notes". Stable, so exports have a sane header. */
 export function keyFor(label: string): string {

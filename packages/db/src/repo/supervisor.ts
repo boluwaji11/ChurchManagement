@@ -5,6 +5,7 @@ import { people, households, householdMemberships } from "../schema/people";
 import { InvalidInputError } from "../errors";
 import { canCheckIn } from "./checkin";
 import { PermissionError, type TenantRole } from "../roles";
+import { rolesWith } from "../permissions";
 
 /**
  * R8.17 to R8.19. What the person walking the corridor needs to see.
@@ -17,7 +18,7 @@ import { PermissionError, type TenantRole } from "../roles";
  * worse than no tally, because somebody will trust it.
  */
 
-export const CAN_SUPERVISE: readonly TenantRole[] = ["owner", "admin", "staff", "checkin_volunteer"];
+export const CAN_SUPERVISE: readonly TenantRole[] = rolesWith("checkin.supervise");
 
 /**
  * R8.17. A class with fewer than two volunteers in it.

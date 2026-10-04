@@ -1,7 +1,8 @@
 export * as schema from "./schema/index";
 export { owner, appDb, withTenant, closeConnections, sql, type Db, type Tx, type TenantContext } from "./client";
 export {
-  TENANT_ROLES, type TenantRole, canReadConfidentialNotes, canReadGivingAmounts,
+  TENANT_ROLES, type TenantRole, PERMISSIONS, ROLE_PERMISSIONS, type Permission,
+  can, rolesWith, canReadConfidentialNotes, canReadGivingAmounts,
   CAN_READ_CONFIDENTIAL_NOTES, CAN_READ_GIVING_AMOUNTS,
   canEditPeople, canArchivePeople, CAN_EDIT_PEOPLE, CAN_ARCHIVE_PEOPLE, PermissionError,
 } from "./roles";

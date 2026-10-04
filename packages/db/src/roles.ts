@@ -1,27 +1,26 @@
 import { t } from "@hearth/i18n";
-/** R1.4. Built-in roles. */
-export const TENANT_ROLES = [
-  "owner", "admin", "staff", "finance", "pastoral",
-  "group_leader", "team_leader", "checkin_volunteer", "member",
-] as const;
+import { can, rolesWith, type TenantRole } from "./permissions";
 
-export type TenantRole = (typeof TENANT_ROLES)[number];
+export {
+  TENANT_ROLES, PERMISSIONS, ROLE_PERMISSIONS, can, rolesWith,
+  type TenantRole, type Permission,
+} from "./permissions";
 
 /**
  * R1.5 and R21.2. Field-level permissions, enforced here at the query layer
  * rather than in a template. If data is hidden only by the view, it is not
  * hidden, so every repository assumes its consumer is the API.
  */
-export const CAN_READ_CONFIDENTIAL_NOTES: readonly TenantRole[] = ["owner", "pastoral"];
+export const CAN_READ_CONFIDENTIAL_NOTES: readonly TenantRole[] = rolesWith("people.notes.confidential");
 
 /** Giving amounts arrive in 0.3. The rule is recorded now so it is not forgotten. */
-export const CAN_READ_GIVING_AMOUNTS: readonly TenantRole[] = ["owner", "finance"];
+export const CAN_READ_GIVING_AMOUNTS: readonly TenantRole[] = rolesWith("giving.amounts");
 
 export const canReadConfidentialNotes = (role: TenantRole): boolean =>
-  CAN_READ_CONFIDENTIAL_NOTES.includes(role);
+  can(role, "people.notes.confidential");
 
 export const canReadGivingAmounts = (role: TenantRole): boolean =>
-  CAN_READ_GIVING_AMOUNTS.includes(role);
+  can(role, "giving.amounts");
 
 /**
  * R2.x writes. Who may change a person's record.
@@ -30,11 +29,11 @@ export const canReadGivingAmounts = (role: TenantRole): boolean =>
  * correction through the Owner. Archiving is narrower: it removes someone from
  * every list at once, so it stays with Owner and Admin.
  */
-export const CAN_EDIT_PEOPLE: readonly TenantRole[] = ["owner", "admin", "staff"];
-export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = ["owner", "admin"];
+export const CAN_EDIT_PEOPLE: readonly TenantRole[] = rolesWith("people.edit");
+export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = rolesWith("people.archive");
 
-export const canEditPeople = (role: TenantRole): boolean => CAN_EDIT_PEOPLE.includes(role);
-export const canArchivePeople = (role: TenantRole): boolean => CAN_ARCHIVE_PEOPLE.includes(role);
+export const canEditPeople = (role: TenantRole): boolean => can(role, "people.edit");
+export const canArchivePeople = (role: TenantRole): boolean => can(role, "people.archive");
 
 /**
  * Thrown when a role is not permitted to perform a write.

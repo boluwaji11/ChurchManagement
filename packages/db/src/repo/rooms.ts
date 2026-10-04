@@ -2,6 +2,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { checkinRooms } from "../schema/checkin";
 import { PermissionError, type TenantRole } from "../roles";
+import { can, rolesWith } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { MessageKey } from "@hearth/i18n";
 import type { WriteActor } from "./people";
@@ -18,8 +19,8 @@ export { ageInMonths, suggestRoom };
  */
 
 /** Rooms are a safeguarding configuration, so they stay with Owner and Admin. */
-export const CAN_MANAGE_ROOMS: readonly TenantRole[] = ["owner", "admin"];
-export const canManageRooms = (role: TenantRole): boolean => CAN_MANAGE_ROOMS.includes(role);
+export const CAN_MANAGE_ROOMS: readonly TenantRole[] = rolesWith("checkin.rooms");
+export const canManageRooms = (role: TenantRole): boolean => can(role, "checkin.rooms");
 
 /** Matches the twelve hues in packages/ui, so a room can be told apart on a label. */
 export const ROOM_HUES = [
