@@ -19,7 +19,6 @@ export interface TeamCard {
   needsChecks: boolean;
   archived: boolean;
   /** R10.3. Slots still to fill across the month on screen. */
-  open: number;
 }
 
 /**
@@ -78,19 +77,7 @@ export function Teams({
                     {team.name}
                   </Link>
                 </h3>
-                {team.archived ? (
-                  <Badge tone="neutral">{t("serving.archived")}</Badge>
-                ) : team.open > 0 ? (
-                  <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium"
-                    style={{
-                      background: "var(--hue-amber-tint)",
-                      color: "var(--hue-amber-key)",
-                    }}
-                  >
-                    {t("serving.openCount", { count: team.open })}
-                  </span>
-                ) : null}
+                {team.archived ? <Badge tone="neutral">{t("serving.archived")}</Badge> : null}
               </div>
 
               {/* R10.2. What the team is made of, which is the thing a church

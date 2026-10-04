@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { X, UserPlus } from "lucide-react";
 import { Avatar, Banner, Badge, Combobox, IconButton } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Confirm } from "@/components/confirm";
 import { addMember, removeMember, findPerson, type PersonHit } from "../actions";
 
 export interface RosterMember {
@@ -15,8 +16,6 @@ export interface RosterMember {
   role: string;
   joinedOn: string;
   positions: { id: string; name: string }[];
-  /** How many times they are down to serve this month. */
-  scheduled: number;
 }
 
 export interface PositionOption {
@@ -34,14 +33,14 @@ export interface PositionOption {
 export function Roster({
   church,
   teamId,
+  teamName,
   members,
-  month,
 }: {
   church: string;
   teamId: string;
+  /** Named in the question asked before somebody comes off it. */
+  teamName: string;
   members: RosterMember[];
-  /** The month the counts are about, named in the line under each person. */
-  month: string;
 }) {
   const router = useRouter();
   const [hits, setHits] = React.useState<PersonHit[]>([]);
@@ -113,19 +112,20 @@ export function Roster({
                   <Badge tone="neutral">{t("serving.role.leader")}</Badge>
                 ) : null}
               </span>
-              <span className="text-[13px] text-fg-muted">
-                {t("serving.scheduled", { count: member.scheduled, month })}
-              </span>
             </span>
 
-            <IconButton
-              label={t("serving.remove")}
-              variant="ghost"
+            <Confirm
+              title={t("serving.removeTitle", { name: member.name, team: teamName })}
+              body={t("serving.removeBody")}
+              confirmLabel={t("serving.removeAction")}
               disabled={pending}
-              onClick={() => run(() => removeMember(teamId, member.personId, church))}
-            >
-              <X />
-            </IconButton>
+              onConfirm={() => run(() => removeMember(teamId, member.personId, church))}
+              trigger={
+                <IconButton label={t("serving.remove")} variant="ghost" disabled={pending}>
+                  <X />
+                </IconButton>
+              }
+            />
           </li>
         ))}
       </ul>

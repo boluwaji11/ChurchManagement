@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
 import { Banner, Button, IconButton, Input } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Confirm } from "@/components/confirm";
 import { savePosition, archivePosition } from "../actions";
 
 export interface PositionRow {
@@ -13,9 +14,6 @@ export interface PositionRow {
   needed: number;
   withChildren: boolean;
   requiresCheck: boolean;
-  /** How many of this month's gatherings have it filled, and how many there are. */
-  filled: number;
-  services: number;
 }
 
 /**
@@ -67,30 +65,6 @@ export function Positions({
     <div className="flex flex-col gap-3" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
 
-      <ul className="flex flex-col">
-        {positions.map((position) => (
-          <li
-            key={position.id}
-            className="flex items-center gap-3 border-b border-sunken py-3 first:pt-0"
-          >
-            <span className="min-w-0 flex-1 truncate font-medium text-fg">{position.name}</span>
-            <span className="shrink-0 text-[13px] text-fg-muted">
-              {t("serving.filled", { filled: position.filled, total: position.services })}
-            </span>
-            {canManage ? (
-              <IconButton
-                label={t("serving.position.archive")}
-                variant="ghost"
-                disabled={pending}
-                onClick={() => run(() => archivePosition(position.id, church))}
-              >
-                <Trash2 />
-              </IconButton>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-
       {canManage ? (
         <div className="flex flex-wrap items-center gap-2">
           <Input
@@ -108,6 +82,36 @@ export function Positions({
           </Button>
         </div>
       ) : null}
+
+      <ul className="flex flex-col">
+        {positions.map((position) => (
+          <li
+            key={position.id}
+            className="flex items-center gap-3 border-b border-sunken py-3 first:pt-0"
+          >
+            <span className="min-w-0 flex-1 truncate font-medium text-fg">{position.name}</span>
+            {canManage ? (
+              <Confirm
+                title={t("serving.position.removeTitle", { name: position.name })}
+                body={t("serving.position.removeBody")}
+                confirmLabel={t("serving.position.removeAction")}
+                disabled={pending}
+                onConfirm={() => run(() => archivePosition(position.id, church))}
+                trigger={
+                  <IconButton
+                    label={t("serving.position.archive")}
+                    variant="ghost"
+                    disabled={pending}
+                  >
+                    <Trash2 />
+                  </IconButton>
+                }
+              />
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
     </div>
   );
 }

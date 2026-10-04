@@ -2,14 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, CalendarDays, Pencil } from "lucide-react";
 import {
-  withTenant, getTeam, getChurch, listOccurrences, assignmentsForTeam,
-  canManageTeams, canLeadTeams, leadsTeam,
+  withTenant, getTeam, canManageTeams, canLeadTeams, leadsTeam,
 } from "@hearth/db";
 import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
-import { churchNow } from "@/lib/church-now";
 import { Positions } from "./positions";
 import { Roster } from "./roster";
 import { TeamDialog } from "../team-dialog";
@@ -41,34 +39,12 @@ export default async function TeamPage({
 
   const canManage = canManageTeams(session);
 
-  const { team, mine, services, slots, monthName } = await withTenant(
+  const { team, mine } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    async (tx) => {
-      const profile = await getChurch(tx, session.tenantId);
-      const clock = churchNow(profile?.timezone ?? "America/Chicago");
-      const month = clock.date.slice(0, 7);
-      const [y, m] = month.split("-").map(Number);
-      const last = new Date(Date.UTC(y!, m!, 0)).getUTCDate();
-
-      // R10.3. This month's gatherings, so each position can say how much of
-      // the month it still owes and each member how much they are doing.
-      const inMonth = await listOccurrences(tx, {
-        from: `${month}-01`,
-        to: `${month}-${String(last).padStart(2, "0")}`,
-      });
-
-      return {
-        team: await getTeam(tx, id),
-        mine: canManage ? true : await leadsTeam(tx, id, session.userId),
-        services: inMonth,
-        slots: inMonth.length
-          ? await assignmentsForTeam(tx, id, inMonth.map((one) => one.id))
-          : [],
-        monthName: new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
-          month: "long",
-        }),
-      };
-    },
+    async (tx) => ({
+      team: await getTeam(tx, id),
+      mine: canManage ? true : await leadsTeam(tx, id, session.userId),
+    }),
   );
 
   if (!team) notFound();
@@ -77,7 +53,6 @@ export default async function TeamPage({
   return (
     <AppShell
       session={session}
-      title={team.name}
       max="max-w-[1100px]"
       action={
         <Button asChild>
@@ -101,7 +76,9 @@ export default async function TeamPage({
             style={{ background: `var(--hue-${team.hue}-500)` }}
           />
           <div>
-            <h2 className="font-display text-[22px] leading-[28px] text-fg">{team.name}</h2>
+            <h2 className="font-display text-[22px] leading-[28px] text-fg">
+              {t("serving.teamNamed", { name: team.name })}
+            </h2>
             {team.description ? (
               <p className="mt-1 text-fg-muted">{team.description}</p>
             ) : null}
@@ -134,10 +111,7 @@ export default async function TeamPage({
 
       <div className="grid gap-5 lg:grid-cols-2">
       <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
-        <h3 className="flex items-baseline gap-2 font-semibold text-fg">
-          {t("serving.positions")}
-          <span className="text-[13px] font-normal text-fg-subtle">{team.positions.length}</span>
-        </h3>
+        <h3 className="font-semibold text-fg">{t("serving.positions")}</h3>
         <Positions
           church={session.tenantSlug}
           teamId={team.id}
@@ -148,25 +122,16 @@ export default async function TeamPage({
             needed: position.needed,
             withChildren: position.withChildren,
             requiresCheck: position.requiresCheck,
-            filled: new Set(
-              slots
-                .filter((one) => one.positionId === position.id && one.status !== "declined")
-                .map((one) => one.occurrenceId),
-            ).size,
-            services: services.length,
           }))}
         />
       </section>
 
       <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
-        <h3 className="flex items-baseline gap-2 font-semibold text-fg">
-          {t("serving.peopleCount")}
-          <span className="text-[13px] font-normal text-fg-subtle">{team.members.length}</span>
-        </h3>
+        <h3 className="font-semibold text-fg">{t("serving.peopleCount")}</h3>
         <Roster
           church={session.tenantSlug}
           teamId={team.id}
-          month={monthName}
+          teamName={team.name}
           members={team.members.map((member) => ({
             id: member.id,
             personId: member.personId,
@@ -174,9 +139,6 @@ export default async function TeamPage({
             role: member.role,
             joinedOn: member.joinedOn,
             positions: member.positions,
-            scheduled: slots.filter(
-              (one) => one.personId === member.personId && one.status !== "declined",
-            ).length,
           }))}
         />
       </section>
