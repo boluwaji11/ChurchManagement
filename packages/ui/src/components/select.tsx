@@ -74,6 +74,7 @@ export const SelectContent = React.forwardRef<
   }
 >(({ className, children, position = "popper", searchLabel, ...props }, ref) => {
   const [query, setQuery] = React.useState("");
+  const box = React.useRef<HTMLInputElement>(null);
   const items = React.Children.toArray(children);
 
   /*
@@ -106,9 +107,18 @@ export const SelectContent = React.forwardRef<
         {...props}
       >
         {searchable ? (
-          <div className="flex items-center gap-2 border-b border-line px-2 pb-1.5">
+          <div
+            className="flex items-center gap-2 border-b border-line px-2 pb-1.5"
+            // Radix puts focus on the list as it opens and keeps every keystroke
+            // for its own jump-to-letter. Taking focus back once it has settled
+            // gives the box the typing instead.
+            ref={() => {
+              setTimeout(() => box.current?.focus(), 0);
+            }}
+          >
             <Search className="size-4 shrink-0 text-fg-subtle" aria-hidden />
             <input
+              ref={box}
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
