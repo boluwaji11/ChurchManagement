@@ -4,7 +4,7 @@ import * as React from "react";
 import { Trash2, Merge, Check } from "lucide-react";
 import {
   HUES,
-  Button, Input, Field, Separator, Banner, HueDot,
+  Button, IconButton, Input, Field, Separator, Banner, HueDot,
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -59,7 +59,6 @@ export function TagManager({
               ) : (
                 tag.name
               )}
-              <span className="tabular-nums opacity-75">{tag.people}</span>
             </span>
           ))}
         </div>
@@ -242,9 +241,15 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
             </div>
           </form>
         ) : (
-          <Button type="button" variant="ghost" onClick={() => setConfirmingDelete(true)}>
-            <Trash2 /> {t("action.delete")}
-          </Button>
+          <div className="flex justify-end">
+            <IconButton
+              label={t("tags.deleteOne", { name: tag.name })}
+              variant="ghost"
+              onClick={() => setConfirmingDelete(true)}
+            >
+              <Trash2 />
+            </IconButton>
+          </div>
         )}
       </DialogContent>
     </Dialog>

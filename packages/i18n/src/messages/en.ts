@@ -663,6 +663,7 @@ export const en = {
   "tags.deleteAction": "Delete {name}",
   "tags.deleteBody.one": "Removes the tag from {count} person.",
   "tags.deleteBody.other": "Removes the tag from {count} people.",
+  "tags.deleteOne": "Delete {name}",
   "tags.keep": "Keep it",
   "tags.peopleCount.one": "{count} person",
   "tags.peopleCount.other": "{count} people",
