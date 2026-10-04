@@ -18,15 +18,13 @@ export interface TeamCard {
   positionNames: string[];
   needsChecks: boolean;
   archived: boolean;
-  /** R10.3. Slots still to fill across the month on screen. */
 }
 
 /**
  * R10.1. Every team the church runs.
  *
  * A card each, carrying what somebody opening this screen is asking: what the
- * team is made of, how many people it has, and how much of this month is still
- * to fill.
+ * team is made of, and how many people it has.
  */
 export function Teams({
   church,
