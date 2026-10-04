@@ -183,9 +183,15 @@ export default async function PersonPage({
         </div>
 
         {canEdit ? (
-          <div className="flex gap-2">
+          <div className="flex items-center gap-1">
             <MessageButton name={display} />
-            <Button variant="secondary" asChild className="size-9 min-h-0 px-0">
+            {/* Sized from the same token as the IconButton beside it, so the
+                two actions are one pair rather than two shapes. */}
+            <Button
+              variant="ghost"
+              asChild
+              className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
+            >
               <Link
                 href={`/people/${person.id}/edit?church=${session.tenantSlug}`}
                 aria-label={t("action.edit")}

@@ -22,7 +22,7 @@ export function MessageButton({ name }: { name: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <IconButton label={t("message.open")} variant="secondary">
+        <IconButton label={t("message.open")} variant="ghost">
           <MessageSquare />
         </IconButton>
       </DialogTrigger>
