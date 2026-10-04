@@ -48,7 +48,10 @@ function interpolate(template: string, params?: Params): string {
  */
 export function t(key: MessageKey, params?: Params, locale: Locale = DEFAULT_LOCALE): string {
   const catalogue = CATALOGUES[locale] ?? en;
-  return interpolate(catalogue[key] ?? en[key], params);
+  // A key the catalogue does not hold renders as the key. The type makes that
+  // unreachable in a build that compiles, and a half-saved file in development
+  // used to put an empty button on the screen instead of saying why.
+  return interpolate(catalogue[key] ?? en[key] ?? key, params);
 }
 
 /**
@@ -70,7 +73,7 @@ export function plural(
   const exact = `${key}.${rule}` as MessageKey;
   const fallback = `${key}.other` as MessageKey;
   const catalogue = CATALOGUES[locale] ?? en;
-  const template = catalogue[exact] ?? catalogue[fallback] ?? en[fallback];
+  const template = catalogue[exact] ?? catalogue[fallback] ?? en[fallback] ?? key;
   return interpolate(template, { count, ...params });
 }
 
