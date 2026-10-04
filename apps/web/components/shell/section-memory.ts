@@ -7,21 +7,25 @@ import { activeHref, type NavTarget } from "./nav-active";
 const KEY = "hearth:section";
 
 /**
- * The sections that reopen where they were left.
+ * A path segment that is an id rather than a screen.
  *
- * A short list on purpose. Everywhere else, the nav entry means the screen it
- * names.
+ * A record's page is not where a section reopens: pressing Groups means the
+ * groups, not the one group somebody happened to read last. Everything else in
+ * a section is a screen, and a screen is worth coming back to.
  */
-const REMEMBERED = ["/settings"];
+const RECORD = /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\/|$)/i;
 
 /**
  * R24.6. Where you were, the last time you were in this section.
  *
- * Only for a section that is a menu of screens rather than a list of records.
- * Settings is the case it exists for: its entry points at ten screens, and
- * landing on the first one every time makes the navigation feel like it forgot.
- * Pressing Groups, by contrast, means the groups, not the group somebody was
- * last reading, so those sections are left alone.
+ * Pressing People, going to Settings and pressing People again should put
+ * somebody back on the screen they left, with the page and the filters they
+ * had, rather than at the top of a list they already scrolled past. Settings is
+ * the sharpest case: its entry points at a section with ten screens in it.
+ *
+ * A record's own page is the exception. Pressing Groups means the groups, not
+ * the one group somebody read last, so a record leaves the section pointing at
+ * its list.
  *
  * Held in sessionStorage, so it lasts as long as the tab and never follows
  * anybody to another device. Every read and write is guarded: a private window
@@ -55,9 +59,16 @@ export function useSectionMemory(entries: NavTarget[]) {
 
   React.useEffect(() => {
     const section = activeHref(entries, pathname);
-    if (!section || !REMEMBERED.includes(section)) return;
+    if (!section) return;
+
     const all = read();
-    all[section] = query ? `${pathname}?${query}` : pathname;
+    // A record's own page leaves the section pointing at its list, so coming
+    // back lands somewhere that still makes sense tomorrow.
+    all[section] = RECORD.test(pathname)
+      ? section
+      : query
+        ? `${pathname}?${query}`
+        : pathname;
     write(all);
     // entries is rebuilt on every render of the server component above, so it
     // is deliberately not a dependency: the path and the query are what change.
@@ -71,8 +82,8 @@ export function useSectionMemory(entries: NavTarget[]) {
    * browser draws and the tree would fail to hydrate.
    */
   return React.useCallback((href: string): string | null => {
-    if (!REMEMBERED.includes(href)) return null;
     const remembered = read()[href];
+    if (remembered === href) return null;
     // Only within the section it was recorded for. A stale entry pointing
     // somewhere else would send somebody to a screen they did not press.
     if (remembered && (remembered === href || remembered.startsWith(`${href}/`)
