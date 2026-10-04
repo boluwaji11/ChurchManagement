@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, bulkSetArchived, bulkSetStatus, bulkSetPersonTag,
+  withTenant, bulkSetArchived, bulkSetStatus, bulkSetPersonTag, listPeople,
   type LifecycleStatus,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
+import { queryFromParams, type DirectoryParams } from "@/lib/directory-query";
 
 export interface BulkResult {
   error?: string;
@@ -87,4 +88,25 @@ export async function bulkTag(data: FormData): Promise<BulkResult> {
   } catch (error) {
     return { error: explain(error) };
   }
+}
+
+/**
+ * R2.x. Every person the filter matches, as ids.
+ *
+ * "Select all" still ends in a list of ids rather than a filter, for the reason
+ * above: the action acts on what somebody chose, and a filter can match
+ * something different a second later.
+ */
+export async function matchingIds(
+  params: DirectoryParams,
+  church?: string,
+): Promise<{ ids: string[] }> {
+  const session = await requireSession(church);
+  const viewer = { role: session.role, userId: session.userId };
+
+  const rows = await withTenant(
+    { tenantId: session.tenantId, role: session.role },
+    (tx) => listPeople(tx, { ...queryFromParams(params), viewer }),
+  );
+  return { ids: rows.map((row) => row.id) };
 }

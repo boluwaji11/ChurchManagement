@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus,
   ListFilter, BookmarkPlus, MinusCircle, Pencil, Copy, Cake, Printer,
-  SlidersHorizontal, Check,
+  SlidersHorizontal, Check, Tag, CheckCircle2,
 } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Checkbox, Banner, HueDot,
@@ -17,7 +17,7 @@ import {
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
-import { bulkArchive, bulkStatus, bulkTag, type BulkResult } from "./bulk-actions";
+import { bulkArchive, bulkStatus, bulkTag, matchingIds, type BulkResult } from "./bulk-actions";
 import { saveSelection, takeOffList, rename, archiveList } from "./list-actions";
 
 export interface ListOption {
@@ -185,7 +185,9 @@ export function Directory({
   // the list. Search sits outside it, in its own box.
   const narrowing =
     (statusNow !== "all" ? 1 : 0) + (tagNow ? 1 : 0) +
-    (joinedNow !== "any" ? 1 : 0) + (missingNow ? 1 : 0);
+    (joinedNow !== "any" ? 1 : 0) + (missingNow ? 1 : 0) +
+    (params.get("group") ? 1 : 0) + (params.get("serving") ? 1 : 0) +
+    (params.get("seen") ? 1 : 0);
 
   const first = (page - 1) * perPage + 1;
   const upto = Math.min(page * perPage, matching);
@@ -271,6 +273,16 @@ export function Directory({
               : null
           }
           pending={pending}
+          total={matching}
+          onSelectAll={() => {
+            startTransition(async () => {
+              const all = await matchingIds(
+                Object.fromEntries(params.entries()),
+                church,
+              );
+              setSelected(all.ids);
+            });
+          }}
           onClear={() => setSelected([])}
           onTag={(tagId, on) => act(bulkTag, { tagId, on: on ? "1" : "0" })}
           onStatus={(status) => act(bulkStatus, { status })}
@@ -334,7 +346,9 @@ export function Directory({
                 <tr
                   key={p.id}
                   onClick={() => router.push(`/people/${p.id}?church=${church}`)}
-                  className="cursor-pointer hover:bg-canvas"
+                  // A picked row is tinted, so the selection is visible while
+                  // the eye is on the names rather than on the checkboxes.
+                  className="cursor-pointer hover:bg-canvas data-[selected]:bg-primary-soft"
                   data-selected={selected.includes(p.id) || undefined}
                 >
                   {canEdit ? (
@@ -627,6 +641,51 @@ function FilterDrawer({
                 </div>
               </FilterGroup>
 
+              {/* What somebody does, which is the half of a directory that
+                  starts a conversation: who comes and belongs to nothing, who
+                  serves, who has not been seen for a month. */}
+              <FilterGroup label={t("directory.filterGroup")}>
+                {(["any", "none"] as const).map((value) => (
+                  <ChipButton
+                    key={value}
+                    on={params.get("group") === value}
+                    onClick={() =>
+                      setParam({ group: params.get("group") === value ? undefined : value })
+                    }
+                  >
+                    {t(`directory.group.${value}` as never)}
+                  </ChipButton>
+                ))}
+              </FilterGroup>
+
+              <FilterGroup label={t("directory.filterServing")}>
+                {(["any", "none"] as const).map((value) => (
+                  <ChipButton
+                    key={value}
+                    on={params.get("serving") === value}
+                    onClick={() =>
+                      setParam({ serving: params.get("serving") === value ? undefined : value })
+                    }
+                  >
+                    {t(`directory.serving.${value}` as never)}
+                  </ChipButton>
+                ))}
+              </FilterGroup>
+
+              <FilterGroup label={t("directory.filterSeen")}>
+                {(["recent", "absent"] as const).map((value) => (
+                  <ChipButton
+                    key={value}
+                    on={params.get("seen") === value}
+                    onClick={() =>
+                      setParam({ seen: params.get("seen") === value ? undefined : value })
+                    }
+                  >
+                    {t(`directory.seen.${value}` as never)}
+                  </ChipButton>
+                ))}
+              </FilterGroup>
+
               <FilterGroup label={t("directory.filterContact")}>
                 <ChipButton on={missing} onClick={() => setParam({ missing: missing ? undefined : "1" })}>
                   <span
@@ -709,6 +768,8 @@ function SelectionBar({
   canArchive,
   mergeHref,
   pending,
+  total,
+  onSelectAll,
   onClear,
   onTag,
   onStatus,
@@ -723,6 +784,9 @@ function SelectionBar({
   canArchive: boolean;
   mergeHref: string | null;
   pending: boolean;
+  /** How many the filter matches, for "select all". */
+  total: number;
+  onSelectAll?: () => void;
   onClear: () => void;
   onTag: (tagId: string, on: boolean) => void;
   onStatus: (status: string) => void;
@@ -731,22 +795,51 @@ function SelectionBar({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary-soft p-3",
+        // Over the table rather than above it, so the rows somebody is picking
+        // from stay where they were while they pick.
+        "fixed bottom-6 left-1/2 z-30 flex max-w-[calc(100vw-2rem)] -translate-x-1/2",
+        "items-center gap-1 overflow-x-auto whitespace-nowrap rounded-full",
+        "border border-line-strong bg-surface px-4 py-2 shadow-lg",
         pending && "opacity-60",
       )}
       aria-live="polite"
     >
-      <span className="text-label text-primary">{plural("directory.selected", count)}</span>
+      <span className="px-1 text-[13px] font-semibold text-fg">
+        {plural("directory.selected", count)}
+      </span>
+
+      {onSelectAll && total > count ? (
+        <button
+          type="button"
+          onClick={onSelectAll}
+          className="rounded-sm px-1.5 text-[13px] font-medium text-primary hover:underline"
+        >
+          {t("directory.selectEvery", { count: total })}
+        </button>
+      ) : null}
+
+      <span aria-hidden className="mx-1 h-5 w-px bg-line" />
 
       {tags.length > 0 ? (
         <>
-          <Picker label={t("directory.bulkTag")} options={tags.map((x) => ({ value: x.id, label: x.name, hue: x.hue }))} onPick={(v) => onTag(v, true)} />
-          <Picker label={t("directory.bulkUntag")} options={tags.map((x) => ({ value: x.id, label: x.name, hue: x.hue }))} onPick={(v) => onTag(v, false)} />
+          <Picker
+            label={t("directory.bulkTag")}
+            icon={<Tag />}
+            options={tags.map((x) => ({ value: x.id, label: x.name, hue: x.hue }))}
+            onPick={(v) => onTag(v, true)}
+          />
+          <Picker
+            label={t("directory.bulkUntag")}
+            icon={<MinusCircle />}
+            options={tags.map((x) => ({ value: x.id, label: x.name, hue: x.hue }))}
+            onPick={(v) => onTag(v, false)}
+          />
         </>
       ) : null}
 
       <Picker
         label={t("directory.bulkStatus")}
+        icon={<CheckCircle2 />}
         options={LIFECYCLE_VALUES.map((v) => ({ value: v, label: lifecycleLabel(v) }))}
         onPick={onStatus}
       />
@@ -760,7 +853,7 @@ function SelectionBar({
       ) : null}
 
       {mergeHref ? (
-        <Button variant="ghost" asChild>
+        <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]" asChild>
           <Link href={mergeHref}>
             <Merge /> {t("directory.merge")}
           </Link>
@@ -770,7 +863,7 @@ function SelectionBar({
       {canArchive ? (
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="ghost">
+            <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]">
               <Archive /> {t("directory.bulkArchive")}
             </Button>
           </DialogTrigger>
@@ -792,28 +885,33 @@ function SelectionBar({
         </Dialog>
       ) : null}
 
-      <Button variant="ghost" onClick={onClear} className="ml-auto">
-        <X /> {t("directory.clearSelection")}
-      </Button>
+      <IconButton label={t("directory.clearSelection")} variant="ghost" onClick={onClear}>
+        <X />
+      </IconButton>
     </div>
   );
 }
 
-/** A select that fires on choice and then resets, so it reads as a menu. */
+/**
+ * A menu that fires on choice and resets.
+ *
+ * On the selection bar, where a labelled field would push the bar onto two
+ * rows: an icon and a word, the way the rest of the bar reads.
+ */
 function Picker({
   label,
+  icon,
   options,
   onPick,
 }: {
   label: string;
+  icon?: React.ReactNode;
   options: { value: string; label: string; hue?: string }[];
   onPick: (value: string) => void;
 }) {
   const [key, setKey] = React.useState(0);
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-label text-fg">{label}</span>
-      <Select
+    <Select
       key={key}
       value=""
       onValueChange={(v) => {
@@ -821,8 +919,12 @@ function Picker({
         setKey((k) => k + 1);
       }}
     >
-      <SelectTrigger aria-label={label} className="w-auto min-w-40">
-        <SelectValue placeholder={label} />
+      <SelectTrigger
+        aria-label={label}
+        className="min-h-9 w-auto gap-1.5 rounded-full border-0 bg-transparent px-2.5 text-[13px] font-medium shadow-none hover:bg-sunken [&_svg]:size-4"
+      >
+        {icon}
+        {label}
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (
@@ -834,8 +936,7 @@ function Picker({
           </SelectItem>
         ))}
       </SelectContent>
-      </Select>
-    </div>
+    </Select>
   );
 }
 

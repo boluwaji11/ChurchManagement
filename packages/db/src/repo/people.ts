@@ -35,6 +35,16 @@ export interface DirectoryQuery {
   tagId?: string;
   /** "any" means no filter. */
   has?: "email" | "phone" | "noEmail" | "noPhone";
+  /** R2.4. When they became a member, in the buckets a church asks in. */
+  joined?: "year" | "five" | "earlier";
+  /** R2.4. No email and no phone, which is a person nobody can reach. */
+  missing?: boolean;
+  /** R9.x. In a group, or in none. */
+  group?: "any" | "none";
+  /** R10.x. On a serving team, or on none. */
+  serving?: "any" | "none";
+  /** R7.x. Seen at a service in the last few weeks, or not seen. */
+  seen?: "recent" | "absent";
   sort?: "name" | "firstName" | "household" | "status" | "added";
   dir?: "asc" | "desc";
   /** Restricts to a set of ids, for acting on a selection. */
@@ -146,6 +156,65 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
       select 1 from contact_methods cm where cm.person_id = ${people.id} and cm.kind = ${kind}
     )`;
     where.push(opts.has.startsWith("no") ? sql`not ${present}` : present);
+  }
+
+  /*
+   * R2.4. Joined, in the three buckets a church asks in. Compared against the
+   * database's own date rather than one the caller passed, so a saved list says
+   * the same thing in January as it did in December.
+   */
+  if (opts.joined === "year") {
+    where.push(sql`${people.membershipDate} >= date_trunc('year', current_date)`);
+  } else if (opts.joined === "five") {
+    where.push(sql`${people.membershipDate} >= (current_date - interval '5 years')`);
+  } else if (opts.joined === "earlier") {
+    where.push(sql`${people.membershipDate} < (current_date - interval '5 years')`);
+  }
+
+  /*
+   * R2.4. Nobody can reach them. Either half missing is enough: an address on
+   * its own is not a way to ask somebody how they are.
+   */
+  if (opts.missing) {
+    where.push(sql`(
+      not exists (select 1 from contact_methods cm where cm.person_id = ${people.id} and cm.kind = 'email')
+      or not exists (select 1 from contact_methods cm where cm.person_id = ${people.id} and cm.kind = 'phone')
+    )`);
+  }
+
+  // R9.5. In a group, or in none. The question behind the assimilation screen:
+  // somebody who comes and belongs to nothing.
+  if (opts.group) {
+    const inAny = sql`exists (
+      select 1 from group_memberships gm
+       where gm.person_id = ${people.id} and gm.left_on is null
+    )`;
+    where.push(opts.group === "any" ? inAny : sql`not ${inAny}`);
+  }
+
+  // R10.1. On a team. Counted from the team's roll rather than from a rota, so
+  // somebody between rotas still counts as serving.
+  if (opts.serving) {
+    const onAny = sql`exists (
+      select 1 from team_members tm
+       where tm.person_id = ${people.id} and tm.left_on is null
+    )`;
+    where.push(opts.serving === "any" ? onAny : sql`not ${onAny}`);
+  }
+
+  /*
+   * R7.5. Seen lately. Counted from the attendance record each time rather than
+   * from a flag, for the reason R7.5 gives: a flag is wrong the moment somebody
+   * corrects a mistake or imports a year of history.
+   */
+  if (opts.seen) {
+    const lately = sql`exists (
+      select 1 from attendance_records ar
+        join service_occurrences so on so.id = ar.occurrence_id
+       where ar.person_id = ${people.id}
+         and so.occurs_on >= (current_date - interval '28 days')
+    )`;
+    where.push(opts.seen === "recent" ? lately : sql`not ${lately}`);
   }
 
   if (opts.ids) where.push(opts.ids.length === 0 ? sql`false` : inArray(people.id, opts.ids));

@@ -7,6 +7,11 @@ export interface DirectoryParams {
   status?: string;
   tag?: string;
   has?: string;
+  missing?: string;
+  joined?: string;
+  group?: string;
+  serving?: string;
+  seen?: string;
   sort?: string;
   dir?: string;
   show?: string;
@@ -39,12 +44,20 @@ export function queryFromParams(params: DirectoryParams): DirectoryQuery {
     ? (params.sort as DirectoryQuery["sort"])
     : undefined;
 
+  const one = <T extends string>(value: string | undefined, allowed: readonly T[]) =>
+    allowed.includes((value ?? "") as T) ? (value as T) : undefined;
+
   return {
     includeArchived: params.show === "archived",
     q: params.q,
     status: params.status,
     tagId: params.tag,
     has,
+    missing: params.missing === "1",
+    joined: one(params.joined, ["year", "five", "earlier"] as const),
+    group: one(params.group, ["any", "none"] as const),
+    serving: one(params.serving, ["any", "none"] as const),
+    seen: one(params.seen, ["recent", "absent"] as const),
     sort,
     dir: params.dir === "desc" ? "desc" : "asc",
   };
@@ -59,7 +72,9 @@ export const pageFromParams = (params: DirectoryParams): number => {
 /** True when the URL narrows the directory, rather than showing all of it. */
 export const isFiltered = (params: DirectoryParams): boolean =>
   Boolean(
-    params.q || params.status || params.tag || params.has || params.show === "archived" || params.list,
+    params.q || params.status || params.tag || params.has || params.missing || params.joined ||
+      params.group || params.serving || params.seen ||
+      params.show === "archived" || params.list,
   );
 
 /**
@@ -75,5 +90,10 @@ export function paramsFromRule(rule: Record<string, string>): DirectoryParams {
     tag: rule["tag"],
     has: rule["has"],
     show: rule["show"],
+    missing: rule["missing"],
+    joined: rule["joined"],
+    group: rule["group"],
+    serving: rule["serving"],
+    seen: rule["seen"],
   };
 }
