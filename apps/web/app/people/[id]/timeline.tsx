@@ -60,27 +60,36 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
 
   return (
     <ol className="flex flex-col">
-      {entries.map((entry) => {
+      {entries.map((entry, i) => {
         const confidential = entry.kind === "note" && entry.code === "confidential";
+        const first = i === 0;
+        const last = i === entries.length - 1;
 
         return (
-          // A hairline under every entry so one date's row reads as one row,
-          // which a two-line date made hard to see.
+          // One thread running down the dots, so the entries read as one
+          // sequence rather than as a stack of separate rows.
           <li
             key={entry.id}
-            className="grid grid-cols-[90px_12px_1fr] items-start gap-3 border-b border-line py-3 first:pt-0 last:border-0 last:pb-0"
+            className="grid grid-cols-[90px_12px_1fr] items-start gap-3 pb-5 last:pb-0"
           >
             <span data-numeric className="pt-0.5 text-[12px] text-fg-subtle">
               {longDate(entry.on)}
             </span>
 
-            <span
-              aria-hidden
-              className="mt-[5px] size-2.5 rounded-full"
-              style={{
-                background: entry.hue ? `var(--hue-${entry.hue}-500)` : "var(--color-line-strong)",
-              }}
-            />
+            <span aria-hidden className="relative h-full">
+              <span
+                className="absolute left-[5px] w-px bg-line"
+                style={{ top: first ? 11 : 0, bottom: last ? "auto" : -20, height: last ? 0 : "auto" }}
+              />
+              <span
+                className="absolute top-[5px] left-0 size-2.5 rounded-full"
+                style={{
+                  background: entry.hue
+                    ? `var(--hue-${entry.hue}-500)`
+                    : "var(--color-line-strong)",
+                }}
+              />
+            </span>
 
             <div className="min-w-0">
               <div className="font-medium text-fg">{headline(entry)}</div>
