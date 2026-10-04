@@ -4,7 +4,7 @@ import * as React from "react";
 import { Pencil } from "lucide-react";
 import { Banner, Combobox, Field, IconButton, Input } from "@hearth/ui";
 import { PhoneInput } from "@/components/phone-input";
-import { FormActions } from "@/components/form-actions";
+import { FormActions, BackToView } from "@/components/form-actions";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
 import { saveChurch } from "./actions";
 
@@ -84,6 +84,11 @@ export function ChurchForm({
         {/* The mark and the name read as the heading of the card, the way a
             person's face and name do on their own screen. */}
         <div className="flex flex-wrap items-center gap-4">
+          {/* The way back to reading it, where this card is being edited. */}
+          {editing ? (
+            <BackToView form="church-form" onBack={() => onEditing(false)} />
+          ) : null}
+
           {logo}
           <span className="min-w-0 flex-1 text-[17px] font-bold text-fg">{values.name}</span>
           {/* What commits this form sits on the card it changes, rather than

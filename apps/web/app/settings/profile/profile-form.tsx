@@ -10,7 +10,7 @@ import {
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { PhoneInput } from "@/components/phone-input";
-import { FormActions } from "@/components/form-actions";
+import { FormActions, BackToView } from "@/components/form-actions";
 import { longDate } from "@/lib/dates";
 import { AddressFields } from "@/components/address-fields";
 import { oneLineAddress, type AddressValues } from "@/lib/address";
@@ -148,6 +148,11 @@ export function ProfileForm({
       {error ? <Banner tone="danger" title={t("settings.profile.failed")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-4">
+        {/* The way back to reading it, where this card is being edited. */}
+        {editing ? (
+          <BackToView form="profile-form" onBack={() => setEditing(false)} />
+        ) : null}
+
         {/* R17.1. The face is the control. With a photo on it, pressing opens
             it big enough to look at, with the two things anybody wants to do
             to it. With none, it goes straight to the file picker, because a

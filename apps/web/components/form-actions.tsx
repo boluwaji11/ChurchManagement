@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { ArrowLeft } from "lucide-react";
 import {
-  Button, Dialog, DialogContent, DialogFooter,
+  Button, Dialog, DialogContent, DialogFooter, IconButton,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
@@ -36,6 +37,60 @@ export function FormActions({
 
       <LeaveGuard dirty={dirty} />
     </div>
+  );
+}
+
+/**
+ * R24.6. The way back out of an edit, for a card that edits in place.
+ *
+ * Those cards have no route of their own to go back to, so the arrow returns
+ * the card to its reading state. With work unsaved it asks first, in the same
+ * words a link out of the page would.
+ */
+export function BackToView({
+  form,
+  onBack,
+  label,
+}: {
+  /** The id of the form being edited. */
+  form: string;
+  onBack: () => void;
+  label?: string;
+}) {
+  const dirty = useDirty(form);
+  const [asking, setAsking] = React.useState(false);
+
+  return (
+    <>
+      <IconButton
+        label={label ?? t("action.back")}
+        variant="ghost"
+        onClick={() => (dirty ? setAsking(true) : onBack())}
+      >
+        <ArrowLeft />
+      </IconButton>
+
+      <Dialog open={asking} onOpenChange={setAsking}>
+        <DialogContent alert title={t("unsaved.title")} closeLabel={t("common.close")}>
+          <p className="text-[length:var(--d-text-body)] text-fg">{t("unsaved.body")}</p>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
+              {t("unsaved.stay")}
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => {
+                setAsking(false);
+                onBack();
+              }}
+            >
+              {t("unsaved.discard")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

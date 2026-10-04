@@ -55,6 +55,7 @@ export const en = {
   "unsaved.body": "Leaving now loses them.",
   "unsaved.stay": "Stay here",
   "unsaved.leave": "Leave anyway",
+  "unsaved.discard": "Discard changes",
   "action.cancel": "Cancel",
   "action.add": "Add",
   "action.edit": "Edit",
