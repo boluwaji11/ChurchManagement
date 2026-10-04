@@ -8,6 +8,7 @@ import { Avatar, Tooltip, cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { FlameMark } from "../brand";
 import { activeHref, type NavTarget } from "./nav-active";
+import { useSectionMemory } from "./section-memory";
 import { setSidebarCollapsed } from "./sidebar-actions";
 
 /** A nav entry with its icon already drawn, so this file holds no database. */
@@ -64,6 +65,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = React.useState(initial);
+  const reopen = useSectionMemory(entries);
 
   const active = activeHref(entries, pathname);
 
@@ -119,7 +121,8 @@ export function Sidebar({
           const on = active === entry.href;
           const row = (
             <Link
-              href={`${entry.href}?church=${church}`}
+              // R24.6. Back to the screen this section was left on.
+              href={reopen(entry.href, `${entry.href}?church=${church}`)}
               aria-current={on ? "page" : undefined}
               className={cn(
                 "flex h-9 w-full items-center gap-2.5 rounded-sm text-left text-[13px] font-medium",
@@ -198,6 +201,7 @@ export function Sidebar({
  */
 export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church: string }) {
   const pathname = usePathname();
+  const reopen = useSectionMemory(entries);
   const active = activeHref(entries, pathname);
 
   return (
@@ -210,7 +214,7 @@ export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church:
         return (
           <Link
             key={entry.href}
-            href={`${entry.href}?church=${church}`}
+            href={reopen(entry.href, `${entry.href}?church=${church}`)}
             aria-current={on ? "page" : undefined}
             className={cn(
               "flex min-h-11 flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px]",
