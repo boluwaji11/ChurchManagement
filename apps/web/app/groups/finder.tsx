@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, X, Search, SlidersHorizontal, Undo2 } from "lucide-react";
+import { Check, X, Search, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, IconButton, Card, Separator,
   Sheet, SheetContent, SheetTrigger, LIFT,
@@ -387,6 +387,14 @@ export function Finder({
             </div>
           </SheetContent>
         </Sheet>
+
+        {canManage ? (
+          <Button asChild className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
+            <Link href={`/groups/new?church=${church}`}>
+              <Plus className="size-4" aria-hidden /> {t("groups.add")}
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       {shown.length === 0 ? (

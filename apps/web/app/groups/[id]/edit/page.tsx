@@ -6,7 +6,7 @@ import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
-import { GroupPageForm, GroupFormActions } from "../../group-page-form";
+import { GroupEditor, GroupFormActions } from "../../group-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +52,7 @@ export default async function EditGroupPage({
       </h1>
 
       {permitted ? (
-        <GroupPageForm
+        <GroupEditor
           church={session.tenantSlug}
           types={types.map((one) => ({ id: one.id, name: one.name, hue: one.hue }))}
           group={{

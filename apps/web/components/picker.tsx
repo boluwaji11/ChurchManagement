@@ -20,11 +20,14 @@ export function Picker({
   defaultValue,
   options,
   label,
+  onChange,
 }: {
   name: string;
   defaultValue: string | null;
   options: { value: string; label: string }[];
   label: string;
+  /** Given where the screen changes with the answer. */
+  onChange?: (value: string) => void;
 }) {
   const [value, setValue] = React.useState(defaultValue ?? "");
 
@@ -34,7 +37,10 @@ export function Picker({
       <Combobox
         options={options}
         value={value}
-        onChange={setValue}
+        onChange={(next) => {
+          setValue(next);
+          onChange?.(next);
+        }}
         placeholder={label}
         emptyLabel={t("church.noRegion")}
         clearLabel={t("date.clear")}
