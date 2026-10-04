@@ -42,7 +42,6 @@ export default async function EditPersonPage({
   return (
     <AppShell
       session={session}
-      title={t("personForm.editTitle")}
       max="max-w-[760px]"
     >
       <Link

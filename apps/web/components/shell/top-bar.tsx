@@ -24,7 +24,11 @@ export function TopBar({
   bell,
   children,
 }: {
-  title: string;
+  /**
+   * The page's name. Some screens name themselves on the page itself, with the
+   * person's or the group's own name, and those pass none.
+   */
+  title?: string;
   /** The one filled button for this page. */
   action?: React.ReactNode;
   /** R24.6. The notification bell, which every screen carries. */
@@ -37,9 +41,13 @@ export function TopBar({
       <span className="md:hidden">
         <FlameMark size={28} />
       </span>
-      <h1 className="min-w-0 flex-1 truncate font-display text-[20px] leading-6 text-fg">
-        {title}
-      </h1>
+      {title ? (
+        <h1 className="min-w-0 flex-1 truncate font-display text-[20px] leading-6 text-fg">
+          {title}
+        </h1>
+      ) : (
+        <span className="min-w-0 flex-1" />
+      )}
       {children}
       {bell}
       {/* The design's top-bar action is 36px rather than the 40px a button is

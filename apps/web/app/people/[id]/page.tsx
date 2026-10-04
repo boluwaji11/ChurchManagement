@@ -144,7 +144,6 @@ export default async function PersonPage({
   return (
     <AppShell
       session={session}
-      title={t("person.title")}
       action={
         canEdit ? (
           <NoteForm

@@ -37,7 +37,8 @@ export async function AppShell({
   children,
 }: {
   session: Session;
-  title: string;
+  /** The page's name, where the page does not already carry one. */
+  title?: string;
   /** The one filled button for this page. Some pages have none. */
   action?: React.ReactNode;
   /** A table-shaped screen that wants the room. */

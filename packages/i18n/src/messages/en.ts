@@ -431,7 +431,6 @@ export const en = {
   "person.firstVisit": "First visit",
   "person.membershipDate": "Membership date",
   "person.status": "Status",
-  "person.title": "Person",
   "message.open": "Message",
   "message.title": "Message {name}",
   "message.channel": "Send by",
@@ -487,7 +486,6 @@ export const en = {
 
   // The person form
   "personForm.addTitle": "Add person",
-  "personForm.editTitle": "Edit person",
   "personForm.editHeading": "Edit {name}",
   "personForm.section.details": "Details",
   "personForm.address": "Address",
