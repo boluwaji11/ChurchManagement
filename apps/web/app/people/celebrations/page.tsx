@@ -60,7 +60,7 @@ export default async function CelebrationsPage({
 
   const view: View = params.view === "week" ? "week" : "month";
 
-  const { celebrations, at, window } = await withTenant(
+  const { celebrations, at, window, today } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const church = await getChurch(tx, session.tenantId);
@@ -131,6 +131,17 @@ export default async function CelebrationsPage({
           <span className="min-w-[170px] text-center font-display text-[28px] leading-[34px] text-fg">
             {heading}
           </span>
+          <Link
+            href={link({ at: today })}
+            aria-label={t("calendar.now")}
+            className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
+          >
+            <span
+              aria-hidden
+              className="size-2 rounded-full"
+              style={{ background: "var(--color-fg-subtle)" }}
+            />
+          </Link>
           <Link
             href={link({ at: later })}
             aria-label={t("celebrations.later")}

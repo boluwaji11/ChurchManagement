@@ -90,11 +90,11 @@ export function Board({
             }}
             onDragLeave={() => setOver((was) => (was === stage.id ? null : was))}
             onDrop={() => drop(stage.id)}
-            className="rounded-lg p-2"
+            className="rounded-lg border border-line p-2"
             style={{ background: over === stage.id ? "var(--color-line)" : "var(--color-sunken)" }}
           >
             <div
-              className="flex items-center gap-2 px-1.5 pt-1 pb-2.5 text-[13px] font-medium"
+              className="mb-2 flex items-center gap-2 border-b border-line px-1.5 pt-1 pb-2.5 text-[13px] font-medium"
               style={{ color: `var(--hue-${stage.hue}-key)` }}
             >
               <span

@@ -102,9 +102,11 @@ export function Floor({
           className="flex min-h-[200px] flex-col gap-2.5 rounded-xl border border-dashed border-line-strong bg-sunken p-4"
           style={over === "" ? { borderColor: "var(--color-fg-subtle)" } : undefined}
         >
-          <h2 className="text-[13px] font-medium text-fg-muted">
-            {t("board.arriving")} · {data.waiting.length}
-          </h2>
+          {data.waiting.length > 0 ? (
+            <h2 className="text-[13px] font-medium text-fg-muted">
+              {t("board.arriving")} · {data.waiting.length}
+            </h2>
+          ) : null}
 
           {data.waiting.length === 0 ? (
             <p className="m-auto px-4 text-center text-[13px] text-fg-subtle">

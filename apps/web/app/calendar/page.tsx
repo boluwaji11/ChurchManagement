@@ -141,6 +141,18 @@ export default async function CalendarPage({
           >
             <ChevronLeft className="size-4" aria-hidden />
           </Link>
+          {/* The dot between the arrows comes back to the week we are in. */}
+          <Link
+            href={link(today)}
+            aria-label={t("calendar.now")}
+            className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
+          >
+            <span
+              aria-hidden
+              className="size-2 rounded-full"
+              style={{ background: from === weekStart(today) ? "var(--color-fg)" : "var(--color-fg-subtle)" }}
+            />
+          </Link>
           <Link
             href={link(shift(from, 7))}
             aria-label={t("calendar.later")}

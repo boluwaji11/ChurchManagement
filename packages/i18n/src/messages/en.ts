@@ -1680,6 +1680,7 @@ export const en = {
   "calendar.earlier": "Earlier week",
   "calendar.later": "Later week",
   "calendar.thisWeek": "This week",
+  "calendar.now": "Back to now",
   "calendar.span": "{from} to {to}",
   "calendar.services": "Services",
   "calendar.groups": "Groups",
