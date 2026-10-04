@@ -519,7 +519,7 @@ export interface FormSubmission {
 export async function listSubmissions(
   db: Tx,
   formId: string,
-  limit = 200,
+  window: { limit: number; offset: number } = { limit: 20, offset: 0 },
 ): Promise<FormSubmission[]> {
   const rows = await db
     .select({
@@ -530,11 +530,21 @@ export async function listSubmissions(
     .from(formSubmissions)
     .where(eq(formSubmissions.formId, formId))
     .orderBy(desc(formSubmissions.createdAt))
-    .limit(limit);
+    .limit(window.limit)
+    .offset(window.offset);
 
   return rows.map((row) => ({
     id: row.id,
     receivedAt: row.createdAt.toISOString(),
     answers: (row.answers ?? {}) as Record<string, FormAnswer>,
   }));
+}
+
+/** R4.4. How many have been sent in, for the numbered pages under them. */
+export async function countSubmissions(db: Tx, formId: string): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(formSubmissions)
+    .where(eq(formSubmissions.formId, formId));
+  return row?.count ?? 0;
 }

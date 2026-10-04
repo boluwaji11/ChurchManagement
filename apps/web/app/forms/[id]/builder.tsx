@@ -7,7 +7,10 @@ import {
   GripVertical, Trash2, Check, Link2, Hash, ToggleLeft, Paperclip, Heading, Plus, X,
   Archive, ArchiveRestore,
 } from "lucide-react";
-import { Banner, IconButton, cn } from "@hearth/ui";
+import {
+  Banner, Button, IconButton, cn,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
+} from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { NEEDS_OPTIONS, type FormFieldDef, type FormFieldKind } from "@hearth/db/rules";
 import {
@@ -65,11 +68,17 @@ export function Builder({
   form,
   view,
   responses,
+  page,
+  perPage,
+  total,
 }: {
   church: string;
   form: BuilderForm;
   view: "questions" | "responses";
   responses: SubmissionRow[];
+  page: number;
+  perPage: number;
+  total: number;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -146,20 +155,59 @@ export function Builder({
           {copied ? t("form.linkCopied") : t("form.copyLink")}
         </button>
 
-        {/* R4.1. Put away is the third state, for a form a church is done with
-            and does not want on the grid. It takes no answers while it is away
-            and comes back with everything it held. */}
-        <IconButton
-          label={form.archivedAt ? t("form.restore") : t("form.archive")}
-          disabled={pending}
-          onClick={() => run(() => archiveForm(form.id, !form.archivedAt, church))}
-        >
-          {form.archivedAt ? <ArchiveRestore /> : <Archive />}
-        </IconButton>
+        {/* R4.1. Archiving is the third state, for a form a church is done
+            with. Bringing one back needs no asking, so only the putting away
+            is confirmed, and it ends on the Forms list where the form now
+            is not. */}
+        {form.archivedAt ? (
+          <IconButton
+            label={t("form.restore")}
+            disabled={pending}
+            onClick={() => run(() => archiveForm(form.id, false, church))}
+          >
+            <ArchiveRestore />
+          </IconButton>
+        ) : (
+          <Dialog>
+            <DialogTrigger asChild>
+              <IconButton label={t("form.archive")} disabled={pending}>
+                <Archive />
+              </IconButton>
+            </DialogTrigger>
+            <DialogContent
+              title={t("form.archiveTitle", { name: form.name })}
+              closeLabel={t("common.close")}
+            >
+              <p className="text-[length:var(--d-text-body)] text-fg">
+                {t("form.archiveBody")}
+              </p>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const result = await archiveForm(form.id, true, church);
+                      if (result.error) setError(result.error);
+                      else router.push(`/forms?church=${church}`);
+                    })}
+                >
+                  {t("form.archive")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {view === "responses" ? (
-        <Responses fields={form.fields} rows={responses} />
+        <Responses
+          fields={form.fields}
+          rows={responses}
+          page={page}
+          perPage={perPage}
+          total={total}
+        />
       ) : (
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[999_1_440px] flex-col gap-2.5">

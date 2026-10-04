@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
-  ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge,
+  Search, X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge,
   ListFilter, Pencil, Copy, Cake, Printer,
   SlidersHorizontal, Check, Tag, CheckCircle2,
 } from "lucide-react";
@@ -19,6 +19,7 @@ import {
 import { t, plural } from "@hearth/i18n";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
+import { Pages } from "@/components/pages";
 import { rename, archiveList } from "./list-actions";
 
 export interface ListOption {
@@ -400,7 +401,11 @@ export function Directory({
             ? t("directory.none")
             : t("directory.showing", { range: t("directory.range", { first, upto, matching }) })}
         </span>
-        <Pages page={page} last={Math.max(1, Math.ceil(matching / perPage))} setParam={setParam} />
+        <Pages
+          page={page}
+          last={Math.max(1, Math.ceil(matching / perPage))}
+          onPage={(n) => setParam({ page: n <= 1 ? undefined : String(n) })}
+        />
       </div>
     </>
   );
@@ -440,87 +445,6 @@ function StatusPill({ status }: { status: string }) {
 }
 
 
-/**
- * R2.14. Numbered pages, as the design has them.
- *
- * Arrows either side, the first and last page always reachable, an ellipsis
- * where the run is broken. Twenty to a page.
- */
-function Pages({
-  page,
-  last,
-  setParam,
-}: {
-  page: number;
-  last: number;
-  setParam: (c: Record<string, string | undefined>) => void;
-}) {
-  if (last <= 1) return null;
-
-  const tokens: Array<number | "gap"> = [];
-  if (last <= 7) {
-    for (let i = 1; i <= last; i += 1) tokens.push(i);
-  } else {
-    tokens.push(1);
-    const from = Math.max(2, page - 1);
-    const to = Math.min(last - 1, page + 1);
-    if (from > 2) tokens.push("gap");
-    for (let i = from; i <= to; i += 1) tokens.push(i);
-    if (to < last - 1) tokens.push("gap");
-    tokens.push(last);
-  }
-
-  const go = (n: number) => setParam({ page: n <= 1 ? undefined : String(n) });
-  const arrow =
-    "grid size-8 place-items-center rounded-sm border border-line-strong bg-surface disabled:opacity-40";
-
-  return (
-    <div className="flex items-center gap-1">
-      <button
-        type="button"
-        aria-label={t("directory.previous")}
-        disabled={page <= 1}
-        onClick={() => go(page - 1)}
-        className={arrow}
-      >
-        <ChevronLeft className="size-4" />
-      </button>
-
-      {tokens.map((token, i) =>
-        token === "gap" ? (
-          <span key={`gap${i}`} className="min-w-7 text-center text-fg-subtle">
-            &hellip;
-          </span>
-        ) : (
-          <button
-            key={token}
-            type="button"
-            aria-current={token === page ? "page" : undefined}
-            onClick={() => go(token)}
-            className={cn(
-              "h-8 min-w-8 rounded-sm border px-2 text-[13px]",
-              token === page
-                ? "border-fg font-semibold text-fg"
-                : "border-transparent font-medium text-fg-muted hover:bg-sunken",
-            )}
-          >
-            {token}
-          </button>
-        ),
-      )}
-
-      <button
-        type="button"
-        aria-label={t("directory.next")}
-        disabled={page >= last}
-        onClick={() => go(page + 1)}
-        className={arrow}
-      >
-        <ChevronRight className="size-4" />
-      </button>
-    </div>
-  );
-}
 
 /**
  * R2.14. The filter drawer.
