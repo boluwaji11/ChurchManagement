@@ -1083,7 +1083,7 @@ export const en = {
   "person.maritalStatus": "Marital status",
   "person.schoolLevel": "School year",
   "person.campus": "Campus",
-  "person.anniversary": "Anniversary",
+  "person.anniversary": "Wedding date",
   "groups.failed": "That did not save. Try again.",
   "groups.title": "Groups",
   "groups.add": "New group",
