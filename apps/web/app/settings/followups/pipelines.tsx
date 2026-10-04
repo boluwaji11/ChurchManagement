@@ -162,32 +162,44 @@ export function Pipelines({
               order of a journey by its hue down the page. */}
           <div className="pointer-events-none relative flex flex-wrap items-center gap-2">
             {row.steps.map((step, at) => (
-              <span
-                key={step.id}
-                className={`${CHIP} gap-2 pr-1.5`}
-                style={{
-                  background: `var(--hue-${row.hue}-tint)`,
-                  color: `var(--hue-${row.hue}-key)`,
-                }}
-              >
-                <span className="text-[11px] font-semibold tabular-nums opacity-70">{at + 1}</span>
-                <span>{step.name}</span>
-                <span className="text-[12px] opacity-70">
-                  {t("pipelines.dueIn", { count: String(step.dueDays) })}
-                </span>
-                <IconButton
-                  label={t("pipelines.removeOne", { name: step.name })}
-                  className="pointer-events-auto size-6 min-h-0 rounded-full text-inherit [&_svg]:size-3.5"
-                  disabled={pending}
-                  onClick={() =>
-                    writeSteps(
-                      row,
-                      row.steps.filter((one) => one.id !== step.id),
-                    )}
+              <React.Fragment key={step.id}>
+                {/* The run reads as one journey, so each step is tied to the
+                    one before it. */}
+                {at > 0 ? (
+                  <span
+                    aria-hidden
+                    className="h-px w-3 shrink-0"
+                    style={{ background: `var(--hue-${row.hue}-500)` }}
+                  />
+                ) : null}
+                <span
+                  className={`${CHIP} gap-2 pr-1.5`}
+                  style={{
+                    background: `var(--hue-${row.hue}-tint)`,
+                    color: `var(--hue-${row.hue}-key)`,
+                  }}
                 >
-                  <X />
-                </IconButton>
-              </span>
+                  <span className="text-[11px] font-semibold tabular-nums opacity-70">
+                    {at + 1}
+                  </span>
+                  <span>{step.name}</span>
+                  <span className="text-[12px] opacity-70">
+                    {t("pipelines.dueIn", { count: String(step.dueDays) })}
+                  </span>
+                  <IconButton
+                    label={t("pipelines.removeOne", { name: step.name })}
+                    className="pointer-events-auto size-6 min-h-0 rounded-full text-inherit [&_svg]:size-3.5"
+                    disabled={pending}
+                    onClick={() =>
+                      writeSteps(
+                        row,
+                        row.steps.filter((one) => one.id !== step.id),
+                      )}
+                  >
+                    <X />
+                  </IconButton>
+                </span>
+              </React.Fragment>
             ))}
 
             <AddStep
@@ -422,39 +434,54 @@ function StageForm({
       <div className="flex flex-col gap-3">
         <span className="text-label text-fg">{t("pipelines.steps")}</span>
 
-        {steps.map((step) => (
-          <div key={step.key} className="flex flex-wrap items-end gap-2">
-            <input type="hidden" name="stepId" value={step.id} />
-            <div className="min-w-48 flex-1">
-              <Field label={t("pipelines.step")} required>
-                <Input
-                  name="stepName"
-                  value={step.name}
-                  onChange={(e) => change(step.key, { name: e.target.value })}
-                  autoComplete="off"
-                />
-              </Field>
+        {/* The steps are one thread rather than a stack of boxes, so the order
+            a church is writing down reads as an order. */}
+        <div className="relative flex flex-col gap-3">
+          {steps.length > 1 ? (
+            <span
+              aria-hidden
+              className="absolute top-9 bottom-5 left-[3px] w-px bg-line-strong"
+            />
+          ) : null}
+
+          {steps.map((step, at) => (
+            <div key={step.key} className="relative flex flex-wrap items-end gap-2 pl-5">
+              <span
+                aria-hidden
+                className="absolute bottom-4 left-0 size-[7px] rounded-full bg-line-strong"
+              />
+              <input type="hidden" name="stepId" value={step.id} />
+              <div className="min-w-48 flex-1">
+                <Field label={t("pipelines.stepN", { count: String(at + 1) })} required>
+                  <Input
+                    name="stepName"
+                    value={step.name}
+                    onChange={(e) => change(step.key, { name: e.target.value })}
+                    autoComplete="off"
+                  />
+                </Field>
+              </div>
+              <div className="w-24">
+                <Field label={t("pipelines.days")}>
+                  <Input
+                    name="stepDays"
+                    inputMode="numeric"
+                    value={step.days}
+                    onChange={(e) => change(step.key, { days: e.target.value })}
+                  />
+                </Field>
+              </div>
+              <IconButton
+                label={t("pipelines.removeStep")}
+                type="button"
+                variant="ghost"
+                onClick={() => setSteps((all) => all.filter((s) => s.key !== step.key))}
+              >
+                <X />
+              </IconButton>
             </div>
-            <div className="w-24">
-              <Field label={t("pipelines.days")}>
-                <Input
-                  name="stepDays"
-                  inputMode="numeric"
-                  value={step.days}
-                  onChange={(e) => change(step.key, { days: e.target.value })}
-                />
-              </Field>
-            </div>
-            <IconButton
-              label={t("pipelines.removeStep")}
-              type="button"
-              variant="ghost"
-              onClick={() => setSteps((all) => all.filter((s) => s.key !== step.key))}
-            >
-              <X />
-            </IconButton>
-          </div>
-        ))}
+          ))}
+        </div>
 
         <div>
           <Button
