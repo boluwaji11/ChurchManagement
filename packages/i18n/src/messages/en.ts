@@ -314,7 +314,7 @@ export const en = {
   "settings.profile.you": "You",
   "settings.profile.directory": "Your directory entry",
   "settings.profile.signedInAs": "Signed in as",
-  "settings.profile.role": "Your role",
+  "settings.profile.roleIs": "Role: {role}",
   "settings.profile.church": "Church",
   "settings.profile.firstName": "First name",
   "settings.profile.lastName": "Last name",

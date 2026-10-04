@@ -224,17 +224,16 @@ export function ProfileForm({
       </form>
 
       {/* R1.6. Neither of these is this person's to change, so they sit under
-          the card rather than inside a form that cannot touch them. */}
-      <dl className="flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-4 text-[13px]">
-        <div className="flex gap-2">
-          <dt className="text-fg-subtle">{t("settings.profile.role")}</dt>
-          <dd className="text-fg">{role}</dd>
-        </div>
-        <div className="flex gap-2">
-          <dt className="text-fg-subtle">{t("settings.profile.church")}</dt>
-          <dd className="text-fg">{churchName}</dd>
-        </div>
-      </dl>
+          the card rather than inside a form that cannot touch them. The church
+          leads, because which church somebody is signed in to is the thing
+          worth reading twice. */}
+      <div className="flex flex-col gap-1 border-t border-line pt-4">
+        <span className="text-label text-fg-subtle">{t("settings.profile.church")}</span>
+        <span className="text-[15px] font-bold text-fg">{churchName}</span>
+        <span className="text-[13px] text-fg-muted">
+          {t("settings.profile.roleIs", { role })}
+        </span>
+      </div>
     </div>
   );
 }
