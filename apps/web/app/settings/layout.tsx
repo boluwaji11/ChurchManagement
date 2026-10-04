@@ -90,7 +90,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
 
   return (
     <AppShell session={session} title={t("nav.settings")}>
-      <div className="flex flex-wrap items-start gap-7">
+      <div className="flex flex-wrap items-stretch gap-7">
         <SettingsNav groups={groups} church={session.tenantSlug} />
 
         {/* A hairline between the menu and what it opened, so the two read as

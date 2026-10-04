@@ -102,7 +102,6 @@ export function ChurchLogo({
           </span>
         )}
 
-        <span className="font-medium text-fg">{t("church.logo")}</span>
 
         {canEdit ? (
           <>

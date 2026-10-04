@@ -59,6 +59,11 @@ const TABLES = [
   "plan_items",
   "plan_item_notes",
   "plan_item_files",
+  "plan_templates",
+  "plan_template_items",
+  "forms",
+  "form_fields",
+  "form_submissions",
   "stored_files",
   "demo_records",
   "tenant_members",
@@ -79,6 +84,8 @@ const TABLES = [
   "import_batches",
   "import_rows",
   "person_merges",
+  "tenant_roles",
+  "notifications",
   "audit_entries",
 ] as const;
 
