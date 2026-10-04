@@ -322,10 +322,10 @@ function MergeInto({
             <SelectContent>
               {others.map((one) => (
                 <SelectItem key={one.id} value={one.id}>
-                  <span className="flex items-baseline gap-1.5">
-                    {one.name}
+                  <span className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
+                    <span className="shrink-0">{one.name}</span>
                     {one.members.length > 0 ? (
-                      <span className="text-[13px] text-fg-muted">
+                      <span className="min-w-0 truncate text-[13px] text-fg-muted">
                         ({one.members.map((m) => m.name.split(" ")[0]).join(", ")})
                       </span>
                     ) : null}

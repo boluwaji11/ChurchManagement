@@ -333,10 +333,10 @@ export function PersonForm({
                         words, so each carries who is in it. */}
                     {households.map((h) => (
                       <SelectItem key={h.id} value={h.id}>
-                        <span className="flex items-baseline gap-1.5">
-                          {h.name}
+                        <span className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
+                          <span className="shrink-0">{h.name}</span>
                           {h.members.length > 0 ? (
-                            <span className="text-[13px] text-fg-muted">
+                            <span className="min-w-0 truncate text-[13px] text-fg-muted">
                               ({h.members.map((m) => m.name.split(" ")[0]).join(", ")})
                             </span>
                           ) : null}

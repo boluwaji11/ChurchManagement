@@ -35,6 +35,9 @@ export const SelectTrigger = React.forwardRef<
       "transition-colors duration-instant ease-out hover:border-fg-subtle",
       "disabled:opacity-45 disabled:pointer-events-none",
       "data-[placeholder]:text-fg-subtle",
+      // The chosen value stays on one line. A long one is cut with an
+      // ellipsis rather than growing the control to two rows.
+      "overflow-hidden [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate",
       "aria-invalid:border-danger-text",
       className,
     )}
