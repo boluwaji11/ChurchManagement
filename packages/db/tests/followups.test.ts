@@ -318,6 +318,24 @@ describe("editing the six (R5.2)", () => {
     expect(after.steps.map((s) => s.dueDays)).toEqual([7, 14]);
   });
 
+  it("puts a step where its day count puts it", async () => {
+    const absent = (await run((tx) => listPipelines(tx))).find((p) => p.key === "absent")!;
+    const after = await run((tx) =>
+      updatePipeline(tx, as(), absent.id, {
+        name: absent.name,
+        steps: [
+          ...absent.steps.map((step) => ({ id: step.id, name: step.name, dueDays: step.dueDays })),
+          { name: "Test", dueDays: 7 },
+        ],
+      }),
+    );
+
+    expect(after.steps.map((step) => step.dueDays)).toEqual([3, 7, 14]);
+    expect(after.steps.map((step) => step.name)).toEqual([
+      "Check they are well", "Test", "Pastoral call",
+    ]);
+  });
+
   it("makes a seventh, with a key of its own and a step to work", async () => {
     const made = await run((tx) =>
       createPipeline(tx, as(), { name: "Welcome home", description: "Somebody came back." }),

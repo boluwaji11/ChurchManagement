@@ -1037,6 +1037,14 @@ export async function saveSteps(
     return { id: step.id, name, dueDays: step.dueDays };
   });
 
+  /*
+   * The order of a journey is its day counts. A step added at day 7 belongs
+   * before one at day 14 whatever order it arrived in, so the list is sorted
+   * by the day before positions are written. Two steps on the same day keep
+   * the order they were given.
+   */
+  clean.sort((a, b) => a.dueDays - b.dueDays);
+
   const existing = await db
     .select({ id: pipelineSteps.id })
     .from(pipelineSteps)
