@@ -44,21 +44,14 @@ function initialsOf(name: string): string {
 function InfoCard({
   title,
   action,
-  wide,
   children,
 }: {
   title: string;
   action?: React.ReactNode;
-  /** Spans the whole grid, for the one that is read top to bottom. */
-  wide?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className={`flex flex-col gap-3 rounded-lg border border-line bg-surface p-5${
-        wide ? " col-span-full" : ""
-      }`}
-    >
+    <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-[13px] font-semibold text-fg">{title}</h3>
         {action}
@@ -201,7 +194,12 @@ export default async function PersonPage({
         ) : null}
       </div>
 
-      <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+      {/* Everything we hold on the left, everything that has happened on the
+          right, with a hairline between them. The timeline is read down rather
+          than across, so it gets a column of its own rather than a band under
+          the others. */}
+      <div className="flex flex-wrap items-stretch gap-6">
+        <div className="grid min-w-0 flex-[3_1_420px] content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
         <InfoCard title={t("person.contact")}>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[length:var(--d-text-body)]">
             <dt className="text-fg-subtle">{t("person.email")}</dt>
@@ -284,27 +282,30 @@ export default async function PersonPage({
           )}
         </InfoCard>
 
-        <InfoCard
-          wide
-          title={t("person.timeline")}
-          action={
-            canEdit ? (
-              <NoteForm
-                church={session.tenantSlug}
-                personId={person.id}
-                name={display}
-                canConfidential={canReadConfidentialNotes(session)}
-                trigger={
-                  <Button variant="secondary" className="min-h-[30px] px-2.5 text-[13px]">
-                    {t("person.addNote")}
-                  </Button>
-                }
-              />
-            ) : null
-          }
-        >
-          <Timeline entries={history} />
-        </InfoCard>
+        </div>
+
+        <div className="flex min-w-0 flex-[2_1_320px] flex-col md:border-l md:border-line md:pl-6">
+          <InfoCard
+            title={t("person.timeline")}
+            action={
+              canEdit ? (
+                <NoteForm
+                  church={session.tenantSlug}
+                  personId={person.id}
+                  name={display}
+                  canConfidential={canReadConfidentialNotes(session.role)}
+                  trigger={
+                    <Button variant="secondary" className="min-h-[30px] px-2.5 text-[13px]">
+                      {t("person.addNote")}
+                    </Button>
+                  }
+                />
+              ) : null
+            }
+          >
+            <Timeline entries={history} />
+          </InfoCard>
+        </div>
       </div>
     </AppShell>
   );
