@@ -15,7 +15,6 @@ import { churchNow } from "@/lib/church-now";
 import { shortDate, readableTime } from "@/lib/dates";
 import { Teams } from "./teams";
 import { ServingViews } from "./views";
-import { SendRequests } from "./send-requests";
 
 export const dynamic = "force-dynamic";
 
@@ -125,29 +124,9 @@ export default async function ServingPage({
         load.set(personId, mine.length);
       }
 
-      // R10.6. Every slot waiting on a reply, across the teams and the dates
-      // on screen, which is what the Send requests dialog asks about.
-      const pending = services.length
-        ? (
-            await Promise.all(
-              live.map(async (one) => {
-                const rows = await assignmentsForTeam(
-                  tx,
-                  one.id,
-                  services.map((x) => x.id),
-                );
-                return rows
-                  .filter((row) => row.status === "pending")
-                  .map((row) => ({ team: one.name, row }));
-              }),
-            )
-          ).flat()
-        : [];
-
       return {
         clock,
         month,
-        pending,
         teams: found,
         live,
         chosen,
@@ -182,36 +161,19 @@ export default async function ServingPage({
     return `${at.getUTCFullYear()}-${String(at.getUTCMonth() + 1).padStart(2, "0")}`;
   };
 
+  /*
+   * R10.6. Scheduling somebody is the request: the slot goes down as waiting
+   * for a reply and carries the link they answer on. There is nothing to send
+   * separately.
+   */
   const action =
-    view === "teams" ? (
-      canManage ? (
-        <Button asChild>
-          <Link href={`/serving?church=${session.tenantSlug}&view=teams&add=1`}>
-            <Plus /> {t("serving.addTeam")}
-          </Link>
-        </Button>
-      ) : undefined
-    ) : (
-      <SendRequests
-        church={session.tenantName}
-        waiting={data.pending.map(({ team, row }) => ({
-          assignmentId: row.id,
-          personName: row.personName,
-          slot: t("serving.send.slot", {
-            position: row.positionName,
-            team,
-            date: shortDate(
-              data.services.find((one) => one.id === row.occurrenceId)?.occursOn ?? "",
-            ),
-          }),
-        }))}
-        trigger={
-          <Button>
-            <Plus /> {t("serving.send")}
-          </Button>
-        }
-      />
-    );
+    view === "teams" && canManage ? (
+      <Button asChild>
+        <Link href={`/serving?church=${session.tenantSlug}&view=teams&add=1`}>
+          <Plus /> {t("serving.addTeam")}
+        </Link>
+      </Button>
+    ) : undefined;
 
   return (
     <AppShell session={session} title={t("serving.title")} action={action} wide>
