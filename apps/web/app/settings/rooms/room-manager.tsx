@@ -111,11 +111,11 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
 
               {/* R8.15. Capacity is the number a church changes most, and it
                   changes by one, so it is two buttons rather than a form. */}
-              <div className="relative flex items-center justify-between gap-2">
-                <span className="pointer-events-none text-label text-fg-muted">
-                  {t("rooms.capacity")}
-                </span>
-                <div className="flex items-center gap-1.5">
+              <div className="pointer-events-none relative flex items-center justify-between gap-2">
+                <span className="text-label text-fg-muted">{t("rooms.capacity")}</span>
+                {/* The steppers are the one thing on the tile that is not the
+                    tile: everything else lets the press through to the card. */}
+                <div className="pointer-events-auto flex items-center gap-1.5">
                   <IconButton
                     label={t("rooms.fewer")}
                     variant="secondary"
