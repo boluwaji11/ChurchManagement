@@ -26,7 +26,7 @@ export default async function RosterPrintPage({
   const { church, service, room } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canSupervise(session.role) || !service || !room) {
+  if (!canSupervise(session.role) || !service) {
     return (
       <main id="main" className="mx-auto max-w-lg px-4 py-8">
         <Banner tone="info" title={t("board.title")}>{t("forbidden.askAdmin")}</Banner>
@@ -34,14 +34,23 @@ export default async function RosterPrintPage({
     );
   }
 
-  const { entries, name, churchName, when, hue } = await withTenant(
+  const { sheets, churchName, when, hue } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const rooms = await listRooms(tx);
+      // One room when the board asked for one, otherwise every room, each on
+      // its own page, because each one goes on a different wall.
+      const wanted = room ? rooms.filter((r) => r.id === room) : rooms;
+
       return {
-        entries: await roomRoster(tx, service, room),
-        name: rooms.find((r) => r.id === room)?.name ?? "",
+        sheets: await Promise.all(
+          wanted.map(async (r) => ({
+            id: r.id,
+            name: r.name,
+            entries: await roomRoster(tx, service, r.id),
+          })),
+        ),
         churchName: session.tenantName,
         // R1.1. The church's own colour on the sheet that goes on the wall.
         hue: profile?.brandHue ?? "indigo",
@@ -59,39 +68,43 @@ export default async function RosterPrintPage({
           the white space back where we want it. */}
       <style>{"@page { size: auto; margin: 0; }"}</style>
 
-      <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
-
-      <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
-        <h1 className="font-display text-display">{name}</h1>
-        <span className="text-[length:var(--d-text-body)]">
-          {churchName} {when.date} {when.time}
-        </span>
-      </header>
-
-      <table className="w-full text-left text-[length:var(--d-text-body)]">
-        <thead>
-          <tr className="border-b border-black">
-            <th className="py-1.5 font-medium">{t("print.roster.name")}</th>
-            <th className="py-1.5 font-medium">{t("print.roster.code")}</th>
-            <th className="py-1.5 font-medium">{t("print.roster.needs")}</th>
-            <th className="py-1.5 font-medium">{t("print.roster.out")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.personId} className="border-b border-black/20 align-top">
-              <td className="py-2">{entry.name}</td>
-              <td className="py-2 font-mono tracking-widest">{entry.code ?? ""}</td>
-              <td className="py-2">
-                {[entry.allergies, entry.medicalNote].filter(Boolean).join(". ")}
-              </td>
-              <td className="py-2">{entry.checkedOutAt ? t("board.gone") : ""}</td>
+      {sheets.map((sheet, i) => (
+        <section key={sheet.id} className={i > 0 ? "break-before-page pt-8" : ""}>
+        <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
+  
+        <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
+          <h1 className="font-display text-display">{sheet.name}</h1>
+          <span className="text-[length:var(--d-text-body)]">
+            {churchName} {when.date} {when.time}
+          </span>
+        </header>
+  
+        <table className="w-full text-left text-[length:var(--d-text-body)]">
+          <thead>
+            <tr className="border-b border-black">
+              <th className="py-1.5 font-medium">{t("print.roster.name")}</th>
+              <th className="py-1.5 font-medium">{t("print.roster.code")}</th>
+              <th className="py-1.5 font-medium">{t("print.roster.needs")}</th>
+              <th className="py-1.5 font-medium">{t("print.roster.out")}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sheet.entries.map((entry) => (
+              <tr key={entry.personId} className="border-b border-black/20 align-top">
+                <td className="py-2">{entry.name}</td>
+                <td className="py-2 font-mono tracking-widest">{entry.code ?? ""}</td>
+                <td className="py-2">
+                  {[entry.allergies, entry.medicalNote].filter(Boolean).join(". ")}
+                </td>
+                <td className="py-2">{entry.checkedOutAt ? t("board.gone") : ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      {entries.length === 0 ? <p className="py-4">{t("board.empty")}</p> : null}
+          {sheet.entries.length === 0 ? <p className="py-4">{t("board.empty")}</p> : null}
+        </section>
+      ))}
     </main>
   );
 }

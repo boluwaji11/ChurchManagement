@@ -1,7 +1,8 @@
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { checkinVisits, checkinRooms } from "../schema/checkin";
-import { people } from "../schema/people";
+import { people, households, householdMemberships } from "../schema/people";
+import { InvalidInputError } from "../errors";
 import { canCheckIn } from "./checkin";
 import { PermissionError, type TenantRole } from "../roles";
 
@@ -236,4 +237,140 @@ export async function supervisorBoard(
 ): Promise<Board> {
   if (!canSupervise(actor.role)) throw new PermissionError(actor.role, "checkIn");
   return roomBoard(db, occurrenceId);
+}
+
+export interface ArrivingChild {
+  visitId: string;
+  personId: string;
+  name: string;
+  /** Years old, where the church holds a birthday. */
+  age: number | null;
+  /** Which family they came with, which is how a volunteer recognises them. */
+  household: string | null;
+  /** R8.10. The one line the volunteer has to read before they take the child. */
+  allergies: string | null;
+  code: string | null;
+}
+
+/** Whole years between a birthday and a date. */
+function yearsOld(dob: string, today: string): number {
+  const [by, bm, bd] = dob.split("-").map(Number);
+  const [ty, tm, td] = today.split("-").map(Number);
+  let age = (ty ?? 0) - (by ?? 0);
+  if ((tm ?? 0) < (bm ?? 0) || ((tm ?? 0) === (bm ?? 0) && (td ?? 0) < (bd ?? 0))) age -= 1;
+  return age;
+}
+
+/**
+ * R8.14. The children who are here and are not in a class yet.
+ *
+ * A desk takes a family's name and prints their labels, and on a busy morning
+ * the class a child goes to is decided by whoever is walking them down the
+ * corridor. Those children sit here until somebody puts them in a room.
+ */
+export async function arriving(
+  db: Tx,
+  occurrenceId: string,
+  today: string,
+): Promise<ArrivingChild[]> {
+  const rows = await db
+    .select({
+      visitId: checkinVisits.id,
+      personId: checkinVisits.personId,
+      code: checkinVisits.code,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
+      dateOfBirth: people.dateOfBirth,
+      allergies: people.allergies,
+      household: households.name,
+    })
+    .from(checkinVisits)
+    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .leftJoin(
+      householdMemberships,
+      and(
+        eq(householdMemberships.personId, people.id),
+        isNull(householdMemberships.endedOn),
+      ),
+    )
+    .leftJoin(households, eq(households.id, householdMemberships.householdId))
+    .where(
+      and(
+        eq(checkinVisits.occurrenceId, occurrenceId),
+        eq(checkinVisits.kind, "child"),
+        isNull(checkinVisits.roomId),
+        isNull(checkinVisits.checkedOutAt),
+      ),
+    )
+    .orderBy(asc(checkinVisits.checkedInAt));
+
+  return rows.map((r) => ({
+    visitId: r.visitId,
+    personId: r.personId,
+    name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
+    age: r.dateOfBirth ? yearsOld(r.dateOfBirth, today) : null,
+    household: r.household,
+    allergies: r.allergies,
+    code: r.code,
+  }));
+}
+
+/**
+ * R8.14, R8.15. Puts a child in a class, or moves them to another one.
+ *
+ * The room's capacity is the church's own number and it is enforced here rather
+ * than on the screen that asked, because two people walking two children down
+ * the corridor are two requests.
+ */
+export async function moveToRoom(
+  db: Tx,
+  actor: { role: TenantRole },
+  visitId: string,
+  roomId: string | null,
+): Promise<void> {
+  if (!canSupervise(actor.role)) throw new PermissionError(actor.role, "checkIn");
+
+  const [visit] = await db
+    .select({
+      id: checkinVisits.id,
+      occurrenceId: checkinVisits.occurrenceId,
+      roomId: checkinVisits.roomId,
+      checkedOutAt: checkinVisits.checkedOutAt,
+    })
+    .from(checkinVisits)
+    .where(eq(checkinVisits.id, visitId))
+    .limit(1);
+
+  if (!visit) throw new InvalidInputError("board.error.missing");
+  if (visit.checkedOutAt) throw new InvalidInputError("checkin.error.collected");
+  if (visit.roomId === roomId) return;
+
+  if (roomId !== null) {
+    const [room] = await db
+      .select({ id: checkinRooms.id, capacity: checkinRooms.capacity })
+      .from(checkinRooms)
+      .where(eq(checkinRooms.id, roomId))
+      .limit(1);
+    if (!room) throw new InvalidInputError("board.error.room");
+
+    if (room.capacity !== null) {
+      const [count] = await db
+        .select({ present: sql<number>`count(*)::int` })
+        .from(checkinVisits)
+        .where(
+          and(
+            eq(checkinVisits.occurrenceId, visit.occurrenceId),
+            eq(checkinVisits.roomId, roomId),
+            eq(checkinVisits.kind, "child"),
+            isNull(checkinVisits.checkedOutAt),
+          ),
+        );
+      if ((count?.present ?? 0) >= room.capacity) {
+        throw new InvalidInputError("board.error.full");
+      }
+    }
+  }
+
+  await db.update(checkinVisits).set({ roomId }).where(eq(checkinVisits.id, visitId));
 }

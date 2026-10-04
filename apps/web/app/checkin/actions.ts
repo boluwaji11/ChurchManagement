@@ -4,8 +4,10 @@ import {
   withTenant, claimStation, lookupPeople, listRooms, suggestRoom,
   checkInFamily, visitsFor, undoCheckIn, roomCounts,
   checkOut, pickupList, stationRoster, reserveCodes, reconcile,
+  roomBoard, roomRoster, arriving, moveToRoom,
   type CheckinEntry, type OverrideKind, type PickupPerson,
   type Roster, type OfflineEvent, type Reconciliation,
+  type Board, type RoomRosterEntry, type ArrivingChild,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { explain } from "@/lib/explain";
@@ -359,6 +361,55 @@ export async function sync(
         reconcile(tx, actor, { stationId, userId: session.userId, events }),
       ),
     };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export interface FloorResult {
+  board?: Board;
+  rosters?: Record<string, RoomRosterEntry[]>;
+  waiting?: ArrivingChild[];
+  error?: string;
+}
+
+/**
+ * R8.14, R8.18. The floor as it is right now: every class, who is in it, and
+ * the children who are here and have not been put in one yet.
+ *
+ * Counted on every read. A tally that drifts is worse than no tally, because
+ * somebody will trust it in the minute they should be walking to the room.
+ */
+export async function floor(occurrenceId: string, church?: string): Promise<FloorResult> {
+  const { session, ctx } = await context(church);
+
+  try {
+    return await withTenant(ctx, async (tx) => {
+      const profile = await getChurch(tx, session.tenantId);
+      const today = churchNow(profile?.timezone ?? "America/Chicago").date;
+      const live = await roomBoard(tx, occurrenceId);
+      const rosters: Record<string, RoomRosterEntry[]> = {};
+      for (const room of live.rooms) {
+        rosters[room.roomId] = await roomRoster(tx, occurrenceId, room.roomId);
+      }
+      return { board: live, rosters, waiting: await arriving(tx, occurrenceId, today) };
+    });
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R8.14. Putting a child in a class, or moving them to another one. */
+export async function place(
+  visitId: string,
+  roomId: string | null,
+  church?: string,
+): Promise<{ error?: string }> {
+  const { actor, ctx } = await context(church);
+
+  try {
+    await withTenant(ctx, (tx) => moveToRoom(tx, actor, visitId, roomId));
+    return {};
   } catch (error) {
     return { error: explain(error) };
   }

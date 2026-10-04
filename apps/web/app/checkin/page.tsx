@@ -1,15 +1,18 @@
 import Link from "next/link";
-import { FileWarning, Tag, Printer } from "lucide-react";
+import { FileWarning, Tag, Printer, Move, Plus } from "lucide-react";
 import {
-  withTenant, listStations, listRooms, listOccurrences, getChurch, canManageStations,
-  canReadIncidents,
+  withTenant, listRooms, listOccurrences, listStations, listIncidents, getChurch,
+  roomBoard, roomRoster, arriving, canSupervise, canReadIncidents,
+  type RoomRosterEntry,
 } from "@hearth/db";
-import { t } from "@hearth/i18n";
-import { Button } from "@hearth/ui";
+import { serviceNow } from "@hearth/db/rules";
+import { Banner, Button, EmptyState } from "@hearth/ui";
+import { t, plural } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { StationPicker } from "./station-picker";
+import { ageLine } from "@/lib/room-ages";
+import { Floor, type FloorStart } from "./floor";
 
 export const dynamic = "force-dynamic";
 
@@ -22,85 +25,194 @@ const readableTime = (hhmm: string) => {
 };
 
 /**
- * R8.2. Which station this device is.
+ * R8.14 to R8.19. Children's ministry during a service.
  *
- * The configuration is the station's and the choice is the device's, so a
- * tablet that dies minutes before a service is replaced by pointing another one at
- * the same station.
+ * The screen the person walking the corridor reads: who has arrived and is not
+ * in a class yet, and every class with its numbers. The desk is somewhere else,
+ * because the desk is a queue and belongs to whoever is standing at it.
  */
 export default async function CheckinPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; service?: string }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const params = await searchParams;
+  const session = await requireSession(params.church);
 
-  const { stations, rooms, services, now } = await withTenant(
-    { tenantId: session.tenantId, role: session.role },
+  const data = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
-      const today = churchNow(profile?.timezone ?? "America/Chicago").date;
+      const clock = churchNow(profile?.timezone ?? "America/Chicago");
+      const today = await listOccurrences(tx, { from: clock.date, to: clock.date });
+      const services = today
+        .filter((o) => o.status === "scheduled")
+        .map((o) => ({
+          id: o.id,
+          name: o.name,
+          startsAt: o.startsAt,
+          readableTime: readableTime(o.startsAt),
+        }));
+
+      // The one running or about to, and outside those hours the first of the
+      // day, because somebody opening this at nine at night is looking back at
+      // what happened rather than at nothing.
+      const chosen =
+        services.find((s) => s.id === params.service)?.id ||
+        serviceNow(services, clock.time) ||
+        services[0]?.id ||
+        "";
+
+      const rooms = await listRooms(tx);
+      const board = chosen ? await roomBoard(tx, chosen) : null;
+      const rosters: Record<string, RoomRosterEntry[]> = {};
+      for (const room of board?.rooms ?? []) {
+        rosters[room.roomId] = await roomRoster(tx, chosen!, room.roomId);
+      }
+
       return {
-        now: churchNow(profile?.timezone ?? "America/Chicago").time,
-        stations: await listStations(tx),
-        rooms: await listRooms(tx),
-        // Today's, because a station is a thing somebody stands at on the day.
-        services: await listOccurrences(tx, { from: today, to: today }),
+        clock,
+        services,
+        chosen,
+        rooms,
+        board,
+        rosters,
+        waiting: chosen ? await arriving(tx, chosen, clock.date) : [],
+        stations: (await listStations(tx)).length,
+        // R8.13. The number on the Incidents button is the reports where the
+        // guardian has still to be told, which is the one thing left open on a
+        // report that has been written.
+        openIncidents: canReadIncidents(session.role)
+          ? (await listIncidents(tx, { role: session.role })).filter(
+              (i) => i.notifiedAt === null,
+            ).length
+          : 0,
       };
     },
   );
 
+  const service = data.services.find((s) => s.id === data.chosen);
+  const checkedIn = (data.board?.rooms ?? []).reduce((n, r) => n + r.present, 0);
+
+  const action = (
+    <Button asChild>
+      <Link href={`/checkin/station?church=${session.tenantSlug}`}>
+        <Plus /> {t("checkin.check")}
+      </Link>
+    </Button>
+  );
+
+  if (!canSupervise(session.role)) {
+    return (
+      <AppShell session={session} title={t("checkin.title")}>
+        <Banner tone="info" title={t("checkin.title")}>{t("forbidden.askAdmin")}</Banner>
+      </AppShell>
+    );
+  }
+
   return (
-    <AppShell session={session} title={t("checkin.title")}>
-      {/* The three screens that belong to check-in. The design reaches them
-          from here rather than giving each a row down the side. */}
-      <div className="flex flex-wrap items-center gap-3.5">
-        {canReadIncidents(session.role) ? (
-          <Button variant="secondary" asChild>
-            <Link href={`/incidents?church=${session.tenantSlug}`}>
+    <AppShell session={session} title={t("checkin.title")} action={action}>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-[28px] leading-[34px] text-fg">
+            {service
+              ? t("checkin.serviceAt", { name: service.name, time: service.readableTime })
+              : t("checkin.noService.title")}
+          </h2>
+          <p className="mt-1 text-fg-muted">
+            {[
+              plural("board.checkedIn", checkedIn),
+              plural("board.stations", data.stations),
+            ].join(" · ")}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3.5">
+          <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
+            <Move className="size-3.5" aria-hidden /> {t("board.dragChild")}
+          </span>
+
+          {canReadIncidents(session.role) ? (
+            <ToolLink href={`/incidents?church=${session.tenantSlug}`}>
               <FileWarning /> {t("incident.title")}
-            </Link>
-          </Button>
-        ) : null}
-        <Button variant="secondary" asChild>
-          <Link href={`/checkin/labels?church=${session.tenantSlug}`}>
+              {data.openIncidents > 0 ? (
+                <span className="rounded-full bg-danger-soft px-1.5 text-[11px] font-semibold text-danger-text">
+                  {data.openIncidents}
+                </span>
+              ) : null}
+            </ToolLink>
+          ) : null}
+
+          <ToolLink href={`/checkin/labels?church=${session.tenantSlug}`}>
             <Tag /> {t("checkin.labels")}
-          </Link>
-        </Button>
-        <Button variant="secondary" asChild>
-          <Link href={`/checkin/rooms?church=${session.tenantSlug}`}>
+          </ToolLink>
+
+          <ToolLink
+            href={`/checkin/rooms/print?church=${session.tenantSlug}&service=${data.chosen ?? ""}`}
+            target="_blank"
+          >
             <Printer /> {t("checkin.rosters")}
-          </Link>
-        </Button>
+          </ToolLink>
+        </div>
       </div>
 
-      <StationPicker
-        church={session.tenantSlug}
-        now={now}
-        canManage={canManageStations(session.role)}
-        stations={stations.map((s) => ({
-          id: s.id,
-          name: s.name,
-          mode: s.mode,
-          printer: s.printer,
-          rooms: (s.roomIds.length === 0 ? rooms : rooms.filter((r) => s.roomIds.includes(r.id)))
-            .map((r) => ({ id: r.id, name: r.name, hue: r.hue, capacity: r.capacity })),
-          services: services
-            .filter(
-              (o) =>
-                o.status === "scheduled" &&
-                (s.serviceTimeIds.length === 0 ||
-                  (o.serviceTimeId !== null && s.serviceTimeIds.includes(o.serviceTimeId))),
-            )
-            .map((o) => ({
-              id: o.id,
-              name: o.name,
-              startsAt: o.startsAt,
-              readableTime: readableTime(o.startsAt),
-            })),
-        }))}
-      />
+      {/* A church with several services today picks which one it is looking at. */}
+      {data.services.length > 1 ? (
+        <div className="flex flex-wrap gap-2">
+          {data.services.map((one) => (
+            <Link
+              key={one.id}
+              href={`/checkin?church=${session.tenantSlug}&service=${one.id}`}
+              aria-current={one.id === data.chosen ? "page" : undefined}
+              className={`flex h-[34px] items-center rounded-full px-3.5 text-[13px] font-medium ${
+                one.id === data.chosen
+                  ? "border border-fg bg-fg text-canvas"
+                  : "border border-line-strong bg-surface text-fg hover:bg-sunken"
+              }`}
+            >
+              {t("checkin.serviceAt", { name: one.name, time: one.readableTime })}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+
+      {data.chosen ? (
+        <Floor
+          church={session.tenantSlug}
+          occurrenceId={data.chosen}
+          rooms={data.rooms.map((r) => ({ roomId: r.id, ages: ageLine(r) }))}
+          start={
+            {
+              board: data.board,
+              rosters: data.rosters,
+              waiting: data.waiting,
+            } satisfies FloorStart
+          }
+        />
+      ) : (
+        <EmptyState title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
+      )}
     </AppShell>
+  );
+}
+
+/** The design's 34px secondary buttons along the top of this screen. */
+function ToolLink({
+  href,
+  target,
+  children,
+}: {
+  href: string;
+  target?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      target={target}
+      className="flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
+    >
+      {children}
+    </Link>
   );
 }
