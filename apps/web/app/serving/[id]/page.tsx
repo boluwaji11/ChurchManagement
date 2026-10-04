@@ -54,13 +54,6 @@ export default async function TeamPage({
     <AppShell
       session={session}
       max="max-w-[1100px]"
-      action={
-        <Button asChild>
-          <Link href={`/serving?church=${session.tenantSlug}&team=${team.id}`}>
-            <CalendarDays /> {t("serving.openSchedule")}
-          </Link>
-        </Button>
-      }
     >
       <Link
         href={`/serving?church=${session.tenantSlug}&view=teams`}
@@ -85,28 +78,36 @@ export default async function TeamPage({
           </div>
         </div>
 
-        {/* R10.1. Changing the team itself, and putting it away, belong here
-            rather than on the card that opens it. */}
-        {canManage ? (
-          <div className="flex items-center gap-2">
-            <TeamDialog
-              church={session.tenantSlug}
-              team={{
-                id: team.id,
-                name: team.name,
-                description: team.description,
-                hue: team.hue,
-              }}
-              title={t("serving.editTeam")}
-              trigger={
-                <IconButton label={t("action.edit")} variant="ghost">
-                  <Pencil />
-                </IconButton>
-              }
-            />
-            <ArchiveTeam church={session.tenantSlug} id={team.id} name={team.name} />
-          </div>
-        ) : null}
+        {/* R10.1. Everything done to this team sits on its name's own line: the
+            schedule it fills, changing it, and putting it away. */}
+        <div className="flex items-center gap-2">
+          <Button asChild>
+            <Link href={`/serving?church=${session.tenantSlug}&team=${team.id}`}>
+              <CalendarDays /> {t("serving.openSchedule")}
+            </Link>
+          </Button>
+
+          {canManage ? (
+            <>
+              <TeamDialog
+                church={session.tenantSlug}
+                team={{
+                  id: team.id,
+                  name: team.name,
+                  description: team.description,
+                  hue: team.hue,
+                }}
+                title={t("serving.editTeam")}
+                trigger={
+                  <IconButton label={t("action.edit")} variant="ghost">
+                    <Pencil />
+                  </IconButton>
+                }
+              />
+              <ArchiveTeam church={session.tenantSlug} id={team.id} name={team.name} />
+            </>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
