@@ -6,7 +6,7 @@ import { cn } from "../lib/cn";
 
 const iconButton = cva(
   [
-    "inline-flex items-center justify-center shrink-0",
+    "inline-flex cursor-pointer items-center justify-center shrink-0",
     "size-[var(--d-tap)] rounded-[var(--d-radius-control)]",
     "transition-[background-color,color] duration-instant ease-out",
     "disabled:pointer-events-none disabled:opacity-45",

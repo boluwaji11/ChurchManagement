@@ -60,7 +60,7 @@ export function ServingViews({
             onClick={() => go({ view: one === "schedule" ? undefined : one })}
             aria-pressed={view === one}
             className={cn(
-              "h-8 rounded-sm px-3.5 text-[13px] font-medium",
+              "h-8 cursor-pointer rounded-sm px-3.5 text-[13px] font-medium",
               view === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
             )}
           >

@@ -631,7 +631,7 @@ function FilterDrawer({
                       type="button"
                       onClick={() => setParam({ joined: value === "any" ? undefined : value })}
                       className={cn(
-                        "h-7 rounded-sm px-3 text-[13px] font-medium",
+                        "h-7 cursor-pointer rounded-sm px-3 text-[13px] font-medium",
                         joined === value ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
                       )}
                     >
@@ -747,7 +747,7 @@ function ChipButton({
       onClick={onClick}
       aria-pressed={on}
       className={cn(
-        "flex h-[34px] items-center gap-2 rounded-full px-3.5 text-[13px] font-medium",
+        "flex h-[34px] cursor-pointer items-center gap-2 rounded-full px-3.5 text-[13px] font-medium",
         !on && "border border-line-strong bg-surface text-fg hover:bg-sunken",
         on && tone === "ink" && "border border-fg bg-fg text-canvas",
         on && tone === "accent" && "border-[1.5px] border-primary bg-primary-soft text-primary",

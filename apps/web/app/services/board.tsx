@@ -57,7 +57,7 @@ export function ServiceBoard({
               onClick={() => setView(value)}
               aria-pressed={view === value}
               className={cn(
-                "flex h-7 items-center gap-1.5 rounded-sm px-3 text-[13px] font-medium",
+                "flex h-7 cursor-pointer items-center gap-1.5 rounded-sm px-3 text-[13px] font-medium",
                 view === value ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
               )}
             >

@@ -11,7 +11,7 @@ import { cn } from "../lib/cn";
  */
 const button = cva(
   [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium select-none",
+    "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-medium select-none",
     "min-h-[var(--d-tap)] px-[var(--d-pad-control-x)] rounded-[var(--d-radius-control)]",
     "text-[length:var(--d-text-body)]",
     "transition-[background-color,border-color,color,box-shadow,transform] duration-instant ease-out",

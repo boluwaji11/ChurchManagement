@@ -157,7 +157,7 @@ export default async function CelebrationsPage({
               <Link
                 key={option}
                 href={link({ view: option })}
-                className={`h-7 rounded-sm px-3 text-[13px] font-medium leading-7 ${
+                className={`h-7 cursor-pointer rounded-sm px-3 text-[13px] font-medium leading-7 ${
                   option === view ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
                 }`}
               >
