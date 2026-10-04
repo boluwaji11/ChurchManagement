@@ -351,7 +351,7 @@ export const en = {
   "settings.profile.noRecord": "This account is not linked to anybody in People yet.",
   "profile.error.name": "Enter your first and last name.",
 
-  "settings.lede.security": "Change the address and the password you sign in with.",
+  "settings.lede.security": "Change your email address and password.",
   "settings.lede.appearance": "How Hearth looks on this device.",
   "settings.lede.export": "Download a copy of your church's data.",
   "settings.export.people": "People",

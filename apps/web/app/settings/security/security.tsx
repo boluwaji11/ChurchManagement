@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Check, ChevronRight, KeyRound, Mail } from "lucide-react";
-import { Banner, Field, IconButton, Input } from "@hearth/ui";
+import { Banner, Button, Field, Input } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { changeEmail, changePassword, emailMeALink } from "./actions";
 
@@ -104,9 +104,9 @@ export function Security({ email }: { email: string }) {
               <Input name="password" type="password" autoComplete="current-password" />
             </Field>
           </div>
-          <IconButton label={t("email.change")} type="submit" variant="secondary" disabled={pending}>
-            <Check />
-          </IconButton>
+          <Button type="submit" disabled={pending}>
+            <Check /> {t("email.change")}
+          </Button>
         </form>
       </Row>
 
@@ -128,26 +128,22 @@ export function Security({ email }: { email: string }) {
             </Field>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-1">
+          {/* These appear once on the screen rather than on every row of a
+              list, so they keep their words. */}
+          <div className="flex flex-wrap items-center justify-end gap-3">
             {/* R1.8. Somebody who has only ever signed in by an email link has
                 no current password to give, so they ask for one instead. */}
-            <IconButton
-              label={t("password.sendLink")}
+            <Button
               type="button"
               variant="ghost"
               disabled={pending}
               onClick={() => run(emailMeALink, t("signUp.sent.title"))}
             >
-              <Mail />
-            </IconButton>
-            <IconButton
-              label={t("password.change")}
-              type="submit"
-              variant="secondary"
-              disabled={pending}
-            >
-              <KeyRound />
-            </IconButton>
+              <Mail /> {t("password.sendLink")}
+            </Button>
+            <Button type="submit" disabled={pending}>
+              <KeyRound /> {t("password.change")}
+            </Button>
           </div>
         </form>
       </Row>
