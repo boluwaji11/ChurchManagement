@@ -11,7 +11,10 @@ import {
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import {
-  FORM_FIELD_KINDS, NEEDS_OPTIONS, type FormFieldDef, type FormFieldKind,
+  FORM_FIELD_KINDS, NEEDS_OPTIONS, CONDITION_OPS, OPS_NEED_VALUE,
+  visibleFields, conditionProblem,
+  type ConditionOp, type FormAnswer, type FormCondition, type FormFieldDef,
+  type FormFieldKind,
 } from "@hearth/db/rules";
 import { saveForm, openOrClose, archiveForm, saveQuestion, dropQuestion, shiftQuestion } from "../actions";
 
@@ -29,7 +32,7 @@ export interface BuilderForm {
 }
 
 /**
- * R4.1, R4.9. Writing the questions.
+ * R4.1, R4.2, R4.9. Writing the questions.
  *
  * The preview underneath is the point. A church writing a form is writing
  * something its congregation will read once and never ask about, so seeing it
@@ -189,6 +192,9 @@ export function Builder({ church, form }: { church: string; form: BuilderForm })
                         {field.options.join(", ")}
                       </span>
                     ) : null}
+                    {field.showWhen ? (
+                      <ConditionLine fields={form.fields} field={field} />
+                    ) : null}
                   </span>
 
                   <span className="flex items-center gap-0.5">
@@ -211,6 +217,7 @@ export function Builder({ church, form }: { church: string; form: BuilderForm })
                       church={church}
                       formId={form.id}
                       field={field}
+                      earlier={form.fields.slice(0, i)}
                       trigger={<IconButton label={t("action.edit")}><Pencil /></IconButton>}
                     />
 
@@ -250,12 +257,14 @@ export function Builder({ church, form }: { church: string; form: BuilderForm })
           <QuestionDialog
             church={church}
             formId={form.id}
+            earlier={form.fields}
             trigger={<Button variant="secondary"><Plus /> {t("form.add")}</Button>}
           />
           <QuestionDialog
             church={church}
             formId={form.id}
             section
+            earlier={form.fields}
             trigger={<Button variant="ghost"><Heading /> {t("form.addSection")}</Button>}
           />
         </div>
@@ -281,15 +290,52 @@ export function Builder({ church, form }: { church: string; form: BuilderForm })
   );
 }
 
-/** R4.1. The form as its reader will meet it, updating as it is written. */
+/** R4.2. The one line that says what a question is waiting on. */
+function ConditionLine({ fields, field }: { fields: FormFieldDef[]; field: FormFieldDef }) {
+  const condition = field.showWhen!;
+  const controller = fields.find((one) => one.id === condition.fieldId);
+  const problem = conditionProblem(fields, field);
+
+  const words = OPS_NEED_VALUE.includes(condition.op)
+    ? t("form.shownWhen", {
+        label: controller?.label ?? "",
+        op: t(`form.condition.${condition.op}` as never),
+        value: condition.value ?? "",
+      })
+    : t("form.shownWhenPlain", {
+        label: controller?.label ?? "",
+        op: t(`form.condition.${condition.op}` as never),
+      });
+
+  return (
+    <span className={problem ? "text-caption text-danger-text" : "text-caption text-fg-muted"}>
+      {problem ? t(problem as never) : words}
+    </span>
+  );
+}
+
+/**
+ * R4.1, R4.2. The form as its reader will meet it, answerable.
+ *
+ * It takes answers because a condition cannot be previewed without one. A
+ * church writing "show these three when somebody says yes" wants to say yes
+ * here and watch the three appear, which is the only way to be sure the branch
+ * is the one they meant.
+ */
 function Preview({ form }: { form: BuilderForm }) {
+  const [answers, setAnswers] = React.useState<Record<string, FormAnswer>>({});
+  const set = (id: string, answer: FormAnswer) =>
+    setAnswers((was) => ({ ...was, [id]: answer }));
+
+  const shown = visibleFields(form.fields, answers);
+
   return (
     <div className="flex flex-col gap-4">
       {form.intro ? (
         <p className="text-[length:var(--d-text-body)] text-fg">{form.intro}</p>
       ) : null}
 
-      {form.fields.map((field) => {
+      {shown.map((field) => {
         if (field.kind === "section") {
           return (
             <h3 key={field.id} className="mt-2 font-display text-heading text-fg">
@@ -298,17 +344,48 @@ function Preview({ form }: { form: BuilderForm }) {
           );
         }
 
+        const answer = answers[field.id] ?? null;
+
         return (
-          <Field key={field.id} label={field.label} required={field.required}>
+          <Field key={field.id} label={field.label} required={field.required} hint={field.help ?? undefined}>
             {field.kind === "long_text" ? (
-              <Textarea rows={3} readOnly />
+              <Textarea
+                rows={3}
+                value={typeof answer === "string" ? answer : ""}
+                onChange={(e) => set(field.id, e.target.value)}
+              />
             ) : field.kind === "checkbox" ? (
-              <span className="flex items-center gap-3">
-                <Checkbox disabled />
-                <span className="text-caption text-fg-muted">{field.help ?? ""}</span>
+              <Checkbox
+                checked={answer === true}
+                onCheckedChange={(on) => set(field.id, on === true)}
+              />
+            ) : field.kind === "multi_select" ? (
+              <span className="flex flex-col gap-2">
+                {(field.options ?? []).map((option) => {
+                  const picked = Array.isArray(answer) ? answer : [];
+                  return (
+                    <label key={option} className="flex cursor-pointer items-center gap-3">
+                      <Checkbox
+                        checked={picked.includes(option)}
+                        onCheckedChange={(on) =>
+                          set(
+                            field.id,
+                            on === true
+                              ? [...picked, option]
+                              : picked.filter((one) => one !== option),
+                          )
+                        }
+                      />
+                      <span className="text-[length:var(--d-text-body)] text-fg">{option}</span>
+                    </label>
+                  );
+                })}
               </span>
-            ) : field.kind === "select" || field.kind === "multi_select" ? (
-              <Select disabled>
+            ) : field.kind === "select" ? (
+              <Select
+                value={typeof answer === "string" ? answer : undefined}
+                onValueChange={(next) => set(field.id, next)}
+              >
                 <SelectTrigger aria-label={field.label}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(field.options ?? []).map((option) => (
@@ -316,10 +393,14 @@ function Preview({ form }: { form: BuilderForm }) {
                   ))}
                 </SelectContent>
               </Select>
+            ) : field.kind === "file" ? (
+              <Input type="file" disabled />
             ) : (
               <Input
-                readOnly
-                type={field.kind === "number" ? "number" : field.kind === "date" ? "date" : field.kind === "file" ? "file" : "text"}
+                type={field.kind === "number" ? "number" : field.kind === "date" ? "date" : "text"}
+                value={typeof answer === "string" || typeof answer === "number" ? String(answer) : ""}
+                onChange={(e) => set(field.id, e.target.value)}
+                autoComplete="off"
               />
             )}
           </Field>
@@ -329,17 +410,23 @@ function Preview({ form }: { form: BuilderForm }) {
   );
 }
 
-/** R4.1. One question: what is asked, how, and whether it has to be answered. */
+/**
+ * R4.1, R4.2. One question: what is asked, how, whether it has to be answered,
+ * and what has to be true earlier for it to be asked at all.
+ */
 function QuestionDialog({
   church,
   formId,
   field,
+  earlier,
   section,
   trigger,
 }: {
   church: string;
   formId: string;
   field?: FormFieldDef;
+  /** R4.2. The questions this one can wait on: the ones read before it. */
+  earlier: FormFieldDef[];
   section?: boolean;
   trigger: React.ReactNode;
 }) {
@@ -356,7 +443,20 @@ function QuestionDialog({
   const [required, setRequired] = React.useState(field?.required ?? false);
   const [choices, setChoices] = React.useState((field?.options ?? []).join("\n"));
 
+  const [on, setOn] = React.useState(field?.showWhen?.fieldId ?? "");
+  const [op, setOp] = React.useState<ConditionOp>(field?.showWhen?.op ?? "is");
+  const [answer, setAnswer] = React.useState(field?.showWhen?.value ?? "");
+
   const wantsOptions = NEEDS_OPTIONS.includes(kind);
+
+  // A heading has no answer, so nothing can be waiting on one.
+  const candidates = earlier.filter((one) => one.kind !== "section");
+  const controller = candidates.find((one) => one.id === on);
+  const wantsAnswer = OPS_NEED_VALUE.includes(op);
+
+  const showWhen: FormCondition | null = on
+    ? { fieldId: on, op, value: wantsAnswer ? answer : null }
+    : null;
 
   const submit = () =>
     startTransition(async () => {
@@ -369,6 +469,7 @@ function QuestionDialog({
           help: help || null,
           required,
           options: wantsOptions ? choices.split("\n") : null,
+          showWhen,
         },
         church,
       );
@@ -380,6 +481,8 @@ function QuestionDialog({
           setHelp("");
           setChoices("");
           setRequired(false);
+          setOn("");
+          setAnswer("");
         }
         router.refresh();
       }
@@ -451,6 +554,70 @@ function QuestionDialog({
               </label>
             </>
           )}
+
+          {candidates.length > 0 ? (
+            <>
+              <Separator />
+              <div className="flex flex-col gap-3">
+                <span className="text-label text-fg">{t("form.showWhen")}</span>
+
+                <div className="flex flex-col gap-1.5">
+                  <Select value={on || "always"} onValueChange={(next) => setOn(next === "always" ? "" : next)}>
+                    <SelectTrigger aria-label={t("form.condition.field")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="always">{t("form.showAlways")}</SelectItem>
+                      {candidates.map((one) => (
+                        <SelectItem key={one.id} value={one.id}>{one.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {on ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="flex flex-col gap-1.5">
+                      <Select value={op} onValueChange={(next) => setOp(next as ConditionOp)}>
+                        <SelectTrigger aria-label={t("form.condition.op")}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CONDITION_OPS.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {t(`form.condition.${option}` as never)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {wantsAnswer ? (
+                      controller && NEEDS_OPTIONS.includes(controller.kind) ? (
+                        <Select value={answer || undefined} onValueChange={setAnswer}>
+                          <SelectTrigger aria-label={t("form.condition.value")}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(controller.options ?? []).map((option) => (
+                              <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          value={answer}
+                          onChange={(e) => setAnswer(e.target.value)}
+                          aria-label={t("form.condition.value")}
+                          autoComplete="off"
+                        />
+                      )
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : null}
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="button" disabled={pending} onClick={submit}>

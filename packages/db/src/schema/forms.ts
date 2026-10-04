@@ -1,3 +1,4 @@
+import { type AnyPgColumn } from "drizzle-orm/pg-core";
 import {
   pgTable, uuid, text, boolean, integer, timestamp, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -75,6 +76,25 @@ export const formFields = pgTable(
     /** The choices, for a select or a multi-select. */
     options: text("options").array(),
     position: integer("position").notNull().default(0),
+    /**
+     * R4.2. The earlier question this one waits on, when it waits on one.
+     *
+     * A church asking "are you new here?" wants the three follow-up questions
+     * to appear for the people who say yes and stay out of everybody else's
+     * way. One condition per question is the whole feature: a builder with and
+     * and or in it is a builder Maria closes.
+     *
+     * Cleared rather than orphaned when the earlier question goes, so a
+     * condition always points at a question that exists.
+     */
+    showWhenFieldId: uuid("show_when_field_id").references(
+      (): AnyPgColumn => formFields.id,
+      { onDelete: "set null" },
+    ),
+    /** "is", "is_not", "answered" or "blank". */
+    showWhenOp: text("show_when_op"),
+    /** The answer being matched, for "is" and "is_not". */
+    showWhenValue: text("show_when_value"),
     createdAt: created(),
     updatedAt: updated(),
   },

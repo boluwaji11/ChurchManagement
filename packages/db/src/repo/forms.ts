@@ -5,15 +5,17 @@ import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
 import {
-  FORM_FIELD_KINDS, NEEDS_OPTIONS, formSlug, formProblems,
-  type FormFieldDef, type FormFieldKind, type FormStatus,
+  FORM_FIELD_KINDS, NEEDS_OPTIONS, CONDITION_OPS, OPS_NEED_VALUE,
+  formSlug, formProblems, conditionProblem,
+  type ConditionOp, type FormCondition, type FormFieldDef, type FormFieldKind,
+  type FormStatus,
 } from "./form-rules";
 import type { WriteActor } from "./people";
 
 export * from "./form-rules";
 
 /**
- * R4.1, R4.9. Building a form.
+ * R4.1, R4.2, R4.9. Building a form.
  *
  * A church writes the questions once and the answers land on people's records,
  * which is the whole point of R4.4. This story is the writing: the kinds of
@@ -61,6 +63,8 @@ export interface FormFieldInput {
   help?: string | null;
   required?: boolean;
   options?: string[] | null;
+  /** R4.2. Null, or the earlier answer this question waits on. */
+  showWhen?: FormCondition | null;
 }
 
 const NAME_LIMIT = 120;
@@ -100,6 +104,7 @@ function checkField(input: FormFieldInput): {
   help: string | null;
   required: boolean;
   options: string[] | null;
+  showWhen: FormCondition | null;
 } {
   if (!FORM_FIELD_KINDS.includes(input.kind)) throw new InvalidInputError("form.error.kind");
 
@@ -120,7 +125,34 @@ function checkField(input: FormFieldInput): {
     // A heading has no answer, so nothing can be required of it.
     required: input.kind === "section" ? false : Boolean(input.required),
     options,
+    showWhen: checkCondition(input.showWhen ?? null),
   };
+}
+
+/** R4.2. The shape of a condition, before it is held against the form. */
+function checkCondition(condition: FormCondition | null): FormCondition | null {
+  if (!condition || !condition.fieldId) return null;
+  if (!CONDITION_OPS.includes(condition.op)) throw new InvalidInputError("form.error.conditionOp");
+
+  const value = OPS_NEED_VALUE.includes(condition.op)
+    ? (condition.value ?? "").trim()
+    : null;
+  if (value === "") throw new InvalidInputError("form.error.conditionValue");
+
+  return { fieldId: condition.fieldId, op: condition.op as ConditionOp, value };
+}
+
+/**
+ * R4.2. Holds a condition against the rest of the form.
+ *
+ * The question it waits on has to exist, has to come before it, and has to be
+ * something with an answer. `candidate` is the form as it will be once this
+ * question is saved, so a condition is checked against the order it will
+ * actually be read in.
+ */
+function holdCondition(candidate: FormFieldDef[], field: FormFieldDef): void {
+  const problem = conditionProblem(candidate, field);
+  if (problem) throw new InvalidInputError(problem as never);
 }
 
 async function fieldsFor(db: Tx, formId: string): Promise<FormFieldDef[]> {
@@ -133,12 +165,21 @@ async function fieldsFor(db: Tx, formId: string): Promise<FormFieldDef[]> {
       required: formFields.required,
       options: formFields.options,
       position: formFields.position,
+      showWhenFieldId: formFields.showWhenFieldId,
+      showWhenOp: formFields.showWhenOp,
+      showWhenValue: formFields.showWhenValue,
     })
     .from(formFields)
     .where(eq(formFields.formId, formId))
     .orderBy(asc(formFields.position), asc(formFields.createdAt));
 
-  return rows.map((row) => ({ ...row, kind: row.kind as FormFieldKind }));
+  return rows.map(({ showWhenFieldId, showWhenOp, showWhenValue, ...row }) => ({
+    ...row,
+    kind: row.kind as FormFieldKind,
+    showWhen: showWhenFieldId && showWhenOp
+      ? { fieldId: showWhenFieldId, op: showWhenOp as ConditionOp, value: showWhenValue }
+      : null,
+  }));
 }
 
 /** R4.1. Every form this church has, with how many questions each asks. */
@@ -302,18 +343,29 @@ export async function addFormField(
   if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
   const values = checkField(input);
 
-  const [last] = await db
-    .select({ at: sql<number>`coalesce(max(${formFields.position}), -1)::int` })
-    .from(formFields)
-    .where(eq(formFields.formId, formId));
+  const existing = await fieldsFor(db, formId);
+  const position = existing.length === 0
+    ? 0
+    : Math.max(...existing.map((field) => field.position)) + 1;
+
+  // A new question goes last, so any question already on the form is a
+  // candidate for it to wait on. Checked against the order it will be read in.
+  const { showWhen, ...column } = values;
+  holdCondition(
+    [...existing, { ...column, id: "new", position, showWhen }],
+    { ...column, id: "new", position, showWhen },
+  );
 
   const [row] = await db
     .insert(formFields)
     .values({
       tenantId: actor.tenantId,
       formId,
-      ...values,
-      position: (last?.at ?? -1) + 1,
+      ...column,
+      position,
+      showWhenFieldId: showWhen?.fieldId ?? null,
+      showWhenOp: showWhen?.op ?? null,
+      showWhenValue: showWhen?.value ?? null,
     })
     .returning({ id: formFields.id });
   return { id: row!.id };
@@ -328,9 +380,29 @@ export async function updateFormField(
   if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
   const values = checkField(input);
 
+  const [found] = await db
+    .select({ formId: formFields.formId, position: formFields.position })
+    .from(formFields)
+    .where(eq(formFields.id, id))
+    .limit(1);
+  if (!found) throw new InvalidInputError("form.error.field");
+
+  const { showWhen, ...column } = values;
+  const after = { ...column, id, position: found.position, showWhen };
+  holdCondition(
+    (await fieldsFor(db, found.formId)).map((field) => (field.id === id ? after : field)),
+    after,
+  );
+
   const changed = await db
     .update(formFields)
-    .set({ ...values, updatedAt: new Date() })
+    .set({
+      ...column,
+      showWhenFieldId: showWhen?.fieldId ?? null,
+      showWhenOp: showWhen?.op ?? null,
+      showWhenValue: showWhen?.value ?? null,
+      updatedAt: new Date(),
+    })
     .where(eq(formFields.id, id))
     .returning({ id: formFields.id });
   if (changed.length === 0) throw new InvalidInputError("form.error.field");
@@ -344,6 +416,14 @@ export async function removeFormField(db: Tx, actor: WriteActor, id: string): Pr
     .where(eq(formFields.id, id))
     .returning({ id: formFields.id });
   if (removed.length === 0) throw new InvalidInputError("form.error.field");
+
+  // R4.2. The column drops to null on delete. Clearing the rest of the
+  // condition with it keeps every condition pointing at a question that exists,
+  // so a question that waited on this one is now simply always shown.
+  await db
+    .update(formFields)
+    .set({ showWhenOp: null, showWhenValue: null, updatedAt: new Date() })
+    .where(and(sql`${formFields.showWhenFieldId} is null`, sql`${formFields.showWhenOp} is not null`));
 }
 
 /** R4.1. Moves one question up or down, which is how a form gets its order. */

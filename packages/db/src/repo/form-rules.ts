@@ -1,5 +1,6 @@
 /**
- * R4.1, R4.9. What a form holds, and whether an answer is good enough.
+ * R4.1, R4.2, R4.9. What a form holds, which parts of it a reader sees, and
+ * whether an answer is good enough.
  *
  * Pure: no database, nothing that cannot be served to a browser. The builder
  * previews a form as it is written and the public form checks answers before it
@@ -23,6 +24,28 @@ export const NEEDS_OPTIONS: readonly FormFieldKind[] = ["select", "multi_select"
 
 export type FormStatus = "draft" | "open" | "closed";
 
+/**
+ * R4.2. How a question can wait on an earlier answer.
+ *
+ * "is" and "is_not" match a value. On a choose-several question "is" means the
+ * value is among the ones picked. "answered" and "blank" ask only whether
+ * anything was put in, which covers the common case of a follow-up to an
+ * optional question without the church having to name a value.
+ */
+export const CONDITION_OPS = ["is", "is_not", "answered", "blank"] as const;
+export type ConditionOp = (typeof CONDITION_OPS)[number];
+
+/** The ops that match against a value, so the value cannot be left blank. */
+export const OPS_NEED_VALUE: readonly ConditionOp[] = ["is", "is_not"];
+
+export interface FormCondition {
+  /** The earlier question this one waits on. */
+  fieldId: string;
+  op: ConditionOp;
+  /** Null for "answered" and "blank". */
+  value: string | null;
+}
+
 export interface FormFieldDef {
   id: string;
   kind: FormFieldKind;
@@ -31,6 +54,8 @@ export interface FormFieldDef {
   required: boolean;
   options: string[] | null;
   position: number;
+  /** R4.2. What has to be true earlier for this one to be shown. */
+  showWhen?: FormCondition | null;
 }
 
 /** An answer as the form holds it, before anything is done with it. */
@@ -101,13 +126,97 @@ export function checkAnswer(field: FormFieldDef, answer: FormAnswer): string | n
   }
 }
 
-/** R4.9. Every answer, against every question. Empty means it can be sent. */
+/** R4.2. Whether one condition holds, given what has been answered so far. */
+export function conditionHolds(
+  condition: FormCondition,
+  controller: FormFieldDef | undefined,
+  answer: FormAnswer,
+): boolean {
+  if (!controller) return true;
+
+  switch (condition.op) {
+    case "answered":
+      return answered(answer);
+    case "blank":
+      return !answered(answer);
+    case "is":
+    case "is_not": {
+      const want = (condition.value ?? "").trim();
+      const hit = Array.isArray(answer)
+        ? answer.includes(want)
+        : typeof answer === "boolean"
+          ? answer === (want === "true" || want.toLowerCase() === "yes")
+          : String(answer ?? "").trim() === want;
+      return condition.op === "is" ? hit : !hit;
+    }
+    default:
+      return true;
+  }
+}
+
+/**
+ * R4.2. Which questions the reader is shown, in order.
+ *
+ * A question whose condition points at a hidden question is hidden too, which
+ * is what a church means by putting a follow-up under a follow-up. Conditions
+ * only ever point backwards, so one pass down the list settles every one of
+ * them and there is no loop to guard against.
+ */
+export function visibleFields(
+  fields: FormFieldDef[],
+  answers: Record<string, FormAnswer>,
+): FormFieldDef[] {
+  const shown = new Map<string, boolean>();
+  const out: FormFieldDef[] = [];
+
+  for (const field of fields) {
+    const condition = field.showWhen ?? null;
+    let visible = true;
+
+    if (condition) {
+      const controller = fields.find((one) => one.id === condition.fieldId);
+      visible = (shown.get(condition.fieldId) ?? true)
+        && conditionHolds(condition, controller, answers[condition.fieldId] ?? null);
+    }
+
+    shown.set(field.id, visible);
+    if (visible) out.push(field);
+  }
+  return out;
+}
+
+/**
+ * R4.2. Drops the answers to questions the reader never saw.
+ *
+ * Somebody answers a follow-up, changes the earlier answer, and the follow-up
+ * disappears with their words still in it. What they were last shown is what
+ * gets recorded.
+ */
+export function prunedAnswers(
+  fields: FormFieldDef[],
+  answers: Record<string, FormAnswer>,
+): Record<string, FormAnswer> {
+  const keep = new Set(visibleFields(fields, answers).map((field) => field.id));
+  const out: Record<string, FormAnswer> = {};
+  for (const [id, answer] of Object.entries(answers)) {
+    if (keep.has(id)) out[id] = answer;
+  }
+  return out;
+}
+
+/**
+ * R4.9. Every answer, against every question the reader was shown.
+ *
+ * A required question inside a hidden branch is not required of somebody who
+ * never saw it, so visibility is settled first and R4.2 and R4.9 cannot
+ * disagree about whether a form can be sent.
+ */
 export function checkSubmission(
   fields: FormFieldDef[],
   answers: Record<string, FormAnswer>,
 ): FieldError[] {
   const out: FieldError[] = [];
-  for (const field of fields) {
+  for (const field of visibleFields(fields, answers)) {
     const message = checkAnswer(field, answers[field.id] ?? null);
     if (message) out.push({ fieldId: field.id, message });
   }
@@ -130,7 +239,43 @@ export function formProblems(fields: FormFieldDef[]): string[] {
   if (fields.some((f) => NEEDS_OPTIONS.includes(f.kind) && (f.options ?? []).length === 0)) {
     out.push("form.problem.noChoices");
   }
+  if (fields.some((f) => conditionProblem(fields, f) !== null)) {
+    out.push("form.problem.condition");
+  }
   return out;
+}
+
+/**
+ * R4.2. Whether one question's condition still makes sense.
+ *
+ * Reordering is where this breaks: a question moved above the one it waits on
+ * is waiting on an answer nobody has given yet. The builder can let the move
+ * happen and say so here rather than refusing a drag for a reason that is hard
+ * to explain mid-gesture.
+ */
+export function conditionProblem(
+  fields: FormFieldDef[],
+  field: FormFieldDef,
+): string | null {
+  const condition = field.showWhen ?? null;
+  if (!condition) return null;
+
+  const at = fields.findIndex((one) => one.id === field.id);
+  const controllerAt = fields.findIndex((one) => one.id === condition.fieldId);
+  if (controllerAt === -1) return "form.error.conditionField";
+  if (controllerAt >= at) return "form.error.conditionOrder";
+
+  const controller = fields[controllerAt]!;
+  if (controller.kind === "section") return "form.error.conditionField";
+
+  if (OPS_NEED_VALUE.includes(condition.op)) {
+    const value = (condition.value ?? "").trim();
+    if (!value) return "form.error.conditionValue";
+    if (NEEDS_OPTIONS.includes(controller.kind) && !(controller.options ?? []).includes(value)) {
+      return "form.error.conditionValue";
+    }
+  }
+  return null;
 }
 
 /** "Connection card" becomes "connection-card", for the public link. */

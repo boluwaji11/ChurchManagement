@@ -435,6 +435,13 @@
       "when": 1791058019419,
       "tag": "0061_misty_night_nurse",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1791073840705,
+      "tag": "0062_curious_sue_storm",
+      "breakpoints": true
     }
   ]
 }

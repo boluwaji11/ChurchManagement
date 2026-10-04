@@ -416,7 +416,7 @@ a person record or attaches to one, using the duplicate logic already built in F
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-148 | The builder: every field type, section headers, required fields and validation | R4.1, R4.9 | Resolved |
-| HRT-149 | Conditional logic, showing and hiding fields on earlier answers | R4.2 | New |
+| HRT-149 | Conditional logic, showing and hiding fields on earlier answers | R4.2 | Resolved |
 | HRT-150 | The public link and the snippet a church pastes into its own site | R4.3 | New |
 | HRT-151 | A submission matching a person or creating one, writing custom field answers through | R4.4 | New |
 | HRT-152 | The review queue, for a submission that matched more than one person | R4.5 | New |
@@ -606,7 +606,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-149** conditional logic on a form. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-150** the public link and the embed snippet. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1332,6 +1332,30 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-149, how to test it
+
+Conditional logic. One condition per question: an earlier answer, a test, a value.
+
+1. On a form, add **Are you new here?** as **Choose one** with the choices Yes and No. Then add
+   **How did you hear about us?** and set **Show it when** to that question, **is**, **Yes**.
+2. **As it will be read** is answerable now. Pick No: the follow-up is not there. Pick Yes: it
+   appears. Switch back to No and it goes again.
+3. The row in the builder says **Shown when Are you new here? is Yes** under the question.
+4. Put a third question under the second one, waiting on the second one's answer. In the preview it
+   appears only when its parent is both shown and answered the right way, so a branch under a branch
+   behaves.
+5. The tests offered are **is**, **is not**, **is answered** and **is blank**. The last two ask only
+   whether anything was put in, so they need no value.
+6. **Show it when** only lists questions above this one, and never a heading.
+7. A choose-one question's condition offers its choices as a dropdown rather than free text.
+8. Move a question above the one it waits on. The row turns red, the banner at the top says a
+   question is waiting on an answer nobody has given yet, and **Open it** is refused. Move it back
+   and the form opens.
+9. Remove the question a condition waited on. The condition comes off and the follow-up is simply
+   always shown.
+10. A required question inside a hidden branch is not required of somebody who never saw it. Leave
+    the branch closed and the form still sends.
 
 ### HRT-148, how to test it
 
