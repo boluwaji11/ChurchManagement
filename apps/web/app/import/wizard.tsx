@@ -3,14 +3,24 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Upload, ArrowRight, ArrowLeft, CheckCircle2, RotateCcw, FileSpreadsheet } from "lucide-react";
+import { AlertTriangle, Check, FileSpreadsheet } from "lucide-react";
 import {
-  Button, Card, CardTitle, Separator, Banner, Badge, Table, Thead, Th, Tr, Td,
+  Button, Card, CardTitle, Separator, Banner, Badge,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   RadioGroup, RadioItem, Spinner,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
-import { inspectFile, previewImport, runImport, type Inspection, type Preview, type ImportResult } from "./actions";
+import {
+  inspectFile, previewImport, runImport, undoImport,
+  type Inspection, type Preview, type ImportResult,
+} from "./actions";
+
+/** R19.4. Thirty days from today, as a date a church reads. */
+function undoBy(): string {
+  const day = new Date();
+  day.setDate(day.getDate() + 30);
+  return day.toLocaleDateString(undefined, { day: "numeric", month: "long" });
+}
 
 const IGNORE = "";
 const WORKBOOK = /\.xlsx?$/i;
@@ -35,14 +45,14 @@ const IGNORE_VALUE = "__ignore";
 
 type Step = "file" | "map" | "preview" | "done";
 
-const OUTCOME_TONE = {
-  create: "success",
-  update: "info",
-  skip: "neutral",
-  fail: "danger",
-} as const;
-
-export function ImportWizard({ church }: { church: string }) {
+export function ImportWizard({
+  church,
+  history,
+}: {
+  church: string;
+  /** R19.5. What has been imported before, beside the drop zone. */
+  history?: React.ReactNode;
+}) {
   const router = useRouter();
   const [step, setStep] = React.useState<Step>("file");
   const [busy, setBusy] = React.useState(false);
@@ -132,10 +142,16 @@ export function ImportWizard({ church }: { church: string }) {
 
       {error ? <Banner tone="danger" title={t("import.failed")}>{error}</Banner> : null}
 
-      {step === "file" ? <ChooseFile busy={busy} onFile={onFile} /> : null}
+      {step === "file" ? (
+        <div className="grid items-start gap-5 lg:[grid-template-columns:1fr_minmax(300px,360px)]">
+          <ChooseFile busy={busy} onFile={onFile} />
+          {history}
+        </div>
+      ) : null}
 
       {step === "map" && inspection ? (
         <MapColumns
+          filename={file.filename}
           inspection={inspection}
           mapping={mapping}
           setMapping={setMapping}
@@ -157,7 +173,12 @@ export function ImportWizard({ church }: { church: string }) {
       ) : null}
 
       {step === "done" && result ? (
-        <Done church={church} result={result} groups={inspection?.groups} onAgain={reset} />
+        <Done
+          church={church}
+          result={result}
+          groups={inspection?.groups}
+          undoBy={undoBy()}
+        />
       ) : null}
     </div>
   );
@@ -200,8 +221,9 @@ function Steps({ current }: { current: Step }) {
                     ? "var(--hue-jade-500)"
                     : now
                       ? "var(--color-primary)"
-                      : "var(--color-sunken)",
+                      : "var(--color-surface)",
                   color: done || now ? "white" : "var(--color-fg-subtle)",
+                  border: done || now ? "none" : "1px solid var(--color-line-strong)",
                 }}
               >
                 {done ? "\u2713" : i + 1}
@@ -253,8 +275,8 @@ function ChooseFile({ busy, onFile }: { busy: boolean; onFile: (f: File) => void
           setOver(false);
           take(e.dataTransfer.files?.[0]);
         }}
-        className={`flex flex-col items-center gap-2.5 rounded-lg border-2 border-dashed bg-surface px-6 py-12 text-fg-muted ${
-          over ? "border-primary" : "border-line-strong"
+        className={`flex cursor-pointer flex-col items-center gap-2.5 rounded-lg border-2 border-dashed bg-surface px-6 py-12 text-fg-muted hover:border-primary hover:bg-sunken disabled:cursor-wait ${
+          over ? "border-primary bg-sunken" : "border-line-strong"
         }`}
       >
         {busy ? (
@@ -278,6 +300,7 @@ function ChooseFile({ busy, onFile }: { busy: boolean; onFile: (f: File) => void
 }
 
 function MapColumns({
+  filename,
   inspection,
   mapping,
   setMapping,
@@ -287,6 +310,7 @@ function MapColumns({
   onBack,
   onNext,
 }: {
+  filename: string;
   inspection: Inspection;
   mapping: Record<string, string>;
   setMapping: (m: Record<string, string>) => void;
@@ -299,48 +323,51 @@ function MapColumns({
   const fields = inspection.fields ?? [];
   // A field already taken by another column is not offered twice.
   const taken = new Set(Object.values(mapping).filter(Boolean));
+  const headers = inspection.headers ?? [];
 
   return (
     <>
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle>{t("import.step.map")}</CardTitle>
-          <span className="flex flex-wrap items-center gap-2">
-            {/* R19.5. Naming the system it came from is the whole of a dedicated
-                importer: the columns are already matched, and this says why. */}
-            {inspection.source ? (
-              <Badge tone="info">{t("import.detected", { name: inspection.source })}</Badge>
-            ) : null}
-            <span className="text-caption text-fg-muted">
-              {plural("import.rowsFound", inspection.rowCount ?? 0)}
-            </span>
-          </span>
-        </div>
-        <Separator className="my-4" />
+      {/* The file, in one line above the table: what it is called, how big it
+          is, and where it came out of. */}
+      <div className="flex flex-wrap items-center gap-2.5 text-[13px] text-fg-muted">
+        <FileSpreadsheet className="size-[18px] shrink-0 text-primary" aria-hidden />
+        <span className="font-semibold text-fg">{filename}</span>
+        <span>
+          {t("import.fileLine", { rows: inspection.rowCount ?? 0, columns: headers.length })}
+        </span>
+        {inspection.source ? (
+          <Badge tone="info">{t("import.detected", { name: inspection.source })}</Badge>
+        ) : null}
+      </div>
 
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>{t("import.column")}</Th>
-              <Th>{t("import.sample")}</Th>
-              <Th>{t("import.field")}</Th>
-            </Tr>
-          </Thead>
+      <section className="overflow-auto rounded-lg border border-line bg-surface">
+        <table className="w-full min-w-[600px] border-collapse text-left">
+          <thead>
+            <tr className="text-[12px] font-medium text-fg-subtle">
+              <th className="border-b border-line px-4 py-3 font-medium">{t("import.column")}</th>
+              <th className="border-b border-line px-4 py-3 font-medium">{t("import.sample")}</th>
+              <th className="border-b border-line px-4 py-3 font-medium">{t("import.field")}</th>
+            </tr>
+          </thead>
           <tbody>
-            {(inspection.headers ?? []).map((header) => {
+            {headers.map((header) => {
               const current = mapping[header] ?? IGNORE;
               return (
-                <Tr key={header}>
-                  <Td>{header}</Td>
-                  <Td className="text-fg-muted">{inspection.samples?.[header] || ""}</Td>
-                  <Td>
+                <tr key={header}>
+                  <td className="border-b border-sunken px-4 py-2.5 font-medium text-fg">
+                    {header}
+                  </td>
+                  <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted">
+                    {inspection.samples?.[header] || ""}
+                  </td>
+                  <td className="border-b border-sunken px-4 py-2.5">
                     <Select
                       value={current === IGNORE ? IGNORE_VALUE : current}
                       onValueChange={(v) =>
                         setMapping({ ...mapping, [header]: v === IGNORE_VALUE ? IGNORE : v })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="min-h-[34px] min-w-[180px] text-[13px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -352,13 +379,13 @@ function MapColumns({
                           ))}
                       </SelectContent>
                     </Select>
-                  </Td>
-                </Tr>
+                  </td>
+                </tr>
               );
             })}
           </tbody>
-        </Table>
-      </Card>
+        </table>
+      </section>
 
       {/* What to do about somebody already in the directory is a question about
           a people file. A membership row joins a group or it does not. */}
@@ -374,15 +401,30 @@ function MapColumns({
         </Card>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={onNext} loading={busy}>
-          {t("import.preview")} <ArrowRight />
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="secondary" onClick={onBack}>
+          {t("import.back")}
         </Button>
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft /> {t("import.startOver")}
+        <Button onClick={onNext} loading={busy}>
+          {t("import.checkFile")}
         </Button>
       </div>
     </>
+  );
+}
+
+/** One of the three numbers at the top of the check step. */
+function Stat({ label, value, warn }: { label: string; value: number; warn?: boolean }) {
+  return (
+    <div className="rounded-lg border border-line bg-surface px-4.5 py-4">
+      <div
+        className="text-[13px] font-medium"
+        style={{ color: warn ? "var(--hue-amber-key)" : "var(--color-fg-muted)" }}
+      >
+        {label}
+      </div>
+      <div className="font-display text-[36px] leading-[42px] text-fg">{value}</div>
+    </div>
   );
 }
 
@@ -399,73 +441,56 @@ function PreviewStep({
 }) {
   const totals = preview.totals ?? { create: 0, update: 0, skip: 0, fail: 0 };
   const willWrite = totals.create + totals.update;
+  const problems = (preview.rows ?? []).filter(
+    (row) => row.outcome === "skip" || row.outcome === "fail",
+  );
 
   return (
     <>
-      <Card>
-        <CardTitle>{t("import.step.preview")}</CardTitle>
-        <Separator className="my-4" />
-        <ul className="flex flex-col gap-1.5">
-          {preview.newGroups ? (
-            <>
-              <li className="text-[length:var(--d-text-body)] text-fg">
-                {plural("import.group.joining", totals.create)}
-              </li>
-              <li className="text-[length:var(--d-text-body)] text-fg">
-                {plural("import.group.newGroups", preview.newGroups.length)}
-                {preview.newGroups.length > 0 ? `: ${preview.newGroups.join(", ")}` : ""}
-              </li>
-            </>
-          ) : (
-            <>
-              <li className="text-[length:var(--d-text-body)] text-fg">{plural("import.willCreate", totals.create)}</li>
-              <li className="text-[length:var(--d-text-body)] text-fg">{plural("import.willUpdate", totals.update)}</li>
-            </>
-          )}
-          <li className="text-[length:var(--d-text-body)] text-fg-muted">{plural("import.willSkip", totals.skip)}</li>
-          {totals.fail > 0 ? (
-            <li className="text-[length:var(--d-text-body)] text-danger-text">{plural("import.willFail", totals.fail)}</li>
-          ) : null}
-        </ul>
-      </Card>
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+        <Stat label={t("import.stat.new")} value={totals.create} />
+        <Stat label={t("import.stat.updates")} value={totals.update} />
+        <Stat label={t("import.stat.problems")} value={totals.skip + totals.fail} warn />
+      </div>
 
-      <Card>
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>{t("import.line")}</Th>
-              <Th>{t("people.column.person")}</Th>
-              <Th>{t("people.column.status")}</Th>
-              <Th />
-            </Tr>
-          </Thead>
-          <tbody>
-            {(preview.rows ?? []).map((row) => (
-              <Tr key={row.lineNumber}>
-                <Td data-numeric className="text-fg-muted">{row.lineNumber}</Td>
-                <Td>{row.name}</Td>
-                <Td>
-                  <Badge tone={OUTCOME_TONE[row.outcome]}>{t(`import.outcome.${row.outcome}`)}</Badge>
-                </Td>
-                <Td className="text-fg-muted">{row.detail}</Td>
-              </Tr>
-            ))}
-          </tbody>
-        </Table>
-      </Card>
+      {problems.length > 0 ? (
+        <section className="rounded-lg border border-line bg-surface px-5 py-2">
+          {problems.map((row) => (
+            <div
+              key={row.lineNumber}
+              className="flex items-start gap-3 border-b border-sunken py-2.5 last:border-0"
+            >
+              <AlertTriangle
+                className="mt-0.5 size-4 shrink-0"
+                style={{ color: "var(--hue-amber-key)" }}
+                aria-hidden
+              />
+              <span data-numeric className="w-16 shrink-0 font-mono text-[12px] text-fg-muted">
+                {t("import.row", { line: row.lineNumber })}
+              </span>
+              <span className="min-w-0 flex-1 text-fg">
+                {[row.name, row.detail].filter(Boolean).join(" · ")}
+              </span>
+            </div>
+          ))}
+        </section>
+      ) : null}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={onConfirm} loading={busy} disabled={willWrite === 0}>
-          <Upload /> {t("import.commit", { count: willWrite })}
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="secondary" onClick={onBack}>
+          {t("import.back")}
         </Button>
-        <Button variant="ghost" onClick={onBack}>
-          <ArrowLeft /> {t("import.back")}
+        <Button onClick={onConfirm} loading={busy} disabled={willWrite === 0}>
+          {totals.skip + totals.fail > 0
+            ? t("import.commitSkipping", {
+                count: willWrite,
+                skipped: totals.skip + totals.fail,
+              })
+            : t("import.commit", { count: willWrite })}
         </Button>
       </div>
 
-      {willWrite === 0 ? (
-        <Banner tone="info" title={t("import.nothingToDo")} />
-      ) : null}
+      {willWrite === 0 ? <Banner tone="info" title={t("import.nothingToDo")} /> : null}
     </>
   );
 }
@@ -474,41 +499,68 @@ function Done({
   church,
   result,
   groups,
-  onAgain,
+  undoBy,
 }: {
   church: string;
   result: ImportResult;
   groups?: boolean;
-  onAgain: () => void;
+  /** R19.4. The last day this import can be taken back. */
+  undoBy: string;
 }) {
-  return (
-    <>
-      <Banner tone="success" title={t("import.done.title")}>
-        {groups
-          ? t("import.group.done", {
-              joined: result.created ?? 0,
-              created: result.updated ?? 0,
-              skipped: result.skipped ?? 0,
-              failed: result.failed ?? 0,
-            })
-          : t("import.done.body", {
-              created: result.created ?? 0,
-              updated: result.updated ?? 0,
-              skipped: result.skipped ?? 0,
-              failed: result.failed ?? 0,
-            })}
-      </Banner>
+  const [undone, setUndone] = React.useState(false);
+  const [pending, setPending] = React.useState(false);
+  const [failed, setFailed] = React.useState<string>();
+  const added = (result.created ?? 0) + (result.updated ?? 0);
 
-      <div className="flex flex-wrap items-center gap-3">
+  const undo = async () => {
+    if (!result.batchId) return;
+    setPending(true);
+    try {
+      const data = new FormData();
+      data.set("church", church);
+      data.set("batchId", result.batchId);
+      data.set("kind", groups ? "groups" : "people");
+      const outcome = await undoImport(data);
+      if (outcome.error) setFailed(outcome.error);
+      else setUndone(true);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <section className="flex flex-col items-center gap-2.5 rounded-lg border border-line bg-surface px-6 py-8 text-center">
+      <span
+        className="grid size-14 place-items-center rounded-full text-white"
+        style={{ background: "var(--hue-jade-500)" }}
+      >
+        <Check className="size-7" aria-hidden />
+      </span>
+
+      <h2 className="font-display text-[26px] leading-8 text-fg">
+        {undone ? t("import.rolledBack") : plural("import.done.heading", added)}
+      </h2>
+
+      {undone ? null : (
+        <p className="text-fg-muted">{t("import.done.undoUntil", { date: undoBy })}</p>
+      )}
+
+      {failed ? (
+        <Banner tone="danger" title={t("import.failed")}>{failed}</Banner>
+      ) : null}
+
+      <div className="mt-2 flex flex-wrap justify-center gap-2">
+        {undone || !result.batchId ? null : (
+          <Button variant="secondary" onClick={undo} loading={pending}>
+            {t("import.undo")}
+          </Button>
+        )}
         <Button asChild>
           <Link href={groups ? `/groups?church=${church}` : `/people?church=${church}`}>
-            <CheckCircle2 /> {groups ? t("groups.title") : t("people.title")}
+            {groups ? t("import.goToGroups") : t("import.goToPeople")}
           </Link>
         </Button>
-        <Button variant="ghost" onClick={onAgain}>
-          <RotateCcw /> {t("import.startOver")}
-        </Button>
       </div>
-    </>
+    </section>
   );
 }

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Undo2 } from "lucide-react";
 import {
-  Button, IconButton, Card, CardTitle, Separator, Banner, Badge,
+  Button, IconButton, Banner, Badge,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -34,47 +34,51 @@ export function ImportHistory({
   if (batches.length === 0) return null;
 
   return (
-    <Card>
-      <CardTitle>{t("import.history")}</CardTitle>
-      <Separator className="my-4" />
-      <ul className="flex flex-col">
-        {batches.map((batch, i) => (
-          <li key={batch.id}>
-            {i > 0 ? <Separator className="my-3" /> : null}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-col gap-0.5">
-                <span className="flex flex-wrap items-center gap-2 text-[length:var(--d-text-body)] text-fg">
-                  {batch.filename}
-                  {batch.status === "rolled_back" ? (
-                    <Badge tone="neutral">{t("import.rolledBack")}</Badge>
-                  ) : null}
-                </span>
-                <span className="text-caption text-fg-muted">
-                  {batch.kind === "groups"
-                    ? t("import.group.summary", {
-                        joined: batch.rowsCreated,
-                        created: batch.rowsUpdated,
-                        skipped: batch.rowsSkipped,
-                      })
-                    : t("import.summary", {
-                        created: batch.rowsCreated,
-                        updated: batch.rowsUpdated,
-                        skipped: batch.rowsSkipped,
-                      })}
-                  {batch.committedAt ? `. ${batch.committedAt}` : ""}
-                </span>
-              </div>
+    <section className="flex flex-col rounded-lg border border-line bg-surface">
+      <h2 className="px-5 pt-4.5 pb-3.5 text-[15px] font-semibold text-fg">
+        {t("import.history")}
+      </h2>
 
-              {canUndo && batch.canRollBack ? (
-                <Undo church={church} batch={batch} />
-              ) : batch.status === "committed" ? (
-                <span className="text-caption text-fg-subtle">{t("import.rollback.expired")}</span>
+      <ul className="flex flex-col">
+        {batches.map((batch) => (
+          <li
+            key={batch.id}
+            className="flex items-start gap-2 border-t border-line px-5 py-3.5"
+          >
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-fg">
+                <span className="truncate">{batch.filename}</span>
+                {batch.status === "rolled_back" ? (
+                  <Badge tone="neutral">{t("import.rolledBack")}</Badge>
+                ) : null}
+              </span>
+              <span className="text-[12px] text-fg-muted">
+                {batch.kind === "groups"
+                  ? t("import.group.summary", {
+                      joined: batch.rowsCreated,
+                      created: batch.rowsUpdated,
+                      skipped: batch.rowsSkipped,
+                    })
+                  : t("import.summary", {
+                      created: batch.rowsCreated,
+                      updated: batch.rowsUpdated,
+                      skipped: batch.rowsSkipped,
+                    })}
+              </span>
+              {batch.committedAt ? (
+                <span className="text-[12px] text-fg-subtle">{batch.committedAt}</span>
               ) : null}
             </div>
+
+            {canUndo && batch.canRollBack ? (
+              <Undo church={church} batch={batch} />
+            ) : batch.status === "committed" ? (
+              <span className="text-[12px] text-fg-subtle">{t("import.rollback.expired")}</span>
+            ) : null}
           </li>
         ))}
       </ul>
-    </Card>
+    </section>
   );
 }
 

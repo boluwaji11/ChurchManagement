@@ -227,6 +227,8 @@ function describe(row: PlannedRow): string | undefined {
 
 export interface ImportResult {
   error?: string;
+  /** R19.4. The batch, so the screen that reports it can also undo it. */
+  batchId?: string;
   created?: number;
   updated?: number;
   skipped?: number;
@@ -261,6 +263,7 @@ export async function runImport(input: {
       );
       revalidatePath("/groups");
       return {
+        batchId: result.batchId,
         created: result.joined,
         updated: result.groupsCreated,
         skipped: result.skipped,
@@ -296,7 +299,13 @@ export async function runImport(input: {
     );
 
     revalidatePath("/people");
-    return { created: result.created, updated: result.updated, skipped: result.skipped, failed: result.failed };
+    return {
+      batchId: result.batchId,
+      created: result.created,
+      updated: result.updated,
+      skipped: result.skipped,
+      failed: result.failed,
+    };
   } catch (error) {
     return { error: explain(error) };
   }
