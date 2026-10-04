@@ -14,7 +14,7 @@ import { FormActions } from "@/components/form-actions";
 import { longDate } from "@/lib/dates";
 import { AddressFields } from "@/components/address-fields";
 import { oneLineAddress, type AddressValues } from "@/lib/address";
-import { maritalOptions, schoolOptions, UNSAID } from "@/lib/person-input";
+import { maritalOptions, schoolOptions } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
 
 /** The date picker's words, said once rather than at every call. */
@@ -31,6 +31,10 @@ const DATE_LABELS = () => ({
 /**
  * A field somebody may leave unanswered.
  *
+ * It opens blank rather than offering "not said" as an answer: an unanswered
+ * question is an empty box, and a list that leads with a non-answer makes the
+ * reader skip a line before they reach anything true.
+ *
  * The product's own Select rather than a native one, so it is drawn by Hearth
  * on every platform instead of by whatever the operating system feels like.
  */
@@ -46,10 +50,9 @@ function Choice({
   label: string;
 }) {
   return (
-    <Select name={name} defaultValue={value ?? UNSAID}>
-      <SelectTrigger aria-label={label}><SelectValue /></SelectTrigger>
+    <Select name={name} defaultValue={value ?? undefined}>
+      <SelectTrigger aria-label={label}><SelectValue placeholder="" /></SelectTrigger>
       <SelectContent>
-        <SelectItem value={UNSAID}>{t("person.unsaid")}</SelectItem>
         {options.map((one) => (
           <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
         ))}
@@ -261,7 +264,6 @@ export function ProfileForm({
           <FormActions
             form="profile-form"
             label={t("settings.profile.save")}
-            onClose={() => setEditing(false)}
           />
         ) : (
           <IconButton

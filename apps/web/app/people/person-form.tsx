@@ -14,7 +14,7 @@ import type { HouseholdOption } from "@hearth/db";
 import {
   parsePerson, personErrors, hasErrors,
   lifecycleOptions, householdRoleOptions, HOUSEHOLD_NEW, HOUSEHOLD_NONE,
-  maritalOptions, schoolOptions, UNSAID,
+  maritalOptions, schoolOptions,
   type PersonErrors,
 } from "@/lib/person-input";
 import { AddressFields } from "@/components/address-fields";
@@ -137,7 +137,8 @@ function FormCard({
  * A field somebody may leave unanswered.
  *
  * A list rather than pills, because there are sixteen school years and a row of
- * pills that long is a wall. "Not said" is a real answer and sits first.
+ * pills that long is a wall. It opens blank: an unanswered question is an empty
+ * box rather than a row reading "not said".
  */
 function Picker({
   name,
@@ -151,10 +152,9 @@ function Picker({
   label: string;
 }) {
   return (
-    <Select name={name} defaultValue={value ?? UNSAID}>
-      <SelectTrigger aria-label={label}><SelectValue /></SelectTrigger>
+    <Select name={name} defaultValue={value ?? undefined}>
+      <SelectTrigger aria-label={label}><SelectValue placeholder="" /></SelectTrigger>
       <SelectContent>
-        <SelectItem value={UNSAID}>{t("person.unsaid")}</SelectItem>
         {options.map((one) => (
           <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
         ))}

@@ -12,11 +12,8 @@ export interface ProfileResult {
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
-/** A picker's value, where its "they have not said" answer means null. */
-const pick = (data: FormData, name: string): string | null => {
-  const value = field(data, name);
-  return value && value !== "__unsaid" ? value : null;
-};
+/** A picker nobody answered, which comes back as an empty string. */
+const pick = (data: FormData, name: string): string | null => field(data, name) || null;
 
 /**
  * R17.1. Saving your own details.

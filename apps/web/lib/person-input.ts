@@ -51,11 +51,8 @@ export type PersonErrors = Record<string, string | undefined>;
 
 const str = (data: FormData, key: string): string => String(data.get(key) ?? "").trim();
 
-/** A picker's value, where its "they have not said" answer means null. */
-const pick = (data: FormData, key: string): string | null => {
-  const value = str(data, key);
-  return value && value !== UNSAID ? value : null;
-};
+/** A picker nobody answered, which comes back as an empty string. */
+const pick = (data: FormData, key: string): string | null => str(data, key) || null;
 
 /** Reads the form into the shape the repository takes. Never throws. */
 export function parsePerson(data: FormData): PersonInput & { householdChoice: string } {
@@ -180,6 +177,3 @@ export const SCHOOL_VALUES = [
 
 export const schoolOptions = () =>
   SCHOOL_VALUES.map((value) => ({ value, label: t(`school.${value}`) }));
-
-/** The value a picker uses to mean "they have not said". */
-export const UNSAID = "__unsaid";

@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
 import {
-  Button, Dialog, DialogContent, DialogFooter, IconButton,
+  Button, Dialog, DialogContent, DialogFooter,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 
@@ -22,44 +21,20 @@ import { t } from "@hearth/i18n";
 export function FormActions({
   form,
   label,
-  onClose,
-  closeLabel,
 }: {
   /** The id of the form this commits. */
   form: string;
   label: string;
-  /** Given where this form is a panel the screen can close in place. */
-  onClose?: () => void;
-  closeLabel?: string;
 }) {
   const dirty = useDirty(form);
-  const [closing, setClosing] = React.useState(false);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {onClose ? (
-        <IconButton
-          label={closeLabel ?? t("common.close")}
-          variant="ghost"
-          onClick={() => (dirty ? setClosing(true) : onClose())}
-        >
-          <X />
-        </IconButton>
-      ) : null}
-
       <Button type="submit" form={form} disabled={!dirty}>
         {label}
       </Button>
 
-      <LeaveGuard
-        dirty={dirty}
-        closing={closing}
-        onKeepEditing={() => setClosing(false)}
-        onDiscard={() => {
-          setClosing(false);
-          onClose?.();
-        }}
-      />
+      <LeaveGuard dirty={dirty} />
     </div>
   );
 }
@@ -124,18 +99,7 @@ export function useDirty(form: string): boolean {
  * alone: it cannot be styled, it cannot be worded, and showing it alongside
  * this one asks the same question twice in two different voices.
  */
-export function LeaveGuard({
-  dirty,
-  closing,
-  onKeepEditing,
-  onDiscard,
-}: {
-  dirty: boolean;
-  /** The screen is trying to close this form in place. */
-  closing?: boolean;
-  onKeepEditing?: () => void;
-  onDiscard?: () => void;
-}) {
+export function LeaveGuard({ dirty }: { dirty: boolean }) {
   const [leaving, setLeaving] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -164,20 +128,16 @@ export function LeaveGuard({
     return () => document.removeEventListener("click", catchLink, true);
   }, [dirty]);
 
-  const open = leaving !== null || Boolean(closing);
-
-  const stay = () => {
-    setLeaving(null);
-    onKeepEditing?.();
-  };
-
   return (
-    <Dialog open={open} onOpenChange={(next) => (next ? null : stay())}>
+    <Dialog
+      open={leaving !== null}
+      onOpenChange={(next) => (next ? null : setLeaving(null))}
+    >
       <DialogContent alert title={t("unsaved.title")} closeLabel={t("common.close")}>
         <p className="text-[length:var(--d-text-body)] text-fg">{t("unsaved.body")}</p>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={stay}>
+          <Button type="button" variant="ghost" onClick={() => setLeaving(null)}>
             {t("unsaved.stay")}
           </Button>
           <Button
@@ -186,14 +146,10 @@ export function LeaveGuard({
             onClick={() => {
               const to = leaving;
               setLeaving(null);
-              if (to) {
-                window.location.href = to;
-                return;
-              }
-              onDiscard?.();
+              if (to) window.location.href = to;
             }}
           >
-            {leaving !== null ? t("unsaved.leave") : t("unsaved.discard")}
+            {t("unsaved.leave")}
           </Button>
         </DialogFooter>
       </DialogContent>
