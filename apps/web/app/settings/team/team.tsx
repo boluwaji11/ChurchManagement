@@ -426,15 +426,49 @@ function hueOf(role: ChurchRoleOption): string {
   return hues[sum % hues.length]!;
 }
 
-/** What this role reaches, written out from the permissions it holds. */
-function summarise(role: ChurchRoleOption): string {
+/**
+ * R1.6. The areas a permission belongs to, in the order a summary reads them.
+ *
+ * A role is summarised by what it touches rather than by its eighteen
+ * permissions listed out, because a wall of names is a wall nobody reads and
+ * the question being asked is "what does this role get into".
+ */
+const AREAS: Array<[string, string[]]> = [
+  ["area.people", ["people.edit", "people.archive"]],
+  ["area.notes", ["people.notes.confidential"]],
+  ["area.giving", ["giving.amounts"]],
+  ["area.settings", ["church.manage", "church.fields", "church.tags"]],
+  ["area.checkin", ["checkin.rooms", "checkin.stations", "checkin.run", "checkin.supervise"]],
+  ["area.safeguarding", ["checkin.incidents", "checkin.checks"]],
+  ["area.followups", ["followups.manage"]],
+  ["area.groups", ["groups.manage"]],
+  ["area.services", ["services.manage"]],
+  ["area.teams", ["teams.manage", "teams.lead"]],
+];
+
+/** What this role reaches, in one line, from the permissions it holds. */
+function summarise(role: ChurchRoleOption, everything: number): string {
   if (role.permissions.length === 0) return t("roles.nothing");
-  return role.permissions
-    .map((permission) => t(`permission.${permission}` as never))
-    .join(" · ");
+  if (role.permissions.length === everything) return t("roles.everything");
+
+  const held = AREAS.filter(([, permissions]) =>
+    permissions.some((one) => role.permissions.includes(one)),
+  ).map(([key]) => t(key as never));
+
+  if (held.length === 0) return t("roles.nothing");
+  if (held.length === 1) return `${sentence(held[0]!)}.`;
+
+  const last = held.pop()!;
+  return `${sentence(t("roles.and", { list: held.join(", "), last }))}.`;
 }
 
+/** The summary opens a line, so it opens with a capital. */
+const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
 function RoleGuide({ roles }: { roles: ChurchRoleOption[] }) {
+  // The widest set any role holds is the whole catalogue, which the Owner has.
+  const everything = Math.max(...roles.map((role) => role.permissions.length), 0);
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -465,7 +499,7 @@ function RoleGuide({ roles }: { roles: ChurchRoleOption[] }) {
               />
               <span className="block font-semibold text-fg">{titleOf(role)}</span>
               <span className="block text-[13px] leading-[18px] text-fg-muted">
-                {summarise(role)}
+                {summarise(role, everything)}
               </span>
             </li>
           ))}

@@ -604,6 +604,21 @@ export const en = {
   /* R1.4. What each built-in role can see, as the team screen lists them. */
   "roles.title": "What each role can see",
   "roles.nothing": "Their own record, and whatever the directory publishes.",
+  "roles.everything": "Everything.",
+  "roles.and": "{list} and {last}",
+
+  /* R1.6. The areas a role's permissions fall into, for the one line that
+     summarises it. A list of eighteen permissions is a list nobody reads. */
+  "area.people": "people",
+  "area.notes": "confidential notes",
+  "area.giving": "giving",
+  "area.settings": "church settings",
+  "area.checkin": "check-in",
+  "area.safeguarding": "safeguarding",
+  "area.followups": "follow-ups",
+  "area.groups": "groups",
+  "area.services": "services",
+  "area.teams": "teams",
   "settings.tab.roles": "Roles",
   "settings.lede.roles": "Every permission against every role.",
   "roles.permission": "Permission",
