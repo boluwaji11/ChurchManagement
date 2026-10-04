@@ -99,6 +99,14 @@ export function ServiceBoard({
 
           {past.length === 0 ? (
             <p className="text-[13px] text-fg-muted">{t("services.noPast")}</p>
+          ) : view === "list" ? (
+            <ul className="overflow-hidden rounded-lg border border-line bg-sunken">
+              {past.map((one) => (
+                <li key={one.id}>
+                  <Row service={one} quiet />
+                </li>
+              ))}
+            </ul>
           ) : (
             /* A line down the left with a mark at each one, newest at the top,
                so the column reads as a run of weeks rather than a stack. */
@@ -118,6 +126,7 @@ export function ServiceBoard({
               ))}
             </ol>
           )}
+
         </aside>
       </div>
     </div>
@@ -187,13 +196,25 @@ function Card({
 }
 
 /** The same service as one line, for somebody reading a run of weeks. */
-function Row({ service, next }: { service: ServiceCard; next?: boolean }) {
+function Row({
+  service,
+  next,
+  quiet,
+}: {
+  service: ServiceCard;
+  next?: boolean;
+  quiet?: boolean;
+}) {
   return (
     <Link
       href={service.href}
-      className="flex flex-wrap items-center gap-3 border-b border-sunken px-4 py-3 last:border-0 hover:bg-sunken"
+      className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-line"
     >
-      <span className="w-[160px] shrink-0 text-[13px] font-medium text-fg-subtle">
+      <span
+        className={`shrink-0 text-[13px] font-medium text-fg-subtle ${
+          quiet ? "" : "w-[160px]"
+        }`}
+      >
         {service.when}
       </span>
       <span className="min-w-0 flex-1 font-medium text-fg">{service.name}</span>
@@ -202,8 +223,10 @@ function Row({ service, next }: { service: ServiceCard; next?: boolean }) {
           {t("services.next")}
         </span>
       ) : null}
-      <span className="flex w-[160px] shrink-0 items-center gap-2 text-[13px]">
-        <PlanLine service={service} />
+      <span
+        className={`flex shrink-0 items-center gap-2 text-[13px] ${quiet ? "" : "w-[160px]"}`}
+      >
+        <PlanLine service={service} quiet={quiet} />
         <ChevronRight className="size-4 text-fg-subtle" aria-hidden />
       </span>
     </Link>
