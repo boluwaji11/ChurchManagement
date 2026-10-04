@@ -21,11 +21,14 @@ import { FlameMark } from "../brand";
 export function TopBar({
   title,
   action,
+  bell,
   children,
 }: {
   title: string;
   /** The one filled button for this page. */
   action?: React.ReactNode;
+  /** R24.6. The notification bell, which every screen carries. */
+  bell?: React.ReactNode;
   /** Anything that sits between the title and the action. */
   children?: React.ReactNode;
 }) {
@@ -38,6 +41,7 @@ export function TopBar({
         {title}
       </h1>
       {children}
+      {bell}
       {/* The design's top-bar action is 36px rather than the 40px a button is
           everywhere else, so the one place it appears sets it here instead of
           thirty pages passing a height. */}

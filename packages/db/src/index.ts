@@ -132,3 +132,4 @@ export { zipArchive } from "./export/zip";
 export { toCsv, CSV_BOM } from "./export/csv";
 export { withAuditTriggersOff, deleteTenants, deleteTenantsLike } from "./maintenance";
 export { loadEnv } from "./env";
+export * from "./repo/notifications";

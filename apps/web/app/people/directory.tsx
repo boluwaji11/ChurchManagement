@@ -327,9 +327,21 @@ export function Directory({
             </thead>
             <tbody>
               {rows.map((p) => (
-                <tr key={p.id} className="relative hover:bg-canvas" data-selected={selected.includes(p.id) || undefined}>
+                /* The whole row opens the person, which is what the design
+                   does and what a two hundred row list needs. The name stays a
+                   real link underneath it, so the keyboard, the middle button
+                   and "copy link address" all still work. */
+                <tr
+                  key={p.id}
+                  onClick={() => router.push(`/people/${p.id}?church=${church}`)}
+                  className="cursor-pointer hover:bg-canvas"
+                  data-selected={selected.includes(p.id) || undefined}
+                >
                   {canEdit ? (
-                    <td className="border-b border-sunken px-4 py-2.5">
+                    <td
+                      className="border-b border-sunken px-4 py-2.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Checkbox
                         checked={selected.includes(p.id)}
                         onCheckedChange={() => toggle(p.id)}
@@ -340,7 +352,7 @@ export function Directory({
                   <td className="border-b border-sunken px-4 py-2.5">
                     <Link
                       href={`/people/${p.id}?church=${church}`}
-                      className="flex items-center gap-2.5 font-medium text-fg hover:underline"
+                      className="flex items-center gap-2.5 font-medium text-fg"
                     >
                       <Avatar name={p.displayName} id={p.id} size="sm" className="size-7 text-[11px] font-semibold" />
                       <span className="truncate">{p.displayName}</span>

@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
+import { notifyRoles } from "./notifications";
 import {
   groups, groupTypes, groupMemberships, groupJoinRequests, groupMeetings,
 } from "../schema/groups";
@@ -260,6 +261,17 @@ export async function requestToJoin(
       eq(groupJoinRequests.status, "pending"),
     )!,
   );
+
+  // R9.5, R24.6. A leader decides who is in their group, so a leader has to
+  // know the question was asked.
+  if (row) {
+    await notifyRoles(db, actor.tenantId, ["owner", "admin", "group_leader"], {
+      kind: "join_request",
+      messageKey: "bell.joinRequest",
+      params: { name: row.personName, group: row.groupName },
+      href: "/groups",
+    });
+  }
   return row!;
 }
 

@@ -2,6 +2,7 @@ import * as React from "react";
 import { cookies } from "next/headers";
 import {
   withTenant, countPeople, countOpenFollowUps, countGroups,
+  countUnread, listNotifications, NOTIFICATION_LOOK,
   canEditPeople, canFollowUp, canReadIncidents,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -9,6 +10,8 @@ import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
 import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";
 import { TopBar } from "./shell/top-bar";
+import { NotificationBell } from "./shell/bell";
+import { when } from "@/lib/when";
 import { navFor } from "./shell/nav";
 import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
 import type { Session } from "@/lib/session";
@@ -63,6 +66,9 @@ export async function AppShell({
         : null,
       followups: canFollowUp(session.role) ? await countOpenFollowUps(tx) : null,
       groups: await countGroups(tx),
+      // R24.6. The bell: its number, and the twenty lines behind it.
+      unread: await countUnread(tx, session.userId),
+      notifications: await listNotifications(tx, session.userId),
     }),
   );
 
@@ -94,7 +100,26 @@ export async function AppShell({
         <DemoBanner tenantId={session.tenantId} />
         <ProvisionalBanner tenantId={session.tenantId} role={session.role} />
 
-        <TopBar title={title} action={action} />
+        <TopBar
+          title={title}
+          action={action}
+          bell={
+            <NotificationBell
+              church={session.tenantSlug}
+              unread={counts.unread}
+              items={counts.notifications.map((one) => ({
+                id: one.id,
+                kind: NOTIFICATION_LOOK[one.kind].icon,
+                hue: NOTIFICATION_LOOK[one.kind].hue,
+                messageKey: one.messageKey,
+                params: one.params,
+                href: one.href,
+                unread: one.unread,
+                when: when(one.createdAt),
+              }))}
+            />
+          }
+        />
 
         {/* 28px above, 24px at the sides, 96px below, and it stops growing at
             1280px. Left-aligned rather than centred, which is what the design

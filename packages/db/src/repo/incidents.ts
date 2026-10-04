@@ -1,5 +1,6 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
+import { notifyRoles } from "./notifications";
 import { incidentReports, checkinRooms } from "../schema/checkin";
 import { people } from "../schema/people";
 import { serviceOccurrences } from "../schema/gatherings";
@@ -124,6 +125,16 @@ export async function fileIncident(
   // Read back through the same path a reader uses, so the writer never sees a
   // shape the reader does not.
   const [filed] = await incidentsWhere(db, eq(incidentReports.id, row!.id));
+
+  // R8.13, R24.6. Safeguarding is the one thing nobody should have to go
+  // looking for, so the roles that handle it are told as it is written.
+  await notifyRoles(db, actor.tenantId, ["owner", "admin", "pastoral"], {
+    kind: "incident",
+    messageKey: "bell.incident",
+    params: { room: filed?.roomName ?? "" },
+    href: "/incidents",
+  });
+
   return filed!;
 }
 
