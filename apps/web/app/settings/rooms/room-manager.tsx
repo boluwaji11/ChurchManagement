@@ -106,7 +106,9 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                   style={{ background: `var(--hue-${room.hue}-500)` }}
                 />
                 <span className="min-w-0 flex-1 truncate font-semibold text-fg">{room.name}</span>
-                <span className="shrink-0 text-[12px] text-fg-subtle">{ageLine(room)}</span>
+                {room.forChildren ? (
+                  <span className="shrink-0 text-[12px] text-fg-subtle">{ageLine(room)}</span>
+                ) : null}
               </div>
 
               {/* R8.15. Capacity is the number a church changes most, and it
@@ -308,8 +310,8 @@ export function RoomSheet({
             </div>
           </div>
 
-          {/* R8.14. The age bands, the capacity and the volunteer ratio are
-              what a children's room needs. A hall is a name and a colour. */}
+          {/* R8.14. Every room holds a number of people. The age bands and the
+              volunteer ratio are what a children's room adds to that. */}
           {forChildren ? (
             <>
           <div className="flex flex-wrap gap-4">
@@ -329,17 +331,7 @@ export function RoomSheet({
             />
           </div>
 
-          <div className="flex flex-wrap gap-4">
-            <Field label={t("rooms.capacity")} className="flex-1">
-              <Input
-                name="capacity"
-                type="number"
-                min={1}
-                inputMode="numeric"
-                defaultValue={room?.capacity ?? ""}
-              />
-            </Field>
-            <Field label={t("rooms.ratio")} className="flex-1">
+            <Field label={t("rooms.ratio")}>
               <Input
                 name="ratio"
                 type="number"
@@ -348,9 +340,18 @@ export function RoomSheet({
                 defaultValue={room?.ratio ?? ""}
               />
             </Field>
-          </div>
             </>
           ) : null}
+
+          <Field label={t("rooms.capacity")}>
+            <Input
+              name="capacity"
+              type="number"
+              min={1}
+              inputMode="numeric"
+              defaultValue={room?.capacity ?? ""}
+            />
+          </Field>
         </form>
       </SheetContent>
     </Sheet>
