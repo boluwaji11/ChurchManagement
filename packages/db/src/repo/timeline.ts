@@ -19,7 +19,6 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
 import { attendanceRecords, serviceOccurrences } from "../schema/gatherings";
-import { checkinVisits, checkinRooms } from "../schema/checkin";
 import { groupMemberships, groups, groupTypes } from "../schema/groups";
 import { milestones } from "../schema/people";
 import { people } from "../schema/people";
@@ -122,29 +121,14 @@ export async function personTimeline(
     out.push({ id: `attended:${row.id}`, kind: "attended", on: row.on, subject: row.name });
   }
 
-  // R8.x. A child in a class, which is a different fact from being counted
-  // present and is the one a parent asks about.
-  const visits = await db
-    .select({
-      id: checkinVisits.id,
-      at: checkinVisits.checkedInAt,
-      room: checkinRooms.name,
-      hue: checkinRooms.hue,
-    })
-    .from(checkinVisits)
-    .leftJoin(checkinRooms, eq(checkinRooms.id, checkinVisits.roomId))
-    .where(eq(checkinVisits.personId, personId))
-    .orderBy(desc(checkinVisits.checkedInAt))
-    .limit(limit);
-  for (const row of visits) {
-    out.push({
-      id: `checkin:${row.id}`,
-      kind: "checkedIn",
-      on: day(row.at)!,
-      subject: row.room,
-      hue: row.hue,
-    });
-  }
+  /*
+   * R8.x. Check-ins are deliberately absent.
+   *
+   * A child checked into a room twice a weekend puts a hundred identical lines
+   * a year into the one place a pastor looks before a visit, and buries the
+   * four that matter. Attendance is already here as the service they were at,
+   * and the check-in record itself lives on the check-in screens.
+   */
 
   // R9.4. Joining a group, and leaving one. Two entries from one row, because
   // they happened on different days and both belong in the order.

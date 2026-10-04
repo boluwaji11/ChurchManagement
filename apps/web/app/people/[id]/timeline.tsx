@@ -32,9 +32,9 @@ function headline(entry: TimelineEntry): string {
     case "milestone":
       return t(`milestone.kind.${entry.code}` as never);
     case "note":
-      return entry.code === "confidential"
-        ? t("timeline.noteConfidential")
-        : t("timeline.note");
+      // The note's own words are the entry. A line reading "Note" above them
+      // says nothing the words underneath did not already say.
+      return entry.detail ?? t("timeline.note");
     case "enteredPipeline":
       return t("timeline.enteredPipeline", { name });
     case "leftPipeline":
@@ -92,12 +92,14 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
             </span>
 
             <div className="min-w-0">
-              <div className="font-medium text-fg">{headline(entry)}</div>
-              {entry.detail ? (
-                <div className="flex items-start gap-1.5 text-[13px] text-fg-muted">
-                  {confidential ? <Lock className="mt-0.5 size-3 shrink-0" aria-hidden /> : null}
-                  <span className="line-clamp-2">{entry.detail}</span>
-                </div>
+              <div className="flex items-start gap-1.5">
+                {confidential ? (
+                  <Lock className="mt-1 size-3 shrink-0 text-fg-muted" aria-hidden />
+                ) : null}
+                <span className="font-medium text-fg">{headline(entry)}</span>
+              </div>
+              {entry.kind !== "note" && entry.detail ? (
+                <div className="line-clamp-2 text-[13px] text-fg-muted">{entry.detail}</div>
               ) : null}
             </div>
           </li>
