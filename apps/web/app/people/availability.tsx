@@ -154,11 +154,11 @@ export function Availability({
                 <Input name="reason" autoComplete="off" />
               </Field>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+            <div className="flex flex-wrap items-center justify-end gap-3">
               <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
                 {t("action.cancel")}
               </Button>
+              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
             </div>
           </form>
         ) : null}

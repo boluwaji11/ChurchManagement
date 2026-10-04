@@ -136,10 +136,10 @@ export function TeamDialog({
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={saving}>{t("action.save")}</Button>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
+            <Button type="submit" disabled={saving}>{t("action.save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

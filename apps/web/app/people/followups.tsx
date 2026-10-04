@@ -324,8 +324,9 @@ function StartDialog({
             </Select>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+              <Button
               disabled={pending || saving || !pipelineId}
               onClick={() => {
                 const data = new FormData();
@@ -345,7 +346,6 @@ function StartDialog({
             >
               {t("followups.startAction")}
             </Button>
-            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
           </div>
         </div>
       </DialogContent>
@@ -452,8 +452,9 @@ function DoneDialog({
           <Field label={t("followups.outcome")}>
             <Input value={outcome} onChange={(e) => setOutcome(e.target.value)} autoFocus />
           </Field>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+              <Button
               disabled={pending}
               onClick={() => {
                 setOpen(false);
@@ -463,7 +464,6 @@ function DoneDialog({
             >
               {t("followups.doneAction")}
             </Button>
-            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
           </div>
         </div>
       </DialogContent>
@@ -565,11 +565,11 @@ function TaskDialog({
           <Field label={t("followups.due")}>
             <DateField name="dueOn" />
           </Field>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
+              <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
           </div>
         </form>
       </DialogContent>

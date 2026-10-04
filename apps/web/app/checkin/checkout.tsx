@@ -206,12 +206,12 @@ export function Checkout({
                 />
               </Field>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Button disabled={pending} onClick={() => go(null)}>
-                  <LogOut /> {t("checkout.release")}
-                </Button>
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <Button variant="ghost" onClick={() => setOpen(false)}>
                   {t("action.cancel")}
+                </Button>
+              <Button disabled={pending} onClick={() => go(null)}>
+                  <LogOut /> {t("checkout.release")}
                 </Button>
               </div>
             </>

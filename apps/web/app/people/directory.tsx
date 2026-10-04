@@ -825,12 +825,12 @@ function BulkMessage({ count }: { count: number }) {
         </div>
 
         <DialogFooter>
-          <Button disabled>
-            {channel === "email" ? t("message.sendEmail") : t("message.sendText")}
-          </Button>
           <DialogClose asChild>
             <Button variant="ghost" data-dismiss>{t("action.cancel")}</Button>
           </DialogClose>
+          <Button disabled>
+            {channel === "email" ? t("message.sendEmail") : t("message.sendText")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -952,11 +952,11 @@ function ListBar({
             <Field label={t("lists.name")} required>
               <Input name="name" defaultValue={list.name} autoComplete="off" autoFocus />
             </Field>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" loading={pending}>{t("action.save")}</Button>
+            <div className="flex flex-wrap items-center justify-end gap-3">
               <Button type="button" variant="ghost" onClick={() => setRenaming(false)}>
                 {t("action.cancel")}
               </Button>
+              <Button type="submit" loading={pending}>{t("action.save")}</Button>
             </div>
           </form>
         </DialogContent>

@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Pencil, Trash2, Merge, Check } from "lucide-react";
+import { Trash2, Merge, Check } from "lucide-react";
 import {
   HUES,
-  Button, IconButton, Input, Field, Card, Separator, Banner, HueTag, HueDot,
+  Button, Input, Field, Separator, Banner, HueDot,
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { addTag, saveTag, removeTag, foldTag } from "../../tags/actions";
@@ -20,6 +19,13 @@ export interface TagItem {
 }
 
 
+/**
+ * R2.x. Every tag the church uses, as the design draws them.
+ *
+ * Chips in their own colours rather than rows, because a tag is a thing
+ * somebody recognises by its colour on a person's record, and a list of grey
+ * rows is a list of words.
+ */
 export function TagManager({
   church,
   tags,
@@ -32,30 +38,35 @@ export function TagManager({
   canCreate: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-8">
-      {canCreate ? <NewTag church={church} /> : null}
+    <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
+      {tags.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <span
+              key={tag.id}
+              className="flex h-9 items-center gap-2 rounded-full pr-1.5 pl-3.5 text-label font-medium"
+              style={{
+                background: `var(--hue-${tag.hue}-tint)`,
+                color: `var(--hue-${tag.hue}-key)`,
+              }}
+            >
+              {canManage ? (
+                <EditTag
+                  church={church}
+                  tag={tag}
+                  others={tags.filter((one) => one.id !== tag.id)}
+                />
+              ) : (
+                tag.name
+              )}
+              <span className="tabular-nums opacity-75">{tag.people}</span>
+            </span>
+          ))}
+        </div>
+      ) : null}
 
-      {tags.length === 0 ? null : (
-        <Card>
-          <ul className="flex flex-col">
-            {tags.map((tag, i) => (
-              <li key={tag.id}>
-                {i > 0 ? <Separator className="my-3" /> : null}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <HueTag hue={tag.hue as Hue}>{tag.name}</HueTag>
-                    <span className="text-caption text-fg-muted">
-                      {plural("tags.peopleCount", tag.people)}
-                    </span>
-                  </div>
-                  {canManage ? <EditTag church={church} tag={tag} others={tags.filter((t) => t.id !== tag.id)} /> : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-    </div>
+      {canCreate ? <NewTag church={church} /> : null}
+    </section>
   );
 }
 
@@ -77,14 +88,19 @@ function NewTag({ church }: { church: string }) {
   };
 
   return (
-    <form ref={formRef} action={action} noValidate className="flex flex-wrap items-end gap-3">
+    <form ref={formRef} action={action} noValidate className="flex flex-col gap-1.5">
       <input type="hidden" name="church" value={church} />
-      <Field label={t("tags.new")} error={error} className="min-w-64 flex-1" required>
-        <Input name="name" autoComplete="off" placeholder={t("tags.newPlaceholder")} />
-      </Field>
-      <Button type="submit" loading={pending}>
-        <Plus /> {t("action.add")}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Input
+          name="name"
+          autoComplete="off"
+          placeholder={t("tags.new")}
+          aria-label={t("tags.new")}
+          className="min-w-50 flex-1"
+        />
+        <Button type="submit" loading={pending}>{t("tags.add")}</Button>
+      </div>
+      {error ? <p role="alert" className="text-caption text-danger-text">{error}</p> : null}
     </form>
   );
 }
@@ -130,12 +146,13 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
   return (
     <Dialog open={open} onOpenChange={reset}>
       <DialogTrigger asChild>
-        <IconButton
-          label={t("action.edit")}
-          variant="ghost"
+        <button
+          type="button"
+          aria-label={t("tags.editOne", { name: tag.name })}
+          className="cursor-pointer text-inherit underline-offset-4 hover:underline"
         >
-          <Pencil />
-        </IconButton>
+          {tag.name}
+        </button>
       </DialogTrigger>
 
       <DialogContent title={tag.name} closeLabel={t("common.close")}>

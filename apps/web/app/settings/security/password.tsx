@@ -69,11 +69,7 @@ export function Password() {
           </Field>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" loading={form.pending}>
-            <KeyRound /> {t("password.change")}
-          </Button>
-
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <Button
             type="button"
             variant="ghost"
@@ -87,6 +83,9 @@ export function Password() {
             }
           >
             <Mail /> {t("password.sendLink")}
+          </Button>
+              <Button type="submit" loading={form.pending}>
+            <KeyRound /> {t("password.change")}
           </Button>
         </div>
       </form>

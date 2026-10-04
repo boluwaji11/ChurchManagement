@@ -75,20 +75,20 @@ export function Respond({
               autoFocus
             />
           </Field>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={pending}>{t("respond.send")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setDeclining(false)}>
               {t("action.cancel")}
             </Button>
+              <Button type="submit" disabled={pending}>{t("respond.send")}</Button>
           </div>
         </form>
       ) : (
-        <div className="flex flex-wrap items-center gap-3">
-          <Button disabled={pending} onClick={() => send(true, null)}>
-            <Check /> {t("respond.yes")}
-          </Button>
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <Button variant="secondary" disabled={pending} onClick={() => setDeclining(true)}>
             <X /> {t("respond.no")}
+          </Button>
+              <Button disabled={pending} onClick={() => send(true, null)}>
+            <Check /> {t("respond.yes")}
           </Button>
         </div>
       )}

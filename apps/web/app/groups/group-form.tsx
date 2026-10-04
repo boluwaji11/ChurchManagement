@@ -239,11 +239,11 @@ export function GroupDialog({
             <span className="text-[length:var(--d-text-body)] text-fg">{t("groups.listed")}</span>
           </label>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
+              <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
           </div>
         </form>
       </DialogContent>

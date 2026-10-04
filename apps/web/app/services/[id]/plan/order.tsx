@@ -459,11 +459,11 @@ function ItemDialog({
             />
           </Field>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
+              <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
           </div>
         </div>
       </DialogContent>
@@ -519,11 +519,11 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
             <Textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} autoFocus />
           </Field>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
+              <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
           </div>
         </div>
       </DialogContent>
@@ -869,8 +869,11 @@ function TemplateDialog({
             />
           </Field>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+              <Button
               type="button"
               disabled={pending}
               onClick={() =>
@@ -881,9 +884,6 @@ function TemplateDialog({
               }
             >
               {t("action.save")}
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
             </Button>
           </div>
 

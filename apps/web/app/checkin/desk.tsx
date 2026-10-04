@@ -319,11 +319,11 @@ export function Desk({
             })}
           </ul>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => settle(true)}>{t("checkin.printed")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button variant="ghost" disabled={pending} onClick={() => settle(false)}>
               {t("checkin.notPrinted")}
             </Button>
+              <Button onClick={() => settle(true)}>{t("checkin.printed")}</Button>
           </div>
         </Card>
       ) : household ? (

@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Pencil, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
+import { Pencil, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
 import {
-  Button, IconButton, Input, Textarea, Field, Card, Separator, Banner, Badge,
+  Button, IconButton, Input, Textarea, Field, Separator, Banner,
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -35,6 +35,13 @@ const isKnownType = (type: string): type is FieldTypeValue =>
 const typeLabel = (type: string): string => (isKnownType(type) ? t(`fieldType.${type}`) : type);
 const hasChoices = (type: string) => type === "select" || type === "multi_select";
 
+/**
+ * R1.10. Every extra detail this church keeps on a person.
+ *
+ * One card, a row per field with what it is called and what shape its answer
+ * takes, and the row that adds another underneath. The design's shape, and the
+ * one a church reads down in a second.
+ */
 export function FieldManager({
   church,
   fields,
@@ -45,31 +52,29 @@ export function FieldManager({
   canManage: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-8">
-      {canManage ? <NewField church={church} /> : null}
+    <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
+      {fields.map((f) => (
+        <div
+          key={f.id}
+          className="flex min-h-14 flex-wrap items-center gap-3 border-b border-sunken py-2"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="font-medium text-fg">{f.label}</span>
+            {f.options ? (
+              <span className="block text-[12px] text-fg-subtle">{f.options.join(", ")}</span>
+            ) : null}
+          </span>
 
-      {fields.length === 0 ? null : (
-        <Card>
-          <ul className="flex flex-col">
-            {fields.map((f, i) => (
-              <li key={f.id}>
-                {i > 0 ? <Separator className="my-3" /> : null}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="text-[length:var(--d-text-body)] text-fg">{f.label}</span>
-                    <Badge tone="neutral">{typeLabel(f.type)}</Badge>
-                    {f.options ? (
-                      <span className="text-caption text-fg-muted">{f.options.join(", ")}</span>
-                    ) : null}
-                  </div>
-                  {canManage ? <EditField church={church} field={f} /> : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-    </div>
+          <span className="flex h-6.5 items-center rounded-full bg-sunken px-2.5 text-[12px] font-medium text-fg-muted">
+            {typeLabel(f.type)}
+          </span>
+
+          {canManage ? <EditField church={church} field={f} /> : null}
+        </div>
+      ))}
+
+      {canManage ? <NewField church={church} /> : null}
+    </section>
   );
 }
 
@@ -95,36 +100,35 @@ function NewField({ church }: { church: string }) {
   };
 
   return (
-    <Card>
-      <form ref={formRef} action={action} noValidate className="flex flex-col gap-4">
-        <input type="hidden" name="church" value={church} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("fields.new")} error={error} required>
-            <Input name="label" autoComplete="off" placeholder={t("fields.newPlaceholder")} />
-          </Field>
-          <Field label={t("fields.type")}>
-            <Select name="type" value={type} onValueChange={setType}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>{typeLabel(type.value)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        </div>
+    <form ref={formRef} action={action} noValidate className="flex flex-col gap-2 py-3.5">
+      <input type="hidden" name="church" value={church} />
 
-        {hasChoices(type) ? <Choices /> : null}
+      <div className="flex flex-wrap gap-2">
+        <Input
+          name="label"
+          autoComplete="off"
+          placeholder={t("fields.new")}
+          aria-label={t("fields.new")}
+          className="min-w-45 flex-1"
+        />
 
-        <div>
-          <Button type="submit" loading={pending}>
-            <Plus /> {t("action.add")}
-          </Button>
-        </div>
-      </form>
-    </Card>
+        <Select name="type" value={type} onValueChange={setType}>
+          <SelectTrigger aria-label={t("fields.type")} className="w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TYPES.map((one) => (
+              <SelectItem key={one.value} value={one.value}>{typeLabel(one.value)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button type="submit" loading={pending}>{t("fields.add")}</Button>
+      </div>
+
+      {hasChoices(type) ? <Choices /> : null}
+      {error ? <p role="alert" className="text-caption text-danger-text">{error}</p> : null}
+    </form>
   );
 }
 

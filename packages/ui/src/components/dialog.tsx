@@ -104,9 +104,9 @@ DialogContent.displayName = "DialogContent";
 /**
  * The row of buttons at the end of a dialog, in one order everywhere.
  *
- * The way out comes first and the action second, which is what every platform
- * does and what a person's hand expects. Marking the way out `data-dismiss`
- * puts the keyboard on it when the question cannot be undone.
+ * Right-aligned, with the way out first and the action last, so the action sits
+ * where the eye finishes the sentence it just read. Marking the way out
+ * `data-dismiss` puts the keyboard on it when the question cannot be undone.
  */
 export function DialogFooter({
   className,
@@ -114,7 +114,10 @@ export function DialogFooter({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("mt-5 flex flex-wrap items-center gap-3", className)} {...props}>
+    <div
+      className={cn("mt-5 flex flex-wrap items-center justify-end gap-3", className)}
+      {...props}
+    >
       {children}
     </div>
   );

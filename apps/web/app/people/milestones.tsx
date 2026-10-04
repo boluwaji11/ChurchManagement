@@ -170,11 +170,11 @@ export function Milestones({
                 <Input id="milestone-notes" name="notes" autoComplete="off" />
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Button type="submit" disabled={!kind || pending}>{t("action.add")}</Button>
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
                   {t("action.cancel")}
                 </Button>
+              <Button type="submit" disabled={!kind || pending}>{t("action.add")}</Button>
               </div>
             </form>
           </DialogContent>

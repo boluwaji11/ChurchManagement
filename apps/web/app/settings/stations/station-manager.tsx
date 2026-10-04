@@ -205,11 +205,11 @@ function StationDialog({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
+              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
           </div>
         </form>
       </DialogContent>

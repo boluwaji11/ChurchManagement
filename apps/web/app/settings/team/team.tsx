@@ -406,11 +406,11 @@ function InviteDialog({
             </Select>
           </Field>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={pending || saving}>{t("team.invite")}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
+              <Button type="submit" disabled={pending || saving}>{t("team.invite")}</Button>
           </div>
         </form>
       </DialogContent>
