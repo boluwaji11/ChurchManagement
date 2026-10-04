@@ -1,7 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import * as React from "react";
-import { Trash2, Merge, Check } from "lucide-react";
+import { Trash2, Merge, Check, Plus } from "lucide-react";
 import {
   HUES,
   Button, IconButton, Input, Field, Separator, Banner, HueDot,
@@ -39,8 +40,7 @@ export function TagManager({
 }) {
   return (
     <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
-      {tags.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
             <span
               key={tag.id}
@@ -62,10 +62,9 @@ export function TagManager({
               )}
             </span>
           ))}
-        </div>
-      ) : null}
 
-      {canCreate ? <NewTag church={church} /> : null}
+        {canCreate ? <NewTag church={church} /> : null}
+      </div>
     </section>
   );
 }
@@ -73,38 +72,73 @@ export function TagManager({
 /** The pill itself: the whole shape is the control, with its name centred. */
 const CHIP = "flex h-9 items-center justify-center rounded-full px-3.5 text-label font-medium";
 
+/**
+ * R1.10. A new tag, asked for in a box rather than in a field on the page.
+ *
+ * The row of pills is what this screen is. A permanently open input under it
+ * was a form sitting there asking to be filled in on a screen somebody opened
+ * to read.
+ */
 function NewTag({ church }: { church: string }) {
-  const formRef = React.useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
   const [error, setError] = React.useState<string>();
   const [pending, setPending] = React.useState(false);
 
-  const action = async (data: FormData) => {
+  const save = async () => {
     setError(undefined);
     setPending(true);
     try {
+      const data = new FormData();
+      data.set("church", church);
+      data.set("name", name);
       const result = await addTag(data);
-      if (result.error) setError(result.error);
-      else formRef.current?.reset();
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setName("");
+      setOpen(false);
+      router.refresh();
     } finally {
       setPending(false);
     }
   };
 
   return (
-    <form ref={formRef} action={action} noValidate className="flex flex-col gap-1.5">
-      <input type="hidden" name="church" value={church} />
-      <div className="flex flex-wrap gap-2">
-        <Input
-          name="name"
-          autoComplete="off"
-          placeholder={t("tags.new")}
-          aria-label={t("tags.new")}
-          className="min-w-50 flex-1"
-        />
-        <Button type="submit" loading={pending}>{t("tags.add")}</Button>
-      </div>
-      {error ? <p role="alert" className="text-caption text-danger-text">{error}</p> : null}
-    </form>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className={`${CHIP} cursor-pointer gap-1.5 border border-dashed border-line-strong text-fg-muted hover:bg-sunken hover:text-fg`}
+        >
+          <Plus className="size-4" aria-hidden /> {t("tags.add")}
+        </button>
+      </DialogTrigger>
+
+      <DialogContent title={t("tags.add")} closeLabel={t("common.close")}>
+        {error ? <Banner tone="danger" title={t("tags.failed")}>{error}</Banner> : null}
+
+        <Field label={t("tags.name")} required>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="off"
+            autoFocus
+          />
+        </Field>
+
+        <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            {t("action.cancel")}
+          </Button>
+          <Button type="button" disabled={pending || !name.trim()} onClick={() => void save()}>
+            {t("action.add")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
