@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Archive, Merge, Pencil, Plus, Search, Undo2 } from "lucide-react";
 import {
-  Banner, Button, Field, IconButton, Input,
+  Avatar, Banner, Button, Field, IconButton, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -18,17 +18,6 @@ export interface HouseholdItem {
   name: string;
   members: { id: string; name: string; role: string }[];
   archived: boolean;
-}
-
-/** Two letters for a face, from whatever the church wrote the name as. */
-function initialsOf(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0] ?? "")
-    .join("")
-    .toUpperCase();
 }
 
 /**
@@ -97,7 +86,7 @@ export function HouseholdList({
               key={household.id}
               className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 border-b border-sunken pb-3">
                 <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold text-fg">
                   {household.name}
                 </h3>
@@ -118,20 +107,20 @@ export function HouseholdList({
               {household.members.length === 0 ? (
                 <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
               ) : (
-                <ul className="grid gap-x-4 gap-y-2 [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))]">
+                <ul className="flex flex-wrap gap-1.5">
                   {household.members.map((member) => (
                     <li key={member.id}>
                       <Link
                         href={`/people/${member.id}?church=${church}`}
-                        className="flex items-center gap-2.5 rounded-md py-1 hover:bg-sunken"
+                        className="flex items-center gap-2 rounded-full bg-sunken py-1 pr-3 pl-1 hover:brightness-95"
                       >
-                        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-sunken text-[11px] font-semibold text-fg-muted">
-                          {initialsOf(member.name)}
-                        </span>
-                        <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] font-medium text-fg">
-                          {member.name}
-                        </span>
-                        <span className="shrink-0 text-[12px] text-fg-subtle">
+                        <Avatar
+                          name={member.name}
+                          id={member.id}
+                          className="size-6 text-[10px] font-semibold"
+                        />
+                        <span className="text-[13px] font-medium text-fg">{member.name}</span>
+                        <span className="text-[12px] text-fg-subtle">
                           {t(`householdRole.${member.role}` as never)}
                         </span>
                       </Link>
