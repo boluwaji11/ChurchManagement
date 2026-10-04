@@ -12,7 +12,8 @@ import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
   IconButton, EmptyState,
   Select, SelectTrigger, SelectContent, SelectItem,
-  Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
+  Tabs, TabsList, TabsTrigger,
   cn, type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -869,6 +870,8 @@ function SelectionBar({
  * the person screen already carries the same shell.
  */
 function BulkMessage({ count }: { count: number }) {
+  const [channel, setChannel] = React.useState("email");
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -877,17 +880,38 @@ function BulkMessage({ count }: { count: number }) {
         </Button>
       </DialogTrigger>
       <DialogContent title={t("directory.messageTitle", { count })} closeLabel={t("common.close")}>
-        <Field label={t("message.text")}>
-          <Textarea name="body" rows={6} />
-        </Field>
+        <div className="flex flex-col gap-4">
+          <Tabs value={channel} onValueChange={setChannel}>
+            <TabsList>
+              <TabsTrigger value="email">{t("message.email")}</TabsTrigger>
+              <TabsTrigger value="sms">{t("message.textMessage")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {/* A subject belongs to an email. A text has none. */}
+          {channel === "email" ? (
+            <Field label={t("message.subject")}>
+              <Input name="subject" autoComplete="off" />
+            </Field>
+          ) : null}
+
+          <Field label={t("message.text")}>
+            <Textarea name="body" rows={6} placeholder={t("message.hint")} />
+          </Field>
+        </div>
+
         <DialogFooter>
-          <Button disabled>{t("message.send")}</Button>
+          <DialogClose asChild>
+            <Button variant="secondary" data-dismiss>{t("action.cancel")}</Button>
+          </DialogClose>
+          <Button disabled>
+            {channel === "email" ? t("message.sendEmail") : t("message.sendText")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-
 
 /**
  * A menu that fires on choice and resets.

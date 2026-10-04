@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, GripVertical } from "lucide-react";
 import {
-  withTenant, getOccurrence, getPlan, ensurePlan, addressableFor, canManageServices,
+  withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
   listTemplates, recentPlans, rosterFor, listOccurrences, getChurch,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -48,8 +48,6 @@ export default async function PlanPage({
     return {
       occurrence,
       plan,
-      // R11.6. Who a note can be addressed to: the schedule for this gathering.
-      audience: await addressableFor(tx, id),
       // R11.8. Shapes to start from: what the church has saved, and what it ran.
       templates: await listTemplates(tx),
       sources: await recentPlans(tx, id),
@@ -65,7 +63,7 @@ export default async function PlanPage({
   });
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, audience, templates, sources, roster, others } = result;
+  const { occurrence, plan, templates, sources, roster, others } = result;
 
   // R11.3. The clock the plan runs on, worked out the same way the order does.
   const [h, m] = occurrence.startsAt.split(":").map(Number);
@@ -145,7 +143,6 @@ export default async function PlanPage({
                 contentType: file.contentType,
               })),
             }))}
-            audience={audience}
             templates={templates}
             sources={sources.map((source) => ({
               occurrenceId: source.occurrenceId,
