@@ -427,6 +427,8 @@ export const en = {
   "church.logo": "Logo",
   "church.logo.upload": "Upload logo",
   "church.logo.remove": "Remove",
+  "church.logo.removeBody": "The logo comes off every screen and every label it prints on. You can upload another one whenever you like.",
+  "church.logo.keep": "Keep it",
   "church.logo.alt": "{church} logo",
   "church.logo.view": "See the logo",
   "account.name": "Name",

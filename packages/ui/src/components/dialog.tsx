@@ -30,13 +30,19 @@ export const DialogContent = React.forwardRef<
   React.ComponentRef<typeof P.Content>,
   React.ComponentPropsWithoutRef<typeof P.Content> & {
     title: string;
+    /**
+     * Keeps the title for a screen reader without drawing it. For a box whose
+     * whole content is one picture, where a heading above it says nothing the
+     * picture does not.
+     */
+    hideTitle?: boolean;
     description?: string;
     /** Draws the X in the corner. Left out, there is no X. */
     closeLabel?: string;
     /** A question that cannot be undone: no X, no click outside, safe default. */
     alert?: boolean;
   }
->(({ className, children, title, description, closeLabel, alert, ...props }, ref) => (
+>(({ className, children, title, description, closeLabel, alert, hideTitle, ...props }, ref) => (
   <P.Portal>
     <P.Overlay
       className={cn(
@@ -79,8 +85,8 @@ export const DialogContent = React.forwardRef<
       )}
       {...props}
     >
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div className="flex flex-col gap-1">
+      <div className={cn("flex items-start justify-between gap-4", hideTitle ? "" : "mb-4")}>
+        <div className={cn("flex flex-col gap-1", hideTitle && "sr-only")}>
           <P.Title className="text-heading font-display text-fg">{title}</P.Title>
           {description ? (
             <P.Description className="text-caption text-fg-muted">{description}</P.Description>

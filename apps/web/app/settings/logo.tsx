@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Upload } from "lucide-react";
-import { Banner, IconButton, Dialog, DialogTrigger, DialogContent, Working } from "@hearth/ui";
+import { RefreshCw, Trash2 } from "lucide-react";
+import {
+  Banner, Button, IconButton, Dialog, DialogTrigger, DialogContent, DialogFooter, Working,
+} from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearLogo } from "./actions";
 
@@ -31,6 +33,8 @@ export function ChurchLogo({
   const [error, setError] = React.useState<string>();
   const [, startTransition] = React.useTransition();
   const [busy, setBusy] = React.useState(false);
+  const [showing, setShowing] = React.useState(false);
+  const [dropping, setDropping] = React.useState(false);
   const input = React.useRef<HTMLInputElement>(null);
 
   const upload = async (file: File) => {
@@ -72,7 +76,7 @@ export function ChurchLogo({
 
       <div className="flex items-center gap-3">
         {logoUrl ? (
-          <Dialog>
+          <Dialog open={showing} onOpenChange={setShowing}>
             <DialogTrigger asChild>
               <button
                 type="button"
@@ -86,20 +90,48 @@ export function ChurchLogo({
                 />
               </button>
             </DialogTrigger>
-            <DialogContent title={t("church.logo")} closeLabel={t("common.close")}>
+            {/* No heading over it. The picture is the whole content, and the
+                word "Logo" above a logo says nothing. */}
+            <DialogContent title={t("church.logo")} hideTitle closeLabel={t("common.close")}>
               <img
                 src={logoUrl}
                 alt={t("church.logo.alt", { church: churchName })}
                 className="max-h-[70vh] w-full rounded-md bg-canvas object-contain"
               />
+              {canEdit ? (
+                <DialogFooter>
+                  <IconButton
+                    label={t("church.logo.remove")}
+                    variant="ghost"
+                    onClick={() => setDropping(true)}
+                  >
+                    <Trash2 />
+                  </IconButton>
+                  <IconButton
+                    label={t("church.logo.upload")}
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={() => input.current?.click()}
+                  >
+                    <RefreshCw />
+                  </IconButton>
+                </DialogFooter>
+              ) : null}
             </DialogContent>
           </Dialog>
         ) : (
           /* R1.1. The church's first letter until there is a logo, which is
-             what the design draws and what a label prints meanwhile. */
-          <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg">
+             what the design draws and what a label prints meanwhile. With no
+             logo on it, pressing goes straight to the file picker. */
+          <button
+            type="button"
+            disabled={!canEdit || busy}
+            onClick={() => input.current?.click()}
+            aria-label={t("church.logo.upload")}
+            className="grid size-14 shrink-0 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg enabled:cursor-pointer enabled:hover:brightness-110"
+          >
             {churchName.trim().charAt(0).toUpperCase()}
-          </span>
+          </button>
         )}
 
 
@@ -115,24 +147,33 @@ export function ChurchLogo({
                 if (file) void upload(file);
               }}
             />
-            <div className="flex flex-1 items-center gap-0.5">
-              {logoUrl ? (
-                <IconButton label={t("church.logo.remove")} variant="ghost" onClick={remove}>
-                  <Trash2 />
-                </IconButton>
-              ) : null}
-              <IconButton
-                label={t("church.logo.upload")}
-                variant="ghost"
-                disabled={busy}
-                onClick={() => input.current?.click()}
-              >
-                <Upload />
-              </IconButton>
-            </div>
           </>
         ) : null}
       </div>
+
+      <Dialog open={dropping} onOpenChange={setDropping}>
+        <DialogContent alert title={t("church.logo.remove")}>
+          <p className="text-[length:var(--d-text-body)] text-fg-muted">
+            {t("church.logo.removeBody")}
+          </p>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setDropping(false)}>
+              {t("church.logo.keep")}
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => {
+                setDropping(false);
+                setShowing(false);
+                remove();
+              }}
+            >
+              <Trash2 /> {t("church.logo.remove")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
