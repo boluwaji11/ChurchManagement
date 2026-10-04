@@ -363,6 +363,9 @@ count is a design constraint and not a detail.
 | R2.13 | 0.1 | **Archive, never hard delete.** Archived people leave all lists and counts but retain giving and attendance history. Hard deletion happens only through the DSAR path in R21.7. |
 | R2.14 | 0.2 | Full-text search across names, emails, phones, and addresses, returning results in under 300ms at 5,000 people. |
 | R2.15 | 0.2 | Person timeline: a single chronological view of attendance, giving (permission gated), group membership, serving, notes, milestones, and communications. |
+| R2.16 | 0.2 | **Lifecycle status moves itself.** A nightly pass promotes a Visitor to Regular Attender on a configurable threshold of visits in a window, defaulting to three in eight weeks. Joining a group or a team, or a membership milestone being added, sets Member. A Visitor or Regular Attender with no attendance, serving, giving or group activity for a configurable quiet period, defaulting to twelve months, becomes Inactive. A Member is never moved to Inactive by the system: the pass raises it for a human to confirm. A status a person set by hand is never overwritten by the pass. |
+| R2.17 | 0.2 | **Status history**: every change records the status before, the status after, when, and who made it, naming the system where the nightly pass made it. Readable on the person and reversible in one press. |
+| R2.18 | 0.2 | **Staff is recorded separately from lifecycle status**: a flag, a job title and a start date on the person, shown as a badge beside the status. Independent of the tenant role, because an outside bookkeeper holds Finance without being staff and a volunteer worship lead holds Team Leader without being staff. |
 
 *Accept R2.4:* a do-not-contact pair prevents both people appearing in the same household directory
 entry and blocks either from being listed as the other's emergency contact.

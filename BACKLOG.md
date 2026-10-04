@@ -122,6 +122,9 @@ and a design file does not move it.
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
 | HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.8 | Resolved |
 | HRT-118 | ~~Skills, interests and spiritual gifts as managed vocabularies~~ | R2.9 | **Cut** |
+| HRT-210 | The status engine: a nightly pass, the thresholds as settings, and nothing it writes over a human | R2.16 | New |
+| HRT-211 | Status history on a person, with who changed it and a one-press revert | R2.17 | New |
+| HRT-212 | Staff as its own fact: flag, job title, start date, and a badge | R2.18 | New |
 | HRT-119 | Search across names, emails, phones and addresses, under 300ms at 5,000 people | R2.14 | Resolved |
 | HRT-120 | The person timeline: attendance, groups, notes and milestones in one order | R2.15 | Resolved |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Closed |
