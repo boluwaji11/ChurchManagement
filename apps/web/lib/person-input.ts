@@ -51,6 +51,12 @@ export type PersonErrors = Record<string, string | undefined>;
 
 const str = (data: FormData, key: string): string => String(data.get(key) ?? "").trim();
 
+/** A picker's value, where its "they have not said" answer means null. */
+const pick = (data: FormData, key: string): string | null => {
+  const value = str(data, key);
+  return value && value !== UNSAID ? value : null;
+};
+
 /** Reads the form into the shape the repository takes. Never throws. */
 export function parsePerson(data: FormData): PersonInput & { householdChoice: string } {
   const householdChoice = str(data, "householdId") || HOUSEHOLD_NONE;
@@ -67,6 +73,9 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
     email: str(data, "email") || null,
     phone: str(data, "phone") || null,
     address: str(data, "address"),
+    campusId: str(data, "campusId") || null,
+    maritalStatus: pick(data, "maritalStatus"),
+    schoolLevel: pick(data, "schoolLevel"),
     householdId: householdChoice === HOUSEHOLD_NEW || householdChoice === HOUSEHOLD_NONE ? null : householdChoice,
     householdName: householdChoice === HOUSEHOLD_NEW ? str(data, "householdName") || null : null,
     householdRole: (str(data, "householdRole") || "other") as HouseholdRole,
@@ -135,3 +144,36 @@ export function personErrors(input: PersonInput & { householdChoice?: string }):
 
 export const hasErrors = (errors: PersonErrors): boolean =>
   Object.values(errors).some(Boolean);
+
+/**
+ * R2.1. The answers a church writes down for marital status.
+ *
+ * A closed list rather than free text, because "married" and "Married" being
+ * two answers makes a count of either one wrong.
+ */
+export const MARITAL_VALUES = [
+  "single", "married", "engaged", "widowed", "divorced", "separated",
+] as const;
+
+export const maritalOptions = () =>
+  MARITAL_VALUES.map((value) => ({ value, label: t(`marital.${value}`) }));
+
+/**
+ * R2.1. Pre-K through graduate school.
+ *
+ * Grades are named one by one rather than grouped, because a children's
+ * ministry puts a fourth grader in a different room from a fifth grader, and a
+ * band called "elementary" cannot answer that.
+ */
+export const SCHOOL_VALUES = [
+  "pre_k", "kindergarten",
+  "grade_1", "grade_2", "grade_3", "grade_4", "grade_5", "grade_6",
+  "grade_7", "grade_8", "grade_9", "grade_10", "grade_11", "grade_12",
+  "college", "graduate",
+] as const;
+
+export const schoolOptions = () =>
+  SCHOOL_VALUES.map((value) => ({ value, label: t(`school.${value}`) }));
+
+/** The value a picker uses to mean "they have not said". */
+export const UNSAID = "__unsaid";

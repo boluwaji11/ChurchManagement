@@ -14,12 +14,21 @@ import type { HouseholdOption } from "@hearth/db";
 import {
   parsePerson, personErrors, hasErrors,
   lifecycleOptions, householdRoleOptions, HOUSEHOLD_NEW, HOUSEHOLD_NONE,
+  maritalOptions, schoolOptions, UNSAID,
   type PersonErrors,
 } from "@/lib/person-input";
 import { savePerson } from "./actions";
 import { CustomFieldInputs, type FieldDef, type FieldValues } from "./custom-fields";
 
+export interface CampusOption {
+  id: string;
+  name: string;
+}
+
 export interface PersonFormValues {
+  campusId?: string | null;
+  maritalStatus?: string | null;
+  schoolLevel?: string | null;
   /** R2.4. One line, as a church writes it. */
   address?: string | null;
   id?: string;
@@ -123,6 +132,35 @@ function FormCard({
 }
 
 /** R24.6. The form's Save, for a page that puts it beside the title. */
+/**
+ * A field somebody may leave unanswered.
+ *
+ * A native select, because there are sixteen school years and a list of pills
+ * that long is a wall. "Not said" is a real answer and sits first.
+ */
+function Picker({
+  name,
+  value,
+  options,
+}: {
+  name: string;
+  value: string | null;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <select
+      name={name}
+      defaultValue={value ?? UNSAID}
+      className="h-[var(--d-tap)] w-full rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+    >
+      <option value={UNSAID}>{t("person.unsaid")}</option>
+      {options.map((one) => (
+        <option key={one.value} value={one.value}>{one.label}</option>
+      ))}
+    </select>
+  );
+}
+
 export function PersonFormActions({ editing }: { editing: boolean }) {
   return (
     <FormActions
@@ -140,10 +178,13 @@ export function PersonForm({
   customValues = {},
   tags = [],
   assignedTags = [],
+  campuses = [],
 }: {
   church: string;
   values?: PersonFormValues;
   households: HouseholdOption[];
+  /** R1.2. Shown only where this church has more than one. */
+  campuses?: CampusOption[];
   customFields?: FieldDef[];
   customValues?: FieldValues;
   /** R2.x. Every tag the church has, for the row on this screen. */
@@ -223,6 +264,35 @@ export function PersonForm({
           <Field label={t("personForm.dateOfBirth")} error={errors.dateOfBirth}>
             <DateField name="dateOfBirth" defaultValue={values?.dateOfBirth ?? ""} />
           </Field>
+
+          <Field label={t("person.maritalStatus")}>
+            <Picker
+              name="maritalStatus"
+              value={values?.maritalStatus ?? null}
+              options={maritalOptions()}
+            />
+          </Field>
+
+          {/* R2.1. Only the school years, because a church asks this to put a
+              child in the right room and a student in the right group. */}
+          <Field label={t("person.schoolLevel")}>
+            <Picker
+              name="schoolLevel"
+              value={values?.schoolLevel ?? null}
+              options={schoolOptions()}
+            />
+          </Field>
+
+          {/* R1.2. Only where this church has more than one. */}
+          {campuses.length > 1 ? (
+            <Field label={t("person.campus")}>
+              <Picker
+                name="campusId"
+                value={values?.campusId ?? null}
+                options={campuses.map((one) => ({ value: one.id, label: one.name }))}
+              />
+            </Field>
+          ) : null}
 
 
           {/* R2.4. One line, as a church writes it on an envelope. */}

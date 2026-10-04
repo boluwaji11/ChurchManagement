@@ -1,0 +1,1 @@
+ALTER TABLE "people" ADD COLUMN "school_level" text;

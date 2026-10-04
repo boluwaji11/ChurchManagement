@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, isNull, or, sql, count, type SQL } from "drizzle-orm";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
-import { people, households, householdMemberships, contactMethods, addresses, tags, personTags } from "../schema/people";
+import { people, households, householdMemberships, contactMethods, addresses, tags, personTags, milestones } from "../schema/people";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { visiblePeople, type Viewer } from "./scope";
 import { requireRoomForPeople } from "./provisional";
@@ -378,6 +378,12 @@ export interface PersonInput {
   medicalNote?: string | null;
   /** R2.4. One line, as a church writes it on an envelope. */
   address?: string | null;
+  /** R1.2. Which campus they belong to. Null where the church has one. */
+  campusId?: string | null;
+  /** R2.1. Single, married, widowed, and so on. */
+  maritalStatus?: string | null;
+  /** R2.1. Pre-K through graduate school, from the managed list. */
+  schoolLevel?: string | null;
   /** An existing household, or null for none. Ignored when householdName is set. */
   householdId?: string | null;
   /** Creates a household with this name and puts the person in it. */
@@ -418,6 +424,9 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
       firstVisitOn: trimmed(input.firstVisitOn),
       allergies: trimmed(input.allergies),
       medicalNote: trimmed(input.medicalNote),
+      campusId: trimmed(input.campusId),
+      maritalStatus: trimmed(input.maritalStatus),
+      schoolLevel: trimmed(input.schoolLevel),
     })
     .returning({ id: people.id });
 
@@ -459,6 +468,9 @@ export async function updatePerson(
       firstVisitOn: trimmed(input.firstVisitOn),
       allergies: trimmed(input.allergies),
       medicalNote: trimmed(input.medicalNote),
+      campusId: trimmed(input.campusId),
+      maritalStatus: trimmed(input.maritalStatus),
+      schoolLevel: trimmed(input.schoolLevel),
       updatedAt: new Date(),
     })
     .where(eq(people.id, id))
@@ -681,6 +693,10 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
     firstVisitOn: person.firstVisitOn,
     allergies: person.allergies,
     medicalNote: person.medicalNote,
+    campusId: person.campusId,
+    maritalStatus: person.maritalStatus,
+    schoolLevel: person.schoolLevel,
+    address: await addressFor(db, id),
     email: contacts.find((c) => c.kind === "email")?.value ?? null,
     phone: contacts.find((c) => c.kind === "phone")?.value ?? null,
     householdId: membership?.householdId ?? null,
@@ -1058,6 +1074,13 @@ export async function updateOwnProfile(
     lastName: string;
     phone?: string | null;
     dateOfBirth?: string | null;
+    /** R2.4. One line, as a church writes it on an envelope. */
+    address?: string | null;
+    campusId?: string | null;
+    maritalStatus?: string | null;
+    schoolLevel?: string | null;
+    /** R2.11. The wedding date, which is held as a marriage milestone. */
+    anniversary?: string | null;
   },
 ): Promise<string | null> {
   const [mine] = await db
@@ -1077,6 +1100,9 @@ export async function updateOwnProfile(
       firstName,
       lastName,
       dateOfBirth: trimmed(input.dateOfBirth),
+      campusId: trimmed(input.campusId),
+      maritalStatus: trimmed(input.maritalStatus),
+      schoolLevel: trimmed(input.schoolLevel),
       updatedAt: new Date(),
     })
     .where(eq(people.id, mine.id));
@@ -1087,8 +1113,50 @@ export async function updateOwnProfile(
   // email, so it is not something this form can quietly disagree with.
   await setContact(db, who, mine.id, "email", actor.email);
   await setContact(db, who, mine.id, "phone", input.phone);
+  await setAddress(db, who, mine.id, input.address);
+  await setAnniversary(db, who, mine.id, trimmed(input.anniversary));
 
   return mine.id;
+}
+
+/**
+ * R2.11. The wedding date on a person.
+ *
+ * Held as a marriage milestone rather than a column, because that is what the
+ * anniversary list already reads and two places holding the same date is two
+ * places to disagree. One milestone a person: setting it again moves the one
+ * that is there.
+ */
+export async function setAnniversary(
+  db: Tx,
+  actor: WriteActor,
+  personId: string,
+  on: string | null,
+): Promise<void> {
+  await db
+    .delete(milestones)
+    .where(and(eq(milestones.personId, personId), eq(milestones.kind, "marriage")));
+
+  if (!on) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(on)) throw new InvalidInputError("milestone.error.date");
+
+  await db.insert(milestones).values({
+    tenantId: actor.tenantId,
+    personId,
+    kind: "marriage",
+    occurredOn: on,
+  });
+}
+
+/** R2.11. The wedding date a person already has, or null. */
+export async function anniversaryOf(db: Tx, personId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ on: sql<string>`${milestones.occurredOn}::text` })
+    .from(milestones)
+    .where(and(eq(milestones.personId, personId), eq(milestones.kind, "marriage")))
+    .orderBy(desc(milestones.occurredOn))
+    .limit(1);
+  return row?.on ?? null;
 }
 
 /**

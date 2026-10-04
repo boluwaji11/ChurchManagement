@@ -41,6 +41,15 @@ export const people = pgTable(
     gender: text("gender"),
     dateOfBirth: date("date_of_birth"),
     maritalStatus: text("marital_status"),
+    /**
+     * R2.1. What year of school they are in, from pre-K to graduate school.
+     *
+     * A church asks this to put a child in the right room and a student in the
+     * right group, so it is a managed vocabulary rather than free text: a room
+     * assignment cannot be made from "6th" and "sixth grade" being two answers.
+     * Null for everybody who is not in school, which is most people.
+     */
+    schoolLevel: text("school_level"),
     lifecycleStatus: lifecycleStatus("lifecycle_status").notNull().default("visitor"),
     membershipDate: date("membership_date"),
     firstVisitOn: date("first_visit_on"),

@@ -88,9 +88,7 @@ export function GroupBanner({
                 <span className="font-semibold">{t("group.banner.add")}</span>
                 <span className="text-[12px]">{t("group.banner.size")}</span>
               </div>
-            ) : (
-              <ImagePlus className="size-7 opacity-50" aria-hidden />
-            )}
+            ) : null}
           </div>
         )}
 

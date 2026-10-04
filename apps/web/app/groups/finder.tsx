@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, X, Search, SlidersHorizontal, Image as ImageIcon, Undo2 } from "lucide-react";
+import { Check, X, Search, SlidersHorizontal, Undo2 } from "lucide-react";
 import {
   Banner, Button, IconButton, Card, Separator,
   Sheet, SheetContent, SheetTrigger, LIFT,
@@ -84,8 +84,21 @@ export function meets(group: {
   return group.startsAt ? `${day}, ${readableTime(group.startsAt)}` : day;
 }
 
-type Chosen = { type: string[]; day: string[]; taking: string[] };
-const NOTHING: Chosen = { type: [], day: [], taking: [] };
+type Chosen = {
+  type: string[];
+  day: string[];
+  forWhom: string[];
+  online: string[];
+  children: string[];
+  location: string[];
+  taking: string[];
+};
+
+const NOTHING: Chosen = {
+  type: [], day: [], forWhom: [], online: [], children: [], location: [], taking: [],
+};
+
+const AUDIENCES = ["anyone", "men", "women", "young_adults", "students", "parents", "seniors"] as const;
 
 /**
  * R9.5, R9.6. Finding a group.
@@ -124,6 +137,18 @@ export function Finder({
   const matches = (group: FinderGroup, skip?: keyof Chosen) =>
     (skip === "type" || chosen.type.length === 0 || chosen.type.includes(group.typeId ?? "")) &&
     (skip === "day" || chosen.day.length === 0 || chosen.day.includes(String(group.dayOfWeek))) &&
+    (skip === "forWhom" ||
+      chosen.forWhom.length === 0 ||
+      chosen.forWhom.includes(group.forWhom ?? "anyone")) &&
+    (skip === "online" ||
+      chosen.online.length === 0 ||
+      chosen.online.includes(group.online ? "yes" : "no")) &&
+    (skip === "children" ||
+      chosen.children.length === 0 ||
+      chosen.children.includes(group.childrenWelcome ? "yes" : "no")) &&
+    (skip === "location" ||
+      chosen.location.length === 0 ||
+      chosen.location.includes(group.location ?? "")) &&
     (skip === "taking" ||
       chosen.taking.length === 0 ||
       chosen.taking.includes(group.openToJoin && !group.full ? "open" : "closed")) &&
@@ -156,6 +181,58 @@ export function Finder({
       })),
     },
     {
+      k: "forWhom" as const,
+      label: t("find.forWhom"),
+      opts: AUDIENCES.map((a) => ({
+        v: a,
+        label: t(`groups.audience.${a}` as never),
+        n: live.filter((g) => (g.forWhom ?? "anyone") === a && matches(g, "forWhom")).length,
+      })),
+    },
+    {
+      k: "location" as const,
+      label: t("groups.location"),
+      opts: [...new Set(live.map((g) => g.location).filter(Boolean) as string[])]
+        .sort()
+        .map((where) => ({
+          v: where,
+          label: where,
+          n: live.filter((g) => g.location === where && matches(g, "location")).length,
+        })),
+    },
+    {
+      k: "online" as const,
+      label: t("groups.online"),
+      opts: [
+        {
+          v: "yes",
+          label: t("find.yes"),
+          n: live.filter((g) => g.online && matches(g, "online")).length,
+        },
+        {
+          v: "no",
+          label: t("find.no"),
+          n: live.filter((g) => !g.online && matches(g, "online")).length,
+        },
+      ],
+    },
+    {
+      k: "children" as const,
+      label: t("groups.childrenWelcome"),
+      opts: [
+        {
+          v: "yes",
+          label: t("find.yes"),
+          n: live.filter((g) => g.childrenWelcome && matches(g, "children")).length,
+        },
+        {
+          v: "no",
+          label: t("find.no"),
+          n: live.filter((g) => !g.childrenWelcome && matches(g, "children")).length,
+        },
+      ],
+    },
+    {
       k: "taking" as const,
       label: t("find.taking"),
       opts: [
@@ -171,9 +248,16 @@ export function Finder({
         },
       ],
     },
-  ].map((section) => ({ ...section, opts: section.opts.filter((o) => o.n > 0 || chosen[section.k].includes(o.v)) }));
+  ]
+    .map((section) => ({
+      ...section,
+      opts: section.opts.filter((o) => o.n > 0 || chosen[section.k].includes(o.v)),
+    }))
+    // A section offering one answer is not a filter, it is a fact about every
+    // group here, so it stays out of the drawer.
+    .filter((section) => section.opts.length > 1 || chosen[section.k].length > 0);
 
-  const picked = chosen.type.length + chosen.day.length + chosen.taking.length;
+  const picked = Object.values(chosen).reduce((n, list) => n + list.length, 0);
 
   const toggle = (k: keyof Chosen, v: string) =>
     setChosen((was) => ({
@@ -235,7 +319,7 @@ export function Finder({
 
       {/* The box, the count, and one Filter button on the right. */}
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex h-[34px] min-w-40 flex-[0_1_240px] items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-2.5 text-fg-subtle focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--ring)]">
+        <label className="flex h-[34px] min-w-40 flex-[0_1_340px] items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-2.5 text-fg-subtle focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--ring)]">
           <Search className="size-[15px] shrink-0" aria-hidden />
           <input
             value={query}
@@ -247,7 +331,6 @@ export function Finder({
           />
         </label>
 
-        <span className="text-[13px] text-fg-muted">{plural("find.count", shown.length)}</span>
         <span className="flex-1" />
 
         <Sheet open={open} onOpenChange={setOpen}>
@@ -371,12 +454,7 @@ function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
       {group.photoUrl ? (
         <img src={group.photoUrl} alt="" className="h-[120px] w-full object-cover" />
       ) : (
-        <div
-          className="grid h-[120px] place-items-center"
-          style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
-        >
-          <ImageIcon className="size-[22px] opacity-50" aria-hidden />
-        </div>
+        <div className="h-[120px]" style={{ background: `var(--hue-${hue}-tint)` }} />
       )}
 
       <div className="flex flex-col gap-2 px-[18px] pt-4 pb-[18px]">
