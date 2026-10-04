@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Pencil, Plus } from "lucide-react";
 import {
   withTenant, getPerson, getPersonForEdit, householdFor, addressFor,
   personTimeline, servingForPerson, groupsForPerson,
@@ -185,9 +185,13 @@ export default async function PersonPage({
         {canEdit ? (
           <div className="flex gap-2">
             <MessageButton name={display} />
-            <Button variant="secondary" asChild>
-              <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
-                {t("action.edit")}
+            <Button variant="secondary" asChild className="size-9 min-h-0 px-0">
+              <Link
+                href={`/people/${person.id}/edit?church=${session.tenantSlug}`}
+                aria-label={t("action.edit")}
+                title={t("action.edit")}
+              >
+                <Pencil />
               </Link>
             </Button>
           </div>
@@ -235,11 +239,7 @@ export default async function PersonPage({
         <InfoCard title={t("person.household")}>
           {household && household.members.length > 0 ? (
             household.members.map((m) => (
-              <Link
-                key={m.id}
-                href={`/people/${m.id}?church=${session.tenantSlug}`}
-                className="flex items-center gap-2.5"
-              >
+              <span key={m.id} className="flex items-center gap-2.5">
                 <span className="grid size-7 shrink-0 place-items-center rounded-full bg-sunken text-[11px] font-semibold text-fg-muted">
                   {initialsOf(m.displayName)}
                 </span>
@@ -247,7 +247,7 @@ export default async function PersonPage({
                 <span className="text-[13px] text-fg-subtle">
                   {t(`householdRole.${m.role}` as never)}
                 </span>
-              </Link>
+              </span>
             ))
           ) : (
             <p className="text-[13px] text-fg-muted">{t("person.noHousehold")}</p>

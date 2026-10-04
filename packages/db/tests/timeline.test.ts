@@ -84,7 +84,6 @@ describe("what is on it", () => {
   it("carries every kind of thing the church has recorded", async () => {
     const kinds = new Set((await timeline()).map((e) => e.kind));
     expect(kinds).toContain("added");
-    expect(kinds).toContain("attended");
     expect(kinds).toContain("joinedGroup");
     expect(kinds).toContain("leftGroup");
     expect(kinds).toContain("milestone");
@@ -94,9 +93,19 @@ describe("what is on it", () => {
 
   it("names the thing out of the church's own records", async () => {
     const entries = await timeline();
-    expect(entries.find((e) => e.kind === "attended")?.subject).toBe("Harvest");
     expect(entries.find((e) => e.kind === "joinedGroup")?.subject).toBe("Thursday group");
     expect(entries.find((e) => e.kind === "milestone")?.code).toBe("baptism");
+  });
+
+  /*
+   * R2.15. Attendance and check-ins are kept off it on purpose. A family at two
+   * services a weekend would push a hundred identical lines a year in front of
+   * the pastor reading this, and bury the four that matter.
+   */
+  it("leaves attendance and check-ins to the screens that report them properly", async () => {
+    const kinds = new Set((await timeline()).map((e) => e.kind));
+    expect(kinds).not.toContain("attended");
+    expect(kinds).not.toContain("checkedIn");
   });
 
   it("is newest first", async () => {

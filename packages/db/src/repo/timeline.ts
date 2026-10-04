@@ -18,7 +18,6 @@
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
-import { attendanceRecords, serviceOccurrences } from "../schema/gatherings";
 import { groupMemberships, groups, groupTypes } from "../schema/groups";
 import { milestones } from "../schema/people";
 import { people } from "../schema/people";
@@ -105,29 +104,13 @@ export async function personTimeline(
     out.push({ id: `archived:${personId}`, kind: "archived", on: day(person.archivedAt)! });
   }
 
-  // R7.x. Services they were marked present at.
-  const attended = await db
-    .select({
-      id: attendanceRecords.id,
-      on: serviceOccurrences.occursOn,
-      name: serviceOccurrences.name,
-    })
-    .from(attendanceRecords)
-    .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, attendanceRecords.occurrenceId))
-    .where(eq(attendanceRecords.personId, personId))
-    .orderBy(desc(serviceOccurrences.occursOn))
-    .limit(limit);
-  for (const row of attended) {
-    out.push({ id: `attended:${row.id}`, kind: "attended", on: row.on, subject: row.name });
-  }
-
   /*
-   * R8.x. Check-ins are deliberately absent.
+   * R7.x, R8.x. Attendance and check-ins are deliberately absent.
    *
-   * A child checked into a room twice a weekend puts a hundred identical lines
-   * a year into the one place a pastor looks before a visit, and buries the
-   * four that matter. Attendance is already here as the service they were at,
-   * and the check-in record itself lives on the check-in screens.
+   * A family at two services a weekend puts a hundred identical lines a year in
+   * front of the pastor reading this before a visit, and buries the four that
+   * matter. How often somebody comes is a question the attendance screens
+   * answer properly, with trends rather than with a list.
    */
 
   // R9.4. Joining a group, and leaving one. Two entries from one row, because

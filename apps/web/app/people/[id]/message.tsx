@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { MessageSquare } from "lucide-react";
 import {
-  Button, Field, Textarea,
+  Button, Field, IconButton, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -21,7 +22,9 @@ export function MessageButton({ name }: { name: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary">{t("message.open")}</Button>
+        <IconButton label={t("message.open")} variant="secondary">
+          <MessageSquare />
+        </IconButton>
       </DialogTrigger>
       <DialogContent title={t("message.title", { name })} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">

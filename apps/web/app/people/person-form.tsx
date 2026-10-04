@@ -138,8 +138,11 @@ export function PersonForm({
         <Banner tone="danger" title={t("personForm.failed")}>{formError}</Banner>
       ) : null}
 
-      {/* Details. One grid that wraps at 220px, so it is two up on a desk and
-          one up on a phone without a breakpoint per field. */}
+      {/* The person on the left, who they live with on the right, with a
+          hairline between. A household is a different question from a phone
+          number, and putting it in the same grid made it read as one. */}
+      <div className="flex flex-wrap items-start gap-6">
+        <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-5">
       <FormCard title={t("personForm.section.details")}>
         <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
           <Field label={t("personForm.firstName")} error={errors.firstName} required>
@@ -158,37 +161,6 @@ export function PersonForm({
             <DateField name="dateOfBirth" defaultValue={values?.dateOfBirth ?? ""} />
           </Field>
 
-          <Field label={t("personForm.household")}>
-            <Select name="householdId" value={household} onValueChange={setHousehold}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={HOUSEHOLD_NONE}>{t("personForm.householdNone")}</SelectItem>
-                <SelectItem value={HOUSEHOLD_NEW}>{t("personForm.householdNew")}</SelectItem>
-                {households.map((h) => (
-                  <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          {household === HOUSEHOLD_NEW ? (
-            <Field label={t("personForm.householdName")} error={errors.householdName} required>
-              <Input name="householdName" autoComplete="off" />
-            </Field>
-          ) : null}
-
-          {household !== HOUSEHOLD_NONE ? (
-            <Field label={t("personForm.householdRole")}>
-              <Select name="householdRole" defaultValue={values?.householdRole ?? "other"}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {householdRoleOptions().map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          ) : null}
 
           {/* R2.4. One line, as a church writes it on an envelope. */}
           <Field label={t("personForm.address")} className="sm:col-span-full">
@@ -266,6 +238,47 @@ export function PersonForm({
           </div>
         </FormCard>
       ) : null}
+
+        </div>
+
+        <div className="flex min-w-0 flex-[2_1_280px] flex-col gap-5 md:border-l md:border-line md:pl-6">
+          <FormCard title={t("personForm.household")}>
+            <div className="flex flex-col gap-3.5">
+              <Field label={t("personForm.household")}>
+                <Select name="householdId" value={household} onValueChange={setHousehold}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={HOUSEHOLD_NONE}>{t("personForm.householdNone")}</SelectItem>
+                    <SelectItem value={HOUSEHOLD_NEW}>{t("personForm.householdNew")}</SelectItem>
+                    {households.map((h) => (
+                      <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              {household === HOUSEHOLD_NEW ? (
+                <Field label={t("personForm.householdName")} error={errors.householdName} required>
+                  <Input name="householdName" autoComplete="off" />
+                </Field>
+              ) : null}
+
+              {household !== HOUSEHOLD_NONE ? (
+                <Field label={t("personForm.householdRole")}>
+                  <Select name="householdRole" defaultValue={values?.householdRole ?? "other"}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {householdRoleOptions().map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              ) : null}
+            </div>
+          </FormCard>
+        </div>
+      </div>
 
       <div className="flex flex-wrap justify-end gap-2">
         <Button asChild variant="secondary">
