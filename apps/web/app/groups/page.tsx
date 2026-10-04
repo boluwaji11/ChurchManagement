@@ -1,6 +1,9 @@
 import {
   withTenant, findGroups, listGroupTypes, pendingRequests, personForUser, canManageGroups,
 } from "@hearth/db";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -57,6 +60,15 @@ export default async function GroupsPage({
     <AppShell
       session={session}
       title={t("groups.title")}
+      action={
+        manage ? (
+          <Button asChild>
+            <Link href={`/groups/new?church=${session.tenantSlug}`}>
+              <Plus /> {t("groups.add")}
+            </Link>
+          </Button>
+        ) : undefined
+      }
     >
       <Finder
         church={session.tenantSlug}

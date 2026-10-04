@@ -3,10 +3,11 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Archive } from "lucide-react";
+import Link from "next/link";
 import { Banner, IconButton } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { archive } from "../actions";
-import { GroupDialog, ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-form";
+import { ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-form";
 
 /**
  * R9.1 to R9.4. What the church may do to a group, in the corner.
@@ -32,18 +33,16 @@ export function ManageGroup({
     <div className="flex items-center gap-1" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.title")}>{error}</Banner> : null}
 
-      <GroupDialog
-        church={church}
-        types={types}
-        group={group}
-        pending={pending}
-        title={t("groups.editTitle", { name: group.name })}
-        trigger={
-          <IconButton label={t("groups.edit")} variant="ghost">
-            <Pencil />
-          </IconButton>
-        }
-      />
+      {/* A link rather than a button, because it opens a page. Shaped from the
+          same tokens the IconButton beside it uses, so the pair reads as one. */}
+      <Link
+        href={`/groups/${group.id}/edit?church=${church}`}
+        aria-label={t("groups.edit")}
+        title={t("groups.edit")}
+        className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+      >
+        <Pencil />
+      </Link>
 
       <ArchiveDialog
         name={group.name}
