@@ -1,130 +1,159 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import {
-  withTenant, listOccurrences, topUpCalendar, countsFor, getChurch, canManageServices,
+  withTenant, listOccurrences, topUpCalendar, planSummaries, getChurch, canManageServices,
 } from "@hearth/db";
+import { EmptyState } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
-import { Calendar } from "./calendar";
-import { churchNow, hasHappened } from "@/lib/church-now";
-import { MonthBar } from "./month";
-import { ViewBar } from "./views";
-import { isView } from "./view";
+import { churchNow } from "@/lib/church-now";
+import { AddService } from "./add-service";
 
 export const dynamic = "force-dynamic";
 
-const readableDate = (iso: string) =>
+/** How far ahead the screen reads. A church plans a few weeks, not a year. */
+const AHEAD_DAYS = 70;
+
+const readableDay = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
-    weekday: "short", day: "numeric", month: "short", year: "numeric",
+    weekday: "short", day: "numeric", month: "short",
   });
 
 const readableTime = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h ?? 0, m ?? 0, 0, 0);
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true });
+  const at = new Date();
+  at.setHours(h ?? 0, m ?? 0, 0, 0);
+  return at.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true });
 };
 
-/** "2026-09" to the first and last day of that month. */
-function monthRange(month: string): { from: string; to: string } {
-  const [y, m] = month.split("-").map(Number);
-  const last = new Date(y!, m!, 0).getDate();
-  return { from: `${month}-01`, to: `${month}-${String(last).padStart(2, "0")}` };
-}
-
-const shiftMonth = (month: string, by: number): string => {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(y!, m! - 1 + by, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const shift = (iso: string, days: number): string => {
+  const at = new Date(`${iso}T00:00:00Z`);
+  at.setUTCDate(at.getUTCDate() + days);
+  return at.toISOString().slice(0, 10);
 };
 
-const isMonth = (value: string | undefined): value is string => /^\d{4}-\d{2}$/.test(value ?? "");
-
+/**
+ * R11.1. What is coming, and what each one has planned.
+ *
+ * A card a gathering, in the order they happen, with the two numbers that say
+ * whether anybody has done anything about it yet. Opening one goes to its
+ * order of service, which is what a church came here to write.
+ */
 export default async function ServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; month?: string; view?: string }>;
+  searchParams: Promise<{ church?: string }>;
 }) {
-  const { church, month: asked, view: askedView } = await searchParams;
-  const view = isView(askedView) ? askedView : "calendar";
+  const { church } = await searchParams;
   const session = await requireSession(church);
+  const canEdit = canManageServices(session.role);
 
-  const { rows, present, timezone, month, thisMonth } = await withTenant(
+  const { rows, plans, now } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
-      // Keeps a repeating service six months ahead without anybody maintaining
+      // Keeps a repeating service some weeks ahead without anybody maintaining
       // a calendar. Idempotent, and it does nothing for a church with none.
-      if (canManageServices(session.role)) {
+      if (canEdit) {
         await topUpCalendar(tx, { tenantId: session.tenantId, role: session.role });
       }
+
       const profile = await getChurch(tx, session.tenantId);
-      const zone = profile?.timezone ?? "America/Chicago";
-      const zoneNow = churchNow(zone);
-      const month = isMonth(asked) ? asked : zoneNow.date.slice(0, 7);
-      const range = monthRange(month);
-      const list = await listOccurrences(tx, { ...range, includeCancelled: true });
+      const clock = churchNow(profile?.timezone ?? "America/Chicago");
+      const list = await listOccurrences(tx, {
+        from: clock.date,
+        to: shift(clock.date, AHEAD_DAYS),
+      });
 
       return {
+        now: clock,
         rows: list,
-        present: await countsFor(tx, list.map((r) => r.id)),
-        timezone: zone,
-        month,
-        thisMonth: zoneNow.date.slice(0, 7),
+        plans: await planSummaries(tx, list.map((one) => one.id)),
       };
     },
   );
 
-  const now = churchNow(timezone);
+  // listOccurrences reads newest first, which is the wrong way round for a
+  // list of what is coming.
+  const upcoming = [...rows].sort(
+    (a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
+  );
 
   return (
     <AppShell
       session={session}
       title={t("services.title")}
+      action={
+        canEdit ? (
+          <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+        ) : undefined
+      }
     >
-      <Calendar
-        church={session.tenantSlug}
-        canEdit={canManageServices(session.role)}
-        view={view}
-        month={month}
-        today={now.date}
-        nowTime={now.time}
-        monthBar={
-          <MonthBar
-            church={session.tenantSlug}
-            month={month}
-            label={new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
-              month: "long", year: "numeric",
-            })}
-            previous={shiftMonth(month, -1)}
-            next={shiftMonth(month, 1)}
-            isThisMonth={month === thisMonth}
-            view={view}
-          />
-        }
-        viewBar={<ViewBar church={session.tenantSlug} month={month} view={view} />}
-        rows={rows.map((r) => ({
-          id: r.id,
-          name: r.name,
-          occursOn: r.occursOn,
-          startsAt: r.startsAt,
-          status: r.status,
-          note: r.note,
-          special: r.serviceTimeId === null,
-          adults: r.countAdults,
-          children: r.countChildren,
-          visitors: r.countVisitors,
-          total:
-            r.countAdults === null && r.countChildren === null && r.countVisitors === null
-              ? null
-              : (r.countAdults ?? 0) + (r.countChildren ?? 0) + (r.countVisitors ?? 0),
-          past: hasHappened(now, r.occursOn, r.startsAt),
-          present: present[r.id] ?? 0,
-          serviceTimeId: r.serviceTimeId,
-          frequency: r.frequency,
-          readableDate: readableDate(r.occursOn),
-          readableTime: readableTime(r.startsAt),
-        }))}
-      />
+      <h2 className="font-display text-[28px] leading-[34px] text-fg">
+        {t("services.upcoming")}
+      </h2>
 
+      {upcoming.length === 0 ? (
+        <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
+      ) : (
+        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+          {upcoming.map((one, i) => {
+            const plan = plans.get(one.id);
+            const planned = (plan?.items ?? 0) > 0;
+
+            return (
+              <Link
+                key={one.id}
+                href={
+                  canEdit
+                    ? `/services/${one.id}/plan?church=${session.tenantSlug}`
+                    : `/services/${one.id}?church=${session.tenantSlug}`
+                }
+                className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4.5 hover:border-line-strong"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="flex-1 text-[13px] font-medium text-fg-subtle">
+                    {readableDay(one.occursOn)} · {readableTime(one.startsAt)}
+                  </span>
+                  {i === 0 ? (
+                    <span className="flex h-[22px] items-center rounded-full bg-primary-soft px-2 text-[11px] font-semibold text-primary">
+                      {t("services.next")}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div>
+                  <div className="font-display text-[21px] leading-[26px] text-fg">
+                    {plan?.title || one.name}
+                  </div>
+                  {plan?.theme ? (
+                    <div className="mt-0.5 text-[13px] text-fg-muted">{plan.theme}</div>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center gap-2 border-t border-sunken pt-3 text-[13px]">
+                  {planned ? (
+                    <span className="flex-1 text-fg-muted">
+                      {t("services.planned", {
+                        items: plan?.items ?? 0,
+                        minutes: plan?.minutes ?? 0,
+                      })}
+                    </span>
+                  ) : (
+                    <span
+                      className="flex-1 font-medium"
+                      style={{ color: "var(--hue-amber-key)" }}
+                    >
+                      {t("services.notPlanned")}
+                    </span>
+                  )}
+                  <ChevronRight className="size-4 text-fg-subtle" aria-hidden />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </AppShell>
   );
 }

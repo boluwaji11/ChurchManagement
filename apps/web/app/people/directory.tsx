@@ -918,7 +918,9 @@ function Picker({
     >
       <SelectTrigger
         aria-label={label}
-        className="min-h-9 w-auto gap-1.5 rounded-full border-0 bg-transparent px-2.5 text-[13px] font-medium shadow-none hover:bg-sunken [&_svg]:size-4"
+        // The trigger carries its own words, so the placeholder grey that a
+        // Select uses for "nothing chosen" would read as disabled here.
+        className="min-h-9 w-auto gap-1.5 rounded-full border-0 bg-transparent px-2.5 text-[13px] font-medium text-fg shadow-none hover:bg-sunken data-[placeholder]:text-fg [&_svg]:size-4"
       >
         {icon}
         {label}

@@ -10,6 +10,7 @@ import { PageMeta } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Roster } from "./roster";
+import { ServiceActions } from "./service-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -62,11 +63,20 @@ export default async function RosterPage({
         {/* R11.1. The order of service, which is what a church runs the
             gathering from. */}
         {canManageServices(session.role) ? (
-          <Button variant="secondary" asChild>
-            <Link href={`/services/${occurrence.id}/plan?church=${session.tenantSlug}`}>
-              <ListOrdered /> {t("order.open")}
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ServiceActions
+              church={session.tenantSlug}
+              id={occurrence.id}
+              name={occurrence.name}
+              date={readable(occurrence.occursOn)}
+              cancelled={occurrence.status === "cancelled"}
+            />
+            <Button variant="secondary" asChild>
+              <Link href={`/services/${occurrence.id}/plan?church=${session.tenantSlug}`}>
+                <ListOrdered /> {t("order.open")}
+              </Link>
+            </Button>
+          </div>
         ) : null}
       </div>
 
