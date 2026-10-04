@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { servicePlans, planItems, planItemNotes, planItemFiles } from "../schema/plans";
 import { storedFiles } from "../schema/tenancy";
@@ -635,4 +635,43 @@ export async function detachFromItem(
   await db.delete(storedFiles).where(eq(storedFiles.id, row.fileId));
 
   return { key: row.key };
+}
+
+export interface PlanSummary {
+  occurrenceId: string;
+  /** What the plan calls it, where that differs from the service. */
+  title: string | null;
+  theme: string | null;
+  items: number;
+  minutes: number;
+}
+
+/**
+ * R11.1. What each of these gatherings has planned, in one query.
+ *
+ * The services screen draws a card a gathering and needs two numbers on each
+ * of them. Reading the whole plan for every card would be a plan a card.
+ */
+export async function planSummaries(
+  db: Tx,
+  occurrenceIds: string[],
+): Promise<Map<string, PlanSummary>> {
+  const out = new Map<string, PlanSummary>();
+  if (occurrenceIds.length === 0) return out;
+
+  const rows = await db
+    .select({
+      occurrenceId: servicePlans.occurrenceId,
+      title: servicePlans.title,
+      theme: servicePlans.theme,
+      items: sql<number>`count(${planItems.id})::int`,
+      minutes: sql<number>`coalesce(sum(${planItems.minutes}), 0)::int`,
+    })
+    .from(servicePlans)
+    .leftJoin(planItems, eq(planItems.planId, servicePlans.id))
+    .where(inArray(servicePlans.occurrenceId, occurrenceIds))
+    .groupBy(servicePlans.occurrenceId, servicePlans.title, servicePlans.theme);
+
+  for (const row of rows) out.set(row.occurrenceId, row);
+  return out;
 }

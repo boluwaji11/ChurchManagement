@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import * as P from "@radix-ui/react-select";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "../lib/cn";
 import { useFieldControl } from "./field";
 
@@ -49,26 +49,85 @@ export const SelectTrigger = React.forwardRef<
 });
 SelectTrigger.displayName = "SelectTrigger";
 
+/** Below this many options, a box to type in is in the way rather than a help. */
+const SEARCH_FROM = 8;
+
+/** The words inside an item, so typing can match them. */
+function textOf(node: React.ReactNode): string {
+  if (node === null || node === undefined || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join(" ");
+  if (React.isValidElement(node)) {
+    return textOf((node.props as { children?: React.ReactNode }).children);
+  }
+  return "";
+}
+
+const fold = (value: string) =>
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
 export const SelectContent = React.forwardRef<
   React.ComponentRef<typeof P.Content>,
-  React.ComponentPropsWithoutRef<typeof P.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <P.Portal>
-    <P.Content
-      ref={ref}
-      position={position}
-      sideOffset={6}
-      className={cn(
-        "z-50 min-w-[10rem] overflow-hidden rounded-lg border border-line bg-surface shadow-lg p-1",
-        "data-[state=open]:animate-[hearth-rise_var(--duration-fast)_var(--ease-out)]",
-        className,
-      )}
-      {...props}
-    >
-      <P.Viewport className="max-h-72">{children}</P.Viewport>
-    </P.Content>
-  </P.Portal>
-));
+  React.ComponentPropsWithoutRef<typeof P.Content> & {
+    /** What the box to type in says. Defaults to nothing. */
+    searchLabel?: string;
+  }
+>(({ className, children, position = "popper", searchLabel, ...props }, ref) => {
+  const [query, setQuery] = React.useState("");
+  const items = React.Children.toArray(children);
+
+  /*
+   * Every list long enough to scroll gets a box to type in. One place rather
+   * than thirty screens deciding for themselves, so a dropdown behaves the same
+   * everywhere in the product.
+   */
+  const searchable = items.length >= SEARCH_FROM;
+  const q = fold(query.trim());
+  const shown = q
+    ? items.filter((item) =>
+        React.isValidElement(item)
+          ? fold(textOf((item.props as { children?: React.ReactNode }).children)).includes(q)
+          : true,
+      )
+    : items;
+
+  return (
+    <P.Portal>
+      <P.Content
+        ref={ref}
+        position={position}
+        sideOffset={6}
+        onCloseAutoFocus={() => setQuery("")}
+        className={cn(
+          "z-50 min-w-[10rem] overflow-hidden rounded-lg border border-line bg-surface shadow-lg p-1",
+          "data-[state=open]:animate-[hearth-rise_var(--duration-fast)_var(--ease-out)]",
+          className,
+        )}
+        {...props}
+      >
+        {searchable ? (
+          <div className="flex items-center gap-2 border-b border-line px-2 pb-1.5">
+            <Search className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label={searchLabel}
+              // Radix listens for typing to jump between items, which would
+              // swallow every letter before it reached this box.
+              onKeyDown={(e) => {
+                if (e.key !== "Escape" && e.key !== "Enter") e.stopPropagation();
+              }}
+              className="h-8 w-full bg-transparent text-[length:var(--d-text-body)] text-fg outline-none placeholder:text-fg-subtle"
+            />
+          </div>
+        ) : null}
+
+        <P.Viewport className="max-h-72">{shown}</P.Viewport>
+      </P.Content>
+    </P.Portal>
+  );
+});
 SelectContent.displayName = "SelectContent";
 
 export const SelectItem = React.forwardRef<

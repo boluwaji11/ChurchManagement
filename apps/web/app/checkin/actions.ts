@@ -414,3 +414,29 @@ export async function place(
     return { error: explain(error) };
   }
 }
+
+/**
+ * R8.14. Checking a child in from the floor screen.
+ *
+ * The same write the desk makes, for the person walking the corridor who has
+ * found a child nobody put through the queue.
+ */
+export async function checkInTo(
+  input: { occurrenceId: string; personId: string; roomId: string },
+  church?: string,
+): Promise<{ error?: string }> {
+  const { session, actor, ctx } = await context(church);
+
+  try {
+    await withTenant(ctx, (tx) =>
+      checkInFamily(tx, actor, {
+        occurrenceId: input.occurrenceId,
+        userId: session.userId,
+        entries: [{ personId: input.personId, roomId: input.roomId }],
+      }),
+    );
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}

@@ -1,48 +1,64 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Banner, Button, Field,
+  Banner, Button, Combobox, Field,
   Sheet, SheetTrigger, SheetContent,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { place } from "./actions";
+import { place, checkInTo } from "./actions";
+
+export interface Candidate {
+  /** "v:<visitId>" for somebody already here, "p:<personId>" for anybody else. */
+  value: string;
+  label: string;
+  /** Matched on as well as the name, so a surname or a household finds them. */
+  keywords?: string;
+}
 
 /**
- * R8.14. Putting an arriving child in a class, without dragging.
+ * R8.14. Checking a child in, or putting one who is here into a class.
  *
- * The same move the board makes by drag, for somebody on a phone, somebody
- * using a keyboard, and somebody who would rather pick from a list.
+ * The same two answers the desk gives, from the screen the supervisor is
+ * already on: who, and which class. Somebody who was checked in at the desk is
+ * moved; anybody else is checked in here, which writes the visit, the code and
+ * the attendance in one go.
  */
 export function CheckInSheet({
   church,
-  waiting,
+  occurrenceId,
+  candidates,
   rooms,
   trigger,
 }: {
   church: string;
-  waiting: { visitId: string; name: string }[];
+  occurrenceId: string;
+  candidates: Candidate[];
   rooms: { id: string; name: string }[];
   trigger: React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [visitId, setVisitId] = React.useState("");
+  const [who, setWho] = React.useState("");
   const [roomId, setRoomId] = React.useState("");
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   const submit = () => {
-    if (!visitId || !roomId) return;
+    if (!who || !roomId) return;
+    const [kind, id] = [who.slice(0, 1), who.slice(2)];
+
     startTransition(async () => {
-      const result = await place(visitId, roomId, church);
+      const result =
+        kind === "v"
+          ? await place(id, roomId, church)
+          : await checkInTo({ occurrenceId, personId: id, roomId }, church);
+
       setError(result.error);
       if (!result.error) {
         setOpen(false);
-        setVisitId("");
+        setWho("");
         setRoomId("");
         router.refresh();
       }
@@ -61,7 +77,7 @@ export function CheckInSheet({
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button onClick={submit} disabled={pending || !visitId || !roomId}>
+            <Button onClick={submit} disabled={pending || !who || !roomId}>
               {t("checkin.check")}
             </Button>
           </>
@@ -69,41 +85,25 @@ export function CheckInSheet({
       >
         {error ? <Banner tone="danger" title={t("board.failed")}>{error}</Banner> : null}
 
-        {waiting.length === 0 ? (
-          <Button variant="secondary" asChild className="self-start">
-            <Link href={`/checkin/station?church=${church}`}>{t("board.goToDesk")}</Link>
-          </Button>
-        ) : (
-          <>
-            <Field label={t("board.child")} required>
-              <Select value={visitId} onValueChange={setVisitId}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {waiting.map((child) => (
-                    <SelectItem key={child.visitId} value={child.visitId}>
-                      {child.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+        <Field label={t("board.child")} required>
+          <Combobox
+            options={candidates}
+            value={who}
+            onChange={setWho}
+            emptyLabel={t("incident.noPerson")}
+            clearLabel={t("date.clear")}
+          />
+        </Field>
 
-            <Field label={t("checkin.room")} required>
-              <Select value={roomId} onValueChange={setRoomId}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {rooms.map((room) => (
-                    <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          </>
-        )}
+        <Field label={t("checkin.room")} required>
+          <Combobox
+            options={rooms.map((room) => ({ value: room.id, label: room.name }))}
+            value={roomId}
+            onChange={setRoomId}
+            emptyLabel={t("board.noRooms.title")}
+            clearLabel={t("date.clear")}
+          />
+        </Field>
       </SheetContent>
     </Sheet>
   );

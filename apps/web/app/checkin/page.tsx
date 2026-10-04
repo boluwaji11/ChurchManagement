@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { FileWarning, Tag, Printer, Move, Plus } from "lucide-react";
 import {
-  withTenant, listRooms, listOccurrences, listStations, listIncidents, getChurch,
+  withTenant, listRooms, listOccurrences, listStations, listIncidents, listPeople,
+  visitsFor, getChurch,
   roomBoard, roomRoster, arriving, canSupervise, canReadIncidents,
   type RoomRosterEntry,
 } from "@hearth/db";
@@ -79,6 +80,11 @@ export default async function CheckinPage({
         board,
         rosters,
         waiting: chosen ? await arriving(tx, chosen, clock.date) : [],
+        // R8.14. Anybody the church holds who is not already checked in to
+        // this gathering, so a child who walked past the desk can still be
+        // checked in from here.
+        directory: await listPeople(tx, { sort: "name" }),
+        here: chosen ? await visitsFor(tx, chosen) : [],
         stations: (await listStations(tx)).length,
         // R8.13. The number on the Incidents button is the reports where the
         // guardian has still to be told, which is the one thing left open on a
@@ -93,12 +99,27 @@ export default async function CheckinPage({
   );
 
   const service = data.services.find((s) => s.id === data.chosen);
+  const present = new Set(data.here.map((visit) => visit.personId));
   const checkedIn = (data.board?.rooms ?? []).reduce((n, r) => n + r.present, 0);
 
   const action = (
     <CheckInSheet
       church={session.tenantSlug}
-      waiting={data.waiting.map((child) => ({ visitId: child.visitId, name: child.name }))}
+      occurrenceId={data.chosen}
+      candidates={[
+        ...data.waiting.map((child) => ({
+          value: `v:${child.visitId}`,
+          label: child.name,
+          keywords: child.household ?? undefined,
+        })),
+        ...data.directory
+          .filter((person) => !present.has(person.id))
+          .map((person) => ({
+            value: `p:${person.id}`,
+            label: person.displayName,
+            keywords: person.householdName ?? undefined,
+          })),
+      ]}
       rooms={data.rooms.map((room) => ({ id: room.id, name: room.name }))}
       trigger={
         <Button>
