@@ -1469,7 +1469,7 @@ export const en = {
   "serving.volunteerCount.other": "{count} members",
   "serving.team.positions": "Positions",
   "serving.team.positionName": "Position",
-  "serving.newPosition": "New position, for example Electric guitar",
+  "serving.newPosition": "Add a new position",
   "serving.addFromPeople": "Add someone from People",
   "serving.peopleCount": "Members",
   "serving.position.archive": "Remove this position",
