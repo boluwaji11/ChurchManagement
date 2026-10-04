@@ -2,12 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ShieldCheck, RotateCcw, Pencil } from "lucide-react";
-import { Banner, Button, IconButton, EmptyState, Badge } from "@hearth/ui";
+import { ShieldCheck } from "lucide-react";
+import { Button, EmptyState, Badge } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
-import { TeamDialog, ArchiveTeamDialog } from "./team-dialog";
-import { archiveTeam } from "./actions";
 
 export interface TeamCard {
   id: string;
@@ -31,48 +28,30 @@ export interface TeamCard {
  * team is made of, how many people it has, and how much of this month is still
  * to fill.
  */
-export function Teams({
-  church,
-  teams,
-  canManage,
-}: {
-  church: string;
-  teams: TeamCard[];
-  canManage: boolean;
-}) {
-  const router = useRouter();
-  const [error, setError] = React.useState<string>();
-  const [pending, startTransition] = React.useTransition();
-
-  const setArchived = (id: string, archived: boolean) => {
-    const data = new FormData();
-    data.set("church", church);
-    data.set("id", id);
-    data.set("archived", String(archived));
-    startTransition(async () => {
-      const result = await archiveTeam(data);
-      setError(result.error);
-      if (!result.error) router.refresh();
-    });
-  };
-
+export function Teams({ church, teams }: { church: string; teams: TeamCard[] }) {
   if (teams.length === 0) return <EmptyState title={t("serving.empty")} />;
 
   return (
-    <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
-
+    <div className="flex flex-col gap-4">
       <ul className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
         {teams.map((team) => (
           <li key={team.id}>
-            <section className="flex h-full flex-col gap-3.5 rounded-lg border border-line bg-surface p-4.5">
+            {/* R24.x. The whole tile opens the team. The title carries the
+                link and stretches over the card, so the markup stays an anchor
+                around text rather than an anchor around buttons. */}
+            <section className="relative flex h-full cursor-pointer flex-col gap-3.5 rounded-lg border border-line bg-surface p-4.5 transition-shadow hover:border-line-strong hover:shadow-md focus-within:shadow-md">
               <div className="flex items-center gap-2.5">
                 <span
                   className="size-3 shrink-0 rounded-[4px]"
                   style={{ background: `var(--hue-${team.hue}-500)` }}
                 />
                 <h3 className="min-w-0 flex-1 truncate font-display text-[21px] leading-[26px] text-fg">
-                  {team.name}
+                  <Link
+                    href={`/serving/${team.id}?church=${church}`}
+                    className="after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
+                  >
+                    {team.name}
+                  </Link>
                 </h3>
                 {team.archived ? (
                   <Badge tone="neutral">{t("serving.archived")}</Badge>
@@ -119,39 +98,18 @@ export function Teams({
                   ].join(" · ")}
                 </span>
 
-                <Button variant="secondary" className="min-h-[34px] px-3 text-[13px]" asChild>
+                {/* Lifted above the stretched link, so it keeps its own job. */}
+                <Button
+                  variant="secondary"
+                  className="relative min-h-[34px] px-3 text-[13px]"
+                  asChild
+                >
                   <Link href={`/serving?church=${church}&team=${team.id}`}>
                     {t("serving.openSchedule")}
                   </Link>
                 </Button>
               </div>
 
-              {canManage ? (
-                <div className="flex flex-wrap items-center gap-1">
-                  <TeamDialog
-                    church={church}
-                    team={team}
-                    title={t("serving.editTeam")}
-                    trigger={<IconButton label={t("action.edit")}><Pencil /></IconButton>}
-                  />
-                  {team.archived ? (
-                    <IconButton
-                      label={t("serving.restore")}
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() => setArchived(team.id, false)}
-                    >
-                      <RotateCcw />
-                    </IconButton>
-                  ) : (
-                    <ArchiveTeamDialog
-                      name={team.name}
-                      pending={pending}
-                      onConfirm={() => setArchived(team.id, true)}
-                    />
-                  )}
-                </div>
-              ) : null}
             </section>
           </li>
         ))}

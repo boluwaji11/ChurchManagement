@@ -226,12 +226,7 @@ export default async function ServingPage({
           </div>
           <p className="mt-1 text-fg-muted">
             {view === "teams"
-              ? t("serving.teamsLine", {
-                  teams: data.live.length,
-                  volunteers: data.live.reduce((n, one) => n + one.members, 0),
-                  open: stillOpen,
-                  month,
-                })
+              ? null
               : [
                   plural("serving.schedule.open", stillOpen),
                   waiting > 0 ? t("serving.schedule.waiting", { count: waiting }) : null,
@@ -331,7 +326,6 @@ export default async function ServingPage({
         teams={
           <Teams
             church={session.tenantSlug}
-            canManage={canManage}
             teams={data.teams.map((team) => ({
               id: team.id,
               name: team.name,

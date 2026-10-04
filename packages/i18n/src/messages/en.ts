@@ -1291,7 +1291,6 @@ export const en = {
   "serving.fill.none": "Nobody on this team by that name",
   "serving.fill.plays": "Plays this position",
   "serving.addPosition": "Add a position",
-  "serving.teamsLine": "{teams} teams · {volunteers} volunteers · {open} open spots in {month}",
   "serving.openCount": "{count} open",
   "serving.volunteerCount.one": "{count} volunteer",
   "serving.volunteerCount.other": "{count} volunteers",
