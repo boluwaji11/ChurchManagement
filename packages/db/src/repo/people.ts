@@ -5,6 +5,7 @@ import { people, households, householdMemberships, contactMethods, addresses, ta
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { visiblePeople, type Viewer } from "./scope";
 import { requireRoomForPeople } from "./provisional";
+import { InvalidInputError } from "../errors";
 
 export interface PersonRow {
   id: string;
@@ -1033,4 +1034,58 @@ export async function peopleToInvite(
     name: String(row["name"]),
     email: String(row["email"]),
   }));
+}
+
+/**
+ * R17.1. Somebody changing their own details.
+ *
+ * Deliberately not updatePerson with the role check skipped. This takes a user
+ * id rather than a person id, looks up the record that belongs to that account,
+ * and writes only the fields a person owns about themselves. A member who may
+ * not edit anybody is still allowed to correct their own phone number, and they
+ * cannot reach a second record by changing a number in a URL, because no id
+ * crosses the boundary.
+ *
+ * Status, membership date and medical notes are the church's to set, so they
+ * are not here.
+ */
+export async function updateOwnProfile(
+  db: Tx,
+  actor: { tenantId: string; userId: string },
+  input: {
+    firstName: string;
+    lastName: string;
+    preferredName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    dateOfBirth?: string | null;
+  },
+): Promise<string | null> {
+  const [mine] = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(and(eq(people.appUserId, actor.userId), isNull(people.archivedAt)))
+    .limit(1);
+  if (!mine) return null;
+
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  if (!firstName || !lastName) throw new InvalidInputError("profile.error.name");
+
+  await db
+    .update(people)
+    .set({
+      firstName,
+      lastName,
+      preferredName: trimmed(input.preferredName),
+      dateOfBirth: trimmed(input.dateOfBirth),
+      updatedAt: new Date(),
+    })
+    .where(eq(people.id, mine.id));
+
+  const who = { tenantId: actor.tenantId, role: "owner" as const, userId: actor.userId };
+  await setContact(db, who, mine.id, "email", input.email);
+  await setContact(db, who, mine.id, "phone", input.phone);
+
+  return mine.id;
 }

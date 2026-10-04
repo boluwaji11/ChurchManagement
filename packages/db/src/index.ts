@@ -24,7 +24,7 @@ export {
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listHouseholds,
   type HouseholdOption,
   bulkSetArchived, bulkSetStatus, countPeople, householdFor, addressFor, addressesFor, PER_PAGE,
-  peopleToInvite,
+  peopleToInvite, updateOwnProfile,
   type DirectoryQuery, type HouseholdCard,
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
@@ -103,7 +103,7 @@ export {
 } from "./repo/lists";
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
-  createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone,
+  createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone, linkOrCreatePerson,
   listTeam, listInvitations, setMemberRole, removeMember,
   RESERVED_SLUGS,
   type Membership, type TeamMember, type PendingInvitation,

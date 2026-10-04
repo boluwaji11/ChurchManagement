@@ -146,11 +146,13 @@ export async function syncUserAndAcceptInvitations(user: {
 
     // R1.7. An invitation that grants a role and links no record leaves
     // somebody signed in to a church that has never heard of them.
-    if (invite.person_id) {
-      await sql`
-        update people set app_user_id = ${user.id}
-        where id = ${invite.person_id} and app_user_id is null`;
-    }
+    await linkOrCreatePerson({
+      tenantId: invite.tenant_id,
+      userId: user.id,
+      email,
+      fullName: user.fullName ?? null,
+      personId: invite.person_id,
+    });
 
     const rows = await sql<Membership[]>`
       select t.id as "tenantId", t.slug as "tenantSlug", t.name as "tenantName", ${invite.role}::text as "role"
@@ -159,6 +161,100 @@ export async function syncUserAndAcceptInvitations(user: {
   }
 
   return { joined };
+}
+
+/**
+ * R1.7, R2.1. Everybody with an account is somebody the church holds a record
+ * for.
+ *
+ * Three ways round, in order: the record the invitation named, a record already
+ * carrying this verified address, or a new one written from what they signed up
+ * with. An account with no record is somebody no follow-up can land on, who
+ * appears in no list, and whose own profile screen has nothing to show.
+ *
+ * The email has to be verified before this runs, which the caller checks, or
+ * claiming somebody else's record would be a matter of typing their address.
+ */
+export async function linkOrCreatePerson(input: {
+  tenantId: string;
+  userId: string;
+  email: string;
+  fullName: string | null;
+  /** The record an invitation named, where it named one. */
+  personId?: string | null;
+}): Promise<string | null> {
+  const sql = owner();
+  const email = input.email.trim().toLowerCase();
+
+  const [already] = await sql<{ id: string }[]>`
+    select id from people
+     where tenant_id = ${input.tenantId} and app_user_id = ${input.userId} and archived_at is null
+     limit 1`;
+  if (already) return already.id;
+
+  if (input.personId) {
+    const [named] = await sql<{ id: string }[]>`
+      update people set app_user_id = ${input.userId}
+       where id = ${input.personId} and tenant_id = ${input.tenantId} and app_user_id is null
+      returning id`;
+    if (named) return named.id;
+  }
+
+  // An unclaimed adult record carrying this address. A child's record is never
+  // claimed this way, the same rule the join code path holds to.
+  const [matched] = await sql<{ id: string }[]>`
+    update people set app_user_id = ${input.userId}
+     where id = (
+       select p.id
+         from people p
+         join contact_methods c on c.person_id = p.id and c.tenant_id = p.tenant_id
+         left join household_memberships hm on hm.person_id = p.id and hm.tenant_id = p.tenant_id
+        where p.tenant_id = ${input.tenantId}
+          and p.archived_at is null
+          and p.app_user_id is null
+          and p.lifecycle_status <> 'deceased'
+          and c.kind = 'email'
+          and lower(c.value) = ${email}
+          and coalesce(hm.role::text, 'other') <> 'child'
+          and (p.date_of_birth is null or p.date_of_birth <= current_date - interval '18 years')
+        limit 1
+     )
+    returning id`;
+  if (matched) return matched.id;
+
+  /*
+   * A record carrying this address that somebody else's account already holds.
+   * Writing a second one would hand the church two Sarah Bennetts to merge, so
+   * this stops instead and leaves the two for a person to look at. Everything
+   * that asks "who is this account" handles null, and a duplicate created
+   * quietly would be found weeks later.
+   */
+  const [taken] = await sql<{ id: string }[]>`
+    select p.id
+      from people p
+      join contact_methods c on c.person_id = p.id and c.tenant_id = p.tenant_id
+     where p.tenant_id = ${input.tenantId}
+       and p.archived_at is null
+       and p.app_user_id is not null
+       and c.kind = 'email'
+       and lower(c.value) = ${email}
+     limit 1`;
+  if (taken) return null;
+
+  const parts = (input.fullName ?? "").split(/\s+/).filter(Boolean);
+  const first = parts[0] ?? email.split("@")[0] ?? email;
+  const last = parts.length >= 2 ? parts.slice(1).join(" ") : "";
+
+  const [made] = await sql<{ id: string }[]>`
+    insert into people (tenant_id, first_name, last_name, lifecycle_status, app_user_id)
+    values (${input.tenantId}, ${first}, ${last}, 'member', ${input.userId})
+    returning id`;
+
+  await sql`
+    insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+    values (${input.tenantId}, ${made!.id}, 'email', 'home', ${email}, true)`;
+
+  return made!.id;
 }
 
 /** R1.7. Invite by email with a role and an expiry. Default 14 days. */

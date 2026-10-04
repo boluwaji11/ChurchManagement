@@ -1,34 +1,43 @@
 "use server";
 
-import { withTenant, setDirectoryPreferences, personForUser } from "@hearth/db";
+import { withTenant, updateOwnProfile } from "@hearth/db";
+import { t } from "@hearth/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
-export interface PrivacyResult {
+export interface ProfileResult {
   error?: string;
 }
 
-const on = (data: FormData, name: string) => data.get(name) === "on";
+const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
-/** R3.2, R3.3. A member deciding what other members see of them. */
-export async function savePrivacy(data: FormData): Promise<PrivacyResult> {
-  const session = await requireSession(String(data.get("church") ?? "") || undefined);
-  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
+/**
+ * R17.1. Saving your own details.
+ *
+ * No person id crosses the boundary. The record is the one tied to the signed
+ * in account, so nobody can edit somebody else by changing a value in the form.
+ */
+export async function saveProfile(data: FormData): Promise<ProfileResult> {
+  const session = await requireSession(field(data, "church") || undefined);
+  const ctx = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
 
   try {
-    await withTenant(ctx, async (tx) => {
-      const self = await personForUser(tx, session.userId);
-      if (!self) return;
-      return setDirectoryPreferences(tx, { ...ctx, personId: self }, self, {
-        listed: on(data, "listed"),
-        showEmail: on(data, "showEmail"),
-        showPhone: on(data, "showPhone"),
-        showAddress: on(data, "showAddress"),
-        showBirthday: on(data, "showBirthday"),
-        showPhoto: on(data, "showPhoto"),
-        showChildren: on(data, "showChildren"),
-      });
-    });
+    const person = await withTenant(ctx, (tx) =>
+      updateOwnProfile(tx, { tenantId: session.tenantId, userId: session.userId }, {
+        firstName: field(data, "firstName"),
+        lastName: field(data, "lastName"),
+        preferredName: field(data, "preferredName") || null,
+        email: field(data, "email") || null,
+        phone: field(data, "phone") || null,
+        dateOfBirth: field(data, "dateOfBirth") || null,
+      }),
+    );
+    if (!person) return { error: t("settings.profile.noRecord") };
     return {};
   } catch (error) {
     return { error: explain(error) };
