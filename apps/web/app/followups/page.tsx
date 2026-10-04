@@ -9,7 +9,6 @@ import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { Board, DragHint, type BoardCard, type BoardStage } from "./board";
 import { PipelinePicker } from "./pipeline-picker";
-import { AddToBoard } from "./add-person";
 
 export const dynamic = "force-dynamic";
 
@@ -99,19 +98,7 @@ export default async function FollowUpsPage({
   });
 
   return (
-    <AppShell
-      session={session}
-      title={t("queue.title")}
-      action={
-        pipeline ? (
-          <AddToBoard
-            church={session.tenantSlug}
-            pipelineId={pipeline.id}
-            stage={pipeline.name}
-          />
-        ) : undefined
-      }
-    >
+    <AppShell session={session} title={t("queue.title")}>
       {/* The pipeline names itself, so the board carries no heading of its
           own. The hint sits beside the picker. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -130,7 +117,12 @@ export default async function FollowUpsPage({
       </div>
 
       {pipeline ? (
-        <Board church={session.tenantSlug} stages={stages} cards={cards} />
+        <Board
+          church={session.tenantSlug}
+          pipelineId={pipeline.id}
+          stages={stages}
+          cards={cards}
+        />
       ) : (
         <div className="rounded-lg border border-line bg-surface p-7 text-center text-fg-muted">
           {t("board.none.title")}

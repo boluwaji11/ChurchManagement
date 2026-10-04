@@ -3,10 +3,11 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Move } from "lucide-react";
-import { Banner } from "@hearth/ui";
+import { Move, Plus } from "lucide-react";
+import { Banner, Combobox } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { moveToStage } from "../people/followup-actions";
+import { addToStage, findPeople } from "./actions";
 
 export interface BoardCard {
   entryId: string;
@@ -38,10 +39,13 @@ export interface BoardStage {
  */
 export function Board({
   church,
+  pipelineId,
   stages,
   cards,
 }: {
   church: string;
+  /** The pipeline somebody added from a column enters. */
+  pipelineId: string;
   stages: BoardStage[];
   cards: BoardCard[];
 }) {
@@ -124,12 +128,97 @@ export function Board({
                   <span className="mt-1 text-[12px] text-fg-subtle">{card.owner}</span>
                 </div>
               ))}
+
+              <AddToStage
+                church={church}
+                pipelineId={pipelineId}
+                position={stage.id === "done" ? stages.length : Number(stage.id)}
+                pending={pending}
+                onAdded={() => router.refresh()}
+                onError={setError}
+              />
             </div>
           </div>
           );
         })}
       </div>
     </div>
+  );
+}
+
+/**
+ * R5.4. Adding somebody where they already are.
+ *
+ * Every column takes a name, the way a board does, so a church that has
+ * already made the call puts the person in the column that says so rather than
+ * at the start and then dragging them along.
+ */
+function AddToStage({
+  church,
+  pipelineId,
+  position,
+  pending,
+  onAdded,
+  onError,
+}: {
+  church: string;
+  pipelineId: string;
+  position: number;
+  pending: boolean;
+  onAdded: () => void;
+  onError: (error?: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [people, setPeople] = React.useState<{ id: string; name: string }[]>([]);
+  const [saving, startSaving] = React.useTransition();
+
+  const look = React.useCallback(
+    (search: string) => {
+      void findPeople(pipelineId, search, church).then(setPeople);
+    },
+    [pipelineId, church],
+  );
+
+  React.useEffect(() => {
+    if (open) look("");
+  }, [open, look]);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        disabled={pending}
+        className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[12px] text-fg-subtle hover:bg-surface hover:text-fg"
+      >
+        <Plus className="size-3.5" aria-hidden /> {t("board.add")}
+      </button>
+    );
+  }
+
+  return (
+    <Combobox
+      options={people.map((one) => ({ value: one.id, label: one.name }))}
+      value=""
+      onChange={(personId) => {
+        if (!personId) return;
+        startSaving(async () => {
+          const result = await addToStage(pipelineId, personId, position, church);
+          onError(result.error);
+          if (!result.error) {
+            setOpen(false);
+            onAdded();
+          }
+        });
+      }}
+      onQueryChange={look}
+      placeholder={t("board.findPerson")}
+      emptyLabel={t("board.noPerson")}
+      clearLabel={t("date.clear")}
+      aria-label={t("board.add")}
+      disabled={saving}
+      className="text-[13px]"
+    />
   );
 }
 
