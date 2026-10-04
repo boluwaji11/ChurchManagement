@@ -28,8 +28,10 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 rounded-[14px] border border-dashed border-line-strong",
-        "bg-sunken/40 px-6 py-14 text-center",
+        // No outline. A dashed box drawn around nothing says the screen is
+        // broken rather than new, and the mark and the words carry it.
+        "flex flex-col items-center justify-center gap-4 rounded-[14px]",
+        "px-6 py-14 text-center",
         className,
       )}
     >
