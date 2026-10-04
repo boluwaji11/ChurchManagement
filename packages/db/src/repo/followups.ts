@@ -115,6 +115,9 @@ export const DEFAULT_PIPELINES: {
   },
 ];
 
+/** The colours a new stage is given, in the order the design uses them. */
+const PIPELINE_HUES = ["sky", "teal", "amber", "indigo", "violet", "rose", "fern", "citron"];
+
 export interface Pipeline {
   id: string;
   key: string;
@@ -915,6 +918,63 @@ export interface StepInput {
   id?: string;
   name: string;
   dueDays: number;
+}
+
+/**
+ * R5.2. A seventh stage, in the church's own words.
+ *
+ * The six that ship carry keys the code triggers on. One a church writes gets a
+ * key of its own that nothing triggers, so it holds the people a church puts in
+ * it by hand and nothing else.
+ */
+export async function createPipeline(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole },
+  input: { name: string; description?: string | null; hue?: string },
+): Promise<Pipeline> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+
+  const name = trim(input.name);
+  if (!name) throw new InvalidInputError("followup.error.name");
+
+  const existing = await db
+    .select({ key: pipelines.key, position: pipelines.position })
+    .from(pipelines)
+    .where(eq(pipelines.tenantId, actor.tenantId));
+
+  const stem = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "stage";
+  const taken = new Set(existing.map((row) => row.key));
+  let key = stem;
+  for (let n = 2; taken.has(key); n += 1) key = `${stem}_${n}`;
+
+  const hue = input.hue
+    ?? PIPELINE_HUES[existing.length % PIPELINE_HUES.length]!;
+
+  const [row] = await db
+    .insert(pipelines)
+    .values({
+      tenantId: actor.tenantId,
+      key,
+      name,
+      description: trim(input.description),
+      hue,
+      position: existing.reduce((high, one) => Math.max(high, one.position + 1), 0),
+    })
+    .returning({ id: pipelines.id });
+
+  // A stage with no step is a stage nobody can work, so it starts with one.
+  await db.insert(pipelineSteps).values({
+    tenantId: actor.tenantId,
+    pipelineId: row!.id,
+    name,
+    dueDays: 7,
+    position: 0,
+  });
+
+  const [after] = (await listPipelines(db, { includeArchived: true })).filter(
+    (one) => one.id === row!.id,
+  );
+  return after!;
 }
 
 export async function updatePipeline(

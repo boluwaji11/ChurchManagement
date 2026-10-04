@@ -2,14 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Pencil, Power } from "lucide-react";
+import { Plus, X, Power } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Field, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { savePipeline, switchPipeline } from "./actions";
+import { Empty } from "@/components/empty";
+import { addPipeline, savePipeline, switchPipeline } from "./actions";
 
 export interface StepRow {
   id: string;
@@ -34,12 +35,15 @@ export interface TeamMember {
 
 const NOBODY = "nobody";
 
+/** The pill a step and the add control share, so the row reads as one run. */
+const CHIP = "flex h-10 items-center rounded-[10px] px-3 text-label font-medium";
+
 /**
- * R5.2. The six, in the church's own words.
+ * R5.2. The stages, in the church's own words.
  *
  * A name, what it is for, who it lands on, and the steps with how many days
- * each gets. There is no button that makes a seventh and none that draws a
- * branch: that is R5.8, deferred, and it is the feature that makes the free
+ * each gets. The whole card opens the stage. There is no canvas and no branch:
+ * that is R5.8, deferred, and it is the feature that makes the free
  * competition unusable.
  */
 export function Pipelines({
@@ -81,6 +85,17 @@ export function Pipelines({
     run(() => savePipeline(data));
   };
 
+  if (rows.length === 0) {
+    return (
+      <Empty
+        icon="order"
+        title={t("pipelines.none.title")}
+        body={t("pipelines.none.body")}
+        action={<NewPipeline church={church} />}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
@@ -88,14 +103,39 @@ export function Pipelines({
       {rows.map((row) => (
         <section
           key={row.id}
-          className="flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface px-5 py-4.5"
+          className={`relative flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface px-5 py-4.5 hover:border-line-strong ${
+            row.archived ? "opacity-55" : ""
+          }`}
         >
-          <div className="flex flex-wrap items-center gap-2.5">
+          {/* R24.6. The whole card opens the stage. The trigger is a layer under
+              the card's contents rather than a wrapper around them, so the
+              power switch and the step chips stay controls of their own. */}
+          <EditDialog
+            church={church}
+            row={row}
+            team={team}
+            pending={pending}
+            trigger={
+              <button
+                type="button"
+                aria-label={t("pipelines.editOne", { name: row.name })}
+                className="absolute inset-0 z-0 cursor-pointer rounded-[14px]"
+              />
+            }
+          />
+
+          <div className="pointer-events-none relative flex flex-wrap items-center gap-2.5">
             <span
               className="size-3 shrink-0 rounded-[4px]"
               style={{ background: `var(--hue-${row.hue}-500)` }}
             />
-            <span className="flex-1 font-display text-[20px] text-fg">{row.name}</span>
+            <span
+              className={`flex-1 font-display text-[20px] text-fg ${
+                row.archived ? "line-through decoration-2" : ""
+              }`}
+            >
+              {row.name}
+            </span>
 
             {row.archived ? <Badge tone="neutral">{t("pipelines.off")}</Badge> : null}
 
@@ -106,11 +146,10 @@ export function Pipelines({
               })}
             </span>
 
-            <EditDialog church={church} row={row} team={team} pending={pending} />
-
             <IconButton
               label={row.archived ? t("pipelines.on") : t("pipelines.turnOff")}
               variant="ghost"
+              className="pointer-events-auto"
               disabled={pending}
               onClick={() => run(() => switchPipeline(row.id, !row.archived, church))}
             >
@@ -118,48 +157,50 @@ export function Pipelines({
             </IconButton>
           </div>
 
-          {row.steps.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {row.steps.map((step, at) => (
-                <span
-                  key={step.id}
-                  className="flex h-10 items-center gap-2 rounded-[10px] border border-line bg-canvas pr-1.5 pl-3"
-                >
-                  <span className="text-[11px] font-semibold text-fg-subtle tabular-nums">
-                    {at + 1}
-                  </span>
-                  <span className="text-label font-medium text-fg">{step.name}</span>
-                  <span className="text-[12px] text-fg-subtle">
-                    {t("pipelines.dueIn", { count: String(step.dueDays) })}
-                  </span>
-                  <IconButton
-                    label={t("pipelines.removeOne", { name: step.name })}
-                    className="size-6 min-h-0 rounded-full [&_svg]:size-3.5"
-                    disabled={pending}
-                    onClick={() =>
-                      writeSteps(
-                        row,
-                        row.steps.filter((one) => one.id !== step.id),
-                      )}
-                  >
-                    <X />
-                  </IconButton>
+          {/* The steps carry the stage's own colour, so a church reads the
+              order of a journey by its hue down the page. */}
+          <div className="pointer-events-none relative flex flex-wrap items-center gap-2">
+            {row.steps.map((step, at) => (
+              <span
+                key={step.id}
+                className={`${CHIP} gap-2 pr-1.5`}
+                style={{
+                  background: `var(--hue-${row.hue}-tint)`,
+                  color: `var(--hue-${row.hue}-key)`,
+                }}
+              >
+                <span className="text-[11px] font-semibold tabular-nums opacity-70">{at + 1}</span>
+                <span>{step.name}</span>
+                <span className="text-[12px] opacity-70">
+                  {t("pipelines.dueIn", { count: String(step.dueDays) })}
                 </span>
-              ))}
-            </div>
-          ) : null}
+                <IconButton
+                  label={t("pipelines.removeOne", { name: step.name })}
+                  className="pointer-events-auto size-6 min-h-0 rounded-full text-inherit [&_svg]:size-3.5"
+                  disabled={pending}
+                  onClick={() =>
+                    writeSteps(
+                      row,
+                      row.steps.filter((one) => one.id !== step.id),
+                    )}
+                >
+                  <X />
+                </IconButton>
+              </span>
+            ))}
 
-          <AddStep
-            pending={pending}
-            onAdd={(name) =>
-              writeSteps(row, [
-                ...row.steps.map((one) => ({ id: one.id, name: one.name, dueDays: one.dueDays })),
-                { id: "", name, dueDays: 7 },
-              ])}
-          />
+            <AddStep
+              pending={pending}
+              onAdd={(name, dueDays) =>
+                writeSteps(row, [
+                  ...row.steps.map((one) => ({ id: one.id, name: one.name, dueDays: one.dueDays })),
+                  { id: "", name, dueDays },
+                ])}
+            />
+          </div>
 
           {row.description ? (
-            <span className="text-fg-muted">{row.description}</span>
+            <span className="pointer-events-none relative text-fg-muted">{row.description}</span>
           ) : null}
         </section>
       ))}
@@ -167,38 +208,142 @@ export function Pipelines({
   );
 }
 
-/** R5.2. A step starts as a name. Its due day is set when it is edited. */
+/**
+ * R5.2. A step, asked for in a box rather than in a field left open on the page.
+ *
+ * The same shape the tags screen uses: the run of pills is what the card is,
+ * and the last pill makes another one.
+ */
 function AddStep({
   pending,
   onAdd,
 }: {
   pending: boolean;
-  onAdd: (name: string) => void;
+  onAdd: (name: string, dueDays: number) => void;
 }) {
+  const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
+  const [days, setDays] = React.useState("7");
+
+  const ready = name.trim() !== "" && Number.isInteger(Number(days)) && Number(days) >= 0;
 
   return (
-    <form
-      className="flex flex-wrap gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!name.trim()) return;
-        onAdd(name.trim());
-        setName("");
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          setName("");
+          setDays("7");
+        }
       }}
     >
-      <Input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder={t("pipelines.addStep")}
-        aria-label={t("pipelines.step")}
-        autoComplete="off"
-        className="min-w-50 flex-1"
-      />
-      <Button type="submit" variant="secondary" disabled={pending}>
-        {t("pipelines.addStep")}
-      </Button>
-    </form>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          disabled={pending}
+          className={`${CHIP} pointer-events-auto cursor-pointer gap-1.5 border border-dashed border-line-strong text-fg-muted hover:bg-sunken hover:text-fg`}
+        >
+          <Plus className="size-4" aria-hidden /> {t("pipelines.addStep")}
+        </button>
+      </DialogTrigger>
+
+      <DialogContent title={t("pipelines.addStep")} closeLabel={t("common.close")}>
+        <div className="flex flex-col gap-4">
+          <Field label={t("pipelines.step")} required>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
+          </Field>
+
+          <Field label={t("pipelines.days")}>
+            <Input
+              value={days}
+              inputMode="numeric"
+              onChange={(e) => setDays(e.target.value)}
+            />
+          </Field>
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={!ready}
+              onClick={() => {
+                onAdd(name.trim(), Number(days));
+                setOpen(false);
+              }}
+            >
+              {t("action.add")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** R5.2. A stage of this church's own, named where it is made. */
+export function NewPipeline({ church }: { church: string }) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
+  const [error, setError] = React.useState<string>();
+  const [pending, setPending] = React.useState(false);
+
+  const save = async () => {
+    setError(undefined);
+    setPending(true);
+    try {
+      const data = new FormData();
+      data.set("church", church);
+      data.set("name", name);
+      const result = await addPipeline(data);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setName("");
+      setOpen(false);
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button><Plus /> {t("pipelines.add")}</Button>
+      </DialogTrigger>
+
+      <DialogContent title={t("pipelines.addTitle")} closeLabel={t("common.close")}>
+        {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
+
+        <Field label={t("pipelines.name")} required>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="off"
+            autoFocus
+          />
+        </Field>
+
+        <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            {t("action.cancel")}
+          </Button>
+          <Button type="button" disabled={pending || !name.trim()} onClick={() => void save()}>
+            {t("action.add")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -207,11 +352,13 @@ function EditDialog({
   row,
   team,
   pending,
+  trigger,
 }: {
   church: string;
   row: PipelineRow;
   team: TeamMember[];
   pending: boolean;
+  trigger: React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -229,14 +376,7 @@ function EditDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <IconButton
-          label={t("action.edit")}
-          variant="secondary"
-        >
-          <Pencil />
-        </IconButton>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent title={row.name} closeLabel={t("common.close")} className="max-w-xl">
         <form
           noValidate
@@ -337,7 +477,7 @@ function EditDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
+            <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
           </div>
         </form>
       </DialogContent>

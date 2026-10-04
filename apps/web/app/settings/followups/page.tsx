@@ -3,7 +3,7 @@ import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
-import { Pipelines } from "./pipelines";
+import { Pipelines, NewPipeline } from "./pipelines";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,11 @@ export default async function PipelineSettingsPage({
 
   return (
     <>
-      <SettingsHeading title="settings.tab.followups" lede="settings.lede.followups" />
+      <SettingsHeading
+        title="settings.tab.followups"
+        lede="settings.lede.followups"
+        action={rows.length > 0 ? <NewPipeline church={session.tenantSlug} /> : undefined}
+      />
       <Pipelines
         church={session.tenantSlug}
         team={team.map((member) => ({ userId: member.userId, name: member.name }))}

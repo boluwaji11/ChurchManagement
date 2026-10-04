@@ -1,6 +1,6 @@
 "use server";
 
-import { withTenant, updatePipeline, setPipelineArchived } from "@hearth/db";
+import { withTenant, createPipeline, updatePipeline, setPipelineArchived } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
@@ -55,6 +55,22 @@ export async function switchPipeline(
   const ctx = await context(church);
   try {
     await withTenant(ctx, (tx) => setPipelineArchived(tx, ctx, id, off));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R5.2. A stage a church writes for itself. */
+export async function addPipeline(data: FormData): Promise<PipelineResult> {
+  const ctx = await context(field(data, "church") || undefined);
+  try {
+    await withTenant(ctx, (tx) =>
+      createPipeline(tx, ctx, {
+        name: field(data, "name"),
+        description: field(data, "description") || null,
+      }),
+    );
     return {};
   } catch (error) {
     return { error: explain(error) };

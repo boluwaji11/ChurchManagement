@@ -11,7 +11,7 @@ import {
   seedPipelines, listPipelines, enterPipeline, exitPipeline, completeFollowUp, reopenFollowUp,
   addTask, entriesFor, tasksFor, myFollowUps, unassignedFollowUps, assignFollowUp,
   pipelineBoard, peopleIn, isInPipeline, DEFAULT_PIPELINES,
-  updatePipeline, saveSteps, setPipelineArchived, assignableUsers,
+  createPipeline, updatePipeline, saveSteps, setPipelineArchived, assignableUsers,
 } from "../src/repo/followups";
 import { createPerson } from "../src/repo/people";
 import { InvalidInputError } from "../src/errors";
@@ -316,6 +316,28 @@ describe("editing the six (R5.2)", () => {
       "Coffee with them", "Introduce them to a team lead",
     ]);
     expect(after.steps.map((s) => s.dueDays)).toEqual([7, 14]);
+  });
+
+  it("makes a seventh, with a key of its own and a step to work", async () => {
+    const made = await run((tx) =>
+      createPipeline(tx, as(), { name: "Welcome home", description: "Somebody came back." }),
+    );
+
+    expect(made.key).toBe("welcome_home");
+    expect(made.steps).toHaveLength(1);
+    expect(made.archived).toBe(false);
+
+    const again = await run((tx) => createPipeline(tx, as(), { name: "Welcome home" }));
+    expect(again.key).toBe("welcome_home_2");
+
+    const all = await run((tx) => listPipelines(tx));
+    expect(all.filter((one) => one.name === "Welcome home")).toHaveLength(2);
+  });
+
+  it("refuses a seventh from somebody who does not run the church", async () => {
+    await expect(
+      run((tx) => createPipeline(tx, as("pastoral"), { name: "Mine" }), "pastoral"),
+    ).rejects.toBeInstanceOf(PermissionError);
   });
 
   it("leaves the people already in it alone", async () => {
