@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, bulkSetArchived, bulkSetStatus, bulkSetPersonTag, listPeople,
+  withTenant, bulkSetArchived, bulkSetStatus, bulkSetPersonTag, listPeople, addToGroup,
   type LifecycleStatus,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -109,4 +109,26 @@ export async function matchingIds(
     (tx) => listPeople(tx, { ...queryFromParams(params), viewer }),
   );
   return { ids: rows.map((row) => row.id) };
+}
+
+/** R9.4. Putting the people on screen into a group, in one go. */
+export async function bulkAddToGroup(data: FormData): Promise<BulkResult> {
+  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const ids = selection(data);
+  const groupId = field(data, "groupId");
+  if (!groupId || ids.length === 0) return { changed: 0 };
+
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    await withTenant(ctx, async (tx) => {
+      for (const personId of ids) {
+        await addToGroup(tx, actor, { groupId, personId, joinedOn: today });
+      }
+    });
+    revalidatePath("/people");
+    revalidatePath("/groups");
+    return { changed: ids.length };
+  } catch (error) {
+    return { error: explain(error) };
+  }
 }

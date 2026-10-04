@@ -19,6 +19,8 @@ export interface DirectoryParams {
   welcome?: string;
   /** R1.14. A saved list, which supplies either a set of people or its filters. */
   list?: string;
+  /** R2.x. An explicit selection, comma separated. Used by the export. */
+  ids?: string;
 }
 
 /**

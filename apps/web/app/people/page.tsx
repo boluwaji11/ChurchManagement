@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
-  listSavedLists, resolveList, countPeopleByStatus, PER_PAGE,
+  listSavedLists, resolveList, countPeopleByStatus, listGroups, PER_PAGE,
 } from "@hearth/db";
 import { Button, Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -39,7 +39,7 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { people, tags, counts, duplicates, matching, setup, lists, viewing } = await withTenant(
+  const { people, tags, groups, counts, duplicates, matching, setup, lists, viewing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // R1.14. A saved list is either a set of people or the filters it was
@@ -58,6 +58,7 @@ export default async function PeoplePage({
         people: await listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
         matching: await countPeople(tx, { ...query, viewer }),
         tags: await listTagsWithCounts(tx),
+        groups: await listGroups(tx),
         // R2.14. The numbers beside each status in the filter drawer.
         counts: await countPeopleByStatus(tx),
         duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
@@ -122,6 +123,7 @@ export default async function PeoplePage({
         lists={lists}
         viewing={viewing}
         tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
+        groups={groups.map((g) => ({ id: g.id, name: g.name, hue: g.typeHue }))}
         rows={people.map((p) => ({
           id: p.id,
           displayName: p.displayName,

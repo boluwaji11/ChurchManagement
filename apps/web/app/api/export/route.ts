@@ -87,6 +87,11 @@ async function exportView(
         : queryFromParams(params);
       if (opened?.kind === "static") query.ids = opened.ids ?? [];
 
+      // R2.x. A selection exports exactly what was picked, which is why it
+      // arrives as ids rather than as the filter they were picked from.
+      const picked = (params.ids ?? "").split(",").filter(Boolean);
+      if (picked.length > 0) query.ids = picked;
+
       return listPeople(tx, { ...query, viewer: { role: session.role, userId: session.userId } });
     },
   );

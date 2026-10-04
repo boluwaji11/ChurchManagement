@@ -4,21 +4,21 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
-  ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus,
-  ListFilter, BookmarkPlus, MinusCircle, Pencil, Copy, Cake, Printer,
+  ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge,
+  ListFilter, Pencil, Copy, Cake, Printer,
   SlidersHorizontal, Check, Tag, CheckCircle2,
 } from "lucide-react";
 import {
-  Avatar, Badge, Button, Field, Input, Checkbox, Banner, HueDot,
+  Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
   IconButton, EmptyState,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
+  Select, SelectTrigger, SelectContent, SelectItem,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
   cn, type Hue,
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
-import { bulkArchive, bulkStatus, bulkTag, matchingIds, type BulkResult } from "./bulk-actions";
-import { saveSelection, takeOffList, rename, archiveList } from "./list-actions";
+import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
+import { rename, archiveList } from "./list-actions";
 
 export interface ListOption {
   id: string;
@@ -48,6 +48,13 @@ export interface TagOption {
   hue: string;
 }
 
+/** R9.4. A group the people on screen can be put into. */
+export interface GroupOption {
+  id: string;
+  name: string;
+  hue?: string | null;
+}
+
 /**
  * R2.2. Where somebody is in the life of the church, as a colour.
  *
@@ -65,7 +72,6 @@ const STATUS_HUE: Record<string, string> = {
 const ANY = "__any";
 
 /** Radix needs a value, and an empty string is not one. */
-const NEW_LIST = "__new";
 
 /**
  * The directory: searching, filtering, sorting, and acting on a selection.
@@ -82,6 +88,7 @@ export function Directory({
   church,
   rows,
   tags,
+  groups,
   canEdit,
   canArchive,
   page,
@@ -95,6 +102,8 @@ export function Directory({
   church: string;
   rows: Row[];
   tags: TagOption[];
+  /** R9.4. The groups the selection can be put into. */
+  groups: GroupOption[];
   canEdit: boolean;
   canArchive: boolean;
   page: number;
@@ -266,27 +275,17 @@ export function Directory({
           count={selected.length}
           ids={selected}
           tags={tags}
-          canArchive={canArchive}
+          groups={groups}
           mergeHref={
             canArchive && selected.length === 2
               ? `/duplicates?church=${church}&a=${selected[0]}&b=${selected[1]}`
               : null
           }
           pending={pending}
-          total={matching}
-          onSelectAll={() => {
-            startTransition(async () => {
-              const all = await matchingIds(
-                Object.fromEntries(params.entries()),
-                church,
-              );
-              setSelected(all.ids);
-            });
-          }}
           onClear={() => setSelected([])}
           onTag={(tagId, on) => act(bulkTag, { tagId, on: on ? "1" : "0" })}
+          onGroup={(groupId) => act(bulkAddToGroup, { groupId })}
           onStatus={(status) => act(bulkStatus, { status })}
-          onArchive={() => act(bulkArchive, { archived: "1" })}
         />
       ) : null}
 
@@ -765,15 +764,13 @@ function SelectionBar({
   count,
   ids,
   tags,
-  canArchive,
+  groups,
   mergeHref,
   pending,
-  total,
-  onSelectAll,
   onClear,
   onTag,
+  onGroup,
   onStatus,
-  onArchive,
 }: {
   church: string;
   lists: ListOption[];
@@ -781,16 +778,14 @@ function SelectionBar({
   count: number;
   ids: string[];
   tags: TagOption[];
-  canArchive: boolean;
+  groups: GroupOption[];
+  /** R2.8. Set when exactly two are picked. */
   mergeHref: string | null;
   pending: boolean;
-  /** How many the filter matches, for "select all". */
-  total: number;
-  onSelectAll?: () => void;
   onClear: () => void;
   onTag: (tagId: string, on: boolean) => void;
+  onGroup: (groupId: string) => void;
   onStatus: (status: string) => void;
-  onArchive: () => void;
 }) {
   return (
     <div
@@ -808,33 +803,28 @@ function SelectionBar({
         {plural("directory.selected", count)}
       </span>
 
-      {onSelectAll && total > count ? (
-        <button
-          type="button"
-          onClick={onSelectAll}
-          className="rounded-sm px-1.5 text-[13px] font-medium text-primary hover:underline"
-        >
-          {t("directory.selectEvery", { count: total })}
-        </button>
-      ) : null}
-
       <span aria-hidden className="mx-1 h-5 w-px bg-line" />
 
+      {/* R16.x. The composer is deferred, so this opens the same shell the
+          person screen does and sends nothing. */}
+      <BulkMessage count={count} />
+
       {tags.length > 0 ? (
-        <>
-          <Picker
-            label={t("directory.bulkTag")}
-            icon={<Tag />}
-            options={tags.map((x) => ({ value: x.id, label: x.name, hue: x.hue }))}
-            onPick={(v) => onTag(v, true)}
-          />
-          <Picker
-            label={t("directory.bulkUntag")}
-            icon={<MinusCircle />}
-            options={tags.map((x) => ({ value: x.id, label: x.name, hue: x.hue }))}
-            onPick={(v) => onTag(v, false)}
-          />
-        </>
+        <Picker
+          label={t("directory.bulkTag")}
+          icon={<Tag />}
+          options={tags.map((x) => ({ value: x.id, label: x.name, hue: x.hue }))}
+          onPick={(v) => onTag(v, true)}
+        />
+      ) : null}
+
+      {groups.length > 0 ? (
+        <Picker
+          label={t("directory.bulkGroup")}
+          icon={<CircleDot />}
+          options={groups.map((g) => ({ value: g.id, label: g.name, hue: g.hue ?? undefined }))}
+          onPick={onGroup}
+        />
       ) : null}
 
       <Picker
@@ -844,14 +834,18 @@ function SelectionBar({
         onPick={onStatus}
       />
 
-      <AddToListDialog church={church} lists={lists} count={count} ids={ids} />
+      <Button
+        variant="ghost"
+        className="min-h-9 rounded-full px-2.5 text-[13px]"
+        asChild
+      >
+        <a href={`/api/export?church=${church}&ids=${ids.join(",")}`}>
+          <Download /> {t("directory.bulkExport")}
+        </a>
+      </Button>
 
-      {/* R1.14. On a picked list, taking somebody off it. A list that answers
-          itself has nobody to take off. */}
-      {viewing?.kind === "static" ? (
-        <TakeOffButton church={church} list={viewing} count={count} ids={ids} />
-      ) : null}
-
+      {/* R2.8. Two people picked is the question "are these the same person",
+          and the merge screen is where it is answered. */}
       {mergeHref ? (
         <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]" asChild>
           <Link href={mergeHref}>
@@ -860,37 +854,40 @@ function SelectionBar({
         </Button>
       ) : null}
 
-      {canArchive ? (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]">
-              <Archive /> {t("directory.bulkArchive")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent alert title={t("directory.bulkArchiveTitle", { count })}>
-            <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
-              {t("directory.bulkArchiveBody")}
-            </p>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="ghost" data-dismiss>{t("directory.bulkKeep")}</Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button variant="danger" onClick={onArchive}>
-                  <Archive /> {t("directory.bulkArchive")}
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      ) : null}
-
       <IconButton label={t("directory.clearSelection")} variant="ghost" onClick={onClear}>
         <X />
       </IconButton>
     </div>
   );
 }
+
+/**
+ * R16.x. The shell of the message the design draws on this bar.
+ *
+ * Messaging is deferred, so this opens, takes what somebody would send, and
+ * sends nothing. It is here because the bar in the design has it and because
+ * the person screen already carries the same shell.
+ */
+function BulkMessage({ count }: { count: number }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]">
+          <Mail /> {t("directory.bulkMessage")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent title={t("directory.messageTitle", { count })} closeLabel={t("common.close")}>
+        <Field label={t("message.text")}>
+          <Textarea name="body" rows={6} />
+        </Field>
+        <DialogFooter>
+          <Button disabled>{t("message.send")}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 /**
  * A menu that fires on choice and resets.
@@ -937,120 +934,6 @@ function Picker({
         ))}
       </SelectContent>
     </Select>
-  );
-}
-
-/** R1.14. Putting the people on screen onto a list, new or one that exists. */
-function AddToListDialog({
-  church,
-  lists,
-  count,
-  ids,
-}: {
-  church: string;
-  lists: ListOption[];
-  count: number;
-  ids: string[];
-}) {
-  const router = useRouter();
-  const [open, setOpen] = React.useState(false);
-  const [target, setTarget] = React.useState(NEW_LIST);
-  const [failed, setFailed] = React.useState<string>();
-  const [saving, startTransition] = React.useTransition();
-
-  // A list that answers itself cannot be added to, so it is not offered.
-  const picked = lists.filter((list) => list.kind === "static");
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost">
-          <BookmarkPlus /> {t("lists.addTo")}
-        </Button>
-      </DialogTrigger>
-      <DialogContent title={t("lists.addToTitle", { count })} closeLabel={t("common.close")}>
-        <form
-          noValidate
-          action={(data) => {
-            data.set("church", church);
-            if (target !== NEW_LIST) data.set("listId", target);
-            for (const id of ids) data.append("ids", id);
-            startTransition(async () => {
-              const result = await saveSelection(data);
-              setFailed(result.error);
-              if (!result.error) {
-                setOpen(false);
-                router.push(`/people?church=${church}&list=${result.id}`);
-              }
-            });
-          }}
-          className="flex flex-col gap-4"
-        >
-          {failed ? <Banner tone="danger" title={t("import.failed")}>{failed}</Banner> : null}
-
-          {picked.length > 0 ? (
-            <Field label={t("lists.which")}>
-              <Select value={target} onValueChange={setTarget}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NEW_LIST}>{t("lists.newList")}</SelectItem>
-                  {picked.map((list) => (
-                    <SelectItem key={list.id} value={list.id}>{list.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          ) : null}
-
-          {target === NEW_LIST ? (
-            <Field label={t("lists.name")} required>
-              <Input name="name" autoComplete="off" autoFocus />
-            </Field>
-          ) : null}
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" loading={saving}>{t("action.save")}</Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function TakeOffButton({
-  church,
-  list,
-  count,
-  ids,
-}: {
-  church: string;
-  list: { id: string; name: string };
-  count: number;
-  ids: string[];
-}) {
-  const router = useRouter();
-  const [pending, startTransition] = React.useTransition();
-
-  return (
-    <Button
-      variant="ghost"
-      loading={pending}
-      onClick={() =>
-        startTransition(async () => {
-          const data = new FormData();
-          data.set("church", church);
-          data.set("listId", list.id);
-          for (const id of ids) data.append("ids", id);
-          await takeOffList(data);
-          router.refresh();
-        })
-      }
-    >
-      <MinusCircle /> {t("lists.remove")}
-    </Button>
   );
 }
 
