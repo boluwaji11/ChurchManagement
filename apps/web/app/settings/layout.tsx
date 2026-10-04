@@ -93,7 +93,11 @@ export default async function SettingsLayout({ children }: { children: React.Rea
       <div className="flex flex-wrap items-start gap-7">
         <SettingsNav groups={groups} church={session.tenantSlug} />
 
-        <div className="flex min-w-0 flex-[999_1_400px] flex-col gap-5">{children}</div>
+        {/* A hairline between the menu and what it opened, so the two read as
+            two columns rather than one wide one. */}
+        <div className="flex min-w-0 flex-[999_1_400px] flex-col gap-5 md:border-l md:border-line md:pl-7">
+          {children}
+        </div>
       </div>
     </AppShell>
   );
