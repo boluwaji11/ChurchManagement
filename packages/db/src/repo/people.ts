@@ -1047,16 +1047,15 @@ export async function peopleToInvite(
  * crosses the boundary.
  *
  * Status, membership date and medical notes are the church's to set, so they
- * are not here.
+ * are not here, and neither is the email address: that is what they sign in
+ * with, and it changes under Security.
  */
 export async function updateOwnProfile(
   db: Tx,
-  actor: { tenantId: string; userId: string },
+  actor: { tenantId: string; userId: string; email: string },
   input: {
     firstName: string;
     lastName: string;
-    preferredName?: string | null;
-    email?: string | null;
     phone?: string | null;
     dateOfBirth?: string | null;
   },
@@ -1077,15 +1076,45 @@ export async function updateOwnProfile(
     .set({
       firstName,
       lastName,
-      preferredName: trimmed(input.preferredName),
       dateOfBirth: trimmed(input.dateOfBirth),
       updatedAt: new Date(),
     })
     .where(eq(people.id, mine.id));
 
   const who = { tenantId: actor.tenantId, role: "owner" as const, userId: actor.userId };
-  await setContact(db, who, mine.id, "email", input.email);
+  // R1.8. The address on the record is the address they sign in with. Changing
+  // it is an authentication change, asked for under Security and confirmed by
+  // email, so it is not something this form can quietly disagree with.
+  await setContact(db, who, mine.id, "email", actor.email);
   await setContact(db, who, mine.id, "phone", input.phone);
 
   return mine.id;
+}
+
+/**
+ * R17.1. Your own photograph.
+ *
+ * Takes a user id for the same reason updateOwnProfile does: the record is the
+ * one the account owns, so nobody sets a face on somebody else's card. Returns
+ * the key it replaced, which the caller takes out of the bucket.
+ */
+export async function setOwnPhoto(
+  db: Tx,
+  actor: { userId: string },
+  key: string | null,
+): Promise<{ removed: string | null }> {
+  const [mine] = await db
+    .select({ id: people.id, photoKey: people.photoKey })
+    .from(people)
+    .where(and(eq(people.appUserId, actor.userId), isNull(people.archivedAt)))
+    .limit(1);
+  if (!mine) throw new InvalidInputError("settings.profile.noRecord");
+
+  await db
+    .update(people)
+    .set({ photoKey: key, updatedAt: new Date() })
+    .where(eq(people.id, mine.id));
+
+  const old = mine.photoKey;
+  return { removed: old && old !== key ? old : null };
 }

@@ -4,6 +4,7 @@ import { t } from "@hearth/i18n";
 import { requireSession, currentSessionId } from "@/lib/session";
 import { Sessions } from "../sessions";
 import { Password } from "./password";
+import { ChangeEmail } from "./email";
 import { SettingsHeading } from "../heading";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ export default async function SecurityPage() {
   return (
     <div className="flex flex-col gap-5">
       <SettingsHeading title="settings.tab.security" lede="settings.lede.security" />
+      <ChangeEmail current={session.email} />
       <Password />
 
       {sessions === null ? (

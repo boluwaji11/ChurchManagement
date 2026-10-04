@@ -45,3 +45,22 @@ export async function emailMeALink(): Promise<PasswordResult> {
   });
   return error ? { error: explainAuth(error) } : {};
 }
+
+/**
+ * R1.8. Changing the address you sign in with.
+ *
+ * Supabase sends a confirmation to both the old and the new address, and the
+ * change lands only when it is answered. Nothing in our own tables moves here:
+ * app_users follows on the next sign-in, and the record's email follows that.
+ */
+export async function changeEmail(data: FormData): Promise<PasswordResult> {
+  const session = await requireSession();
+  const next = String(data.get("email") ?? "").trim().toLowerCase();
+
+  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(next)) return { error: t("email.error.format") };
+  if (next === session.email.toLowerCase()) return { error: t("email.error.same") };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.auth.updateUser({ email: next });
+  return error ? { error: explainAuth(error) } : {};
+}

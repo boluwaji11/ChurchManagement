@@ -4,6 +4,7 @@ import {
   withTenant, assertCanStore, recordFile, setChurchLogo, attachToItem, setGroupPhoto,
   canManageChurch, canManageServices, canManageGroups,
   type UploadPurpose,
+  setOwnPhoto,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -107,6 +108,11 @@ export async function POST(request: Request) {
       }
       if (purpose === "group_photo" && groupId) {
         return (await setGroupPhoto(tx, actor, groupId, key)).removed;
+      }
+      // R17.1. Somebody's own face. No id is read from the request: the record
+      // is the one the signed in account owns.
+      if (purpose === "person_photo") {
+        return (await setOwnPhoto(tx, { userId: session.userId }, key)).removed;
       }
       return null;
     });

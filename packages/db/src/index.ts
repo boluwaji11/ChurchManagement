@@ -24,7 +24,7 @@ export {
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listHouseholds,
   type HouseholdOption,
   bulkSetArchived, bulkSetStatus, countPeople, householdFor, addressFor, addressesFor, PER_PAGE,
-  peopleToInvite, updateOwnProfile,
+  peopleToInvite, updateOwnProfile, setOwnPhoto,
   type DirectoryQuery, type HouseholdCard,
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,

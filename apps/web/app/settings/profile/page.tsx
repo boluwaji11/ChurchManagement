@@ -6,6 +6,7 @@ import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { ProfileForm } from "./profile-form";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +32,21 @@ export default async function ProfilePage({
       if (!self) return null;
       const person = await getPerson(tx, self, { role: session.role, userId: session.userId });
       const contact = await getPersonForEdit(tx, self);
-      return { personId: self, person, contact };
+      return { personId: self, person, contact, photoKey: person?.photoKey ?? null };
     },
   );
+
+  /*
+   * The bucket is private, so a face is served through a signed URL with an
+   * hour on it. Every settings screen is force-dynamic, so a reader who leaves
+   * a tab open overnight gets a fresh one on their next navigation.
+   */
+  let photoUrl: string | null = null;
+  if (result?.photoKey) {
+    const supabase = await supabaseServer();
+    const signed = await supabase.storage.from("church").createSignedUrl(result.photoKey, 3600);
+    photoUrl = signed.data?.signedUrl ?? null;
+  }
 
   return (
     <>
@@ -46,12 +59,11 @@ export default async function ProfilePage({
             signedInAs={session.email}
             role={t(`role.${session.role}` as never)}
             churchName={session.tenantName}
+            photoUrl={photoUrl}
             values={{
               personId: result.personId,
               firstName: result.person.firstName,
               lastName: result.person.lastName,
-              preferredName: result.person.preferredName ?? "",
-              email: result.contact?.email ?? "",
               phone: result.contact?.phone ?? "",
               dateOfBirth: result.person.dateOfBirth ?? "",
             }}
