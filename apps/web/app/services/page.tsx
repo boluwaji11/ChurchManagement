@@ -113,14 +113,19 @@ export default async function ServicesPage({
         ) : undefined
       }
     >
-      <h2 className="font-display text-[28px] leading-[34px] text-fg">
-        {t("services.upcoming")}
-      </h2>
-
       {upcoming.length === 0 && past.length === 0 ? (
-        <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
+        <>
+          <h2 className="font-display text-[28px] leading-[34px] text-fg">
+            {t("services.upcoming")}
+          </h2>
+          <EmptyState title={t("services.none.title")} body={t("services.none.body")} />
+        </>
       ) : (
-        <ServiceBoard upcoming={upcoming.map(card)} past={past.map(card)} />
+        <ServiceBoard
+          title={t("services.upcoming")}
+          upcoming={upcoming.map(card)}
+          past={past.map(card)}
+        />
       )}
     </AppShell>
   );

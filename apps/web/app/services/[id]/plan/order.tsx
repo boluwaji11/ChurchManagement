@@ -224,7 +224,7 @@ export function Order({
                     over?.id === item.id && over.after && "shadow-[inset_0_-2px_0_0_var(--color-primary)]",
                   )}
                 >
-                  <div className="flex flex-wrap items-center gap-2.5 px-4 py-3">
+                  <div className="flex flex-nowrap items-center gap-2.5 px-4 py-3">
                     <GripVertical
                       className="size-4 shrink-0 cursor-grab text-line-strong"
                       aria-hidden
@@ -276,6 +276,21 @@ export function Order({
                       }
                     />
 
+                    {/* R11.7. On the item's own line: a chart belongs beside
+                        the song it is for, not under it. */}
+                    {item.files.length > 0 ? (
+                      <span className="flex min-w-0 max-w-[150px] shrink items-center gap-1">
+                        {item.files.map((file) => (
+                          <Attachment
+                            key={file.id}
+                            file={file}
+                            pending={pending}
+                            onRemove={() => run(() => dropFile(file.id, church))}
+                          />
+                        ))}
+                      </span>
+                    ) : null}
+
                     <span
                       data-numeric
                       className="shrink-0 whitespace-nowrap font-mono text-[13px] text-fg-muted"
@@ -296,24 +311,10 @@ export function Order({
                     </span>
                   </div>
 
-                  {/* R11.7, R11.6. What is attached to the item and what the
-                      team has been told, under the line they belong to. */}
-                  {item.files.length > 0 || item.notes.length > 0 ? (
+                  {/* R11.6. What the team has been told, under the line it
+                      belongs to. */}
+                  {item.notes.length > 0 ? (
                     <div className="flex flex-col gap-1 px-4 pb-3 pl-[136px]">
-                      {item.files.length > 0 ? (
-                        <ul className="flex flex-wrap gap-2">
-                          {item.files.map((file) => (
-                            <li key={file.id}>
-                              <Attachment
-                                file={file}
-                                pending={pending}
-                                onRemove={() => run(() => dropFile(file.id, church))}
-                              />
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-
                       {item.notes.map((note) => (
                         <div key={note.id} className="flex items-start gap-2">
                           <MessageSquare

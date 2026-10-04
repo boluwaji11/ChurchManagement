@@ -29,9 +29,12 @@ type View = "tiles" | "list";
  * newest first, where it is there to copy a plan from without being in the way.
  */
 export function ServiceBoard({
+  title,
   upcoming,
   past,
 }: {
+  /** The screen's heading, which shares a row with the view switch. */
+  title: string;
   upcoming: ServiceCard[];
   past: ServiceCard[];
 }) {
@@ -40,7 +43,9 @@ export function ServiceBoard({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-[28px] leading-[34px] text-fg">{title}</h2>
+
         <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
           {([
             ["tiles", LayoutGrid],

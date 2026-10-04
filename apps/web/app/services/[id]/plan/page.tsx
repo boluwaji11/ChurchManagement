@@ -83,7 +83,7 @@ export default async function PlanPage({
   return (
     <AppShell session={session} title={t("order.title")} wide>
       <div className="grid gap-6 lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           <Link
             href={`/services?church=${session.tenantSlug}`}
             className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
