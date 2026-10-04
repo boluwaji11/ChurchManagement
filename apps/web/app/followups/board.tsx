@@ -167,25 +167,36 @@ function AddToStage({
   onError: (error?: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
   const [people, setPeople] = React.useState<{ id: string; name: string }[]>([]);
   const [saving, startSaving] = React.useTransition();
 
+  /*
+   * Nothing is fetched until a name is being typed. A church of five hundred
+   * opening this and seeing the first fifty surnames in the alphabet learns
+   * nothing, and the only answer worth showing is the one being looked for.
+   */
   const look = React.useCallback(
     (search: string) => {
+      setQuery(search);
+      if (!search.trim()) {
+        setPeople([]);
+        return;
+      }
       void findPeople(pipelineId, search, church).then(setPeople);
     },
     [pipelineId, church],
   );
 
-  React.useEffect(() => {
-    if (open) look("");
-  }, [open, look]);
-
   if (!open) {
     return (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setQuery("");
+          setPeople([]);
+          setOpen(true);
+        }}
         disabled={pending}
         className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[12px] text-fg-subtle hover:bg-surface hover:text-fg"
       >
@@ -211,7 +222,7 @@ function AddToStage({
       }}
       onQueryChange={look}
       placeholder={t("board.findPerson")}
-      emptyLabel={t("board.noPerson")}
+      emptyLabel={query.trim() ? t("board.noPerson") : t("board.typeName")}
       clearLabel={t("date.clear")}
       aria-label={t("board.add")}
       disabled={saving}

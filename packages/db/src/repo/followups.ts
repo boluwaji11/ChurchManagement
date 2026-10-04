@@ -764,7 +764,7 @@ export async function peopleNotIn(
   db: Tx,
   pipelineId: string,
   search = "",
-  limit = 20,
+  limit = 50,
 ): Promise<{ id: string; name: string }[]> {
   const needle = search.trim().toLowerCase();
 
@@ -783,11 +783,12 @@ export async function peopleNotIn(
              and pe.pipeline_id = ${pipelineId}
              and pe.status = 'open'
         )`,
+        // Matched against the whole name, so "bella castro" finds her rather
+        // than finding nobody because the space is in neither column.
         needle
-          ? sql`(
-              lower(coalesce(${people.preferredName}, ${people.firstName})) like ${`%${needle}%`}
-              or lower(${people.lastName}) like ${`%${needle}%`}
-            )`
+          ? sql`lower(
+              coalesce(${people.preferredName}, ${people.firstName}) || ' ' || ${people.lastName}
+            ) like ${`%${needle}%`}`
           : undefined,
       ),
     )

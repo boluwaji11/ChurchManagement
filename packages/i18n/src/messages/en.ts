@@ -1185,6 +1185,7 @@ export const en = {
   "board.noPipeline": "No pipeline by that name",
   "board.add": "Add someone",
   "board.findPerson": "Search by name",
+  "board.typeName": "Type a name",
   "board.noPerson": "Nobody by that name",
   "board.finished": "Every step answered",
   "queue.week": "This week",
