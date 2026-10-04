@@ -155,7 +155,11 @@ export default async function CelebrationsPage({
             ))}
           </div>
           <Link
-            href={`/people/print?church=${session.tenantSlug}`}
+            href={`/people/celebrations/print?${new URLSearchParams({
+              church: session.tenantSlug,
+              view,
+              at,
+            }).toString()}`}
             target="_blank"
             className="flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
           >

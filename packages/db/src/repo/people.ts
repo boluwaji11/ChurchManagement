@@ -793,10 +793,80 @@ export async function addressFor(db: Tx, personId: string): Promise<string | nul
 
   // Their own wins over the household's.
   const row = rows.find((r) => r.personId === personId) ?? rows[0];
-  if (!row) return null;
+  return row ? oneLine(row) : null;
+}
 
+interface AddressParts {
+  line1: string | null;
+  line2: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+}
+
+/** An address on one line, the way it reads on an envelope. */
+function oneLine(row: AddressParts): string {
   const town = [row.city, row.region].filter(Boolean).join(" ");
   return [row.line1, row.line2, [town, row.postalCode].filter(Boolean).join(" ")]
     .filter(Boolean)
     .join(", ");
+}
+
+/**
+ * R2.11. The same answer for a list of people, in two queries.
+ *
+ * The card list prints an address against every name on it, and a month of
+ * birthdays is thirty names.
+ */
+export async function addressesFor(
+  db: Tx,
+  personIds: string[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (personIds.length === 0) return out;
+
+  const memberships = await db
+    .select({
+      personId: householdMemberships.personId,
+      householdId: householdMemberships.householdId,
+    })
+    .from(householdMemberships)
+    .where(
+      and(
+        inArray(householdMemberships.personId, personIds),
+        isNull(householdMemberships.endedOn),
+      ),
+    );
+
+  const houseOf = new Map(memberships.map((m) => [m.personId, m.householdId]));
+  const houses = [...new Set(memberships.map((m) => m.householdId))];
+
+  const rows = await db
+    .select({
+      line1: addresses.line1,
+      line2: addresses.line2,
+      city: addresses.city,
+      region: addresses.region,
+      postalCode: addresses.postalCode,
+      personId: addresses.personId,
+      householdId: addresses.householdId,
+    })
+    .from(addresses)
+    .where(
+      houses.length > 0
+        ? or(
+            inArray(addresses.personId, personIds),
+            inArray(addresses.householdId, houses),
+          )
+        : inArray(addresses.personId, personIds),
+    );
+
+  for (const id of personIds) {
+    const mine = rows.find((r) => r.personId === id);
+    const theirs = mine ?? rows.find((r) => r.householdId && r.householdId === houseOf.get(id));
+    const line = theirs ? oneLine(theirs) : "";
+    if (line) out.set(id, line);
+  }
+
+  return out;
 }

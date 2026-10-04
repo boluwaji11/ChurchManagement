@@ -11,7 +11,7 @@ export {
   listPeople, getPerson, countPeopleByStatus, listTags, listTagsForPerson,
   resolveTenantBySlug, listChurches, type PersonRow,
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listHouseholds,
-  bulkSetArchived, bulkSetStatus, countPeople, householdFor, addressFor, PER_PAGE,
+  bulkSetArchived, bulkSetStatus, countPeople, householdFor, addressFor, addressesFor, PER_PAGE,
   type DirectoryQuery, type HouseholdCard,
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
