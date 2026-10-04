@@ -80,8 +80,11 @@ export function ChurchForm({
       {/* R1.1. The design lays these out as a grid that fills the room it has
           rather than two fixed columns, so a wide screen reads three across. */}
       <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
-        <div className="flex items-center justify-between gap-3">
-          <span className="font-semibold text-fg">{t("church.details")}</span>
+        {/* The mark and the name read as the heading of the card, the way a
+            person's face and name do on their own screen. */}
+        <div className="flex flex-wrap items-center gap-4">
+          {logo}
+          <span className="min-w-0 flex-1 text-[17px] font-bold text-fg">{values.name}</span>
           {canEdit && !editing ? (
             <IconButton label={t("church.edit")} variant="ghost" onClick={() => onEditing(true)}>
               <Pencil />
@@ -89,12 +92,7 @@ export function ChurchForm({
           ) : null}
         </div>
 
-        {logo ? (
-          <>
-            {logo}
-            <hr className="border-0 border-t border-line" />
-          </>
-        ) : null}
+        <hr className="border-0 border-t border-line" />
 
         {editing ? null : <Reading values={values} regionLabel={regionLabel} />}
 
@@ -208,7 +206,7 @@ function href(website: string | null): string | undefined {
  */
 function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: string }) {
   const rows: Array<[string, string | null, string?]> = [
-    [t("church.name"), values.name],
+    // The name is the card's own heading, beside the mark.
     [t("church.legalName"), values.legalName],
     [t("church.address"), [values.addressLine1, values.addressLine2].filter(Boolean).join(", ")],
     [t("church.city"), values.city],

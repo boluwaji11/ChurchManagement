@@ -390,7 +390,6 @@ export const en = {
   "place.campus": "Campus",
   "place.failed": "That did not save. Try again.",
   "church.logo.uploading": "Uploading",
-  "church.details": "Details",
   "church.edit": "Edit details",
   "settings.export.building": "Building your export",
   "settings.export.failed": "That export did not finish. Try again.",
