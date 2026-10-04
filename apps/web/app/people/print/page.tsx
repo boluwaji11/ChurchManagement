@@ -30,7 +30,7 @@ export default async function PrintPeoplePage({
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-10 py-9 text-black print:max-w-none">
+    <main className="mx-auto min-h-dvh max-w-4xl px-10 py-9 bg-white text-black print:max-w-none">
       <AutoPrint />
       <style>{"@page { size: auto; margin: 0; }"}</style>
 

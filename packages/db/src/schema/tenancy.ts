@@ -69,6 +69,20 @@ export const tenants = pgTable(
      */
     joinCode: text("join_code"),
     /**
+     * R8.11. What goes on a child's label.
+     *
+     * The church's own layout rather than the station's, because a parent who
+     * collects from two different doors should be handed the same label, and a
+     * tablet swapped out at 9:55 should print what the one before it printed.
+     */
+    labelShowRoom: boolean("label_show_room").notNull().default(true),
+    labelShowAllergies: boolean("label_show_allergies").notNull().default(true),
+    labelShowCode: boolean("label_show_code").notNull().default(true),
+    labelShowService: boolean("label_show_service").notNull().default(true),
+    labelParentTag: boolean("label_parent_tag").notNull().default(true),
+    /** One of LABEL_SIZES. The stock the church loads into its printer. */
+    labelSize: text("label_size").notNull().default("brother_24x11"),
+    /**
      * R1.1, R21.x. When a human looked at this church and said it is a church.
      *
      * Null means provisional, which is where every new church starts. A

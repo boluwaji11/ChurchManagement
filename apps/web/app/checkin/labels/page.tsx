@@ -1,38 +1,53 @@
-import { withTenant, labelsFor } from "@hearth/db";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { withTenant, getLabelLayout, canManageStations } from "@hearth/db";
+import { Banner } from "@hearth/ui";
+import { t } from "@hearth/i18n";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
-import { LabelSheet } from "./sheet";
-import { LocalLabels } from "./local";
+import { LabelLayoutForm } from "./layout-form";
 
 export const dynamic = "force-dynamic";
 
 /**
- * R8.6, R8.11. The label pair, on its own page so it can be printed.
+ * R8.11. What prints when a child is checked in.
  *
- * A page of its own rather than a panel inside the desk, because printing a
- * region of a screen means fighting the browser over what to leave out, and
- * what gets left out by accident here is a child's room or their code.
+ * One layout for the church, with the label drawn beside the switches, because
+ * the only question anybody has here is what the thing in their hand will say.
  */
 export default async function LabelsPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    church?: string; service?: string; people?: string;
-    local?: string; printer?: string;
-  }>;
+  searchParams: Promise<{ church?: string }>;
 }) {
-  const { church, service, people, local, printer } = await searchParams;
-
-  // R8.24. A station with no network prints what it wrote down itself.
-  if (local) return <LocalLabels printer={printer} />;
-
+  const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const personIds = (people ?? "").split(",").filter(Boolean);
-  const labels = service
-    ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
-        labelsFor(tx, service, personIds, session.tenantName),
-      )
-    : [];
+  if (!canManageStations(session.role)) {
+    return (
+      <AppShell session={session} title={t("labels.title")}>
+        <Banner tone="info" title={t("labels.title")}>{t("forbidden.askAdmin")}</Banner>
+      </AppShell>
+    );
+  }
 
-  return <LabelSheet labels={labels} printer={printer} />;
+  const layout = await withTenant(
+    { tenantId: session.tenantId, role: session.role },
+    (tx) => getLabelLayout(tx, session.tenantId),
+  );
+
+  return (
+    <AppShell session={session} title={t("labels.title")} max="max-w-[880px]">
+      <Link
+        href={`/checkin?church=${session.tenantSlug}`}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("checkin.title")}
+      </Link>
+
+      <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("labels.title")}</h2>
+
+      <LabelLayoutForm church={session.tenantSlug} initial={layout} />
+    </AppShell>
+  );
 }

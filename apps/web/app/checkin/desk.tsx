@@ -164,8 +164,8 @@ export function Desk({
               };
             }),
           );
-          if (!openLabels(`/checkin/labels?local=1&printer=${printer}`)) {
-            setBlocked(`/checkin/labels?local=1&printer=${printer}`);
+          if (!openLabels(`/checkin/labels/print?local=1&printer=${printer}`)) {
+            setBlocked(`/checkin/labels/print?local=1&printer=${printer}`);
           }
         }
         return;
@@ -183,7 +183,7 @@ export function Desk({
       setPrinting(children);
       if (wearing.length > 0) {
         const href =
-          `/checkin/labels?church=${church}&service=${service}&printer=${printer}` +
+          `/checkin/labels/print?church=${church}&service=${service}&printer=${printer}` +
           `&people=${wearing.join(",")}`;
         if (!openLabels(href)) setBlocked(href);
       }

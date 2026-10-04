@@ -106,6 +106,12 @@ export function Floor({
             {t("board.arriving")} · {data.waiting.length}
           </h2>
 
+          {data.waiting.length === 0 ? (
+            <p className="m-auto px-4 text-center text-[13px] text-fg-subtle">
+              {t("board.noneArriving")}
+            </p>
+          ) : null}
+
           {data.waiting.map((child) => (
             <article
               key={child.visitId}

@@ -34,7 +34,7 @@ export default async function PrintDirectoryPage({
 
   if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
     return (
-      <main id="main" className="mx-auto max-w-lg px-4 py-8">
+      <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
         <Banner tone="info" title={t("printDirectory.title")}>{t("forbidden.askAdmin")}</Banner>
       </main>
     );
@@ -55,7 +55,7 @@ export default async function PrintDirectoryPage({
   );
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8 text-black print:max-w-none print:px-10 print:py-8">
+    <main className="mx-auto max-w-3xl px-6 py-8 bg-white text-black print:max-w-none print:px-10 print:py-8">
       <AutoPrint />
 
       {/* The browser's own header and footer come off, and the padding above

@@ -5,6 +5,7 @@ import { Printer } from "lucide-react";
 import { Button, EmptyState, STOCK, printCss, stockOf, type Stock } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import type { LabelPair } from "@hearth/db";
+import { DEFAULT_LABEL_LAYOUT, type LabelLayout } from "@hearth/db/rules";
 
 /**
  * R8.11, R8.25, R8.26. Two labels a child, printed together.
@@ -23,10 +24,13 @@ import type { LabelPair } from "@hearth/db";
 export function LabelSheet({
   labels,
   printer,
+  layout = DEFAULT_LABEL_LAYOUT,
 }: {
   labels: LabelPair[];
   /** The station's stock. Anything unrecognised is a sheet of paper. */
   printer?: string;
+  /** R8.11. What the church has said goes on a label. */
+  layout?: LabelLayout;
 }) {
   const stock = stockOf(printer);
 
@@ -76,22 +80,26 @@ export function LabelSheet({
                 stock={stock}
                 name={label.childName}
                 code={label.code}
-                room={label.roomName}
+                room={layout.showRoom ? label.roomName : null}
                 roomHue={label.roomHue}
-                lines={[label.serviceName, label.churchName]}
-                allergy={label.allergy}
+                lines={layout.showService ? [label.serviceName, label.churchName] : [label.churchName]}
+                allergy={layout.showAllergies ? label.allergy : null}
                 kind={t("labels.child")}
               />
-              <Label
-                stock={stock}
-                name={label.childName}
-                code={label.code}
-                room={label.roomName}
-                roomHue={label.roomHue}
-                lines={[t("labels.guardianLine")]}
-                allergy={null}
-                kind={t("labels.guardian")}
-              />
+              {/* R8.11. The guardian's half of the pair, which a church can
+                  switch off where it hands nothing over. */}
+              {layout.parentTag ? (
+                <Label
+                  stock={stock}
+                  name={label.childName}
+                  code={label.code}
+                  room={layout.showRoom ? label.roomName : null}
+                  roomHue={label.roomHue}
+                  lines={[t("labels.guardianLine")]}
+                  allergy={null}
+                  kind={t("labels.guardian")}
+                />
+              ) : null}
               {/* R8.12. The bag or the stroller, carrying the same code, so a
                   bag in a corridor says whose it is. No allergy on it: a bag
                   gets left in places a child's medical note should not be. */}

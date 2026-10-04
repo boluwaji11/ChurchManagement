@@ -57,7 +57,7 @@ export default async function PrintPlanPage({
   const timed = runningTimes(plan.serviceStartsAt, plan.items);
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-8 text-black print:max-w-none print:px-10 print:py-8">
+    <main className="mx-auto min-h-dvh max-w-2xl px-6 py-8 bg-white text-black print:max-w-none print:px-10 print:py-8">
       <AutoPrint />
 
       {/* The browser draws its own date, title, URL and page number into the

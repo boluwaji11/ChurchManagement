@@ -34,6 +34,7 @@ export {
 export * from "./repo/relationships";
 export * from "./repo/milestones";
 export * from "./repo/church";
+export * from "./repo/label-layout";
 export * from "./repo/campuses";
 export * from "./repo/provisional";
 export * from "./repo/public-groups";

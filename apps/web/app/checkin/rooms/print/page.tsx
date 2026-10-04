@@ -43,7 +43,7 @@ export default async function RosterPrintPage({
 
   if (!canSupervise(session.role) || !service) {
     return (
-      <main id="main" className="mx-auto max-w-lg px-4 py-8">
+      <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
         <Banner tone="info" title={t("print.roster.title")}>{t("forbidden.askAdmin")}</Banner>
       </main>
     );
@@ -77,7 +77,7 @@ export default async function RosterPrintPage({
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-10 py-9 text-black print:max-w-none">
+    <main className="mx-auto max-w-4xl px-10 py-9 bg-white text-black print:max-w-none">
       <AutoPrint />
       <style>{"@page { size: auto; margin: 0; }"}</style>
 
