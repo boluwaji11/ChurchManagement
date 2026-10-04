@@ -699,6 +699,8 @@ export const en = {
   "fields.choicesPlaceholder": "Vegetarian\nGluten free\nNut allergy",
   "fields.deleteBody": "Deletes the field and everything recorded in it. This cannot be undone.",
   "fields.deleteAction": "Delete {name}",
+  "fields.editOne": "Edit {name}",
+  "fields.deleteOne": "Delete {name}",
   "fields.keep": "Keep it",
   "fields.empty.title": "No fields yet",
   "fields.empty.body": "Dietary notes. Parking permit. Usual service.",

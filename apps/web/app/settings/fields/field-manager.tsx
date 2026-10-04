@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
 import {
-  Button, IconButton, Input, Textarea, Field, Separator, Banner,
-  Dialog, DialogTrigger, DialogContent, DialogClose,
+  Banner, Button, IconButton, Input, Textarea, Field,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -35,12 +36,15 @@ const isKnownType = (type: string): type is FieldTypeValue =>
 const typeLabel = (type: string): string => (isKnownType(type) ? t(`fieldType.${type}`) : type);
 const hasChoices = (type: string) => type === "select" || type === "multi_select";
 
+/** The icon for the shape an answer takes, which reads faster than the word. */
+const iconFor = (type: string) => TYPES.find((one) => one.value === type)?.icon ?? Type;
+
 /**
  * R1.10. Every extra detail this church keeps on a person.
  *
- * One card, a row per field with what it is called and what shape its answer
- * takes, and the row that adds another underneath. The design's shape, and the
- * one a church reads down in a second.
+ * A row per field: what it is called, the shape its answer takes, and the
+ * choices where it offers any. The whole row opens it in the right-hand pane,
+ * which is where everything else in the product is edited.
  */
 export function FieldManager({
   church,
@@ -51,84 +55,48 @@ export function FieldManager({
   fields: FieldItem[];
   canManage: boolean;
 }) {
+  if (fields.length === 0) return null;
+
   return (
     <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
-      {fields.map((f) => (
-        <div
-          key={f.id}
-          className="flex min-h-14 flex-wrap items-center gap-3 border-b border-sunken py-2"
-        >
-          <span className="min-w-0 flex-1">
-            <span className="font-medium text-fg">{f.label}</span>
-            {f.options ? (
-              <span className="block text-[12px] text-fg-subtle">{f.options.join(", ")}</span>
+      {fields.map((field) => {
+        const Icon = iconFor(field.type);
+
+        return (
+          <div
+            key={field.id}
+            className="relative flex min-h-14 items-center gap-3 border-b border-sunken py-2 last:border-0"
+          >
+            {canManage ? (
+              <FieldSheet church={church} field={field}>
+                <button
+                  type="button"
+                  aria-label={t("fields.editOne", { name: field.label })}
+                  className="absolute inset-0 cursor-pointer rounded-md"
+                />
+              </FieldSheet>
             ) : null}
-          </span>
 
-          <span className="flex h-6.5 items-center rounded-full bg-sunken px-2.5 text-[12px] font-medium text-fg-muted">
-            {typeLabel(f.type)}
-          </span>
+            <span className="pointer-events-none relative grid size-9 shrink-0 place-items-center rounded-[10px] bg-sunken text-fg-muted">
+              <Icon className="size-[18px]" aria-hidden />
+            </span>
 
-          {canManage ? <EditField church={church} field={f} /> : null}
-        </div>
-      ))}
+            <span className="pointer-events-none relative min-w-0 flex-1">
+              <span className="block font-medium text-fg">{field.label}</span>
+              {field.options ? (
+                <span className="block truncate text-[12px] text-fg-subtle">
+                  {field.options.join(", ")}
+                </span>
+              ) : null}
+            </span>
 
-      {canManage ? <NewField church={church} /> : null}
+            <span className="pointer-events-none relative flex h-6.5 shrink-0 items-center rounded-full bg-sunken px-2.5 text-[12px] font-medium text-fg-muted">
+              {typeLabel(field.type)}
+            </span>
+          </div>
+        );
+      })}
     </section>
-  );
-}
-
-function NewField({ church }: { church: string }) {
-  const formRef = React.useRef<HTMLFormElement>(null);
-  const [type, setType] = React.useState("text");
-  const [error, setError] = React.useState<string>();
-  const [pending, setPending] = React.useState(false);
-
-  const action = async (data: FormData) => {
-    setError(undefined);
-    setPending(true);
-    try {
-      const result = await addField(data);
-      if (result.error) setError(result.error);
-      else {
-        formRef.current?.reset();
-        setType("text");
-      }
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return (
-    <form ref={formRef} action={action} noValidate className="flex flex-col gap-2 py-3.5">
-      <input type="hidden" name="church" value={church} />
-
-      <div className="flex flex-wrap gap-2">
-        <Input
-          name="label"
-          autoComplete="off"
-          placeholder={t("fields.new")}
-          aria-label={t("fields.new")}
-          className="min-w-45 flex-1"
-        />
-
-        <Select name="type" value={type} onValueChange={setType}>
-          <SelectTrigger aria-label={t("fields.type")} className="w-44">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {TYPES.map((one) => (
-              <SelectItem key={one.value} value={one.value}>{typeLabel(one.value)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Button type="submit" loading={pending}>{t("fields.add")}</Button>
-      </div>
-
-      {hasChoices(type) ? <Choices /> : null}
-      {error ? <p role="alert" className="text-caption text-danger-text">{error}</p> : null}
-    </form>
   );
 }
 
@@ -136,16 +104,48 @@ function NewField({ church }: { church: string }) {
 function Choices({ defaultValue }: { defaultValue?: string }) {
   return (
     <Field label={t("fields.choices")}>
-      <Textarea name="options" rows={4} defaultValue={defaultValue} placeholder={t("fields.choicesPlaceholder")} />
+      <Textarea
+        name="options"
+        rows={4}
+        defaultValue={defaultValue}
+        placeholder={t("fields.choicesPlaceholder")}
+      />
     </Field>
   );
 }
 
-function EditField({ church, field }: { church: string; field: FieldItem }) {
+/**
+ * R1.10. A field's name, the shape of its answer, and its choices.
+ *
+ * Adding and editing ask the same thing, so they are the same pane. The type is
+ * fixed once a field exists: answers are already stored against it, and turning
+ * a date into a list would leave every one of them unreadable.
+ */
+function FieldSheet({
+  church,
+  field,
+  children,
+}: {
+  church: string;
+  /** The field being changed, or nothing when one is being added. */
+  field?: FieldItem;
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  const [type, setType] = React.useState(field?.type ?? "text");
+  const [label, setLabel] = React.useState(field?.label ?? "");
   const [error, setError] = React.useState<string>();
-  const [pending, setPending] = React.useState(false);
   const [confirming, setConfirming] = React.useState(false);
+  const [pending, setPending] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setType(field?.type ?? "text");
+    setLabel(field?.label ?? "");
+    setError(undefined);
+    setConfirming(false);
+  }, [open, field?.type, field?.label]);
 
   const run = async (fn: (d: FormData) => Promise<{ error?: string }>, data: FormData) => {
     setError(undefined);
@@ -153,72 +153,127 @@ function EditField({ church, field }: { church: string; field: FieldItem }) {
     try {
       const result = await fn(data);
       if (result.error) setError(result.error);
-      else setOpen(false);
+      else {
+        setOpen(false);
+        router.refresh();
+      }
     } finally {
       setPending(false);
     }
   };
 
-  const reset = (next: boolean) => {
-    setOpen(next);
-    if (!next) {
-      setError(undefined);
-      setConfirming(false);
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={reset}>
-      <DialogTrigger asChild>
-        <IconButton
-          label={t("action.edit")}
-          variant="ghost"
-        >
-          <Pencil />
-        </IconButton>
-      </DialogTrigger>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{children}</SheetTrigger>
 
-      <DialogContent title={field.label} description={typeLabel(field.type)} closeLabel={t("common.close")}>
-        {error ? <Banner tone="danger" title={t("fields.failed")} className="mb-4">{error}</Banner> : null}
+      <SheetContent
+        title={field ? field.label : t("fields.add")}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            {field ? (
+              <IconButton
+                label={t("fields.deleteOne", { name: field.label })}
+                variant="ghost"
+                className="mr-auto"
+                disabled={pending}
+                onClick={() => setConfirming(true)}
+              >
+                <Trash2 />
+              </IconButton>
+            ) : null}
 
-        <form action={(d) => run(saveField, d)} className="flex flex-col gap-4">
-          <input type="hidden" name="church" value={church} />
-          <input type="hidden" name="id" value={field.id} />
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              form="field-form"
+              disabled={pending || !label.trim()}
+              aria-disabled={pending || !label.trim()}
+            >
+              {field ? t("action.save") : t("action.add")}
+            </Button>
+          </>
+        }
+      >
+        {error ? <Banner tone="danger" title={t("fields.failed")}>{error}</Banner> : null}
 
-          <Field label={t("fields.name")} required>
-            <Input name="label" defaultValue={field.label} autoComplete="off" />
-          </Field>
-
-          {hasChoices(field.type) ? <Choices defaultValue={(field.options ?? []).join("\n")} /> : null}
-
-          <div className="flex items-center gap-3">
-            <Button type="submit" loading={pending}>{t("action.save")}</Button>
-            <DialogClose asChild>
-              <Button type="button" variant="ghost">{t("action.cancel")}</Button>
-            </DialogClose>
-          </div>
-        </form>
-
-        <Separator className="my-5" />
-
-        {confirming ? (
-          <form action={(d) => run(removeField, d)} className="flex flex-col gap-3">
+        {confirming && field ? (
+          <form
+            action={(d) => run(removeField, d)}
+            className="flex flex-col gap-3 rounded-[14px] border border-danger bg-surface p-4"
+          >
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="id" value={field.id} />
             <p className="text-[length:var(--d-text-body)] text-fg">{t("fields.deleteBody")}</p>
-            <div className="flex items-center gap-3">
-              <Button type="submit" variant="danger" loading={pending}>
-                <Trash2 /> {t("fields.deleteAction", { name: field.label })}
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
+                {t("fields.keep")}
               </Button>
-              <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>{t("fields.keep")}</Button>
+              <Button type="submit" variant="danger" loading={pending}>
+                {t("fields.deleteAction", { name: field.label })}
+              </Button>
             </div>
           </form>
-        ) : (
-          <Button type="button" variant="ghost" onClick={() => setConfirming(true)}>
-            <Trash2 /> {t("action.delete")}
-          </Button>
-        )}
-      </DialogContent>
-    </Dialog>
+        ) : null}
+
+        <form
+          id="field-form"
+          action={(d) => run(field ? saveField : addField, d)}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          <input type="hidden" name="church" value={church} />
+          {field ? <input type="hidden" name="id" value={field.id} /> : null}
+
+          <Field label={t("fields.name")} required>
+            <Input
+              name="label"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
+          </Field>
+
+          {field ? (
+            <Field label={t("fields.type")}>
+              <Input value={typeLabel(field.type)} readOnly disabled />
+            </Field>
+          ) : (
+            <Field label={t("fields.type")}>
+              <Select name="type" value={type} onValueChange={setType}>
+                <SelectTrigger aria-label={t("fields.type")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPES.map((one) => (
+                    <SelectItem key={one.value} value={one.value}>
+                      {typeLabel(one.value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
+          {hasChoices(field?.type ?? type) ? (
+            <Choices defaultValue={(field?.options ?? []).join("\n")} />
+          ) : null}
+        </form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/** R1.10. The one action this screen carries, beside its title. */
+export function NewField({ church }: { church: string }) {
+  return (
+    <FieldSheet church={church}>
+      <Button>
+        <Plus /> {t("fields.add")}
+      </Button>
+    </FieldSheet>
   );
 }

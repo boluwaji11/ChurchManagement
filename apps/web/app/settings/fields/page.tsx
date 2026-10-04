@@ -1,7 +1,7 @@
 import { withTenant, listCustomFields, canManageCustomFields } from "@hearth/db";
 import { Banner, EmptyState } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
-import { FieldManager } from "./field-manager";
+import { FieldManager, NewField } from "./field-manager";
 import { t } from "@hearth/i18n";
 import { SettingsHeading } from "../heading";
 
@@ -23,7 +23,11 @@ export default async function FieldsPage({
 
   return (
     <div className="flex flex-col gap-5">
-      <SettingsHeading title="settings.tab.fields" lede="settings.lede.fields" />
+      <SettingsHeading
+        title="settings.tab.fields"
+        lede="settings.lede.fields"
+        action={canManage ? <NewField church={session.tenantSlug} /> : undefined}
+      />
 
 
         {fields.length === 0 && canManage ? (
