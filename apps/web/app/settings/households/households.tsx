@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, Merge, Pencil, Plus, Undo2, X } from "lucide-react";
+import { Archive, Merge, Plus, Undo2, X } from "lucide-react";
 import {
   Avatar, Banner, Button, Field, IconButton, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -78,15 +78,31 @@ export function HouseholdList({
           {open.map((household) => (
             <article
               key={household.id}
-              className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
+              className="relative flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 hover:border-line-strong"
             >
-              <div className="flex items-center gap-3 border-b border-sunken pb-3">
+              {/* R24.6. The whole card opens the family. The trigger is a layer
+                  over it rather than a wrapper around it, so merge, archive and
+                  every person's chip stay controls of their own. */}
+              <EditHousehold
+                household={household}
+                pending={pending}
+                run={run}
+                church={church}
+                trigger={
+                  <button
+                    type="button"
+                    aria-label={t("households.edit", { name: household.name })}
+                    className="absolute inset-0 cursor-pointer rounded-[14px]"
+                  />
+                }
+              />
+
+              <div className="pointer-events-none relative flex items-center gap-3 border-b border-sunken pb-3">
                 <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold text-fg">
                   {household.name}
                 </h3>
 
-                <div className="flex shrink-0 items-center gap-0.5">
-                  <EditHousehold household={household} pending={pending} run={run} church={church} />
+                <div className="pointer-events-auto flex shrink-0 items-center gap-0.5">
                   <MergeInto
                     household={household}
                     others={households.filter((one) => !one.archived && one.id !== household.id)}
@@ -101,7 +117,7 @@ export function HouseholdList({
               {household.members.length === 0 ? (
                 <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
               ) : (
-                <ul className="flex flex-wrap gap-1.5">
+                <ul className="relative flex flex-wrap gap-1.5">
                   {household.members.map((member) => (
                     <li key={member.id}>
                       <Link
@@ -170,61 +186,25 @@ function EditHousehold({
   household,
   pending,
   run,
+  trigger,
 }: {
   church: string;
   household: HouseholdItem;
   pending: boolean;
   run: (work: () => Promise<{ error?: string }>) => void;
+  trigger: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
   const [name, setName_] = React.useState(household.name);
-  const [find, setFind] = React.useState("");
-  const [free, setFree] = React.useState<{ id: string; name: string }[]>([]);
-  const [looking, setLooking] = React.useState(false);
 
   React.useEffect(() => {
-    if (open) {
-      setName_(household.name);
-      setFind("");
-    }
+    if (open) setName_(household.name);
   }, [open, household.name]);
 
-  // Searched on the server rather than filtered here: a church of 500 is not a
-  // list to ship to the browser so a box can match six characters against it.
-  React.useEffect(() => {
-    // Nothing until somebody types. A church of 500 opening this box should see
-    // the family it came for, not four hundred names it has to scroll past.
-    if (!open || find.trim().length < 2) {
-      setFree([]);
-      return;
-    }
-
-    let live = true;
-    setLooking(true);
-    const timer = setTimeout(async () => {
-      const rows = await freePeople(find, church);
-      if (live) {
-        setFree(rows);
-        setLooking(false);
-      }
-    }, 200);
-    return () => {
-      live = false;
-      clearTimeout(timer);
-    };
-  }, [open, find, church, household.members.length]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <IconButton
-          label={t("households.edit", { name: household.name })}
-          variant="ghost"
-          disabled={pending}
-        >
-          <Pencil />
-        </IconButton>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent title={household.name} closeLabel={t("common.close")} className="max-w-xl">
         <div className="flex flex-col gap-5">
@@ -241,100 +221,169 @@ function EditHousehold({
             />
           </Field>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-label text-fg">{t("households.people")}</span>
-
-            {household.members.length === 0 ? (
-              <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
-            ) : (
-              <ul className="flex flex-col">
-                {household.members.map((member) => (
-                  <li
-                    key={member.id}
-                    className="flex items-center gap-2.5 border-b border-sunken py-2 last:border-0"
-                  >
-                    <Avatar
-                      name={member.name}
-                      id={member.id}
-                      className="size-7 text-[11px] font-semibold"
-                    />
-                    <span className="min-w-0 flex-1 truncate font-medium text-fg">
-                      {member.name}
-                    </span>
-
-                    <Select
-                      value={member.role}
-                      onValueChange={(next) =>
-                        run(() => setRole(household.id, member.id, next, church))
-                      }
-                    >
-                      <SelectTrigger
-                        aria-label={t("personForm.householdRole")}
-                        className="w-36 shrink-0"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {householdRoleOptions().map((one) => (
-                          <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <TakeOut
-                      church={church}
-                      household={household}
-                      member={member}
-                      pending={pending}
-                      run={run}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-label text-fg">{t("households.addPerson")}</span>
-
-            <SearchField
-              value={find}
-              onChange={setFind}
-              placeholder={t("households.addPersonSearch")}
-            />
-
-            {find.trim().length < 2 ? (
-              <p className="text-[13px] text-fg-subtle">{t("households.addPersonHint")}</p>
-            ) : looking ? null : free.length === 0 ? (
-              <p className="text-[13px] text-fg-subtle">{t("households.addPersonNone")}</p>
-            ) : (
-              <ul className="flex max-h-56 flex-col overflow-auto">
-                {free.map((person) => (
-                  <li key={person.id}>
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => run(() => putIn(household.id, person.id, church))}
-                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-1 py-2 text-left hover:bg-sunken"
-                    >
-                      <Avatar
-                        name={person.name}
-                        id={person.id}
-                        className="size-7 text-[11px] font-semibold"
-                      />
-                      <span className="min-w-0 flex-1 truncate font-medium text-fg">
-                        {person.name}
-                      </span>
-                      <Plus className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <Members
+            church={church}
+            household={household}
+            pending={pending}
+            run={run}
+          />
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * R2.1. Who is in a household, and the way to change that.
+ *
+ * Shared by the family being edited and the one being made, so adding somebody
+ * works the same in both and a church never has to go back to the list to
+ * finish what it started.
+ */
+function Members({
+  church,
+  household,
+  pending,
+  run,
+  onAdded,
+  onRemoved,
+  onRole,
+}: {
+  church: string;
+  household: HouseholdItem;
+  pending: boolean;
+  run: (work: () => Promise<{ error?: string }>) => void;
+  /** Given while a household is being made, where the list is held here. */
+  onAdded?: (person: { id: string; name: string }) => void;
+  onRemoved?: (id: string) => void;
+  onRole?: (id: string, role: string) => void;
+}) {
+  const [find, setFind] = React.useState("");
+  const [free, setFree] = React.useState<{ id: string; name: string }[]>([]);
+  const [looking, setLooking] = React.useState(false);
+
+  /*
+   * Searched on the server, and nothing until somebody types. A church of 500
+   * is not a list to ship to the browser, and opening this box should show the
+   * family it was opened for rather than four hundred names to scroll past.
+   */
+  React.useEffect(() => {
+    if (find.trim().length < 2) {
+      setFree([]);
+      return;
+    }
+
+    let live = true;
+    setLooking(true);
+    const timer = setTimeout(async () => {
+      const rows = await freePeople(find, church);
+      if (live) {
+        setFree(rows.filter((one) => !household.members.some((m) => m.id === one.id)));
+        setLooking(false);
+      }
+    }, 200);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [find, church, household.members]);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <span className="text-label text-fg">{t("households.people")}</span>
+
+        {household.members.length === 0 ? (
+          <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
+        ) : (
+          <ul className="flex flex-col">
+            {household.members.map((member) => (
+              <li
+                key={member.id}
+                className="flex items-center gap-2.5 border-b border-sunken py-2 last:border-0"
+              >
+                <Avatar
+                  name={member.name}
+                  id={member.id}
+                  className="size-7 text-[11px] font-semibold"
+                />
+                <span className="min-w-0 flex-1 truncate font-medium text-fg">{member.name}</span>
+
+                <Select
+                  value={member.role}
+                  onValueChange={(next) => {
+                    onRole?.(member.id, next);
+                    run(() => setRole(household.id, member.id, next, church));
+                  }}
+                >
+                  <SelectTrigger
+                    aria-label={t("personForm.householdRole")}
+                    className="w-36 shrink-0"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {householdRoleOptions().map((one) => (
+                      <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <TakeOut
+                  church={church}
+                  household={household}
+                  member={member}
+                  pending={pending}
+                  run={run}
+                  onRemoved={onRemoved}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-label text-fg">{t("households.addPerson")}</span>
+
+        <SearchField
+          value={find}
+          onChange={setFind}
+          placeholder={t("households.addPersonSearch")}
+        />
+
+        {find.trim().length < 2 ? (
+          <p className="text-[13px] text-fg-subtle">{t("households.addPersonHint")}</p>
+        ) : looking ? null : free.length === 0 ? (
+          <p className="text-[13px] text-fg-subtle">{t("households.addPersonNone")}</p>
+        ) : (
+          <ul className="flex max-h-56 flex-col overflow-auto">
+            {free.map((person) => (
+              <li key={person.id}>
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => {
+                    onAdded?.(person);
+                    setFree((prev) => prev.filter((one) => one.id !== person.id));
+                    run(() => putIn(household.id, person.id, church));
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-1 py-2 text-left hover:bg-sunken"
+                >
+                  <Avatar
+                    name={person.name}
+                    id={person.id}
+                    className="size-7 text-[11px] font-semibold"
+                  />
+                  <span className="min-w-0 flex-1 truncate font-medium text-fg">{person.name}</span>
+                  <Plus className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -345,12 +394,14 @@ function TakeOut({
   member,
   pending,
   run,
+  onRemoved,
 }: {
   church: string;
   household: HouseholdItem;
   member: HouseholdItem["members"][number];
   pending: boolean;
   run: (work: () => Promise<{ error?: string }>) => void;
+  onRemoved?: (id: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -383,6 +434,7 @@ function TakeOut({
             variant="danger"
             disabled={pending}
             onClick={() => {
+              onRemoved?.(member.id);
               run(() => takeOut(household.id, member.id, church));
               setOpen(false);
             }}
@@ -517,53 +569,103 @@ function MergeInto({
   );
 }
 
-/** R2.1. The one action this screen carries, beside its title. */
+/**
+ * R2.1. A new family: named, then filled.
+ *
+ * The same box carries on after the name is saved, because a church adding a
+ * household is adding the people in it, and sending them back to the list to
+ * find the row they just made is asking them to do the job twice.
+ */
 export function NewHousehold({ church }: { church: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName_] = React.useState("");
+  const [made, setMade] = React.useState<{ id: string; name: string } | null>(null);
+  const [members, setMembers] = React.useState<HouseholdItem["members"]>([]);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
-  const save = () =>
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      // Whatever was built in here is on the list behind it now.
+      if (made) router.refresh();
+      setName_("");
+      setMade(null);
+      setMembers([]);
+      setError(undefined);
+    }
+  };
+
+  const create = () =>
     startTransition(async () => {
       const result = await add(name, church);
       setError(result.error);
-      if (!result.error) {
-        setName_("");
-        setOpen(false);
-        router.refresh();
-      }
+      if (!result.error && result.id) setMade({ id: result.id, name: name.trim() });
+    });
+
+  const run = (work: () => Promise<{ error?: string }>) =>
+    startTransition(async () => {
+      const result = await work();
+      setError(result.error);
     });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
         <Button>
           <Plus /> {t("households.add")}
         </Button>
       </DialogTrigger>
 
-      <DialogContent title={t("households.add")} closeLabel={t("common.close")}>
+      <DialogContent
+        title={made ? made.name : t("households.add")}
+        closeLabel={t("common.close")}
+        className="max-w-xl"
+      >
         {error ? <Banner tone="danger" title={t("households.failed")}>{error}</Banner> : null}
 
-        <Field label={t("households.name")} required>
-          <Input
-            value={name}
-            onChange={(e) => setName_(e.target.value)}
-            autoComplete="off"
-            autoFocus
-          />
-        </Field>
+        {made ? (
+          <div className="flex flex-col gap-5">
+            <Members
+              church={church}
+              household={{ id: made.id, name: made.name, members, archived: false }}
+              pending={pending}
+              run={run}
+              onAdded={(person) =>
+                setMembers((prev) => [...prev, { ...person, role: "other" }])
+              }
+              onRemoved={(id) => setMembers((prev) => prev.filter((m) => m.id !== id))}
+              onRole={(id, role) =>
+                setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)))
+              }
+            />
 
-        <DialogFooter>
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-            {t("action.cancel")}
-          </Button>
-          <Button type="button" disabled={pending || !name.trim()} onClick={save}>
-            {t("action.add")}
-          </Button>
-        </DialogFooter>
+            <div className="flex justify-end">
+              <Button type="button" onClick={() => close(false)}>{t("common.done")}</Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <Field label={t("households.name")} required>
+              <Input
+                value={name}
+                onChange={(e) => setName_(e.target.value)}
+                autoComplete="off"
+                autoFocus
+              />
+            </Field>
+
+            <DialogFooter>
+              <Button type="button" variant="secondary" onClick={() => close(false)}>
+                {t("action.cancel")}
+              </Button>
+              <Button type="button" disabled={pending || !name.trim()} onClick={create}>
+                {t("action.add")}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

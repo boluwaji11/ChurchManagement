@@ -9,6 +9,8 @@ import { requireSession } from "@/lib/session";
 
 export interface HouseholdResult {
   error?: string;
+  /** The household just made, so the caller can carry on filling it. */
+  id?: string;
 }
 
 async function actor(church?: string) {
@@ -25,8 +27,8 @@ async function actor(church?: string) {
 export async function add(name: string, church?: string): Promise<HouseholdResult> {
   const who = await actor(church);
   try {
-    await withTenant(who, (tx) => createHousehold(tx, who, name));
-    return {};
+    const made = await withTenant(who, (tx) => createHousehold(tx, who, name));
+    return { id: made.id };
   } catch (error) {
     return { error: explain(error) };
   }

@@ -2164,6 +2164,7 @@ export const en = {
   "customValue.multiSelect": "Choose from the options for {label}.",
 
   // Generic
+  "common.done": "Done",
   "common.close": "Close",
   "hue.rose": "Rose",
   "hue.amber": "Amber",
