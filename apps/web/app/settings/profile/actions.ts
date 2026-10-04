@@ -12,6 +12,12 @@ export interface ProfileResult {
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
+/** A picker's value, where its "they have not said" answer means null. */
+const pick = (data: FormData, name: string): string | null => {
+  const value = field(data, name);
+  return value && value !== "__unsaid" ? value : null;
+};
+
 /**
  * R17.1. Saving your own details.
  *
@@ -37,6 +43,11 @@ export async function saveProfile(data: FormData): Promise<ProfileResult> {
           lastName: field(data, "lastName"),
           phone: field(data, "phone") || null,
           dateOfBirth: field(data, "dateOfBirth") || null,
+          address: field(data, "address") || null,
+          anniversary: field(data, "anniversary") || null,
+          campusId: pick(data, "campusId"),
+          maritalStatus: pick(data, "maritalStatus"),
+          schoolLevel: pick(data, "schoolLevel"),
         },
       ),
     );

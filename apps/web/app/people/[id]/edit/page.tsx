@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getPersonForEdit, addressFor, listHouseholds, listCustomFields, getCustomValues,
-  listTagsWithCounts, listTagsForPerson, canEditPeople,
+  listTagsWithCounts, listTagsForPerson, listCampuses, canEditPeople,
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
@@ -28,6 +28,7 @@ export default async function EditPersonPage({
     person: await getPersonForEdit(tx, id),
     households: await listHouseholds(tx),
     customFields: await listCustomFields(tx, "person"),
+    campuses: await listCampuses(tx),
     customValues: await getCustomValues(tx, "person", id),
     address: await addressFor(tx, id),
     tags: await listTagsWithCounts(tx),
@@ -36,7 +37,7 @@ export default async function EditPersonPage({
 
   // Another church's person is reported exactly like a person who does not exist.
   if (!result.person) notFound();
-  const { person, households, customFields, customValues, address, tags, assigned } = result;
+  const { person, households, customFields, customValues, address, tags, assigned, campuses } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
 
   return (
@@ -72,6 +73,7 @@ export default async function EditPersonPage({
         <PersonForm
           church={session.tenantSlug}
           households={households}
+          campuses={campuses.map((one) => ({ id: one.id, name: one.name }))}
           customFields={customFields}
           customValues={customValues}
           tags={tags.map((x) => ({ id: x.id, name: x.name }))}
@@ -83,6 +85,9 @@ export default async function EditPersonPage({
             lastName: person.lastName,
             preferredName: person.preferredName,
             dateOfBirth: person.dateOfBirth,
+            campusId: person.campusId,
+            maritalStatus: person.maritalStatus,
+            schoolLevel: person.schoolLevel,
             lifecycleStatus: person.lifecycleStatus,
             membershipDate: person.membershipDate,
             firstVisitOn: person.firstVisitOn,

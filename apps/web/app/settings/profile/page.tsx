@@ -1,5 +1,5 @@
 import {
-  withTenant, personForUser, getPerson, getPersonForEdit,
+  withTenant, personForUser, getPerson, getPersonForEdit, listCampuses, anniversaryOf,
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -36,7 +36,14 @@ export default async function ProfilePage({
       if (!self) return null;
       const person = await getPerson(tx, self, { role: session.role, userId: session.userId });
       const contact = await getPersonForEdit(tx, self);
-      return { personId: self, person, contact, photoKey: person?.photoKey ?? null };
+      return {
+        personId: self,
+        person,
+        contact,
+        campuses: await listCampuses(tx),
+        anniversary: await anniversaryOf(tx, self),
+        photoKey: person?.photoKey ?? null,
+      };
     },
   );
 
@@ -62,12 +69,18 @@ export default async function ProfilePage({
             church={session.tenantSlug}
             signedInAs={session.email}
             photoUrl={photoUrl}
+            campuses={result.campuses.map((one) => ({ id: one.id, name: one.name }))}
             values={{
               personId: result.personId,
               firstName: result.person.firstName,
               lastName: result.person.lastName,
               phone: result.contact?.phone ?? "",
               dateOfBirth: result.person.dateOfBirth ?? "",
+              address: result.contact?.address ?? "",
+              maritalStatus: result.person.maritalStatus,
+              schoolLevel: result.person.schoolLevel,
+              anniversary: result.anniversary ?? "",
+              campusId: result.person.campusId,
             }}
           />
         </section>

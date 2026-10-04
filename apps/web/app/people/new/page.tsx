@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, listHouseholds, listCustomFields, canEditPeople } from "@hearth/db";
+import {
+  withTenant, listHouseholds, listCustomFields, listCampuses, canEditPeople,
+} from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -25,8 +27,9 @@ export default async function NewPersonPage({
     ? await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => ({
         households: await listHouseholds(tx),
         customFields: await listCustomFields(tx, "person"),
+        campuses: await listCampuses(tx),
       }))
-    : { households: [], customFields: [] };
+    : { households: [], customFields: [], campuses: [] };
 
   return (
     <AppShell
@@ -55,6 +58,7 @@ export default async function NewPersonPage({
           church={session.tenantSlug}
           households={data.households}
           customFields={data.customFields}
+          campuses={data.campuses.map((one) => ({ id: one.id, name: one.name }))}
         />
       ) : (
         <Banner tone="info" title={t("forbidden.addPeople")}>{t("forbidden.askAdmin")}</Banner>

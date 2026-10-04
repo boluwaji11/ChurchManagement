@@ -11,7 +11,43 @@ import { t } from "@hearth/i18n";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions } from "@/components/form-actions";
 import { longDate } from "@/lib/dates";
+import { maritalOptions, schoolOptions, UNSAID } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
+
+/** The date picker's words, said once rather than at every call. */
+const DATE_LABELS = () => ({
+  open: t("date.open"),
+  clear: t("date.clear"),
+  previousMonth: t("date.previousMonth"),
+  nextMonth: t("date.nextMonth"),
+  month: t("date.month"),
+  year: t("date.year"),
+  today: t("date.today"),
+});
+
+/** A field somebody may leave unanswered. */
+function Choice({
+  name,
+  value,
+  options,
+}: {
+  name: string;
+  value: string | null;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <select
+      name={name}
+      defaultValue={value ?? UNSAID}
+      className="h-[var(--d-tap)] w-full rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-3 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+    >
+      <option value={UNSAID}>{t("person.unsaid")}</option>
+      {options.map((one) => (
+        <option key={one.value} value={one.value}>{one.label}</option>
+      ))}
+    </select>
+  );
+}
 
 export interface ProfileValues {
   personId: string;
@@ -19,6 +55,17 @@ export interface ProfileValues {
   lastName: string;
   phone: string;
   dateOfBirth: string;
+  /** R2.4. One line, as a church writes it on an envelope. */
+  address: string;
+  maritalStatus: string | null;
+  schoolLevel: string | null;
+  anniversary: string;
+  campusId: string | null;
+}
+
+export interface CampusChoice {
+  id: string;
+  name: string;
 }
 
 /** What a field with nothing in it reads as. */
@@ -39,12 +86,15 @@ export function ProfileForm({
   signedInAs,
   photoUrl,
   values,
+  campuses,
 }: {
   church: string;
   /** The address this person signs in with, which changes under Security. */
   signedInAs: string;
   photoUrl: string | null;
   values: ProfileValues;
+  /** R1.2. Offered only where this church has more than one. */
+  campuses: CampusChoice[];
 }) {
   const router = useRouter();
   const [editing, setEditing] = React.useState(false);
@@ -53,6 +103,7 @@ export function ProfileForm({
   const [dropping, setDropping] = React.useState(false);
   const [showing, setShowing] = React.useState(false);
   const [birthday, setBirthday] = React.useState(values.dateOfBirth);
+  const [anniversary, setAnniversary] = React.useState(values.anniversary);
   const [, startTransition] = React.useTransition();
   const file = React.useRef<HTMLInputElement>(null);
 
@@ -223,6 +274,22 @@ export function ProfileForm({
               t("settings.profile.birthday"),
               values.dateOfBirth ? longDate(values.dateOfBirth) : "",
             ],
+            [t("person.address"), values.address],
+            [
+              t("person.maritalStatus"),
+              values.maritalStatus ? t(`marital.${values.maritalStatus}` as never) : "",
+            ],
+            [t("person.anniversary"), values.anniversary ? longDate(values.anniversary) : ""],
+            [
+              t("person.schoolLevel"),
+              values.schoolLevel ? t(`school.${values.schoolLevel}` as never) : "",
+            ],
+            ...(campuses.length > 1
+              ? [[
+                  t("person.campus"),
+                  campuses.find((one) => one.id === values.campusId)?.name ?? "",
+                ] as [string, string]]
+              : []),
           ].map(([label, value]) => (
             <div key={label} className="flex min-w-0 flex-col gap-0.5">
               <dt className="text-label font-semibold text-fg">{label}</dt>
@@ -240,6 +307,7 @@ export function ProfileForm({
         action={(data) => {
           data.set("church", church);
           data.set("dateOfBirth", birthday);
+          data.set("anniversary", anniversary);
           startTransition(async () => {
             const result = await saveProfile(data);
             setError(result.error);
@@ -266,17 +334,45 @@ export function ProfileForm({
               value={birthday}
               onChange={setBirthday}
               placeholder={t("date.placeholder")}
-              labels={{
-                open: t("date.open"),
-                clear: t("date.clear"),
-                previousMonth: t("date.previousMonth"),
-                nextMonth: t("date.nextMonth"),
-                month: t("date.month"),
-                year: t("date.year"),
-                today: t("date.today"),
-              }}
+              labels={DATE_LABELS()}
             />
           </Field>
+
+          {/* R2.4. One line, as somebody writes it on an envelope. */}
+          <Field label={t("person.address")} className="sm:col-span-full">
+            <Input
+              name="address"
+              defaultValue={values.address}
+              autoComplete="street-address"
+            />
+          </Field>
+
+          <Field label={t("person.maritalStatus")}>
+            <Choice name="maritalStatus" value={values.maritalStatus} options={maritalOptions()} />
+          </Field>
+
+          <Field label={t("person.anniversary")}>
+            <DatePicker
+              value={anniversary}
+              onChange={setAnniversary}
+              placeholder={t("date.placeholder")}
+              labels={DATE_LABELS()}
+            />
+          </Field>
+
+          <Field label={t("person.schoolLevel")}>
+            <Choice name="schoolLevel" value={values.schoolLevel} options={schoolOptions()} />
+          </Field>
+
+          {campuses.length > 1 ? (
+            <Field label={t("person.campus")}>
+              <Choice
+                name="campusId"
+                value={values.campusId}
+                options={campuses.map((one) => ({ value: one.id, label: one.name }))}
+              />
+            </Field>
+          ) : null}
         </div>
       </form>
 
