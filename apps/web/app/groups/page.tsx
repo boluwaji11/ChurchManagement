@@ -2,8 +2,7 @@ import {
   withTenant, findGroups, listGroupTypes, pendingRequests, personForUser, canManageGroups,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Finder } from "./finder";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -55,52 +54,50 @@ export default async function GroupsPage({
   }
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("groups.title")} className="mb-6" />
-
-        <Finder
-          church={session.tenantSlug}
-          canManage={manage}
-          types={types.map((type) => ({
-            id: type.id,
-            name: type.name,
-            description: type.description,
-            hue: type.hue,
-          }))}
-          requests={requests.map((request) => ({
-            id: request.id,
-            groupName: request.groupName,
-            personName: request.personName,
-            message: request.message,
-          }))}
-          groups={groups.map((group) => ({
-            id: group.id,
-            name: group.name,
-            description: group.description,
-            typeId: group.typeId,
-            typeName: group.typeName,
-            typeHue: group.typeHue,
-            dayOfWeek: group.dayOfWeek,
-            startsAt: group.startsAt,
-            endsAt: group.endsAt,
-            frequency: group.frequency,
-            location: group.location,
-            forWhom: group.forWhom,
-            online: group.online,
-            childrenWelcome: group.childrenWelcome,
-            memberCount: group.memberCount,
-            openToJoin: group.openToJoin,
-            full: group.full,
-            mine: group.mine,
-            requested: group.requested,
-            listed: group.listed,
-            archived: group.archived,
-            photoUrl: photos.get(group.id) ?? null,
-          }))}
-        />
-      </main>
-    </>
+    <AppShell
+      session={session}
+      title={t("groups.title")}
+    >
+      <Finder
+        church={session.tenantSlug}
+        canManage={manage}
+        types={types.map((type) => ({
+          id: type.id,
+          name: type.name,
+          description: type.description,
+          hue: type.hue,
+        }))}
+        requests={requests.map((request) => ({
+          id: request.id,
+          groupName: request.groupName,
+          personName: request.personName,
+          message: request.message,
+        }))}
+        groups={groups.map((group) => ({
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          typeId: group.typeId,
+          typeName: group.typeName,
+          typeHue: group.typeHue,
+          dayOfWeek: group.dayOfWeek,
+          startsAt: group.startsAt,
+          endsAt: group.endsAt,
+          frequency: group.frequency,
+          location: group.location,
+          forWhom: group.forWhom,
+          online: group.online,
+          childrenWelcome: group.childrenWelcome,
+          memberCount: group.memberCount,
+          openToJoin: group.openToJoin,
+          full: group.full,
+          mine: group.mine,
+          requested: group.requested,
+          listed: group.listed,
+          archived: group.archived,
+          photoUrl: photos.get(group.id) ?? null,
+        }))}
+      />
+    </AppShell>
   );
 }

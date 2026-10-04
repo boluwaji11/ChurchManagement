@@ -1,8 +1,7 @@
 import { withTenant, listOccurrences, getChurch, canSupervise } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { RoomBoard } from "./board";
@@ -46,31 +45,29 @@ export default async function RoomsPage({
   );
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 print:max-w-none print:p-0">
-        <PageTitle title={t("board.title")} className="mb-6 print:hidden" />
-
-        {canSupervise(session.role) ? (
-          <RoomBoard
-            church={session.tenantSlug}
-            now={now}
-            today={today}
-            initial={null}
-            rosters={{}}
-            services={services
-              .filter((o) => o.status === "scheduled")
-              .map((o) => ({
-                id: o.id,
-                name: o.name,
-                startsAt: o.startsAt,
-                readableTime: readableTime(o.startsAt),
-              }))}
-          />
-        ) : (
-          <Banner tone="info" title={t("board.title")}>{t("forbidden.askAdmin")}</Banner>
-        )}
-      </main>
-    </>
+    <AppShell
+      session={session}
+      title={t("board.title")}
+    >
+      {canSupervise(session.role) ? (
+        <RoomBoard
+          church={session.tenantSlug}
+          now={now}
+          today={today}
+          initial={null}
+          rosters={{}}
+          services={services
+            .filter((o) => o.status === "scheduled")
+            .map((o) => ({
+              id: o.id,
+              name: o.name,
+              startsAt: o.startsAt,
+              readableTime: readableTime(o.startsAt),
+            }))}
+        />
+      ) : (
+        <Banner tone="info" title={t("board.title")}>{t("forbidden.askAdmin")}</Banner>
+      )}
+    </AppShell>
   );
 }

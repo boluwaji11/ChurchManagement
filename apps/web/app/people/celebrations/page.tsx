@@ -7,9 +7,8 @@ import {
 } from "@hearth/db";
 import { Button, Table, Thead, Th, Tr, Td, HueTag, EmptyState, StatTile } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 
@@ -106,114 +105,112 @@ export default async function CelebrationsPage({
   const days = [...new Set(celebrations.map((c) => c.on))];
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("celebrations.title")} className="mb-8" />
-
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-1 rounded-lg border border-line bg-surface p-1">
-            {(["month", "week"] as View[]).map((option) => (
-              <Button
-                key={option}
-                variant={option === view ? "primary" : "ghost"}
-                asChild
-              >
-                <Link href={link({ view: option })}>
-                  {t(option === "month" ? "celebrations.view.month" : "celebrations.view.week")}
-                </Link>
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" asChild>
-              <Link href={link({ at: earlier })} aria-label={t("celebrations.earlier")}>
-                <ChevronLeft aria-hidden />
+    <AppShell
+      session={session}
+      title={t("celebrations.title")}
+    >
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-1 rounded-lg border border-line bg-surface p-1">
+          {(["month", "week"] as View[]).map((option) => (
+            <Button
+              key={option}
+              variant={option === view ? "primary" : "ghost"}
+              asChild
+            >
+              <Link href={link({ view: option })}>
+                {t(option === "month" ? "celebrations.view.month" : "celebrations.view.week")}
               </Link>
             </Button>
-            <span className="min-w-48 text-center text-body-lg font-medium text-fg">
-              {heading}
-            </span>
-            <Button variant="secondary" asChild>
-              <Link href={link({ at: later })} aria-label={t("celebrations.later")}>
-                <ChevronRight aria-hidden />
-              </Link>
-            </Button>
-            <Button variant="ghost" asChild>
-              <Link href={link({ at: today })}>
-                {t(view === "week" ? "celebrations.now.week" : "celebrations.now.month")}
-              </Link>
-            </Button>
-          </div>
+          ))}
         </div>
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-2">
-          <StatTile label={t("celebrations.birthdays")} value={String(birthdays.length)} hue="rose" />
-          <StatTile
-            label={t("celebrations.anniversaries")}
-            value={String(anniversaries.length)}
-            hue="violet"
-          />
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" asChild>
+            <Link href={link({ at: earlier })} aria-label={t("celebrations.earlier")}>
+              <ChevronLeft aria-hidden />
+            </Link>
+          </Button>
+          <span className="min-w-48 text-center text-body-lg font-medium text-fg">
+            {heading}
+          </span>
+          <Button variant="secondary" asChild>
+            <Link href={link({ at: later })} aria-label={t("celebrations.later")}>
+              <ChevronRight aria-hidden />
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href={link({ at: today })}>
+              {t(view === "week" ? "celebrations.now.week" : "celebrations.now.month")}
+            </Link>
+          </Button>
         </div>
+      </div>
 
-        {celebrations.length === 0 ? (
-          <EmptyState
-            title={view === "week"
-              ? t("celebrations.empty.week")
-              : t("celebrations.empty.month", { span: heading })}
-          />
-        ) : (
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>{t("celebrations.day")}</Th>
-                <Th>{t("celebrations.who")}</Th>
-                <Th>{t("celebrations.what")}</Th>
-              </Tr>
-            </Thead>
-            <tbody>
-              {days.map((day) =>
-                celebrations
-                  .filter((c) => c.on === day)
-                  .map((c, index) => (
-                    <Tr key={`${c.kind}-${c.personId}`}>
-                      <Td className="whitespace-nowrap text-fg-muted">
-                        {index === 0 ? shortDate(day) : null}
-                      </Td>
-                      <Td>
-                        <Link
-                          href={`/people/${c.personId}?church=${session.tenantSlug}`}
-                          className="font-medium text-fg underline-offset-4 hover:underline"
-                        >
-                          {c.partnerName
-                            ? t("celebrations.couple", { one: c.name, two: c.partnerName })
-                            : c.name}
-                        </Link>
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        <span className="flex items-center gap-2">
-                          <HueTag hue={c.kind === "birthday" ? "rose" : "violet"}>
+      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+        <StatTile label={t("celebrations.birthdays")} value={String(birthdays.length)} hue="rose" />
+        <StatTile
+          label={t("celebrations.anniversaries")}
+          value={String(anniversaries.length)}
+          hue="violet"
+        />
+      </div>
+
+      {celebrations.length === 0 ? (
+        <EmptyState
+          title={view === "week"
+            ? t("celebrations.empty.week")
+            : t("celebrations.empty.month", { span: heading })}
+        />
+      ) : (
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>{t("celebrations.day")}</Th>
+              <Th>{t("celebrations.who")}</Th>
+              <Th>{t("celebrations.what")}</Th>
+            </Tr>
+          </Thead>
+          <tbody>
+            {days.map((day) =>
+              celebrations
+                .filter((c) => c.on === day)
+                .map((c, index) => (
+                  <Tr key={`${c.kind}-${c.personId}`}>
+                    <Td className="whitespace-nowrap text-fg-muted">
+                      {index === 0 ? shortDate(day) : null}
+                    </Td>
+                    <Td>
+                      <Link
+                        href={`/people/${c.personId}?church=${session.tenantSlug}`}
+                        className="font-medium text-fg underline-offset-4 hover:underline"
+                      >
+                        {c.partnerName
+                          ? t("celebrations.couple", { one: c.name, two: c.partnerName })
+                          : c.name}
+                      </Link>
+                    </Td>
+                    <Td className="whitespace-nowrap">
+                      <span className="flex items-center gap-2">
+                        <HueTag hue={c.kind === "birthday" ? "rose" : "violet"}>
+                          {c.kind === "birthday"
+                            ? t("celebrations.kind.birthday")
+                            : t("celebrations.kind.anniversary")}
+                        </HueTag>
+                        {c.years === null ? null : (
+                          <span className="text-fg-muted">
                             {c.kind === "birthday"
-                              ? t("celebrations.kind.birthday")
-                              : t("celebrations.kind.anniversary")}
-                          </HueTag>
-                          {c.years === null ? null : (
-                            <span className="text-fg-muted">
-                              {c.kind === "birthday"
-                                ? t("celebrations.turning", { years: c.years })
-                                : t("celebrations.married", { years: c.years })}
-                            </span>
-                          )}
-                        </span>
-                      </Td>
-                    </Tr>
-                  )),
-              )}
-            </tbody>
-          </Table>
-        )}
-      </main>
-    </>
+                              ? t("celebrations.turning", { years: c.years })
+                              : t("celebrations.married", { years: c.years })}
+                          </span>
+                        )}
+                      </span>
+                    </Td>
+                  </Tr>
+                )),
+            )}
+          </tbody>
+        </Table>
+      )}
+    </AppShell>
   );
 }

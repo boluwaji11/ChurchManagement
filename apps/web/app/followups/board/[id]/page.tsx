@@ -6,7 +6,7 @@ import {
 } from "@hearth/db";
 import { Badge, Banner, Card, EmptyState, HueTag, Separator, type Hue } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 
@@ -40,12 +40,12 @@ export default async function PipelinePage({
 
   if (!canFollowUp(session.role)) {
     return (
-      <>
-        <AppHeader session={session} />
-        <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-          <Banner tone="info" title={t("queue.title")}>{t("forbidden.askAdmin")}</Banner>
-        </main>
-      </>
+      <AppShell
+        session={session}
+        title={t("queue.title")}
+      >
+        <Banner tone="info" title={t("queue.title")}>{t("forbidden.askAdmin")}</Banner>
+      </AppShell>
     );
   }
 
@@ -63,63 +63,62 @@ export default async function PipelinePage({
   const waiting = [...entries].sort((a, b) => a.startedOn.localeCompare(b.startedOn));
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <nav className="mb-6 flex flex-wrap items-center gap-1 text-caption text-fg-muted">
-          <Link
-            href={`/followups/board?church=${session.tenantSlug}`}
-            className="rounded px-1 py-0.5 hover:text-fg"
-          >
-            {t("queue.board")}
-          </Link>
-          <ChevronRight className="size-4" aria-hidden />
-          <span>{pipeline.name}</span>
-        </nav>
+    <AppShell
+      session={session}
+      title={pipeline.name}
+    >
+      <nav className="mb-6 flex flex-wrap items-center gap-1 text-caption text-fg-muted">
+        <Link
+          href={`/followups/board?church=${session.tenantSlug}`}
+          className="rounded px-1 py-0.5 hover:text-fg"
+        >
+          {t("queue.board")}
+        </Link>
+        <ChevronRight className="size-4" aria-hidden />
+        <span>{pipeline.name}</span>
+      </nav>
 
-        <h1 className="mb-6 font-display text-display text-fg">{pipeline.name}</h1>
 
-        {waiting.length === 0 ? <EmptyState title={t("board.none.title")} /> : null}
+      {waiting.length === 0 ? <EmptyState title={t("board.none.title")} /> : null}
 
-        {waiting.length > 0 ? (
-          <Card className="flex flex-col">
-            {waiting.map((entry, i) => {
-              const next = entry.steps.find((step) => step.doneAt === null);
-              const late = next?.dueOn !== null && next?.dueOn !== undefined && next.dueOn < today;
-              return (
-                <div key={entry.id}>
-                  {i > 0 ? <Separator className="my-3" /> : null}
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="flex min-w-0 flex-col gap-1">
-                      <Link
-                        href={`/people/${entry.personId}?church=${session.tenantSlug}`}
-                        className="text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
-                      >
-                        {entry.personName}
-                      </Link>
-                      <span className="text-caption text-fg-muted">
-                        {next ? next.title : t("followups.done")}
-                        {next?.dueOn ? (
-                          <span className={late ? "ml-2 text-danger-text" : "ml-2"}>
-                            {readable(next.dueOn)}
-                          </span>
-                        ) : null}
-                      </span>
+      {waiting.length > 0 ? (
+        <Card className="flex flex-col">
+          {waiting.map((entry, i) => {
+            const next = entry.steps.find((step) => step.doneAt === null);
+            const late = next?.dueOn !== null && next?.dueOn !== undefined && next.dueOn < today;
+            return (
+              <div key={entry.id}>
+                {i > 0 ? <Separator className="my-3" /> : null}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <Link
+                      href={`/people/${entry.personId}?church=${session.tenantSlug}`}
+                      className="text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
+                    >
+                      {entry.personName}
+                    </Link>
+                    <span className="text-caption text-fg-muted">
+                      {next ? next.title : t("followups.done")}
+                      {next?.dueOn ? (
+                        <span className={late ? "ml-2 text-danger-text" : "ml-2"}>
+                          {readable(next.dueOn)}
+                        </span>
+                      ) : null}
                     </span>
+                  </span>
 
-                    <span className="flex flex-wrap items-center gap-2">
-                      <HueTag hue={pipeline.hue as Hue}>
-                        {plural("board.waiting", daysBetween(entry.startedOn, today))}
-                      </HueTag>
-                      {late ? <Badge tone="danger">{t("queue.late")}</Badge> : null}
-                    </span>
-                  </div>
+                  <span className="flex flex-wrap items-center gap-2">
+                    <HueTag hue={pipeline.hue as Hue}>
+                      {plural("board.waiting", daysBetween(entry.startedOn, today))}
+                    </HueTag>
+                    {late ? <Badge tone="danger">{t("queue.late")}</Badge> : null}
+                  </span>
                 </div>
-              );
-            })}
-          </Card>
-        ) : null}
-      </main>
-    </>
+              </div>
+            );
+          })}
+        </Card>
+      ) : null}
+    </AppShell>
   );
 }

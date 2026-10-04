@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { withTenant, getForm, canManageChurch } from "@hearth/db";
 import { t } from "@hearth/i18n";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Builder } from "./builder";
 
@@ -30,18 +30,18 @@ export default async function FormPage({
   if (!form) notFound();
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <Link
-          href={`/forms?church=${session.tenantSlug}`}
-          className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-        >
-          <ArrowLeft className="size-4" /> {t("form.title")}
-        </Link>
+    <AppShell
+      session={session}
+      title={form.name}
+    >
+      <Link
+        href={`/forms?church=${session.tenantSlug}`}
+        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" /> {t("form.title")}
+      </Link>
 
-        <Builder church={session.tenantSlug} form={form} />
-      </main>
-    </>
+      <Builder church={session.tenantSlug} form={form} />
+    </AppShell>
   );
 }

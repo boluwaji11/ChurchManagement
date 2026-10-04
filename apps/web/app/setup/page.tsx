@@ -1,8 +1,7 @@
 import { withTenant, setupProgress, canManageChurch } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Steps } from "./steps";
 import { SETUP_LINKS } from "@/lib/setup-links";
@@ -27,12 +26,12 @@ export default async function SetupPage({
 
   if (!canManageChurch(session.role)) {
     return (
-      <>
-        <AppHeader session={session} />
-        <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-          <Banner tone="info" title={t("setup.title")}>{t("forbidden.askAdmin")}</Banner>
-        </main>
-      </>
+      <AppShell
+        session={session}
+        title={t("setup.title")}
+      >
+        <Banner tone="info" title={t("setup.title")}>{t("forbidden.askAdmin")}</Banner>
+      </AppShell>
     );
   }
 
@@ -42,21 +41,20 @@ export default async function SetupPage({
   );
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("setup.title")} className="mb-6" />
-        <Steps
-          church={session.tenantSlug}
-          settled={progress.settled}
-          steps={progress.steps.map((step) => ({
-            step: step.step,
-            done: step.done,
-            skipped: step.skipped,
-            href: SETUP_LINKS[step.step],
-          }))}
-        />
-      </main>
-    </>
+    <AppShell
+      session={session}
+      title={t("setup.title")}
+    >
+      <Steps
+        church={session.tenantSlug}
+        settled={progress.settled}
+        steps={progress.steps.map((step) => ({
+          step: step.step,
+          done: step.done,
+          skipped: step.skipped,
+          href: SETUP_LINKS[step.step],
+        }))}
+      />
+    </AppShell>
   );
 }

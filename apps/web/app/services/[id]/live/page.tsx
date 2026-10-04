@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { withTenant, liveFor, canManageServices } from "@hearth/db";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { PageMeta } from "@/components/section";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { longDate, readableTime } from "@/lib/dates";
 import { Stage } from "./stage";
@@ -36,29 +36,25 @@ export default async function LivePage({
   if (!live) notFound();
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-        <Link
-          href={`/services/${id}?church=${session.tenantSlug}`}
-          className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-        >
-          <ArrowLeft className="size-4" /> {live.serviceName}
-        </Link>
+    <AppShell
+      session={session}
+      title={t("live.title")}
+    >
+      <Link
+        href={`/services/${id}?church=${session.tenantSlug}`}
+        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" /> {live.serviceName}
+      </Link>
 
-        <PageTitle
-          title={t("live.title")}
-          lede={`${longDate(live.occursOn)} ${readableTime(live.startsAt)}`}
-          className="mb-8"
-        />
+      <PageMeta>{`${longDate(live.occursOn)} ${readableTime(live.startsAt)}`}</PageMeta>
 
-        <Stage
-          church={session.tenantSlug}
-          occurrenceId={id}
-          initial={live}
-          canRun={canManageServices(session.role)}
-        />
-      </main>
-    </>
+      <Stage
+        church={session.tenantSlug}
+        occurrenceId={id}
+        initial={live}
+        canRun={canManageServices(session.role)}
+      />
+    </AppShell>
   );
 }

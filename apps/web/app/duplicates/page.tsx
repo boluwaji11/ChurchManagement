@@ -3,9 +3,8 @@ import {
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { Review, type PersonSide } from "./review";
 
 export const dynamic = "force-dynamic";
@@ -22,13 +21,12 @@ export default async function DuplicatesPage({
   // so the review queue is only shown to the roles that may do it.
   if (!canArchivePeople(session.role)) {
     return (
-      <>
-        <AppHeader session={session} />
-        <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-          <PageTitle title={t("merge.title")} />
+      <AppShell
+        session={session}
+        title={t("merge.title")}
+      >
           <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
-        </main>
-      </>
+      </AppShell>
     );
   }
 
@@ -93,25 +91,24 @@ export default async function DuplicatesPage({
   );
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("merge.title")} />
-        <Review
-          church={session.tenantSlug}
-          pairs={pairs}
-          history={history.map((m) => ({
-            id: m.id,
-            winnerName: m.winnerName,
-            loserName: m.loserName,
-            mergedAt: m.mergedAt.toLocaleDateString(undefined, {
-              day: "numeric", month: "long", year: "numeric",
-            }),
-            undoneAt: m.undoneAt ? m.undoneAt.toISOString() : null,
-            canUndo: m.canUndo,
-          }))}
-        />
-      </main>
-    </>
+    <AppShell
+      session={session}
+      title={t("merge.title")}
+    >
+      <Review
+        church={session.tenantSlug}
+        pairs={pairs}
+        history={history.map((m) => ({
+          id: m.id,
+          winnerName: m.winnerName,
+          loserName: m.loserName,
+          mergedAt: m.mergedAt.toLocaleDateString(undefined, {
+            day: "numeric", month: "long", year: "numeric",
+          }),
+          undoneAt: m.undoneAt ? m.undoneAt.toISOString() : null,
+          canUndo: m.canUndo,
+        }))}
+      />
+    </AppShell>
   );
 }

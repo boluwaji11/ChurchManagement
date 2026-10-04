@@ -6,9 +6,9 @@ import {
 } from "@hearth/db";
 import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
+import { PageMeta } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { Roster } from "./roster";
 
 export const dynamic = "force-dynamic";
@@ -46,46 +46,42 @@ export default async function RosterPage({
   const visitOf = new Map(visits.map((v) => [v.personId, v.visit]));
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <Link
-          href={`/services?church=${session.tenantSlug}`}
-          className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-        >
-          <ArrowLeft className="size-4" /> {t("roster.back")}
-        </Link>
+    <AppShell
+      session={session}
+      title={occurrence.name}
+    >
+      <Link
+        href={`/services?church=${session.tenantSlug}`}
+        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" /> {t("roster.back")}
+      </Link>
 
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-          <PageTitle
-            title={occurrence.name}
-            lede={`${readable(occurrence.occursOn)}`}
-            className="mb-0"
-          />
-          {/* R11.1. The order of service, which is what a church runs the
-              gathering from. */}
-          {canManageServices(session.role) ? (
-            <Button variant="secondary" asChild>
-              <Link href={`/services/${occurrence.id}/plan?church=${session.tenantSlug}`}>
-                <ListOrdered /> {t("order.open")}
-              </Link>
-            </Button>
-          ) : null}
-        </div>
+      <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <PageMeta>{readable(occurrence.occursOn)}</PageMeta>
+        {/* R11.1. The order of service, which is what a church runs the
+            gathering from. */}
+        {canManageServices(session.role) ? (
+          <Button variant="secondary" asChild>
+            <Link href={`/services/${occurrence.id}/plan?church=${session.tenantSlug}`}>
+              <ListOrdered /> {t("order.open")}
+            </Link>
+          </Button>
+        ) : null}
+      </div>
 
-        <Roster
-          church={session.tenantSlug}
-          occurrenceId={occurrence.id}
-          canEdit={canManageServices(session.role)}
-          people={roster.map((r) => ({
-            personId: r.personId,
-            name: `${r.preferredName ?? r.firstName} ${r.lastName}`,
-            surname: r.lastName,
-            present: r.present,
-            visit: visitOf.get(r.personId) ?? 0,
-          }))}
-        />
-      </main>
-    </>
+      <Roster
+        church={session.tenantSlug}
+        occurrenceId={occurrence.id}
+        canEdit={canManageServices(session.role)}
+        people={roster.map((r) => ({
+          personId: r.personId,
+          name: `${r.preferredName ?? r.firstName} ${r.lastName}`,
+          surname: r.lastName,
+          present: r.present,
+          visit: visitOf.get(r.personId) ?? 0,
+        }))}
+      />
+    </AppShell>
   );
 }

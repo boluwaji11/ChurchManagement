@@ -2,9 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { withTenant, listHouseholds, listCustomFields, canEditPeople } from "@hearth/db";
 import { Banner } from "@hearth/ui";
-import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { PersonForm } from "../person-form";
 import { t } from "@hearth/i18n";
 
@@ -30,28 +29,26 @@ export default async function NewPersonPage({
     : { households: [], customFields: [] };
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <Link
-          href={`/people?church=${session.tenantSlug}`}
-          className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-        >
-          <ArrowLeft className="size-4" /> {t("people.title")}
-        </Link>
+    <AppShell
+      session={session}
+      title={t("personForm.addTitle")}
+    >
+      <Link
+        href={`/people?church=${session.tenantSlug}`}
+        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" /> {t("people.title")}
+      </Link>
 
-        <PageTitle title={t("personForm.addTitle")} />
-
-        {permitted ? (
-          <PersonForm
-            church={session.tenantSlug}
-            households={data.households}
-            customFields={data.customFields}
-          />
-        ) : (
-          <Banner tone="info" title={t("forbidden.addPeople")}>{t("forbidden.askAdmin")}</Banner>
-        )}
-      </main>
-    </>
+      {permitted ? (
+        <PersonForm
+          church={session.tenantSlug}
+          households={data.households}
+          customFields={data.customFields}
+        />
+      ) : (
+        <Banner tone="info" title={t("forbidden.addPeople")}>{t("forbidden.askAdmin")}</Banner>
+      )}
+    </AppShell>
   );
 }

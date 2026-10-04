@@ -3,8 +3,7 @@ import {
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Queue } from "./queue";
@@ -29,12 +28,12 @@ export default async function FollowUpsPage({
 
   if (!canFollowUp(session.role)) {
     return (
-      <>
-        <AppHeader session={session} />
-        <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-          <Banner tone="info" title={t("followups.title")}>{t("forbidden.askAdmin")}</Banner>
-        </main>
-      </>
+      <AppShell
+        session={session}
+        title={t("queue.title")}
+      >
+        <Banner tone="info" title={t("followups.title")}>{t("forbidden.askAdmin")}</Banner>
+      </AppShell>
     );
   }
 
@@ -59,18 +58,17 @@ export default async function FollowUpsPage({
     }));
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("queue.title")} className="mb-6" />
-        <FollowUpTabs church={session.tenantSlug} />
-        <Queue
-          church={session.tenantSlug}
-          today={today}
-          mine={shape(mine)}
-          loose={shape(loose)}
-        />
-      </main>
-    </>
+    <AppShell
+      session={session}
+      title={t("queue.title")}
+    >
+      <FollowUpTabs church={session.tenantSlug} />
+      <Queue
+        church={session.tenantSlug}
+        today={today}
+        mine={shape(mine)}
+        loose={shape(loose)}
+      />
+    </AppShell>
   );
 }

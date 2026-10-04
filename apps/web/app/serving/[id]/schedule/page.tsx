@@ -7,8 +7,8 @@ import {
 } from "@hearth/db";
 import { Button, HueDot, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { PageMeta } from "@/components/section";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { dayAndMonth, readableTime } from "@/lib/dates";
@@ -66,44 +66,44 @@ export default async function SchedulePlanPage({
   if (!mine) redirect(`/serving?church=${session.tenantSlug}`);
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <Button variant="ghost" asChild className="mb-4">
-          <Link href={`/serving/${team.id}?church=${session.tenantSlug}`}>
-            <ChevronLeft aria-hidden /> {team.name}
-          </Link>
-        </Button>
+    <AppShell
+      session={session}
+      title={t("plan.title")}
+    >
+      <Button variant="ghost" asChild className="mb-4">
+        <Link href={`/serving/${team.id}?church=${session.tenantSlug}`}>
+          <ChevronLeft aria-hidden /> {team.name}
+        </Link>
+      </Button>
 
-        <div className="mb-8 flex items-center gap-3">
-          <HueDot hue={team.hue as Hue} />
-          <PageTitle title={t("plan.title")} className="mb-0" />
-        </div>
+      <div className="mb-8 flex items-center gap-3">
+        <HueDot hue={team.hue as Hue} />
+        <PageMeta>{team.name}</PageMeta>
+      </div>
 
-        <SchedulePlan
-          church={session.tenantSlug}
-          teamId={team.id}
-          chosen={chosen ?? ""}
-          gatherings={gatherings.map((o) => ({
-            id: o.id,
-            label: `${dayAndMonth(o.occursOn)} · ${o.name} ${readableTime(o.startsAt)}`,
-          }))}
-          positions={team.positions.map((p) => ({
-            id: p.id,
-            name: p.name,
-            needed: p.needed,
-          }))}
-          entries={entries.map((e) => ({
-            id: e.id,
-            occurrenceId: e.occurrenceId,
-            positionId: e.positionId,
-            personName: e.personName,
-            status: e.status,
-            overridden: e.overridden,
-            token: e.token,
-          }))}
-        />
-      </main>
-    </>
+      <SchedulePlan
+        church={session.tenantSlug}
+        teamId={team.id}
+        chosen={chosen ?? ""}
+        gatherings={gatherings.map((o) => ({
+          id: o.id,
+          label: `${dayAndMonth(o.occursOn)} · ${o.name} ${readableTime(o.startsAt)}`,
+        }))}
+        positions={team.positions.map((p) => ({
+          id: p.id,
+          name: p.name,
+          needed: p.needed,
+        }))}
+        entries={entries.map((e) => ({
+          id: e.id,
+          occurrenceId: e.occurrenceId,
+          positionId: e.positionId,
+          personName: e.personName,
+          status: e.status,
+          overridden: e.overridden,
+          token: e.token,
+        }))}
+      />
+    </AppShell>
   );
 }

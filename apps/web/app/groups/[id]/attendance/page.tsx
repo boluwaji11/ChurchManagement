@@ -4,8 +4,7 @@ import {
 } from "@hearth/db";
 import { Banner, Card, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { AttendanceSheet } from "./sheet";
@@ -60,47 +59,45 @@ export default async function GroupAttendancePage({
   if (!data) notFound();
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-lg px-4 py-6 sm:px-6">
-        <PageTitle title={data.group.name} className="mb-5" />
+    <AppShell
+      session={session}
+      title={data.group.name}
+    >
+      {data.allowed ? (
+        <div className="flex flex-col gap-6">
+          <AttendanceSheet
+            church={session.tenantSlug}
+            groupId={id}
+            groupName={data.group.name}
+            meeting={data.meeting}
+            people={data.people}
+            defaultDay={data.today}
+          />
 
-        {data.allowed ? (
-          <div className="flex flex-col gap-6">
-            <AttendanceSheet
-              church={session.tenantSlug}
-              groupId={id}
-              groupName={data.group.name}
-              meeting={data.meeting}
-              people={data.people}
-              defaultDay={data.today}
-            />
-
-            {data.history.length > 0 ? (
-              <Card className="flex flex-col gap-2">
-                <span className="text-label text-fg-muted">{t("meeting.history")}</span>
-                {data.history.map((meeting, i) => (
-                  <div key={meeting.id}>
-                    {i > 0 ? <Separator className="my-2" /> : null}
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-[length:var(--d-text-body)] text-fg">
-                        {day(meeting.metOn)}
-                      </span>
-                      <span className="text-[length:var(--d-text-body)] text-fg-muted">
-                        {meeting.notHeld
-                          ? t("meeting.notHeld")
-                          : t("meeting.of", { present: meeting.present, roster: meeting.roster })}
-                      </span>
-                    </div>
+          {data.history.length > 0 ? (
+            <Card className="flex flex-col gap-2">
+              <span className="text-label text-fg-muted">{t("meeting.history")}</span>
+              {data.history.map((meeting, i) => (
+                <div key={meeting.id}>
+                  {i > 0 ? <Separator className="my-2" /> : null}
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[length:var(--d-text-body)] text-fg">
+                      {day(meeting.metOn)}
+                    </span>
+                    <span className="text-[length:var(--d-text-body)] text-fg-muted">
+                      {meeting.notHeld
+                        ? t("meeting.notHeld")
+                        : t("meeting.of", { present: meeting.present, roster: meeting.roster })}
+                    </span>
                   </div>
-                ))}
-              </Card>
-            ) : null}
-          </div>
-        ) : (
-          <Banner tone="info" title={data.group.name}>{t("forbidden.askAdmin")}</Banner>
-        )}
-      </main>
-    </>
+                </div>
+              ))}
+            </Card>
+          ) : null}
+        </div>
+      ) : (
+        <Banner tone="info" title={data.group.name}>{t("forbidden.askAdmin")}</Banner>
+      )}
+    </AppShell>
   );
 }

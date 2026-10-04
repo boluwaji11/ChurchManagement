@@ -2,8 +2,7 @@ import {
   withTenant, listStations, listRooms, listOccurrences, getChurch, canManageStations,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { StationPicker } from "./station-picker";
@@ -48,46 +47,34 @@ export default async function CheckinPage({
     },
   );
 
-  /*
-   * R8.x, design system section 8. One task, full screen. A family driving a
-   * kiosk themselves must not be handed the church's navigation, and a
-   * volunteer at the desk does not need it either while there is a queue. The
-   * way back to the rest of the product is the station's own control.
-   */
   return (
-    <>
-        <StationPicker
-          header={
-            <>
-              <AppHeader session={session} />
-              <PageTitle title={t("checkin.title")} />
-            </>
-          }
-          church={session.tenantSlug}
-          now={now}
-          canManage={canManageStations(session.role)}
-          stations={stations.map((s) => ({
-            id: s.id,
-            name: s.name,
-            mode: s.mode,
-            printer: s.printer,
-            rooms: (s.roomIds.length === 0 ? rooms : rooms.filter((r) => s.roomIds.includes(r.id)))
-              .map((r) => ({ id: r.id, name: r.name, hue: r.hue, capacity: r.capacity })),
-            services: services
-              .filter(
-                (o) =>
-                  o.status === "scheduled" &&
-                  (s.serviceTimeIds.length === 0 ||
-                    (o.serviceTimeId !== null && s.serviceTimeIds.includes(o.serviceTimeId))),
-              )
-              .map((o) => ({
-                id: o.id,
-                name: o.name,
-                startsAt: o.startsAt,
-                readableTime: readableTime(o.startsAt),
-              })),
-          }))}
-        />
-    </>
+    <AppShell session={session} title={t("checkin.title")}>
+      <StationPicker
+        church={session.tenantSlug}
+        now={now}
+        canManage={canManageStations(session.role)}
+        stations={stations.map((s) => ({
+          id: s.id,
+          name: s.name,
+          mode: s.mode,
+          printer: s.printer,
+          rooms: (s.roomIds.length === 0 ? rooms : rooms.filter((r) => s.roomIds.includes(r.id)))
+            .map((r) => ({ id: r.id, name: r.name, hue: r.hue, capacity: r.capacity })),
+          services: services
+            .filter(
+              (o) =>
+                o.status === "scheduled" &&
+                (s.serviceTimeIds.length === 0 ||
+                  (o.serviceTimeId !== null && s.serviceTimeIds.includes(o.serviceTimeId))),
+            )
+            .map((o) => ({
+              id: o.id,
+              name: o.name,
+              startsAt: o.startsAt,
+              readableTime: readableTime(o.startsAt),
+            })),
+        }))}
+      />
+    </AppShell>
   );
 }

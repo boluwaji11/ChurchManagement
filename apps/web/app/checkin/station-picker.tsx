@@ -31,7 +31,6 @@ export function StationPicker({
   stations,
   now,
   canManage,
-  header,
 }: {
   church: string;
   stations: StationOption[];
@@ -44,7 +43,6 @@ export function StationPicker({
    * gone once one is claimed. A parent at a kiosk has no business with it, and
    * a volunteer with a queue has no time for it.
    */
-  header: React.ReactNode;
 }) {
   const [chosen, setChosen] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
@@ -81,14 +79,28 @@ export function StationPicker({
 
   if (!ready) return null;
 
-  const page = (content: React.ReactNode, chrome: boolean) => (
-    <>
-      {chrome ? header : null}
-      <main id="main" className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
-        {content}
-      </main>
-    </>
-  );
+  /*
+   * R8.x, design system section 8. One task, full screen. Once a station is
+   * claimed the screen leaves the app behind: a family driving a kiosk
+   * themselves must not be handed the church's navigation, and a volunteer at
+   * the desk does not need it either while there is a queue. The way back is
+   * the station's own control.
+   *
+   * Always light and always station density, because the room it stands in is
+   * the one the church has, and 56px targets at 20px text is the point.
+   */
+  const page = (content: React.ReactNode, chrome: boolean) =>
+    chrome ? (
+      <div className="mx-auto w-full max-w-3xl">{content}</div>
+    ) : (
+      <div
+        data-theme="light"
+        data-density="station"
+        className="fixed inset-0 z-50 overflow-auto bg-canvas px-4 py-8 sm:px-6"
+      >
+        <div className="mx-auto w-full max-w-3xl">{content}</div>
+      </div>
+    );
 
   if (stations.length === 0) {
     return page(

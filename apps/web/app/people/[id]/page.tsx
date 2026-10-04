@@ -15,7 +15,7 @@ import {
 } from "@hearth/ui";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { ArchiveButton } from "../archive-button";
 import { TagEditor } from "../tag-editor";
 import { Timeline } from "./timeline";
@@ -126,9 +126,19 @@ export default async function PersonPage({
   const restricted = notes.filter((n) => n.restricted).length;
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <AppShell
+      session={session}
+      title={display}
+      action={
+        canEditPeople(session.role) ? (
+          <Button asChild>
+            <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
+              <Pencil /> {t("action.edit")}
+            </Link>
+          </Button>
+        ) : undefined
+      }
+    >
       <Link
         href={`/people?church=${session.tenantSlug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
@@ -136,24 +146,9 @@ export default async function PersonPage({
         <ArrowLeft className="size-4" /> {t("people.title")}
       </Link>
 
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Avatar name={display} id={person.id} size="xl" />
-          <div className="flex flex-col gap-1.5">
-            <h1 className="font-display text-display text-fg">{display}</h1>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge tone="primary">{lifecycleLabel(person.lifecycleStatus)}</Badge>
-            </div>
-          </div>
-        </div>
-
-        {canEditPeople(session.role) ? (
-          <Button asChild>
-            <Link href={`/people/${person.id}/edit?church=${session.tenantSlug}`}>
-              <Pencil /> {t("action.edit")}
-            </Link>
-          </Button>
-        ) : null}
+      <div className="mb-8 flex items-center gap-4">
+        <Avatar name={display} id={person.id} size="xl" />
+        <Badge tone="primary">{lifecycleLabel(person.lifecycleStatus)}</Badge>
       </div>
 
       {saved ? <Banner tone="success" title={t("person.saved")} className="mb-6" /> : null}
@@ -536,7 +531,6 @@ export default async function PersonPage({
         ) : null}
       </aside>
       </div>
-      </main>
-    </>
+    </AppShell>
   );
 }

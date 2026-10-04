@@ -61,7 +61,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-6 | Dark-mode status colours, and stop tinting invalid inputs | R24.5, R24.10 | Closed |
 | HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.6, R24.18 | Resolved |
 | HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Resolved |
-| HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | New |
+| HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | Resolved |
 | HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | New |
 | HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | New |
 | HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | New |
@@ -621,7 +621,7 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
 | **Waiting on a test** | **HRT-26** background checks, **HRT-62** the class board and rosters, **HRT-63** incident reports, **HRT-83** groups, **HRT-84** the leader scope, **HRT-85** group attendance, **HRT-86** the finder, **HRT-90** a group's page, **HRT-91** one groups screen, **HRT-93** follow-up pipelines, **HRT-94** the triggers, **HRT-95** the queue, **HRT-96** the board, **HRT-97** editing the six, **HRT-99** printed-directory consent, **HRT-100** the printed directory, **HRT-105** the setup wizard, **HRT-106** help, **HRT-107** time to value, **HRT-108** who can get in, **HRT-109** signing up, **HRT-110** saved lists, **HRT-112** the bag label, **HRT-113** the UI sweep, **HRT-114** joining a church, **HRT-119** search, **HRT-120** the person timeline, **HRT-27** birthdays, **HRT-79** teams and positions, **HRT-80** the schedule, **HRT-124** answering a serving request, **HRT-127** the order of service, **HRT-128** notes on an item, **HRT-129** files on an item |
-| **Next** | **HRT-201** the shell: sidebar, top bar, bottom tabs. Then HRT-202 role navigation, HRT-203 the dashboard, HRT-204 People, HRT-205 the palette, HRT-206 states, HRT-207 notifications, HRT-208 the remaining screens. **HRT-150** the public form link waits behind the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
+| **Next** | **HRT-202** navigation scoped to the role. Then HRT-203 the dashboard, HRT-204 People, HRT-205 the palette, HRT-206 states, HRT-207 notifications, HRT-208 the remaining screens. **HRT-150** the public form link waits behind the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
 
@@ -1347,6 +1347,33 @@ From **Groups**, tap a group's name.
    Welcome team has one too. Membership class has none, and that section is simply absent.
 8. **Asking.** Ask to join from this page. The bar changes to Asked, and the request reaches the
    leader on the finder.
+
+### HRT-201, how to test it
+
+The shell. Every staff screen now sits in it, so the thing to look for is a screen that looks wrong
+rather than a feature to try.
+
+1. **The sidebar** is down the left on a desktop. The entry for the screen you are on is white with a
+   hairline shadow; the rest are grey.
+2. **Collapse it** with the button beside the Hearth mark. It becomes a 64px rail of icons. Hover any
+   icon and its words appear. Reload: it is still collapsed, because the width is in a cookie and the
+   server renders it that way with no flicker.
+3. **The top bar** carries the page title and one filled button, the one that belongs to that page.
+   On People it is Add person. Import, Celebrations and Print moved down onto the page.
+4. **Narrow the window under 768px.** The sidebar goes and five tabs appear along the bottom. The
+   page keeps room underneath so its last control is reachable.
+5. **Your name and role** sit at the bottom of the sidebar and open Settings. Sign out is underneath
+   rather than beside it.
+6. **Check-in**: pick a station and the screen goes full screen with no navigation, light palette,
+   station density. "Change" brings the shell back.
+7. **The member home** (sign in as a member, or open `/home`) runs at portal density inside the same
+   shell, with the church's colour under the top bar.
+8. **Names match the design.** Directory is now **People**. Add someone is **Add person**. Possible
+   duplicates is **Duplicates**. Order of service is **Service plan**. Incident reports is
+   **Incidents**. Birthdays and anniversaries is **Celebrations**. Kids classes is **Room rosters**.
+   Live is **Live service**. The full table is in docs/redesign/README.md.
+9. **Deep screens** still work: a person, a group, a service plan, a team's schedule, a follow-up
+   pipeline, a form builder. Each shows its own name in the top bar.
 
 ### HRT-149, how to test it
 

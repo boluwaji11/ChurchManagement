@@ -113,19 +113,63 @@ screen looks.
 | Samuel gets his group | Matches. Two nav entries and nothing else in the church is exactly the role-scoped sidebar. |
 | Ruth opens the station | Sign-in offers "Open a check-in station", a six-digit code from Settings, Stations pairs the tablet, and it stays in station mode. Worth checking the sign-in entry point exists. |
 | Hannah signs up on the church's site | The design shows an embedded "My account" panel on the church's own domain, with no approval step. Our door is the church's join link, and the approval queue was built and taken out already, so the two agree. The panel is the join link embedded. |
-| Elijah finds a group first | Matches `/g/<slug>` and `/g/<slug>/<id>`, built signed out. **One open question:** the design has him added to the group on the spot with the leader told, and R9.5 has a join request the leader approves. Flagged below. |
+| Elijah finds a group first | Matches `/g/<slug>` and `/g/<slug>/<id>`, built signed out. The design adds him to the group on the spot; the leader approves the request instead, settled below. The screens either side are right. |
 | Ann across five churches | Out, with the rest of the network work. |
 
-### Open question, group joining
+### Group joining, settled October 2026
 
 R9.5 specifies a public group finder "with join requests and approval". The design adds the person to
-the group immediately and tells the leader. A small group with a cap and a leader who knows everybody
-is a different thing from a church directory, so there is a real argument either way. Until it is
-settled, approval stays, because taking a gate away is reversible in a morning and letting strangers
-onto a roster is not.
+the group immediately and tells the leader. **Approval stays.** A leader decides who is in their
+group. The design's screens for the finder and the group page are right; the button asks rather than
+joins, and the bar changes to Asked.
 
 ## Where the design is the authority
 
 Colours, type, spacing, copy, states and validation rules in the prototypes are final. Match them.
 Where a prototype and `docs/data-model.md` disagree about what a record holds, the repo wins and the
 prototype is showing presentation.
+
+## The words, exactly
+
+The prototype holds a title and a main action for every screen, and these are the words. Our
+catalogue was aligned to them in HRT-201, so a key's value is the design's string.
+
+| Screen | Title | Top-bar action | Where it is now |
+|---|---|---|---|
+| Dashboard | Dashboard | none | HRT-203 |
+| Pastor home | Home | Add care note | Needs the pastor persona (HRT-202) |
+| People | People | Add person | Built |
+| Person | Person | Add note | Title is the person's name. Action is still Edit, HRT-208 moves it |
+| Edit person | Edit person | none | Built |
+| Follow-ups | Follow-ups | Start follow-up | Title built, action HRT-208 |
+| Check-in | Check-in | Check in | Title built, action HRT-208 |
+| Labels | Labels | none | HRT-208 |
+| Room rosters | Room rosters | none | Built |
+| Incidents | Incidents | File report | Title built, action HRT-208 |
+| Services | Services | New service | Title built, action HRT-208 |
+| Service plan | Service plan | Add item | Title built, action HRT-208 |
+| Live service | Live service | none | Built, always dark |
+| Serving | Serving | Send requests or New team | Title built, action HRT-208 |
+| Schedule | Schedule | none | Built |
+| Groups | Groups | New group | Title built, action HRT-208 |
+| Group | Group, or My group for a leader | Add member | Title is the group's name, action HRT-208 |
+| Forms | Forms | New form | Built |
+| Settings | Settings | Invite person | Title built, action HRT-208 |
+| Import | Import | none | Built |
+| Duplicates | Duplicates | none | Built |
+| Celebrations | Celebrations | none | Built |
+| Giving, Songs, Calendar, Reports, Churches | | | Excluded, see above |
+
+An entry's sidebar label is the same word as its title. The one difference is People, where the
+prototype's nav says People and the screen is also People; ours said Directory in both places and
+now says People.
+
+### Still off the design, with a reason
+
+**Rooms and Incidents are top-level sidebar entries here.** The prototype folds both under Check-in,
+alongside Labels. Our Check-in screen is the station picker and carries no links to them yet, so
+removing the entries would strand two screens. They fold in when HRT-208 rebuilds Check-in.
+
+**The brand mark is three rising embers, not a flame in a square.** The prototype draws a flame
+because it needed something to draw. Ours ships as the favicon, the app icon and the sign-in mark,
+and it inherits the accent token so it follows the theme.

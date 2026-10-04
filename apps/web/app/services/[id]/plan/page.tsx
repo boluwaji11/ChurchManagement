@@ -6,9 +6,9 @@ import {
   listTemplates, recentPlans, rosterFor, planHistory,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
+import { PageMeta } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { longDate, readableTime } from "@/lib/dates";
 import { Order } from "./order";
 import { WhoServes } from "./who-serves";
@@ -64,72 +64,70 @@ export default async function PlanPage({
   const { occurrence, plan, audience, templates, sources, roster, changes } = result;
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+    <AppShell
+      session={session}
+      title={t("order.title")}
+    >
+      <Link
+        href={`/services/${id}?church=${session.tenantSlug}`}
+        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" /> {occurrence.name}
+      </Link>
+
+      <div className="mb-6 flex justify-end">
+        {/* R11.11. Where a leader goes when the gathering is about to start. */}
         <Link
-          href={`/services/${id}?church=${session.tenantSlug}`}
-          className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+          href={`/services/${id}/live?church=${session.tenantSlug}`}
+          className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
         >
-          <ArrowLeft className="size-4" /> {occurrence.name}
+          <Play className="size-4" /> {t("live.open")}
         </Link>
+      </div>
 
-        <div className="mb-6 flex justify-end">
-          {/* R11.11. Where a leader goes when the gathering is about to start. */}
-          <Link
-            href={`/services/${id}/live?church=${session.tenantSlug}`}
-            className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-          >
-            <Play className="size-4" /> {t("live.open")}
-          </Link>
-        </div>
+      <PageMeta>
+        {`${longDate(occurrence.occursOn)} ${readableTime(occurrence.startsAt)}`}
+      </PageMeta>
 
-        <PageTitle
-          title={t("order.title")}
-          lede={`${longDate(occurrence.occursOn)} ${readableTime(occurrence.startsAt)}`}
-          className="mb-8"
-        />
+      <Order
+        church={session.tenantSlug}
+        occurrenceId={id}
+        planId={plan.id}
+        serviceStartsAt={plan.serviceStartsAt}
+        series={plan.series}
+        theme={plan.theme}
+        items={plan.items.map((item) => ({
+          id: item.id,
+          kind: item.kind,
+          title: item.title,
+          description: item.description,
+          minutes: item.minutes,
+          notes: item.notes.map((note) => ({
+            id: note.id,
+            body: note.body,
+            audience: note.audience,
+          })),
+          files: item.files.map((file) => ({
+            id: file.id,
+            key: file.key,
+            label: file.label,
+            contentType: file.contentType,
+          })),
+        }))}
+        audience={audience}
+        templates={templates}
+        sources={sources.map((source) => ({
+          occurrenceId: source.occurrenceId,
+          label: `${source.name}, ${longDate(source.occursOn)}`,
+          items: source.items,
+          minutes: source.minutes,
+        }))}
+      />
 
-        <Order
-          church={session.tenantSlug}
-          occurrenceId={id}
-          planId={plan.id}
-          serviceStartsAt={plan.serviceStartsAt}
-          series={plan.series}
-          theme={plan.theme}
-          items={plan.items.map((item) => ({
-            id: item.id,
-            kind: item.kind,
-            title: item.title,
-            description: item.description,
-            minutes: item.minutes,
-            notes: item.notes.map((note) => ({
-              id: note.id,
-              body: note.body,
-              audience: note.audience,
-            })),
-            files: item.files.map((file) => ({
-              id: file.id,
-              key: file.key,
-              label: file.label,
-              contentType: file.contentType,
-            })),
-          }))}
-          audience={audience}
-          templates={templates}
-          sources={sources.map((source) => ({
-            occurrenceId: source.occurrenceId,
-            label: `${source.name}, ${longDate(source.occursOn)}`,
-            items: source.items,
-            minutes: source.minutes,
-          }))}
-        />
-
-        <div className="mt-6 flex flex-col gap-6">
-          <WhoServes church={session.tenantSlug} occurrenceId={id} teams={roster} />
-          <History changes={changes} />
-        </div>
-      </main>
-    </>
+      <div className="mt-6 flex flex-col gap-6">
+        <WhoServes church={session.tenantSlug} occurrenceId={id} teams={roster} />
+        <History changes={changes} />
+      </div>
+    </AppShell>
   );
 }

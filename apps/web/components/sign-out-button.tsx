@@ -14,15 +14,23 @@ import { t } from "@hearth/i18n";
  * form posts rather than calling an action, so it still works without
  * JavaScript once the dialog is open.
  */
-export function SignOutButton({ label }: { label?: string }) {
+export function SignOutButton({ label, compact }: { label?: string; compact?: boolean }) {
   const text = label ?? t("action.signOut");
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button type="button" variant="secondary">
-          <LogOut /> {text}
-        </Button>
+        {/* In the sidebar it is a quiet row rather than a second filled button
+            under the person's own name. */}
+        {compact ? (
+          <Button type="button" variant="ghost" className="h-9 justify-start px-2.5 text-fg-muted">
+            <LogOut /> {text}
+          </Button>
+        ) : (
+          <Button type="button" variant="secondary">
+            <LogOut /> {text}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent alert title={t("signOut.confirmTitle")}>
         <p className="mb-5 text-[length:var(--d-text-body)] text-fg">

@@ -1,8 +1,7 @@
 import { withTenant, listIncidents, canReadIncidents, type Incident } from "@hearth/db";
 import { Badge, Banner, Card, EmptyState, Separator } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Notify } from "./notify";
 
@@ -30,12 +29,12 @@ export default async function IncidentsPage({
 
   if (!canReadIncidents(session.role)) {
     return (
-      <>
-        <AppHeader session={session} />
-        <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-          <Banner tone="info" title={t("incident.title")}>{t("forbidden.askAdmin")}</Banner>
-        </main>
-      </>
+      <AppShell
+        session={session}
+        title={t("incident.title")}
+      >
+        <Banner tone="info" title={t("incident.title")}>{t("forbidden.askAdmin")}</Banner>
+      </AppShell>
     );
   }
 
@@ -45,22 +44,20 @@ export default async function IncidentsPage({
   );
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <PageTitle title={t("incident.title")} className="mb-6" />
-
-        {incidents.length === 0 ? (
-          <EmptyState title={t("incident.none.title")} />
-        ) : (
-          <div className="flex flex-col gap-4">
-            {incidents.map((incident) => (
-              <Report key={incident.id} church={session.tenantSlug} incident={incident} />
-            ))}
-          </div>
-        )}
-      </main>
-    </>
+    <AppShell
+      session={session}
+      title={t("incident.title")}
+    >
+      {incidents.length === 0 ? (
+        <EmptyState title={t("incident.none.title")} />
+      ) : (
+        <div className="flex flex-col gap-4">
+          {incidents.map((incident) => (
+            <Report key={incident.id} church={session.tenantSlug} incident={incident} />
+          ))}
+        </div>
+      )}
+    </AppShell>
   );
 }
 

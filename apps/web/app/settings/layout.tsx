@@ -4,8 +4,9 @@ import {
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { Avatar } from "@hearth/ui";
+import { PageMeta } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { SettingsTabs, type SettingsTab } from "./tabs";
 
 export const dynamic = "force-dynamic";
@@ -61,18 +62,18 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   ];
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <div className="mb-6 flex items-center gap-4">
-          <Avatar name={session.displayName} id={session.userId} size="xl" />
-          <h1 className="font-display text-display text-fg">{session.displayName}</h1>
-        </div>
+    <AppShell
+      session={session}
+      title={t("nav.settings")}
+    >
+      <div className="mb-6 flex items-center gap-4">
+        <Avatar name={session.displayName} id={session.userId} size="xl" />
+        <PageMeta>{session.displayName}</PageMeta>
+      </div>
 
-        <SettingsTabs tabs={tabs} church={session.tenantSlug} />
+      <SettingsTabs tabs={tabs} church={session.tenantSlug} />
 
-        {children}
-      </main>
-    </>
+      {children}
+    </AppShell>
   );
 }

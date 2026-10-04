@@ -5,9 +5,8 @@ import {
   withTenant, getPersonForEdit, listHouseholds, listCustomFields, getCustomValues, canEditPeople,
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
-import { PageTitle } from "@/components/section";
 import { requireSession } from "@/lib/session";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { PersonForm } from "../../person-form";
 import { t } from "@hearth/i18n";
 
@@ -37,49 +36,47 @@ export default async function EditPersonPage({
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <Link
-          href={`/people/${id}?church=${session.tenantSlug}`}
-          className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-        >
-          <ArrowLeft className="size-4" /> {display}
-        </Link>
+    <AppShell
+      session={session}
+      title={t("personForm.editTitle")}
+    >
+      <Link
+        href={`/people/${id}?church=${session.tenantSlug}`}
+        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" /> {display}
+      </Link>
 
-        <PageTitle title={t("personForm.editTitle", { name: display })} />
+      {person.archivedAt ? (
+        <Banner tone="warning" title={t("personForm.archivedNotice.title")} className="mb-6">
+          {t("personForm.archivedNotice.body")}
+        </Banner>
+      ) : null}
 
-        {person.archivedAt ? (
-          <Banner tone="warning" title={t("personForm.archivedNotice.title")} className="mb-6">
-            {t("personForm.archivedNotice.body")}
-          </Banner>
-        ) : null}
-
-        {canEditPeople(session.role) ? (
-          <PersonForm
-            church={session.tenantSlug}
-            households={households}
-            customFields={customFields}
-            customValues={customValues}
-            values={{
-              id: person.id,
-              firstName: person.firstName,
-              lastName: person.lastName,
-              preferredName: person.preferredName,
-              dateOfBirth: person.dateOfBirth,
-              lifecycleStatus: person.lifecycleStatus,
-              membershipDate: person.membershipDate,
-              firstVisitOn: person.firstVisitOn,
-              email: person.email,
-              phone: person.phone,
-              householdId: person.householdId,
-              householdRole: person.householdRole,
-            }}
-          />
-        ) : (
-          <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
-        )}
-      </main>
-    </>
+      {canEditPeople(session.role) ? (
+        <PersonForm
+          church={session.tenantSlug}
+          households={households}
+          customFields={customFields}
+          customValues={customValues}
+          values={{
+            id: person.id,
+            firstName: person.firstName,
+            lastName: person.lastName,
+            preferredName: person.preferredName,
+            dateOfBirth: person.dateOfBirth,
+            lifecycleStatus: person.lifecycleStatus,
+            membershipDate: person.membershipDate,
+            firstVisitOn: person.firstVisitOn,
+            email: person.email,
+            phone: person.phone,
+            householdId: person.householdId,
+            householdRole: person.householdRole,
+          }}
+        />
+      ) : (
+        <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
+      )}
+    </AppShell>
   );
 }

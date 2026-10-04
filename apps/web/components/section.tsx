@@ -18,6 +18,16 @@ export function PageTitle({
   );
 }
 
+/**
+ * R24.6. The line under the top bar, where a page has something to say that is
+ * data rather than description. A date, a time, who it belongs to.
+ *
+ * The page's title lives in the top bar, so this never repeats it.
+ */
+export function PageMeta({ children }: { children: React.ReactNode }) {
+  return <p className="mb-8 text-body-lg text-fg-muted">{children}</p>;
+}
+
 export function Section({
   title,
   note,

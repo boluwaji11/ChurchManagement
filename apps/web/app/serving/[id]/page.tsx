@@ -6,8 +6,8 @@ import {
 } from "@hearth/db";
 import { Button, HueDot, type Hue } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageTitle, Section } from "@/components/section";
-import { AppHeader } from "@/components/app-header";
+import { PageMeta, Section } from "@/components/section";
+import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Positions } from "./positions";
 import { Roster } from "./roster";
@@ -50,62 +50,58 @@ export default async function TeamPage({
   if (!mine) redirect(`/serving?church=${session.tenantSlug}`);
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main id="main" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <Button variant="ghost" asChild className="mb-4">
-          <Link href={`/serving?church=${session.tenantSlug}`}>
-            <ChevronLeft aria-hidden /> {t("serving.back")}
+    <AppShell
+      session={session}
+      title={team.name}
+      action={
+        <Button asChild>
+          <Link href={`/serving/${team.id}/schedule?church=${session.tenantSlug}`}>
+            <CalendarDays /> {t("plan.open")}
           </Link>
         </Button>
+      }
+    >
+      <Button variant="ghost" asChild className="mb-4">
+        <Link href={`/serving?church=${session.tenantSlug}`}>
+          <ChevronLeft aria-hidden /> {t("serving.back")}
+        </Link>
+      </Button>
 
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <HueDot hue={team.hue as Hue} />
-            <PageTitle
-              title={team.name}
-              lede={team.description ?? undefined}
-              className="mb-0"
-            />
-          </div>
-          <Button asChild>
-            <Link href={`/serving/${team.id}/schedule?church=${session.tenantSlug}`}>
-              <CalendarDays /> {t("plan.open")}
-            </Link>
-          </Button>
-        </div>
+      <div className="mb-8 flex items-center gap-3">
+        <HueDot hue={team.hue as Hue} />
+        {team.description ? <PageMeta>{team.description}</PageMeta> : null}
+      </div>
 
-        <Section title={t("serving.positions")}>
-          <Positions
-            church={session.tenantSlug}
-            teamId={team.id}
-            canManage={canManage}
-            positions={team.positions.map((position) => ({
-              id: position.id,
-              name: position.name,
-              needed: position.needed,
-              withChildren: position.withChildren,
-              requiresCheck: position.requiresCheck,
-            }))}
-          />
-        </Section>
+      <Section title={t("serving.positions")}>
+        <Positions
+          church={session.tenantSlug}
+          teamId={team.id}
+          canManage={canManage}
+          positions={team.positions.map((position) => ({
+            id: position.id,
+            name: position.name,
+            needed: position.needed,
+            withChildren: position.withChildren,
+            requiresCheck: position.requiresCheck,
+          }))}
+        />
+      </Section>
 
-        <Section title={t("serving.roster")}>
-          <Roster
-            church={session.tenantSlug}
-            teamId={team.id}
-            positions={team.positions.map((p) => ({ id: p.id, name: p.name }))}
-            members={team.members.map((member) => ({
-              id: member.id,
-              personId: member.personId,
-              name: member.name,
-              role: member.role,
-              joinedOn: member.joinedOn,
-              positions: member.positions,
-            }))}
-          />
-        </Section>
-      </main>
-    </>
+      <Section title={t("serving.roster")}>
+        <Roster
+          church={session.tenantSlug}
+          teamId={team.id}
+          positions={team.positions.map((p) => ({ id: p.id, name: p.name }))}
+          members={team.members.map((member) => ({
+            id: member.id,
+            personId: member.personId,
+            name: member.name,
+            role: member.role,
+            joinedOn: member.joinedOn,
+            positions: member.positions,
+          }))}
+        />
+      </Section>
+    </AppShell>
   );
 }
