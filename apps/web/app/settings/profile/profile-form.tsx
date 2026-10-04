@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Pencil, Trash2 } from "lucide-react";
 import {
-  Avatar, Banner, Button, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
+  Avatar, Banner, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, IconButton, Input, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -118,9 +118,9 @@ export function ProfileForm({
                 className="max-h-[60vh] w-full rounded-lg bg-canvas object-contain"
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="danger"
+                <IconButton
+                  label={t("profile.photo.remove")}
+                  variant="ghost"
                   onClick={() =>
                     startTransition(async () => {
                       const result = await clearPhoto(church);
@@ -128,11 +128,15 @@ export function ProfileForm({
                       if (!result.error) router.refresh();
                     })}
                 >
-                  <Trash2 /> {t("profile.photo.remove")}
-                </Button>
-                <Button type="button" onClick={() => file.current?.click()}>
-                  <Camera /> {t("profile.photo.replace")}
-                </Button>
+                  <Trash2 />
+                </IconButton>
+                <IconButton
+                  label={t("profile.photo.replace")}
+                  variant="ghost"
+                  onClick={() => file.current?.click()}
+                >
+                  <Camera />
+                </IconButton>
               </DialogFooter>
             </DialogContent>
           </Dialog>
