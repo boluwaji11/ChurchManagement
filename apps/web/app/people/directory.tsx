@@ -3,10 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus, ListFilter, BookmarkPlus, MinusCircle, Pencil } from "lucide-react";
 import {
-  Avatar, Badge, Button, Card, CardTitle, Field, Input, Checkbox, Banner, HueDot,
-  Table, Thead, Th, Tr, Td, EmptyState,
+  ChevronLeft, ChevronRight, Search, X, Archive, Upload, Download, Merge, Plus,
+  ListFilter, BookmarkPlus, MinusCircle, Pencil, Copy, Cake, Printer,
+  SlidersHorizontal, Check,
+} from "lucide-react";
+import {
+  Avatar, Badge, Button, Field, Input, Checkbox, Banner, HueDot,
+  IconButton, EmptyState,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   cn, type Hue,
@@ -14,7 +18,7 @@ import {
 import { t, plural } from "@hearth/i18n";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkArchive, bulkStatus, bulkTag, type BulkResult } from "./bulk-actions";
-import { saveSelection, saveView, takeOffList, rename, archiveList } from "./list-actions";
+import { saveSelection, takeOffList, rename, archiveList } from "./list-actions";
 
 export interface ListOption {
   id: string;
@@ -30,8 +34,13 @@ export interface Row {
   householdName: string | null;
   primaryEmail: string | null;
   primaryPhone: string | null;
+  /** R2.14. The tag names, for the column the design gives them. */
+  tagNames: string[];
   archived: boolean;
 }
+
+/** What a cell with nothing in it reads as. */
+const EMPTY = "\u2014";
 
 export interface TagOption {
   id: string;
@@ -39,11 +48,18 @@ export interface TagOption {
   hue: string;
 }
 
-const STATUS_TONE: Record<string, "primary" | "accent" | "neutral" | "success"> = {
-  member: "primary",
-  visitor: "neutral",
-  regular_attender: "neutral",
-  inactive: "neutral",
+/**
+ * R2.2. Where somebody is in the life of the church, as a colour.
+ *
+ * Member is fern, a regular is sky, a visitor is amber. Three hues far enough
+ * apart to tell at a glance down a column of two hundred rows.
+ */
+const STATUS_HUE: Record<string, string> = {
+  member: "fern",
+  regular_attender: "sky",
+  visitor: "amber",
+  inactive: "clay",
+  deceased: "clay",
 };
 
 const ANY = "__any";
@@ -71,6 +87,8 @@ export function Directory({
   page,
   perPage,
   matching,
+  counts,
+  duplicates,
   lists,
   viewing,
 }: {
@@ -81,6 +99,10 @@ export function Directory({
   canArchive: boolean;
   page: number;
   perPage: number;
+  /** R2.14. How many people are at each status, for the filter drawer. */
+  counts: Record<string, number>;
+  /** R2.8. How many pairs are waiting, for the badge on Duplicates. */
+  duplicates: number;
   /** How many people match the filters, across every page. */
   matching: number;
   /** R1.14. The church's saved lists. */
@@ -102,9 +124,6 @@ export function Directory({
   const q = params.get("q") ?? "";
   const [search, setSearch] = React.useState(q);
   React.useEffect(() => setSearch(q), [q]);
-
-  const sort = params.get("sort") ?? "name";
-  const dir = params.get("dir") ?? "asc";
 
   /** Rewrites the URL, dropping empty values so a shared link stays readable. */
   const setParam = React.useCallback(
@@ -157,40 +176,85 @@ export function Directory({
   const filtersOn = ["q", "status", "tag", "has", "show"].some((k) => params.get(k));
   const exportHref = `/api/export?church=${church}&${params.toString()}`;
 
+  const statusNow = params.get("status") ?? "all";
+  const joinedNow = params.get("joined") ?? "any";
+  const tagNow = params.get("tag");
+  const missingNow = params.get("missing") === "1";
+
+  // What the Filter button counts, so "Filter · 2" says how much is narrowing
+  // the list. Search sits outside it, in its own box.
+  const narrowing =
+    (statusNow !== "all" ? 1 : 0) + (tagNow ? 1 : 0) +
+    (joinedNow !== "any" ? 1 : 0) + (missingNow ? 1 : 0);
+
+  const first = (page - 1) * perPage + 1;
+  const upto = Math.min(page * perPage, matching);
+
   return (
-    /* Filters down the side, the list across the rest. The list is the thing
-       somebody came for, so it gets the width; the filters are read once and
-       then sat beside. */
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <aside className="lg:sticky lg:top-20 lg:w-64 lg:shrink-0">
-        <Toolbar
-          church={church}
-          search={search}
-          setSearch={setSearch}
+    <>
+      {/* The row across the top: what you are looking for on the left, what you
+          can do to the list on the right. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="flex h-[34px] min-w-40 flex-[0_1_220px] items-center gap-2 rounded-md border border-line-strong bg-surface px-2.5 text-fg-subtle">
+          <Search className="size-[15px] shrink-0" aria-hidden />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("directory.searchPlaceholder")}
+            aria-label={t("directory.search")}
+            className="min-w-0 flex-1 border-none bg-transparent text-[13px] text-fg outline-none placeholder:text-fg-subtle"
+          />
+        </label>
+
+        <span className="flex-1" />
+
+        {canArchive ? (
+          <ToolButton href={`/duplicates?church=${church}`}>
+            <Copy /> {t("merge.title")}
+            {duplicates > 0 ? (
+              <span className="rounded-full bg-danger px-1.5 text-[11px] font-semibold text-white">
+                {duplicates}
+              </span>
+            ) : null}
+          </ToolButton>
+        ) : null}
+
+        <ToolButton href={`/people/celebrations?church=${church}`}>
+          <Cake /> {t("celebrations.open")}
+        </ToolButton>
+
+        <ToolButton href={`/people/print?church=${church}`} target="_blank">
+          <Printer /> {t("printDirectory.print")}
+        </ToolButton>
+
+        <ToolButton href={exportHref}>
+          <Download /> {t("directory.exportView")}
+        </ToolButton>
+
+        <FilterDrawer
+          tags={tags}
+          counts={counts}
+          matching={matching}
           params={params}
           setParam={setParam}
-          tags={tags}
-          filtersOn={filtersOn}
           onClear={() => router.replace(pathname, { scroll: false })}
-          exportHref={exportHref}
-          canArchive={canArchive}
-          canEdit={canEdit}
-          lists={lists}
-          viewing={viewing}
+          narrowing={narrowing}
         />
-      </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
+        {canEdit ? (
+          <ToolButton href={`/import?church=${church}`}>
+            <Upload /> {t("import.title")}
+          </ToolButton>
+        ) : null}
+      </div>
+
       {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
       {result && !result.error && result.changed !== undefined ? (
         <Banner tone="success" title={t("directory.bulkDone", { count: result.changed })} />
       ) : null}
 
-      {/* R1.14. Which list is being read, what can be done to it, and the way
-          back to everybody. */}
-      {viewing ? (
-        <ListBar church={church} list={viewing} canEdit={canEdit} />
-      ) : null}
+      {/* R1.14. Which list is being read, and the way back to everybody. */}
+      {viewing ? <ListBar church={church} list={viewing} canEdit={canEdit} /> : null}
 
       {selected.length > 0 && canEdit ? (
         <SelectionBar
@@ -224,8 +288,6 @@ export function Directory({
                 <X /> {t("directory.clear")}
               </Button>
             ) : canEdit ? (
-              // Day one. The copy named two things to do and the screen offered
-              // neither of them.
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button asChild>
                   <Link href={`/people/new?church=${church}`}>
@@ -242,396 +304,380 @@ export function Directory({
           }
         />
       ) : (
-        <Table>
-          <Thead>
-            <Tr>
-              {canEdit ? (
-                <Th className="w-10">
-                  <Checkbox
-                    checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                    onCheckedChange={toggleAll}
-                    aria-label={t("directory.selectAll")}
-                  />
-                </Th>
-              ) : null}
-              <SortHeader field="name" label={t("people.column.person")} sort={sort} dir={dir} setParam={setParam} />
-              <SortHeader field="household" label={t("people.column.household")} sort={sort} dir={dir} setParam={setParam} />
-              <SortHeader field="status" label={t("people.column.status")} sort={sort} dir={dir} setParam={setParam} />
-              <Th>{t("people.column.email")}</Th>
-              <Th>{t("people.column.phone")}</Th>
-            </Tr>
-          </Thead>
-          <tbody>
-            {rows.map((p) => (
-              <Tr key={p.id} data-selected={selected.includes(p.id) || undefined}>
+        <div className="overflow-auto rounded-lg border border-line bg-surface">
+          <table className="w-full min-w-[720px] border-collapse">
+            <thead>
+              <tr className="text-left text-[12px] font-medium text-fg-subtle">
                 {canEdit ? (
-                  <Td>
+                  <th className="w-10 border-b border-line px-4 py-3 font-medium">
                     <Checkbox
-                      checked={selected.includes(p.id)}
-                      onCheckedChange={() => toggle(p.id)}
-                      aria-label={t("directory.select", { name: p.displayName })}
+                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleAll}
+                      aria-label={t("directory.selectAll")}
                     />
-                  </Td>
+                  </th>
                 ) : null}
-                <Td>
-                  <Link
-                    href={`/people/${p.id}?church=${church}`}
-                    className="flex items-center gap-2.5 hover:underline"
-                  >
-                    <Avatar name={p.displayName} id={p.id} size="sm" />
-                    <span className={p.archived ? "text-fg-muted line-through" : undefined}>
-                      {p.displayName}
-                    </span>
-                    {p.archived ? <Badge tone="neutral">{t("people.archivedBadge")}</Badge> : null}
-                  </Link>
-                </Td>
-                <Td className="text-fg-muted">{p.householdName ?? t("people.noHousehold")}</Td>
-                <Td>
-                  <Badge tone={STATUS_TONE[p.lifecycleStatus] ?? "neutral"}>
-                    {lifecycleLabel(p.lifecycleStatus)}
-                  </Badge>
-                </Td>
-                <Td className="text-fg-muted">
-                  {p.primaryEmail ? (
-                    <a href={`mailto:${p.primaryEmail}`} className="underline-offset-4 hover:underline">
-                      {p.primaryEmail}
-                    </a>
-                  ) : (
-                    t("people.none")
-                  )}
-                </Td>
-                <Td data-numeric className="text-fg-muted">
-                  {p.primaryPhone ? (
-                    <a
-                      href={`tel:${p.primaryPhone.replace(/[^+\d]/g, "")}`}
-                      className="underline-offset-4 hover:underline"
+                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.person")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.household")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.status")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.tags")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.email")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.phone")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((p) => (
+                <tr key={p.id} className="relative hover:bg-canvas" data-selected={selected.includes(p.id) || undefined}>
+                  {canEdit ? (
+                    <td className="border-b border-sunken px-4 py-2.5">
+                      <Checkbox
+                        checked={selected.includes(p.id)}
+                        onCheckedChange={() => toggle(p.id)}
+                        aria-label={t("directory.select", { name: p.displayName })}
+                      />
+                    </td>
+                  ) : null}
+                  <td className="border-b border-sunken px-4 py-2.5">
+                    <Link
+                      href={`/people/${p.id}?church=${church}`}
+                      className="flex items-center gap-2.5 font-medium text-fg hover:underline"
                     >
-                      {p.primaryPhone}
-                    </a>
-                  ) : (
-                    t("people.none")
-                  )}
-                </Td>
-              </Tr>
-            ))}
-          </tbody>
-        </Table>
+                      <Avatar name={p.displayName} id={p.id} size="sm" className="size-7 text-[11px] font-semibold" />
+                      <span className="truncate">{p.displayName}</span>
+                    </Link>
+                  </td>
+                  <td className="border-b border-sunken px-4 py-2.5 text-fg-muted">
+                    {p.householdName ?? EMPTY}
+                  </td>
+                  <td className="border-b border-sunken px-4 py-2.5">
+                    <StatusPill status={p.lifecycleStatus} />
+                  </td>
+                  <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted">
+                    {p.tagNames.length > 0 ? p.tagNames.join(", ") : EMPTY}
+                  </td>
+                  <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted">
+                    {p.primaryEmail ?? EMPTY}
+                  </td>
+                  <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted tabular-nums">
+                    {p.primaryPhone ?? EMPTY}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      <Pages page={page} perPage={perPage} matching={matching} setParam={setParam} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-[13px] text-fg-muted">
+          {matching === 0
+            ? t("directory.none")
+            : t("directory.showing", { range: t("directory.range", { first, upto, matching }) })}
+        </span>
+        <Pages page={page} last={Math.max(1, Math.ceil(matching / perPage))} setParam={setParam} />
       </div>
-    </div>
+    </>
   );
 }
 
+/** A 34px secondary control. The row of them above the list is all this shape. */
+function ToolButton({
+  href,
+  target,
+  children,
+}: {
+  href: string;
+  target?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      target={target}
+      className="flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  const hue = STATUS_HUE[status] ?? "clay";
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium"
+      style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+    >
+      {lifecycleLabel(status)}
+    </span>
+  );
+}
+
+
 /**
- * Page controls, shown only when there is more than one page.
+ * R2.14. Numbered pages, as the design has them.
  *
- * The count is of everything matching rather than of this page, because that is
- * the number somebody is asking about when they glance down here.
+ * Arrows either side, the first and last page always reachable, an ellipsis
+ * where the run is broken. Twenty to a page.
  */
 function Pages({
   page,
-  perPage,
-  matching,
+  last,
   setParam,
 }: {
   page: number;
-  perPage: number;
-  matching: number;
+  last: number;
   setParam: (c: Record<string, string | undefined>) => void;
 }) {
-  if (matching === 0) return null;
+  if (last <= 1) return null;
 
-  const last = Math.max(1, Math.ceil(matching / perPage));
-  const first = (page - 1) * perPage + 1;
-  const upto = Math.min(page * perPage, matching);
+  const tokens: Array<number | "gap"> = [];
+  if (last <= 7) {
+    for (let i = 1; i <= last; i += 1) tokens.push(i);
+  } else {
+    tokens.push(1);
+    const from = Math.max(2, page - 1);
+    const to = Math.min(last - 1, page + 1);
+    if (from > 2) tokens.push("gap");
+    for (let i = from; i <= to; i += 1) tokens.push(i);
+    if (to < last - 1) tokens.push("gap");
+    tokens.push(last);
+  }
+
+  const go = (n: number) => setParam({ page: n <= 1 ? undefined : String(n) });
+  const arrow =
+    "grid size-8 place-items-center rounded-sm border border-line-strong bg-surface disabled:opacity-40";
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <span className="text-caption text-fg-muted">
-        {last > 1 ? t("directory.range", { first, upto, matching }) : plural("directory.matching", matching)}
-      </span>
-
-      {last > 1 ? (
-        <span className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            disabled={page <= 1}
-            onClick={() => setParam({ page: page - 1 <= 1 ? undefined : String(page - 1) })}
-          >
-            <ChevronLeft /> {t("directory.previous")}
-          </Button>
-          <span className="text-caption text-fg-muted">{t("directory.page", { page, last })}</span>
-          <Button
-            variant="secondary"
-            disabled={page >= last}
-            onClick={() => setParam({ page: String(page + 1) })}
-          >
-            {t("directory.next")} <ChevronRight />
-          </Button>
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
-function SortHeader({
-  field,
-  label,
-  sort,
-  dir,
-  setParam,
-}: {
-  field: string;
-  label: string;
-  sort: string;
-  dir: string;
-  setParam: (c: Record<string, string | undefined>) => void;
-}) {
-  const active = sort === field;
-  return (
-    <Th aria-sort={active ? (dir === "desc" ? "descending" : "ascending") : "none"}>
+    <div className="flex items-center gap-1">
       <button
         type="button"
-        onClick={() => setParam({ sort: field, dir: active && dir === "asc" ? "desc" : "asc" })}
-        className="inline-flex items-center gap-1.5 hover:text-fg"
-        aria-label={t("directory.sortBy", { field: label })}
+        aria-label={t("directory.previous")}
+        disabled={page <= 1}
+        onClick={() => go(page - 1)}
+        className={arrow}
       >
-        {label}
-        {active ? (
-          dir === "desc" ? <ArrowDown className="size-3.5" /> : <ArrowUp className="size-3.5" />
-        ) : null}
+        <ChevronLeft className="size-4" />
       </button>
-    </Th>
-  );
-}
 
-function Toolbar({
-  church,
-  search,
-  setSearch,
-  params,
-  setParam,
-  tags,
-  filtersOn,
-  onClear,
-  exportHref,
-  canArchive,
-  canEdit,
-  lists,
-  viewing,
-}: {
-  church: string;
-  search: string;
-  setSearch: (v: string) => void;
-  params: URLSearchParams;
-  setParam: (c: Record<string, string | undefined>) => void;
-  tags: TagOption[];
-  filtersOn: boolean;
-  onClear: () => void;
-  exportHref: string;
-  canArchive: boolean;
-  canEdit: boolean;
-  lists: ListOption[];
-  viewing: { id: string; name: string; kind: "static" | "rule" } | null;
-}) {
-  return (
-    <div className="flex flex-col gap-4">
-    <Card className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-label text-fg">{t("directory.search")}</span>
-          <span className="relative flex items-center">
-            <Search className="pointer-events-none absolute left-3 size-4 text-fg-subtle" aria-hidden />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("directory.searchPlaceholder")}
-              className="pl-9"
-              type="search"
-            />
+      {tokens.map((token, i) =>
+        token === "gap" ? (
+          <span key={`gap${i}`} className="min-w-7 text-center text-fg-subtle">
+            &hellip;
           </span>
-        </label>
+        ) : (
+          <button
+            key={token}
+            type="button"
+            aria-current={token === page ? "page" : undefined}
+            onClick={() => go(token)}
+            className={cn(
+              "h-8 min-w-8 rounded-sm border px-2 text-[13px]",
+              token === page
+                ? "border-fg font-semibold text-fg"
+                : "border-transparent font-medium text-fg-muted hover:bg-sunken",
+            )}
+          >
+            {token}
+          </button>
+        ),
+      )}
 
-        <Filter
-          label={t("directory.filterStatus")}
-          value={params.get("status") ?? ANY}
-          onChange={(v) => setParam({ status: v })}
-          options={LIFECYCLE_VALUES.map((v) => ({ value: v, label: lifecycleLabel(v) }))}
-        />
-
-        {tags.length > 0 ? (
-          <Filter
-            label={t("directory.filterTag")}
-            value={params.get("tag") ?? ANY}
-            onChange={(v) => setParam({ tag: v })}
-            options={tags.map((t) => ({ value: t.id, label: t.name, hue: t.hue }))}
-          />
-        ) : null}
-
-        <Filter
-          label={t("directory.filterContact")}
-          value={params.get("has") ?? ANY}
-          onChange={(v) => setParam({ has: v })}
-          options={[
-            { value: "email", label: t("directory.hasEmail") },
-            { value: "noEmail", label: t("directory.noEmail") },
-            { value: "phone", label: t("directory.hasPhone") },
-            { value: "noPhone", label: t("directory.noPhone") },
-          ]}
-        />
-      </div>
-
-      <div className="flex flex-col items-start gap-3">
-        {filtersOn ? (
-          <Button variant="ghost" onClick={onClear}>
-            <X /> {t("directory.clear")}
-          </Button>
-        ) : null}
-
-        <Link
-          href={`/people?church=${church}${params.get("show") === "archived" ? "" : "&show=archived"}`}
-          className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-        >
-          <Archive className="size-4" />
-          {params.get("show") === "archived" ? t("people.hideArchived") : t("people.showArchived")}
-        </Link>
-
-        {/* R1.14. The filters on screen, kept. A list that answers itself is
-            the same question asked again next month. */}
-        {canEdit && filtersOn ? <SaveViewDialog church={church} params={params} /> : null}
-
-        {canArchive ? (
-          <span className="flex flex-wrap items-center gap-3">
-            <Button variant="ghost" asChild>
-              <a href={exportHref} download>
-                <Download /> {filtersOn ? t("directory.exportView") : t("directory.exportAll")}
-              </a>
-            </Button>
-          </span>
-        ) : null}
-      </div>
-    </Card>
-
-    {canEdit && lists.length > 0 ? (
-      <Card className="flex flex-col gap-2">
-        <CardTitle>{t("lists.title")}</CardTitle>
-        <ul className="flex flex-col">
-          {lists.map((list) => (
-            <li key={list.id}>
-              <Link
-                href={`/people?church=${church}&list=${list.id}`}
-                aria-current={viewing?.id === list.id ? "page" : undefined}
-                className={cn(
-                  "flex items-center justify-between gap-2 rounded-md px-2 py-2",
-                  "text-[length:var(--d-text-body)] hover:bg-sunken",
-                  viewing?.id === list.id ? "bg-sunken text-fg" : "text-fg-muted",
-                )}
-              >
-                <span className="truncate">{list.name}</span>
-                <span className="shrink-0 text-caption text-fg-subtle">
-                  {list.count === null ? t("lists.kind.rule") : list.count}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Card>
-    ) : null}
+      <button
+        type="button"
+        aria-label={t("directory.next")}
+        disabled={page >= last}
+        onClick={() => go(page + 1)}
+        className={arrow}
+      >
+        <ChevronRight className="size-4" />
+      </button>
     </div>
-  );
-}
-
-/** R1.14. Naming the view on screen, so it can be opened again. */
-function SaveViewDialog({ church, params }: { church: string; params: URLSearchParams }) {
-  const router = useRouter();
-  const [open, setOpen] = React.useState(false);
-  const [failed, setFailed] = React.useState<string>();
-  const [saving, startTransition] = React.useTransition();
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost">
-          <BookmarkPlus /> {t("lists.save")}
-        </Button>
-      </DialogTrigger>
-      <DialogContent title={t("lists.saveTitle")} closeLabel={t("common.close")}>
-        <form
-          noValidate
-          action={(data) => {
-            data.set("church", church);
-            for (const key of ["q", "status", "tag", "has", "show"]) {
-              data.set(key, params.get(key) ?? "");
-            }
-            startTransition(async () => {
-              const result = await saveView(data);
-              setFailed(result.error);
-              if (!result.error) {
-                setOpen(false);
-                router.push(`/people?church=${church}&list=${result.id}`);
-              }
-            });
-          }}
-          className="flex flex-col gap-4"
-        >
-          {failed ? <Banner tone="danger" title={t("import.failed")}>{failed}</Banner> : null}
-          <Field label={t("lists.name")} required>
-            <Input name="name" autoComplete="off" autoFocus />
-          </Field>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" loading={saving}>{t("action.save")}</Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function Filter({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string; hue?: string }[];
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-label text-fg">{label}</span>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ANY}>{t("directory.any")}</SelectItem>
-          {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              <span className="inline-flex items-center gap-2">
-                {o.hue ? <HueDot hue={o.hue as Hue} /> : null}
-                {o.label}
-              </span>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </label>
   );
 }
 
 /**
- * The bar that appears when something is selected.
+ * R2.14. The filter drawer.
  *
- * It sits above the table rather than floating over it, because a floating bar
- * covers the last row, which is the row somebody is usually trying to read.
+ * 380px in from the right over a dim, which keeps the list behind it in view
+ * while you narrow it. Status, tags, when they joined, and whether we are
+ * missing a way to reach them. The footer says how many come back.
  */
+function FilterDrawer({
+  tags,
+  counts,
+  matching,
+  params,
+  setParam,
+  onClear,
+  narrowing,
+}: {
+  tags: TagOption[];
+  counts: Record<string, number>;
+  matching: number;
+  params: URLSearchParams;
+  setParam: (changes: Record<string, string | undefined>) => void;
+  onClear: () => void;
+  narrowing: number;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  const status = params.get("status") ?? "all";
+  const joined = params.get("joined") ?? "any";
+  const tag = params.get("tag");
+  const missing = params.get("missing") === "1";
+
+  const everyone = Object.values(counts).reduce((a, b) => a + b, 0);
+  const statuses: Array<[string, number]> = [
+    ["all", everyone],
+    ["member", counts.member ?? 0],
+    ["regular_attender", counts.regular_attender ?? 0],
+    ["visitor", counts.visitor ?? 0],
+  ];
+  const joins = ["any", "year", "five", "earlier"] as const;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-expanded={open}
+        className={cn(
+          "flex h-[34px] items-center gap-1.5 rounded-md border px-3 text-[13px] font-medium [&_svg]:size-4",
+          narrowing > 0
+            ? "border-accent bg-accent-soft text-accent"
+            : "border-line-strong bg-surface text-fg hover:bg-sunken",
+        )}
+      >
+        <SlidersHorizontal />
+        {narrowing > 0 ? t("directory.filterOn", { count: narrowing }) : t("directory.filter")}
+      </button>
+
+      {open ? (
+        <div className="fixed inset-0 z-40 flex justify-end bg-overlay" onClick={() => setOpen(false)}>
+          <aside
+            onClick={(e) => e.stopPropagation()}
+            className="flex h-full w-[min(380px,100%)] flex-col bg-canvas shadow-[-8px_0_24px_oklch(0_0_0/0.12)]"
+          >
+            <div className="flex items-center gap-3 border-b border-line px-6 py-[18px]">
+              <span className="flex-1 font-display text-[22px] text-fg">
+                {t("directory.filterTitle")}
+              </span>
+              <IconButton label={t("common.close")} onClick={() => setOpen(false)}>
+                <X />
+              </IconButton>
+            </div>
+
+            <div className="flex flex-1 flex-col gap-6 overflow-auto px-6 py-5">
+              <FilterGroup label={t("directory.filterStatus")}>
+                {statuses.map(([value, n]) => (
+                  <ChipButton
+                    key={value}
+                    on={status === value}
+                    onClick={() => setParam({ status: value === "all" ? undefined : value })}
+                  >
+                    {t(`directory.status.${value}` as never)}
+                    <span className="ml-1 opacity-60">{n}</span>
+                  </ChipButton>
+                ))}
+              </FilterGroup>
+
+              {tags.length > 0 ? (
+                <FilterGroup label={t("directory.filterTag")}>
+                  {tags.map((one) => (
+                    <ChipButton
+                      key={one.id}
+                      on={tag === one.id}
+                      onClick={() => setParam({ tag: tag === one.id ? undefined : one.id })}
+                    >
+                      {one.name}
+                    </ChipButton>
+                  ))}
+                </FilterGroup>
+              ) : null}
+
+              <FilterGroup label={t("directory.filterJoined")}>
+                <div className="flex flex-wrap gap-0.5 self-start rounded-md bg-sunken p-[3px]">
+                  {joins.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setParam({ joined: value === "any" ? undefined : value })}
+                      className={cn(
+                        "h-7 rounded-sm px-3 text-[13px] font-medium",
+                        joined === value ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
+                      )}
+                    >
+                      {t(`directory.joined.${value}` as never)}
+                    </button>
+                  ))}
+                </div>
+              </FilterGroup>
+
+              <FilterGroup label={t("directory.filterContact")}>
+                <ChipButton on={missing} onClick={() => setParam({ missing: missing ? undefined : "1" })}>
+                  <span
+                    className={cn(
+                      "grid size-4 place-items-center rounded-[4px] [&_svg]:size-[11px]",
+                      missing ? "bg-accent text-white" : "border border-line-strong text-transparent",
+                    )}
+                  >
+                    <Check />
+                  </span>
+                  {t("directory.missing")}
+                </ChipButton>
+              </FilterGroup>
+            </div>
+
+            <div className="flex items-center gap-3 border-t border-line px-6 py-4">
+              <Button variant="secondary" onClick={onClear}>{t("directory.clear")}</Button>
+              <Button className="flex-1" onClick={() => setOpen(false)}>
+                {plural("directory.show", matching)}
+              </Button>
+            </div>
+          </aside>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <span className="text-[13px] font-semibold text-fg">{label}</span>
+      <div className="flex flex-wrap gap-2">{children}</div>
+    </div>
+  );
+}
+
+/** A 34px pill. On, it takes the accent and a heavier edge. */
+function ChipButton({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={cn(
+        "flex h-[34px] items-center gap-2 rounded-full px-3.5 text-[13px] font-medium",
+        on
+          ? "border-[1.5px] border-accent bg-accent-soft text-accent"
+          : "border border-line-strong bg-surface text-fg-muted hover:bg-sunken",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 function SelectionBar({
   church,
   lists,

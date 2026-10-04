@@ -1,5 +1,9 @@
 import * as React from "react";
 import { cookies } from "next/headers";
+import {
+  withTenant, countPeople, countOpenFollowUps, countGroups,
+  canEditPeople, canFollowUp, canReadIncidents,
+} from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
@@ -46,9 +50,32 @@ export async function AppShell({
 }) {
   const collapsed = (await cookies()).get(SIDEBAR_COOKIE)?.value === "1";
 
+  /*
+   * R24.6. The numbers the design puts beside People, Follow-ups and Groups.
+   * Three counts on one connection, read with the same role the page was
+   * answered with, so a group leader's Groups count is their groups.
+   */
+  const counts = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    async (tx) => ({
+      people: canEditPeople(session.role) || canReadIncidents(session.role)
+        ? await countPeople(tx)
+        : null,
+      followups: canFollowUp(session.role) ? await countOpenFollowUps(tx) : null,
+      groups: await countGroups(tx),
+    }),
+  );
+
+  const countFor: Record<string, number | null> = {
+    "/people": counts.people,
+    "/followups": counts.followups,
+    "/groups": counts.groups,
+  };
+
   const entries: ShellEntry[] = navFor(session.role).map(({ icon: Icon, ...rest }) => ({
     ...rest,
     icon: <Icon aria-hidden />,
+    count: countFor[rest.href] ? String(countFor[rest.href]) : undefined,
   }));
 
   return (

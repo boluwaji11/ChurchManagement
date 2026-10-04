@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Upload, Printer, Cake } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
-  listSavedLists, resolveList, PER_PAGE,
+  listSavedLists, resolveList, countPeopleByStatus, PER_PAGE,
 } from "@hearth/db";
 import { Button, Banner } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";
@@ -39,7 +39,7 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { people, tags, duplicates, matching, setup, lists, viewing } = await withTenant(
+  const { people, tags, counts, duplicates, matching, setup, lists, viewing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // R1.14. A saved list is either a set of people or the filters it was
@@ -58,6 +58,8 @@ export default async function PeoplePage({
         people: await listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
         matching: await countPeople(tx, { ...query, viewer }),
         tags: await listTagsWithCounts(tx),
+        // R2.14. The numbers beside each status in the filter drawer.
+        counts: await countPeopleByStatus(tx),
         duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
         // R22.1. Until the church is set up, this is the first thing on the
         // screen somebody lands on.
@@ -90,37 +92,6 @@ export default async function PeoplePage({
         <SetupBanner church={session.tenantSlug} />
       ) : null}
 
-      {canEdit ? (
-        <div className="mb-8 flex flex-wrap items-center gap-3">
-          <Button variant="secondary" asChild>
-            <Link href={`/import?church=${session.tenantSlug}`}>
-              <Upload /> {t("import.title")}
-            </Link>
-          </Button>
-          {/* R2.11. Who to send a card to, by month or by week. */}
-          <Button variant="secondary" asChild>
-            <Link href={`/people/celebrations?church=${session.tenantSlug}`}>
-              <Cake /> {t("celebrations.open")}
-            </Link>
-          </Button>
-          {/* R3.5. The one directory of the congregation we produce, and the
-              church hands it out rather than anybody searching it. */}
-          <Button variant="secondary" asChild>
-            <Link href={`/people/print?church=${session.tenantSlug}`} target="_blank">
-              <Printer /> {t("printDirectory.print")}
-            </Link>
-          </Button>
-        </div>
-      ) : null}
-
-      {duplicates > 0 ? (
-        <Banner tone="warning" title={t("merge.title")} className="mb-8">
-          <Link href={`/duplicates?church=${session.tenantSlug}`} className="underline hover:text-fg">
-            {plural("merge.pending", duplicates)}
-          </Link>
-        </Banner>
-      ) : null}
-
       {params.archived ? (
         <Banner tone="success" title={t("person.archived.title")} className="mb-8" />
       ) : null}
@@ -146,6 +117,8 @@ export default async function PeoplePage({
         page={page}
         perPage={PER_PAGE}
         matching={matching}
+        counts={counts}
+        duplicates={duplicates}
         lists={lists}
         viewing={viewing}
         tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
@@ -156,6 +129,7 @@ export default async function PeoplePage({
           householdName: p.householdName,
           primaryEmail: p.primaryEmail,
           primaryPhone: p.primaryPhone,
+          tagNames: p.tagNames,
           archived: Boolean(p.archivedAt),
         }))}
       />

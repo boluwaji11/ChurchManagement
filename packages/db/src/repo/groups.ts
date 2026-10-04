@@ -684,3 +684,12 @@ export async function setGroupPhoto(
   }
   return { removed: null };
 }
+
+/** R24.6. How many groups are running, for the count in the navigation. */
+export async function countGroups(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(groups)
+    .where(sql`${groups.archivedAt} is null`);
+  return row?.n ?? 0;
+}

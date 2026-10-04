@@ -1009,3 +1009,12 @@ export async function assignableUsers(
       role: String(row["role"]),
     }));
 }
+
+/** R24.6. How many follow-ups are still open, for the count in the navigation. */
+export async function countOpenFollowUps(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(followUps)
+    .where(sql`${followUps.doneAt} is null`);
+  return row?.n ?? 0;
+}
