@@ -18,7 +18,7 @@ export default async function SecurityPage() {
   const currentId = await currentSessionId();
 
   const sessions = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     (tx) => listSessions(tx),
   );
 

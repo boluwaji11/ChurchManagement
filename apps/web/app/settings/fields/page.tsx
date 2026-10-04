@@ -19,7 +19,7 @@ export default async function FieldsPage({
     listCustomFields(tx, "person"),
   );
 
-  const canManage = canManageCustomFields(session.role);
+  const canManage = canManageCustomFields(session);
 
   return (
     <div className="flex flex-col gap-5">

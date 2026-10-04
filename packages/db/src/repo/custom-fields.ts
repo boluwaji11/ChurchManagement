@@ -2,7 +2,7 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { customFields, customFieldValues } from "../schema/custom-fields";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -42,7 +42,7 @@ export type CustomValue = string | number | boolean | string[] | null;
  * with Owner and Admin. Filling one in is ordinary editing.
  */
 export const CAN_MANAGE_CUSTOM_FIELDS: readonly TenantRole[] = rolesWith("church.fields");
-export const canManageCustomFields = (role: TenantRole): boolean =>
+export const canManageCustomFields = (role: Who): boolean =>
   can(role, "church.fields");
 
 /** "Allergy notes" becomes "allergy_notes". Stable, so exports have a sane header. */

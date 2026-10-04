@@ -65,7 +65,7 @@ export default async function CalendarPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  if (!canManageServices(session.role)) {
+  if (!canManageServices(session)) {
     return (
       <AppShell session={session} title={t("calendar.title")}>
         <Banner tone="info" title={t("calendar.title")}>{t("forbidden.askAdmin")}</Banner>
@@ -74,7 +74,7 @@ export default async function CalendarPage({
   }
 
   const { days, from, to, today } = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const now = churchNow(profile?.timezone ?? "America/Chicago").date;

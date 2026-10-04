@@ -1,6 +1,7 @@
 import {
   pgTable, uuid, text, boolean, integer, bigint, date, timestamp, uniqueIndex, index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { hue, tenantRole } from "./enums";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
@@ -212,13 +213,54 @@ export const appUsers = pgTable(
  * tenant as their context is checked in the application layer before the
  * session variable is set. (docs/architecture.md)
  */
+/**
+ * R1.6. The roles this church has, built-in and its own.
+ *
+ * A role is a name and a set of permissions. The nine built-ins are written in
+ * here for every church so the matrix is one list rather than two, and so a
+ * church can see the built-in beside the one it wrote.
+ *
+ * `builtin` marks the nine. Their permissions are the product's answer and
+ * cannot be edited, because a church that quietly removes "run check-in" from
+ * Check-in volunteer has broken a service rather than configured one.
+ */
+export const tenantRoles = pgTable(
+  "tenant_roles",
+  {
+    id: pk(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    /** The built-in's own name, such as "staff", or a slug for a custom role. */
+    key: text("key").notNull(),
+    name: text("name").notNull(),
+    /** Permission keys from packages/db/src/permissions.ts. */
+    permissions: text("permissions").array().notNull().default(sql`'{}'::text[]`),
+    builtin: boolean("builtin").notNull().default(false),
+    position: integer("position").notNull().default(0),
+    /** R1.6. Archived, never deleted: somebody held this role, and the log says so. */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: created(),
+  },
+  (t) => [
+    index("tenant_roles_tenant_idx").on(t.tenantId),
+    uniqueIndex("tenant_roles_key_unique").on(t.tenantId, t.key),
+  ],
+);
+
 export const tenantMembers = pgTable(
   "tenant_members",
   {
     id: pk(),
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     userId: uuid("user_id").notNull().references(() => appUsers.id, { onDelete: "cascade" }),
+    /**
+     * R1.4. The built-in role. Kept alongside role_id because it is what the
+     * audit log records and what a path that has not been handed the permission
+     * set falls back to. A member on a custom role holds "member" here, so
+     * anything reading this column alone fails closed.
+     */
     role: tenantRole("role").notNull().default("staff"),
+    /** R1.6. The role this member actually holds, built-in or custom. */
+    roleId: uuid("role_id").references(() => tenantRoles.id, { onDelete: "set null" }),
     createdAt: created(),
   },
   (t) => [uniqueIndex("tenant_members_unique").on(t.tenantId, t.userId)],

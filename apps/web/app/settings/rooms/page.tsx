@@ -19,7 +19,7 @@ export default async function RoomsPage({
     listRooms(tx, { includeArchived: true }),
   );
 
-  if (!canManageRooms(session.role)) {
+  if (!canManageRooms(session)) {
     return <Banner tone="info" title={t("rooms.title")}>{t("forbidden.askAdmin")}</Banner>;
   }
 
@@ -40,6 +40,7 @@ export default async function RoomsPage({
           maxAgeMonths: r.maxAgeMonths,
           capacity: r.capacity,
           ratio: r.ratio,
+          forChildren: r.forChildren,
           archived: r.archivedAt !== null,
         }))}
       />

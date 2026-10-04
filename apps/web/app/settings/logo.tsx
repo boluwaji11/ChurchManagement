@@ -124,7 +124,7 @@ export function ChurchLogo({
               ) : null}
               <IconButton
                 label={t("church.logo.upload")}
-                variant="secondary"
+                variant="ghost"
                 disabled={busy}
                 onClick={() => input.current?.click()}
               >

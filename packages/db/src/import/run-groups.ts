@@ -17,6 +17,7 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { MessageKey } from "@hearth/i18n";
 import type { Tx } from "../client";
+import type { Permission } from "../permissions";
 import { importBatches, importRows } from "../schema/imports";
 import { groups, groupMemberships, groupTypes } from "../schema/groups";
 import { canManageGroups, addToGroup, createGroup } from "../repo/groups";
@@ -194,7 +195,7 @@ export interface GroupCommitResult {
  */
 export async function commitGroups(
   db: Tx,
-  actor: { tenantId: string; role: TenantRole; userId?: string },
+  actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   plan: GroupPlan,
 ): Promise<GroupCommitResult> {
   if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");

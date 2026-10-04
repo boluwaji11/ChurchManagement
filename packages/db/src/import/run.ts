@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { MessageKey } from "@hearth/i18n";
 import type { Tx } from "../client";
+import type { Permission } from "../permissions";
 import { importBatches, importRows } from "../schema/imports";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { createPerson, updatePerson, getPersonForEdit, type PersonInput, type LifecycleStatus, type HouseholdRole } from "../repo/people";
@@ -232,7 +233,7 @@ export interface CommitResult {
  */
 export async function commit(
   db: Tx,
-  actor: { tenantId: string; role: TenantRole; userId?: string },
+  actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   plan: Plan,
 ): Promise<CommitResult> {
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "addPerson");

@@ -8,7 +8,7 @@ import { requireSession } from "@/lib/session";
 export async function readOne(id: string, church?: string): Promise<void> {
   const session = await requireSession(church);
   await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     (tx) => markRead(tx, session.userId, id),
   );
   revalidatePath("/", "layout");
@@ -18,7 +18,7 @@ export async function readOne(id: string, church?: string): Promise<void> {
 export async function readAll(church?: string): Promise<void> {
   const session = await requireSession(church);
   await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     (tx) => markAllRead(tx, session.userId),
   );
   revalidatePath("/", "layout");

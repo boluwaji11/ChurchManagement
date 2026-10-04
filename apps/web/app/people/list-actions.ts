@@ -19,7 +19,7 @@ const field = (data: FormData, name: string) => String(data.get(name) ?? "").tri
 
 async function allowed(church?: string) {
   const session = await requireSession(church);
-  if (!canEditPeople(session.role)) throw new Error(t("forbidden.addPeople"));
+  if (!canEditPeople(session)) throw new Error(t("forbidden.addPeople"));
   return session;
 }
 

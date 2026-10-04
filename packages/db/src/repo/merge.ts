@@ -1,5 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
+import type { Permission } from "../permissions";
 import { people } from "../schema/people";
 import { personMerges } from "../schema/merges";
 import { canArchivePeople, PermissionError, type TenantRole } from "../roles";
@@ -132,7 +133,7 @@ export interface MergeResult {
  */
 export async function mergePeople(
   db: Tx,
-  actor: { tenantId: string; role: TenantRole; userId?: string },
+  actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   plan: MergePlan,
 ): Promise<MergeResult> {
   // A merge can move every note and every giving record off one person and onto

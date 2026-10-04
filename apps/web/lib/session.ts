@@ -3,7 +3,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import {
   membershipsForUser, verifyMembership, resolveTenantBySlug, demoMembership,
-  type Membership, type TenantRole,
+  type Membership, type TenantRole, type Permission,
 } from "@hearth/db";
 import { supabaseServer } from "./supabase/server";
 import { readDemoPass } from "./demo-pass";
@@ -17,6 +17,13 @@ export interface Session {
   tenantName: string;
   tenantSlug: string;
   role: TenantRole;
+  /**
+   * R1.6. The permissions this session holds, for somebody on a role their
+   * church wrote. Null means the built-in role above, which the matrix answers.
+   * Every canX() takes the session as well as a bare role, so passing `session`
+   * where a role used to go is what makes a custom role grant anything.
+   */
+  permissions: Permission[] | null;
   memberships: Membership[];
 }
 
@@ -69,6 +76,7 @@ const demoVisitorSession = cache(async (): Promise<Session | null> => {
     tenantName: demo.name,
     tenantSlug: demo.slug,
     role: "owner",
+    permissions: null,
     memberships: [],
   };
 });
@@ -106,6 +114,7 @@ export const requireSession = cache(async (slug?: string): Promise<Session> => {
     tenantName: m.tenantName,
     tenantSlug: m.tenantSlug,
     role: m.role,
+    permissions: m.permissions,
     memberships,
   };
 });

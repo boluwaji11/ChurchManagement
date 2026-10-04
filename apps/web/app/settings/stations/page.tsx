@@ -22,7 +22,7 @@ export default async function StationsPage({
     }),
   );
 
-  if (!canManageStations(session.role)) {
+  if (!canManageStations(session)) {
     return <Banner tone="info" title={t("stations.title")}>{t("forbidden.askAdmin")}</Banner>;
   }
 

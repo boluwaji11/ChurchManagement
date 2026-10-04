@@ -89,7 +89,7 @@ export function Sidebar({
           <FlameMark logoUrl={logoUrl} />
           {collapsed ? null : (
             <span
-              className="min-w-0 flex-1 font-display text-fg [overflow-wrap:anywhere] line-clamp-2"
+              className="min-w-0 flex-1 font-display font-semibold text-fg [overflow-wrap:anywhere] line-clamp-2"
               style={nameSize(churchName)}
             >
               {churchName}

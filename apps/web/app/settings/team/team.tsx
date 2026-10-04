@@ -12,11 +12,23 @@ import {
 import { t } from "@hearth/i18n";
 import { invite, withdraw, changeRole, removeAccess, newJoinCode, stopJoining } from "./actions";
 
+export interface ChurchRoleOption {
+  id: string;
+  /** The built-in's own name, such as "staff", or a slug for a custom role. */
+  key: string;
+  name: string;
+  builtin: boolean;
+  permissions: string[];
+}
+
 export interface Member {
   userId: string;
   email: string;
   name: string | null;
   role: string;
+  /** R1.6. The church's own role they hold, where they hold one. */
+  roleId: string | null;
+  roleName: string | null;
   isSelf: boolean;
   /** Already written the way this church reads a date, or null. */
   lastSignedIn: string | null;
@@ -37,6 +49,18 @@ const ROLES = [
 
 const roleName = (role: string) => t(`role.${role}` as never);
 
+/** A built-in's name is ours to write; a church's own role carries its own. */
+function titleOf(role?: ChurchRoleOption): string {
+  if (!role) return "";
+  return role.builtin ? roleName(role.key) : role.name;
+}
+
+/** The row standing for a built-in, for a member who is on one. */
+function idFor(roles: ChurchRoleOption[], key: string): string {
+  return roles.find((role) => role.builtin && role.key === key)?.id ?? "";
+}
+
+
 /**
  * R1.4, R1.7. Who can get in, and what they may do.
  *
@@ -46,12 +70,15 @@ const roleName = (role: string) => t(`role.${role}` as never);
  */
 export function Team({
   church,
+  roles,
   members,
   invitations,
   joinCode,
   joinLink,
 }: {
   church: string;
+  /** R1.6. Every role this church has, built-in and its own. */
+  roles: ChurchRoleOption[];
   members: Member[];
   invitations: Invitation[];
   joinCode: string | null;
@@ -88,7 +115,7 @@ export function Team({
             changing
               ? t("team.roleTitle", {
                   name: changing.member.name ?? changing.member.email,
-                  role: roleName(changing.role),
+                  role: titleOf(roles.find((r) => r.id === changing.role)),
                 })
               : ""
           }
@@ -105,7 +132,12 @@ export function Team({
                 setChanging(null);
                 if (next) {
                   run(
-                    () => changeRole(next.member.userId, next.role as never, church),
+                    () => {
+                      const picked = roles.find((r) => r.id === next.role);
+                      return picked?.builtin
+                        ? changeRole(next.member.userId, picked.key as never, church, null)
+                        : changeRole(next.member.userId, "member" as never, church, next.role);
+                    },
                     t("team.roleChanged"),
                   );
                 }
@@ -200,16 +232,16 @@ export function Team({
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-line">
-              <th className="px-5 py-3 text-[12px] font-medium text-fg-subtle">
+              <th className="px-5 py-3 text-[12px] font-semibold text-fg">
                 {t("team.person")}
               </th>
-              <th className="w-66 px-5 py-3 text-[12px] font-medium text-fg-subtle">
+              <th className="w-66 px-5 py-3 text-[12px] font-semibold text-fg">
                 <span className="flex items-center gap-1">
                   {t("team.roleColumn")}
-                  <RoleGuide />
+                  <RoleGuide roles={roles} />
                 </span>
               </th>
-              <th className="w-44 px-5 py-3 text-[12px] font-medium text-fg-subtle">
+              <th className="w-44 px-5 py-3 text-[12px] font-semibold text-fg">
                 {t("team.lastSignedIn")}
               </th>
               <th className="w-12 px-2" />
@@ -239,21 +271,21 @@ export function Team({
 
                 <td className="px-5 py-3">
                   {member.isSelf ? (
-                    <Badge tone="neutral">{roleName(member.role)}</Badge>
+                    <Badge tone="neutral">{member.roleName ?? roleName(member.role)}</Badge>
                   ) : (
                     /* R1.4. Promoting somebody to owner, or demoting the person
                        who set the church up, was one stray click on a dropdown.
                        It is asked for now. */
                     <Select
-                      value={member.role}
+                      value={member.roleId ?? idFor(roles, member.role)}
                       onValueChange={(role) => setChanging({ member, role })}
                     >
                       <SelectTrigger aria-label={t("team.role")} className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {ROLES.map((role) => (
-                          <SelectItem key={role} value={role}>{roleName(role)}</SelectItem>
+                        {roles.map((role) => (
+                          <SelectItem key={role.id} value={role.id}>{titleOf(role)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -359,12 +391,16 @@ export function Team({
 }
 
 /**
- * R1.4. What each built-in role can see.
+ * R1.4, R1.6. What each role can see.
  *
- * The dropdown offers nine words and no way to tell them apart, which leaves an
- * administrator guessing what they are handing somebody. The question mark on
- * the Role column opens this: the roles down a single line, widest reach at the
- * top, each saying what it reaches.
+ * The dropdown offers a column of words and no way to tell them apart, which
+ * leaves an administrator guessing what they are handing somebody. The question
+ * mark on the Role column opens this: the roles down a single line, each
+ * listing what it actually reaches.
+ *
+ * Read from the permissions each role holds rather than from a sentence written
+ * beside it, so a role this church wrote describes itself, and a built-in whose
+ * permissions a church has changed describes what it now does.
  *
  * A hue per role, from the same twelve the rest of the product assigns, so a
  * role reads the same here as it does anywhere a role is shown.
@@ -381,7 +417,24 @@ const ROLE_HUES: Record<string, string> = {
   member: "clay",
 };
 
-function RoleGuide() {
+/** The hue for a role this church wrote, picked from its name so it is stable. */
+function hueOf(role: ChurchRoleOption): string {
+  if (ROLE_HUES[role.key]) return ROLE_HUES[role.key]!;
+  const hues = Object.values(ROLE_HUES);
+  let sum = 0;
+  for (const ch of role.key) sum += ch.charCodeAt(0);
+  return hues[sum % hues.length]!;
+}
+
+/** What this role reaches, written out from the permissions it holds. */
+function summarise(role: ChurchRoleOption): string {
+  if (role.permissions.length === 0) return t("roles.nothing");
+  return role.permissions
+    .map((permission) => t(`permission.${permission}` as never))
+    .join(" · ");
+}
+
+function RoleGuide({ roles }: { roles: ChurchRoleOption[] }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -403,16 +456,16 @@ function RoleGuide() {
             className="absolute top-2 bottom-2 left-[5px] w-px bg-line-strong"
           />
 
-          {ROLES.map((role) => (
-            <li key={role} className="relative">
+          {roles.map((role) => (
+            <li key={role.id} className="relative">
               <span
                 aria-hidden
                 className="absolute top-1.5 -left-6 size-[11px] rounded-full border-2 border-canvas"
-                style={{ background: `var(--hue-${ROLE_HUES[role]}-500)` }}
+                style={{ background: `var(--hue-${hueOf(role)}-500)` }}
               />
-              <span className="block font-semibold text-fg">{roleName(role)}</span>
+              <span className="block font-semibold text-fg">{titleOf(role)}</span>
               <span className="block text-[13px] leading-[18px] text-fg-muted">
-                {t(`role.${role}.what` as never)}
+                {summarise(role)}
               </span>
             </li>
           ))}

@@ -49,7 +49,7 @@ export default async function ServicesPage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  const canEdit = canManageServices(session.role);
+  const canEdit = canManageServices(session);
 
   const { rows, past, plans, now } = await withTenant(
     { tenantId: session.tenantId, role: session.role },

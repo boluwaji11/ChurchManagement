@@ -33,13 +33,13 @@ export default async function FormPage({
   const { church, view, page } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageChurch(session.role)) redirect(`/?church=${session.tenantSlug}`);
+  if (!canManageChurch(session)) redirect(`/?church=${session.tenantSlug}`);
 
   const reading = view === "responses";
   const at = Math.max(1, Number(page) || 1);
 
   const result = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => ({
       form: await getForm(tx, id),
       responses: reading

@@ -52,7 +52,7 @@ export default async function StationPage({
       <StationPicker
         church={session.tenantSlug}
         now={now}
-        canManage={canManageStations(session.role)}
+        canManage={canManageStations(session)}
         stations={stations.map((s) => ({
           id: s.id,
           name: s.name,

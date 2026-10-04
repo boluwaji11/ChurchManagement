@@ -35,7 +35,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
     >
       {groups.map((group) => (
         <div key={group.title} className="flex flex-col gap-0.5">
-          <span className="px-2.5 pb-1 text-[11px] font-bold tracking-wide text-fg uppercase">
+          <span className="px-2.5 pt-1 pb-1.5 text-[15px] font-bold text-fg">
             {group.title}
           </span>
 
@@ -47,7 +47,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
                 href={`${item.href}?church=${church}`}
                 aria-current={on ? "page" : undefined}
                 className={cn(
-                  "flex min-h-9 items-center rounded-sm px-2.5 text-left text-[length:var(--d-text-body)]",
+                  "flex min-h-9 items-center rounded-sm px-2.5 text-left text-[13px]",
                   on
                     ? "bg-line font-semibold text-fg"
                     : "font-medium text-fg-muted hover:bg-line hover:text-fg",

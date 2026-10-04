@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, isNull, or, sql, count, type SQL } from "drizzle-orm";
 import type { Tx } from "../client";
+import type { Permission } from "../permissions";
 import { people, households, householdMemberships, contactMethods, addresses, tags, personTags } from "../schema/people";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { visiblePeople, type Viewer } from "./scope";
@@ -354,6 +355,11 @@ export interface WriteActor {
    * that is the only way to know which team that is.
    */
   userId?: string | null;
+  /**
+   * R1.6. The permissions this actor holds, for somebody on a role their church
+   * wrote. Absent means the built-in role above, which the matrix answers.
+   */
+  permissions?: readonly Permission[] | null;
 }
 
 export interface PersonInput {

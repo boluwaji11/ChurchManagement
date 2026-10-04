@@ -36,11 +36,11 @@ export default async function SchedulePlanPage({
   const { church, service } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canLeadTeams(session.role)) {
+  if (!canLeadTeams(session)) {
     redirect(`/home?church=${session.tenantSlug}`);
   }
 
-  const canManage = canManageTeams(session.role);
+  const canManage = canManageTeams(session);
 
   const { team, mine, gatherings, chosen, entries } = await withTenant(
     { tenantId: session.tenantId, role: session.role },

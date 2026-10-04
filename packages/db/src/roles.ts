@@ -1,5 +1,5 @@
 import { t } from "@hearth/i18n";
-import { can, rolesWith, type TenantRole } from "./permissions";
+import { can, rolesWith, type TenantRole, type Who } from "./permissions";
 
 export {
   TENANT_ROLES, PERMISSIONS, ROLE_PERMISSIONS, can, rolesWith,
@@ -16,10 +16,10 @@ export const CAN_READ_CONFIDENTIAL_NOTES: readonly TenantRole[] = rolesWith("peo
 /** Giving amounts arrive in 0.3. The rule is recorded now so it is not forgotten. */
 export const CAN_READ_GIVING_AMOUNTS: readonly TenantRole[] = rolesWith("giving.amounts");
 
-export const canReadConfidentialNotes = (role: TenantRole): boolean =>
+export const canReadConfidentialNotes = (role: Who): boolean =>
   can(role, "people.notes.confidential");
 
-export const canReadGivingAmounts = (role: TenantRole): boolean =>
+export const canReadGivingAmounts = (role: Who): boolean =>
   can(role, "giving.amounts");
 
 /**
@@ -32,8 +32,8 @@ export const canReadGivingAmounts = (role: TenantRole): boolean =>
 export const CAN_EDIT_PEOPLE: readonly TenantRole[] = rolesWith("people.edit");
 export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = rolesWith("people.archive");
 
-export const canEditPeople = (role: TenantRole): boolean => can(role, "people.edit");
-export const canArchivePeople = (role: TenantRole): boolean => can(role, "people.archive");
+export const canEditPeople = (role: Who): boolean => can(role, "people.edit");
+export const canArchivePeople = (role: Who): boolean => can(role, "people.archive");
 
 /**
  * Thrown when a role is not permitted to perform a write.
@@ -68,4 +68,4 @@ export type PermissionAction =
   | "fileIncident" | "readIncidents" | "manageGroups" | "recordGroupAttendance"
   | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy"
   | "manageTeams" | "manageTeamRoster" | "schedule" | "managePlans"
-  | "manageForms";
+  | "manageForms" | "editRoles";

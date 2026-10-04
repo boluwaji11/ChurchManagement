@@ -6,16 +6,13 @@ import { Plus, Minus, Archive, Undo2 } from "lucide-react";
 import {
   HUES,
   Banner, Button, IconButton, EmptyState, Field, HueDot, Input,
-  Sheet, SheetTrigger, SheetContent,
+  Sheet, SheetTrigger, SheetContent, Switch,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { ageLine, say } from "@/lib/room-ages";
 import { createRoom, saveRoom, archiveRoom } from "./actions";
 
-
-/** What a card shows where a church has not said. */
-const EMPTY = "\u2014";
 
 export interface RoomItem {
   id: string;
@@ -25,6 +22,8 @@ export interface RoomItem {
   maxAgeMonths: number | null;
   capacity: number | null;
   ratio: number | null;
+  /** R8.14. Whether this room holds children, and so carries the safeguarding rules. */
+  forChildren: boolean;
   archived: boolean;
 }
 
@@ -136,13 +135,6 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                   </IconButton>
                 </div>
               </div>
-
-              <div className="pointer-events-none relative flex items-center justify-between gap-2 text-label">
-                <span className="text-fg-muted">{t("rooms.ratioLabel")}</span>
-                <span className="font-medium text-fg">
-                  {room.ratio === null ? EMPTY : `1:${room.ratio}`}
-                </span>
-              </div>
             </section>
           ))}
         </div>
@@ -203,6 +195,12 @@ export function RoomSheet({
 }) {
   const [open, setOpen] = React.useState(false);
   const [hue, setHue] = React.useState(room?.hue ?? "sky");
+  // R8.14. Children unless a church says otherwise. A hall booked for adults is
+  // the exception, and the safeguarding rules are the safe default.
+  const [forChildren, setForChildren] = React.useState(room?.forChildren ?? true);
+  // R24.6. Save stays dead until the one field the server refuses blank has
+  // something in it, rather than taking the press and answering with an error.
+  const [name, setName] = React.useState(room?.name ?? "");
 
   const start = room ? (room.minAgeMonths === null ? null : say(room.minAgeMonths)) : null;
   const end = room ? (room.maxAgeMonths === null ? null : say(room.maxAgeMonths)) : null;
@@ -240,7 +238,7 @@ export function RoomSheet({
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form="room-form" disabled={pending}>
+            <Button type="submit" form="room-form" disabled={pending || !name.trim()}>
               {t("action.save")}
             </Button>
           </>
@@ -256,6 +254,7 @@ export function RoomSheet({
               maxAgeMonths: months(data.get("to"), toUnit),
               capacity: String(data.get("capacity") ?? ""),
               ratio: String(data.get("ratio") ?? ""),
+              forChildren: forChildren ? "1" : "",
             });
             setOpen(false);
           }}
@@ -263,8 +262,18 @@ export function RoomSheet({
           className="flex flex-col gap-4"
         >
           <Field label={t("rooms.name")} required>
-            <Input name="name" defaultValue={room?.name ?? ""} autoComplete="off" />
+            <Input
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="off"
+            />
           </Field>
+
+          <label className="flex cursor-pointer items-center justify-between gap-3">
+            <span className="text-label text-fg">{t("rooms.forChildren")}</span>
+            <Switch checked={forChildren} onCheckedChange={setForChildren} />
+          </label>
 
           <div className="flex flex-col gap-1.5">
             <span className="text-label text-fg">{t("rooms.colour")}</span>

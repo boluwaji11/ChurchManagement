@@ -13,7 +13,7 @@ const on = (data: FormData, name: string) => data.get(name) === "on";
 /** R3.2, R3.3. A member deciding what other members see of them. */
 export async function savePrivacy(data: FormData): Promise<PrivacyResult> {
   const session = await requireSession(String(data.get("church") ?? "") || undefined);
-  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   try {
     await withTenant(ctx, async (tx) => {

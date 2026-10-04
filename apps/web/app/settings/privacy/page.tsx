@@ -21,7 +21,7 @@ export default async function DirectoryPrivacyPage({
   const session = await requireSession(church);
 
   const result = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const self = await personForUser(tx, session.userId);
       if (!self) return null;

@@ -20,12 +20,12 @@ export default async function PrintPeoplePage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canEditPeople(session.role)) {
+  if (!canEditPeople(session)) {
     redirect(`/home?church=${session.tenantSlug}`);
   }
 
   const rows = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     (tx) => listPeople(tx, { sort: "name" }),
   );
 

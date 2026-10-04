@@ -19,8 +19,8 @@ export default async function TagsPage({
     listTagsWithCounts(tx),
   );
 
-  const canCreate = canEditPeople(session.role);
-  const canManage = canManageTags(session.role);
+  const canCreate = canEditPeople(session);
+  const canManage = canManageTags(session);
 
   return (
     <div className="flex flex-col gap-5">

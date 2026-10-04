@@ -23,7 +23,7 @@ export default async function LabelsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageStations(session.role)) {
+  if (!canManageStations(session)) {
     return (
       <AppShell session={session} title={t("labels.title")}>
         <Banner tone="info" title={t("labels.title")}>{t("forbidden.askAdmin")}</Banner>

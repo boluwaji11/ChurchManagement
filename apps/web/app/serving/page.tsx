@@ -64,11 +64,11 @@ export default async function ServingPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  if (!canLeadTeams(session.role)) {
+  if (!canLeadTeams(session)) {
     redirect(`/home?church=${session.tenantSlug}`);
   }
 
-  const canManage = canManageTeams(session.role);
+  const canManage = canManageTeams(session);
   const showArchived = canManage && params.archived === "1";
   const view = params.view === "teams" ? "teams" : "schedule";
   const asked = /^\d{4}-\d{2}$/.test(params.at ?? "") ? params.at! : null;

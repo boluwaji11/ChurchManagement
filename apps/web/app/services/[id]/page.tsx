@@ -62,7 +62,7 @@ export default async function RosterPage({
         <PageMeta>{readable(occurrence.occursOn)}</PageMeta>
         {/* R11.1. The order of service, which is what a church runs the
             gathering from. */}
-        {canManageServices(session.role) ? (
+        {canManageServices(session) ? (
           <div className="flex flex-wrap items-center gap-2">
             <ServiceActions
               church={session.tenantSlug}
@@ -83,7 +83,7 @@ export default async function RosterPage({
       <Roster
         church={session.tenantSlug}
         occurrenceId={occurrence.id}
-        canEdit={canManageServices(session.role)}
+        canEdit={canManageServices(session)}
         people={roster.map((r) => ({
           personId: r.personId,
           name: `${r.preferredName ?? r.firstName} ${r.lastName}`,

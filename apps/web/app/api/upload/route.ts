@@ -52,11 +52,11 @@ export async function POST(request: Request) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: t("storage.error.empty") }, { status: 400 });
   }
-  if (purpose === "logo" && !canManageChurch(session.role)) {
+  if (purpose === "logo" && !canManageChurch(session)) {
     return NextResponse.json({ error: t("error.permission.editChurch") }, { status: 403 });
   }
   if (purpose === "group_photo") {
-    if (!canManageGroups(session.role)) {
+    if (!canManageGroups(session)) {
       return NextResponse.json({ error: t("error.permission.manageGroups") }, { status: 403 });
     }
     if (!groupId) {
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     }
   }
   if (purpose === "plan_item") {
-    if (!canManageServices(session.role)) {
+    if (!canManageServices(session)) {
       return NextResponse.json({ error: t("error.permission.managePlans") }, { status: 403 });
     }
     if (!itemId) {
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
   const bytes = file.size;
   const contentType = file.type;
-  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   try {
     await withTenant(actor, (tx) =>

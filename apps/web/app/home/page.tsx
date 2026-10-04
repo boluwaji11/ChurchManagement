@@ -44,12 +44,12 @@ export default async function MemberHomePage({
   const session = await requireSession(church);
 
   // Staff have their own screens, and this is not one of them.
-  if (canEditPeople(session.role) || canReadIncidents(session.role)) {
+  if (canEditPeople(session) || canReadIncidents(session)) {
     redirect(`/people?church=${session.tenantSlug}`);
   }
 
   const mine = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const self = await personForUser(tx, session.userId);
       return (await findGroups(tx, { personId: self })).filter((group) => group.mine);

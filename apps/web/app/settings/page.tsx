@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const session = await requireSession();
   redirect(
-    canManageChurch(session.role)
+    canManageChurch(session)
       ? `/settings/church?church=${session.tenantSlug}`
       : `/settings/privacy?church=${session.tenantSlug}`,
   );

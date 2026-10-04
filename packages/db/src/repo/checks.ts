@@ -2,7 +2,7 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { backgroundChecks, people } from "../schema/people";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import {
   CHECK_RESULTS, standing, expiresOn, mayServeWithChildren,
@@ -24,7 +24,7 @@ import {
 
 /** The same roles that read an incident. This is the same drawer. */
 export const CAN_SEE_CHECKS: readonly TenantRole[] = rolesWith("checkin.checks");
-export const canSeeChecks = (role: TenantRole): boolean => can(role, "checkin.checks");
+export const canSeeChecks = (role: Who): boolean => can(role, "checkin.checks");
 
 export interface BackgroundCheck {
   id: string;

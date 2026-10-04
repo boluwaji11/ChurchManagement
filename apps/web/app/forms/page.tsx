@@ -28,12 +28,12 @@ export default async function FormsPage({
   const { church, archived } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageChurch(session.role)) redirect(`/?church=${session.tenantSlug}`);
+  if (!canManageChurch(session)) redirect(`/?church=${session.tenantSlug}`);
 
   const putAway = archived === "1";
 
   const { forms, archivedCount } = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => ({
       forms: await listForms(tx, putAway ? { archivedOnly: true } : {}),
       archivedCount: await countArchivedForms(tx),

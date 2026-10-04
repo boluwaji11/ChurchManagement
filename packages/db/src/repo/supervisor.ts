@@ -5,7 +5,7 @@ import { people, households, householdMemberships } from "../schema/people";
 import { InvalidInputError } from "../errors";
 import { canCheckIn } from "./checkin";
 import { PermissionError, type TenantRole } from "../roles";
-import { rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 
 /**
  * R8.17 to R8.19. What the person walking the corridor needs to see.
@@ -226,8 +226,8 @@ export async function stillHere(db: Tx, occurrenceId: string): Promise<RoomRoste
   }));
 }
 
-export function canSupervise(role: TenantRole): boolean {
-  return canCheckIn(role) || CAN_SUPERVISE.includes(role);
+export function canSupervise(role: Who): boolean {
+  return canCheckIn(role) || can(role, "checkin.supervise");
 }
 
 /** The board, refused to anybody who does not run check-in. */

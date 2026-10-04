@@ -12,7 +12,7 @@ const field = (data: FormData, name: string) => String(data.get(name) ?? "").tri
 
 async function context(church?: string) {
   const session = await requireSession(church);
-  return { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  return { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 }
 
 /** R5.2. A church putting its own process into its own words. */

@@ -3,7 +3,7 @@ import type { Tx } from "../client";
 import { serviceOccurrences } from "../schema/gatherings";
 import { serviceTimes } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -22,7 +22,7 @@ import type { WriteActor } from "./people";
  * the pattern. Cancelling a service is not renaming the church.
  */
 export const CAN_MANAGE_SERVICES: readonly TenantRole[] = rolesWith("services.manage");
-export const canManageServices = (role: TenantRole): boolean =>
+export const canManageServices = (role: Who): boolean =>
   can(role, "services.manage");
 
 export type OccurrenceStatus = "scheduled" | "cancelled";

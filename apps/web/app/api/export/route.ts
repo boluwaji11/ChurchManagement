@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   let zip: Buffer;
   try {
     const archive = await withTenant(
-      { tenantId: session.tenantId, role: session.role, userId: session.userId },
+      { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
       (tx) =>
         buildArchive(
           tx,
@@ -76,7 +76,14 @@ const SINGLE: Record<string, string> = {
 };
 
 async function exportTable(
-  session: { tenantId: string; role: import("@hearth/db").TenantRole; tenantSlug: string; userId: string; tenantName: string },
+  session: {
+    tenantId: string;
+    role: import("@hearth/db").TenantRole;
+    tenantSlug: string;
+    userId: string;
+    tenantName: string;
+    permissions: import("@hearth/db").Permission[] | null;
+  },
   only: string,
 ) {
   const table = SINGLE[only];
@@ -85,7 +92,7 @@ async function exportTable(
   let csv: string;
   try {
     const archive = await withTenant(
-      { tenantId: session.tenantId, role: session.role, userId: session.userId },
+      { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
       (tx) =>
         buildArchive(
           tx,
@@ -117,11 +124,17 @@ async function exportTable(
  * matters for leaving.
  */
 async function exportView(
-  session: { tenantId: string; role: import("@hearth/db").TenantRole; tenantSlug: string; userId: string },
+  session: {
+    tenantId: string;
+    role: import("@hearth/db").TenantRole;
+    tenantSlug: string;
+    userId: string;
+    permissions: import("@hearth/db").Permission[] | null;
+  },
   params: DirectoryParams,
 ) {
   const rows = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     // R9.3. An export is the easiest place to leak a scope, so it carries
     // the same viewer the screen does.
     async (tx) => {

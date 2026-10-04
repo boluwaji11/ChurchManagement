@@ -18,7 +18,7 @@ export default async function ImportPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const batches = canEditPeople(session.role)
+  const batches = canEditPeople(session)
     ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) => listImports(tx))
     : [];
 
@@ -37,13 +37,13 @@ export default async function ImportPage({
 
       <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("import.heading")}</h2>
 
-      {canEditPeople(session.role) ? (
+      {canEditPeople(session) ? (
         <ImportWizard
           church={session.tenantSlug}
           history={
             <ImportHistory
               church={session.tenantSlug}
-              canUndo={canArchivePeople(session.role)}
+              canUndo={canArchivePeople(session)}
               batches={batches.map((b) => ({
                 id: b.id,
                 filename: b.filename,

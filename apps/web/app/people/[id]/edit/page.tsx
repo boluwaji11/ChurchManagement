@@ -61,7 +61,7 @@ export default async function EditPersonPage({
         </Banner>
       ) : null}
 
-      {canEditPeople(session.role) ? (
+      {canEditPeople(session) ? (
         <PersonForm
           church={session.tenantSlug}
           households={households}

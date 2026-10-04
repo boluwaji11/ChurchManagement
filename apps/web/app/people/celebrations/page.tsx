@@ -54,7 +54,7 @@ export default async function CelebrationsPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  if (!canEditPeople(session.role)) {
+  if (!canEditPeople(session)) {
     redirect(`/home?church=${session.tenantSlug}`);
   }
 
@@ -208,7 +208,7 @@ export default async function CelebrationsPage({
         <div className="overflow-auto rounded-lg border border-line bg-surface">
          <table className="w-full min-w-[520px] border-collapse">
           <thead>
-            <tr className="text-left text-[12px] font-medium text-fg-subtle">
+            <tr className="text-left text-[12px] font-semibold text-fg">
               <th className="w-[90px] border-b border-line px-4 py-3 font-medium">{t("celebrations.day")}</th>
               <th className="border-b border-line px-4 py-3 font-medium">{t("celebrations.who")}</th>
               <th className="border-b border-line px-4 py-3 font-medium">{t("celebrations.what")}</th>

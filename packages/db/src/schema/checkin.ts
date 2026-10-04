@@ -36,6 +36,15 @@ export const checkinRooms = pgTable(
     name: text("name").notNull(),
     /** One of the twelve hues. Printed on the label. */
     hue: text("hue").notNull().default("sky"),
+    /**
+     * R8.14, R8.16. Whether this room holds children.
+     *
+     * A church books adults into rooms too, and the safeguarding rules only
+     * apply to one of those. The volunteer ratio warning, the two-adult rule
+     * and the pickup code are for a children's room, so the room has to say
+     * which it is rather than it being guessed from an age band.
+     */
+    forChildren: boolean("for_children").notNull().default(true),
     /** Inclusive, in months. Null means no floor. */
     minAgeMonths: integer("min_age_months"),
     /** Exclusive, in months, so 0 to 24 and 24 to 48 tile with no gap and no

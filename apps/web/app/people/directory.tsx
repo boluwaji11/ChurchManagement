@@ -320,7 +320,7 @@ export function Directory({
         <div className="overflow-auto rounded-lg border border-line bg-surface">
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
-              <tr className="text-left text-[12px] font-medium text-fg-subtle">
+              <tr className="text-left text-[12px] font-semibold text-fg">
                 {canEdit ? (
                   <th className="w-10 border-b border-line px-4 py-3 font-medium">
                     <Checkbox

@@ -33,7 +33,7 @@ export default async function PeoplePage({
    * cannot read. The directory their church publishes is the one that holds
    * anybody for them, so that is where they go.
    */
-  if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
+  if (!canEditPeople(session) && !canReadIncidents(session)) {
     redirect(`/home?church=${session.tenantSlug}`);
   }
 
@@ -51,7 +51,7 @@ export default async function PeoplePage({
       if (opened?.kind === "static") query.ids = opened.ids ?? [];
 
       return {
-        lists: canEditPeople(session.role) ? await listSavedLists(tx) : [],
+        lists: canEditPeople(session) ? await listSavedLists(tx) : [],
         viewing: opened ? { id: params.list!, name: opened.name, kind: opened.kind } : null,
         // R9.3. Who is asking goes to the query layer, which decides what they
         // may see. A group leader gets their own group and nobody else.
@@ -61,17 +61,17 @@ export default async function PeoplePage({
         groups: await listGroups(tx),
         // R2.14. The numbers beside each status in the filter drawer.
         counts: await countPeopleByStatus(tx),
-        duplicates: canArchivePeople(session.role) ? (await findDuplicatePairs(tx)).length : 0,
+        duplicates: canArchivePeople(session) ? (await findDuplicatePairs(tx)).length : 0,
         // R22.1. Until the church is set up, this is the first thing on the
         // screen somebody lands on.
-        setup: canManageChurch(session.role)
+        setup: canManageChurch(session)
           ? await setupProgress(tx, session.tenantId)
           : null,
       };
     },
   );
 
-  const canEdit = canEditPeople(session.role);
+  const canEdit = canEditPeople(session);
 
   return (
     <AppShell
@@ -114,7 +114,7 @@ export default async function PeoplePage({
       <Directory
         church={session.tenantSlug}
         canEdit={canEdit}
-        canArchive={canArchivePeople(session.role)}
+        canArchive={canArchivePeople(session)}
         page={page}
         perPage={PER_PAGE}
         matching={matching}

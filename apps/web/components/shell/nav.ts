@@ -97,7 +97,17 @@ export function navFor(role: TenantRole): NavEntry[] {
     out.push({ label: t("form.title"), href: "/forms", icon: ClipboardList });
   }
 
-  out.push({ label: t("nav.settings"), href: "/settings", icon: Settings });
+  /*
+   * Settings has no landing page of its own: the menu is already on the screen,
+   * so the entry goes straight to the first section this role can change rather
+   * than through a page that only redirects.
+   */
+  out.push({
+    label: t("nav.settings"),
+    href: canManageChurch(role) ? "/settings/church" : "/settings/privacy",
+    owns: ["/settings", "/setup"],
+    icon: Settings,
+  });
 
   return out;
 }

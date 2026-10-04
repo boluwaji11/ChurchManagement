@@ -4,7 +4,7 @@ import { checkinVisits, checkinRooms, checkinCodes } from "../schema/checkin";
 import { serviceOccurrences, attendanceRecords } from "../schema/gatherings";
 import { people } from "../schema/people";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
 import { newCode, CODE_ATTEMPTS } from "./codes";
@@ -23,7 +23,7 @@ import { newCode, CODE_ATTEMPTS } from "./codes";
 
 /** Running a station is the volunteer's job, so this is wider than managing one. */
 export const CAN_CHECK_IN: readonly TenantRole[] = rolesWith("checkin.run");
-export const canCheckIn = (role: TenantRole): boolean => can(role, "checkin.run");
+export const canCheckIn = (role: Who): boolean => can(role, "checkin.run");
 
 export interface CheckinEntry {
   personId: string;

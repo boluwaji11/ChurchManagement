@@ -1,5 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
+import type { Permission } from "../permissions";
 import { importBatches, importRows } from "../schema/imports";
 import { people } from "../schema/people";
 import { canArchivePeople, PermissionError, type TenantRole } from "../roles";
@@ -114,7 +115,7 @@ async function touchedSince(
 
 export async function rollbackImport(
   db: Tx,
-  actor: { tenantId: string; role: TenantRole; userId?: string },
+  actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   batchId: string,
 ): Promise<RollbackResult> {
   // Rolling back can remove hundreds of people at once, so it sits with the

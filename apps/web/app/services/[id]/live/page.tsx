@@ -30,7 +30,7 @@ export default async function LivePage({
   const session = await requireSession(church);
 
   const live = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     (tx) => liveFor(tx, id),
   );
   if (!live) notFound();
@@ -53,7 +53,7 @@ export default async function LivePage({
         church={session.tenantSlug}
         occurrenceId={id}
         initial={live}
-        canRun={canManageServices(session.role)}
+        canRun={canManageServices(session)}
       />
     </AppShell>
   );

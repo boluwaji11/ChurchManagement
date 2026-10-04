@@ -1,0 +1,1 @@
+ALTER TABLE "checkin_rooms" ADD COLUMN "for_children" boolean DEFAULT true NOT NULL;

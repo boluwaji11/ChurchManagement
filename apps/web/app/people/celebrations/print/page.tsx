@@ -33,7 +33,7 @@ export default async function CardListPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  if (!canEditPeople(session.role)) {
+  if (!canEditPeople(session)) {
     redirect(`/home?church=${session.tenantSlug}`);
   }
 

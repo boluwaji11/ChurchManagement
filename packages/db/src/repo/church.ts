@@ -2,7 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import type { Tx } from "../client";
 import { tenants, serviceTimes } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -21,7 +21,7 @@ import type { WriteActor } from "./people";
  * Admin. Staff edit people; they do not rename the church.
  */
 export const CAN_MANAGE_CHURCH: readonly TenantRole[] = rolesWith("church.manage");
-export const canManageChurch = (role: TenantRole): boolean => can(role, "church.manage");
+export const canManageChurch = (role: Who): boolean => can(role, "church.manage");
 
 export interface ChurchProfile {
   id: string;

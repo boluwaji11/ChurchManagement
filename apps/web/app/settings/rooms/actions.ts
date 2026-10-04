@@ -42,6 +42,7 @@ const input = (data: FormData) => ({
   maxAgeMonths: number(data, "maxAgeMonths"),
   capacity: number(data, "capacity"),
   ratio: number(data, "ratio"),
+  forChildren: field(data, "forChildren") === "1",
 });
 
 export async function createRoom(data: FormData): Promise<RoomResult> {

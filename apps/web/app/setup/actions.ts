@@ -10,7 +10,7 @@ export interface SetupResult {
 
 async function context(church?: string) {
   const session = await requireSession(church);
-  return { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  return { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 }
 
 /** R22.1. "We do not run kids' classes." */

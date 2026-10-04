@@ -19,8 +19,8 @@ async function context(church?: string) {
     // R10.1. The account goes to the repository, because a team leader may
     // change the schedule of the team they lead and nothing else, and only the id
     // answers which team that is.
-    actor: { tenantId: session.tenantId, role: session.role, userId: session.userId },
-    ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    actor: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
+    ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
   };
 }
 

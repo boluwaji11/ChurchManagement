@@ -2,7 +2,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { checkinRooms } from "../schema/checkin";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { MessageKey } from "@hearth/i18n";
 import type { WriteActor } from "./people";
@@ -20,7 +20,7 @@ export { ageInMonths, suggestRoom };
 
 /** Rooms are a safeguarding configuration, so they stay with Owner and Admin. */
 export const CAN_MANAGE_ROOMS: readonly TenantRole[] = rolesWith("checkin.rooms");
-export const canManageRooms = (role: TenantRole): boolean => can(role, "checkin.rooms");
+export const canManageRooms = (role: Who): boolean => can(role, "checkin.rooms");
 
 /** Matches the twelve hues in packages/ui, so a room can be told apart on a label. */
 export const ROOM_HUES = [
@@ -37,6 +37,8 @@ export interface Room {
   maxAgeMonths: number | null;
   capacity: number | null;
   ratio: number | null;
+  /** R8.14. Whether this room holds children, and so carries the safeguarding rules. */
+  forChildren: boolean;
   position: number;
   archivedAt: Date | null;
 }
@@ -48,6 +50,7 @@ export interface RoomInput {
   maxAgeMonths?: number | null;
   capacity?: number | null;
   ratio?: number | null;
+  forChildren?: boolean;
 }
 
 const COLUMNS = {
@@ -58,6 +61,7 @@ const COLUMNS = {
   maxAgeMonths: checkinRooms.maxAgeMonths,
   capacity: checkinRooms.capacity,
   ratio: checkinRooms.ratio,
+  forChildren: checkinRooms.forChildren,
   position: checkinRooms.position,
   archivedAt: checkinRooms.archivedAt,
 };
@@ -89,6 +93,7 @@ function check(input: RoomInput): {
   maxAgeMonths: number | null;
   capacity: number | null;
   ratio: number | null;
+  forChildren: boolean;
 } {
   const name = clean(input.name ?? "");
   if (!name) throw new InvalidInputError("room.error.name");
@@ -122,6 +127,9 @@ function check(input: RoomInput): {
     maxAgeMonths,
     capacity: positive(input.capacity, "room.error.capacity"),
     ratio: positive(input.ratio, "room.error.ratio"),
+    // R8.14. Children unless a church says otherwise: the safeguarding rules
+    // are the safe default, and an adult room is the exception a church states.
+    forChildren: input.forChildren ?? true,
   };
 }
 

@@ -24,7 +24,7 @@ export default async function SetupPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageChurch(session.role)) {
+  if (!canManageChurch(session)) {
     return (
       <AppShell
         session={session}

@@ -49,7 +49,7 @@ export async function merge(data: FormData): Promise<MergeOutcome> {
   const { session, ctx } = await context(field(data, "church") || undefined);
   try {
     const result = await withTenant(ctx, (tx) =>
-      mergePeople(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId }, {
+      mergePeople(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions }, {
         winnerId,
         loserId,
         take,

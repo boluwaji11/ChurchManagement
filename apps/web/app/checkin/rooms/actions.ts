@@ -22,7 +22,7 @@ export interface BoardResult {
  */
 export async function board(occurrenceId: string, church?: string): Promise<BoardResult> {
   const session = await requireSession(church);
-  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   try {
     return await withTenant(ctx, async (tx) => {

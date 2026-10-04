@@ -32,7 +32,7 @@ export default async function PrintDirectoryPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
+  if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
         <Banner tone="info" title={t("printDirectory.title")}>{t("forbidden.askAdmin")}</Banner>

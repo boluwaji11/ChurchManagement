@@ -1,6 +1,7 @@
 import { and, eq, gt, isNull, sql as raw } from "drizzle-orm";
 import { owner } from "../client";
 import type { TenantRole } from "../roles";
+import { PERMISSIONS, type Permission } from "../permissions";
 import { InvalidInputError } from "../errors";
 import { DEFAULT_GROUP_TYPES } from "./groups";
 import { DEFAULT_PIPELINES } from "./followups";
@@ -11,6 +12,14 @@ export interface Membership {
   tenantSlug: string;
   tenantName: string;
   role: TenantRole;
+  /**
+   * R1.6. The permissions this member actually holds.
+   *
+   * Null for somebody on a built-in role, where the matrix in permissions.ts is
+   * the answer. A church's own role carries its set here, read on the way into
+   * the session so no screen has to ask again.
+   */
+  permissions: Permission[] | null;
 }
 
 /**
@@ -28,16 +37,22 @@ export interface Membership {
  * resolveTenantBySlug, and createChurch.
  */
 export async function membershipsForUser(userId: string): Promise<Membership[]> {
-  return owner()<Membership[]>`
+  const rows = await owner()<Row[]>`
     select
       t.id   as "tenantId",
       t.slug as "tenantSlug",
       t.name as "tenantName",
-      m.role as "role"
+      m.role as "role",
+      r.permissions as "permissions"
     from tenant_members m
     join tenants t on t.id = m.tenant_id
+    left join tenant_roles r
+           on r.tenant_id = m.tenant_id
+          and (r.id = m.role_id
+               or (m.role_id is null and r.builtin and r.key = m.role::text))
     where m.user_id = ${userId}
     order by t.name`;
+  return rows.map(held);
 }
 
 /**
@@ -49,17 +64,40 @@ export async function membershipsForUser(userId: string): Promise<Membership[]> 
  * used to discover which churches are on the platform.
  */
 export async function verifyMembership(userId: string, tenantId: string): Promise<Membership | null> {
-  const rows = await owner()<Membership[]>`
+  const rows = await owner()<Row[]>`
     select
       t.id   as "tenantId",
       t.slug as "tenantSlug",
       t.name as "tenantName",
-      m.role as "role"
+      m.role as "role",
+      r.permissions as "permissions"
     from tenant_members m
     join tenants t on t.id = m.tenant_id
+    left join tenant_roles r
+           on r.tenant_id = m.tenant_id
+          and (r.id = m.role_id
+               or (m.role_id is null and r.builtin and r.key = m.role::text))
     where m.user_id = ${userId} and m.tenant_id = ${tenantId}
     limit 1`;
-  return rows[0] ?? null;
+  return rows[0] ? held(rows[0]) : null;
+}
+
+/** The row as the database hands it back, before the permissions are filtered. */
+type Row = Omit<Membership, "permissions"> & { permissions: string[] | null };
+
+/**
+ * R1.6. Keeps only permissions the catalogue still names.
+ *
+ * A permission we removed leaves rows behind in every church that granted it,
+ * and a stale key must never be read as a grant.
+ */
+function held(row: Row): Membership {
+  return {
+    ...row,
+    permissions: row.permissions
+      ? PERMISSIONS.filter((one) => row.permissions!.includes(one))
+      : null,
+  };
 }
 
 /**
@@ -344,6 +382,9 @@ export interface TeamMember {
   email: string;
   name: string | null;
   role: TenantRole;
+  /** R1.6. The church's own role they hold, where they hold one. */
+  roleId: string | null;
+  roleName: string | null;
   isSelf: boolean;
   /** R1.4. When they last signed in, null for somebody who never has. */
   lastSignedInAt: Date | null;
@@ -376,13 +417,19 @@ export async function listTeam(
   const rows = await owner()<
     {
       user_id: string; email: string; full_name: string | null; role: string;
+      role_id: string | null; role_name: string | null;
       last_sign_in_at: Date | null;
     }[]
   >`
     select m.user_id, u.email, u.full_name, m.role::text as role,
+           m.role_id, r.name as role_name,
            au.last_sign_in_at
       from tenant_members m
       join app_users u on u.id = m.user_id
+      left join tenant_roles r
+           on r.tenant_id = m.tenant_id
+          and (r.id = m.role_id
+               or (m.role_id is null and r.builtin and r.key = m.role::text))
       left join auth.users au on au.id = m.user_id
      where m.tenant_id = ${tenantId}
      order by u.email`;
@@ -392,6 +439,10 @@ export async function listTeam(
     email: row.email,
     name: row.full_name,
     role: row.role as TenantRole,
+    roleId: row.role_id,
+    // Only a church's own role has a name worth showing. A built-in is named
+    // by the product unless this church renamed it, which listRoles reports.
+    roleName: row.role_id ? row.role_name : null,
     isSelf: row.user_id === selfUserId,
     lastSignedInAt: row.last_sign_in_at ?? null,
   }));
@@ -429,16 +480,27 @@ export async function setMemberRole(
   tenantId: string,
   userId: string,
   role: TenantRole,
+  /**
+   * R1.6. The church's own role this member holds, where they hold one. The
+   * enum column then carries "member", so any path reading it alone, including
+   * the audit log, fails closed rather than inheriting the role they came from.
+   */
+  roleId: string | null = null,
 ): Promise<void> {
   const sql = owner();
-  if (role !== "owner") {
+  const builtIn: TenantRole = roleId ? "member" : role;
+
+  if (builtIn !== "owner") {
     const [count] = await sql<{ n: string }[]>`
       select count(*)::text as n from tenant_members
        where tenant_id = ${tenantId} and role = 'owner' and user_id <> ${userId}`;
     if (Number(count?.n ?? 0) === 0) throw new InvalidInputError("team.error.lastOwner");
   }
+
   await sql`
-    update tenant_members set role = ${role}::tenant_role
+    update tenant_members
+       set role = ${builtIn}::tenant_role,
+           role_id = ${roleId}
      where tenant_id = ${tenantId} and user_id = ${userId}`;
 }
 

@@ -16,12 +16,12 @@ export default async function PipelineSettingsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageChurch(session.role)) {
+  if (!canManageChurch(session)) {
     return <Banner tone="info" title={t("pipelines.title")}>{t("forbidden.askAdmin")}</Banner>;
   }
 
   const { rows, team } = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => ({
       rows: await listPipelines(tx, { includeArchived: true }),
       team: await assignableUsers(tx),

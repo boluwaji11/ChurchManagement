@@ -6,7 +6,7 @@ import {
   withTenant, readImportFile, guessMapping, listCustomFields, PERSON_FIELDS,
   plan, commit, rollbackImport, canEditPeople, detectSource, sourceMapping, IMPORT_SOURCES,
   isGroupSheet, guessGroupMapping, GROUP_FIELDS, planGroups, commitGroups, rollbackGroupImport,
-  canManageGroups,
+  canManageGroups, type TenantRole,
   type DuplicateStrategy, type PlannedRow, type PlannedGroupRow, type Sheet,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -64,7 +64,7 @@ const read = (file: FilePayload): Promise<Sheet> =>
 /** Reads the file and guesses the mapping. Touches no data. */
 export async function inspectFile(input: { church?: string } & FilePayload): Promise<Inspection> {
   const session = await requireSession(input.church);
-  if (!canEditPeople(session.role)) return { error: t("forbidden.addPeople") };
+  if (!canEditPeople(session)) return { error: t("forbidden.addPeople") };
 
   const sheet = await read(input);
   if (sheet.headers.length === 0 || sheet.rows.length === 0) {
@@ -80,7 +80,7 @@ export async function inspectFile(input: { church?: string } & FilePayload): Pro
   // different set of fields. Which one it is comes from the headers rather than
   // from asking, because a church exporting its groups knows what it exported.
   if (isGroupSheet(sheet.headers)) {
-    if (!canManageGroups(session.role)) return { error: t("forbidden.askAdmin") };
+    if (!canManageGroups(session)) return { error: t("forbidden.askAdmin") };
     return {
       headers: sheet.headers,
       mapping: guessGroupMapping(sheet.headers),
@@ -146,7 +146,7 @@ export async function previewImport(input: {
 } & FilePayload): Promise<Preview> {
   const session = await requireSession(input.church);
   if (input.groups) return previewGroups(session, input);
-  if (!canEditPeople(session.role)) return { error: t("forbidden.addPeople") };
+  if (!canEditPeople(session)) return { error: t("forbidden.addPeople") };
 
   const mapped = Object.values(input.mapping);
   if (!mapped.includes("firstName") || !mapped.includes("lastName")) {
@@ -179,10 +179,10 @@ export async function previewImport(input: {
 
 /** R19.5. The same dry run, over a file of memberships. */
 async function previewGroups(
-  session: { tenantId: string; role: Parameters<typeof canManageGroups>[0] },
+  session: { tenantId: string; role: TenantRole },
   input: { mapping: Record<string, string> } & FilePayload,
 ): Promise<Preview> {
-  if (!canManageGroups(session.role)) return { error: t("forbidden.askAdmin") };
+  if (!canManageGroups(session)) return { error: t("forbidden.askAdmin") };
   if (!Object.values(input.mapping).includes("groupName")) {
     return { error: t("import.group.noColumn") };
   }
@@ -247,7 +247,7 @@ export async function runImport(input: {
   if (input.groups) {
     try {
       const result = await withTenant(
-        { tenantId: session.tenantId, role: session.role, userId: session.userId },
+        { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
         async (tx) => {
           const fresh = await planGroups(tx, {
             filename: input.filename,
@@ -256,7 +256,7 @@ export async function runImport(input: {
           });
           return commitGroups(
             tx,
-            { tenantId: session.tenantId, role: session.role, userId: session.userId },
+            { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
             fresh,
           );
         },
@@ -294,7 +294,7 @@ export async function runImport(input: {
           mapping: input.mapping,
           strategy: input.strategy,
         });
-        return commit(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId }, fresh);
+        return commit(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions }, fresh);
       },
     );
 
@@ -351,7 +351,7 @@ export async function undoImport(data: FormData): Promise<RollbackOutcome> {
         }
         return rollbackImport(
           tx,
-          { tenantId: session.tenantId, role: session.role, userId: session.userId },
+          { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
           batchId,
         );
       },

@@ -32,7 +32,7 @@ export default async function GroupAttendancePage({
   const { id } = await params;
   const { church } = await searchParams;
   const session = await requireSession(church);
-  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   const data = await withTenant(actor, async (tx) => {
     const group = await getGroup(tx, id);

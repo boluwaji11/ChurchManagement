@@ -22,10 +22,13 @@ export function Places({
   church,
   campus,
   canEdit,
+  editing,
 }: {
   church: string;
   campus: Campus | null;
   canEdit: boolean;
+  /** Driven by the pencil on Details, so one press opens the whole page. */
+  editing: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -50,15 +53,21 @@ export function Places({
 
       <span className="font-semibold text-fg">{t("place.title")}</span>
 
-      <Field label={t("place.campus")} required>
-        <Input
-          value={site}
-          onChange={(e) => setSite(e.target.value)}
-          onBlur={save}
-          disabled={!canEdit}
-          autoComplete="off"
-        />
-      </Field>
+      {editing && canEdit ? (
+        <Field label={t("place.campus")} required>
+          <Input
+            value={site}
+            onChange={(e) => setSite(e.target.value)}
+            onBlur={save}
+            autoComplete="off"
+          />
+        </Field>
+      ) : (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-label text-fg-subtle">{t("place.campus")}</span>
+          <span className="text-[length:var(--d-text-body)] text-fg">{campus.name}</span>
+        </div>
+      )}
     </section>
   );
 }

@@ -8,7 +8,7 @@ import {
 } from "@hearth/db";
 import { serviceNow } from "@hearth/db/rules";
 import { Banner, Button, EmptyState } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -42,7 +42,7 @@ export default async function CheckinPage({
   const session = await requireSession(params.church);
 
   const data = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const clock = churchNow(profile?.timezone ?? "America/Chicago");
@@ -89,7 +89,7 @@ export default async function CheckinPage({
         // R8.13. The number on the Incidents button is the reports where the
         // guardian has still to be told, which is the one thing left open on a
         // report that has been written.
-        openIncidents: canReadIncidents(session.role)
+        openIncidents: canReadIncidents(session)
           ? (await listIncidents(tx, { role: session.role })).filter(
               (i) => i.notifiedAt === null,
             ).length
@@ -100,7 +100,6 @@ export default async function CheckinPage({
 
   const service = data.services.find((s) => s.id === data.chosen);
   const present = new Set(data.here.map((visit) => visit.personId));
-  const checkedIn = (data.board?.rooms ?? []).reduce((n, r) => n + r.present, 0);
 
   const action = (
     <CheckInSheet
@@ -129,7 +128,7 @@ export default async function CheckinPage({
     />
   );
 
-  if (!canSupervise(session.role)) {
+  if (!canSupervise(session)) {
     return (
       <AppShell session={session} title={t("checkin.title")}>
         <Banner tone="info" title={t("checkin.title")}>{t("forbidden.askAdmin")}</Banner>
@@ -146,12 +145,6 @@ export default async function CheckinPage({
               ? t("checkin.serviceAt", { name: service.name, time: service.readableTime })
               : t("checkin.noService.title")}
           </h2>
-          <p className="mt-1 text-fg-muted">
-            {[
-              plural("board.checkedIn", checkedIn),
-              plural("board.stations", data.stations),
-            ].join(" · ")}
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3.5">
@@ -159,7 +152,7 @@ export default async function CheckinPage({
             <Move className="size-3.5" aria-hidden /> {t("board.dragChild")}
           </span>
 
-          {canReadIncidents(session.role) ? (
+          {canReadIncidents(session) ? (
             <ToolLink href={`/incidents?church=${session.tenantSlug}`}>
               <FileWarning /> {t("incident.title")}
               {data.openIncidents > 0 ? (

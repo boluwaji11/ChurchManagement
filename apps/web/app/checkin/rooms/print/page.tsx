@@ -41,7 +41,7 @@ export default async function RosterPrintPage({
   const { church, service, room } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canSupervise(session.role) || !service) {
+  if (!canSupervise(session) || !service) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
         <Banner tone="info" title={t("print.roster.title")}>{t("forbidden.askAdmin")}</Banner>

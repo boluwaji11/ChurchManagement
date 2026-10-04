@@ -5,7 +5,7 @@ import { people } from "../schema/people";
 import { tenants } from "../schema/tenancy";
 import { visitorsBetween, absentPeople, DEFAULT_ABSENCE_THRESHOLD } from "./attendance";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
 
@@ -23,7 +23,7 @@ import { canManageChurch } from "./church";
  */
 
 export const CAN_FOLLOW_UP: readonly TenantRole[] = rolesWith("followups.manage");
-export const canFollowUp = (role: TenantRole): boolean => can(role, "followups.manage");
+export const canFollowUp = (role: Who): boolean => can(role, "followups.manage");
 
 export const PIPELINE_KEYS = [
   "first_visit", "second_visit", "absent", "baptism", "membership", "serving",

@@ -14,7 +14,7 @@ export const Thead = ({ className, ...props }: React.HTMLAttributes<HTMLTableSec
 
 export const Th = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
   <th
-    className={cn("px-3 text-left text-label font-medium text-fg-muted h-[var(--d-row-h)]", className)}
+    className={cn("px-3 text-left text-label font-semibold text-fg h-[var(--d-row-h)]", className)}
     {...props}
   />
 );

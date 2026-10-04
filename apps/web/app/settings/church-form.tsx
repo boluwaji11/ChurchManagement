@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Pencil } from "lucide-react";
-import { Banner, Button, Combobox, Field, IconButton, Input } from "@hearth/ui";
+import { Banner, Combobox, Field, IconButton, Input } from "@hearth/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
 import { saveChurch } from "./actions";
@@ -34,15 +34,17 @@ export function ChurchForm({
   values,
   canEdit,
   logo,
+  editing,
+  onEditing,
 }: {
   values: ChurchValues;
   canEdit: boolean;
   /** R1.1. The logo row, which opens this section. */
   logo?: React.ReactNode;
+  /** Held by the page, because the pencil here opens every section. */
+  editing: boolean;
+  onEditing: (next: boolean) => void;
 }) {
-  // R1.1. Read first. A church profile is set once and looked at after, so the
-  // screen opens as what it says rather than as twelve boxes to be careful in.
-  const [editing, setEditing] = React.useState(false);
   const [timezone, setTimezone] = React.useState(values.timezone);
   const [country, setCountry] = React.useState(values.country || "US");
   const [region, setRegion] = React.useState(values.region ?? "");
@@ -64,7 +66,7 @@ export function ChurchForm({
       const result = await saveChurch(data);
       setError(result.error);
       setSaved(Boolean(result.saved));
-      if (!result.error) setEditing(false);
+      if (!result.error) onEditing(false);
     });
   };
 
@@ -81,7 +83,7 @@ export function ChurchForm({
         <div className="flex items-center justify-between gap-3">
           <span className="font-semibold text-fg">{t("church.details")}</span>
           {canEdit && !editing ? (
-            <IconButton label={t("church.edit")} variant="ghost" onClick={() => setEditing(true)}>
+            <IconButton label={t("church.edit")} variant="ghost" onClick={() => onEditing(true)}>
               <Pencil />
             </IconButton>
           ) : null}
@@ -96,7 +98,10 @@ export function ChurchForm({
 
         {editing ? null : <Reading values={values} regionLabel={regionLabel} />}
 
+        {/* The buttons that commit this form sit at the foot of the page,
+            under the last section they change, so one press saves the lot. */}
         <form
+          id="church-form"
           action={save}
           noValidate
           className={editing ? "flex flex-col gap-4" : "hidden"}
@@ -176,12 +181,6 @@ export function ChurchForm({
             </Field>
           </div>
 
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button type="submit" disabled={pending}>{t("church.save")}</Button>
-          </div>
         </form>
       </section>
     </div>

@@ -21,14 +21,14 @@ const field = (data: FormData, name: string) => String(data.get(name) ?? "").tri
  */
 export async function addNote(data: FormData): Promise<NoteResult> {
   const session = await requireSession(field(data, "church") || undefined);
-  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   const body = field(data, "body");
   const confidential = field(data, "classification") === "confidential";
 
   if (!body) return { error: t("notes.error.empty") };
-  if (!canEditPeople(session.role)) return { error: t("forbidden.askAdmin") };
-  if (confidential && !canReadConfidentialNotes(session.role)) {
+  if (!canEditPeople(session)) return { error: t("forbidden.askAdmin") };
+  if (confidential && !canReadConfidentialNotes(session)) {
     return { error: t("forbidden.askAdmin") };
   }
 

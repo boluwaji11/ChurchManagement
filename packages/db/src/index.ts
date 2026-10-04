@@ -6,6 +6,10 @@ export {
   CAN_READ_CONFIDENTIAL_NOTES, CAN_READ_GIVING_AMOUNTS,
   canEditPeople, canArchivePeople, CAN_EDIT_PEOPLE, CAN_ARCHIVE_PEOPLE, PermissionError,
 } from "./roles";
+export {
+  listRoles, createRole, renameRole, setPermissions, archiveRole,
+  permissionsFor, ensureBuiltIns, type ChurchRole,
+} from "./repo/tenant-roles";
 export { InvalidInputError, NameTakenError } from "./errors";
 export { encryptNote, decryptNote } from "./crypto";
 export {

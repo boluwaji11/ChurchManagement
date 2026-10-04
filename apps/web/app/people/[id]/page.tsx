@@ -122,7 +122,7 @@ export default async function PersonPage({
       // R2.15. Everything that has happened with this person, in one order.
       history: await personTimeline(
         tx,
-        { tenantId: session.tenantId, role: session.role, userId: session.userId },
+        { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
         id,
       ),
     };
@@ -134,7 +134,7 @@ export default async function PersonPage({
   const { person, contact, household, address, groups, serving, history } = result;
 
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
-  const canEdit = canEditPeople(session.role);
+  const canEdit = canEditPeople(session);
 
   const places = [
     ...groups.map((g) => ({ key: `g${g.groupId}`, name: g.name, hue: g.typeHue ?? "fern" })),
@@ -150,7 +150,7 @@ export default async function PersonPage({
             church={session.tenantSlug}
             personId={person.id}
             name={display}
-            canConfidential={canReadConfidentialNotes(session.role)}
+            canConfidential={canReadConfidentialNotes(session)}
             trigger={
               <Button>
                 <Plus /> {t("person.addNote")}
@@ -293,7 +293,7 @@ export default async function PersonPage({
                 church={session.tenantSlug}
                 personId={person.id}
                 name={display}
-                canConfidential={canReadConfidentialNotes(session.role)}
+                canConfidential={canReadConfidentialNotes(session)}
                 trigger={
                   <Button variant="secondary" className="min-h-[30px] px-2.5 text-[13px]">
                     {t("person.addNote")}

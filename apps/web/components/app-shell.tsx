@@ -55,7 +55,7 @@ export async function AppShell({
 
   // R24.6. The bell: its number, and the twenty lines behind it.
   const counts = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => ({
       unread: await countUnread(tx, session.userId),
       notifications: await listNotifications(tx, session.userId),

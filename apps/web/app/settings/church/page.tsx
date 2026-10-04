@@ -3,8 +3,7 @@ import {
   primaryCampus,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
-import { Places } from "./places";
-import { ChurchForm } from "../church-form";
+import { ChurchSections } from "./sections";
 import { ChurchLogo } from "../logo";
 import { supabaseServer } from "@/lib/supabase/server";
 import { SettingsHeading } from "../heading";
@@ -41,25 +40,21 @@ export default async function SettingsPage({
     <div className="flex flex-col gap-5">
       <SettingsHeading title="settings.tab.church" lede="settings.lede.church" />
         {profile ? (
-          <ChurchForm
+          <ChurchSections
+            church={session.tenantSlug}
             values={profile}
-            canEdit={canManageChurch(session.role)}
+            campus={campus}
+            canEdit={canManageChurch(session)}
             logo={
               <ChurchLogo
                 church={session.tenantSlug}
                 churchName={session.tenantName}
                 logoUrl={logoUrl}
-                canEdit={canManageChurch(session.role)}
+                canEdit={canManageChurch(session)}
               />
             }
           />
         ) : null}
-
-        <Places
-          church={session.tenantSlug}
-          campus={campus}
-          canEdit={canManageChurch(session.role)}
-        />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { incidentReports, checkinRooms } from "../schema/checkin";
 import { people } from "../schema/people";
 import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
 import { canCheckIn } from "./checkin";
@@ -32,11 +32,11 @@ import { canCheckIn } from "./checkin";
 
 /** R8.13. Who may read what has been filed. */
 export const CAN_READ_INCIDENTS: readonly TenantRole[] = rolesWith("checkin.incidents");
-export const canReadIncidents = (role: TenantRole): boolean =>
+export const canReadIncidents = (role: Who): boolean =>
   can(role, "checkin.incidents");
 
 /** Whoever was standing there. Filing is wider than reading on purpose. */
-export const canFileIncident = (role: TenantRole): boolean =>
+export const canFileIncident = (role: Who): boolean =>
   canCheckIn(role) || canReadIncidents(role);
 
 export interface IncidentInput {

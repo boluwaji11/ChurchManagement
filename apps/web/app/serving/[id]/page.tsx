@@ -35,11 +35,11 @@ export default async function TeamPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canLeadTeams(session.role)) {
+  if (!canLeadTeams(session)) {
     redirect(`/home?church=${session.tenantSlug}`);
   }
 
-  const canManage = canManageTeams(session.role);
+  const canManage = canManageTeams(session);
 
   const { team, mine, services, slots, monthName } = await withTenant(
     { tenantId: session.tenantId, role: session.role },

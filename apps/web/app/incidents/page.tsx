@@ -34,7 +34,7 @@ export default async function IncidentsPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canReadIncidents(session.role)) {
+  if (!canReadIncidents(session)) {
     return (
       <AppShell session={session} title={t("incident.title")}>
         <Banner tone="info" title={t("incident.title")}>{t("forbidden.askAdmin")}</Banner>
@@ -43,7 +43,7 @@ export default async function IncidentsPage({
   }
 
   const { incidents, rooms, people, services, today } = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const clock = churchNow(profile?.timezone ?? "America/Chicago");
@@ -80,7 +80,7 @@ export default async function IncidentsPage({
     },
   );
 
-  const filing = canCheckIn(session.role) ? (
+  const filing = canCheckIn(session) ? (
     <FileReport
       church={session.tenantSlug}
       today={today}

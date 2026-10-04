@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 import * as schema from "./schema/index";
 import { required, loadEnv } from "./env";
 import type { TenantRole } from "./roles";
+import type { Permission } from "./permissions";
 
 export type Db = PostgresJsDatabase<typeof schema>;
 /** Inside withTenant the handle is a transaction, which is all a repository needs. */
@@ -99,6 +100,13 @@ export interface TenantContext {
   role: TenantRole;
   userId?: string;
   ip?: string;
+  /**
+   * R1.6. Carried so the same object serves as both the transaction context and
+   * the actor a repository checks permissions against. Postgres reads only
+   * tenant_id and role: a permission is a query-layer decision, and RLS is the
+   * tenant boundary underneath it.
+   */
+  permissions?: readonly Permission[] | null;
 }
 
 /**

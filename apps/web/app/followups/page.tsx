@@ -31,7 +31,7 @@ export default async function FollowUpsPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
-  if (!canFollowUp(session.role)) {
+  if (!canFollowUp(session)) {
     return (
       <AppShell session={session} title={t("queue.title")}>
         <Banner tone="info" title={t("followups.title")}>{t("forbidden.askAdmin")}</Banner>
@@ -40,7 +40,7 @@ export default async function FollowUpsPage({
   }
 
   const { pipelines, entries, today } = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const all = await listPipelines(tx);
       const chosen = all.find((p) => p.id === params.pipeline) ?? all[0];

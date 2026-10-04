@@ -21,7 +21,7 @@ export default async function DuplicatesPage({
 
   // Merging moves every note and every record off one person and onto another,
   // so the review queue is only shown to the roles that may do it.
-  if (!canArchivePeople(session.role)) {
+  if (!canArchivePeople(session)) {
     return (
       <AppShell
         session={session}

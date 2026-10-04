@@ -16,7 +16,7 @@ async function context(church?: string) {
   return {
     session,
     actor: { tenantId: session.tenantId, role: session.role },
-    ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
   };
 }
 
@@ -189,7 +189,7 @@ export async function clearGroupPhoto(
   church?: string,
 ): Promise<GroupResult> {
   const session = await requireSession(church);
-  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   try {
     const removed = await withTenant(actor, (tx) => setGroupPhoto(tx, actor, groupId, null));
     if (removed.removed) {

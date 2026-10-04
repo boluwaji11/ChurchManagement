@@ -33,11 +33,11 @@ export default async function PlanPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageServices(session.role)) {
+  if (!canManageServices(session)) {
     redirect(`/services/${id}?church=${session.tenantSlug}`);
   }
 
-  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   const result = await withTenant(actor, async (tx) => {
     const occurrence = await getOccurrence(tx, id);

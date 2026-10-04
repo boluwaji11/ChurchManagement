@@ -15,7 +15,7 @@ export async function renameSite(
   church?: string,
 ): Promise<PlaceResult> {
   const session = await requireSession(church);
-  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   try {
     await withTenant(actor, (tx) => renameCampus(tx, actor, id, name));
     return {};

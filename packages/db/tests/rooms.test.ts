@@ -54,7 +54,7 @@ describe("which room a child belongs in", () => {
   const room = (over: Partial<Room>): Room => ({
     id: over.name ?? "r", name: "Room", hue: "sky",
     minAgeMonths: null, maxAgeMonths: null, capacity: null, ratio: null,
-    position: 0, archivedAt: null, ...over,
+    forChildren: true, position: 0, archivedAt: null, ...over,
   });
 
   const nursery = room({ name: "Nursery", minAgeMonths: 0, maxAgeMonths: 24, position: 0 });

@@ -51,9 +51,9 @@ export default async function GroupPage({
   const { id } = await params;
   const { church } = await searchParams;
   const session = await requireSession(church);
-  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
-  const manage = canManageGroups(session.role);
+  const manage = canManageGroups(session);
 
   const { group, today, types, roster } = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);

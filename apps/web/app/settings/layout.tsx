@@ -26,7 +26,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
    * something left to do and gone afterwards, rather than sitting in the
    * settings of a church that finished in March.
    */
-  const setup = canManageChurch(session.role)
+  const setup = canManageChurch(session)
     ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
         setupProgress(tx, session.tenantId),
       )
@@ -39,18 +39,18 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         ...(setup && !setup.complete
           ? [{ href: "/setup", label: t("settings.tab.setup") }]
           : []),
-        ...(canManageChurch(session.role)
+        ...(canManageChurch(session)
           ? [
               { href: "/settings/church", label: t("settings.tab.church") },
-              { href: "/settings/team", label: t("settings.tab.team") },
               { href: "/settings/roles", label: t("settings.tab.roles") },
+              { href: "/settings/team", label: t("settings.tab.team") },
             ]
           : []),
       ],
     },
     {
       title: t("settings.group.checkin"),
-      items: canManageRooms(session.role)
+      items: canManageRooms(session)
         ? [
             { href: "/settings/rooms", label: t("settings.tab.rooms") },
             { href: "/settings/stations", label: t("settings.tab.stations") },
@@ -60,13 +60,13 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     {
       title: t("settings.group.people"),
       items: [
-        ...(canEditPeople(session.role)
+        ...(canEditPeople(session)
           ? [{ href: "/settings/tags", label: t("settings.tab.tags") }]
           : []),
-        ...(canManageCustomFields(session.role)
+        ...(canManageCustomFields(session)
           ? [{ href: "/settings/fields", label: t("settings.tab.fields") }]
           : []),
-        ...(canManageChurch(session.role)
+        ...(canManageChurch(session)
           ? [{ href: "/settings/followups", label: t("settings.tab.followups") }]
           : []),
       ],
@@ -82,7 +82,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     },
     {
       title: t("settings.group.data"),
-      items: canArchivePeople(session.role)
+      items: canArchivePeople(session)
         ? [{ href: "/settings/export", label: t("settings.tab.export") }]
         : [],
     },

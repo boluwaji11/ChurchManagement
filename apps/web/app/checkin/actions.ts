@@ -20,7 +20,7 @@ async function context(church?: string) {
   return {
     session,
     actor: { tenantId: session.tenantId, role: session.role },
-    ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
   };
 }
 

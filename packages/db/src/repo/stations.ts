@@ -3,7 +3,7 @@ import type { Tx } from "../client";
 import { checkinStations, checkinStationRooms, checkinStationServices, checkinRooms } from "../schema/checkin";
 import { serviceTimes } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
-import { can, rolesWith } from "../permissions";
+import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
 
@@ -26,7 +26,7 @@ import type { WriteActor } from "./people";
 
 /** Stations decide which children may be checked into which room, so this is Owner and Admin. */
 export const CAN_MANAGE_STATIONS: readonly TenantRole[] = rolesWith("checkin.stations");
-export const canManageStations = (role: TenantRole): boolean =>
+export const canManageStations = (role: Who): boolean =>
   can(role, "checkin.stations");
 
 /**

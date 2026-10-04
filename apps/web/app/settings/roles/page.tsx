@@ -1,26 +1,46 @@
 import { redirect } from "next/navigation";
-import { canManageChurch, ROLE_PERMISSIONS, PERMISSIONS, TENANT_ROLES } from "@hearth/db";
+import { canManageChurch, listRoles, withTenant, PERMISSIONS } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
-import { Matrix } from "./matrix";
+import { Matrix, NewRole } from "./matrix";
 
 export const dynamic = "force-dynamic";
 
-/** R1.6. Every permission against every role, which is what a role is made of. */
-export default async function RolesPage() {
-  const session = await requireSession();
-  if (!canManageChurch(session.role)) redirect(`/settings/privacy?church=${session.tenantSlug}`);
+/** R1.6. Every permission against every role, and the roles a church writes itself. */
+export default async function RolesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  const session = await requireSession(church);
+  if (!canManageChurch(session)) redirect(`/settings/privacy?church=${session.tenantSlug}`);
+
+  const roles = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
+    (tx) => listRoles(tx, session.tenantId, { includeArchived: true }),
+  );
 
   return (
     <>
-      <SettingsHeading title="settings.tab.roles" lede="settings.lede.roles" />
+      <SettingsHeading
+        title="settings.tab.roles"
+        lede="settings.lede.roles"
+        action={<NewRole church={session.tenantSlug} permissions={[...PERMISSIONS]} />}
+      />
 
       <Matrix
-        roles={[...TENANT_ROLES]}
+        church={session.tenantSlug}
         permissions={[...PERMISSIONS]}
-        held={Object.fromEntries(
-          Object.entries(ROLE_PERMISSIONS).map(([role, list]) => [role, [...list]]),
-        )}
+        roles={roles.map((role) => ({
+          id: role.id,
+          key: role.key,
+          name: role.name,
+          permissions: [...role.permissions],
+          builtin: role.builtin,
+          archived: role.archived,
+          members: role.members,
+        }))}
       />
     </>
   );

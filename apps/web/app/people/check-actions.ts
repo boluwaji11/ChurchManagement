@@ -13,7 +13,7 @@ const field = (data: FormData, name: string) => String(data.get(name) ?? "").tri
 /** R2.10. Writing a check down. There is no edit and no delete. */
 export async function addCheck(data: FormData): Promise<CheckResultView> {
   const session = await requireSession(field(data, "church") || undefined);
-  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId };
+  const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   try {
     await withTenant(ctx, (tx) =>

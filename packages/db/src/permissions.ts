@@ -101,9 +101,20 @@ export const ROLE_PERMISSIONS: Record<TenantRole, readonly Permission[]> = {
   ...GRANTS,
 };
 
-/** Whether a role holds a permission. The one question the whole matrix answers. */
-export function can(role: TenantRole, permission: Permission): boolean {
-  return ROLE_PERMISSIONS[role].includes(permission);
+/**
+ * Whoever a permission is being checked for.
+ *
+ * A built-in role answers from the matrix above. Somebody on a role their church
+ * wrote carries the set that role holds, read once when their session was built,
+ * and it is used in place of the matrix.
+ */
+export type Who = TenantRole | { role: TenantRole; permissions?: readonly Permission[] | null };
+
+/** Whether somebody holds a permission. The one question the whole matrix answers. */
+export function can(who: Who, permission: Permission): boolean {
+  if (typeof who === "string") return ROLE_PERMISSIONS[who].includes(permission);
+  if (who.permissions) return who.permissions.includes(permission);
+  return ROLE_PERMISSIONS[who.role].includes(permission);
 }
 
 /**

@@ -17,6 +17,7 @@
  */
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { Tx } from "../client";
+import type { Permission } from "../permissions";
 import { attendanceRecords, serviceOccurrences } from "../schema/gatherings";
 import { checkinVisits, checkinRooms } from "../schema/checkin";
 import { groupMemberships, groups, groupTypes } from "../schema/groups";
@@ -79,7 +80,7 @@ export const TIMELINE_LIMIT = 120;
  */
 export async function personTimeline(
   db: Tx,
-  viewer: { tenantId: string; role: TenantRole; userId?: string },
+  viewer: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   personId: string,
   opts: { limit?: number } = {},
 ): Promise<TimelineEntry[]> {

@@ -19,7 +19,7 @@ export default async function NewPersonPage({
 
   // The form is hidden from a role that cannot use it. The refusal that matters
   // is in the repository, which rejects the write even if this page is bypassed.
-  const permitted = canEditPeople(session.role);
+  const permitted = canEditPeople(session);
 
   const data = permitted
     ? await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => ({

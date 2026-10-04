@@ -347,7 +347,7 @@ function MapColumns({
       <section className="overflow-auto rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[600px] border-collapse text-left">
           <thead>
-            <tr className="text-[12px] font-medium text-fg-subtle">
+            <tr className="text-[12px] font-semibold text-fg">
               <th className="border-b border-line px-4 py-3 font-medium">{t("import.column")}</th>
               <th className="border-b border-line px-4 py-3 font-medium">{t("import.sample")}</th>
               <th className="border-b border-line px-4 py-3 font-medium">{t("import.field")}</th>

@@ -1,5 +1,6 @@
 import {
   listTeam, listInvitations, canManageChurch, getChurch, withTenant, formatJoinCode,
+  listRoles,
 } from "@hearth/db";
 import { headers } from "next/headers";
 import { Banner } from "@hearth/ui";
@@ -20,14 +21,18 @@ export default async function TeamPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageChurch(session.role)) {
+  if (!canManageChurch(session)) {
     return <Banner tone="info" title={t("team.title")}>{t("forbidden.askAdmin")}</Banner>;
   }
 
   const members = await listTeam(session.tenantId, session.userId);
   const invitations = await listInvitations(session.tenantId);
 
-  const profile = await withTenant(session, (tx) => getChurch(tx, session.tenantId));
+  const { profile, roles } = await withTenant(session, async (tx) => ({
+    profile: await getChurch(tx, session.tenantId),
+    // R1.6. The built-ins and whatever this church wrote beside them.
+    roles: await listRoles(tx, session.tenantId),
+  }));
 
   const code = profile?.joinCode ?? null;
   const head = await headers();
@@ -39,6 +44,13 @@ export default async function TeamPage({
       <SettingsHeading title="settings.tab.team" lede="settings.lede.team" />
       <Team
         church={session.tenantSlug}
+        roles={roles.map((role) => ({
+          id: role.id,
+          key: role.key,
+          name: role.name,
+          builtin: role.builtin,
+          permissions: [...role.permissions],
+        }))}
         members={members.map((member) => ({
           ...member,
           lastSignedIn: member.lastSignedInAt

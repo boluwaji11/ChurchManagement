@@ -71,7 +71,7 @@ export function Responses({
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-line">
-              <th className="w-[180px] px-4 py-3 text-[12px] font-medium text-fg-subtle">
+              <th className="w-[180px] px-4 py-3 text-[12px] font-semibold text-fg">
                 {t("form.responses.when")}
               </th>
               {columns.map((field) => (
@@ -123,7 +123,7 @@ export function Responses({
                       const said = spoken(row.answers[field.id] ?? null);
                       return (
                         <div key={field.id} className="flex flex-col gap-0.5">
-                          <dt className="text-[12px] font-medium text-fg-subtle">
+                          <dt className="text-[12px] font-semibold text-fg">
                             {field.label}
                           </dt>
                           <dd

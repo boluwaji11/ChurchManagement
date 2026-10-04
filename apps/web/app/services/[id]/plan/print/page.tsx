@@ -30,14 +30,14 @@ export default async function PrintPlanPage({
   const { church, view } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageServices(session.role)) {
+  if (!canManageServices(session)) {
     redirect(`/services/${id}?church=${session.tenantSlug}`);
   }
 
   const bulletin = view === "bulletin";
 
   const result = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const occurrence = await getOccurrence(tx, id);
       if (!occurrence) return null;

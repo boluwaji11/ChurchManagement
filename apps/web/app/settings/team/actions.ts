@@ -20,7 +20,7 @@ const ROLES: TenantRole[] = [
 
 async function allowed(church?: string) {
   const session = await requireSession(church);
-  if (!canManageChurch(session.role)) throw new Error(t("forbidden.askAdmin"));
+  if (!canManageChurch(session)) throw new Error(t("forbidden.askAdmin"));
   return session;
 }
 
@@ -62,10 +62,12 @@ export async function changeRole(
   userId: string,
   role: TenantRole,
   church?: string,
+  /** R1.6. A role this church wrote, where they picked one. */
+  roleId?: string | null,
 ): Promise<TeamResult> {
   try {
     const session = await allowed(church);
-    await setMemberRole(session.tenantId, userId, role);
+    await setMemberRole(session.tenantId, userId, role, roleId ?? null);
     return {};
   } catch (error) {
     return { error: explain(error) };
