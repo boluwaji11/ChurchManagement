@@ -320,16 +320,24 @@ export function ScheduleGrid({
                   const slot = at.get(key(position.id, service.id));
                   const spot = key(position.id, service.id);
                   const look = slot?.status ? LOOK[slot.status] : null;
+                  // A slot that already has somebody in it takes no drop. The
+                  // way to put a different person there is to take this one
+                  // out first, which is the same thing a church would say.
+                  const taken = Boolean(slot?.assignmentId);
 
                   return (
                     <div
                       key={service.id}
                       onDragOver={(e) => {
+                        if (taken) return;
                         e.preventDefault();
                         setOver(spot);
                       }}
                       onDragLeave={() => setOver((was) => (was === spot ? null : was))}
-                      onDrop={() => drop(position.id, service.id)}
+                      onDrop={() => {
+                        if (taken) return;
+                        drop(position.id, service.id);
+                      }}
                       className={cn(
                         "flex flex-col gap-1 border-b border-sunken border-l border-l-sunken p-2",
                         over === spot && "bg-primary-soft",

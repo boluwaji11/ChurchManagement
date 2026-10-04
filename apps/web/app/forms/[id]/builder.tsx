@@ -2,21 +2,19 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Heading } from "lucide-react";
 import {
-  Badge, Banner, Button, Card, CardTitle, EmptyState, Field, IconButton, Input,
-  Separator, Textarea, Checkbox,
-  Dialog, DialogTrigger, DialogContent, DialogFooter,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
+  Type, AlignLeft, Mail, Phone, CircleDot, SquareCheck, Calendar,
+  GripVertical, Trash2, Check, Link2, Hash, ToggleLeft, Paperclip, Heading, Plus, X,
+  Archive, ArchiveRestore,
+} from "lucide-react";
+import { Banner, IconButton, cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { NEEDS_OPTIONS, type FormFieldDef, type FormFieldKind } from "@hearth/db/rules";
 import {
-  FORM_FIELD_KINDS, NEEDS_OPTIONS, CONDITION_OPS, OPS_NEED_VALUE,
-  visibleFields, conditionProblem,
-  type ConditionOp, type FormAnswer, type FormCondition, type FormFieldDef,
-  type FormFieldKind,
-} from "@hearth/db/rules";
-import { saveForm, openOrClose, archiveForm, saveQuestion, dropQuestion, shiftQuestion } from "../actions";
+  saveForm, openOrClose, archiveForm, saveQuestion, dropQuestion, orderQuestions,
+} from "../actions";
+import { FormViews } from "./views";
+import { Responses, type SubmissionRow } from "./responses";
 
 export interface BuilderForm {
   id: string;
@@ -31,604 +29,481 @@ export interface BuilderForm {
   problems: string[];
 }
 
+/** The icon that names each kind, the same one in the pill and in the Add row. */
+const KIND_ICON: Record<FormFieldKind, React.ElementType> = {
+  text: Type,
+  long_text: AlignLeft,
+  email: Mail,
+  phone: Phone,
+  select: CircleDot,
+  multi_select: SquareCheck,
+  date: Calendar,
+  number: Hash,
+  checkbox: ToggleLeft,
+  file: Paperclip,
+  section: Heading,
+};
+
+/** R4.1. The seven a church reaches for, in the order the design puts them. */
+const ADDABLE: FormFieldKind[] = [
+  "text", "long_text", "email", "phone", "select", "multi_select", "date",
+];
+
+/** A question that types an answer on one line. */
+const ONE_LINE: FormFieldKind[] = ["text", "email", "phone", "date", "number"];
+
 /**
- * R4.1, R4.2, R4.9. Writing the questions.
+ * R4.1, R4.2, R4.9. Writing the questions, with the form itself alongside.
  *
- * The preview underneath is the point. A church writing a form is writing
- * something its congregation will read once and never ask about, so seeing it
- * as they will see it while writing beats any amount of description.
+ * Built to docs/redesign/design: the questions down the left, each one its own
+ * card carrying what it asks and how, and what the congregation will meet down
+ * the right. A church writing a form is writing something people read once and
+ * never ask about, so seeing it as they will see it beats any description of it.
  */
-export function Builder({ church, form }: { church: string; form: BuilderForm }) {
+export function Builder({
+  church,
+  form,
+  view,
+  responses,
+}: {
+  church: string;
+  form: BuilderForm;
+  view: "questions" | "responses";
+  responses: SubmissionRow[];
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+  const [name, setName] = React.useState(form.name);
+  const [copied, setCopied] = React.useState(false);
 
-  const [values, setValues] = React.useState({
-    name: form.name,
-    intro: form.intro ?? "",
-    thanks: form.thanks ?? "",
-    limit: form.submissionLimit === null ? "" : String(form.submissionLimit),
-  });
+  // Dragged and dropped-on, by question id, so the list can show where a
+  // question will land before the drop happens.
+  const [held, setHeld] = React.useState<string | null>(null);
+  const [over, setOver] = React.useState<string | null>(null);
 
-  const run = (work: () => Promise<{ error?: string }>, after?: () => void) =>
+  const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
       const result = await work();
       setError(result.error);
-      if (!result.error) {
-        after?.();
-        router.refresh();
-      }
+      if (!result.error) router.refresh();
     });
 
-  const save = () =>
-    run(() =>
-      saveForm(
-        form.id,
-        {
-          name: values.name,
-          intro: values.intro || null,
-          thanks: values.thanks || null,
-          submissionLimit: values.limit ? Number(values.limit) : null,
-        },
-        church,
-      ),
-    );
+  const drop = (onto: string) => {
+    const from = form.fields.findIndex((one) => one.id === held);
+    const to = form.fields.findIndex((one) => one.id === onto);
+    setHeld(null);
+    setOver(null);
+    if (from === -1 || to === -1 || from === to) return;
+
+    const ids = form.fields.map((one) => one.id);
+    const [moved] = ids.splice(from, 1);
+    ids.splice(to, 0, moved!);
+    run(() => orderQuestions(form.id, ids, church));
+  };
+
+  const copyLink = async () => {
+    const link = `${window.location.origin}/f/${form.slug}`;
+    await navigator.clipboard.writeText(link);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2500);
+  };
 
   return (
-    <div className="flex flex-col gap-6" aria-busy={pending}>
+    <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("form.failed")}>{error}</Banner> : null}
 
-      {form.problems.length > 0 ? (
-        <Banner tone="warning" title={t(form.problems[0] as never)} />
-      ) : null}
+      <FormViews view={view} />
 
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle>{form.name}</CardTitle>
-          <span className="flex flex-wrap items-center gap-2">
-            <Badge tone={form.status === "open" ? "success" : "neutral"}>
-              {t(`form.status.${form.status}` as never)}
-            </Badge>
+      {/* The name is written where it is read, at 28px in Fraunces over a
+          dashed rule that says it can be typed in. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={() => {
+            if (name.trim() && name !== form.name) {
+              run(() => saveForm(form.id, { name: name.trim() }, church));
+            }
+          }}
+          aria-label={t("form.name")}
+          autoComplete="off"
+          className="min-w-0 flex-[1_1_300px] border-b border-dashed border-line-strong bg-transparent py-0.5 font-display text-[28px] leading-[34px] text-fg outline-none focus-visible:border-primary"
+        />
 
-            {form.status === "open" ? (
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={pending}
-                onClick={() => run(() => openOrClose(form.id, "closed", church))}
-              >
-                {t("form.close")}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                disabled={pending || form.problems.length > 0}
-                onClick={() => run(() => openOrClose(form.id, "open", church))}
-              >
-                {t("form.open")}
-              </Button>
-            )}
-          </span>
-        </div>
-        <Separator className="my-4" />
+        <StatusSwitch
+          status={form.archivedAt ? "archived" : form.status}
+          disabled={pending || Boolean(form.archivedAt)}
+          onPick={(next) => run(() => openOrClose(form.id, next, church))}
+        />
 
-        <div className="flex flex-col gap-4">
-          <Field label={t("form.name")} required>
-            <Input
-              value={values.name}
-              onChange={(e) => setValues({ ...values, name: e.target.value })}
-              onBlur={save}
-              autoComplete="off"
-            />
-          </Field>
-
-          <Field label={t("form.intro")}>
-            <Textarea
-              rows={2}
-              value={values.intro}
-              onChange={(e) => setValues({ ...values, intro: e.target.value })}
-              onBlur={save}
-            />
-          </Field>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t("form.thanks")}>
-              <Input
-                value={values.thanks}
-                onChange={(e) => setValues({ ...values, thanks: e.target.value })}
-                onBlur={save}
-                autoComplete="off"
-              />
-            </Field>
-
-            <Field label={t("form.limit")}>
-              <Input
-                type="number"
-                min={1}
-                value={values.limit}
-                onChange={(e) => setValues({ ...values, limit: e.target.value })}
-                onBlur={save}
-              />
-            </Field>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="flex flex-col gap-3 p-5">
-        {form.fields.length === 0 ? (
-          <EmptyState title={t("form.noQuestions")} />
-        ) : (
-          <ul className="flex flex-col">
-            {form.fields.map((field, i) => (
-              <li key={field.id}>
-                {i > 0 ? <Separator className="my-2" /> : null}
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="flex flex-wrap items-center gap-2">
-                      {field.kind === "section" ? (
-                        <Heading className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-                      ) : null}
-                      <span
-                        className={
-                          field.kind === "section"
-                            ? "font-display text-heading text-fg"
-                            : "text-[length:var(--d-text-body)] text-fg"
-                        }
-                      >
-                        {field.label}
-                      </span>
-                      {field.required ? (
-                        <span className="text-danger-text" aria-hidden>*</span>
-                      ) : null}
-                      <span className="text-caption text-fg-muted">
-                        {t(`form.kind.${field.kind}` as never)}
-                      </span>
-                    </span>
-                    {field.help ? (
-                      <span className="text-caption text-fg-muted">{field.help}</span>
-                    ) : null}
-                    {field.options ? (
-                      <span className="text-caption text-fg-subtle">
-                        {field.options.join(", ")}
-                      </span>
-                    ) : null}
-                    {field.showWhen ? (
-                      <ConditionLine fields={form.fields} field={field} />
-                    ) : null}
-                  </span>
-
-                  <span className="flex items-center gap-0.5">
-                    <IconButton
-                      label={t("form.up")}
-                      disabled={pending || i === 0}
-                      onClick={() => run(() => shiftQuestion(form.id, field.id, "up", church))}
-                    >
-                      <ChevronUp />
-                    </IconButton>
-                    <IconButton
-                      label={t("form.down")}
-                      disabled={pending || i === form.fields.length - 1}
-                      onClick={() => run(() => shiftQuestion(form.id, field.id, "down", church))}
-                    >
-                      <ChevronDown />
-                    </IconButton>
-
-                    <QuestionDialog
-                      church={church}
-                      formId={form.id}
-                      field={field}
-                      earlier={form.fields.slice(0, i)}
-                      trigger={<IconButton label={t("action.edit")}><Pencil /></IconButton>}
-                    />
-
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <IconButton label={t("form.remove")} disabled={pending}>
-                          <Trash2 />
-                        </IconButton>
-                      </DialogTrigger>
-                      <DialogContent
-                        title={t("form.removeTitle", { label: field.label })}
-                        closeLabel={t("common.close")}
-                      >
-                        <p className="text-[length:var(--d-text-body)] text-fg">
-                          {t("form.removeBody")}
-                        </p>
-                        <DialogFooter>
-                          <Button
-                            type="button"
-                            variant="danger"
-                            disabled={pending}
-                            onClick={() => run(() => dropQuestion(field.id, church))}
-                          >
-                            {t("form.remove")}
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div className="flex flex-wrap items-center gap-2">
-          <QuestionDialog
-            church={church}
-            formId={form.id}
-            earlier={form.fields}
-            trigger={<Button variant="secondary"><Plus /> {t("form.add")}</Button>}
-          />
-          <QuestionDialog
-            church={church}
-            formId={form.id}
-            section
-            earlier={form.fields}
-            trigger={<Button variant="ghost"><Heading /> {t("form.addSection")}</Button>}
-          />
-        </div>
-      </Card>
-
-      <Card className="flex flex-col gap-4 p-5">
-        <CardTitle>{t("form.preview")}</CardTitle>
-        <Separator />
-        <Preview form={form} />
-      </Card>
-
-      <div>
-        <Button
+        <button
           type="button"
-          variant="ghost"
+          onClick={copyLink}
+          className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3.5 text-label font-medium text-fg hover:bg-sunken"
+        >
+          <Link2 className="size-4" aria-hidden />
+          {copied ? t("form.linkCopied") : t("form.copyLink")}
+        </button>
+
+        {/* R4.1. Put away is the third state, for a form a church is done with
+            and does not want on the grid. It takes no answers while it is away
+            and comes back with everything it held. */}
+        <IconButton
+          label={form.archivedAt ? t("form.restore") : t("form.archive")}
           disabled={pending}
           onClick={() => run(() => archiveForm(form.id, !form.archivedAt, church))}
         >
-          {form.archivedAt ? t("form.restore") : t("form.archive")}
-        </Button>
+          {form.archivedAt ? <ArchiveRestore /> : <Archive />}
+        </IconButton>
+      </div>
+
+      {view === "responses" ? (
+        <Responses fields={form.fields} rows={responses} />
+      ) : (
+      <div className="flex flex-wrap items-start gap-6">
+        <div className="flex min-w-0 flex-[999_1_440px] flex-col gap-2.5">
+          <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
+            <GripVertical className="size-3.5" aria-hidden />
+            {t("form.reorder")}
+          </span>
+
+          {form.fields.map((field) => (
+            <Question
+              key={field.id}
+              church={church}
+              formId={form.id}
+              field={field}
+              pending={pending}
+              held={held === field.id}
+              over={over === field.id}
+              onHold={() => setHeld(field.id)}
+              onOver={() => setOver(field.id)}
+              onDrop={() => drop(field.id)}
+              onDone={() => router.refresh()}
+              onError={setError}
+            />
+          ))}
+
+          <div className="flex flex-wrap items-center gap-1.5 pt-1.5">
+            <span className="mr-1 text-label font-medium text-fg-muted">
+              {t("form.addLabel")}
+            </span>
+            {ADDABLE.map((kind) => {
+              const Icon = KIND_ICON[kind];
+              return (
+                <button
+                  key={kind}
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    run(() =>
+                      saveQuestion(
+                        form.id,
+                        null,
+                        {
+                          kind,
+                          label: t(`form.kind.${kind}` as never),
+                          required: false,
+                          options: NEEDS_OPTIONS.includes(kind)
+                            ? [`${t("form.newChoice")} 1`, `${t("form.newChoice")} 2`]
+                            : null,
+                        },
+                        church,
+                      ),
+                    )}
+                  className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-line-strong bg-surface px-3 text-label font-medium text-fg hover:bg-sunken"
+                >
+                  <Icon className="size-3.5" aria-hidden />
+                  {t(`form.kind.${kind}` as never)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* The rule separates what is being written from what it will read
+            as, so the two columns are not mistaken for one list. */}
+        <aside className="sticky top-21 flex flex-[1_1_300px] flex-col gap-2 border-line md:border-l md:pl-6">
+          <span className="text-[12px] font-medium text-fg-subtle">{t("form.preview")}</span>
+          <div className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-[22px]">
+            <span className="font-display text-[22px] leading-7 text-fg">{name}</span>
+
+            {form.intro ? (
+              <p className="text-[length:var(--d-text-body)] text-fg-muted">{form.intro}</p>
+            ) : null}
+
+            {form.fields.map((field) => (
+              <AsRead key={field.id} field={field} />
+            ))}
+
+            <span className="grid h-10 place-items-center rounded-[10px] bg-primary font-semibold text-primary-fg">
+              {t("form.send")}
+            </span>
+          </div>
+        </aside>
+      </div>
+      )}
+    </div>
+  );
+}
+
+/** R4.1. Open or closed, the two states a church switches between. */
+function StatusSwitch({
+  status,
+  disabled,
+  onPick,
+}: {
+  status: string;
+  disabled: boolean;
+  onPick: (next: "open" | "closed") => void;
+}) {
+  return (
+    <div className="flex rounded-[10px] bg-line p-[3px]">
+      {(["open", "closed"] as const).map((one) => (
+        <button
+          key={one}
+          type="button"
+          disabled={disabled}
+          aria-pressed={status === one}
+          onClick={() => onPick(one)}
+          className={cn(
+            "h-[30px] cursor-pointer rounded-[7px] px-3.5 text-label font-medium",
+            status === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg",
+          )}
+        >
+          {t(`form.status.${one}` as never)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * R4.1. One question, written in place.
+ *
+ * What is asked is typed on the row itself. Everything a form builder normally
+ * buries in a dialog, what kind it is, whether it has to be answered, what the
+ * choices are, is on the card, because a church writing six questions should
+ * not open six dialogs.
+ */
+function Question({
+  church,
+  formId,
+  field,
+  pending,
+  held,
+  over,
+  onHold,
+  onOver,
+  onDrop,
+  onDone,
+  onError,
+}: {
+  church: string;
+  formId: string;
+  field: FormFieldDef;
+  pending: boolean;
+  held: boolean;
+  over: boolean;
+  onHold: () => void;
+  onOver: () => void;
+  onDrop: () => void;
+  onDone: () => void;
+  onError: (message?: string) => void;
+}) {
+  const [label, setLabel] = React.useState(field.label);
+  const [options, setOptions] = React.useState(field.options ?? []);
+  const Icon = KIND_ICON[field.kind];
+  const wantsOptions = NEEDS_OPTIONS.includes(field.kind);
+
+  React.useEffect(() => setLabel(field.label), [field.label]);
+  React.useEffect(() => setOptions(field.options ?? []), [field.options]);
+
+  const save = (changes: { label?: string; required?: boolean; options?: string[] }) =>
+    void saveQuestion(
+      formId,
+      field.id,
+      {
+        kind: field.kind,
+        label: changes.label ?? label,
+        help: field.help,
+        required: changes.required ?? field.required,
+        options: wantsOptions ? (changes.options ?? options) : null,
+        showWhen: field.showWhen ?? null,
+      },
+      church,
+    ).then((result) => {
+      onError(result.error);
+      if (!result.error) onDone();
+    });
+
+  return (
+    <div
+      draggable
+      onDragStart={onHold}
+      onDragOver={(e) => {
+        e.preventDefault();
+        onOver();
+      }}
+      onDrop={onDrop}
+      onDragEnd={onDrop}
+      className={cn(
+        "flex gap-2.5 rounded-xl border bg-surface px-3.5 py-3",
+        over ? "border-primary" : "border-line",
+        held && "opacity-50",
+      )}
+    >
+      <GripVertical
+        className="mt-2 size-4 shrink-0 cursor-grab text-fg-subtle"
+        aria-hidden
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-full bg-sunken px-2 py-0.5 text-[12px] font-medium text-fg-muted">
+            <Icon className="size-3" aria-hidden />
+            {t(`form.kind.${field.kind}` as never)}
+          </span>
+          <span className="flex-1" />
+
+          {field.kind === "section" ? null : (
+            <button
+              type="button"
+              disabled={pending}
+              aria-pressed={field.required}
+              onClick={() => save({ required: !field.required })}
+              className={cn(
+                "flex h-7 cursor-pointer items-center gap-1.5 px-2 text-[12px] font-medium",
+                field.required ? "text-fg" : "text-fg-muted",
+              )}
+            >
+              <span
+                className={cn(
+                  "grid size-4 place-items-center rounded-[4px]",
+                  field.required
+                    ? "bg-primary text-primary-fg"
+                    : "border border-line-strong text-transparent",
+                )}
+              >
+                <Check className="size-2.5" aria-hidden />
+              </span>
+              {t("form.required")}
+            </button>
+          )}
+
+          <IconButton
+            label={t("form.remove")}
+            disabled={pending}
+            onClick={() =>
+              void dropQuestion(field.id, church).then((result) => {
+                onError(result.error);
+                if (!result.error) onDone();
+              })}
+          >
+            <Trash2 />
+          </IconButton>
+        </div>
+
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          onBlur={() => {
+            if (label.trim() && label !== field.label) save({ label: label.trim() });
+          }}
+          aria-label={t("form.question")}
+          autoComplete="off"
+          className="h-9.5 rounded-lg border border-line bg-canvas px-2.5 font-medium text-fg outline-none focus-visible:border-primary"
+        />
+
+        {wantsOptions ? (
+          <div className="flex flex-wrap gap-1.5">
+            {options.map((option, at) => (
+              <span
+                key={at}
+                className="flex items-center gap-1 rounded-full border border-line-strong py-0.5 pr-1 pl-2.5 text-[12px]"
+              >
+                <input
+                  value={option}
+                  size={Math.max(option.length, 4)}
+                  onChange={(e) =>
+                    setOptions(options.map((one, i) => (i === at ? e.target.value : one)))}
+                  onBlur={() => {
+                    const tidy = options.map((one) => one.trim()).filter(Boolean);
+                    if (tidy.join("\u0000") !== (field.options ?? []).join("\u0000")) {
+                      save({ options: tidy });
+                    }
+                  }}
+                  aria-label={t("form.choices")}
+                  autoComplete="off"
+                  className="min-w-6 bg-transparent text-[12px] text-fg outline-none"
+                />
+                <IconButton
+                  label={t("form.removeChoice", { label: option })}
+                  className="size-5 min-h-0 [&_svg]:size-3"
+                  disabled={pending || options.length <= 1}
+                  onClick={() => save({ options: options.filter((_, i) => i !== at) })}
+                >
+                  <X />
+                </IconButton>
+              </span>
+            ))}
+
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                save({ options: [...options, `${t("form.newChoice")} ${options.length + 1}`] })}
+              className="flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-line-strong px-2.5 py-0.5 text-[12px] font-medium text-fg-muted hover:text-fg"
+            >
+              <Plus className="size-3" aria-hidden />
+              {t("form.addChoice")}
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
-/** R4.2. The one line that says what a question is waiting on. */
-function ConditionLine({ fields, field }: { fields: FormFieldDef[]; field: FormFieldDef }) {
-  const condition = field.showWhen!;
-  const controller = fields.find((one) => one.id === condition.fieldId);
-  const problem = conditionProblem(fields, field);
+/** R4.1. One question as its reader meets it: the words, and the room to answer. */
+function AsRead({ field }: { field: FormFieldDef }) {
+  if (field.kind === "section") {
+    return <span className="font-display text-[18px] text-fg">{field.label}</span>;
+  }
 
-  const words = OPS_NEED_VALUE.includes(condition.op)
-    ? t("form.shownWhen", {
-        label: controller?.label ?? "",
-        op: t(`form.condition.${condition.op}` as never),
-        value: condition.value ?? "",
-      })
-    : t("form.shownWhenPlain", {
-        label: controller?.label ?? "",
-        op: t(`form.condition.${condition.op}` as never),
-      });
+  const options = field.options ?? [];
 
   return (
-    <span className={problem ? "text-caption text-danger-text" : "text-caption text-fg-muted"}>
-      {problem ? t(problem as never) : words}
-    </span>
-  );
-}
+    <div className="flex flex-col gap-1.5 text-label font-medium text-fg">
+      <span>
+        {field.label}
+        {field.required ? <span className="text-danger-text"> *</span> : null}
+      </span>
 
-/**
- * R4.1, R4.2. The form as its reader will meet it, answerable.
- *
- * It takes answers because a condition cannot be previewed without one. A
- * church writing "show these three when somebody says yes" wants to say yes
- * here and watch the three appear, which is the only way to be sure the branch
- * is the one they meant.
- */
-function Preview({ form }: { form: BuilderForm }) {
-  const [answers, setAnswers] = React.useState<Record<string, FormAnswer>>({});
-  const set = (id: string, answer: FormAnswer) =>
-    setAnswers((was) => ({ ...was, [id]: answer }));
-
-  const shown = visibleFields(form.fields, answers);
-
-  return (
-    <div className="flex flex-col gap-4">
-      {form.intro ? (
-        <p className="text-[length:var(--d-text-body)] text-fg">{form.intro}</p>
+      {ONE_LINE.includes(field.kind) ? (
+        <span className="h-9 rounded-lg border border-line-strong" />
       ) : null}
 
-      {shown.map((field) => {
-        if (field.kind === "section") {
-          return (
-            <h3 key={field.id} className="mt-2 font-display text-heading text-fg">
-              {field.label}
-            </h3>
-          );
-        }
+      {field.kind === "long_text" ? (
+        <span className="h-18 rounded-lg border border-line-strong" />
+      ) : null}
 
-        const answer = answers[field.id] ?? null;
-
-        return (
-          <Field key={field.id} label={field.label} required={field.required} hint={field.help ?? undefined}>
-            {field.kind === "long_text" ? (
-              <Textarea
-                rows={3}
-                value={typeof answer === "string" ? answer : ""}
-                onChange={(e) => set(field.id, e.target.value)}
+      {options.length > 0 ? (
+        <div className="flex flex-col gap-1.5 font-normal">
+          {options.map((option) => (
+            <span key={option} className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "size-3.5 shrink-0 border border-line-strong",
+                  field.kind === "select" ? "rounded-full" : "rounded-[4px]",
+                )}
               />
-            ) : field.kind === "checkbox" ? (
-              <Checkbox
-                checked={answer === true}
-                onCheckedChange={(on) => set(field.id, on === true)}
-              />
-            ) : field.kind === "multi_select" ? (
-              <span className="flex flex-col gap-2">
-                {(field.options ?? []).map((option) => {
-                  const picked = Array.isArray(answer) ? answer : [];
-                  return (
-                    <label key={option} className="flex cursor-pointer items-center gap-3">
-                      <Checkbox
-                        checked={picked.includes(option)}
-                        onCheckedChange={(on) =>
-                          set(
-                            field.id,
-                            on === true
-                              ? [...picked, option]
-                              : picked.filter((one) => one !== option),
-                          )
-                        }
-                      />
-                      <span className="text-[length:var(--d-text-body)] text-fg">{option}</span>
-                    </label>
-                  );
-                })}
-              </span>
-            ) : field.kind === "select" ? (
-              <Select
-                value={typeof answer === "string" ? answer : undefined}
-                onValueChange={(next) => set(field.id, next)}
-              >
-                <SelectTrigger aria-label={field.label}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(field.options ?? []).map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : field.kind === "file" ? (
-              <Input type="file" disabled />
-            ) : (
-              <Input
-                type={field.kind === "number" ? "number" : field.kind === "date" ? "date" : "text"}
-                value={typeof answer === "string" || typeof answer === "number" ? String(answer) : ""}
-                onChange={(e) => set(field.id, e.target.value)}
-                autoComplete="off"
-              />
-            )}
-          </Field>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * R4.1, R4.2. One question: what is asked, how, whether it has to be answered,
- * and what has to be true earlier for it to be asked at all.
- */
-function QuestionDialog({
-  church,
-  formId,
-  field,
-  earlier,
-  section,
-  trigger,
-}: {
-  church: string;
-  formId: string;
-  field?: FormFieldDef;
-  /** R4.2. The questions this one can wait on: the ones read before it. */
-  earlier: FormFieldDef[];
-  section?: boolean;
-  trigger: React.ReactNode;
-}) {
-  const router = useRouter();
-  const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
-  const [pending, startTransition] = React.useTransition();
-
-  const [kind, setKind] = React.useState<FormFieldKind>(
-    field?.kind ?? (section ? "section" : "text"),
-  );
-  const [label, setLabel] = React.useState(field?.label ?? "");
-  const [help, setHelp] = React.useState(field?.help ?? "");
-  const [required, setRequired] = React.useState(field?.required ?? false);
-  const [choices, setChoices] = React.useState((field?.options ?? []).join("\n"));
-
-  const [on, setOn] = React.useState(field?.showWhen?.fieldId ?? "");
-  const [op, setOp] = React.useState<ConditionOp>(field?.showWhen?.op ?? "is");
-  const [answer, setAnswer] = React.useState(field?.showWhen?.value ?? "");
-
-  const wantsOptions = NEEDS_OPTIONS.includes(kind);
-
-  // A heading has no answer, so nothing can be waiting on one.
-  const candidates = earlier.filter((one) => one.kind !== "section");
-  const controller = candidates.find((one) => one.id === on);
-  const wantsAnswer = OPS_NEED_VALUE.includes(op);
-
-  const showWhen: FormCondition | null = on
-    ? { fieldId: on, op, value: wantsAnswer ? answer : null }
-    : null;
-
-  const submit = () =>
-    startTransition(async () => {
-      const result = await saveQuestion(
-        formId,
-        field?.id ?? null,
-        {
-          kind,
-          label,
-          help: help || null,
-          required,
-          options: wantsOptions ? choices.split("\n") : null,
-          showWhen,
-        },
-        church,
-      );
-      setError(result.error);
-      if (!result.error) {
-        setOpen(false);
-        if (!field) {
-          setLabel("");
-          setHelp("");
-          setChoices("");
-          setRequired(false);
-          setOn("");
-          setAnswer("");
-        }
-        router.refresh();
-      }
-    });
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent
-        title={field ? field.label : section ? t("form.addSection") : t("form.add")}
-        closeLabel={t("common.close")}
-      >
-        <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("form.failed")}>{error}</Banner> : null}
-
-          {section && !field ? null : (
-            <div className="flex flex-col gap-1.5">
-              <span className="text-label text-fg">{t("form.kind")}</span>
-              <Select value={kind} onValueChange={(next) => setKind(next as FormFieldKind)}>
-                <SelectTrigger aria-label={t("form.kind")}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {FORM_FIELD_KINDS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {t(`form.kind.${option}` as never)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <Field label={t("form.question")} required>
-            <Input
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              autoComplete="off"
-              autoFocus
-            />
-          </Field>
-
-          {kind === "section" ? null : (
-            <>
-              <Field label={t("form.help")}>
-                <Input
-                  value={help}
-                  onChange={(e) => setHelp(e.target.value)}
-                  autoComplete="off"
-                />
-              </Field>
-
-              {wantsOptions ? (
-                <Field label={t("form.choices")} required>
-                  <Textarea
-                    rows={4}
-                    value={choices}
-                    onChange={(e) => setChoices(e.target.value)}
-                  />
-                </Field>
-              ) : null}
-
-              <label className="flex cursor-pointer items-center gap-3">
-                <Checkbox
-                  checked={required}
-                  onCheckedChange={(on) => setRequired(on === true)}
-                />
-                <span className="text-[length:var(--d-text-body)] text-fg">
-                  {t("form.required")}
-                </span>
-              </label>
-            </>
-          )}
-
-          {candidates.length > 0 ? (
-            <>
-              <Separator />
-              <div className="flex flex-col gap-3">
-                <span className="text-label text-fg">{t("form.showWhen")}</span>
-
-                <div className="flex flex-col gap-1.5">
-                  <Select value={on || "always"} onValueChange={(next) => setOn(next === "always" ? "" : next)}>
-                    <SelectTrigger aria-label={t("form.condition.field")}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="always">{t("form.showAlways")}</SelectItem>
-                      {candidates.map((one) => (
-                        <SelectItem key={one.id} value={one.id}>{one.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {on ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="flex flex-col gap-1.5">
-                      <Select value={op} onValueChange={(next) => setOp(next as ConditionOp)}>
-                        <SelectTrigger aria-label={t("form.condition.op")}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CONDITION_OPS.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {t(`form.condition.${option}` as never)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {wantsAnswer ? (
-                      controller && NEEDS_OPTIONS.includes(controller.kind) ? (
-                        <Select value={answer || undefined} onValueChange={setAnswer}>
-                          <SelectTrigger aria-label={t("form.condition.value")}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(controller.options ?? []).map((option) => (
-                              <SelectItem key={option} value={option}>{option}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          aria-label={t("form.condition.value")}
-                          autoComplete="off"
-                        />
-                      )
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-            </>
-          ) : null}
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" disabled={pending} onClick={submit}>
-              {t("action.save")}
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-          </div>
+              {option}
+            </span>
+          ))}
         </div>
-      </DialogContent>
-    </Dialog>
+      ) : null}
+    </div>
   );
 }

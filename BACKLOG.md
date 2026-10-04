@@ -68,7 +68,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
 | HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
 | HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Resolved |
-| HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | New |
+| HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Active |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -431,6 +431,7 @@ a person record or attaches to one, using the duplicate logic already built in F
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-148 | The builder: every field type, section headers, required fields and validation | R4.1, R4.9 | Resolved |
+| HRT-209 | The builder rebuilt to the redesign: tiles, inline questions, the preview beside them | R4.1, R24.6 | Resolved |
 | HRT-149 | Conditional logic, showing and hiding fields on earlier answers | R4.2 | Resolved |
 | HRT-150 | The public link and the snippet a church pastes into its own site | R4.3 | New |
 | HRT-151 | A submission matching a person or creating one, writing custom field answers through | R4.4 | New |

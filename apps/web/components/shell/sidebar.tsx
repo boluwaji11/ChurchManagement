@@ -14,8 +14,6 @@ import { setSidebarCollapsed } from "./sidebar-actions";
 export interface ShellEntry extends NavTarget {
   label: string;
   icon: React.ReactNode;
-  /** The number beside the label, where the design shows one. */
-  count?: string;
 }
 
 /**
@@ -116,14 +114,7 @@ export function Sidebar({
                 {entry.icon}
               </span>
               {collapsed ? null : (
-                <>
-                  <span className="truncate whitespace-nowrap">{entry.label}</span>
-                  {entry.count ? (
-                    <span className="ml-auto text-[12px] font-normal text-fg-subtle">
-                      {entry.count}
-                    </span>
-                  ) : null}
-                </>
+                <span className="truncate whitespace-nowrap">{entry.label}</span>
               )}
             </Link>
           );

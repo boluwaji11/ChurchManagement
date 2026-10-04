@@ -1,14 +1,14 @@
-import { and, asc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { forms, formFields } from "../schema/forms";
+import { forms, formFields, formSubmissions } from "../schema/forms";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
 import {
   FORM_FIELD_KINDS, NEEDS_OPTIONS, CONDITION_OPS, OPS_NEED_VALUE,
   formSlug, formProblems, conditionProblem,
-  type ConditionOp, type FormCondition, type FormFieldDef, type FormFieldKind,
-  type FormStatus,
+  type ConditionOp, type FormAnswer, type FormCondition, type FormFieldDef,
+  type FormFieldKind, type FormStatus,
 } from "./form-rules";
 import type { WriteActor } from "./people";
 
@@ -47,6 +47,8 @@ export interface FormSummary {
   slug: string;
   status: FormStatus;
   questions: number;
+  /** R4.4. How many people have answered it. */
+  responses: number;
   archivedAt: string | null;
 }
 
@@ -185,7 +187,7 @@ async function fieldsFor(db: Tx, formId: string): Promise<FormFieldDef[]> {
 /** R4.1. Every form this church has, with how many questions each asks. */
 export async function listForms(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<FormSummary[]> {
   const rows = await db
     .select({
@@ -195,12 +197,20 @@ export async function listForms(
       status: forms.status,
       archivedAt: forms.archivedAt,
       questions: sql<number>`count(${formFields.id}) filter (where ${formFields.kind} <> 'section')::int`,
+      responses: sql<number>`(select count(*) from ${formSubmissions}
+        where ${formSubmissions.formId} = ${forms.id})::int`,
     })
     .from(forms)
     .leftJoin(formFields, eq(formFields.formId, forms.id))
-    .where(opts.includeArchived ? undefined : sql`${forms.archivedAt} is null`)
-    .groupBy(forms.id, forms.name, forms.slug, forms.status, forms.archivedAt)
-    .orderBy(asc(forms.name));
+    .where(
+      opts.archivedOnly
+        ? sql`${forms.archivedAt} is not null`
+        : opts.includeArchived
+          ? undefined
+          : sql`${forms.archivedAt} is null`,
+    )
+    .groupBy(forms.id, forms.name, forms.slug, forms.status, forms.archivedAt, forms.createdAt)
+    .orderBy(desc(forms.createdAt));
 
   return rows.map((row) => ({
     id: row.id,
@@ -208,6 +218,7 @@ export async function listForms(
     slug: row.slug,
     status: row.status as FormStatus,
     questions: row.questions,
+    responses: row.responses,
     archivedAt: row.archivedAt?.toISOString() ?? null,
   }));
 }
@@ -451,4 +462,79 @@ export async function moveFormField(
       .set({ position, updatedAt: new Date() })
       .where(eq(formFields.id, field.id));
   }
+}
+
+/**
+ * R4.1. Puts the questions in the order they were dragged into.
+ *
+ * The whole list arrives rather than one move, because a drag can carry a
+ * question past several others and the screen already knows where everything
+ * landed. Anything left out keeps its place at the end, so a list that has gone
+ * stale cannot drop a question off the form.
+ */
+export async function reorderFormFields(
+  db: Tx,
+  actor: WriteActor,
+  formId: string,
+  ids: string[],
+): Promise<void> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+
+  const fields = await fieldsFor(db, formId);
+  const known = new Set(fields.map((field) => field.id));
+  const wanted = ids.filter((id) => known.has(id));
+  const rest = fields.filter((field) => !wanted.includes(field.id)).map((field) => field.id);
+
+  for (const [position, id] of [...wanted, ...rest].entries()) {
+    await db
+      .update(formFields)
+      .set({ position, updatedAt: new Date() })
+      .where(eq(formFields.id, id));
+  }
+}
+
+/** R4.1. How many forms have been put away, for the link that goes to them. */
+export async function countArchivedForms(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(forms)
+    .where(sql`${forms.archivedAt} is not null`);
+  return row?.count ?? 0;
+}
+
+export interface FormSubmission {
+  id: string;
+  receivedAt: string;
+  /** Question id to what was given, the shape `FormAnswer` describes. */
+  answers: Record<string, FormAnswer>;
+}
+
+/**
+ * R4.4. What has been sent in, newest first.
+ *
+ * The answers come back keyed by question rather than flattened into columns,
+ * because a question that was removed still has answers under it and a church
+ * reading an old submission wants what it actually said.
+ */
+export async function listSubmissions(
+  db: Tx,
+  formId: string,
+  limit = 200,
+): Promise<FormSubmission[]> {
+  const rows = await db
+    .select({
+      id: formSubmissions.id,
+      createdAt: formSubmissions.createdAt,
+      answers: formSubmissions.answers,
+    })
+    .from(formSubmissions)
+    .where(eq(formSubmissions.formId, formId))
+    .orderBy(desc(formSubmissions.createdAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    id: row.id,
+    receivedAt: row.createdAt.toISOString(),
+    answers: (row.answers ?? {}) as Record<string, FormAnswer>,
+  }));
 }

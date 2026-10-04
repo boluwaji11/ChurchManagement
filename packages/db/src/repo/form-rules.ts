@@ -10,7 +10,7 @@
 
 /** R4.1. Every kind of question a church can ask, plus the heading between them. */
 export const FORM_FIELD_KINDS = [
-  "text", "long_text", "number", "date",
+  "text", "long_text", "email", "phone", "number", "date",
   "select", "multi_select", "checkbox", "file",
   "section",
 ] as const;
@@ -69,6 +69,18 @@ export interface FieldError {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * Enough of an address to be worth keeping, and no more.
+ *
+ * R4.4 matches a submission to a person by what was typed here, so the check
+ * exists to catch the missing @ rather than to rule on what a mail server will
+ * accept.
+ */
+const LOOKS_LIKE_EMAIL = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
+
+/** Seven digits is the shortest number anybody can be called back on. */
+const ENOUGH_DIGITS = 7;
+
 /** Whether somebody has actually answered. Empty text and an empty list have not. */
 export function answered(answer: FormAnswer): boolean {
   if (answer === null || answer === undefined) return false;
@@ -114,6 +126,14 @@ export function checkAnswer(field: FormFieldDef, answer: FormAnswer): string | n
 
     case "checkbox":
       return typeof answer === "boolean" ? null : "form.error.checkbox";
+
+    case "email":
+      return LOOKS_LIKE_EMAIL.test(String(answer).trim()) ? null : "form.error.email";
+
+    case "phone":
+      return String(answer).replace(/\D/g, "").length >= ENOUGH_DIGITS
+        ? null
+        : "form.error.phone";
 
     case "text":
       return String(answer).length <= 500 ? null : "form.error.long";

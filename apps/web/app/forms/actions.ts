@@ -2,9 +2,10 @@
 
 import {
   withTenant, createForm, updateForm, setFormStatus, setFormArchived,
-  addFormField, updateFormField, removeFormField, moveFormField,
+  addFormField, updateFormField, removeFormField, moveFormField, reorderFormFields,
   type FormInput, type FormFieldInput, type FormStatus,
 } from "@hearth/db";
+import { t } from "@hearth/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
@@ -19,10 +20,25 @@ export interface FormResult {
   id?: string;
 }
 
+/**
+ * R4.1. A new form, with the question every form starts with already on it.
+ *
+ * An empty builder is a blank page, and the first question is the same one on
+ * nearly every form a church writes. Writing over it is quicker than deciding
+ * what goes first.
+ */
 export async function newForm(input: FormInput, church?: string): Promise<FormResult> {
   const { actor, ctx } = await context(church);
   try {
-    const made = await withTenant(ctx, (tx) => createForm(tx, actor, input));
+    const made = await withTenant(ctx, async (tx) => {
+      const form = await createForm(tx, actor, input);
+      await addFormField(tx, actor, form.id, {
+        kind: "text",
+        label: t("form.firstQuestion"),
+        required: true,
+      });
+      return form;
+    });
     return { id: made.id };
   } catch (error) {
     return { error: explain(error) };
@@ -94,6 +110,21 @@ export async function dropQuestion(id: string, church?: string): Promise<FormRes
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => removeFormField(tx, actor, id));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R4.1. The order the questions were dragged into. */
+export async function orderQuestions(
+  formId: string,
+  ids: string[],
+  church?: string,
+): Promise<FormResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => reorderFormFields(tx, actor, formId, ids));
     return {};
   } catch (error) {
     return { error: explain(error) };

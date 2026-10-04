@@ -1,6 +1,6 @@
 import { type AnyPgColumn } from "drizzle-orm/pg-core";
 import {
-  pgTable, uuid, text, boolean, integer, timestamp, index, uniqueIndex,
+  pgTable, uuid, text, boolean, integer, timestamp, jsonb, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
 
@@ -65,8 +65,8 @@ export const formFields = pgTable(
     tenantId: tenantId(),
     formId: uuid("form_id").notNull().references(() => forms.id, { onDelete: "cascade" }),
     /**
-     * "text", "long_text", "number", "date", "select", "multi_select",
-     * "checkbox", "file" or "section".
+     * "text", "long_text", "email", "phone", "number", "date", "select",
+     * "multi_select", "checkbox", "file" or "section".
      */
     kind: text("kind").notNull(),
     label: text("label").notNull(),
@@ -101,5 +101,31 @@ export const formFields = pgTable(
   (t) => [
     index("form_field_tenant_idx").on(t.tenantId),
     index("form_field_form_idx").on(t.tenantId, t.formId, t.position),
+  ],
+);
+
+/**
+ * R4.4. One answered form, as it arrived.
+ *
+ * The answers are kept as they were given, keyed by question. A church that
+ * renames a question later still has the words the person read, because the
+ * question row is the same row and the answer still points at it.
+ *
+ * HRT-151 is where a submission becomes a person record. This table is what it
+ * reads and what the responses count on the forms list already counts.
+ */
+export const formSubmissions = pgTable(
+  "form_submissions",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    formId: uuid("form_id").notNull().references(() => forms.id, { onDelete: "cascade" }),
+    /** Question id to answer, the shape `FormAnswer` describes. */
+    answers: jsonb("answers").notNull(),
+    createdAt: created(),
+  },
+  (t) => [
+    index("form_submission_tenant_idx").on(t.tenantId),
+    index("form_submission_form_idx").on(t.tenantId, t.formId, t.createdAt),
   ],
 );
