@@ -277,15 +277,15 @@ export function RoleForm({
 
         <DialogFooter>
           {role ? (
-            <Button
-              type="button"
+            <IconButton
+              label={t("roles.archiveOne", { name: nameOf(role) })}
               variant="ghost"
               className="mr-auto"
               disabled={pending}
               onClick={() => run(() => putAway(role.id, true, church))}
             >
-              <Archive /> {t("roles.archive")}
-            </Button>
+              <Archive />
+            </IconButton>
           ) : null}
 
           <Button type="button" variant="secondary" onClick={() => setOpen(false)}>

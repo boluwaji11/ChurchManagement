@@ -612,7 +612,7 @@ export const en = {
   "roles.add": "New role",
   "roles.name": "Name",
   "roles.all": "Select all",
-  "roles.archive": "Archive",
+  "roles.archiveOne": "Archive {name}",
   "roles.archived": "Archived",
   "roles.restore": "Restore {name}",
   "roles.builtin": "Built in",
