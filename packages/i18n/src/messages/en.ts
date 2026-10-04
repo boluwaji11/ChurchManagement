@@ -26,7 +26,7 @@ export const en = {
   "shell.expand": "Expand the sidebar",
   "bell.title": "Notifications",
   "bell.markAll": "Mark all read",
-  "bell.empty": "Nothing yet",
+  "bell.empty": "No notifications",
   "bell.joinRequest": "{name} asked to join {group}",
   "bell.servingDeclined": "{name} cannot make {team} on {date}",
   "bell.servingAccepted": "{name} accepted {team} on {date}",

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { Empty } from "@/components/empty";
 import { readOne, readAll } from "./bell-actions";
 
 export interface BellItem {
@@ -95,7 +96,9 @@ export function NotificationBell({
 
             <div className="max-h-[420px] overflow-auto">
               {items.length === 0 ? (
-                <p className="px-4 py-8 text-center text-[13px] text-fg-muted">{t("bell.empty")}</p>
+                /* The same empty state every other screen uses, sized down to
+                   the panel it sits in. */
+                <Empty icon="inbox" title={t("bell.empty")} className="gap-3 px-4 py-8 [&_h3]:text-[15px]" />
               ) : (
                 items.map((item) => {
                   const Icon = ICONS[item.kind] ?? Bell;
