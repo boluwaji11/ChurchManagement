@@ -6,6 +6,7 @@ import {
   Button, Input, Field, Banner, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
+import { PhoneInput } from "@/components/phone-input";
 import { DateField } from "@/components/date-field";
 import { t } from "@hearth/i18n";
 import {
@@ -151,7 +152,7 @@ export function PersonForm({
             <Input name="email" type="email" defaultValue={values?.email ?? ""} />
           </Field>
           <Field label={t("personForm.phone")} error={errors.phone}>
-            <Input name="phone" type="tel" defaultValue={values?.phone ?? ""} />
+            <PhoneInput name="phone" defaultValue={values?.phone ?? ""} />
           </Field>
           <Field label={t("personForm.dateOfBirth")} error={errors.dateOfBirth}>
             <DateField name="dateOfBirth" defaultValue={values?.dateOfBirth ?? ""} />

@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Banner, Button, Combobox, Field, Input } from "@hearth/ui";
+import { Pencil } from "lucide-react";
+import { Banner, Button, Combobox, Field, IconButton, Input } from "@hearth/ui";
+import { PhoneInput } from "@/components/phone-input";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
 import { saveChurch } from "./actions";
 
@@ -38,6 +40,9 @@ export function ChurchForm({
   /** R1.1. The logo row, which opens this section. */
   logo?: React.ReactNode;
 }) {
+  // R1.1. Read first. A church profile is set once and looked at after, so the
+  // screen opens as what it says rather than as twelve boxes to be careful in.
+  const [editing, setEditing] = React.useState(false);
   const [timezone, setTimezone] = React.useState(values.timezone);
   const [country, setCountry] = React.useState(values.country || "US");
   const [region, setRegion] = React.useState(values.region ?? "");
@@ -59,6 +64,7 @@ export function ChurchForm({
       const result = await saveChurch(data);
       setError(result.error);
       setSaved(Boolean(result.saved));
+      if (!result.error) setEditing(false);
     });
   };
 
@@ -72,7 +78,14 @@ export function ChurchForm({
       {/* R1.1. The design lays these out as a grid that fills the room it has
           rather than two fixed columns, so a wide screen reads three across. */}
       <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
-        <span className="font-semibold text-fg">{t("church.details")}</span>
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-semibold text-fg">{t("church.details")}</span>
+          {canEdit && !editing ? (
+            <IconButton label={t("church.edit")} variant="ghost" onClick={() => setEditing(true)}>
+              <Pencil />
+            </IconButton>
+          ) : null}
+        </div>
 
         {logo ? (
           <>
@@ -81,7 +94,13 @@ export function ChurchForm({
           </>
         ) : null}
 
-        <form action={save} noValidate className="flex flex-col gap-4">
+        {editing ? null : <Reading values={values} regionLabel={regionLabel} />}
+
+        <form
+          action={save}
+          noValidate
+          className={editing ? "flex flex-col gap-4" : "hidden"}
+        >
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
             <Field label={t("church.name")} required>
               <Input name="name" defaultValue={values.name} disabled={!canEdit} />
@@ -138,7 +157,7 @@ export function ChurchForm({
               />
             </Field>
             <Field label={t("church.phone")}>
-              <Input name="phone" type="tel" defaultValue={values.phone ?? ""} disabled={!canEdit} />
+              <PhoneInput name="phone" defaultValue={values.phone ?? ""} disabled={!canEdit} />
             </Field>
             <Field label={t("church.website")}>
               <Input name="website" type="url" defaultValue={values.website ?? ""} disabled={!canEdit} />
@@ -157,13 +176,51 @@ export function ChurchForm({
             </Field>
           </div>
 
-          {canEdit ? (
-            <div className="flex justify-end">
-              <Button type="submit" disabled={pending}>{t("church.save")}</Button>
-            </div>
-          ) : null}
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" disabled={pending}>{t("church.save")}</Button>
+          </div>
         </form>
       </section>
     </div>
+  );
+}
+
+/** What a field with nothing in it reads as. */
+const EMPTY = "\u2014";
+
+/**
+ * R1.1. The profile as a church reads it back.
+ *
+ * The same grid the form uses, so switching into editing moves nothing on the
+ * screen except the boxes appearing around the words.
+ */
+function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: string }) {
+  const rows: Array<[string, string | null]> = [
+    [t("church.name"), values.name],
+    [t("church.legalName"), values.legalName],
+    [t("church.address"), [values.addressLine1, values.addressLine2].filter(Boolean).join(", ")],
+    [t("church.city"), values.city],
+    [regionLabel, values.region],
+    [t("church.postalCode"), values.postalCode],
+    [t("church.country"), values.country],
+    [t("church.phone"), values.phone],
+    [t("church.website"), values.website],
+    [t("church.timezone"), values.timezone.replace(/_/g, " ")],
+  ];
+
+  return (
+    <dl className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex min-w-0 flex-col gap-0.5">
+          <dt className="text-label text-fg-subtle">{label}</dt>
+          <dd className="truncate text-[length:var(--d-text-body)] text-fg">
+            {value?.trim() ? value : EMPTY}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }

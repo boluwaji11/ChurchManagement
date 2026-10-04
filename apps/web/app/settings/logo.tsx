@@ -102,7 +102,7 @@ export function ChurchLogo({
           </span>
         )}
 
-        <span className="flex-1 font-medium text-fg">{t("church.logo")}</span>
+        <span className="font-medium text-fg">{t("church.logo")}</span>
 
         {canEdit ? (
           <>
@@ -116,7 +116,7 @@ export function ChurchLogo({
                 if (file) void upload(file);
               }}
             />
-            <div className="flex items-center gap-1">
+            <div className="flex flex-1 items-center gap-1">
               {logoUrl ? (
                 <IconButton label={t("church.logo.remove")} variant="ghost" onClick={remove}>
                   <Trash2 />
