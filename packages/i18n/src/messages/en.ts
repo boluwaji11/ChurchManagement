@@ -1204,6 +1204,8 @@ export const en = {
   "find.filterTitle": "Filter groups",
   "find.filterCount": "Filter {count}",
   "find.clear": "Clear",
+  "find.chosen": "{count} chosen",
+  "find.liveFilter": "Update the list as I choose",
   "find.show.one": "Show {count} group",
   "find.show.other": "Show {count} groups",
   "find.count.one": "{count} group",

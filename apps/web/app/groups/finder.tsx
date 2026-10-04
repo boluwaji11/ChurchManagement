@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, X, Search, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
 import {
-  Banner, Button, IconButton, Card, Separator,
+  Banner, Button, IconButton, Card, Separator, Switch,
   Sheet, SheetContent, SheetTrigger, LIFT,
 } from "@hearth/ui";
+import { MultiSelect } from "@/components/multi-select";
 import { t, plural } from "@hearth/i18n";
 import { decide, archive } from "./actions";
 
@@ -125,145 +126,119 @@ export function Finder({
 }) {
   const router = useRouter();
   const [query, setQuery] = React.useState("");
+  /*
+   * Two copies: what the list is filtered by, and what the drawer is being set
+   * to. Nothing moves under the reader while they are still choosing, unless
+   * they have asked for it to.
+   */
   const [chosen, setChosen] = React.useState<Chosen>(NOTHING);
+  const [draft, setDraft] = React.useState<Chosen>(NOTHING);
+  const [live, setLive] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   const text = query.trim().toLowerCase();
   const archivedGroups = groups.filter((group) => group.archived);
-  const live = groups.filter((group) => !group.archived);
+  const all = groups.filter((group) => !group.archived);
 
-  const matches = (group: FinderGroup, skip?: keyof Chosen) =>
-    (skip === "type" || chosen.type.length === 0 || chosen.type.includes(group.typeId ?? "")) &&
-    (skip === "day" || chosen.day.length === 0 || chosen.day.includes(String(group.dayOfWeek))) &&
-    (skip === "forWhom" ||
-      chosen.forWhom.length === 0 ||
-      chosen.forWhom.includes(group.forWhom ?? "anyone")) &&
-    (skip === "online" ||
-      chosen.online.length === 0 ||
-      chosen.online.includes(group.online ? "yes" : "no")) &&
-    (skip === "children" ||
-      chosen.children.length === 0 ||
-      chosen.children.includes(group.childrenWelcome ? "yes" : "no")) &&
-    (skip === "location" ||
-      chosen.location.length === 0 ||
-      chosen.location.includes(group.location ?? "")) &&
-    (skip === "taking" ||
-      chosen.taking.length === 0 ||
-      chosen.taking.includes(group.openToJoin && !group.full ? "open" : "closed")) &&
+  const matches = (group: FinderGroup, by: Chosen) =>
+    (by.type.length === 0 || by.type.includes(group.typeId ?? "")) &&
+    (by.day.length === 0 || by.day.includes(String(group.dayOfWeek))) &&
+    (by.forWhom.length === 0 || by.forWhom.includes(group.forWhom ?? "anyone")) &&
+    (by.online.length === 0 || by.online.includes(group.online ? "yes" : "no")) &&
+    (by.children.length === 0 || by.children.includes(group.childrenWelcome ? "yes" : "no")) &&
+    (by.location.length === 0 || by.location.includes(group.location ?? "")) &&
+    (by.taking.length === 0 ||
+      by.taking.includes(group.openToJoin && !group.full ? "open" : "closed")) &&
     (text === "" ||
       group.name.toLowerCase().includes(text) ||
       group.leaderNames.some((name) => name.toLowerCase().includes(text)) ||
       (group.description ?? "").toLowerCase().includes(text) ||
       (group.location ?? "").toLowerCase().includes(text));
 
-  const shown = live.filter((group) => matches(group));
+  const shown = all.filter((group) => matches(group, chosen));
+  const drafted = all.filter((group) => matches(group, draft));
 
-  /** Each option carries how many groups it would leave, ignoring its own section. */
+  /**
+   * The questions the drawer asks, and the answers this church actually has.
+   *
+   * An option nobody's group matches is left out, and a question with one
+   * possible answer is not a question, so it goes too.
+   */
+  const has = <T,>(pick: (g: FinderGroup) => T) => new Set(all.map(pick));
+  const types_ = has((g) => g.typeId);
+  const days = has((g) => g.dayOfWeek);
+  const audiences = has((g) => g.forWhom ?? "anyone");
+  const wheres = [...has((g) => g.location)].filter(Boolean).sort() as string[];
+
   const sections = [
     {
       k: "type" as const,
       label: t("groups.type"),
-      opts: types.map((kind) => ({
-        v: kind.id,
-        label: kind.name,
-        n: live.filter((g) => g.typeId === kind.id && matches(g, "type")).length,
-      })),
+      opts: types.filter((one) => types_.has(one.id)).map((one) => ({ value: one.id, label: one.name })),
     },
     {
       k: "day" as const,
       label: t("find.meetsOn"),
-      opts: [0, 1, 2, 3, 4, 5, 6].map((d) => ({
-        v: String(d),
-        label: dayName(d),
-        n: live.filter((g) => g.dayOfWeek === d && matches(g, "day")).length,
-      })),
+      opts: [0, 1, 2, 3, 4, 5, 6]
+        .filter((d) => days.has(d))
+        .map((d) => ({ value: String(d), label: dayName(d) })),
     },
     {
       k: "forWhom" as const,
       label: t("find.forWhom"),
-      opts: AUDIENCES.map((a) => ({
-        v: a,
+      opts: AUDIENCES.filter((a) => audiences.has(a)).map((a) => ({
+        value: a,
         label: t(`groups.audience.${a}` as never),
-        n: live.filter((g) => (g.forWhom ?? "anyone") === a && matches(g, "forWhom")).length,
       })),
     },
     {
       k: "location" as const,
       label: t("groups.location"),
-      opts: [...new Set(live.map((g) => g.location).filter(Boolean) as string[])]
-        .sort()
-        .map((where) => ({
-          v: where,
-          label: where,
-          n: live.filter((g) => g.location === where && matches(g, "location")).length,
-        })),
+      opts: wheres.map((where) => ({ value: where, label: where })),
     },
     {
       k: "online" as const,
       label: t("groups.online"),
       opts: [
-        {
-          v: "yes",
-          label: t("find.yes"),
-          n: live.filter((g) => g.online && matches(g, "online")).length,
-        },
-        {
-          v: "no",
-          label: t("find.no"),
-          n: live.filter((g) => !g.online && matches(g, "online")).length,
-        },
-      ],
+        { value: "yes", label: t("find.yes") },
+        { value: "no", label: t("find.no") },
+      ].filter((o) => all.some((g) => (g.online ? "yes" : "no") === o.value)),
     },
     {
       k: "children" as const,
       label: t("groups.childrenWelcome"),
       opts: [
-        {
-          v: "yes",
-          label: t("find.yes"),
-          n: live.filter((g) => g.childrenWelcome && matches(g, "children")).length,
-        },
-        {
-          v: "no",
-          label: t("find.no"),
-          n: live.filter((g) => !g.childrenWelcome && matches(g, "children")).length,
-        },
-      ],
+        { value: "yes", label: t("find.yes") },
+        { value: "no", label: t("find.no") },
+      ].filter((o) => all.some((g) => (g.childrenWelcome ? "yes" : "no") === o.value)),
     },
     {
       k: "taking" as const,
       label: t("find.taking"),
       opts: [
-        {
-          v: "open",
-          label: t("find.open"),
-          n: live.filter((g) => g.openToJoin && !g.full && matches(g, "taking")).length,
-        },
-        {
-          v: "closed",
-          label: t("find.closed"),
-          n: live.filter((g) => (!g.openToJoin || g.full) && matches(g, "taking")).length,
-        },
-      ],
+        { value: "open", label: t("find.open") },
+        { value: "closed", label: t("find.closed") },
+      ].filter((o) =>
+        all.some((g) => (g.openToJoin && !g.full ? "open" : "closed") === o.value),
+      ),
     },
-  ]
-    .map((section) => ({
-      ...section,
-      opts: section.opts.filter((o) => o.n > 0 || chosen[section.k].includes(o.v)),
-    }))
-    // A section offering one answer is not a filter, it is a fact about every
-    // group here, so it stays out of the drawer.
-    .filter((section) => section.opts.length > 1 || chosen[section.k].length > 0);
+  ].filter((section) => section.opts.length > 1 || draft[section.k].length > 0);
 
   const picked = Object.values(chosen).reduce((n, list) => n + list.length, 0);
 
-  const toggle = (k: keyof Chosen, v: string) =>
-    setChosen((was) => ({
-      ...was,
-      [k]: was[k].includes(v) ? was[k].filter((one) => one !== v) : [...was[k], v],
-    }));
+  /** Writes an answer into the draft, and into the list too where live is on. */
+  const pick = (k: keyof Chosen, values: string[]) => {
+    const next = { ...draft, [k]: values };
+    setDraft(next);
+    if (live) setChosen(next);
+  };
+
+  const clear = () => {
+    setDraft(NOTHING);
+    setChosen(NOTHING);
+  };
 
   const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
@@ -333,7 +308,13 @@ export function Finder({
 
         <span className="flex-1" />
 
-        <Sheet open={open} onOpenChange={setOpen}>
+        <Sheet
+          open={open}
+          onOpenChange={(next) => {
+            if (next) setDraft(chosen);
+            setOpen(next);
+          }}
+        >
           <SheetTrigger asChild>
             <Button variant="secondary" className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
               <SlidersHorizontal className="size-4" aria-hidden />
@@ -347,43 +328,53 @@ export function Finder({
             width="380px"
             footer={
               <div className="flex w-full items-center gap-2">
-                <Button variant="secondary" onClick={() => setChosen(NOTHING)}>
+                <Button variant="secondary" onClick={clear}>
                   {t("find.clear")}
                 </Button>
-                <Button className="flex-1" onClick={() => setOpen(false)}>
-                  {plural("find.show", shown.length)}
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    setChosen(draft);
+                    setOpen(false);
+                  }}
+                >
+                  {plural("find.show", drafted.length)}
                 </Button>
               </div>
             }
           >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               {sections.map((section) => (
-                <div key={section.k} className="flex flex-col gap-2.5">
-                  <div className="text-[12px] font-semibold text-fg-subtle">{section.label}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {section.opts.map((option) => {
-                      const on = chosen[section.k].includes(option.v);
-                      return (
-                        <button
-                          key={option.v}
-                          type="button"
-                          aria-pressed={on}
-                          onClick={() => toggle(section.k, option.v)}
-                          className={
-                            "flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[14px] font-medium transition-colors " +
-                            (on
-                              ? "border-fg bg-fg text-canvas"
-                              : "border-line-strong bg-surface text-fg hover:bg-sunken")
-                          }
-                        >
-                          {option.label}
-                          <span className="text-[12px] opacity-70">{option.n}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div key={section.k} className="flex flex-col gap-1.5">
+                  <span className="text-label text-fg">{section.label}</span>
+                  <MultiSelect
+                    label={section.label}
+                    options={section.opts}
+                    value={draft[section.k]}
+                    onChange={(next) => pick(section.k, next)}
+                    summary={(picks) =>
+                      picks.length > 2
+                        ? t("find.chosen", { count: picks.length })
+                        : picks.map((one) => one.label).join(", ")
+                    }
+                  />
                 </div>
               ))}
+
+              {/* Nothing moves while somebody is still choosing, unless they
+                  would rather watch it narrow as they go. */}
+              <label className="mt-2 flex cursor-pointer items-center gap-3 border-t border-line pt-4">
+                <Switch
+                  checked={live}
+                  onCheckedChange={(on) => {
+                    setLive(on);
+                    if (on) setChosen(draft);
+                  }}
+                />
+                <span className="text-[length:var(--d-text-body)] text-fg">
+                  {t("find.liveFilter")}
+                </span>
+              </label>
             </div>
           </SheetContent>
         </Sheet>
@@ -403,7 +394,7 @@ export function Finder({
           <button
             type="button"
             onClick={() => {
-              setChosen(NOTHING);
+              clear();
               setQuery("");
             }}
             className="font-medium text-primary"
