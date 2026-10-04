@@ -396,10 +396,12 @@ export function ScheduleGrid({
             leader spreads the load rather than asking the same four people. */}
         <aside className="flex flex-[1_1_240px] flex-col gap-2 rounded-lg border border-line bg-surface p-4 lg:sticky lg:top-[84px]">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-semibold text-fg">
+            <span className="min-w-0 truncate font-semibold text-fg">
               {t("serving.volunteers", { team: team.name })}
             </span>
-            <span className="text-[12px] text-fg-subtle">{t("serving.dragOnto")}</span>
+            <span className="shrink-0 whitespace-nowrap text-[12px] text-fg-subtle">
+              {t("serving.dragOnto")}
+            </span>
           </div>
 
           {volunteers.length === 0 ? (
@@ -422,14 +424,16 @@ export function ScheduleGrid({
                   <span className="block truncate text-[13px] font-medium text-fg">
                     {one.name}
                   </span>
-                  <span
-                    className="block truncate text-[12px]"
-                    style={{
-                      color: one.away ? "var(--hue-amber-key)" : "var(--color-fg-subtle)",
-                    }}
-                  >
-                    {one.note}
-                  </span>
+                  {/* R10.4. Only when there is something to say: the day they
+                      are away. */}
+                  {one.away ? (
+                    <span
+                      className="block truncate text-[12px]"
+                      style={{ color: "var(--hue-amber-key)" }}
+                    >
+                      {one.note}
+                    </span>
+                  ) : null}
                 </span>
               </div>
             ))

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive } from "lucide-react";
+import { Archive, Plus } from "lucide-react";
 import {
   Banner, Button, IconButton, Field, HueDot, Input, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -10,7 +10,7 @@ import {
   HUES, type Hue,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { saveTeam } from "./actions";
+import { saveTeam, savePosition } from "./actions";
 
 export interface TeamDraft {
   id: string;
@@ -41,6 +41,12 @@ export function TeamDialog({
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [hue, setHue] = React.useState(team?.hue ?? "teal");
+  /*
+   * R10.2. A team is the positions it schedules, so they are written here
+   * rather than on a second screen somebody has to find afterwards. Editing an
+   * existing team leaves them alone: they are managed on the team itself.
+   */
+  const [positions, setPositions] = React.useState<string[]>([""]);
   const [saving, startTransition] = React.useTransition();
 
   return (
@@ -56,10 +62,21 @@ export function TeamDialog({
             startTransition(async () => {
               const result = await saveTeam(data);
               setError(result.error);
-              if (!result.error) {
-                setOpen(false);
-                router.refresh();
+              if (result.error) return;
+
+              if (!team && result.id) {
+                for (const name of positions.map((one) => one.trim()).filter(Boolean)) {
+                  await savePosition(
+                    null,
+                    { teamId: result.id, name, needed: 1, withChildren: false, requiresCheck: false },
+                    church,
+                  );
+                }
               }
+
+              setPositions([""]);
+              setOpen(false);
+              router.refresh();
             });
           }}
           className="flex flex-col gap-4"
@@ -73,6 +90,31 @@ export function TeamDialog({
           <Field label={t("serving.team.description")}>
             <Textarea name="description" rows={2} defaultValue={team?.description ?? ""} />
           </Field>
+
+          {team ? null : (
+            <div className="flex flex-col gap-2">
+              <span className="text-label text-fg">{t("serving.team.positions")}</span>
+              {positions.map((one, i) => (
+                <Input
+                  key={i}
+                  value={one}
+                  aria-label={t("serving.team.positionName")}
+                  autoComplete="off"
+                  onChange={(e) =>
+                    setPositions((was) => was.map((x, at) => (at === i ? e.target.value : x)))
+                  }
+                />
+              ))}
+              <Button
+                type="button"
+                variant="ghost"
+                className="self-start"
+                onClick={() => setPositions((was) => [...was, ""])}
+              >
+                <Plus /> {t("serving.position.add")}
+              </Button>
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <span className="text-label text-fg">{t("serving.team.colour")}</span>

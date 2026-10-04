@@ -774,3 +774,28 @@ export async function seedTeams(db: Tx, actor: WriteActor): Promise<number> {
   }
   return made;
 }
+
+/** R10.2. The live positions on each of these teams, in the team's own order. */
+export async function positionsForTeams(
+  db: Tx,
+  teamIds: string[],
+): Promise<Record<string, { id: string; name: string; needed: number }[]>> {
+  const out: Record<string, { id: string; name: string; needed: number }[]> = {};
+  if (teamIds.length === 0) return out;
+
+  const rows = await db
+    .select({
+      teamId: teamPositions.teamId,
+      id: teamPositions.id,
+      name: teamPositions.name,
+      needed: teamPositions.needed,
+    })
+    .from(teamPositions)
+    .where(and(inArray(teamPositions.teamId, teamIds), isNull(teamPositions.archivedAt)))
+    .orderBy(asc(teamPositions.position), asc(teamPositions.name));
+
+  for (const row of rows) {
+    (out[row.teamId] ??= []).push({ id: row.id, name: row.name, needed: row.needed });
+  }
+  return out;
+}

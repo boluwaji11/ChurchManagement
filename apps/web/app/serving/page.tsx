@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   withTenant, listTeams, getTeam, getChurch, answerCounts, listOccurrences,
-  assignmentsForTeam, assignmentsForPerson, blockoutsFor, openSlots,
+  assignmentsForTeam, blockoutsFor, openSlots, positionsForTeams,
   canManageTeams, canLeadTeams,
 } from "@hearth/db";
 import { Button } from "@hearth/ui";
@@ -118,12 +118,6 @@ export default async function ServingPage({
           })
         : [];
 
-      const load = new Map<string, number>();
-      for (const personId of people) {
-        const mine = await assignmentsForPerson(tx, personId, { from: clock.date });
-        load.set(personId, mine.length);
-      }
-
       return {
         clock,
         month,
@@ -134,13 +128,14 @@ export default async function ServingPage({
         services,
         slots,
         away,
-        load,
         counts: await answerCounts(tx, {
           teamIds: found.map((one) => one.id),
           from: clock.date,
         }),
         // R10.3. What is still to fill, team by team, across these dates.
         open: await openSlots(tx, services.map((one) => one.id)),
+        // R10.2. What each team is made of, for the cards.
+        positions: await positionsForTeams(tx, found.map((one) => one.id)),
       };
     },
   );
@@ -231,7 +226,12 @@ export default async function ServingPage({
           </div>
           <p className="mt-1 text-fg-muted">
             {view === "teams"
-              ? plural("serving.teamCount", data.live.length)
+              ? t("serving.teamsLine", {
+                  teams: data.live.length,
+                  volunteers: data.live.reduce((n, one) => n + one.members, 0),
+                  open: stillOpen,
+                  month,
+                })
               : [
                   plural("serving.schedule.open", stillOpen),
                   waiting > 0 ? t("serving.schedule.waiting", { count: waiting }) : null,
@@ -321,9 +321,7 @@ export default async function ServingPage({
                   return {
                     personId: one.personId,
                     name: one.name,
-                    note: off
-                      ? t("serving.away", { date: shortDate(off.startsOn) })
-                      : plural("serving.servingTimes", data.load.get(one.personId) ?? 0),
+                    note: off ? t("serving.away", { date: shortDate(off.startsOn) }) : "",
                     away: Boolean(off),
                   };
                 }),
@@ -341,9 +339,10 @@ export default async function ServingPage({
               hue: team.hue,
               members: team.members,
               positions: team.positions,
+              positionNames: (data.positions[team.id] ?? []).map((one) => one.name),
               needsChecks: team.needsChecks,
               archived: team.archivedAt !== null,
-              answers: data.counts[team.id] ?? { pending: 0, accepted: 0, declined: 0 },
+              open: openOf(team.id),
             }))}
           />
         }
