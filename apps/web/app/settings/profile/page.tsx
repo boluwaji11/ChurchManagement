@@ -80,7 +80,7 @@ export default async function ProfilePage({
       {/* R1.6. Which church somebody is signed in to and what they may do in
           it. Neither is theirs to change, so it sits outside the card the
           pencil opens. */}
-      <section className="flex flex-col gap-1">
+      <section className="flex flex-col gap-1 rounded-[14px] border border-line bg-surface p-5">
         <span className="text-[15px] font-bold text-fg">{t("settings.profile.church")}</span>
         <span className="text-[length:var(--d-text-body)] text-fg">{session.tenantName}</span>
         <span className="text-[13px] text-fg-muted">
@@ -90,7 +90,7 @@ export default async function ProfilePage({
 
       {/* R24.x. Light, dark, or whatever this device is set to. It lived on a
           menu item of its own for one row of three buttons. */}
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
         <span className="text-[15px] font-bold text-fg">{t("settings.tab.appearance")}</span>
         <ThemeChoice current={theme} />
       </section>

@@ -21,7 +21,7 @@ export function ThemeChoice({ current }: { current: Theme }) {
   const [pending, startTransition] = React.useTransition();
 
   return (
-    <div className="flex flex-wrap gap-3" role="group" aria-label={t("theme.title")}>
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t("theme.title")}>
       {CHOICES.map(({ value, icon: Icon }) => (
         <button
           key={value}
@@ -36,13 +36,15 @@ export function ThemeChoice({ current }: { current: Theme }) {
             });
           }}
           className={cn(
-            "flex flex-[1_1_140px] cursor-pointer flex-col items-start gap-2.5 rounded-[14px] bg-surface p-4 text-left font-medium",
+            // Three small choices, sized to their words rather than stretched
+            // across whatever room the card has.
+            "flex cursor-pointer items-center gap-2 rounded-[10px] bg-surface px-3.5 py-2.5 text-left text-[13px] font-medium",
             chosen === value
               ? "border-[1.5px] border-primary text-fg"
               : "border border-line text-fg-muted hover:bg-sunken hover:text-fg",
           )}
         >
-          <Icon className="size-5" aria-hidden />
+          <Icon className="size-4" aria-hidden />
           {t(`theme.${value}` as never)}
         </button>
       ))}
