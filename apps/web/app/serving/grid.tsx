@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, XCircle, X, AlertTriangle, Plus } from "lucide-react";
 import { Avatar, Banner, Button, Combobox, Input, cn } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { schedule, unschedule, whoCouldFill, savePosition } from "./actions";
 import type { PlanCandidate } from "@hearth/db";
 
@@ -256,15 +256,7 @@ export function ScheduleGrid({
         <Combobox
           aria-label={t("serving.view.teams")}
           className="w-full max-w-[320px]"
-          options={teams.map((one) => ({
-            value: one.id,
-            // The count rides the name, so the box says which team is short
-            // before it is opened.
-            label: `${one.name} · ${
-              one.open > 0 ? plural("serving.gaps", one.open) : t("serving.full")
-            }`,
-            keywords: one.name,
-          }))}
+          options={teams.map((one) => ({ value: one.id, label: one.name }))}
           value={team.id}
           onChange={onTeam}
           emptyLabel={t("serving.noTeam")}

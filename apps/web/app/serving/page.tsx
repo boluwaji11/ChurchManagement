@@ -8,7 +8,7 @@ import {
   canManageTeams, canLeadTeams,
 } from "@hearth/db";
 import { Button } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -142,9 +142,6 @@ export default async function ServingPage({
 
   const openOf = (teamId: string) => data.open[teamId] ?? 0;
 
-  const waiting = Object.values(data.counts).reduce((n, one) => n + one.pending, 0);
-  const stillOpen = data.live.reduce((n, one) => n + openOf(one.id), 0);
-
   const month = new Date(`${data.month}-01T00:00:00`).toLocaleDateString(undefined, {
     month: "long",
     ...(data.month.slice(0, 4) === data.clock.date.slice(0, 4) ? {} : { year: "numeric" }),
@@ -224,16 +221,6 @@ export default async function ServingPage({
               </span>
             ) : null}
           </div>
-          <p className="mt-1 text-fg-muted">
-            {view === "teams"
-              ? null
-              : [
-                  plural("serving.schedule.open", stillOpen),
-                  waiting > 0 ? t("serving.schedule.waiting", { count: waiting }) : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-          </p>
         </div>
 
         {/* R10.6. What the three marks in the grid mean. */}

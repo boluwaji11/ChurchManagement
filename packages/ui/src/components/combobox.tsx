@@ -177,6 +177,10 @@ export function Combobox({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
+          // Focus only fires the first time. Without this, a field that has
+          // been opened and closed once sits there looking dead under the
+          // pointer, because the cursor is already in it.
+          onMouseDown={() => setOpen(true)}
           onKeyDown={onKeyDown}
           className={cn(
             "w-full bg-transparent text-fg placeholder:text-fg-subtle outline-none",
