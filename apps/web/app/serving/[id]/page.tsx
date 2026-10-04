@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft, CalendarDays } from "lucide-react";
+import { ArrowLeft, CalendarDays, Pencil } from "lucide-react";
 import {
   withTenant, getTeam, canManageTeams, canLeadTeams, leadsTeam,
 } from "@hearth/db";
-import { Button, HueDot, type Hue } from "@hearth/ui";
+import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { PageMeta, Section } from "@/components/section";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Positions } from "./positions";
 import { Roster } from "./roster";
+import { TeamDialog } from "../team-dialog";
+import { ArchiveTeam } from "./archive-team";
 
 export const dynamic = "force-dynamic";
 
@@ -53,26 +54,62 @@ export default async function TeamPage({
     <AppShell
       session={session}
       title={team.name}
+      max="max-w-[880px]"
       action={
         <Button asChild>
-          <Link href={`/serving/${team.id}/schedule?church=${session.tenantSlug}`}>
-            <CalendarDays /> {t("plan.open")}
+          <Link href={`/serving?church=${session.tenantSlug}&team=${team.id}`}>
+            <CalendarDays /> {t("serving.openSchedule")}
           </Link>
         </Button>
       }
     >
-      <Button variant="ghost" asChild className="mb-4">
-        <Link href={`/serving?church=${session.tenantSlug}`}>
-          <ChevronLeft aria-hidden /> {t("serving.back")}
-        </Link>
-      </Button>
+      <Link
+        href={`/serving?church=${session.tenantSlug}&view=teams`}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("serving.back")}
+      </Link>
 
-      <div className="mb-8 flex items-center gap-3">
-        <HueDot hue={team.hue as Hue} />
-        {team.description ? <PageMeta>{team.description}</PageMeta> : null}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <span
+            className="mt-2.5 size-3.5 shrink-0 rounded-[4px]"
+            style={{ background: `var(--hue-${team.hue}-500)` }}
+          />
+          <div>
+            <h2 className="font-display text-[28px] leading-[34px] text-fg">{team.name}</h2>
+            {team.description ? (
+              <p className="mt-1 text-fg-muted">{team.description}</p>
+            ) : null}
+          </div>
+        </div>
+
+        {/* R10.1. Changing the team itself, and putting it away, belong here
+            rather than on the card that opens it. */}
+        {canManage ? (
+          <div className="flex items-center gap-2">
+            <TeamDialog
+              church={session.tenantSlug}
+              team={{
+                id: team.id,
+                name: team.name,
+                description: team.description,
+                hue: team.hue,
+              }}
+              title={t("serving.editTeam")}
+              trigger={
+                <Button variant="secondary">
+                  <Pencil /> {t("action.edit")}
+                </Button>
+              }
+            />
+            <ArchiveTeam church={session.tenantSlug} id={team.id} name={team.name} />
+          </div>
+        ) : null}
       </div>
 
-      <Section title={t("serving.positions")}>
+      <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
+        <h3 className="text-[13px] font-medium text-fg-subtle">{t("serving.positions")}</h3>
         <Positions
           church={session.tenantSlug}
           teamId={team.id}
@@ -85,9 +122,10 @@ export default async function TeamPage({
             requiresCheck: position.requiresCheck,
           }))}
         />
-      </Section>
+      </section>
 
-      <Section title={t("serving.roster")}>
+      <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
+        <h3 className="text-[13px] font-medium text-fg-subtle">{t("serving.roster")}</h3>
         <Roster
           church={session.tenantSlug}
           teamId={team.id}
@@ -101,7 +139,7 @@ export default async function TeamPage({
             positions: member.positions,
           }))}
         />
-      </Section>
+      </section>
     </AppShell>
   );
 }
