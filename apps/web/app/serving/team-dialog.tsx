@@ -135,12 +135,12 @@ export function TeamDialog({
             </Select>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <DialogFooter>
             <Button type="submit" disabled={saving}>{t("action.save")}</Button>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

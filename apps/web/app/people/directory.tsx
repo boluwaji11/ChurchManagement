@@ -905,7 +905,7 @@ function BulkMessage({ count }: { count: number }) {
             {channel === "email" ? t("message.sendEmail") : t("message.sendText")}
           </Button>
           <DialogClose asChild>
-            <Button variant="secondary" data-dismiss>{t("action.cancel")}</Button>
+            <Button variant="ghost" data-dismiss>{t("action.cancel")}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

@@ -21,6 +21,13 @@ export interface ComboboxProps {
   clearLabel: string;
   /** False where the field always holds one of its options. */
   clearable?: boolean;
+  /**
+   * Told what has been typed, for a list that comes from the server.
+   *
+   * With it, the options are taken as given and the typing is not filtered
+   * here as well, because the answer has already been narrowed once.
+   */
+  onQueryChange?: (query: string) => void;
   "aria-label"?: string;
   id?: string;
   disabled?: boolean;
@@ -49,6 +56,7 @@ export function Combobox({
   emptyLabel,
   clearLabel,
   clearable = true,
+  onQueryChange,
   id,
   disabled,
   className,
@@ -64,12 +72,13 @@ export function Combobox({
   const chosen = options.find((o) => o.value === value);
 
   const matches = React.useMemo(() => {
+    if (onQueryChange) return options;
     const q = fold(query.trim());
     if (!q) return options;
     return options.filter(
       (o) => fold(o.label).includes(q) || (o.keywords ? fold(o.keywords).includes(q) : false),
     );
-  }, [options, query]);
+  }, [options, query, onQueryChange]);
 
   // A filter that leaves the highlight on row nine of a list that now has two
   // rows highlights nothing, and Enter then chooses nothing.
@@ -155,6 +164,7 @@ export function Combobox({
           placeholder={chosen ? undefined : placeholder}
           onChange={(e) => {
             setQuery(e.target.value);
+            onQueryChange?.(e.target.value);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}

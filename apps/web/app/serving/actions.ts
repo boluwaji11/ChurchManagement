@@ -4,7 +4,7 @@ import {
   withTenant, createTeam, updateTeam, setTeamArchived,
   addPosition, updatePosition, setPositionArchived,
   addToTeam, removeFromTeam, setTeamMemberRole, setTeamMemberPositions,
-  lookupPeople, getChurch,
+  lookupPeople, listPeople, getChurch,
   assign, unassign, candidatesFor, addBlockout, removeBlockout, setServingPreference,
   type TeamRole, type TagHue, type PlanCandidate, type ServingFrequency,
 } from "@hearth/db";
@@ -182,6 +182,18 @@ export async function findPerson(query: string, church?: string): Promise<Person
     return await withTenant(ctx, async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const asOf = churchNow(profile?.timezone ?? "America/Chicago").date;
+
+      // Nothing typed yet, so the box opens on the first names in the
+      // directory rather than on nothing at all.
+      if (query.trim().length < 2) {
+        const first = await listPeople(tx, { sort: "name" });
+        return first.slice(0, 10).map((one) => ({
+          id: one.id,
+          name: one.displayName,
+          household: one.householdName,
+        }));
+      }
+
       const matches = await lookupPeople(tx, query, { asOf, limit: 10 });
       return matches.map((m) => ({
         id: m.person.id,

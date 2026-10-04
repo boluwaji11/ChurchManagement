@@ -48,9 +48,20 @@ export function Roster({
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
+  /*
+   * R10.1. The directory is searched as the name is typed, rather than a page
+   * of it being held here: a church of five hundred is not a dropdown.
+   */
+  const look = React.useCallback(
+    (query: string) => {
+      startTransition(async () => setHits(await findPerson(query, church)));
+    },
+    [church],
+  );
+
   React.useEffect(() => {
-    startTransition(async () => setHits(await findPerson("", church)));
-  }, [church]);
+    look("");
+  }, [look]);
 
   const run = (work: () => Promise<{ error?: string }>) => {
     startTransition(async () => {
@@ -75,6 +86,7 @@ export function Roster({
         placeholder={t("serving.addFromPeople")}
         emptyLabel={t("serving.roster.noMatch")}
         clearLabel={t("date.clear")}
+        onQueryChange={look}
       />
 
       <ul className="flex flex-col">
