@@ -70,7 +70,7 @@ export function ChurchLogo({
 
       {error ? <Banner tone="danger" title={t("church.logo")}>{error}</Banner> : null}
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {logoUrl ? (
           <Dialog>
             <DialogTrigger asChild>
@@ -115,7 +115,7 @@ export function ChurchLogo({
                 if (file) void upload(file);
               }}
             />
-            <div className="flex flex-1 items-center gap-1">
+            <div className="flex flex-1 items-center gap-0.5">
               {logoUrl ? (
                 <IconButton label={t("church.logo.remove")} variant="ghost" onClick={remove}>
                   <Trash2 />
