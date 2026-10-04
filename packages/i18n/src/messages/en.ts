@@ -184,6 +184,7 @@ export const en = {
 
   // Directory
   "people.title": "People",
+  "people.printAll": "Print all",
   "people.add": "Add person",
   "people.showArchived": "Show archived",
   "people.hideArchived": "Hide archived",
@@ -1111,7 +1112,6 @@ export const en = {
   "team.error.lastOwner": "A church has to keep one owner.",
   "printDirectory.title": "Church directory",
   "printDirectory.none": "Nobody has agreed to appear yet",
-  "printDirectory.print": "Print",
   "home.hello": "Hello, {name}",
   "home.myGroups": "My groups",
   "home.mySettings": "My information and settings",

@@ -1,30 +1,18 @@
-import {
-  withTenant, getChurch, memberDirectory, canEditPeople, canReadIncidents,
-} from "@hearth/db";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { redirect } from "next/navigation";
+import { withTenant, listPeople, canEditPeople } from "@hearth/db";
+import { t, plural } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
-import { churchNow } from "@/lib/church-now";
-import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "../../checkin/rooms/print/auto-print";
 
 export const dynamic = "force-dynamic";
 
-const birthday = (iso: string) =>
-  new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { day: "numeric", month: "long" });
-
 /**
- * R3.5. The directory a church hands out.
+ * R2.x. Everybody, on paper.
  *
- * The only directory of the congregation Hearth produces, and it is an act the
- * church takes rather than a box anybody can type into. Every field in it is
- * one the member turned on: the default is a name, and a child is here as a
- * name in their household or not at all.
- *
- * Generated at the moment it is printed, so somebody who opted out last week is
- * not in this week's book.
+ * The list a church puts on a clipboard: who they are, whose household, and the
+ * two ways to reach them. Archived people are not on it.
  */
-export default async function PrintDirectoryPage({
+export default async function PrintPeoplePage({
   searchParams,
 }: {
   searchParams: Promise<{ church?: string }>;
@@ -32,71 +20,61 @@ export default async function PrintDirectoryPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canEditPeople(session.role) && !canReadIncidents(session.role)) {
-    return (
-      <main id="main" className="mx-auto max-w-lg px-4 py-8">
-        <Banner tone="info" title={t("printDirectory.title")}>{t("forbidden.askAdmin")}</Banner>
-      </main>
-    );
+  if (!canEditPeople(session.role)) {
+    redirect(`/home?church=${session.tenantSlug}`);
   }
 
-  const { households, when, hue } = await withTenant(
-    { tenantId: session.tenantId, role: session.role },
-    async (tx) => {
-      const profile = await getChurch(tx, session.tenantId);
-      const now = churchNow(profile?.timezone ?? "America/Chicago");
-      return {
-        households: await memberDirectory(tx, { asOf: now.date }),
-        when: now,
-        // R1.1. The church's own colour on the sheet it hands out.
-        hue: profile?.brandHue ?? "indigo",
-      };
-    },
+  const rows = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId },
+    (tx) => listPeople(tx, { sort: "name" }),
   );
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8 text-black print:max-w-none print:px-10 print:py-8">
+    <main className="mx-auto max-w-4xl px-10 py-9 text-black print:max-w-none">
       <AutoPrint />
-
-      {/* The browser's own header and footer come off, and the padding above
-          puts the white space back where it belongs. */}
       <style>{"@page { size: auto; margin: 0; }"}</style>
 
-      <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
+      <div className="text-[13px] font-medium text-neutral-500">{session.tenantName}</div>
 
-      <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
-        <h1 className="font-display text-display">{t("printDirectory.title")}</h1>
-        <span className="text-[length:var(--d-text-body)]">
-          {session.tenantName} {when.date}
+      <header className="mt-1 flex items-baseline justify-between gap-6 border-b-2 border-black pb-3">
+        <h1 className="font-display text-[34px] leading-[42px]">{t("people.title")}</h1>
+        <span className="shrink-0 text-[15px] text-neutral-600">
+          {plural("directory.matching", rows.length)}
         </span>
       </header>
 
-      {households.length === 0 ? <p className="py-4">{t("printDirectory.none")}</p> : null}
-
-      <div className="columns-1 gap-8 sm:columns-2 print:columns-2">
-        {households.map((household) => (
-          <section key={household.id} className="mb-5 break-inside-avoid">
-            <h2 className="text-heading">{household.name}</h2>
-
-            {household.people.map((person) => (
-              <div key={person.id} className="text-[length:var(--d-text-body)]">
-                <span>{person.name}</span>
-                {person.email ? <span className="ml-2">{person.email}</span> : null}
-                {person.phone ? <span className="ml-2">{person.phone}</span> : null}
-                {person.birthday ? (
-                  <span className="ml-2">{birthday(person.birthday)}</span>
-                ) : null}
-              </div>
+      <table className="mt-5 w-full border-collapse text-[15px]">
+        <thead>
+          <tr className="text-left">
+            {[
+              t("people.column.person"),
+              t("people.column.household"),
+              t("people.column.phone"),
+              t("people.column.email"),
+            ].map((head) => (
+              <th key={head} className="border-b border-neutral-300 pb-2.5 pr-4 font-semibold">
+                {head}
+              </th>
             ))}
-
-            {household.people.find((person) => person.address)?.address ? (
-              <div className="text-[length:var(--d-text-body)]">
-                {household.people.find((person) => person.address)!.address}
-              </div>
-            ) : null}
-          </section>
-        ))}
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((person) => (
+            <tr key={person.id} className="break-inside-avoid">
+              <td className="border-b border-neutral-200 py-3 pr-4 font-semibold">
+                {person.displayName}
+              </td>
+              <td className="border-b border-neutral-200 py-3 pr-4">
+                {person.householdName ?? ""}
+              </td>
+              <td className="whitespace-nowrap border-b border-neutral-200 py-3 pr-4">
+                {person.primaryPhone ?? ""}
+              </td>
+              <td className="border-b border-neutral-200 py-3">{person.primaryEmail ?? ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </main>
   );
 }

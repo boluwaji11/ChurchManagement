@@ -224,7 +224,7 @@ export function Directory({
         </ToolButton>
 
         <ToolButton href={`/people/print?church=${church}`} target="_blank">
-          <Printer /> {t("printDirectory.print")}
+          <Printer /> {t("people.printAll")}
         </ToolButton>
 
         <ToolButton href={exportHref}>
