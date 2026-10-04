@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen, ChevronsUpDown, LogOut } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { Avatar, Tooltip, cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { FlameMark } from "../brand";
@@ -152,26 +152,25 @@ export function Sidebar({
       </nav>
 
       <div className="mt-auto flex flex-col gap-3">
-        <Link
-          href={`/settings?church=${church}`}
+        {/* Who is signed in, and nothing more. It used to open Settings, which
+            is its own row two inches above, and the chevrons promised a switch
+            it never made. */}
+        <div
           className={cn(
             "flex w-full items-center gap-2.5 text-left",
             collapsed
               ? "justify-center rounded-md border border-transparent p-1"
-              : "rounded-md border border-line bg-surface p-2 hover:bg-sunken",
+              : "rounded-md border border-line bg-surface p-2",
           )}
         >
           <Avatar name={personName} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
           {collapsed ? null : (
-            <>
-              <span className="flex min-w-0 flex-1 flex-col leading-4">
-                <span className="truncate text-[13px] font-medium text-fg">{personName}</span>
-                <span className="truncate text-[12px] text-fg-subtle">{roleName}</span>
-              </span>
-              <ChevronsUpDown className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-            </>
+            <span className="flex min-w-0 flex-1 flex-col leading-4">
+              <span className="truncate text-[13px] font-medium text-fg">{personName}</span>
+              <span className="truncate text-[12px] text-fg-subtle">{roleName}</span>
+            </span>
           )}
-        </Link>
+        </div>
 
         <form action="/auth/sign-out" method="post" className="contents">
           <Tooltip content={t("action.signOut")} side="right">

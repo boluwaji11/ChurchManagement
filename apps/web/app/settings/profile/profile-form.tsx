@@ -228,8 +228,8 @@ export function ProfileForm({
           leads, because which church somebody is signed in to is the thing
           worth reading twice. */}
       <div className="flex flex-col gap-1 border-t border-line pt-4">
-        <span className="text-label text-fg-subtle">{t("settings.profile.church")}</span>
-        <span className="text-[15px] font-bold text-fg">{churchName}</span>
+        <span className="text-[15px] font-bold text-fg">{t("settings.profile.church")}</span>
+        <span className="text-[length:var(--d-text-body)] text-fg">{churchName}</span>
         <span className="text-[13px] text-fg-muted">
           {t("settings.profile.roleIs", { role })}
         </span>
