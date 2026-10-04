@@ -153,8 +153,6 @@ export function FileReport({
               {t("incident.notified")}
             </span>
           </label>
-
-          <p className="text-caption text-fg-muted">{t("incident.kept")}</p>
         </form>
       </SheetContent>
     </Sheet>

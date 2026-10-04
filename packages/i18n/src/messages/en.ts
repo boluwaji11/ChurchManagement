@@ -1498,7 +1498,6 @@ export const en = {
   "incident.room": "Class",
   "incident.service": "Service",
   "incident.noPerson": "Nobody by that name",
-  "incident.kept": "An incident report cannot be edited or deleted once it is filed.",
   "incident.error.description": "Write what happened.",
   "incident.error.action": "Write what was done about it.",
   "incident.error.date": "Enter the day it happened.",

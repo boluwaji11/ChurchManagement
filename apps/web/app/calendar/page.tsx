@@ -154,20 +154,20 @@ export default async function CalendarPage({
         </div>
       </div>
 
-      <div className="grid gap-2 overflow-auto [grid-template-columns:repeat(7,minmax(120px,1fr))]">
+      <div className="grid overflow-auto rounded-lg border border-line [grid-template-columns:repeat(7,minmax(120px,1fr))]">
         {days.map((day) => (
           <section
             key={day.date}
-            className={`rounded-md p-1 ${
-              day.date === today ? "border border-line-strong bg-sunken" : "border border-transparent"
+            className={`border-r border-line p-2 last:border-r-0 ${
+              day.date === today ? "bg-sunken" : "bg-surface"
             }`}
           >
-            <div className="flex items-baseline gap-1.5 px-1 pt-1 pb-2.5">
+            <div className="flex items-baseline gap-1.5 border-b border-line px-1 pt-1 pb-2.5">
               <span className="text-[12px] font-medium text-fg-subtle">{dayName(day.date)}</span>
               <span className="font-display text-[20px] text-fg">{dayNumber(day.date)}</span>
             </div>
 
-            <div className="flex min-h-[200px] flex-col gap-1.5">
+            <div className="flex min-h-[200px] flex-col gap-1.5 pt-2">
               {day.entries.map((entry) => (
                 <div
                   key={entry.id}

@@ -109,7 +109,6 @@ export function IncidentDialog({
             </span>
           </label>
 
-          <p className="text-caption text-fg-muted">{t("incident.kept")}</p>
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending}>{t("action.save")}</Button>

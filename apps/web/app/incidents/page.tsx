@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Plus, Clock, CheckCircle2 } from "lucide-react";
 import {
-  withTenant, listIncidents, listRooms, listPeople, listOccurrences, getChurch,
+  withTenant, listIncidents, listRooms, listPeople, listOccurrences, stillHere, getChurch,
   canReadIncidents, canCheckIn, type Incident,
 } from "@hearth/db";
 import { Banner, Button, EmptyState } from "@hearth/ui";
@@ -47,11 +47,34 @@ export default async function IncidentsPage({
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const clock = churchNow(profile?.timezone ?? "America/Chicago");
+      const services = await listOccurrences(tx, { from: clock.date, to: clock.date });
+
+      /*
+       * R8.13. A report is written about a child who is in a class, so the
+       * picker is the children checked in today. With nothing checked in it
+       * falls back to the directory, because a report written on the Tuesday
+       * about the weekend still has to be fileable.
+       */
+      const present = (
+        await Promise.all(services.map((one) => stillHere(tx, one.id)))
+      ).flat();
+
+      const seen = new Set<string>();
+      const checkedIn = present
+        .filter((p) => (seen.has(p.personId) ? false : seen.add(p.personId)))
+        .map((p) => ({ id: p.personId, name: p.name }));
+
       return {
         incidents: await listIncidents(tx, { role: session.role }),
         rooms: await listRooms(tx),
-        people: await listPeople(tx, { sort: "name" }),
-        services: await listOccurrences(tx, { from: clock.date, to: clock.date }),
+        people:
+          checkedIn.length > 0
+            ? checkedIn
+            : (await listPeople(tx, { sort: "name" })).map((p) => ({
+                id: p.id,
+                name: p.displayName,
+              })),
+        services,
         today: clock.date,
       };
     },
@@ -61,7 +84,7 @@ export default async function IncidentsPage({
     <FileReport
       church={session.tenantSlug}
       today={today}
-      people={people.map((p) => ({ id: p.id, name: p.displayName }))}
+      people={people}
       rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
       services={services.map((s) => ({ id: s.id, name: s.name }))}
       trigger={
