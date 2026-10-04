@@ -44,10 +44,11 @@ export function TagManager({
           {tags.map((tag) => (
             <span
               key={tag.id}
-              className="flex h-9 items-center gap-2 rounded-full pr-1.5 pl-3.5 text-label font-medium"
+              className="inline-flex"
               style={{
                 background: `var(--hue-${tag.hue}-tint)`,
                 color: `var(--hue-${tag.hue}-key)`,
+                borderRadius: 999,
               }}
             >
               {canManage ? (
@@ -57,7 +58,7 @@ export function TagManager({
                   others={tags.filter((one) => one.id !== tag.id)}
                 />
               ) : (
-                tag.name
+                <span className={CHIP}>{tag.name}</span>
               )}
             </span>
           ))}
@@ -68,6 +69,9 @@ export function TagManager({
     </section>
   );
 }
+
+/** The pill itself: the whole shape is the control, with its name centred. */
+const CHIP = "flex h-9 items-center justify-center rounded-full px-3.5 text-label font-medium";
 
 function NewTag({ church }: { church: string }) {
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -148,7 +152,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
         <button
           type="button"
           aria-label={t("tags.editOne", { name: tag.name })}
-          className="cursor-pointer text-inherit underline-offset-4 hover:underline"
+          className={`${CHIP} cursor-pointer text-inherit hover:brightness-95`}
         >
           {tag.name}
         </button>
