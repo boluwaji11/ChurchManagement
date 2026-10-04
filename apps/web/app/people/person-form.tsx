@@ -260,7 +260,7 @@ export function PersonForm({
       ) : null}
 
       {customFields.length > 0 ? (
-        <FormCard title={t("person.more")} note={t("personForm.customNote")}>
+        <FormCard title={t("person.more")}>
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
             <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
           </div>

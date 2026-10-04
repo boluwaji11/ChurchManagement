@@ -60,7 +60,7 @@ function InfoCard({
       }`}
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[13px] font-medium text-fg-subtle">{title}</h3>
+        <h3 className="text-[13px] font-semibold text-fg">{title}</h3>
         {action}
       </div>
       {children}

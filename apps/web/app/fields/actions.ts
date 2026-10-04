@@ -71,7 +71,15 @@ export async function saveField(data: FormData): Promise<FieldResult> {
 
   const { actor, ctx } = await context(slug);
   try {
-    await withTenant(ctx, (tx) => updateCustomField(tx, actor, id, { label, options: choices(data) }));
+    const type = field(data, "type");
+    await withTenant(ctx, (tx) =>
+      updateCustomField(tx, actor, id, {
+        label,
+        options: choices(data),
+        // R1.10. Only honoured while nothing has been answered against it.
+        type: (type || undefined) as CustomFieldType | undefined,
+      }),
+    );
     done();
     return {};
   } catch (error) {

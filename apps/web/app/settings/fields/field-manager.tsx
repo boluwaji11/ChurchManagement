@@ -237,29 +237,25 @@ function FieldSheet({
             />
           </Field>
 
-          {field ? (
-            <Field label={t("fields.type")}>
-              <Input value={typeLabel(field.type)} readOnly disabled />
-            </Field>
-          ) : (
-            <Field label={t("fields.type")}>
-              <Select name="type" value={type} onValueChange={setType}>
-                <SelectTrigger aria-label={t("fields.type")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TYPES.map((one) => (
-                    <SelectItem key={one.value} value={one.value}>
-                      {typeLabel(one.value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          )}
+          {/* R1.10. The shape can change while nothing has been answered
+              against the field. The server refuses it once something has. */}
+          <Field label={t("fields.type")}>
+            <Select name="type" value={type} onValueChange={setType}>
+              <SelectTrigger aria-label={t("fields.type")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TYPES.map((one) => (
+                  <SelectItem key={one.value} value={one.value}>
+                    {typeLabel(one.value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
 
-          {hasChoices(field?.type ?? type) ? (
-            <Choices defaultValue={(field?.options ?? []).join("\n")} />
+          {hasChoices(type) ? (
+            <Choices key={type} defaultValue={(field?.options ?? []).join("\n")} />
           ) : null}
         </form>
       </SheetContent>

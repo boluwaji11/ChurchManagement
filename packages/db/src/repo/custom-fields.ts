@@ -148,7 +148,7 @@ export async function updateCustomField(
   db: Tx,
   actor: WriteActor,
   id: string,
-  input: { label: string; options?: string[] },
+  input: { label: string; options?: string[]; type?: CustomFieldType },
 ): Promise<void> {
   if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "editField");
 
@@ -175,9 +175,26 @@ export async function updateCustomField(
     .limit(1);
   if (clash[0]) throw new NameTakenError("error.nameTaken.field", label, clash[0].id);
 
+  /*
+   * R1.10. The shape of a field's answer can change while nothing has been
+   * answered. Once a church has recorded values against it, it cannot: a date
+   * written into a field that is now a list of choices is a value nobody can
+   * read back, and we do not silently throw a church's data away.
+   */
+  let type = current.type as CustomFieldType;
+  if (input.type && input.type !== type) {
+    const [recorded] = await db
+      .select({ id: customFieldValues.id })
+      .from(customFieldValues)
+      .where(eq(customFieldValues.fieldId, id))
+      .limit(1);
+    if (recorded) throw new InvalidInputError("error.fieldTypeInUse");
+    type = input.type;
+  }
+
   await db
     .update(customFields)
-    .set({ label, options: cleanOptions(current.type as CustomFieldType, input.options) })
+    .set({ label, type, options: cleanOptions(type, input.options) })
     .where(eq(customFields.id, id));
 }
 
