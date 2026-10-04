@@ -1088,6 +1088,8 @@ export const en = {
   "groups.title": "Groups",
   "groups.add": "Create a Group",
   "groups.create": "Create group",
+  "groups.saveChanges": "Save changes",
+  "groups.startsAt": "Start time",
   "groups.namePlaceholder": "Tuesday night",
   "groups.newTitle": "New group",
   "groups.section.what": "What it is",

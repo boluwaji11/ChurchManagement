@@ -174,7 +174,7 @@ export function GroupDetail({
 
               {canManage ? (
                 <div className="flex flex-col gap-2 border-t border-line pt-5">
-                  <span className="text-[12px] font-semibold tracking-[0.06em] text-fg-subtle uppercase">
+                  <span className="text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
                     {t("group.requests")}
                   </span>
                   {requests.length === 0 ? (
@@ -275,7 +275,7 @@ export function GroupDetail({
 function Facts({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[12px] font-semibold tracking-[0.06em] text-fg-subtle uppercase">
+      <span className="text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
         {label}
       </span>
       <span className="text-[length:var(--d-text-body)] text-fg">{children}</span>

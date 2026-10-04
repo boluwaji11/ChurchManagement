@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Upload, Trash2 } from "lucide-react";
 import {
-  Banner, Checkbox, Combobox, Field, Input, Textarea,
+  Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Textarea,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { TimeField } from "@/components/time-field";
@@ -22,11 +22,11 @@ const AUDIENCES = [
 const dayName = (day: number) =>
   new Date(2024, 0, 7 + day).toLocaleDateString("en-US", { weekday: "long" });
 
-/** A heading in the right-hand column, the same as the group's own page. */
+/** A heading over a block, the same shape in both columns. */
 function Side({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-[12px] font-semibold tracking-[0.06em] text-fg-subtle uppercase">
+    <div className="flex flex-col gap-2">
+      <span className="text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
         {label}
       </span>
       {children}
@@ -82,7 +82,22 @@ export function GroupEditor({
   const [listed, setListed] = React.useState(group?.listed ?? true);
   const [leader, setLeader] = React.useState("");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
+  // The picture is held until the group exists to hang it on, which is what
+  // makes the banner editable on the way in as well as afterwards.
+  const [picture, setPicture] = React.useState<File | null>(null);
+  const [preview, setPreview] = React.useState<string | null>(null);
   const [, startTransition] = React.useTransition();
+  const file = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (!picture) {
+      setPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(picture);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [picture]);
 
   const hue = types.find((one) => one.id === typeId)?.hue ?? "sky";
 
@@ -111,6 +126,15 @@ export function GroupEditor({
           // A new group with a named leader gets them on its roster, because
           // "Led by" is the first thing its card will say.
           if (id && leader && !group) await join(id, leader, "leader", church);
+
+          if (id && picture) {
+            const upload = new FormData();
+            upload.set("church", church);
+            upload.set("purpose", "group_photo");
+            upload.set("groupId", id);
+            upload.set("file", picture);
+            await fetch("/api/upload", { method: "POST", body: upload });
+          }
           router.push(id ? `/groups/${id}?church=${church}` : `/groups?church=${church}`);
         });
       }}
@@ -133,48 +157,61 @@ export function GroupEditor({
             />
           </Field>
 
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
-            <Field label={t("groups.type")}>
-              <Picker
-                name="typeId"
-                defaultValue={group?.typeId ?? null}
-                options={types.map((one) => ({ value: one.id, label: one.name }))}
-                label={t("groups.type")}
-                onChange={setTypeId}
-              />
-            </Field>
-
-            <Field label={t("groups.day")}>
-              <Picker
-                name="dayOfWeek"
-                defaultValue={
-                  group?.dayOfWeek === null || group?.dayOfWeek === undefined
-                    ? null
-                    : String(group.dayOfWeek)
-                }
-                options={DAYS.map((d) => ({ value: String(d), label: dayName(d) }))}
-                label={t("groups.day")}
-              />
-            </Field>
-
-            <Field label={t("groups.time")}>
-              <TimeField name="startsAt" defaultValue={group?.startsAt ?? ""} />
-            </Field>
-
-            <Field label={t("groups.endsAt")}>
-              <TimeField name="endsAt" defaultValue={group?.endsAt ?? ""} />
-            </Field>
-          </div>
         </div>
 
-        {/* The banner takes the kind's colour as soon as a kind is chosen. The
-            picture itself is uploaded from the group's page, which is where the
-            upload has a group to belong to. */}
-        <div
-          className="grid aspect-[16/9] w-full place-items-center rounded-[14px]"
-          style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
-        >
-          <ImagePlus className="size-7 opacity-50" aria-hidden />
+        {/* The banner takes the kind's colour until a picture is chosen. The
+            file is held and sent once the group exists to hang it on. */}
+        <div className="relative">
+          {preview ? (
+            <img src={preview} alt="" className="aspect-[16/9] w-full rounded-[14px] object-cover" />
+          ) : (
+            <div
+              className="grid aspect-[16/9] w-full place-items-center rounded-[14px]"
+              style={{
+                background: `var(--hue-${hue}-tint)`,
+                color: `var(--hue-${hue}-key)`,
+                border: `2px dashed var(--hue-${hue}-500)`,
+              }}
+            >
+              <div className="flex flex-col items-center gap-1.5">
+                <ImagePlus className="size-7" aria-hidden />
+                <span className="font-semibold">{t("group.banner.add")}</span>
+                <span className="text-[12px]">{t("group.banner.size")}</span>
+              </div>
+            </div>
+          )}
+
+          <input
+            ref={file}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => setPicture(e.target.files?.[0] ?? null)}
+          />
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => file.current?.click()}
+            className="absolute right-3 bottom-3 h-[34px] min-h-0 gap-1.5 px-3 text-[13px] shadow-sm"
+          >
+            <Upload className="size-[15px]" aria-hidden />
+            {preview ? t("group.banner.replace") : t("group.banner.upload")}
+          </Button>
+
+          {preview ? (
+            <IconButton
+              label={t("group.banner.remove")}
+              variant="secondary"
+              onClick={() => {
+                setPicture(null);
+                if (file.current) file.current.value = "";
+              }}
+              className="absolute top-3 right-3 size-8 min-h-0 shadow-sm"
+            >
+              <Trash2 />
+            </IconButton>
+          ) : null}
         </div>
       </div>
 
@@ -197,20 +234,66 @@ export function GroupEditor({
 
       <div className="flex flex-wrap items-start gap-10">
         <div className="flex min-w-0 flex-[999_1_420px] flex-col gap-7">
-          <section className="flex flex-col gap-2.5">
-            <h2 className="font-display text-[24px] font-normal text-fg">{t("group.about", { name: "" }).trim()}</h2>
+          <Side label={t("group.about", { name: "" }).trim()}>
             <Textarea
               name="description"
               rows={5}
               defaultValue={group?.description ?? ""}
               className="max-w-[68ch]"
             />
-          </section>
+          </Side>
+
+          <Side label={t("group.schedule")}>
+            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
+              <Field label={t("groups.frequency")}>
+                <Picker
+                  name="frequency"
+                  defaultValue={group?.frequency ?? null}
+                  options={FREQUENCIES.map((f) => ({
+                    value: f,
+                    label: t(`groups.frequency.${f}` as never),
+                  }))}
+                  label={t("groups.frequency")}
+                />
+              </Field>
+
+              <Field label={t("groups.day")}>
+                <Picker
+                  name="dayOfWeek"
+                  defaultValue={
+                    group?.dayOfWeek === null || group?.dayOfWeek === undefined
+                      ? null
+                      : String(group.dayOfWeek)
+                  }
+                  options={DAYS.map((d) => ({ value: String(d), label: dayName(d) }))}
+                  label={t("groups.day")}
+                />
+              </Field>
+
+              <Field label={t("groups.startsAt")}>
+                <TimeField name="startsAt" defaultValue={group?.startsAt ?? ""} />
+              </Field>
+
+              <Field label={t("groups.endsAt")}>
+                <TimeField name="endsAt" defaultValue={group?.endsAt ?? ""} />
+              </Field>
+            </div>
+          </Side>
         </div>
 
         <aside className="flex flex-[1_1_260px] flex-col gap-6">
           <Side label={t("group.categories")}>
             <div className="flex flex-col gap-3">
+              <Field label={t("groups.type")}>
+                <Picker
+                  name="typeId"
+                  defaultValue={group?.typeId ?? null}
+                  options={types.map((one) => ({ value: one.id, label: one.name }))}
+                  label={t("groups.type")}
+                  onChange={setTypeId}
+                />
+              </Field>
+
               <Field label={t("groups.forWhom")}>
                 <Picker
                   name="forWhom"
@@ -241,18 +324,6 @@ export function GroupEditor({
                 onChange={setListed}
               />
             </div>
-          </Side>
-
-          <Side label={t("group.schedule")}>
-            <Picker
-              name="frequency"
-              defaultValue={group?.frequency ?? null}
-              options={FREQUENCIES.map((f) => ({
-                value: f,
-                label: t(`groups.frequency.${f}` as never),
-              }))}
-              label={t("groups.frequency")}
-            />
           </Side>
 
           {/* R9.3. Only on the way in: afterwards the roster is the Members tab,
@@ -303,7 +374,7 @@ export function GroupFormActions({ editing }: { editing: boolean }) {
   return (
     <FormActions
       form="group-form"
-      label={editing ? t("action.save") : t("groups.create")}
+      label={editing ? t("groups.saveChanges") : t("groups.create")}
     />
   );
 }
