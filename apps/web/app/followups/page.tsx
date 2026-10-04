@@ -85,7 +85,6 @@ export default async function FollowUpsPage({
       entryId: entry.id,
       personId: entry.personId,
       who: entry.personName,
-      why: next?.title ?? t(`board.reason.${entry.reason}` as never),
       owner: next
         ? next.dueOn
           ? t("board.due", { date: shortDate(next.dueOn) })

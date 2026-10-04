@@ -13,7 +13,6 @@ export interface BoardCard {
   entryId: string;
   personId: string;
   who: string;
-  why: string;
   owner: string;
   /** The step they are waiting on, which is the column they sit in. */
   stepId: string | null;
@@ -124,7 +123,6 @@ export function Board({
                   >
                     {card.who}
                   </Link>
-                  <span className="text-[12px] text-fg-muted">{card.why}</span>
                   <span className="mt-1 text-[12px] text-fg-subtle">{card.owner}</span>
                 </div>
               ))}
