@@ -215,8 +215,7 @@ export function ProfileForm({
       {editing ? null : (
         <dl className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
           {[
-            [t("settings.profile.firstName"), values.firstName],
-            [t("settings.profile.lastName"), values.lastName],
+            // The name is the card's own heading, beside the face.
             [t("settings.profile.phone"), values.phone],
             [
               t("settings.profile.birthday"),
