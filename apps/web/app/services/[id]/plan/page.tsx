@@ -82,8 +82,10 @@ export default async function PlanPage({
 
   return (
     <AppShell session={session} title={t("order.title")} wide>
-      <div className="grid gap-6 lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
-        <div className="flex flex-col gap-6">
+      {/* The heading block runs the width, and the sidebar starts level with
+          the first item rather than with the back link. */}
+      <div className="grid gap-x-6 gap-y-6 lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
+        <div className="flex flex-col gap-6 lg:col-span-2">
           <Link
             href={`/services?church=${session.tenantSlug}`}
             className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
@@ -115,6 +117,9 @@ export default async function PlanPage({
             </span>
           </div>
 
+        </div>
+
+        <div className="flex flex-col gap-6">
           <Order
             church={session.tenantSlug}
             occurrenceId={id}
