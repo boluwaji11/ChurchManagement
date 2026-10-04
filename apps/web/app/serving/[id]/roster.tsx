@@ -92,7 +92,7 @@ export function Roster({
         {members.map((member) => (
           <li
             key={member.id}
-            className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
+            className="flex items-center gap-3 border-b border-sunken py-1.5 last:border-0"
           >
             <Avatar
               name={member.name}

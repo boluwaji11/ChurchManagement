@@ -99,7 +99,7 @@ export default async function TeamPage({
               }}
               title={t("serving.editTeam")}
               trigger={
-                <IconButton label={t("action.edit")} variant="secondary">
+                <IconButton label={t("action.edit")} variant="ghost">
                   <Pencil />
                 </IconButton>
               }
