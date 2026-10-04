@@ -44,7 +44,7 @@ export default async function FormsPage({
     <AppShell
       session={session}
       title={t("form.title")}
-      action={putAway ? undefined : <NewFormButton church={session.tenantSlug} />}
+      action={putAway || forms.length === 0 ? undefined : <NewFormButton church={session.tenantSlug} />}
     >
       {putAway ? (
         <Link
@@ -59,7 +59,7 @@ export default async function FormsPage({
         <Empty
           icon="form"
           title={putAway ? t("form.archived.none") : t("form.empty")}
-          action={putAway ? undefined : <NewFormButton church={session.tenantSlug} />}
+          action={putAway || forms.length === 0 ? undefined : <NewFormButton church={session.tenantSlug} />}
         />
       ) : (
         <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">

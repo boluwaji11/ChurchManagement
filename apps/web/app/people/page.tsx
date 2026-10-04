@@ -78,7 +78,9 @@ export default async function PeoplePage({
       session={session}
       title={t("people.title")}
       action={
-        canEdit ? (
+        // R24.17. An empty directory offers Add person in the middle of the
+        // screen, so the corner does not say the same thing twice.
+        canEdit && people.length > 0 ? (
           <Button asChild>
             <Link href={`/people/new?church=${session.tenantSlug}`}>
               <Plus /> {t("people.add")}

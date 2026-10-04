@@ -28,7 +28,7 @@ export default async function RoomsPage({
       <SettingsHeading
         title="settings.tab.rooms"
         lede="settings.lede.rooms"
-        action={<AddRoom church={session.tenantSlug} />}
+        action={rooms.length > 0 ? <AddRoom church={session.tenantSlug} /> : undefined}
       />
       <RoomManager
         church={session.tenantSlug}

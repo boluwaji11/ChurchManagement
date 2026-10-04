@@ -68,14 +68,16 @@ export function StationManager({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("stations.failed")}>{error}</Banner> : null}
 
-      <div className="flex justify-end">
-        <StationDialog
-          pending={pending}
-          title={t("stations.add")}
-          trigger={<Button><Plus /> {t("stations.add")}</Button>}
-          onSave={(fields) => act(createStation, fields)}
-        />
-      </div>
+      {open.length > 0 ? (
+        <div className="flex justify-end">
+          <StationDialog
+            pending={pending}
+            title={t("stations.add")}
+            trigger={<Button><Plus /> {t("stations.add")}</Button>}
+            onSave={(fields) => act(createStation, fields)}
+          />
+        </div>
+      ) : null}
 
       {open.length === 0 ? (
         <Empty

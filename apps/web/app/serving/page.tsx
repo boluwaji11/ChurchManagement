@@ -162,7 +162,7 @@ export default async function ServingPage({
    * separately.
    */
   const action =
-    view === "teams" && canManage ? (
+    view === "teams" && canManage && data.teams.length > 0 ? (
       <Button asChild>
         <Link href={`/serving?church=${session.tenantSlug}&view=teams&add=1`}>
           <Plus /> {t("serving.addTeam")}

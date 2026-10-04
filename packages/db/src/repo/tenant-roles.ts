@@ -74,7 +74,14 @@ export async function ensureBuiltIns(db: Tx, tenantId: string): Promise<void> {
   await db
     .insert(tenantRoles)
     .values(rows)
-    .onConflictDoNothing({ target: [tenantRoles.tenantId, tenantRoles.key] });
+    .onConflictDoUpdate({
+      target: [tenantRoles.tenantId, tenantRoles.key],
+      set: { permissions: sql`excluded.permissions` },
+      // Only where this church has left the built-in alone. A permission added
+      // to the product has to reach churches that already exist, and a church
+      // that has edited the role owns it from then on.
+      where: and(eq(tenantRoles.builtin, true), eq(tenantRoles.customised, false)),
+    });
 }
 
 export async function listRoles(
@@ -197,7 +204,7 @@ export async function renameRole(
 
   const changed = await db
     .update(tenantRoles)
-    .set({ name: title })
+    .set({ name: title, customised: true })
     .where(and(
       eq(tenantRoles.id, id),
       eq(tenantRoles.tenantId, actor.tenantId),
@@ -228,7 +235,7 @@ export async function setPermissions(
 
   await db
     .update(tenantRoles)
-    .set({ permissions: known(permissions) })
+    .set({ permissions: known(permissions), customised: true })
     .where(eq(tenantRoles.id, id));
 }
 

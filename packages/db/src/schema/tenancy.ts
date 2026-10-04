@@ -235,6 +235,14 @@ export const tenantRoles = pgTable(
     /** Permission keys from packages/db/src/permissions.ts. */
     permissions: text("permissions").array().notNull().default(sql`'{}'::text[]`),
     builtin: boolean("builtin").notNull().default(false),
+    /**
+     * R1.6. Whether this church has changed a built-in from what Hearth ships.
+     *
+     * An untouched built-in keeps following the product, so a permission we add
+     * later reaches a church that has been running for a year. One a church has
+     * edited is theirs, and we stop writing to it.
+     */
+    customised: boolean("customised").notNull().default(false),
     position: integer("position").notNull().default(0),
     /** R1.6. Archived, never deleted: somebody held this role, and the log says so. */
     archivedAt: timestamp("archived_at", { withTimezone: true }),

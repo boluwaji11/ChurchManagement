@@ -1,0 +1,1 @@
+ALTER TABLE "tenant_roles" ADD COLUMN "customised" boolean DEFAULT false NOT NULL;

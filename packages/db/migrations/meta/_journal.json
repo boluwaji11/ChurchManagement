@@ -484,6 +484,13 @@
       "when": 1791138704298,
       "tag": "0068_bouncy_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1791143042279,
+      "tag": "0069_regular_tiger_shark",
+      "breakpoints": true
     }
   ]
 }

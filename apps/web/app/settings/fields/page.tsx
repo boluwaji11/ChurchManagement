@@ -27,7 +27,9 @@ export default async function FieldsPage({
       <SettingsHeading
         title="settings.tab.fields"
         lede="settings.lede.fields"
-        action={canManage ? <NewField church={session.tenantSlug} /> : undefined}
+        // R24.17. An empty screen offers its action in the middle, where the
+        // reader is looking. Two of the same button is one too many.
+        action={canManage && fields.length > 0 ? <NewField church={session.tenantSlug} /> : undefined}
       />
 
 

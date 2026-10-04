@@ -108,7 +108,7 @@ export default async function ServicesPage({
       session={session}
       title={t("services.title")}
       action={
-        canEdit ? (
+        canEdit && (upcoming.length > 0 || past.length > 0) ? (
           <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
         ) : undefined
       }
