@@ -4,9 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, Power } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Field, Input, Separator, Textarea,
+  Badge, Banner, Button, Combobox, IconButton, Field, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   LIFT,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -166,11 +165,20 @@ export function Pipelines({
                 {/* The run reads as one journey, so each step is tied to the
                     one before it. */}
                 {at > 0 ? (
-                  <span
-                    aria-hidden
-                    className="h-px w-3 shrink-0"
-                    style={{ background: `var(--hue-${row.hue}-500)` }}
-                  />
+                  <span aria-hidden className="flex w-5 shrink-0 items-center">
+                    <span
+                      className="h-px flex-1"
+                      style={{ background: `var(--hue-${row.hue}-500)` }}
+                    />
+                    <span
+                      className="size-1.5 shrink-0 rounded-full"
+                      style={{ background: `var(--hue-${row.hue}-500)` }}
+                    />
+                    <span
+                      className="h-px flex-1"
+                      style={{ background: `var(--hue-${row.hue}-500)` }}
+                    />
+                  </span>
                 ) : null}
                 <span
                   className={`${CHIP} gap-2 pr-1.5`}
@@ -416,18 +424,22 @@ function StageForm({
         <Textarea name="description" rows={2} defaultValue={row?.description ?? ""} />
       </Field>
 
-      <div className="flex flex-col gap-1.5">
-        <span className="text-label text-fg">{t("pipelines.owner")}</span>
-        <Select value={owner} onValueChange={setOwner}>
-          <SelectTrigger aria-label={t("pipelines.owner")}><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NOBODY}>{t("pipelines.nobody")}</SelectItem>
-            {team.map((member) => (
-              <SelectItem key={member.userId} value={member.userId}>{member.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* A church of five hundred has more accounts than a list is worth
+          scrolling, so the owner is looked up by name. */}
+      <Field label={t("pipelines.owner")}>
+        <Combobox
+          options={[
+            { value: NOBODY, label: t("pipelines.nobody") },
+            ...team.map((member) => ({ value: member.userId, label: member.name })),
+          ]}
+          value={owner}
+          onChange={(next) => setOwner(next || NOBODY)}
+          placeholder={t("pipelines.findOwner")}
+          emptyLabel={t("pipelines.noOwner")}
+          clearLabel={t("date.clear")}
+          aria-label={t("pipelines.owner")}
+        />
+      </Field>
 
       <Separator />
 

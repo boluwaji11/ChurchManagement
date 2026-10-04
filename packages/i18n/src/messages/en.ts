@@ -1141,6 +1141,8 @@ export const en = {
   "pipelines.description": "What it is for",
   "pipelines.owner": "Owner",
   "pipelines.nobody": "Nobody",
+  "pipelines.findOwner": "Search for somebody",
+  "pipelines.noOwner": "Nobody by that name",
   "pipelines.stepAfter": "{name}, day {count}",
   "pipelines.steps": "Steps",
   "pipelines.step": "Step",
