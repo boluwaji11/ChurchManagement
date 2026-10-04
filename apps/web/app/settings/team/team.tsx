@@ -4,13 +4,16 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, RefreshCw, Copy, DoorOpen, HelpCircle } from "lucide-react";
 import {
-  Avatar, Badge, Banner, Button, IconButton, Card, CardTitle, CodeDisplay, Field, Input, Separator,
+  Avatar, Badge, Banner, Button, Combobox, IconButton, Card, CardTitle, CodeDisplay, Field, Input,
+  Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { invite, withdraw, changeRole, removeAccess, newJoinCode, stopJoining } from "./actions";
+import {
+  invite, invitees, withdraw, changeRole, removeAccess, newJoinCode, stopJoining,
+} from "./actions";
 
 export interface ChurchRoleOption {
   id: string;
@@ -325,22 +328,35 @@ export function Team({
               <Field label={t("joining.link")}>
                 <Input readOnly value={joinLink} onFocus={(e) => e.currentTarget.select()} />
               </Field>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="secondary"
+              {/* Three actions on one line under the link, so each is its icon
+                  with its words on the tooltip. */}
+              <div className="flex flex-wrap items-center gap-1">
+                <IconButton
+                  label={t("joining.copy")}
+                  variant="ghost"
                   onClick={() => {
                     void navigator.clipboard?.writeText(joinLink);
                     setMessage(t("joining.copied"));
                   }}
                 >
-                  <Copy /> {t("joining.copy")}
-                </Button>
-                <Button variant="ghost" disabled={pending} onClick={() => setRotating(true)}>
-                  <RefreshCw /> {t("joining.new")}
-                </Button>
-                <Button variant="ghost" disabled={pending} onClick={() => setClosing(true)}>
-                  <X /> {t("joining.off")}
-                </Button>
+                  <Copy />
+                </IconButton>
+                <IconButton
+                  label={t("joining.new")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => setRotating(true)}
+                >
+                  <RefreshCw />
+                </IconButton>
+                <IconButton
+                  label={t("joining.off")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => setClosing(true)}
+                >
+                  <X />
+                </IconButton>
               </div>
             </div>
           </div>
@@ -523,8 +539,43 @@ function InviteDialog({
   const [failed, setFailed] = React.useState<string>();
   const [saving, startTransition] = React.useTransition();
 
+  /*
+   * R1.7. Most people a church gives an account to are already in People, with
+   * an address the church typed once. Picking them fills the box and ties the
+   * account to their record, so a volunteer becomes somebody a follow-up can
+   * land on without anybody retyping an address.
+   */
+  const [person, setPerson] = React.useState("");
+  const [query, setQuery] = React.useState("");
+  const [found, setFound] = React.useState<{ id: string; name: string; email: string }[]>([]);
+  const [email, setEmail] = React.useState("");
+
+  const look = React.useCallback(
+    (search: string) => {
+      setQuery(search);
+      if (!search.trim()) {
+        setFound([]);
+        return;
+      }
+      void invitees(search, church).then(setFound);
+    },
+    [church],
+  );
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          setPerson("");
+          setEmail("");
+          setQuery("");
+          setFound([]);
+          setFailed(undefined);
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button><Plus /> {t("team.invite")}</Button>
       </DialogTrigger>
@@ -548,8 +599,41 @@ function InviteDialog({
           {/* Inside the box. A banner at the top of the page is behind the
               dialog that is still open, which is nothing at all. */}
           {failed ? <Banner tone="danger" title={t("team.failed")}>{failed}</Banner> : null}
+
+          <input type="hidden" name="personId" value={person} />
+
+          <Field label={t("team.fromPeople")}>
+            <Combobox
+              options={found.map((one) => ({
+                value: one.id,
+                label: one.name,
+                keywords: one.email,
+              }))}
+              value={person}
+              onChange={(id) => {
+                setPerson(id);
+                setEmail(found.find((one) => one.id === id)?.email ?? "");
+              }}
+              onQueryChange={look}
+              placeholder={t("team.findPerson")}
+              emptyLabel={query.trim() ? t("team.noPerson") : t("team.typeName")}
+              clearLabel={t("date.clear")}
+              aria-label={t("team.fromPeople")}
+            />
+          </Field>
+
           <Field label={t("team.email")} required>
-            <Input name="email" type="email" autoComplete="off" autoFocus />
+            <Input
+              name="email"
+              type="email"
+              autoComplete="off"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                // An address typed by hand is no longer the picked person's.
+                setPerson("");
+              }}
+            />
           </Field>
 
           <Field label={t("team.role")}>

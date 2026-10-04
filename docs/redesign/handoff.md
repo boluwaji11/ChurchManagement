@@ -1,7 +1,7 @@
 # Handoff: Hearth church management platform redesign
 
 ## Overview
-Hearth is free church management software for churches of 50–500 people. This redesign covers the whole product for six personas: Administrator, Senior pastor, Group leader, Check-in volunteer, Member, and Network admin. It also covers how each persona enters the product from the church's own website.
+Hearth is free church management software for churches of 50 to 500 people. This redesign covers the whole product for six personas: Administrator, Senior pastor, Group leader, Check-in volunteer, Member, and Network admin. It also covers how each persona enters the product from the church's own website.
 
 Target repo: `boluwaji11/ChurchManagement` (`apps/web`, Next.js). `github.md` maps each design screen to the route files it was built from.
 
@@ -110,9 +110,9 @@ Top-bar main action per screen is in brackets; "none" means no button.
 | Brand ember | `--c5` | oklch(0.742 0.162 62) | same |
 | Danger | `--c9` | oklch(0.558 0.198 25) | lightened |
 
-**Type:** Fraunces (serif) for page titles (28/34), section titles (20–22) and big numbers (40/44). Inter for UI at 14/20 body, 13 secondary and 12 meta, with weights 400/500/600. JetBrains Mono for codes (pickup codes, pairing codes, file names, clock times).
-**Radii:** 8 for small controls and menu items, 10 for buttons and inputs, 12–14 for cards, 999 for pills and avatars.
-**Control heights:** 34–36 compact buttons, 38–40 inputs and standard buttons, 44 for primary on auth screens. Mobile touch targets are at least 44.
+**Type:** Fraunces (serif) for page titles (28/34), section titles (20 to 22) and big numbers (40/44). Inter for UI at 14/20 body, 13 secondary and 12 meta, with weights 400/500/600. JetBrains Mono for codes (pickup codes, pairing codes, file names, clock times).
+**Radii:** 8 for small controls and menu items, 10 for buttons and inputs, 12 to 14 for cards, 999 for pills and avatars.
+**Control heights:** 34 to 36 compact buttons, 38 to 40 inputs and standard buttons, 44 for primary on auth screens. Mobile touch targets are at least 44.
 **Shadows:** cards are flat with a 1px border. Popovers use `0 4px 8px oklch(0 0 0/.04), 0 12px 32px oklch(0 0 0/.10)`. The drawer uses `-8px 0 24px oklch(0 0 0/.12)`.
 **Icons:** Lucide at 1.75 stroke, usually 16px in buttons and 18px in nav.
 

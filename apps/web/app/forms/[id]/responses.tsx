@@ -108,7 +108,12 @@ export function Responses({
                           key={field.id}
                           className="max-w-[260px] truncate px-4 py-3 align-top text-[length:var(--d-text-body)] text-fg"
                         >
-                          {said || <span className="text-fg-subtle">{"—"}</span>}
+                          {said || (
+                            <span
+                              aria-hidden
+                              className="inline-block h-px w-3 bg-line-strong align-middle"
+                            />
+                          )}
                         </td>
                       );
                     })}

@@ -980,3 +980,57 @@ export async function addressesFor(
 
   return out;
 }
+
+/**
+ * R1.7. People a church could give an account to.
+ *
+ * Only those holding an email address, because an invitation is sent to one,
+ * and only those without an account or a pending invitation already, because
+ * offering a name that is already on the team is offering a mistake. This is
+ * what turns a volunteer in the directory into somebody a follow-up can land
+ * on.
+ */
+export async function peopleToInvite(
+  db: Tx,
+  search = "",
+  limit = 20,
+): Promise<{ id: string; name: string; email: string }[]> {
+  const needle = search.trim().toLowerCase();
+
+  const rows = await db.execute<Record<string, unknown>>(sql`
+    select p.id,
+           coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
+           lower(c.value) as email
+      from people p
+      join lateral (
+        select value
+          from contact_methods
+         where person_id = p.id and kind = 'email' and is_valid
+         order by is_primary desc
+         limit 1
+      ) c on true
+     where p.archived_at is null
+       and not exists (
+         select 1 from tenant_members m
+           join app_users u on u.id = m.user_id
+          where m.tenant_id = app_tenant_id() and lower(u.email) = lower(c.value)
+       )
+       and not exists (
+         select 1 from invitations i
+          where i.tenant_id = app_tenant_id()
+            and lower(i.email) = lower(c.value)
+            and i.accepted_at is null and i.revoked_at is null and i.expires_at > now()
+       )
+       ${needle
+         ? sql`and lower(coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name) like ${`%${needle}%`}`
+         : sql``}
+     order by p.last_name, p.first_name
+     limit ${limit}
+  `);
+
+  return (rows as unknown as Record<string, string>[]).map((row) => ({
+    id: String(row["id"]),
+    name: String(row["name"]),
+    email: String(row["email"]),
+  }));
+}

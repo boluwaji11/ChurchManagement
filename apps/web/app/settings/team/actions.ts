@@ -2,7 +2,7 @@
 
 import {
   createInvitation, revokeInvitation, setMemberRole, removeMember, canManageChurch,
-  rotateJoinCode, closeJoining,
+  rotateJoinCode, closeJoining, withTenant, peopleToInvite,
   type TenantRole,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -39,6 +39,9 @@ export async function invite(data: FormData): Promise<TeamResult> {
       email,
       role,
       invitedByUserId: session.userId,
+      // R1.7. Where the church picked somebody it already holds, the account
+      // ties to that record on first sign-in.
+      personId: field(data, "personId") || null,
     });
 
     return {};
@@ -105,4 +108,16 @@ export async function stopJoining(church?: string): Promise<TeamResult> {
   } catch (error) {
     return { error: explain(error) };
   }
+}
+
+/** R1.7. People in the directory who could be given an account. */
+export async function invitees(
+  search: string,
+  church?: string,
+): Promise<{ id: string; name: string; email: string }[]> {
+  const session = await allowed(church);
+  return withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
+    (tx) => peopleToInvite(tx, search),
+  );
 }

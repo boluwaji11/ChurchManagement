@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections } from "../src/client";
 import {
-  createPerson, updatePerson, setPersonArchived, getPersonForEdit, listPeople,
+  createPerson, updatePerson, setPersonArchived, getPersonForEdit, listPeople, peopleToInvite,
   type PersonInput,
 } from "../src/repo/people";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -296,5 +296,40 @@ describe("the audit log", () => {
     expect(entry!.before.first_name).toBe("Before");
     expect(entry!.after.first_name).toBe("After");
     expect(entry!.actor_role).toBe("admin");
+  });
+});
+
+/**
+ * R1.7. The directory is where the people a church gives an account to come
+ * from, so the picker has to offer the right ones and leave out the rest.
+ */
+describe("people a church could give an account to (R1.7)", () => {
+  it("offers somebody with an email and leaves out somebody without one", async () => {
+    const withEmail = await add(riverside, "owner", draft({
+      firstName: "Marta",
+      email: "marta.writeperson@example.org",
+    }));
+    const without = await add(riverside, "owner", draft({ firstName: "Silent" }));
+
+    const found = await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
+      peopleToInvite(tx, "Writeperson"),
+    );
+
+    expect(found.find((one) => one.id === withEmail)?.email)
+      .toBe("marta.writeperson@example.org");
+    expect(found.some((one) => one.id === without)).toBe(false);
+  });
+
+  it("never reaches another church", async () => {
+    const theirs = await add(northgate, "owner", draft({
+      firstName: "Elsewhere",
+      email: "elsewhere.writeperson@example.org",
+    }));
+
+    const found = await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
+      peopleToInvite(tx, "Writeperson"),
+    );
+
+    expect(found.some((one) => one.id === theirs)).toBe(false);
   });
 });

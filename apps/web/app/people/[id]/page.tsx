@@ -20,8 +20,15 @@ import { canReadConfidentialNotes } from "@hearth/db";
 
 export const dynamic = "force-dynamic";
 
-/** What a field with nothing in it reads as. */
-const EMPTY = "—";
+/**
+ * What a field with nothing in it reads as.
+ *
+ * A drawn rule rather than a dash character, because the project writes no
+ * dashes and a glyph in the source is still a glyph in the source.
+ */
+const EMPTY = (
+  <span aria-hidden className="inline-block h-px w-3 bg-line-strong align-middle" />
+);
 
 /**
  * R24.6. One card in the person's grid.
