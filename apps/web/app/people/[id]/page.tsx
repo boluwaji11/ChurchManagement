@@ -256,6 +256,18 @@ export default async function PersonPage({
           )}
         </InfoCard>
 
+        {/*
+          * R13.x. The shell of the giving card the design draws here.
+          *
+          * There are no gift or fund tables yet, so it has nothing to read and
+          * shows what a person with no recorded giving would see. It fills in
+          * when the money work is built.
+          */}
+        <InfoCard title={t("person.giving")}>
+          <div className="font-display text-[32px] leading-[38px] text-fg">{EMPTY}</div>
+          <div className="text-[13px] text-fg-muted">{t("person.noGifts")}</div>
+        </InfoCard>
+
         <InfoCard title={t("person.groupsAndTeams")}>
           {places.length === 0 ? (
             <p className="text-[13px] text-fg-muted">{t("person.noGroups")}</p>

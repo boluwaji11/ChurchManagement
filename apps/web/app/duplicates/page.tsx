@@ -2,6 +2,8 @@ import {
   withTenant, findDuplicatePairs, listMerges, getPersonForEdit, canArchivePeople,
 } from "@hearth/db";
 import { Banner } from "@hearth/ui";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -94,7 +96,20 @@ export default async function DuplicatesPage({
     <AppShell
       session={session}
       title={t("merge.title")}
+      max="max-w-[880px]"
     >
+      <Link
+        href={`/people?church=${session.tenantSlug}`}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("people.title")}
+      </Link>
+
+      <div>
+        <h2 className="font-display text-[28px] leading-[34px] text-fg">{t("merge.heading")}</h2>
+        <p className="mt-1 text-fg-muted">{t("merge.lede")}</p>
+      </div>
+
       <Review
         church={session.tenantSlug}
         pairs={pairs}

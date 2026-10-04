@@ -39,16 +39,21 @@ export default async function EditPersonPage({
     <AppShell
       session={session}
       title={t("personForm.editTitle")}
+      max="max-w-[760px]"
     >
       <Link
         href={`/people/${id}?church=${session.tenantSlug}`}
-        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {display}
       </Link>
 
+      <h2 className="font-display text-[28px] leading-[34px] text-fg">
+        {t("personForm.editHeading", { name: display })}
+      </h2>
+
       {person.archivedAt ? (
-        <Banner tone="warning" title={t("personForm.archivedNotice.title")} className="mb-6">
+        <Banner tone="warning" title={t("personForm.archivedNotice.title")} className="">
           {t("personForm.archivedNotice.body")}
         </Banner>
       ) : null}

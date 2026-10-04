@@ -32,10 +32,11 @@ export default async function NewPersonPage({
     <AppShell
       session={session}
       title={t("personForm.addTitle")}
+      max="max-w-[760px]"
     >
       <Link
         href={`/people?church=${session.tenantSlug}`}
-        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("people.title")}
       </Link>

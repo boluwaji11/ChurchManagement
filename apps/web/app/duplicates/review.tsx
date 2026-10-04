@@ -1,13 +1,9 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Merge, Undo2, ArrowRight } from "lucide-react";
-import {
-  Avatar, Badge, Button, IconButton, Card, CardTitle, Separator, Banner, EmptyState,
-  RadioGroup, RadioItem, Dialog, DialogTrigger, DialogContent, DialogFooter, cn,
-} from "@hearth/ui";
+import { Check, ArrowRight } from "lucide-react";
+import { Badge, Button, Banner, cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { merge, undo, type MergeOutcome } from "./actions";
 
@@ -41,8 +37,6 @@ export interface PastMerge {
   canUndo: boolean;
 }
 
-const CONFIDENCE_TONE = { certain: "danger", likely: "warning", possible: "neutral" } as const;
-
 /** The fields a person chooses between. Contact details move across regardless. */
 const FIELDS = [
   "firstName", "lastName", "preferredName",
@@ -51,15 +45,6 @@ const FIELDS = [
 
 type FieldKey = (typeof FIELDS)[number];
 
-const LABELS: Record<FieldKey, string> = {
-  firstName: "personForm.firstName",
-  lastName: "personForm.lastName",
-  preferredName: "personForm.preferredName",
-  dateOfBirth: "personForm.dateOfBirth",
-  lifecycleStatus: "personForm.status",
-  membershipDate: "personForm.membershipDate",
-  firstVisitOn: "personForm.firstVisit",
-};
 
 export function Review({
   church,
@@ -73,7 +58,9 @@ export function Review({
   return (
     <div className="flex flex-col gap-8">
       {pairs.length === 0 ? (
-        <EmptyState title={t("merge.none.title")} body={t("merge.none.body")} />
+        <div className="rounded-lg border border-line bg-surface p-7 text-center text-fg-muted">
+          {t("merge.none.title")}
+        </div>
       ) : (
         <div className="flex flex-col gap-4">
           {pairs.map((pair) => (
@@ -90,21 +77,27 @@ export function Review({
 const show = (value: string | null | undefined): string =>
   value ? value.replace(/_/g, " ") : t("person.notRecorded");
 
+/**
+ * R2.8. One pair, as the design draws it.
+ *
+ * A row per field with both values side by side. Pressing a value keeps it, and
+ * the name you keep is the record that survives, so there is no separate
+ * "which one wins" question to answer first.
+ */
 function PairCard({ church, pair }: { church: string; pair: Pair }) {
   const router = useRouter();
-  const [winnerId, setWinnerId] = React.useState(pair.a.id);
+  const [keepA, setKeepA] = React.useState(true);
   const [take, setTake] = React.useState<Partial<Record<FieldKey, "winner" | "loser">>>({});
   const [outcome, setOutcome] = React.useState<MergeOutcome>();
   const [pending, setPending] = React.useState(false);
-  const [confirming, setConfirming] = React.useState(false);
   const formId = React.useId();
 
-  const winner = winnerId === pair.a.id ? pair.a : pair.b;
-  const loser = winnerId === pair.a.id ? pair.b : pair.a;
+  const winner = keepA ? pair.a : pair.b;
+  const loser = keepA ? pair.b : pair.a;
 
   // Choices belong to the surviving record, so switching which one survives
   // starts them again rather than silently inverting every answer.
-  React.useEffect(() => setTake({}), [winnerId]);
+  React.useEffect(() => setTake({}), [keepA]);
 
   const submit = async (data: FormData) => {
     setPending(true);
@@ -117,126 +110,106 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
     }
   };
 
-  const differing = FIELDS.filter((f) => (winner[f] ?? "") !== (loser[f] ?? ""));
+  /** Which side a field is currently taking its value from. */
+  const sideOf = (f: FieldKey): "a" | "b" => {
+    const from = take[f] ?? "winner";
+    const fromWinner = from === "winner";
+    return (keepA ? fromWinner : !fromWinner) ? "a" : "b";
+  };
+
+  const pick = (f: FieldKey, side: "a" | "b") => {
+    const wantsWinner = keepA ? side === "a" : side === "b";
+    setTake((prev) => ({ ...prev, [f]: wantsWinner ? "winner" : "loser" }));
+  };
+
+  const rows: { key: FieldKey | "name" | "email" | "phone"; label: string; a: string; b: string }[] = [
+    { key: "name", label: t("people.column.person"), a: pair.a.name, b: pair.b.name },
+    { key: "email", label: t("person.email"), a: show(pair.a.email), b: show(pair.b.email) },
+    { key: "phone", label: t("person.phone"), a: show(pair.a.phone), b: show(pair.b.phone) },
+    { key: "dateOfBirth", label: t("person.dateOfBirth"), a: show(pair.a.dateOfBirth), b: show(pair.b.dateOfBirth) },
+    { key: "lifecycleStatus", label: t("person.status"), a: show(pair.a.lifecycleStatus), b: show(pair.b.lifecycleStatus) },
+    { key: "firstVisitOn", label: t("person.firstVisit"), a: show(pair.a.firstVisitOn), b: show(pair.b.firstVisitOn) },
+  ];
+
+  const cell =
+    "flex items-center gap-2 border-b border-sunken px-5 py-2.5 text-left text-[length:var(--d-text-body)]";
 
   return (
-    <Card className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <CardTitle>{pair.a.name}</CardTitle>
-        <Badge tone={CONFIDENCE_TONE[pair.confidence as keyof typeof CONFIDENCE_TONE] ?? "neutral"}>
+    <section className="overflow-hidden rounded-lg border border-line bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3.5">
+        <span className="font-semibold text-fg">
+          {t("merge.pairTitle", { a: pair.a.name, b: pair.b.name })}
+        </span>
+        <span
+          className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+          style={{ background: "var(--hue-amber-tint)", color: "var(--hue-amber-key)" }}
+        >
           {t(pair.reason as never)}
-        </Badge>
+        </span>
       </div>
 
       {outcome?.error ? (
-        <Banner tone="danger" title={t("merge.failed")}>{t(outcome.error as never)}</Banner>
-      ) : null}
-      {outcome?.moved !== undefined ? (
-        <Banner tone="success" title={t("merge.done", { count: outcome.moved })} />
+        <Banner tone="danger" title={t("merge.failed")} className="m-5">
+          {t(outcome.error as never)}
+        </Banner>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {[pair.a, pair.b].map((side) => (
-          <button
-            key={side.id}
-            type="button"
-            onClick={() => setWinnerId(side.id)}
-            aria-pressed={winnerId === side.id}
-            className={cn(
-              "flex flex-col gap-2 rounded-lg border p-3 text-left transition-colors duration-instant",
-              winnerId === side.id
-                ? "border-primary bg-primary-soft"
-                : "border-line-strong bg-surface hover:bg-sunken",
-            )}
-          >
-            <span className="flex items-center gap-2.5">
-              <Avatar name={side.name} id={side.id} size="sm" />
-              <span className="text-[length:var(--d-text-body)] text-fg">{side.name}</span>
-            </span>
-            <span className="text-caption text-fg-muted">
-              {side.email ?? t("people.none")}
-            </span>
-            <span className="text-caption text-primary">
-              {winnerId === side.id ? t("merge.keeping", { name: side.name }) : t("merge.keep")}
-            </span>
-          </button>
-        ))}
+      <div className="grid [grid-template-columns:110px_minmax(0,1fr)_minmax(0,1fr)]">
+        {rows.map((row) => {
+          const chosen = row.key === "name" ? (keepA ? "a" : "b") : sideOf(row.key as FieldKey);
+          const choose = (side: "a" | "b") =>
+            row.key === "name"
+              ? setKeepA(side === "a")
+              : row.key === "email" || row.key === "phone"
+                ? undefined
+                : pick(row.key as FieldKey, side);
+          const fixed = row.key === "email" || row.key === "phone";
+
+          return (
+            <React.Fragment key={row.key}>
+              <div className="flex items-center border-b border-sunken px-5 py-2.5 text-[12px] text-fg-subtle">
+                {row.label}
+              </div>
+              {(["a", "b"] as const).map((side) => (
+                <button
+                  key={side}
+                  type="button"
+                  disabled={fixed}
+                  onClick={() => choose(side)}
+                  aria-pressed={!fixed && chosen === side}
+                  className={cn(
+                    cell,
+                    !fixed && chosen === side ? "bg-primary-soft text-fg" : "text-fg",
+                    !fixed && chosen !== side && "hover:bg-sunken",
+                  )}
+                >
+                  <span className="min-w-0 flex-1 truncate">{side === "a" ? row.a : row.b}</span>
+                  {!fixed && chosen === side ? (
+                    <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
+                  ) : null}
+                </button>
+              ))}
+            </React.Fragment>
+          );
+        })}
       </div>
 
-      <form noValidate id={formId} action={submit} className="flex flex-col gap-4">
+      <form noValidate id={formId} action={submit} className="flex flex-wrap justify-end gap-2 bg-canvas px-5 py-3">
         <input type="hidden" name="church" value={church} />
         <input type="hidden" name="winnerId" value={winner.id} />
         <input type="hidden" name="loserId" value={loser.id} />
+        {FIELDS.map((f) => (
+          <input key={f} type="hidden" name={`take.${f}`} value={take[f] ?? "winner"} />
+        ))}
 
-        {differing.length > 0 ? (
-          <>
-            <Separator />
-            <div className="flex flex-col gap-3">
-              {differing.map((f) => (
-                <fieldset key={f} className="flex flex-col gap-1.5">
-                  <legend className="text-label text-fg">{t(LABELS[f] as never)}</legend>
-                  <RadioGroup
-                    name={`take.${f}`}
-                    value={take[f] ?? "winner"}
-                    onValueChange={(v) => setTake((prev) => ({ ...prev, [f]: v as "winner" | "loser" }))}
-                    className="flex flex-wrap gap-x-6 gap-y-2"
-                  >
-                    <RadioItem value="winner">{show(winner[f])}</RadioItem>
-                    <RadioItem value="loser">{show(loser[f])}</RadioItem>
-                  </RadioGroup>
-                </fieldset>
-              ))}
-            </div>
-          </>
-        ) : null}
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Dialog open={confirming} onOpenChange={setConfirming}>
-            <DialogTrigger asChild>
-              <Button type="button" loading={pending}>
-                <Merge /> {t("merge.merge")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent
-              alert
-              title={t("merge.confirmTitle", { loser: loser.name, winner: winner.name })}
-              description={t("merge.window")}
-            >
-              <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
-                {t("merge.confirmBody", { loser: loser.name })}
-              </p>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  data-dismiss
-                  onClick={() => setConfirming(false)}
-                >
-                  {t("merge.keepApart")}
-                </Button>
-                {/* form= reaches the form across the portal. DialogContent is
-                    portaled to the body, so a submit button inside it is
-                    outside its own form in the DOM and submits nothing. */}
-                <Button type="submit" form={formId} disabled={pending} onClick={() => setConfirming(false)}>
-                  <Merge /> {t("merge.merge")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Button variant="ghost" asChild>
-            <Link href={`/people/${pair.a.id}?church=${church}`}>
-              {pair.a.name} <ArrowRight />
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href={`/people/${pair.b.id}?church=${church}`}>
-              {pair.b.name} <ArrowRight />
-            </Link>
-          </Button>
-        </div>
+        <Button type="button" variant="secondary" disabled={pending}>
+          {t("merge.notSame")}
+        </Button>
+        <Button type="submit" loading={pending}>
+          {t("merge.mergeInto", { name: winner.name })}
+        </Button>
       </form>
-    </Card>
+    </section>
   );
 }
 
@@ -257,54 +230,40 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
   };
 
   return (
-    <Card>
-      <CardTitle>{t("merge.history")}</CardTitle>
-      <Separator className="my-4" />
+    <section className="rounded-lg border border-line bg-surface px-5 py-2">
+      <div className="py-2 text-[13px] font-medium text-fg-subtle">{t("merge.history")}</div>
 
       {outcome?.error ? (
-        <Banner tone="danger" title={t("merge.history")} className="mb-4">
+        <Banner tone="danger" title={t("merge.history")} className="mb-3">
           {t(outcome.error as never)}
         </Banner>
       ) : null}
-      {outcome?.restored !== undefined ? (
-        <Banner tone="success" title={t("merge.undoDone", { count: outcome.restored })} className="mb-4" />
-      ) : null}
 
-      <ul className="flex flex-col">
-        {history.map((m, i) => (
-          <li key={m.id}>
-            {i > 0 ? <Separator className="my-3" /> : null}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-col gap-0.5">
-                <span className="flex flex-wrap items-center gap-2 text-[length:var(--d-text-body)] text-fg">
-                  {m.loserName}
-                  <ArrowRight className="size-3.5 text-fg-subtle" aria-hidden />
-                  {m.winnerName}
-                  {m.undoneAt ? <Badge tone="neutral">{t("merge.undone")}</Badge> : null}
-                </span>
-                <span className="text-caption text-fg-muted">{m.mergedAt}</span>
-              </div>
-
-              {m.canUndo ? (
-                <form noValidate action={submit}>
-                  <input type="hidden" name="church" value={church} />
-                  <input type="hidden" name="mergeId" value={m.id} />
-                  <IconButton
-                    label={t("merge.undo")}
-                    type="submit"
-                    variant="ghost"
-                    disabled={pending}
-                  >
-                    <Undo2 />
-                  </IconButton>
-                </form>
-              ) : m.undoneAt ? null : (
-                <span className="text-caption text-fg-subtle">{t("merge.expired")}</span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </Card>
+      {history.map((m) => (
+        <div key={m.id} className="flex items-center gap-3 border-t border-sunken py-2.5">
+          <span className="flex-1 text-[length:var(--d-text-body)] text-fg">
+            <span className="font-medium">{m.loserName}</span>{" "}
+            <ArrowRight className="inline size-3.5 text-fg-subtle" aria-hidden />{" "}
+            <span className="font-medium">{m.winnerName}</span>
+            {m.undoneAt ? <Badge tone="neutral" className="ml-2">{t("merge.undone")}</Badge> : null}
+          </span>
+          <span className="text-[12px] text-fg-subtle">{m.mergedAt}</span>
+          {m.canUndo ? (
+            <form action={submit}>
+              <input type="hidden" name="church" value={church} />
+              <input type="hidden" name="mergeId" value={m.id} />
+              <Button
+                type="submit"
+                variant="secondary"
+                loading={pending}
+                className="min-h-[30px] px-2.5 text-[13px]"
+              >
+                {t("merge.undo")}
+              </Button>
+            </form>
+          ) : null}
+        </div>
+      ))}
+    </section>
   );
 }
