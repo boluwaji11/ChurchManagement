@@ -21,10 +21,13 @@ export function NoteForm({
   church,
   personId,
   canConfidential,
+  trigger,
 }: {
   church: string;
   personId: string;
   canConfidential: boolean;
+  /** The control that opens it, where the screen wants its own. */
+  trigger?: React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -35,7 +38,7 @@ export function NoteForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary"><Plus /> {t("notes.add")}</Button>
+        {trigger ?? <Button variant="secondary"><Plus /> {t("notes.add")}</Button>}
       </DialogTrigger>
       <DialogContent title={t("notes.add")} closeLabel={t("common.close")}>
         <form

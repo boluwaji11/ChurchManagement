@@ -202,3 +202,34 @@ nothing. The palette behind Cmd+K is HRT-205.
 The in-context help button (R22.2) is not in the design's top bar and has come out of the chrome.
 `apps/web/components/help.tsx` is still there and is now unreferenced, so R22.2 needs somewhere to
 live.
+
+
+## Taken off the Person screen, October 2026
+
+The instruction is to replicate the redesign and remove what is not in it. The person's page in
+`Hearth A - Warm Office.dc.html` is the back link, the header, and four cards: Contact, Household,
+Giving this year, Groups and teams, then a full-width Timeline.
+
+These came off that screen. The server actions, the repo functions and the components are all still
+in the tree, so any of them goes back in one commit if it is wanted.
+
+| Taken off | Requirement | Component still there |
+|---|---|---|
+| Custom fields | R1.12 | `apps/web/app/people/custom-fields.tsx` |
+| Milestones | R2.6 | `apps/web/app/people/milestones.tsx` |
+| Relationships | R2.5 | `apps/web/app/people/relationships.tsx` |
+| Serving teams, blockouts, frequency | R10.3 to R10.5 | `apps/web/app/people/availability.tsx` |
+| Saved lists this person is on | R1.14 | the `listsForPerson` read |
+| Tags | R2.x | `apps/web/app/people/tag-editor.tsx` |
+| The notes list | R2.7 | `apps/web/app/people/note-form.tsx`, still used by Add note |
+| Follow-ups and tasks | R5.5 | `apps/web/app/people/followups.tsx`, still used elsewhere |
+| Background check | R2.10, R21.11 | `apps/web/app/people/checks.tsx` |
+| Archive | R2.x | `apps/web/app/people/archive-button.tsx` |
+
+**Giving this year is the one card from the design that is not built.** It needs gift and fund
+tables, and money is deferred by standing instruction. Say the word and it gets built with the rest
+of R13.
+
+**Message** is in the design and is now on the page. The form is the design's, with how to send it
+and what to say. It cannot send: a church supplies its own Resend, SMTP or Twilio credentials and
+that path is not built, so the dialog says so rather than a button quietly doing nothing.
