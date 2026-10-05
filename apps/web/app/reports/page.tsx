@@ -68,8 +68,9 @@ export default async function ReportsPage({
 
   return (
     <AppShell session={session} title={t("reports.title")}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[22px] leading-7 text-fg">{t("reports.builtIn")}</h2>
+      {/* No heading: the bar above it already says Reports, and a page that
+          says its own name twice reads as a page nobody laid out. */}
+      <div className="flex flex-wrap items-center justify-end gap-3">
         <Button asChild>
           <Link href={`/reports/build${here}`}>
             <Plus /> {t("report.build")}
