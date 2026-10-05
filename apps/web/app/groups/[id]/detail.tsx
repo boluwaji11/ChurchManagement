@@ -89,6 +89,9 @@ export function GroupDetail({
   const [removing, setRemoving] = React.useState<DetailMember | null>(null);
   const [pending, startTransition] = React.useTransition();
 
+  /** R9.3. Who runs it, which decides what the chips say and who may come off. */
+  const leading = members.filter((one) => one.role !== "member");
+
   const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
       const result = await work();
@@ -126,10 +129,7 @@ export function GroupDetail({
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="overview">{t("group.tab.overview")}</TabsTrigger>
-          <TabsTrigger value="members" className="inline-flex items-center gap-1.5">
-            {t("group.tab.members")}
-            <span className="text-[12px] text-fg-muted">{members.length}</span>
-          </TabsTrigger>
+          <TabsTrigger value="members">{t("group.tab.members")}</TabsTrigger>
           {canManage ? (
             <TabsTrigger value="attendance">{t("group.tab.attendance")}</TabsTrigger>
           ) : null}
@@ -216,7 +216,7 @@ export function GroupDetail({
         </TabsContent>
 
         <TabsContent value="members">
-          <div className="flex flex-col gap-4">
+          <div className="flex max-w-[680px] flex-col gap-4">
             {/* Adding somebody sits above the list, because that is the one
                 thing this tab is opened to do. */}
             {canManage ? <AddMember church={church} groupId={groupId} /> : null}
@@ -238,14 +238,24 @@ export function GroupDetail({
 
                   {/* What they are and the way to take them off, as one pair. */}
                   <span className="flex items-center gap-1.5">
-                    <span className="text-[12px] text-fg-muted">
-                      {t(`groups.role.${member.role}` as never)}
-                    </span>
+                    {member.role === "member" ? null : (
+                      <span className="rounded-md bg-sunken px-2 py-0.5 text-[11px] font-bold tracking-[0.04em] text-fg-muted uppercase">
+                        {/* Co-leader only means something where there is more
+                            than one. One person running a group is its leader. */}
+                        {t(
+                          (leading.length > 1
+                            ? `groups.role.${member.role}`
+                            : "groups.role.leader") as never,
+                        )}
+                      </span>
+                    )}
                     {canManage ? (
                       <IconButton
                         label={t("groups.remove")}
                         variant="ghost"
-                        disabled={pending}
+                        disabled={
+                          pending || (member.role !== "member" && leading.length === 1)
+                        }
                         onClick={() => setRemoving(member)}
                       >
                         <X />

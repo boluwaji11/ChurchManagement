@@ -634,6 +634,29 @@ export async function removeFromGroup(
   const leftOn = input.leftOn ?? new Date().toISOString().slice(0, 10);
   if (!DATE.test(leftOn)) throw new InvalidInputError("group.error.left");
 
+  /*
+   * R9.3. A group always has somebody running it.
+   *
+   * Taking the last leader off would leave a group nobody can record attendance
+   * for and nobody can be asked about, so the church names a replacement first.
+   * Checked here rather than only on screen, because the screen is not the
+   * control.
+   */
+  const leaders = await db
+    .select({ personId: groupMemberships.personId })
+    .from(groupMemberships)
+    .where(
+      and(
+        eq(groupMemberships.groupId, input.groupId),
+        isNull(groupMemberships.leftOn),
+        inArray(groupMemberships.role, ["leader", "coleader"]),
+      ),
+    );
+
+  if (leaders.length === 1 && leaders[0]!.personId === input.personId) {
+    throw new InvalidInputError("group.error.lastLeader");
+  }
+
   await db
     .update(groupMemberships)
     .set({ leftOn, updatedAt: new Date() })

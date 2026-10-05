@@ -3,11 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import {
-  Banner, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
+import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import type { GroupRole } from "@hearth/db";
 import { findPerson, join, type PersonHit } from "./actions";
 
 /**
@@ -20,7 +17,6 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
   const router = useRouter();
   const [query, setQuery] = React.useState("");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
-  const [role, setRole] = React.useState<GroupRole>("member");
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
@@ -37,7 +33,9 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
 
   const add = (personId: string) =>
     startTransition(async () => {
-      const result = await join(groupId, personId, role, church);
+      // Everybody joins as a member. Who leads it is set on the group itself,
+      // where the question is asked once rather than on every row.
+      const result = await join(groupId, personId, "member", church);
       setError(result.error);
       if (!result.error) {
         setQuery("");
@@ -63,14 +61,6 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
           />
         </label>
 
-        <Select value={role} onValueChange={(value) => setRole(value as GroupRole)}>
-          <SelectTrigger aria-label={t("groups.role")} className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {(["member", "leader", "coleader"] as const).map((r) => (
-              <SelectItem key={r} value={r}>{t(`groups.role.${r}` as never)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {hits.length > 0 ? (

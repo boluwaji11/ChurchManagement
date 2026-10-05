@@ -405,6 +405,9 @@ export function GroupEditor({
                     label={t("groups.remove")}
                     variant="ghost"
                     className="size-7"
+                    // R9.3. A group keeps at least one. The last one comes off
+                    // only once somebody else has been named.
+                    disabled={leaders.length === 1}
                     onClick={() => setLeaders((was) => was.filter((x) => x.id !== one.id))}
                   >
                     <X />

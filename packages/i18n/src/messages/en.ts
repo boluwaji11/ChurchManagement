@@ -1189,6 +1189,7 @@ export const en = {
   "group.error.audience": "Choose who it is for.",
   "group.error.capacity": "How many it holds has to be a whole number.",
   "group.error.role": "Choose a role.",
+  "group.error.lastLeader": "Name another leader first. A group keeps at least one.",
   "group.error.joined": "Enter the day they joined.",
   "group.error.left": "Enter the day they left.",
   "group.error.person": "That person could not be found.",
