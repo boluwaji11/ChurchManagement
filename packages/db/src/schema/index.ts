@@ -18,3 +18,4 @@ export * from "./plans";
 export * from "./forms";
 export * from "./events";
 export * from "./notifications";
+export * from "./reports";

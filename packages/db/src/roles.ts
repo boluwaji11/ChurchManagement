@@ -73,4 +73,4 @@ export type PermissionAction =
   | "manageEvents"
   | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy"
   | "manageTeams" | "manageTeamRoster" | "schedule" | "managePlans"
-  | "manageForms" | "editRoles" | "manageHouseholds";
+  | "manageForms" | "editRoles" | "manageHouseholds" | "buildReports";

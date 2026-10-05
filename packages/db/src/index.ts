@@ -31,6 +31,9 @@ export {
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
 } from "./repo/people";
 export * from "./repo/reports";
+export * from "./repo/report-spec";
+export * from "./repo/report-compiler";
+export * from "./repo/saved-reports";
 export {
   listContacts, addContact, removeContact, makeContactPrimary, leadWith, listAddresses,
   addAddress, removeAddress, makeAddressPrimary,

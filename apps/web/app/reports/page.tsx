@@ -1,20 +1,24 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, CalendarCheck, TrendingUp, UserPlus } from "lucide-react";
-import { canEditPeople, canReadIncidents } from "@hearth/db";
+import { ArrowRight, CalendarCheck, Plus, TrendingUp, UserPlus } from "lucide-react";
+import { withTenant, listSavedReports, canEditPeople, canReadIncidents } from "@hearth/db";
+import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { SavedReports } from "./saved";
 
 export const dynamic = "force-dynamic";
 
 /**
  * R18.x. What a church can read back about itself.
  *
- * A list of named reports rather than a builder. A custom report builder is a
- * settled non-goal: it is the feature that makes Rock RMS unusable for the
- * churches this is for, and twenty questions answered well beats a tool for
- * asking any question badly.
+ * The three the product answers for every church, then whatever this church
+ * built for itself.
+ *
+ * The built ones are bounded by a fixed catalogue of subjects and fields rather
+ * than being a query language. A church picks what it is counting from a list
+ * it recognises, and nobody is asked to pick a table or a join.
  *
  * Only what is built is listed. A page of greyed-out rows promising reports is
  * a page that teaches a church not to come back.
@@ -32,6 +36,11 @@ export default async function ReportsPage({
   }
 
   const here = `?church=${session.tenantSlug}`;
+
+  const saved = await withTenant(
+    { tenantId: session.tenantId, role: session.role },
+    (tx) => listSavedReports(tx),
+  );
 
   const reports = [
     {
@@ -59,6 +68,15 @@ export default async function ReportsPage({
 
   return (
     <AppShell session={session} title={t("reports.title")}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-[22px] leading-7 text-fg">{t("reports.builtIn")}</h2>
+        <Button asChild>
+          <Link href={`/reports/build${here}`}>
+            <Plus /> {t("report.build")}
+          </Link>
+        </Button>
+      </div>
+
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
         {reports.map((one) => {
           const Icon = one.icon;
@@ -89,6 +107,13 @@ export default async function ReportsPage({
           );
         })}
       </div>
+
+      {saved.length > 0 ? (
+        <SavedReports
+          church={session.tenantSlug}
+          reports={saved.map((one) => ({ id: one.id, name: one.name, subject: one.subject }))}
+        />
+      ) : null}
     </AppShell>
   );
 }

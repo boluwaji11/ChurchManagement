@@ -101,9 +101,12 @@ Multi-site churches. Congregations over 2,000. Denominational or diocesan rollup
 IT staff member.
 
 This exclusion is not modesty, it is what buys us the ability to ship. It is why Hearth has no
-workflow automation engine, no engagement scoring model, and no custom report builder. Those three
-features are the reason Rock RMS is unusable for everyone else, and a 180 member church has never
-once needed any of them.
+workflow automation engine and no engagement scoring model. Both are a reason Rock RMS is unusable
+for everyone else, and a 180 member church has never once needed either.
+
+Report building was the third of those and is now built, bounded, under R18.12. The bound is what
+matters: a church picks a subject, a field and an operator from a fixed catalogue. Nothing in it
+asks anybody to choose a table or write an expression.
 
 Campus and location are still modeled in the schema from day one, because retrofitting tenancy
 boundaries is the one mistake you cannot undo cheaply. The UI simply does not expose them in v1.
@@ -281,7 +284,7 @@ Saying no is most of the work. These are out, and each one has a reason.
 | Livestreaming platform | YouTube and Facebook already do this for free and better. |
 | Multi-site and denominational rollups (v1) | Different product, different buyer, and that buyer has a budget. |
 | Workflow automation engine | Ship six opinionated pipelines instead. This is the Rock RMS trap. |
-| Custom report builder | Twenty good canned reports plus CSV export covers 95% of real requests. |
+| A report builder with tables, joins or expressions | R18.12 builds reports from a fixed catalogue of subjects and fields instead. A church picks from lists it recognises. |
 | Sermon video hosting | Storage cost we cannot fund. Link out. |
 | Reselling SMS or email credits | See section 5.2. |
 | Self-hosting as a supported product (v1) | The source is public and self-hosting will work, but it is not supported, documented, or tested in v1. |
@@ -819,6 +822,7 @@ Twenty good reports, not a report builder. The refusal is deliberate.
 | R18.9 | 1.0 | **Connectedness indicator** per person: a plain four-part signal of whether they attend, give, serve, and belong to a group. Four booleans and a count, not a machine learning score. Understandable at a glance is the whole point. |
 | R18.10 | 1.0 | CSV and PDF export on every report. |
 | R18.11 | 1.x | Scheduled reports emailed weekly or monthly. |
+| R18.12 | 1.0 | **Build a report and keep it.** A subject from a fixed set, conditions on that subject's own fields, chosen columns, and an optional count by one field with a measure. It previews as it is built, saves under a name, runs from the reports list, exports to CSV, and archives. Acceptance: every subject, field, operator and measure is a key in a server-side catalogue, checked on write and again on read, so nothing a church types reaches the database as SQL; a saved report naming a field that no longer exists drops that field rather than failing; sensitive fields (allergies, medical and pastoral notes) are absent from the catalogue; results are capped at 500 rows on screen and 5,000 in a file. |
 
 *Accept R18.9:* the indicator is explainable in one sentence to a pastor, and clicking any part of it
 lists the people it refers to.

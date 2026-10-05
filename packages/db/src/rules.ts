@@ -18,3 +18,4 @@ export * from "./repo/form-rules";
 export * from "./repo/form-templates";
 export * from "./repo/label-rules";
 export * from "./repo/storage-rules";
+export * from "./repo/report-spec";
