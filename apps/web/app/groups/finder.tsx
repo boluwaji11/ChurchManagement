@@ -467,8 +467,9 @@ export function Finder({
  */
 function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
   const hue = group.typeHue ?? "sky";
-  const leader = group.leaderNames[0];
-  const line = [meets(group), leader ? t("groups.leaders") : null].filter(Boolean);
+  // Every leader, the same as the group's own page. A card naming one of two
+  // leaders reads as a correction the moment the page is opened.
+  const leader = group.leaderNames.join(", ");
 
   return (
     <section
@@ -508,7 +509,7 @@ function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
         </Link>
 
         <div className="text-[13px] text-fg-muted">
-          {leader ? t("find.ledBy", { meets: meets(group), leader }) : line[0]}
+          {leader ? t("find.ledBy", { meets: meets(group), leader }) : meets(group)}
         </div>
 
         <div className="text-[13px] text-fg">
