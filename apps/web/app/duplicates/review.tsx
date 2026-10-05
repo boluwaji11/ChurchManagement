@@ -168,19 +168,22 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
 
           return (
             <React.Fragment key={row.key}>
-              <div className="flex items-center border-b border-sunken px-5 py-2.5 text-[12px] text-fg-subtle">
+              <div className="flex flex-col justify-center border-b border-sunken px-5 py-2.5 text-[12px] text-fg-subtle">
                 {row.label}
+                {/* R2.5. Said under the label, so the two values keep the
+                    columns every other row lines up with. */}
+                {fixed ? <span className="text-fg-subtle/70">{t("merge.bothKept")}</span> : null}
               </div>
               {fixed ? (
-                /* R2.5. Both are kept, so there is nothing to pick. Said here
-                   rather than left as two cells that refuse to be pressed. */
-                <div className="col-span-2 flex items-center gap-3 border-b border-sunken px-5 py-2.5 text-[length:var(--d-text-body)] text-fg">
-                  <span className="min-w-0 flex-1 truncate">{row.a}</span>
-                  <span className="min-w-0 flex-1 truncate">{row.b}</span>
-                  <span className="shrink-0 text-caption text-fg-subtle">
-                    {t("merge.bothKept")}
-                  </span>
-                </div>
+                /* Both are kept, so there is nothing to press. Drawn as the
+                   same two cells so the grid does not shift. */
+                (["a", "b"] as const).map((side) => (
+                  <div key={side} className={cn(cell, "cursor-default text-fg")}>
+                    <span className="min-w-0 flex-1 truncate">
+                      {side === "a" ? row.a : row.b}
+                    </span>
+                  </div>
+                ))
               ) : (["a", "b"] as const).map((side) => (
                 <button
                   key={side}
