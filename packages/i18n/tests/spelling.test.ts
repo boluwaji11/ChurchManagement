@@ -69,7 +69,7 @@ describe("reading a message", () => {
 
   it("does the same for a plural", () => {
     setSpellingResolver(() => "american");
-    expect(plural("event.placesLeft", 2)).toBe("2 places left");
+    expect(plural("event.placesLeft", 2)).toBe("2 seats left");
   });
 
   it("leaves the words as written when the resolver cannot answer", () => {

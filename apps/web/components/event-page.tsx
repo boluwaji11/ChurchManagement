@@ -127,7 +127,11 @@ export function EventPage({
             <Markdown text={event.description} className="max-w-[68ch]" />
           ) : null}
 
-          {preview || event.state === "none" ? null : (
+          {/* R14.2. A preview draws the whole page, registration included, so
+              a church sees what it is about to publish. It refuses to send,
+              because somebody checking their own page should not end up on
+              their own roster. */}
+          {event.state === "none" ? null : (
             <section className="flex flex-col gap-4 border-t border-line pt-7">
               <h2 className="font-display text-heading text-fg">{t("publicEvent.who")}</h2>
               <Register
@@ -136,6 +140,7 @@ export function EventPage({
                 today={today}
                 state={event.state}
                 questions={event.questions}
+                preview={preview}
               />
             </section>
           )}
