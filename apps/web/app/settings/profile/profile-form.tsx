@@ -84,7 +84,7 @@ export function ProfileForm({
   const [showing, setShowing] = React.useState(false);
   const [birthday, setBirthday] = React.useState(values.dateOfBirth);
   const [anniversary, setAnniversary] = React.useState(values.anniversary);
-  const [, startTransition] = React.useTransition();
+  const [saving, startTransition] = React.useTransition();
   const file = React.useRef<HTMLInputElement>(null);
 
   const display = `${values.firstName} ${values.lastName}`.trim();
@@ -249,6 +249,7 @@ export function ProfileForm({
 
         {editing ? (
           <FormActions
+            pending={saving}
             form="profile-form"
             label={t("settings.profile.save")}
           />

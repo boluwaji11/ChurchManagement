@@ -13,7 +13,7 @@ import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
 import { RichText } from "@/components/rich-text";
 import { AddressFields } from "@/components/address-fields";
-import { FormActions } from "@/components/form-actions";
+import { FormActions, useReportBusy } from "@/components/form-actions";
 import {
   createEventFrom, saveEvent, clearEventCover, recolourEvent, useFormForEvent,
 } from "./actions";
@@ -137,7 +137,8 @@ export function EventEditor({
   const [endsOn, setEndsOn] = React.useState(event?.endsOn ?? "");
   const [closesOn, setClosesOn] = React.useState(event?.registrationClosesOn ?? "");
   const [busy, setBusy] = React.useState(false);
-  const [, startTransition] = React.useTransition();
+  const [saving, startTransition] = React.useTransition();
+  useReportBusy("event-form", saving);
 
   // Held until the event exists to hang it on, which is what makes the cover
   // editable on the way in as well as afterwards.
@@ -420,9 +421,11 @@ export function EventEditor({
           <button
             type="button"
             onClick={() => setAsking(true)}
-            className="cursor-pointer text-label font-medium text-primary underline-offset-4 hover:underline"
+            className="cursor-pointer text-label font-bold text-primary underline-offset-4 hover:underline"
           >
-            {forms.find((one) => one.id === formId)?.name ?? t("event.questions.choose")}
+            {t("event.questions.named", {
+              name: forms.find((one) => one.id === formId)?.name ?? "",
+            })}
           </button>
         ) : null}
 

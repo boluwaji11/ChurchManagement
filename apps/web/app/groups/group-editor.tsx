@@ -13,7 +13,7 @@ import { Picker } from "@/components/picker";
 import { RichText } from "@/components/rich-text";
 import { AddressFields } from "@/components/address-fields";
 import { toAddress } from "@/lib/address";
-import { FormActions } from "@/components/form-actions";
+import { FormActions, useReportBusy } from "@/components/form-actions";
 import { create, save, findPerson, join, leave, type PersonHit } from "./actions";
 import type { GroupDraft, GroupTypeOption } from "./group-form";
 
@@ -95,7 +95,11 @@ export function GroupEditor({
   // makes the banner editable on the way in as well as afterwards.
   const [picture, setPicture] = React.useState<File | null>(null);
   const [preview, setPreview] = React.useState<string | null>(null);
-  const [, startTransition] = React.useTransition();
+  const [saving, startTransition] = React.useTransition();
+
+  // The save button lives in the page's header, outside this component, so the
+  // busy state is reported rather than passed.
+  useReportBusy("group-form", saving);
   const file = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {

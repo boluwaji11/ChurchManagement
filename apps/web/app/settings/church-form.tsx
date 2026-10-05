@@ -95,6 +95,7 @@ export function ChurchForm({
               up beside the page's own title. */}
           {editing ? (
             <FormActions
+              pending={pending}
               form="church-form"
               label={t("church.save")}
             />

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useFormStatus } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogFooter, IconButton,
@@ -19,23 +20,76 @@ import { t } from "@hearth/i18n";
  * something has been touched, every way out of the form asks first, in the
  * product's own words.
  */
+/**
+ * R24.6. Which forms are busy, by id.
+ *
+ * A form's save button is not always rendered inside the component doing the
+ * saving: the group pages put it in their header, beside the back link, while
+ * the editor that submits lives further down the tree. A small registry lets
+ * the one that knows tell the one that draws, without threading a prop through
+ * a server component that cannot hold state.
+ */
+const busy = new Map<string, boolean>();
+const watchers = new Set<() => void>();
+
+export function setFormBusy(form: string, on: boolean): void {
+  if ((busy.get(form) ?? false) === on) return;
+  busy.set(form, on);
+  for (const tell of watchers) tell();
+}
+
+function useFormBusy(form: string): boolean {
+  return React.useSyncExternalStore(
+    (tell) => {
+      watchers.add(tell);
+      return () => watchers.delete(tell);
+    },
+    () => busy.get(form) ?? false,
+    () => false,
+  );
+}
+
+/** Reports this form's busy state for as long as the component is on screen. */
+export function useReportBusy(form: string, on: boolean): void {
+  React.useEffect(() => {
+    setFormBusy(form, on);
+    return () => setFormBusy(form, false);
+  }, [form, on]);
+}
+
 export function FormActions({
   form,
   label,
+  pending = false,
 }: {
   /** The id of the form this commits. */
   form: string;
   label: string;
+  /**
+   * R24.6. Whether the save is in flight.
+   *
+   * A button that looks untouched for two seconds reads as a button that did
+   * not work, and the next thing anybody does is press it again. While this is
+   * true it says so and refuses a second press.
+   */
+  pending?: boolean;
 }) {
   const dirty = useDirty(form);
+  const working = pending || useFormBusy(form);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button type="submit" form={form} disabled={!dirty}>
-        {label}
+      <Button type="submit" form={form} disabled={!dirty || working}>
+        {working ? (
+          <span
+            aria-hidden
+            className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none"
+          />
+        ) : null}
+        {working ? t("action.saving") : label}
       </Button>
 
-      <LeaveGuard dirty={dirty} />
+      <LeaveGuard dirty={dirty && !working} />
     </div>
   );
 }
@@ -227,4 +281,18 @@ export function LeaveGuard({ dirty }: { dirty: boolean }) {
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * R24.6. Tells the registry when the form it sits in is submitting.
+ *
+ * For a form that posts straight to a server action with no transition of its
+ * own. Rendered inside the form, where `useFormStatus` can see it, and drawing
+ * nothing. The save button can then say it is working from wherever on the page
+ * it happens to live.
+ */
+export function FormBusy({ form }: { form: string }) {
+  const { pending } = useFormStatus();
+  useReportBusy(form, pending);
+  return null;
 }

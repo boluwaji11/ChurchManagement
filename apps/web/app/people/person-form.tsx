@@ -8,7 +8,7 @@ import {
 } from "@hearth/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { DateField } from "@/components/date-field";
-import { FormActions } from "@/components/form-actions";
+import { FormActions, FormBusy } from "@/components/form-actions";
 import { t } from "@hearth/i18n";
 import type { HouseholdOption } from "@hearth/db";
 import {
@@ -208,6 +208,9 @@ export function PersonForm({
 
   return (
     <form id="person-form" ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-5">
+      {/* Draws nothing. It sits in the form so the save button, which is in the
+          page's header, can say it is working. */}
+      <FormBusy form="person-form" />
       <input type="hidden" name="church" value={church} />
       {values?.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
