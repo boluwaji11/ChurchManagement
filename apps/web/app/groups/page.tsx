@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, findGroups, listGroupTypes, pendingRequests, personForUser, canManageGroups,
-  canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
+import { readsAsMember } from "@/lib/reads-as-member";
 import { TypesLanding, type TypeCard } from "./types-landing";
 import { requireSession } from "@/lib/session";
 import { Finder } from "./finder";
@@ -31,9 +31,9 @@ export default async function GroupsPage({
   const session = await requireSession(church);
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   const manage = canManageGroups(session);
-  // R17.5. A member reads this screen in the portal's frame, which is the one
-  // the rest of their screens wear. Staff read the same list inside the app.
-  const portal = !canEditPeople(session) && !canReadIncidents(session) && !manage;
+  // R17.5. A member reads this screen in the portal's frame. Staff read the
+  // same list inside the app.
+  const portal = readsAsMember(session);
 
   const { groups, types, requests } = await withTenant(actor, async (tx) => {
     const self = await personForUser(tx, session.userId);

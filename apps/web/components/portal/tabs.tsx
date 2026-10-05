@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, ShieldCheck } from "lucide-react";
 import {
   Avatar,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -101,7 +101,12 @@ export function PortalAccount({
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
           <Link href={`/settings/profile?church=${church}`}>
-            <Settings /> {t("nav.settings")}
+            <Settings /> {t("settings.tab.profile")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/settings/security?church=${church}`}>
+            <ShieldCheck /> {t("settings.tab.security")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

@@ -3,7 +3,6 @@ import { Check } from "lucide-react";
 import {
   withTenant, groupPage, personForUser, getChurch, upcomingMeetings,
   listGroupTypes, groupRoster, canManageGroups, pendingRequests,
-  canEditPeople, canReadIncidents,
   openMeeting, lastMeetingDay, canRecordFor,
   type Meeting, type MeetingPerson,
 } from "@connectapp/db";
@@ -11,6 +10,7 @@ import { Badge } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { PortalShell } from "@/components/portal-shell";
+import { readsAsMember } from "@/lib/reads-as-member";
 import { BackLink } from "@/components/back-link";
 import { requireSession } from "@/lib/session";
 import { GroupBanner } from "../banner";
@@ -62,7 +62,7 @@ export default async function GroupPage({
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   const manage = canManageGroups(session);
-  const portal = !canEditPeople(session) && !canReadIncidents(session) && !manage;
+  const portal = readsAsMember(session);
 
   const data = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);

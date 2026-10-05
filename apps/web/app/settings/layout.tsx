@@ -5,6 +5,8 @@ import {
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
+import { PortalShell, PortalTitle } from "@/components/portal-shell";
+import { readsAsMember } from "@/lib/reads-as-member";
 import { SettingsNav, type SettingsGroup } from "./nav";
 
 export const dynamic = "force-dynamic";
@@ -92,6 +94,25 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         : [],
     },
   ].filter((group) => group.items.length > 0);
+
+  /*
+   * R17.1. A member's settings are the two screens about themselves, so they
+   * read them in the portal's frame rather than being dropped into the app's
+   * sidebar to find a menu with one group in it.
+   */
+  if (readsAsMember(session)) {
+    return (
+      <PortalShell session={session}>
+        <PortalTitle title={t("nav.settings")} />
+        <div className="flex flex-wrap items-stretch gap-7">
+          <SettingsNav groups={groups} church={session.tenantSlug} />
+          <div className="flex min-w-0 flex-[999_1_400px] flex-col gap-5 md:border-l md:border-line md:pl-7">
+            {children}
+          </div>
+        </div>
+      </PortalShell>
+    );
+  }
 
   return (
     <AppShell session={session} title={t("nav.settings")}>

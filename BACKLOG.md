@@ -458,14 +458,15 @@ what the church has on, their groups and their household. Serving carries the sc
 decline, and blackout dates on a calendar. Groups opens on the kinds, then a list, then a group they
 can ask to join or leave. My household holds the people and the directory switches.
 
-HRT-157 is half done: the privacy switches are built, and changing your own name or contact details
-is still a question for the church office.
+Their own record is edited on Profile, reached from the account menu, in the portal's frame. The
+form was already there and was being read through the app's sidebar, which is a screen a member has
+no business in.
 
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-155 | Magic link sign-in, with a password as an option | R17.1 | New |
 | HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | New |
-| HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Active |
+| HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Resolved |
 | HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |
 | HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |
 | HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | New |
