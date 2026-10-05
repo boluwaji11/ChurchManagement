@@ -133,11 +133,11 @@ export const BARE_OPERATORS = new Set(["empty", "notEmpty", "yes", "no"]);
 export type MeasureKind = "rows" | "members" | "sum" | "average";
 
 /** How the answer is drawn. */
-export const VIEWS = ["table", "number", "bar", "rows", "donut", "line"] as const;
+export const VIEWS = ["table", "number", "bar", "rows", "stacked", "donut", "line", "area"] as const;
 export type View = (typeof VIEWS)[number];
 
 /** The ones that need the report to be counted by a field to mean anything. */
-export const GROUPED_VIEWS = new Set<View>(["bar", "rows", "donut", "line"]);
+export const GROUPED_VIEWS = new Set<View>(["bar", "rows", "stacked", "donut", "line", "area"]);
 
 export interface Condition {
   field: string;
@@ -258,8 +258,12 @@ export const VIEW_NEEDS: Record<View, ViewNeeds> = {
   rows: { grouped: true, readableUpTo: 20 },
   // A ring of thirty slices is a ring nobody can read, and the answer to that
   // is to say so rather than to draw it.
+  // One bar split into its parts. More than a dozen and the thin slices stop
+  // being anything anybody can point at.
+  stacked: { grouped: true, readableUpTo: 12 },
   donut: { grouped: true, readableUpTo: 9 },
   line: { grouped: true, readableUpTo: 60 },
+  area: { grouped: true, readableUpTo: 60 },
 };
 
 /** Whether this report can be drawn this way as it stands. */

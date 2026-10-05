@@ -11,7 +11,7 @@ import * as React from "react";
 import { t } from "@hearth/i18n";
 import { VIEW_NEEDS, type ReportSpec } from "@hearth/db/rules";
 import { Table, Thead, Tr, Th, Td } from "@hearth/ui";
-import { Columns, Donut, Line, RowBars, type Slice } from "./charts";
+import { Columns, Donut, Line, RowBars, Stacked, type Slice } from "./charts";
 
 /** A spectrum for a ring, so nine answers are nine colours. */
 const RING_HUES = ["indigo", "sky", "teal", "fern", "citron", "amber", "clay", "rose", "violet"];
@@ -57,10 +57,27 @@ export function Answer({
     const total = result.chart
       ? result.chart.reduce((all, one) => all + one.value, 0)
       : result.rows.length;
+
+    // A number on its own is a number. What it is made of is the next question
+    // anybody asks, so the largest answer is said under it.
+    const biggest = result.chart
+      ? [...result.chart].sort((a, b) => b.value - a.value)[0]
+      : null;
+
     return (
-      <p data-numeric className="font-display text-[64px] leading-[68px] text-fg">
-        {total.toLocaleString()}
-      </p>
+      <div className="flex flex-col gap-1">
+        <p data-numeric className="font-display text-[64px] leading-[68px] text-fg">
+          {total.toLocaleString()}
+        </p>
+        {biggest && result.chart && result.chart.length > 1 ? (
+          <p className="text-[13px] text-fg-muted">
+            {t("report.largest", {
+              label: read(biggest.label),
+              share: String(Math.round((biggest.value / (total || 1)) * 100)),
+            })}
+          </p>
+        ) : null}
+      </div>
     );
   }
 
@@ -79,14 +96,16 @@ export function Answer({
     return <RowBars rows={chart} hue="indigo" />;
   }
 
-  if (spec.view === "donut" && chart.length > 0) {
+  if ((spec.view === "stacked" || spec.view === "donut") && chart.length > 0) {
     const slices: Slice[] = chart.map((one, i) => ({
       key: one.key,
       label: one.label,
       value: one.value,
       hue: RING_HUES[i % RING_HUES.length]!,
     }));
-    return (
+    return spec.view === "stacked" ? (
+      <Stacked slices={slices} />
+    ) : (
       <Donut
         slices={slices}
         total={slices.reduce((all, one) => all + one.value, 0)}
@@ -95,12 +114,19 @@ export function Answer({
     );
   }
 
-  if (spec.view === "line" && chart.length > 0) {
+  if ((spec.view === "line" || spec.view === "area") && chart.length > 0) {
     // Along its own order rather than by size, because a line is read as time.
     const points = [...chart].sort((a, b) =>
       a.label.localeCompare(b.label, undefined, { numeric: true }));
-    return <Line points={points} hue="indigo" />;
+    return <Line points={points} hue="indigo" filled={spec.view === "area"} />;
   }
+
+  // The tallest number in each column, so a cell can be drawn against it.
+  const tallest = result.columns.map((column, c) =>
+    column.kind === "number"
+      ? Math.max(0, ...result.rows.map((row) => Number(row[c] ?? 0) || 0))
+      : 0,
+  );
 
   return (
     <div className="overflow-x-auto">
@@ -115,9 +141,26 @@ export function Answer({
         <tbody>
           {result.rows.slice(0, shown).map((row, i) => (
             <Tr key={i}>
-              {row.map((value, c) => (
-                <Td key={c} className="text-fg">{read(value)}</Td>
-              ))}
+              {row.map((value, c) => {
+                const top = tallest[c] ?? 0;
+                const n = Number(value);
+                const measured = top > 0 && Number.isFinite(n);
+                return (
+                  <Td key={c} className={measured ? "relative text-fg tabular-nums" : "text-fg"}>
+                    {measured ? (
+                      <span
+                        aria-hidden
+                        className="absolute inset-y-1 left-0 rounded-sm"
+                        style={{
+                          width: `${Math.max(1, Math.round((n / top) * 100))}%`,
+                          background: "var(--hue-indigo-tint)",
+                        }}
+                      />
+                    ) : null}
+                    <span className="relative">{read(value)}</span>
+                  </Td>
+                );
+              })}
             </Tr>
           ))}
         </tbody>

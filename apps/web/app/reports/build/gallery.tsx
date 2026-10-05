@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import {
-  BarChart3, ChartColumnBig, ChartLine, ChartPie, Hash, Table2,
+  AlignHorizontalDistributeCenter, BarChart3, ChartArea, ChartColumnBig, ChartLine, ChartPie,
+  Hash, Table2,
 } from "lucide-react";
 import { VIEWS, VIEW_NEEDS, viewFits, type View } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
@@ -12,8 +13,10 @@ const ICONS: Record<View, React.ComponentType<{ className?: string }>> = {
   number: Hash,
   bar: ChartColumnBig,
   rows: BarChart3,
+  stacked: AlignHorizontalDistributeCenter,
   donut: ChartPie,
   line: ChartLine,
+  area: ChartArea,
 };
 
 /**
@@ -46,7 +49,7 @@ export function Gallery({
         {t("report.step.view")}
       </h4>
 
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-4 gap-1.5">
         {VIEWS.map((one) => {
           const Icon = ICONS[one];
           const fits = viewFits(one, { groupBy });

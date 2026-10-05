@@ -125,11 +125,14 @@ export function Line({
   points,
   hue = "indigo",
   aside,
+  filled = true,
 }: {
   title?: string;
   points: Point[];
   hue?: string;
   aside?: string;
+  /** Filled under the line, which reads as a quantity rather than a direction. */
+  filled?: boolean;
 }) {
   const values = points.map((one) => one.value);
   const floor = Math.min(0, ...values);
@@ -184,9 +187,9 @@ export function Line({
           role="img"
           aria-label={title ?? ""}
         >
-          {/* Under the line, so the shape reads as a quantity rather than a
-              wire. */}
-          <path d={`${path} L${W},${zero} L0,${zero} Z`} fill={`var(--hue-${hue}-tint)`} opacity="0.7" />
+          {filled ? (
+            <path d={`${path} L${W},${zero} L0,${zero} Z`} fill={`var(--hue-${hue}-tint)`} opacity="0.7" />
+          ) : null}
           <path
             d={path}
             fill="none"
@@ -414,6 +417,68 @@ export function Funnel({
           );
         })}
       </ol>
+    </section>
+  );
+}
+
+
+/**
+ * R18.12. One bar split into its parts.
+ *
+ * The question a ring answers, in a shape that holds more of them and lines up
+ * against other bars. Each part carries its own share, and anything too thin
+ * to label still says what it is on hover.
+ */
+export function Stacked({
+  title,
+  slices,
+}: {
+  title?: string;
+  slices: Slice[];
+}) {
+  const sum = slices.reduce((all, one) => all + one.value, 0) || 1;
+
+  return (
+    <section className={title ? CARD : BARE}>
+      {title ? (
+        <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
+      ) : null}
+
+      <div className="flex h-12 w-full overflow-hidden rounded-lg">
+        {slices.map((one) => {
+          const share = (one.value / sum) * 100;
+          return (
+            <span
+              key={one.key}
+              tabIndex={0}
+              className="group relative flex items-center justify-center outline-none transition-opacity hover:opacity-85"
+              style={{ width: `${share}%`, background: `var(--hue-${one.hue}-500)` }}
+            >
+              <Hint label={one.label} value={`${readable(one.value)} \u00b7 ${Math.round(share)}%`} />
+              {/* The number only where there is room for it. */}
+              {share >= 9 ? (
+                <span className="px-1 text-[11px] font-semibold text-white tabular-nums">
+                  {Math.round(share)}%
+                </span>
+              ) : null}
+            </span>
+          );
+        })}
+      </div>
+
+      <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
+        {slices.map((one) => (
+          <li key={one.key} className="flex items-center gap-2 text-[13px]">
+            <span
+              aria-hidden
+              className="size-2.5 shrink-0 rounded-full"
+              style={{ background: `var(--hue-${one.hue}-500)` }}
+            />
+            <span className="truncate text-fg">{one.label}</span>
+            <span className="text-fg-muted tabular-nums">{readable(one.value)}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
