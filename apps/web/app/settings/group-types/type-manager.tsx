@@ -73,11 +73,6 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
                     type="button"
                     className={`flex cursor-pointer items-center gap-2.5 rounded-[14px] border border-line bg-surface p-4 text-left ${LIFT}`}
                   >
-                    <span
-                      aria-hidden
-                      className="size-3 shrink-0 rounded-[4px]"
-                      style={{ background: `var(--hue-${one.hue}-500)` }}
-                    />
                     <span className="min-w-0 flex-1 truncate font-semibold text-fg">
                       {one.name}
                     </span>
