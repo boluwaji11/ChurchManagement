@@ -180,17 +180,26 @@ export function ProfileForm({
             </DialogContent>
           </Dialog>
         ) : (
-          <button
-            type="button"
-            onClick={() => file.current?.click()}
-            aria-label={t("profile.photo.add")}
-            className="group relative shrink-0 cursor-pointer rounded-full"
-          >
-            <Avatar name={display} id={values.personId} className="size-14 text-[18px] font-semibold" />
-            <span className="absolute inset-0 grid place-items-center rounded-full bg-fg/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-              <Camera className="size-5 text-surface" aria-hidden />
+          /* With no photo the press goes straight to the file picker, so what
+             a picture may be is said here rather than in a panel that never
+             opens. The caption sits under the initials in a column of its own,
+             which leaves the name and the actions beside it where they were. */
+          <span className="flex shrink-0 flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => file.current?.click()}
+              aria-label={t("profile.photo.add")}
+              className="group relative cursor-pointer rounded-full"
+            >
+              <Avatar name={display} id={values.personId} className="size-14 text-[18px] font-semibold" />
+              <span className="absolute inset-0 grid place-items-center rounded-full bg-fg/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                <Camera className="size-5 text-surface" aria-hidden />
+              </span>
+            </button>
+            <span className="text-center text-[11px] leading-tight text-fg-subtle">
+              {imageLimit("person_photo")}
             </span>
-          </button>
+          </span>
         )}
 
         <Dialog open={dropping} onOpenChange={setDropping}>

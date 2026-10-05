@@ -129,16 +129,26 @@ export function ChurchLogo({
         ) : (
           /* R1.1. The church's first letter until there is a logo, which is
              what the design draws and what a label prints meanwhile. With no
-             logo on it, pressing goes straight to the file picker. */
-          <button
-            type="button"
-            disabled={!canEdit || busy}
-            onClick={() => input.current?.click()}
-            aria-label={t("church.logo.upload")}
-            className="grid size-14 shrink-0 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg enabled:cursor-pointer enabled:hover:brightness-110"
-          >
-            {churchName.trim().charAt(0).toUpperCase()}
-          </button>
+             logo on it, pressing goes straight to the file picker, so what a
+             picture may be is said here rather than in a panel that never
+             opens. The caption sits under the letter in a column of its own,
+             which leaves everything beside it where it was. */
+          <span className="flex shrink-0 flex-col items-center gap-1.5">
+            <button
+              type="button"
+              disabled={!canEdit || busy}
+              onClick={() => input.current?.click()}
+              aria-label={t("church.logo.upload")}
+              className="grid size-14 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg enabled:cursor-pointer enabled:hover:brightness-110"
+            >
+              {churchName.trim().charAt(0).toUpperCase()}
+            </button>
+            {canEdit ? (
+              <span className="text-center text-[11px] leading-tight text-fg-subtle">
+                {imageLimit("logo")}
+              </span>
+            ) : null}
+          </span>
         )}
 
 
