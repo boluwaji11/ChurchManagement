@@ -191,7 +191,14 @@ export function EventEditor({
 
       {/* R14.5. Which form people answer when they register. */}
       <Dialog open={asking} onOpenChange={setAsking}>
-        <DialogContent title={t("event.questions.choose")} closeLabel={t("common.close")}>
+        {/* The lookup's list is placed against its field rather than in a
+            portal, so a panel that clips its overflow cuts it in half. This one
+            is short enough to let it hang outside. */}
+        <DialogContent
+          title={t("event.questions.choose")}
+          closeLabel={t("common.close")}
+          className="overflow-visible"
+        >
           {/* A lookup rather than a list of circles: a church that has run a
               few terms has more forms than fit in a panel, and the one it
               wants it can name. */}
@@ -348,16 +355,14 @@ export function EventEditor({
             background: takes ? "var(--hue-fern-500)" : "var(--hue-sky-500)",
           }}
         />
-        <span className="min-w-[140px] flex-1 font-medium text-fg">
-          {takes ? t("event.peopleRegister") : t("event.informationOnly")}
-        </span>
-
         <Flag
           name="takesRegistrations"
           label={t("event.takesRegistrations")}
           checked={takes}
           onChange={wantsRegistrations}
         />
+
+        <span className="flex-1" />
 
         {takes && formId ? (
           <button
