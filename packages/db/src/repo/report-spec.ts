@@ -186,14 +186,47 @@ export type ChartSort = (typeof CHART_SORTS)[number];
 /** How many rows a table puts on a page. */
 export const PAGE_SIZES = [10, 25, 50, 100] as const;
 
+/** Where the key naming the series sits. */
+export const LEGEND_SPOTS = ["top", "bottom", "left", "right"] as const;
+export type LegendSpot = (typeof LEGEND_SPOTS)[number];
+
+/** What the number on a bar or a slice says. */
+export const LABEL_KINDS = ["value", "percent", "both"] as const;
+export type LabelKind = (typeof LABEL_KINDS)[number];
+
+/** Which way the bars run. The one axis is the x or the y, never both. */
+export const AXIS_WAYS = ["vertical", "horizontal"] as const;
+export type AxisWay = (typeof AXIS_WAYS)[number];
+
+/** How many series a visual can be coloured one by one. */
+export const SERIES_LIMIT = 12;
+
 export interface ReportLook {
+  /** The lead colour, and the one colour where there is only one series. */
   hue: ChartHue;
+  /**
+   * A colour per series, in the order the compiler returns them. A legend of
+   * four is four swatches somebody can set one at a time, which is the thing
+   * every tool of this kind does and the thing a spectrum in fixed order
+   * cannot.
+   */
+  hues: ChartHue[];
   /** The number on each bar, slice or point. */
   labels: boolean;
-  /** The key naming the series. */
+  /** And what that number says. */
+  labelKind: LabelKind;
+  /** The key naming the series, and where it sits. */
   legend: boolean;
+  legendAt: LegendSpot;
   /** The lines across the plot. */
   grid: boolean;
+  /** The numbers up the value axis. */
+  valueAxis: boolean;
+  /** The names along the category axis. */
+  categoryAxis: boolean;
+  /** What each axis is called, where the field's own name is not the word. */
+  valueTitle: string;
+  categoryTitle: string;
   /** Ordered by what it counted, or by what it is counting. */
   sort: ChartSort;
   dir: "asc" | "desc";
@@ -206,9 +239,16 @@ export interface ReportLook {
 
 export const DEFAULT_LOOK: ReportLook = {
   hue: "indigo",
+  hues: [],
   labels: false,
+  labelKind: "value",
   legend: true,
+  legendAt: "top",
   grid: true,
+  valueAxis: true,
+  categoryAxis: true,
+  valueTitle: "",
+  categoryTitle: "",
   sort: "value",
   dir: "desc",
   perPage: 10,
@@ -349,6 +389,20 @@ export function cleanSpec(raw: unknown): ReportSpec {
       ? (asked.sort as ChartSort)
       : DEFAULT_LOOK.sort,
     dir: asked.dir === "asc" ? "asc" : "desc",
+    hues: (Array.isArray(asked.hues) ? asked.hues : [])
+      .filter((one): one is ChartHue => CHART_HUES.includes(one as ChartHue))
+      .slice(0, SERIES_LIMIT),
+    labelKind: LABEL_KINDS.includes(asked.labelKind as LabelKind)
+      ? (asked.labelKind as LabelKind)
+      : DEFAULT_LOOK.labelKind,
+    legendAt: LEGEND_SPOTS.includes(asked.legendAt as LegendSpot)
+      ? (asked.legendAt as LegendSpot)
+      : DEFAULT_LOOK.legendAt,
+    valueAxis: asked.valueAxis === undefined ? DEFAULT_LOOK.valueAxis : Boolean(asked.valueAxis),
+    categoryAxis:
+      asked.categoryAxis === undefined ? DEFAULT_LOOK.categoryAxis : Boolean(asked.categoryAxis),
+    valueTitle: String(asked.valueTitle ?? "").slice(0, 60),
+    categoryTitle: String(asked.categoryTitle ?? "").slice(0, 60),
     perPage:
       asked.perPage === null
         ? null

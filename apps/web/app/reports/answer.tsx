@@ -8,12 +8,14 @@
  */
 import * as React from "react";
 import { t } from "@hearth/i18n";
-import { CHART_HUES, VIEW_NEEDS, type ReportSpec } from "@hearth/db/rules";
+import { CHART_HUES, VIEW_NEEDS, type ReportLook, type ReportSpec } from "@hearth/db/rules";
 import { Columns, Donut, Line, RowBars, Series, Stacked, type Slice } from "./charts";
+import type { Part } from "./plot";
 import { Rows } from "./rows";
 import { read } from "./read";
 
 export { read };
+export type { Part };
 
 /**
  * The spectrum, turned so the chosen colour leads it.
@@ -29,6 +31,31 @@ function spectrum(first: string): string[] {
 }
 
 /**
+ * A colour for every series: the one set on that series, or the spectrum from
+ * the lead colour where nobody has set one.
+ */
+export function palette(look: ReportLook, many: number): string[] {
+  const spread = spectrum(look.hue);
+  return Array.from(
+    { length: many },
+    (_, i) => look.hues[i] ?? spread[i % spread.length]!,
+  );
+}
+
+/** The format options every chart takes, out of the look. */
+const dressed = (look: ReportLook, fill: boolean, onPart?: (part: Part) => void) => ({
+  labelKind: look.labelKind,
+  legend: look.legend,
+  legendAt: look.legendAt,
+  grid: look.grid,
+  axis: look.valueAxis,
+  valueTitle: look.valueTitle || undefined,
+  categoryTitle: look.categoryTitle || undefined,
+  fill,
+  onPart,
+});
+
+/**
  * R18.12. The output, drawn the way the report asked for.
  *
  * Shared by the builder and the saved report, so what was built is what is
@@ -38,6 +65,7 @@ export function Answer({
   spec,
   result,
   fill = false,
+  onPart,
 }: {
   spec: ReportSpec;
   result: {
@@ -49,24 +77,25 @@ export function Answer({
   };
   /** Take the height the tile gives, rather than drawing at a fixed one. */
   fill?: boolean;
+  /** What to open the Format pane on, when a piece of the visual is pressed. */
+  onPart?: (part: Part) => void;
 }) {
   // Each visualization says how many answers it can carry before it stops
   // being readable, and the gallery says so on screen rather than the chart
   // quietly drawing forty slices nobody can tell apart.
   // Two dimensions: one column per answer, split into its series.
   if (result.grid && (spec.view === "bar" || spec.view === "stacked")) {
-    const hues = spectrum(spec.look.hue);
+    const hues = palette(spec.look, result.grid.series.length);
     return (
       <Series
+        {...dressed(spec.look, fill, onPart)}
         labels={result.grid.labels.map(read)}
+        valueLabels={spec.look.labels}
         stacked={spec.view === "stacked"}
-        legend={spec.look.legend}
-        grid={spec.look.grid}
-        fill={fill}
         series={result.grid.series.map((one, i) => ({
           name: read(one.name),
           values: one.values,
-          hue: hues[i % hues.length]!,
+          hue: hues[i]!,
         }))}
       />
     );
@@ -119,11 +148,9 @@ export function Answer({
   if (spec.view === "bar" && chart.length > 0) {
     return (
       <Columns
+        {...dressed(look, fill, onPart)}
         labels={look.labels}
-        legend={look.legend}
-        grid={look.grid}
-        fill={fill}
-        series={[{ label: t("report.measure.value"), hue: look.hue }]}
+        series={[{ label: t("report.measure.value"), hue: look.hues[0] ?? look.hue }]}
         groups={chart.map((one) => ({
           key: one.key, label: one.label, values: [one.value],
         }))}
@@ -132,25 +159,33 @@ export function Answer({
   }
 
   if (spec.view === "rows" && chart.length > 0) {
-    return <RowBars rows={chart} hue={look.hue} fill={fill} />;
+    return (
+      <RowBars
+        {...dressed(look, fill, onPart)}
+        rows={chart}
+        hue={look.hues[0] ?? look.hue}
+        labels={look.labels}
+      />
+    );
   }
 
   if ((spec.view === "stacked" || spec.view === "donut") && chart.length > 0) {
-    const hues = spectrum(look.hue);
+    const hues = palette(look, chart.length);
     const slices: Slice[] = chart.map((one, i) => ({
       key: one.key,
       label: one.label,
       value: one.value,
-      hue: hues[i % hues.length]!,
+      hue: hues[i]!,
     }));
     return spec.view === "stacked" ? (
-      <Stacked slices={slices} fill={fill} />
+      <Stacked {...dressed(look, fill, onPart)} slices={slices} labels={look.labels} />
     ) : (
       <Donut
+        {...dressed(look, fill, onPart)}
         slices={slices}
+        labels={look.labels}
         total={slices.reduce((all, one) => all + one.value, 0)}
         totalLabel={t("report.measure.value")}
-        fill={fill}
       />
     );
   }
@@ -162,11 +197,10 @@ export function Answer({
       a.label.localeCompare(b.label, undefined, { numeric: true }));
     return (
       <Line
+        {...dressed(look, fill, onPart)}
         points={points}
-        hue={look.hue}
+        hue={look.hues[0] ?? look.hue}
         labels={look.labels}
-        grid={look.grid}
-        fill={fill}
         filled={spec.view === "area"}
       />
     );

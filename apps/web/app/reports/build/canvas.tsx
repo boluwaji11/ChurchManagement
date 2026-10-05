@@ -6,6 +6,7 @@ import { IconButton, Spinner } from "@hearth/ui";
 import { GRID_COLUMNS, type ReportTile } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
 import { Answer } from "../answer";
+import type { Part } from "../plot";
 import type { ReportResultish } from "./actions";
 
 /** How tall one row of the grid is, before the gap. */
@@ -33,6 +34,7 @@ export function Canvas({
   onRemove,
   onDuplicate,
   onRename,
+  onPart,
 }: {
   tiles: ReportTile[];
   results: Record<string, ReportResultish | undefined>;
@@ -43,6 +45,8 @@ export function Canvas({
   onRemove: (id: string) => void;
   onDuplicate: (id: string) => void;
   onRename: (id: string, title: string) => void;
+  /** A piece of a visual was pressed, so the Format pane can open on it. */
+  onPart: (id: string, part: Part) => void;
 }) {
   const board = React.useRef<HTMLDivElement>(null);
   const [grab, setGrab] = React.useState<Grab | null>(null);
@@ -172,7 +176,12 @@ export function Canvas({
               ) : result && result.rows.length === 0 ? (
                 <p className="text-[13px] text-fg-muted">{t("report.nothingMatches")}</p>
               ) : result ? (
-                <Answer spec={tile} result={result} fill />
+                <Answer
+                  spec={tile}
+                  result={result}
+                  fill
+                  onPart={(part) => { onSelect(tile.id); onPart(tile.id, part); }}
+                />
               ) : (
                 <p className="text-[13px] text-fg-subtle">{t("report.running")}</p>
               )}

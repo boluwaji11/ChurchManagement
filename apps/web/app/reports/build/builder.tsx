@@ -20,6 +20,8 @@ import { Gallery } from "./gallery";
 import { Wells } from "./wells";
 import { Format } from "./format";
 import { Canvas } from "./canvas";
+import type { Part } from "../plot";
+import { read } from "../read";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -88,6 +90,9 @@ export function Builder({
   const [saving, setSaving] = React.useState(false);
   const [savedAt, setSavedAt] = React.useState<number | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  // Which pane is open, and which section of Format the visual sent us to.
+  const [tab, setTab] = React.useState("build");
+  const [part, setPart] = React.useState<Part | null>(null);
   const held = React.useRef<number | null>(null);
 
   const tile = page.tiles.find((one) => one.id === chosen) ?? page.tiles[0]!;
@@ -442,6 +447,11 @@ export function Builder({
             running={running}
             selected={tile.id}
             onSelect={setChosen}
+            onPart={(id, which) => {
+              setChosen(id);
+              setPart(which);
+              setTab("format");
+            }}
             onRename={(id, title) =>
               setPage((was) => ({
                 tiles: was.tiles.map((one) => (one.id === id ? { ...one, title } : one)),
@@ -471,7 +481,7 @@ export function Builder({
         </div>
 
         <div className="w-full shrink-0 border-line p-4 lg:w-[252px] lg:border-l">
-          <Tabs defaultValue="build">
+          <Tabs value={tab} onValueChange={(value) => { setTab(value); setPart(null); }}>
             <TabsList className="mb-4 w-full">
               <TabsTrigger value="build" className="flex-1">{t("report.tab.build")}</TabsTrigger>
               <TabsTrigger value="format" className="flex-1">{t("report.tab.format")}</TabsTrigger>
@@ -499,7 +509,16 @@ export function Builder({
             </TabsContent>
 
             <TabsContent value="format">
-              <Format tile={tile} onChange={change} />
+              <Format
+                tile={tile}
+                part={part}
+                series={(
+                  results[tile.id]?.grid
+                    ? results[tile.id]!.grid!.series.map((one) => one.name)
+                    : (results[tile.id]?.chart ?? []).map((one) => one.label)
+                ).map(read)}
+                onChange={change}
+              />
             </TabsContent>
           </Tabs>
         </div>
