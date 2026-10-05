@@ -46,7 +46,8 @@ export default async function FormsPage({
     <AppShell
       session={session}
       title={t("form.title")}
-      action={putAway || forms.length === 0 ? undefined : <NewFormButton church={session.tenantSlug} />}
+      /* No action in the band above: it shares a line with the search, and on
+         an empty screen it sits in the empty state where the eye already is. */
     >
       {putAway ? (
         <Link
@@ -61,10 +62,14 @@ export default async function FormsPage({
         <Empty
           icon="form"
           title={putAway ? t("form.archived.none") : t("form.empty")}
-          action={putAway || forms.length === 0 ? undefined : <NewFormButton church={session.tenantSlug} />}
+          action={putAway ? undefined : <NewFormButton church={session.tenantSlug} />}
         />
       ) : (
-        <FormSearch names={forms.map((one) => one.name)} count={forms.length}>
+        <FormSearch
+          names={forms.map((one) => one.name)}
+          count={forms.length}
+          action={putAway ? undefined : <NewFormButton church={session.tenantSlug} />}
+        >
           {forms.map((form) => {
             const open = !form.archivedAt && form.status === "open";
             return (

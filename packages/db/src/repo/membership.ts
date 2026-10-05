@@ -43,7 +43,9 @@ export async function membershipsForUser(userId: string): Promise<Membership[]> 
       t.slug as "tenantSlug",
       t.name as "tenantName",
       m.role as "role",
-      r.permissions as "permissions"
+      r.permissions as "permissions",
+      r.builtin as "builtin",
+      r.customised as "customised"
     from tenant_members m
     join tenants t on t.id = m.tenant_id
     left join tenant_roles r
@@ -70,7 +72,9 @@ export async function verifyMembership(userId: string, tenantId: string): Promis
       t.slug as "tenantSlug",
       t.name as "tenantName",
       m.role as "role",
-      r.permissions as "permissions"
+      r.permissions as "permissions",
+      r.builtin as "builtin",
+      r.customised as "customised"
     from tenant_members m
     join tenants t on t.id = m.tenant_id
     left join tenant_roles r
@@ -83,18 +87,33 @@ export async function verifyMembership(userId: string, tenantId: string): Promis
 }
 
 /** The row as the database hands it back, before the permissions are filtered. */
-type Row = Omit<Membership, "permissions"> & { permissions: string[] | null };
+type Row = Omit<Membership, "permissions"> & {
+  permissions: string[] | null;
+  builtin: boolean | null;
+  customised: boolean | null;
+};
 
 /**
- * R1.6. Keeps only permissions the catalogue still names.
+ * R1.6. What this member actually holds.
  *
- * A permission we removed leaves rows behind in every church that granted it,
- * and a stale key must never be read as a grant.
+ * A built-in role the church has left alone answers null, meaning the matrix in
+ * permissions.ts decides. Its stored row is a copy written when the church was
+ * first read and refreshed only on the roles screen, so reading it here would
+ * mean a permission added to the product never reaching a church that had not
+ * opened that screen. A church that has edited a role owns every answer for it
+ * and keeps its own set.
+ *
+ * Whatever is kept is filtered to the permissions the catalogue still names,
+ * because one we removed leaves rows behind in every church that granted it and
+ * a stale key must never be read as a grant.
  */
 function held(row: Row): Membership {
+  const { builtin, customised, ...rest } = row;
+  const fromMatrix = builtin === true && customised !== true;
+
   return {
-    ...row,
-    permissions: row.permissions
+    ...rest,
+    permissions: row.permissions && !fromMatrix
       ? PERMISSIONS.filter((one) => row.permissions!.includes(one))
       : null,
   };

@@ -17,11 +17,14 @@ export function FormSearch({
   children,
   names,
   count,
+  action,
 }: {
   /** One tile per form, in the same order as `names`. */
   children: React.ReactNode[];
   names: string[];
   count: number;
+  /** The screen's one action, which shares the line with the search. */
+  action?: React.ReactNode;
 }) {
   const [query, setQuery] = React.useState("");
   const text = query.trim().toLowerCase();
@@ -32,22 +35,30 @@ export function FormSearch({
 
   return (
     <div className="flex flex-col gap-4">
-      {count > 1 ? (
-        <label className="relative flex max-w-[360px] items-center">
-          <Search
-            className="pointer-events-none absolute left-3 size-4 text-fg-subtle"
-            aria-hidden
-          />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label={t("common.search")}
-            placeholder={t("common.search")}
-            autoComplete="off"
-            className="pl-9"
-          />
-        </label>
-      ) : null}
+      {/* The search and the action share one line, because they are the two
+          things this screen offers and stacking them wastes a band of the
+          page on nothing. */}
+      <div className="flex flex-wrap items-center gap-3">
+        {count > 1 ? (
+          <label className="relative flex max-w-[360px] min-w-[200px] flex-1 items-center">
+            <Search
+              className="pointer-events-none absolute left-3 size-4 text-fg-subtle"
+              aria-hidden
+            />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label={t("common.search")}
+              placeholder={t("common.search")}
+              autoComplete="off"
+              className="pl-9"
+            />
+          </label>
+        ) : (
+          <span className="flex-1" />
+        )}
+        {action}
+      </div>
 
       {shown.length === 0 ? (
         <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("common.noMatch")}</p>
