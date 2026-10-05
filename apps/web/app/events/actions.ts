@@ -2,7 +2,7 @@
 
 import {
   withTenant, createEvent, updateEvent, setEventStatus, setEventArchived,
-  setEventRegistrationOpen, setEventHue, setEventCover,
+  setEventRegistrationOpen, setEventHue, setEventCover, setEventForm,
   getChurch, lookupPeople,
   type EventInput, type EventStatus,
 } from "@hearth/db";
@@ -186,3 +186,25 @@ export async function findEventContact(
   }
 }
 
+
+/**
+ * R14.5. Writes the chosen form onto the event there and then.
+ *
+ * Pressing Save in the panel means the form is linked, so it is written rather
+ * than held until the whole designer is saved. Everything else on the screen is
+ * left alone, because somebody halfway through writing a description did not
+ * ask for it to be saved.
+ */
+export async function useFormForEvent(
+  eventId: string,
+  formId: string | null,
+  church?: string,
+): Promise<EventResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setEventForm(tx, actor, eventId, formId));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}

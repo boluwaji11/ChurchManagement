@@ -15,7 +15,7 @@ import { RichText } from "@/components/rich-text";
 import { AddressFields } from "@/components/address-fields";
 import { FormActions } from "@/components/form-actions";
 import {
-  createEventFrom, saveEvent, clearEventCover, recolourEvent,
+  createEventFrom, saveEvent, clearEventCover, recolourEvent, useFormForEvent,
 } from "./actions";
 
 export interface EventDraft {
@@ -103,6 +103,7 @@ export function EventEditor({
   const [takes, setTakes] = React.useState(event?.takesRegistrations ?? true);
   const [formId, setFormId] = React.useState(event?.formId ?? "");
   const [asking, setAsking] = React.useState(false);
+  const [linking, startLinking] = React.useTransition();
 
   /*
    * R14.5. Turning registration on asks which form people answer.
@@ -243,7 +244,25 @@ export function EventEditor({
           )}
 
           <DialogFooter>
-            <Button type="button" onClick={() => setAsking(false)} disabled={!formId}>
+            <Button
+              type="button"
+              disabled={!formId || linking}
+              onClick={() => {
+                // On an event that exists, the link is written now. On one
+                // being created there is no record to write it to yet, so it
+                // rides the designer's hidden field and is saved with the rest.
+                if (!event) {
+                  setAsking(false);
+                  return;
+                }
+                startLinking(async () => {
+                  const result = await useFormForEvent(event.id, formId, church);
+                  if (result.error) setError(result.error);
+                  else setAsking(false);
+                  router.refresh();
+                });
+              }}
+            >
               {t("action.save")}
             </Button>
           </DialogFooter>
