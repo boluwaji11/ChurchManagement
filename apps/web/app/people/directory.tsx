@@ -204,19 +204,10 @@ export function Directory({
 
   return (
     <>
-      {/* The row across the top: what you are looking for on the left, what you
-          can do to the list on the right. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <SearchField
-          value={search}
-          onChange={setSearch}
-          placeholder={t("directory.searchPlaceholder")}
-        />
-
-        <span className="flex-1" />
-
-        {/* The actions wrap as one block, so the thing this screen is for does
-            not end up alone on a line of its own under the search box. */}
+      <div className="flex flex-col gap-3">
+        {/* What you can do to the list, then the box that narrows it. The
+            actions wrap as one block, so the thing this screen is for does not
+            end up alone on a line of its own. */}
         <div className="flex flex-wrap items-center justify-end gap-2">
         <FilterDrawer
           tags={tags}
@@ -267,6 +258,12 @@ export function Directory({
           </Button>
         ) : null}
         </div>
+
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t("directory.searchPlaceholder")}
+        />
       </div>
 
       {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
