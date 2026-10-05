@@ -1,5 +1,6 @@
 import * as React from "react";
 import { t } from "@hearth/i18n";
+import { Frame, Hint, ceiling, readable } from "./plot";
 
 /**
  * R18.x. The pictures a report is read from.
@@ -75,7 +76,7 @@ export function Donut({
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span data-numeric className="font-display text-[26px] leading-7 text-fg">
-              {total}
+              {readable(total)}
             </span>
             <span className="text-[11px] text-fg-subtle">{totalLabel}</span>
           </div>
@@ -89,8 +90,13 @@ export function Donut({
                 className="size-2.5 shrink-0 rounded-full"
                 style={{ background: `var(--hue-${one.hue}-500)` }}
               />
-              <span className="min-w-0 flex-1 truncate text-fg">{one.label}</span>
+              <span className="min-w-0 flex-1 truncate text-fg" title={one.label}>
+                {one.label}
+              </span>
               <span className="shrink-0 text-fg-muted tabular-nums">
+                {readable(one.value)}
+              </span>
+              <span className="w-9 shrink-0 text-right text-fg-subtle tabular-nums">
                 {Math.round((one.value / sum) * 100)}%
               </span>
             </li>
@@ -126,8 +132,8 @@ export function Line({
   aside?: string;
 }) {
   const values = points.map((one) => one.value);
-  const top = Math.max(1, ...values);
   const floor = Math.min(0, ...values);
+  const top = ceiling(Math.max(1, ...values));
   const range = top - floor || 1;
 
   const W = 100;
@@ -137,12 +143,15 @@ export function Line({
     y: H - ((one.value - floor) / range) * H,
   });
 
-  const path = points.map((one, i) => {
-    const { x, y } = at(one, i);
-    return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
-  }).join(" ");
+  const path = points
+    .map((one, i) => {
+      const { x, y } = at(one, i);
+      return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
 
   const zero = H - ((0 - floor) / range) * H;
+  const every = points.length > 8 ? Math.ceil(points.length / 8) : 1;
 
   return (
     <section className={title ? CARD : BARE}>
@@ -153,28 +162,31 @@ export function Line({
         {aside ? <span className="text-caption text-fg-subtle">{aside}</span> : null}
       </div>
 
-      <div className="relative h-[160px]">
+      <Frame
+        top={top}
+        footer={
+          <div className="flex pt-1.5">
+            {points.map((one, i) => (
+              <span
+                key={one.key}
+                className="min-w-0 flex-1 truncate text-center text-[11px] text-fg-subtle"
+              >
+                {i % every === 0 ? one.label : ""}
+              </span>
+            ))}
+          </div>
+        }
+      >
         <svg
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="none"
           className="size-full"
           role="img"
-          aria-label={title}
+          aria-label={title ?? ""}
         >
-          {/* Under the line, so the shape reads as a quantity rather than as a
+          {/* Under the line, so the shape reads as a quantity rather than a
               wire. */}
-          <path
-            d={`${path} L${W},${zero} L0,${zero} Z`}
-            fill={`var(--hue-${hue}-tint)`}
-            opacity="0.7"
-          />
-          <path
-            d={`M0,${zero} L${W},${zero}`}
-            stroke="var(--line-strong)"
-            strokeWidth="0.3"
-            strokeDasharray="1.5 1.5"
-            vectorEffect="non-scaling-stroke"
-          />
+          <path d={`${path} L${W},${zero} L0,${zero} Z`} fill={`var(--hue-${hue}-tint)`} opacity="0.7" />
           <path
             d={path}
             fill="none"
@@ -186,33 +198,29 @@ export function Line({
           />
         </svg>
 
-        {/* The points themselves, as elements rather than circles in the
-            stretched viewBox, so they stay round. */}
-        <div className="pointer-events-none absolute inset-0">
+        {/* The points as elements rather than circles in a stretched viewBox,
+            so they stay round and can be hovered. */}
+        <div className="absolute inset-0">
           {points.map((one, i) => {
             const { x, y } = at(one, i);
             return (
               <span
                 key={one.key}
-                title={`${one.label}: ${one.value}`}
-                className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface"
-                style={{
-                  left: `${x}%`,
-                  top: `${(y / H) * 100}%`,
-                  background: `var(--hue-${hue}-key)`,
-                }}
-              />
+                tabIndex={0}
+                className="group absolute size-5 -translate-x-1/2 -translate-y-1/2 cursor-default outline-none"
+                style={{ left: `${x}%`, top: `${(y / H) * 100}%` }}
+              >
+                <Hint label={one.label} value={readable(one.value)} />
+                <span
+                  aria-hidden
+                  className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface transition-transform group-hover:scale-150"
+                  style={{ background: `var(--hue-${hue}-key)` }}
+                />
+              </span>
             );
           })}
         </div>
-      </div>
-
-      {points.length > 1 ? (
-        <div className="mt-3 flex justify-between text-caption text-fg-subtle">
-          <span>{points[0]!.label}</span>
-          <span>{points[points.length - 1]!.label}</span>
-        </div>
-      ) : null}
+      </Frame>
     </section>
   );
 }
@@ -227,7 +235,11 @@ export function Columns({
   groups: { key: string; label: string; values: number[] }[];
   series: { label: string; hue: string }[];
 }) {
-  const most = Math.max(1, ...groups.flatMap((one) => one.values));
+  const top = ceiling(Math.max(1, ...groups.flatMap((one) => one.values)));
+
+  // Past this many columns the labels collide, so every other one is drawn and
+  // the rest are still read from the tooltip.
+  const every = groups.length > 12 ? Math.ceil(groups.length / 12) : 1;
 
   return (
     <section className={title ? CARD : BARE}>
@@ -249,32 +261,47 @@ export function Columns({
         </ul>
       </div>
 
-      <ol className="flex h-[160px] items-end gap-2">
-        {groups.map((group) => (
-          <li
-            key={group.key}
-            className="flex h-full min-w-0 flex-1 items-end justify-center gap-[2px]"
-            title={`${group.label}: ${group.values.join(" / ")}`}
-          >
-            {group.values.map((value, i) => (
+      <Frame
+        top={top}
+        footer={
+          <div className="flex gap-2 pt-1.5">
+            {groups.map((group, i) => (
               <span
-                key={series[i]?.label ?? i}
-                aria-hidden
-                className="w-full max-w-5 rounded-t-[3px]"
-                style={{
-                  height: `${Math.max(1, Math.round((value / most) * 100))}%`,
-                  background: `var(--hue-${series[i]?.hue ?? "indigo"}-500)`,
-                }}
-              />
+                key={group.key}
+                className="min-w-0 flex-1 truncate text-center text-[11px] text-fg-subtle"
+              >
+                {i % every === 0 ? group.label : ""}
+              </span>
             ))}
-          </li>
-        ))}
-      </ol>
-
-      <div className="mt-3 flex justify-between text-caption text-fg-subtle">
-        <span>{groups[0]?.label}</span>
-        <span>{groups.length > 1 ? groups[groups.length - 1]!.label : ""}</span>
-      </div>
+          </div>
+        }
+      >
+        <ol className="flex h-full items-end gap-2">
+          {groups.map((group) => (
+            <li
+              key={group.key}
+              tabIndex={0}
+              className="group relative flex h-full min-w-0 flex-1 items-end justify-center gap-[2px] outline-none"
+            >
+              <Hint
+                label={group.label}
+                value={group.values.map((one) => readable(one)).join(" / ")}
+              />
+              {group.values.map((value, i) => (
+                <span
+                  key={series[i]?.label ?? i}
+                  aria-hidden
+                  className="w-full max-w-5 rounded-t-[3px] transition-opacity group-hover:opacity-80"
+                  style={{
+                    height: `${Math.max(value > 0 ? 1 : 0, Math.round((value / top) * 100))}%`,
+                    background: `var(--hue-${series[i]?.hue ?? "indigo"}-500)`,
+                  }}
+                />
+              ))}
+            </li>
+          ))}
+        </ol>
+      </Frame>
     </section>
   );
 }
@@ -299,12 +326,14 @@ export function RowBars({
 
       <ol className="flex flex-col gap-2.5">
         {rows.map((one) => (
-          <li key={one.key} className="flex items-center gap-3">
-            <span className="w-24 shrink-0 truncate text-[13px] text-fg-muted">{one.label}</span>
-            <span className="h-5 min-w-0 flex-1 overflow-hidden rounded-sm bg-sunken">
+          <li key={one.key} className="group relative flex items-center gap-3" tabIndex={0}>
+            <span className="w-24 shrink-0 truncate text-[13px] text-fg-muted" title={one.label}>
+              {one.label}
+            </span>
+            <span className="relative h-5 min-w-0 flex-1 overflow-hidden rounded-sm bg-sunken">
               <span
                 aria-hidden
-                className="block h-full rounded-sm"
+                className="block h-full rounded-sm transition-opacity group-hover:opacity-80"
                 style={{
                   width: `${Math.max(2, Math.round((one.value / most) * 100))}%`,
                   background: `var(--hue-${hue}-500)`,
@@ -316,8 +345,8 @@ export function RowBars({
                 {one.note}
               </span>
             ) : null}
-            <span className="w-8 shrink-0 text-right text-[13px] font-medium text-fg tabular-nums">
-              {one.value}
+            <span className="w-10 shrink-0 text-right text-[13px] font-medium text-fg tabular-nums">
+              {readable(one.value)}
             </span>
           </li>
         ))}
