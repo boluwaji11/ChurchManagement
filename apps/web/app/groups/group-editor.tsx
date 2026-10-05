@@ -174,7 +174,6 @@ export function GroupEditor({
               autoComplete="off"
               autoFocus
               placeholder={t("groups.namePlaceholder")}
-              className="h-auto py-2 font-display text-[28px] leading-[34px]"
             />
           </Field>
 
