@@ -172,3 +172,207 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
     coverageGaps: Number(gaps?.gaps ?? 0),
   };
 }
+
+export interface FunnelStep {
+  /** "visited", "returned", "group", "serving", "member". */
+  key: string;
+  people: number;
+  /** Of the people who reached the step before, how many reached this one. */
+  rate: number;
+  /** Middle number of days from the first visit to reaching this step. */
+  medianDays: number | null;
+}
+
+/**
+ * R18.3. What happens to somebody after they first turn up.
+ *
+ * Five steps, each one counted among the people who reached the one before it,
+ * so the rate answers "of those who came back, how many joined a group" rather
+ * than "what fraction of everybody". That is the question a church is actually
+ * asking.
+ *
+ * The cohort is people whose first recorded gathering falls in the window. A
+ * church that started using Hearth in March cannot be asked about February,
+ * and a report that quietly counts the import as a hundred first visits is a
+ * report that lies on its most important line.
+ *
+ * The middle number of days rather than the average, because one person who
+ * joined a group four years later should not move the answer for everybody.
+ */
+export async function visitorFunnel(
+  db: Tx,
+  opts: { from: string; to: string },
+): Promise<FunnelStep[]> {
+  const rows = await db.execute<{
+    visited: string;
+    returned: string;
+    grouped: string;
+    serving: string;
+    member: string;
+    daysReturned: string | null;
+    daysGroup: string | null;
+    daysServing: string | null;
+    daysMember: string | null;
+  }>(sql`
+    with cohort as (
+      select p.id, p.first_visit_on, p.membership_date, p.lifecycle_status
+        from people p
+       where p.archived_at is null
+         and p.first_visit_on between ${opts.from} and ${opts.to}
+    ),
+    marked as (
+      select c.id,
+             c.first_visit_on,
+             -- R7.5. The second distinct day they were recorded present.
+             (select min(o.occurs_on)
+                from attendance_records a
+                join service_occurrences o on o.id = a.occurrence_id
+               where a.person_id = c.id
+                 and o.occurs_on > c.first_visit_on) as returned_on,
+             (select min(m.joined_on) from group_memberships m
+               where m.person_id = c.id) as grouped_on,
+             (select min(tm.joined_on) from team_members tm
+               where tm.person_id = c.id) as serving_on,
+             case when c.lifecycle_status = 'member'
+                  then coalesce(c.membership_date, c.first_visit_on) end as member_on
+        from cohort c
+    )
+    select count(*)::text as visited,
+           count(returned_on)::text as returned,
+           count(grouped_on)::text as grouped,
+           count(serving_on)::text as serving,
+           count(member_on)::text as member,
+           percentile_cont(0.5) within group (
+             order by (returned_on - first_visit_on)) filter (where returned_on is not null)
+             ::text as "daysReturned",
+           percentile_cont(0.5) within group (
+             order by (grouped_on - first_visit_on)) filter (where grouped_on is not null)
+             ::text as "daysGroup",
+           percentile_cont(0.5) within group (
+             order by (serving_on - first_visit_on)) filter (where serving_on is not null)
+             ::text as "daysServing",
+           percentile_cont(0.5) within group (
+             order by (member_on - first_visit_on)) filter (where member_on is not null)
+             ::text as "daysMember"
+      from marked`);
+
+  const row = rows[0];
+  const n = (value: string | null | undefined) =>
+    value === null || value === undefined ? null : Math.round(Number(value));
+
+  const visited = Number(row?.visited ?? 0);
+  const returned = Number(row?.returned ?? 0);
+  const grouped = Number(row?.grouped ?? 0);
+  const serving = Number(row?.serving ?? 0);
+  const member = Number(row?.member ?? 0);
+
+  const share = (reached: number, before: number) =>
+    before === 0 ? 0 : Math.round((reached / before) * 100);
+
+  return [
+    { key: "visited", people: visited, rate: 100, medianDays: 0 },
+    { key: "returned", people: returned, rate: share(returned, visited), medianDays: n(row?.daysReturned) },
+    { key: "group", people: grouped, rate: share(grouped, returned), medianDays: n(row?.daysGroup) },
+    { key: "serving", people: serving, rate: share(serving, grouped), medianDays: n(row?.daysServing) },
+    { key: "member", people: member, rate: share(member, returned), medianDays: n(row?.daysMember) },
+  ];
+}
+
+export interface ServiceAverage {
+  name: string;
+  held: number;
+  average: number;
+  best: number;
+}
+
+/**
+ * R18.2. How each gathering does, averaged over the window.
+ *
+ * A church with a nine o'clock and an eleven o'clock wants to know which one is
+ * growing, and a single trend line across both cannot say.
+ */
+export async function attendanceByName(
+  db: Tx,
+  opts: { from: string; to: string },
+): Promise<ServiceAverage[]> {
+  const rows = await db.execute<{
+    name: string;
+    held: string;
+    average: string;
+    best: string;
+  }>(sql`
+    select o.name,
+           count(*)::text as held,
+           round(avg(c.present))::text as average,
+           max(c.present)::text as best
+      from service_occurrences o
+      cross join lateral (
+        select count(*) as present from attendance_records a where a.occurrence_id = o.id
+      ) c
+     where o.occurs_on between ${opts.from} and ${opts.to}
+       and o.status <> 'cancelled'
+     group by o.name
+     order by avg(c.present) desc`);
+
+  return rows.map((row) => ({
+    name: row.name,
+    held: Number(row.held),
+    average: Number(row.average),
+    best: Number(row.best),
+  }));
+}
+
+export interface MonthChange {
+  month: string;
+  joined: number;
+  lapsed: number;
+  net: number;
+}
+
+/**
+ * R18.4. New, lapsed and the net change, month by month.
+ *
+ * "New" is somebody whose first recorded gathering was that month. "Lapsed" is
+ * somebody who had been coming and whose last recorded gathering was that
+ * month, counted only once enough time has passed to be sure: a church should
+ * not be told it lost somebody who was on holiday.
+ */
+export async function growthByMonth(
+  db: Tx,
+  opts: { from: string; to: string; quietDays?: number },
+): Promise<MonthChange[]> {
+  const quiet = opts.quietDays ?? 60;
+
+  const rows = await db.execute<{ month: string; joined: string; lapsed: string }>(sql`
+    with months as (
+      select to_char(d, 'YYYY-MM') as month, d::date as starts
+        from generate_series(
+          date_trunc('month', ${opts.from}::date),
+          date_trunc('month', ${opts.to}::date),
+          interval '1 month'
+        ) d
+    ),
+    seen as (
+      select a.person_id,
+             min(o.occurs_on) as first_on,
+             max(o.occurs_on) as last_on
+        from attendance_records a
+        join service_occurrences o on o.id = a.occurrence_id
+       group by a.person_id
+    )
+    select m.month,
+           (select count(*) from seen s
+             where to_char(s.first_on, 'YYYY-MM') = m.month)::text as joined,
+           (select count(*) from seen s
+             where to_char(s.last_on, 'YYYY-MM') = m.month
+               and s.last_on < ${opts.to}::date - ${quiet} * interval '1 day'
+               and s.first_on < s.last_on)::text as lapsed
+      from months m
+     order by m.month`);
+
+  return rows.map((row) => {
+    const joined = Number(row.joined);
+    const lapsed = Number(row.lapsed);
+    return { month: row.month, joined, lapsed, net: joined - lapsed };
+  });
+}

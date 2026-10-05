@@ -511,9 +511,9 @@ church actually asks.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-185 | The dashboard: attendance, new people, coverage gaps, overdue follow-ups | R18.1 | Resolved |
-| HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | New |
-| HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | New |
-| HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | New |
+| HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | Resolved |
+| HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | Resolved |
+| HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | Resolved |
 | HRT-189 | Group participation and group health | R18.6 | New |
 | HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
 | HRT-191 | Milestone and demographic lists | R18.8 | New |
