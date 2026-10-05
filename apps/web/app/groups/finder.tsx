@@ -3,16 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, X, Search, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
+import { X, Search, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Switch,
-  Dialog, DialogContent, DialogFooter,
   Sheet, SheetContent, SheetTrigger, LIFT,
 } from "@hearth/ui";
 import { MultiSelect } from "@/components/multi-select";
 import { Empty } from "@/components/empty";
 import { t, plural } from "@hearth/i18n";
-import { decide, archive } from "./actions";
+import { archive } from "./actions";
 
 export interface FinderGroup {
   id: string;
@@ -139,9 +138,6 @@ export function Finder({
   const [live, setLive] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
-  const [deciding, setDeciding] = React.useState<(FinderRequest & { approve: boolean }) | null>(
-    null,
-  );
   const [dismissed, setDismissed] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
@@ -317,58 +313,14 @@ export function Finder({
                     {request.message ? ` · ${request.message}` : ""}
                   </span>
                 </span>
-                <span className="relative flex items-center gap-0.5">
-                  <IconButton
-                    label={t("find.approve")}
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => setDeciding({ ...request, approve: true })}
-                  >
-                    <Check />
-                  </IconButton>
-                  <IconButton
-                    label={t("find.decline")}
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => setDeciding({ ...request, approve: false })}
-                  >
-                    <X />
-                  </IconButton>
-                </span>
+                {/* Answered on the group's own page, where the roster and the
+                    rest of the request are. This list is what is waiting. */}
               </li>
             ))}
           </ul>
         </section>
       ) : null}
 
-      {/* R9.6. Both answers reach the person who asked, so both are asked about. */}
-      <Dialog open={deciding !== null} onOpenChange={(open) => (open ? null : setDeciding(null))}>
-        <DialogContent
-          alert={deciding?.approve === false}
-          title={t(
-            deciding?.approve ? "find.approveTitle" : "find.declineTitle",
-            { name: deciding?.personName ?? "" },
-          )}
-          closeLabel={t("common.close")}
-        >
-          <p className="text-[length:var(--d-text-body)] text-fg">
-            {t(deciding?.approve ? "find.approveBody" : "find.declineBody")}
-          </p>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeciding(null)}>{t("action.cancel")}</Button>
-            <Button
-              variant={deciding?.approve ? "primary" : "danger"}
-              onClick={() => {
-                const asked = deciding;
-                setDeciding(null);
-                if (asked) run(() => decide(asked.id, asked.approve, church));
-              }}
-            >
-              {t(deciding?.approve ? "find.approve" : "find.decline")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* The box, the count, and one Filter button on the right. */}
       <div className="flex flex-wrap items-center gap-2">
