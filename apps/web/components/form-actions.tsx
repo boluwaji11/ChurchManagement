@@ -124,22 +124,39 @@ export function useDirty(form: string): boolean {
     const compare = () => setDirty(snapshot(element) !== opened);
 
     /*
-     * Click as well as input: a pill or a switch writes its answer into a
-     * hidden field, and setting a value from code fires no input event. The
-     * form's listener runs before React's, which is attached at the root, so
-     * the comparison waits a tick for the hidden field to catch up.
+     * Listened for on the document rather than on the form.
+     *
+     * A date picker, a combobox and a select all draw their panel in a portal
+     * at the end of the body, so the press that chooses an answer happens
+     * outside the form and never bubbles to it. Watching the document catches
+     * those, and the snapshot is still taken from the form, so nothing outside
+     * it can count as a change.
      */
-    const later = () => setTimeout(compare, 0);
+    const frames = new Set<number>();
+    const later = () => {
+      /*
+       * Two frames, because the answer is written into a hidden field by React
+       * and setting a value from code fires no event at all. One frame is the
+       * state update, the second is the commit that puts the value in the DOM.
+       */
+      frames.add(requestAnimationFrame(() => frames.add(requestAnimationFrame(compare))));
+    };
 
-    element.addEventListener("input", compare);
-    element.addEventListener("change", compare);
-    element.addEventListener("click", later);
-    element.addEventListener("submit", () => setDirty(false));
+    const onSubmit = () => setDirty(false);
+
+    document.addEventListener("input", later);
+    document.addEventListener("change", later);
+    document.addEventListener("click", later);
+    document.addEventListener("keyup", later);
+    element.addEventListener("submit", onSubmit);
 
     return () => {
-      element.removeEventListener("input", compare);
-      element.removeEventListener("change", compare);
-      element.removeEventListener("click", later);
+      for (const frame of frames) cancelAnimationFrame(frame);
+      document.removeEventListener("input", later);
+      document.removeEventListener("change", later);
+      document.removeEventListener("click", later);
+      document.removeEventListener("keyup", later);
+      element.removeEventListener("submit", onSubmit);
     };
   }, [form]);
 

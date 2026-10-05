@@ -289,8 +289,6 @@ export function ProfileForm({
         noValidate
         action={(data) => {
           data.set("church", church);
-          data.set("dateOfBirth", birthday);
-          data.set("anniversary", anniversary);
           startTransition(async () => {
             const result = await saveProfile(data);
             setError(result.error);
@@ -314,6 +312,7 @@ export function ProfileForm({
           </Field>
           <Field label={t("settings.profile.birthday")}>
             <DatePicker
+              name="dateOfBirth"
               value={birthday}
               onChange={setBirthday}
               placeholder={t("date.placeholder")}
@@ -334,6 +333,7 @@ export function ProfileForm({
 
           <Field label={t("person.anniversary")}>
             <DatePicker
+              name="anniversary"
               value={anniversary}
               onChange={setAnniversary}
               placeholder={t("date.placeholder")}

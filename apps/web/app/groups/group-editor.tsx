@@ -308,6 +308,7 @@ export function GroupEditor({
                   empty and run until they do not. */}
               <Field label={t("groups.endsOn")}>
                 <DatePicker
+                  name="endsOn"
                   value={endsOn}
                   onChange={setEndsOn}
                   placeholder={t("date.placeholder")}
