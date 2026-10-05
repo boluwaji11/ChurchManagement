@@ -188,7 +188,19 @@ export function EventEditor({
           if (id && hue !== event?.hue) await recolourEvent(id, hue, church);
 
           setBusy(false);
-          router.push(id ? `/events/${id}?church=${church}` : `/events?church=${church}`);
+
+          /*
+           * Saving keeps the writer where they were. A church writing an event
+           * saves as it goes, and being thrown onto the event's own page after
+           * every save means navigating back to carry on.
+           *
+           * A new event has no edit page to stay on, so it opens its own.
+           */
+          if (event) {
+            router.refresh();
+            return;
+          }
+          router.push(id ? `/events/${id}/edit?church=${church}` : `/events?church=${church}`);
         });
       }}
       className="flex flex-col gap-5"

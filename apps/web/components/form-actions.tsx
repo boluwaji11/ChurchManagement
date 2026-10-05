@@ -174,7 +174,7 @@ export function useDirty(form: string): boolean {
     const element = document.getElementById(form);
     if (!(element instanceof HTMLFormElement)) return;
 
-    const opened = snapshot(element);
+    let opened = snapshot(element);
     const compare = () => setDirty(snapshot(element) !== opened);
 
     /*
@@ -196,7 +196,17 @@ export function useDirty(form: string): boolean {
       frames.add(requestAnimationFrame(() => frames.add(requestAnimationFrame(compare))));
     };
 
-    const onSubmit = () => setDirty(false);
+    /*
+     * What was just saved becomes the new baseline.
+     *
+     * A form that stays on screen after saving would otherwise go dirty again
+     * on the next keystroke, because the comparison was still against what the
+     * page opened with rather than what was last committed.
+     */
+    const onSubmit = () => {
+      opened = snapshot(element);
+      setDirty(false);
+    };
 
     document.addEventListener("input", later);
     document.addEventListener("change", later);
