@@ -7,6 +7,7 @@ import { ChurchMarkProvider } from "./church-mark";
 import { SpellingProvider } from "./spelling-provider";
 import { DemoBanner } from "./demo-banner";
 import { PortalTabs, PortalAccount, type PortalTab } from "./portal/tabs";
+import { Installed } from "./portal/installed";
 import { PortalTitle, PortalSection, Panel } from "./portal/panel";
 import { PublicFooter } from "./public-footer";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -81,6 +82,13 @@ export async function PortalShell({
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas" data-density="portal">
+      {/* R17.11. What a phone reads when somebody adds this church to their
+          home screen, and the worker that keeps it answering with no signal.
+          React hoists both into the head. */}
+      <link rel="manifest" href={`/manifest.webmanifest?church=${slug}`} />
+      <meta name="theme-color" content="#faf8f5" />
+      <Installed />
+
       <DemoBanner tenantId={session.tenantId} />
 
       <header className="sticky top-0 z-20 border-b border-line bg-canvas">

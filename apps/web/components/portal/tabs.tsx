@@ -3,13 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Settings, ShieldCheck } from "lucide-react";
+import { Download, LogOut, Settings, ShieldCheck } from "lucide-react";
 import {
   Avatar,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { useInstall } from "./installed";
 
 export interface PortalTab {
   label: string;
@@ -85,6 +86,7 @@ export function PortalAccount({
    * never the thing that was clicked.
    */
   const out = React.useRef<HTMLFormElement>(null);
+  const install = useInstall();
 
   return (
     <DropdownMenu>
@@ -109,6 +111,11 @@ export function PortalAccount({
             <ShieldCheck /> {t("settings.tab.security")}
           </Link>
         </DropdownMenuItem>
+        {install ? (
+          <DropdownMenuItem onSelect={install}>
+            <Download /> {t("portal.install")}
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => out.current?.requestSubmit()}>
           <LogOut /> {t("action.signOut")}

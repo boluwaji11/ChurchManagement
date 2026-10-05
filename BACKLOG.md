@@ -458,6 +458,11 @@ what the church has on, their groups and their household. Serving carries the sc
 decline, and blackout dates on a calendar. Groups opens on the kinds, then a list, then a group they
 can ask to join or leave. My household holds the people and the directory switches.
 
+**On HRT-156.** The portal is installable and holds an offline shell: a manifest a church at a
+time, so the icon on a phone carries the church's name and opens on that member's own screen, and a
+network-first worker that answers from its cache when there is no signal. Push is the other half and
+waits on messaging: R16.10 sends a push, and nothing in this repo sends anything yet.
+
 **HRT-161 is cut.** A form is something a church puts on its own website for whoever reads it, and
 the public link already does that for everybody including members. A second way in, behind a
 sign-in, is a second place to keep the same form working. R17.9 and R17.10 come back only if a
@@ -471,7 +476,7 @@ no business in.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-155 | Magic link sign-in, with a password as an option | R17.1 | Resolved |
-| HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | New |
+| HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | Active |
 | HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Resolved |
 | HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |
 | HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |
