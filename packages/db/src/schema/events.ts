@@ -65,7 +65,15 @@ export const events = pgTable(
     /** R14.1. Whether anybody without an account can see it. */
     listed: boolean("listed").notNull().default(true),
 
-    /** R14.2, R14.4. Whether it is taking registrations at all. */
+    /**
+     * R14.1. Whether anybody signs up for this at all.
+     *
+     * A carol service is an announcement: there is a page, and nobody
+     * registers. That is a different thing from registration being closed,
+     * which is a thing the church does to an event that does take them.
+     */
+    takesRegistrations: boolean("takes_registrations").notNull().default(true),
+    /** R14.2, R14.4. Whether it is taking them right now. */
     registrationOpen: boolean("registration_open").notNull().default(true),
     /** R14.4. The last day somebody can register. Null means up to the event. */
     registrationClosesOn: date("registration_closes_on"),

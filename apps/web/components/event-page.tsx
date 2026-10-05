@@ -110,7 +110,7 @@ export function EventPage({
                 </p>
               ) : null}
               {left !== null && event.state === "open" ? (
-                <p className="text-caption text-fg-subtle tabular-nums">
+                  <p className="text-caption text-fg-subtle tabular-nums">
                   {plural("publicEvent.placesLeft", left)}
                 </p>
               ) : null}
@@ -124,7 +124,7 @@ export function EventPage({
                 church is checking. The registration form belongs to whoever
                 is coming, and drawing a dead one under a preview is a control
                 that cannot be used. */}
-            {preview ? null : (
+            {preview || event.state === "none" ? null : (
               <section className="flex flex-col gap-4 border-t border-line pt-7">
                 <h2 className="font-display text-heading text-fg">{t("publicEvent.who")}</h2>
                 <Register

@@ -20,6 +20,8 @@ import { placeSubmission } from "./form-matching";
  */
 
 export type PublicEventState =
+  /** An announcement. Nobody signs up, and the page is the whole of it. */
+  | "none"
   /** Taking registrations. */
   | "open"
   /** Full, and taking names for a waiting list. */
@@ -78,6 +80,7 @@ interface Row {
   postalCode: string | null;
   country: string | null;
   status: string;
+  takesRegistrations: boolean;
   registrationOpen: boolean;
   registrationClosesOn: string | null;
   registrationClosesAt: string | null;
@@ -109,6 +112,7 @@ async function eventRow(churchSlug: string, eventSlug: string): Promise<Row | nu
            e.postal_code as "postalCode",
            e.country,
            e.status,
+           e.takes_registrations as "takesRegistrations",
            e.registration_open as "registrationOpen",
            to_char(e.registration_closes_on, 'YYYY-MM-DD') as "registrationClosesOn",
            e.registration_closes_at as "registrationClosesAt",
@@ -137,6 +141,9 @@ async function eventRow(churchSlug: string, eventSlug: string): Promise<Row | nu
  */
 function stateOf(row: Row, today: string, now: string): PublicEventState {
   if (row.status === "cancelled") return "cancelled";
+  // Asked before anything about dates or places, because none of those mean
+  // anything on an event nobody signs up for.
+  if (!row.takesRegistrations) return "none";
   if (!row.registrationOpen) return "closed";
 
   if (row.registrationClosesOn) {
@@ -282,7 +289,7 @@ export async function registerForEvent(input: {
   if (!row) throw new InvalidInputError("event.error.missing");
 
   const state = stateOf(row, input.today, input.now);
-  if (state === "closed" || state === "cancelled" || state === "full") {
+  if (state !== "open" && state !== "waitlist") {
     throw new InvalidInputError("event.error.closedToRegistration");
   }
 
@@ -308,13 +315,17 @@ export async function registerForEvent(input: {
     // The event row is locked first, so two parties cannot both read the same
     // last place and both take it.
     const [fresh] = await tx<{
-      status: string; open: boolean; capacity: number | null; waitlist: boolean;
+      status: string; takes: boolean; open: boolean; capacity: number | null; waitlist: boolean;
     }[]>`
-      select status, registration_open as open, capacity, waitlist
+      select status,
+             takes_registrations as takes,
+             registration_open as open,
+             capacity,
+             waitlist
         from events
        where id = ${row.id}
          for update`;
-    if (!fresh || fresh.status === "cancelled" || !fresh.open) {
+    if (!fresh || fresh.status === "cancelled" || !fresh.takes || !fresh.open) {
       throw new InvalidInputError("event.error.closedToRegistration");
     }
 

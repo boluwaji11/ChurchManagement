@@ -87,6 +87,8 @@ export function EventView({
     country: event.country ?? "",
   });
 
+  const showing: Tab = event.takesRegistrations ? tab : "overview";
+
   const go = (next: Tab) => {
     const query = next === "overview" ? "" : `&tab=${next}`;
     router.push(`/events/${event.id}?church=${church}${query}`, { scroll: false });
@@ -208,7 +210,11 @@ export function EventView({
         <span
           className="size-2 shrink-0 rounded-full"
           style={{
-            background: event.registrationOpen ? "var(--hue-fern-500)" : "var(--fg-subtle)",
+            background: !event.takesRegistrations
+              ? "var(--hue-sky-500)"
+              : event.registrationOpen
+                ? "var(--hue-fern-500)"
+                : "var(--fg-subtle)",
           }}
         />
         <span className="min-w-[180px] flex-1 font-medium text-fg">
@@ -236,14 +242,17 @@ export function EventView({
           </button>
         ) : null}
 
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={pending}
-          onClick={() => run(() => openEventRegistration(event.id, !event.registrationOpen, church))}
-        >
-          {event.registrationOpen ? t("event.registrationClose") : t("event.registrationReopen")}
-        </Button>
+        {event.takesRegistrations ? (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={pending}
+            onClick={() =>
+              run(() => openEventRegistration(event.id, !event.registrationOpen, church))}
+          >
+            {event.registrationOpen ? t("event.registrationClose") : t("event.registrationReopen")}
+          </Button>
+        ) : null}
 
         {event.status === "published" ? (
           <Button
@@ -268,15 +277,20 @@ export function EventView({
 
       {/* The tabs, the same three a group's page carries. */}
       <div className="flex items-center gap-1 self-start rounded-md bg-sunken p-[3px]">
-        {(["overview", "registrations", "questions"] as const).map((one) => (
+        {/* An announcement has one tab. Places, a roster and questions are all
+            about signing up, and nobody signs up for this one. */}
+        {(event.takesRegistrations
+          ? (["overview", "registrations", "questions"] as const)
+          : (["overview"] as const)
+        ).map((one) => (
           <button
             key={one}
             type="button"
             onClick={() => go(one)}
-            aria-pressed={tab === one}
+            aria-pressed={showing === one}
             className={cn(
               "h-8 cursor-pointer rounded-sm px-3.5 text-[13px] font-medium",
-              tab === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg",
+              showing === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg",
             )}
           >
             {t(`event.tab.${one}` as never)}
@@ -284,7 +298,7 @@ export function EventView({
         ))}
       </div>
 
-      {tab === "overview" ? (
+      {showing === "overview" ? (
         <div className="flex flex-wrap items-start gap-10">
           <div className="flex min-w-0 flex-[999_1_420px] flex-col gap-6">
             <Block label={t("event.about")}>
@@ -316,11 +330,11 @@ export function EventView({
         </div>
       ) : null}
 
-      {tab === "registrations" ? (
+      {showing === "registrations" ? (
         <Empty icon="people" title={t("event.registrations.none")} />
       ) : null}
 
-      {tab === "questions" ? (
+      {showing === "questions" ? (
         <div className="flex flex-col items-start gap-5">
           {formId ? (
             <>

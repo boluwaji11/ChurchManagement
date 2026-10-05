@@ -44,7 +44,7 @@ export function Register({
   churchSlug: string;
   eventSlug: string;
   today: string;
-  state: "open" | "waitlist" | "full" | "closed" | "cancelled";
+  state: "none" | "open" | "waitlist" | "full" | "closed" | "cancelled";
   questions: FormFieldDef[];
   /** R14.2. Drawn, and refusing to send, so a preview takes no places. */
   preview?: boolean;

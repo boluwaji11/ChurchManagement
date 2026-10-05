@@ -533,6 +533,13 @@
       "when": 1791167230462,
       "tag": "0075_event_closing_time",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1791167697436,
+      "tag": "0076_event_information_only",
+      "breakpoints": true
     }
   ]
 }

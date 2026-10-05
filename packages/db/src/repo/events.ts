@@ -54,6 +54,7 @@ export interface ChurchEvent {
   country: string | null;
   status: EventStatus;
   listed: boolean;
+  takesRegistrations: boolean;
   registrationOpen: boolean;
   registrationClosesOn: string | null;
   registrationClosesAt: string | null;
@@ -85,6 +86,7 @@ export interface EventInput {
   postalCode?: string | null;
   country?: string | null;
   listed?: boolean;
+  takesRegistrations?: boolean;
   registrationOpen?: boolean;
   registrationClosesOn?: string | null;
   registrationClosesAt?: string | null;
@@ -161,7 +163,10 @@ function check(input: EventInput) {
     postalCode: trimmed(input.postalCode),
     country: trimmed(input.country),
     listed: input.listed ?? true,
-    registrationOpen: input.registrationOpen ?? true,
+    takesRegistrations: input.takesRegistrations ?? true,
+    // An event nobody signs up for is never taking registrations, whatever the
+    // switch underneath it last said.
+    registrationOpen: (input.takesRegistrations ?? true) && (input.registrationOpen ?? true),
     registrationClosesOn: closes,
     registrationClosesAt: clock(input.registrationClosesAt),
     capacity,
@@ -215,6 +220,7 @@ const columns = {
   country: events.country,
   status: events.status,
   listed: events.listed,
+  takesRegistrations: events.takesRegistrations,
   registrationOpen: events.registrationOpen,
   registrationClosesOn: events.registrationClosesOn,
   registrationClosesAt: events.registrationClosesAt,
@@ -251,6 +257,7 @@ const shape = (row: Record<string, unknown>): ChurchEvent => ({
   country: (row["country"] ?? null) as string | null,
   status: row["status"] as EventStatus,
   listed: row["listed"] as boolean,
+  takesRegistrations: row["takesRegistrations"] as boolean,
   registrationOpen: row["registrationOpen"] as boolean,
   registrationClosesOn: (row["registrationClosesOn"] ?? null) as string | null,
   registrationClosesAt: (row["registrationClosesAt"] ?? null) as string | null,

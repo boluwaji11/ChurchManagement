@@ -34,6 +34,7 @@ export interface EventDraft {
   postalCode: string | null;
   country: string | null;
   listed: boolean;
+  takesRegistrations: boolean;
   registrationOpen: boolean;
   registrationClosesOn: string | null;
   capacity: number | null;
@@ -94,6 +95,7 @@ export function EventEditor({
   const [error, setError] = React.useState<string>();
   const [hue, setHue] = React.useState(event?.hue ?? "amber");
   const [listed, setListed] = React.useState(event?.listed ?? true);
+  const [takes, setTakes] = React.useState(event?.takesRegistrations ?? true);
   const [registrationOpen, setRegistrationOpen] = React.useState(event?.registrationOpen ?? true);
   const [waitlist, setWaitlist] = React.useState(event?.waitlist ?? false);
   const [startsOn, setStartsOn] = React.useState(event?.startsOn ?? "");
@@ -270,21 +272,48 @@ export function EventEditor({
         </div>
       </div>
 
-      {/* Whether it is taking registrations, on the line the event's page gives it. */}
+      {/*
+        * R14.1. What kind of event this is, on the line its page gives it.
+        *
+        * Two questions, and the second only exists under the first. Plenty of
+        * what a church puts on is an announcement: a carol service, a working
+        * bee. Those want a page and nothing else, and every place, limit and
+        * question below is noise on them.
+        */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
         <span
           className="size-2 shrink-0 rounded-full"
-          style={{ background: registrationOpen ? "var(--hue-fern-500)" : "var(--fg-subtle)" }}
+          style={{
+            background: !takes
+              ? "var(--hue-sky-500)"
+              : registrationOpen
+                ? "var(--hue-fern-500)"
+                : "var(--fg-subtle)",
+          }}
         />
         <span className="min-w-[140px] flex-1 font-medium text-fg">
-          {registrationOpen ? t("event.registrationOpen") : t("event.registrationClosed")}
+          {!takes
+            ? t("event.informationOnly")
+            : registrationOpen
+              ? t("event.registrationOpen")
+              : t("event.registrationClosed")}
         </span>
+
         <Flag
-          name="registrationOpen"
-          label={t("event.registration")}
-          checked={registrationOpen}
-          onChange={setRegistrationOpen}
+          name="takesRegistrations"
+          label={t("event.takesRegistrations")}
+          checked={takes}
+          onChange={setTakes}
         />
+
+        {takes ? (
+          <Flag
+            name="registrationOpen"
+            label={t("event.registrationNow")}
+            checked={registrationOpen}
+            onChange={setRegistrationOpen}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-start gap-10">
@@ -342,6 +371,7 @@ export function EventEditor({
 
         {/* The rule separates what the event is from the facts about it. */}
         <aside className="flex min-w-0 flex-[1_1_300px] flex-col gap-7 border-line md:border-l md:pl-8">
+          {takes ? (
           <Side label={t("event.registration")}>
             <div className="flex flex-col gap-4">
               <Field label={t("event.capacity")}>
@@ -376,13 +406,17 @@ export function EventEditor({
                 checked={waitlist}
                 onChange={setWaitlist}
               />
-              <Flag
-                name="listed"
-                label={t("event.listed")}
-                checked={listed}
-                onChange={setListed}
-              />
             </div>
+          </Side>
+          ) : null}
+
+          <Side label={t("event.page")}>
+            <Flag
+              name="listed"
+              label={t("event.listed")}
+              checked={listed}
+              onChange={setListed}
+            />
           </Side>
 
         </aside>

@@ -18,7 +18,9 @@ export function EventCard({
   event: ChurchEvent;
   lift: string;
 }) {
-  const left = event.capacity === null ? null : Math.max(0, event.capacity - event.going);
+  const left = !event.takesRegistrations || event.capacity === null
+    ? null
+    : Math.max(0, event.capacity - event.going);
 
   const when = [
     longDate(event.startsOn),
@@ -70,7 +72,9 @@ export function EventCard({
         </span>
 
         <span className="text-[12px] text-fg-subtle tabular-nums">
-          {plural("event.registered", event.going)}
+          {event.takesRegistrations
+            ? plural("event.registered", event.going)
+            : t("event.informationOnly")}
           {event.waiting > 0 ? ` · ${plural("event.waiting", event.waiting)}` : ""}
           {left !== null
             ? ` · ${left === 0 ? t("event.full") : plural("event.placesLeft", left)}`
