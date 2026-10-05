@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Bold, Italic, List, ListOrdered, Link2, RemoveFormatting } from "lucide-react";
+import {
+  Bold, Italic, Link2, List, ListOrdered, Redo2, RemoveFormatting, Undo2,
+} from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input, cn,
 } from "@hearth/ui";
@@ -100,6 +102,20 @@ export function RichText({
       <input type="hidden" name={name} value={markdown} />
 
       <div className="flex flex-wrap items-center gap-0.5 border-b border-line px-1.5 py-1">
+        {/* R24.6. Undo and redo first, because the one thing somebody wants
+            after a formatting button did the wrong thing is to take it back,
+            and a toolbar with no way back teaches people not to press
+            anything. The browser keeps the stack; this reaches it without
+            asking anybody to remember a keystroke. */}
+        <Mark label={t("rich.undo")} onPress={() => run("undo")}>
+          <Undo2 />
+        </Mark>
+        <Mark label={t("rich.redo")} onPress={() => run("redo")}>
+          <Redo2 />
+        </Mark>
+
+        <span aria-hidden className="mx-1 h-5 w-px bg-line" />
+
         <Mark label={t("rich.bold")} on={marks.bold} onPress={() => run("bold")}>
           <Bold />
         </Mark>

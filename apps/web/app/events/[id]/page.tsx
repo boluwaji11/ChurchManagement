@@ -1,9 +1,5 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Pencil } from "lucide-react";
 import { withTenant, getEvent, getForm, canManageEvents } from "@hearth/db";
-import { Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -59,29 +55,6 @@ export default async function EventPage({
 
   return (
     <AppShell session={session}>
-      <div className="flex flex-wrap items-center gap-3">
-        <Link
-          href={`/events?church=${session.tenantSlug}`}
-          className="inline-flex flex-1 items-center gap-1.5 font-medium text-primary"
-        >
-          <ArrowLeft className="size-4" /> {t("event.title")}
-        </Link>
-
-        <Button
-          variant="ghost"
-          asChild
-          className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
-        >
-          <Link
-            href={`/events/${result.event.id}/edit?church=${session.tenantSlug}`}
-            aria-label={t("action.edit")}
-            title={t("action.edit")}
-          >
-            <Pencil />
-          </Link>
-        </Button>
-      </div>
-
       <EventView
         church={session.tenantSlug}
         event={result.event}

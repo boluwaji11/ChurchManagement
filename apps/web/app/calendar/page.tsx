@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  withTenant, getChurch, listOccurrences, listGroups, canManageServices,
+  withTenant, getChurch, listOccurrences, listGroups, listEvents,
+  canManageServices,
 } from "@hearth/db";
 import { upcomingMeetings } from "@hearth/db/rules";
 import { Banner } from "@hearth/ui";
@@ -55,6 +56,8 @@ interface Entry {
   title: string;
   detail: string;
   hue: string;
+  /** R24.6. Where the thing on this day lives, where it has a page. */
+  href?: string;
 }
 
 export default async function CalendarPage({
@@ -84,6 +87,12 @@ export default async function CalendarPage({
 
       const occurrences = await listOccurrences(tx, { from: start, to: end });
       const groups = await listGroups(tx);
+      /*
+       * R14.1, R15.1. Published events, so a camp is on the week it runs the
+       * moment the church publishes it. Drafts stay off: the calendar is what
+       * the church has on, and a draft is not yet something it has on.
+       */
+      const events = (await listEvents(tx)).filter((one) => one.status === "published");
       const brand = profile?.brandHue ?? "indigo";
 
       const dates = Array.from({ length: 7 }, (_, i) => shift(start, i));
@@ -101,6 +110,26 @@ export default async function CalendarPage({
               detail: clock(o.startsAt),
               hue: brand,
             }));
+
+          for (const one of events) {
+            // An event runs from its first day to its last, so a camp appears
+            // on each of the three days rather than only on the Friday.
+            const last = one.endsOn ?? one.startsOn;
+            if (date < one.startsOn || date > last) continue;
+
+            entries.push({
+              id: `${one.id}-${date}`,
+              title: one.name,
+              detail: [
+                date === one.startsOn && one.startsAt ? clock(one.startsAt) : null,
+                one.location,
+              ]
+                .filter(Boolean)
+                .join(" \u00b7 "),
+              hue: one.hue,
+              href: `/events/${one.id}`,
+            });
+          }
 
           for (const group of groups) {
             // R9.2. Worked out from the pattern rather than stored, which is
@@ -180,26 +209,42 @@ export default async function CalendarPage({
             </div>
 
             <div className="flex min-h-[200px] flex-col gap-1.5 pt-2">
-              {day.entries.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="rounded-sm px-2.5 py-2"
-                  style={{
-                    background: `var(--hue-${entry.hue}-tint)`,
-                    borderLeft: `3px solid var(--hue-${entry.hue}-500)`,
-                  }}
-                >
-                  <div
-                    className="text-[13px] font-medium"
-                    style={{ color: `var(--hue-${entry.hue}-key)` }}
+              {day.entries.map((entry) => {
+                const body = (
+                  <>
+                    <div
+                      className="text-[13px] font-medium"
+                      style={{ color: `var(--hue-${entry.hue}-key)` }}
+                    >
+                      {entry.title}
+                    </div>
+                    {entry.detail ? (
+                      <div className="text-[12px] text-fg-muted">{entry.detail}</div>
+                    ) : null}
+                  </>
+                );
+
+                const style = {
+                  background: `var(--hue-${entry.hue}-tint)`,
+                  borderLeft: `3px solid var(--hue-${entry.hue}-500)`,
+                };
+
+                // R24.6. A tile that stands for something with a page opens it.
+                return entry.href ? (
+                  <Link
+                    key={entry.id}
+                    href={`${entry.href}?church=${session.tenantSlug}`}
+                    className="block cursor-pointer rounded-sm px-2.5 py-2 transition-shadow hover:shadow-sm"
+                    style={style}
                   >
-                    {entry.title}
+                    {body}
+                  </Link>
+                ) : (
+                  <div key={entry.id} className="rounded-sm px-2.5 py-2" style={style}>
+                    {body}
                   </div>
-                  {entry.detail ? (
-                    <div className="text-[12px] text-fg-muted">{entry.detail}</div>
-                  ) : null}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))}

@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, ImagePlus, Trash2, Upload, X } from "lucide-react";
+import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
 import {
-  ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Working,
+  ALL_HUES, Banner, Button, Checkbox, Field, IconButton, Input, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { imageLimit } from "@/components/image-limit";
@@ -14,8 +14,7 @@ import { RichText } from "@/components/rich-text";
 import { AddressFields } from "@/components/address-fields";
 import { FormActions } from "@/components/form-actions";
 import {
-  createEventFrom, saveEvent, clearEventCover, recolourEvent, findEventContact,
-  type PersonHit,
+  createEventFrom, saveEvent, clearEventCover, recolourEvent,
 } from "./actions";
 
 export interface EventDraft {
@@ -39,8 +38,7 @@ export interface EventDraft {
   registrationClosesOn: string | null;
   capacity: number | null;
   waitlist: boolean;
-  contactPersonId: string | null;
-  contactName: string | null;
+  registrationClosesAt: string | null;
 }
 
 /** A heading over a block, the same shape the group designer uses. */
@@ -101,12 +99,6 @@ export function EventEditor({
   const [startsOn, setStartsOn] = React.useState(event?.startsOn ?? "");
   const [endsOn, setEndsOn] = React.useState(event?.endsOn ?? "");
   const [closesOn, setClosesOn] = React.useState(event?.registrationClosesOn ?? "");
-  const [contact, setContact] = React.useState(
-    event?.contactPersonId && event.contactName
-      ? { id: event.contactPersonId, name: event.contactName }
-      : null,
-  );
-  const [hits, setHits] = React.useState<PersonHit[]>([]);
   const [busy, setBusy] = React.useState(false);
   const [, startTransition] = React.useTransition();
 
@@ -127,14 +119,6 @@ export function EventEditor({
   }, [picture]);
 
   const shown = preview ?? coverUrl ?? null;
-
-  const lookUp = (query: string) => {
-    if (query.trim().length < 2) {
-      setHits([]);
-      return;
-    }
-    void findEventContact(query, church).then(setHits);
-  };
 
   return (
     <form
@@ -173,6 +157,12 @@ export function EventEditor({
     >
       <Working open={busy} label={t("image.uploading")} />
       {error ? <Banner tone="danger" title={t("event.failed")}>{error}</Banner> : null}
+
+      {/* Save sits at the top right, where every other edit screen puts it,
+          rather than at the end of a page somebody has to scroll to reach. */}
+      <div className="flex justify-end">
+        <FormActions form="event-form" label={event ? t("event.save") : t("event.create")} />
+      </div>
 
       {/* The name and when on the left, the cover beside them, the two columns
           the event's own page opens with. */}
@@ -353,14 +343,22 @@ export function EventEditor({
                   autoComplete="off"
                 />
               </Field>
-              <Field label={t("event.closesOn")}>
-                <DateField
-                  name="registrationClosesOn"
-                  defaultValue={closesOn}
-                  onValueChange={setClosesOn}
-                  max={endsOn || startsOn || undefined}
-                />
-              </Field>
+              <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(130px,1fr))]">
+                <Field label={t("event.closesOn")}>
+                  <DateField
+                    name="registrationClosesOn"
+                    defaultValue={closesOn}
+                    onValueChange={setClosesOn}
+                    max={endsOn || startsOn || undefined}
+                  />
+                </Field>
+                <Field label={t("event.closesAt")}>
+                  <TimeField
+                    name="registrationClosesAt"
+                    defaultValue={event?.registrationClosesAt ?? ""}
+                  />
+                </Field>
+              </div>
               <Flag
                 name="waitlist"
                 label={t("event.waitlist")}
@@ -376,42 +374,9 @@ export function EventEditor({
             </div>
           </Side>
 
-          <Side label={t("event.contact")}>
-            <div className="flex flex-col gap-2">
-              {contact ? (
-                <span className="flex items-center gap-2 rounded-full bg-sunken py-1 pr-1 pl-3 text-label font-medium text-fg">
-                  {contact.name}
-                  <IconButton
-                    label={t("form.remove")}
-                    className="size-6 min-h-0 [&_svg]:size-3.5"
-                    onClick={() => setContact(null)}
-                  >
-                    <X />
-                  </IconButton>
-                </span>
-              ) : (
-                <Combobox
-                  value=""
-                  onChange={(id) => {
-                    const hit = hits.find((one) => one.id === id);
-                    if (hit) setContact({ id: hit.id, name: hit.name });
-                    setHits([]);
-                  }}
-                  onQueryChange={lookUp}
-                  options={hits.map((one) => ({ value: one.id, label: one.name }))}
-                  placeholder={t("common.search")}
-                  emptyLabel={t("person.noMatch")}
-                  clearLabel={t("date.clear")}
-                  aria-label={t("event.contact")}
-                />
-              )}
-              <input type="hidden" name="contactPersonId" value={contact?.id ?? ""} />
-            </div>
-          </Side>
         </aside>
       </div>
 
-      <FormActions form="event-form" label={event ? t("event.save") : t("event.create")} />
     </form>
   );
 }

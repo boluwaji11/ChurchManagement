@@ -69,6 +69,13 @@ export const events = pgTable(
     registrationOpen: boolean("registration_open").notNull().default(true),
     /** R14.4. The last day somebody can register. Null means up to the event. */
     registrationClosesOn: date("registration_closes_on"),
+    /**
+     * R14.4. The time of day it closes, on that last day.
+     *
+     * Null means the end of the day, which is what a church means by "closes on
+     * the 6th". A church that wants noon says noon.
+     */
+    registrationClosesAt: text("registration_closes_at"),
     /** R14.4. How many places. Null means no limit. */
     capacity: integer("capacity"),
     /** R14.4. Whether a full event takes names for a waiting list. */

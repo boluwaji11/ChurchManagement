@@ -1,0 +1,50 @@
+"use server";
+
+import { registerForEvent, publicChurchTimezone, type Registrant } from "@hearth/db";
+import { churchNow } from "@/lib/church-now";
+import { explain } from "@/lib/explain";
+
+/**
+ * R14.2, R14.6. Taking a party's places from the open web.
+ *
+ * `trap` is the same hidden field the public form carries: a person never sees
+ * it, so a person never fills it in, and answering a robot with a thank you
+ * means it cannot tell it tripped.
+ */
+export async function registerParty(input: {
+  churchSlug: string;
+  eventSlug: string;
+  today: string;
+  party: Registrant[];
+  trap: string;
+}): Promise<{
+  ok: boolean;
+  going?: number;
+  waiting?: number;
+  errors?: { at: number; fieldId: string; message: string }[];
+  error?: string;
+}> {
+  if (input.trap.trim() !== "") return { ok: true, going: input.party.length, waiting: 0 };
+
+  try {
+    /*
+     * The church's own clock, read here rather than taken from the browser. A
+     * registration that arrives after closing must be refused on the church's
+     * time, and the time the page was drawn with is not something to trust.
+     */
+    const clock = churchNow(await publicChurchTimezone(input.churchSlug));
+
+    const result = await registerForEvent({
+      churchSlug: input.churchSlug,
+      eventSlug: input.eventSlug,
+      today: clock.date,
+      now: clock.time,
+      party: input.party,
+    });
+    return result.ok
+      ? { ok: true, going: result.going, waiting: result.waiting }
+      : { ok: false, errors: result.errors };
+  } catch (error) {
+    return { ok: false, error: explain(error) };
+  }
+}

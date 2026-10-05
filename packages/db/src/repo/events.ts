@@ -56,6 +56,7 @@ export interface ChurchEvent {
   listed: boolean;
   registrationOpen: boolean;
   registrationClosesOn: string | null;
+  registrationClosesAt: string | null;
   capacity: number | null;
   waitlist: boolean;
   formId: string | null;
@@ -86,6 +87,7 @@ export interface EventInput {
   listed?: boolean;
   registrationOpen?: boolean;
   registrationClosesOn?: string | null;
+  registrationClosesAt?: string | null;
   capacity?: number | null;
   waitlist?: boolean;
   campusId?: string | null;
@@ -161,6 +163,7 @@ function check(input: EventInput) {
     listed: input.listed ?? true,
     registrationOpen: input.registrationOpen ?? true,
     registrationClosesOn: closes,
+    registrationClosesAt: clock(input.registrationClosesAt),
     capacity,
     waitlist: input.waitlist ?? false,
     campusId: trimmed(input.campusId),
@@ -214,6 +217,7 @@ const columns = {
   listed: events.listed,
   registrationOpen: events.registrationOpen,
   registrationClosesOn: events.registrationClosesOn,
+  registrationClosesAt: events.registrationClosesAt,
   capacity: events.capacity,
   waitlist: events.waitlist,
   formId: events.formId,
@@ -249,6 +253,7 @@ const shape = (row: Record<string, unknown>): ChurchEvent => ({
   listed: row["listed"] as boolean,
   registrationOpen: row["registrationOpen"] as boolean,
   registrationClosesOn: (row["registrationClosesOn"] ?? null) as string | null,
+  registrationClosesAt: (row["registrationClosesAt"] ?? null) as string | null,
   capacity: (row["capacity"] ?? null) as number | null,
   waitlist: row["waitlist"] as boolean,
   formId: (row["formId"] ?? null) as string | null,

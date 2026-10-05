@@ -119,3 +119,16 @@ export async function publicGroup(slug: string, id: string): Promise<PublicGroup
   const all = await publicGroups(slug);
   return all.find((group) => group.id === id) ?? null;
 }
+
+/**
+ * R14.2. The timezone a public page should read dates in.
+ *
+ * The church's own, so "closes on the 6th" means the whole of the 6th where the
+ * church is, rather than where the server or the reader happens to be.
+ */
+export async function publicChurchTimezone(slug: string): Promise<string> {
+  if (!SLUG.test(slug)) return "America/Chicago";
+  const rows = await owner()<{ timezone: string }[]>`
+    select timezone from tenants where slug = ${slug} limit 1`;
+  return rows[0]?.timezone ?? "America/Chicago";
+}

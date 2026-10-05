@@ -3,7 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, ArchiveRestore, Link2, Check, Plus, Pencil } from "lucide-react";
+import {
+  Archive, ArchiveRestore, ArrowLeft, Check, Eye, Link2, Pencil, Plus,
+} from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -85,6 +87,79 @@ export function EventView({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
+      {/* R24.6. Back on the left, and on the right the three things done to
+          the event itself: look at it as the congregation will, change it, put
+          it away. The bar below is about registrations. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href={`/events?church=${church}`}
+          className="inline-flex flex-1 items-center gap-1.5 font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" /> {t("event.title")}
+        </Link>
+
+        <Button variant="secondary" asChild>
+          <a
+            href={`/events/${event.id}/preview?church=${church}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Eye className="size-4" aria-hidden /> {t("event.preview")}
+          </a>
+        </Button>
+
+        <Button
+          variant="ghost"
+          asChild
+          className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
+        >
+          <Link
+            href={`/events/${event.id}/edit?church=${church}`}
+            aria-label={t("action.edit")}
+            title={t("action.edit")}
+          >
+            <Pencil />
+          </Link>
+        </Button>
+
+        {event.archivedAt ? (
+          <IconButton
+            label={t("event.restore")}
+            disabled={pending}
+            onClick={() => run(() => archiveEvent(event.id, false, church))}
+          >
+            <ArchiveRestore />
+          </IconButton>
+        ) : (
+          <Dialog>
+            <DialogTrigger asChild>
+              <IconButton label={t("event.archive")} disabled={pending}>
+                <Archive />
+              </IconButton>
+            </DialogTrigger>
+            <DialogContent
+              title={t("event.archiveTitle", { name: event.name })}
+              closeLabel={t("common.close")}
+            >
+              <DialogFooter>
+                <Button
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const result = await archiveEvent(event.id, true, church);
+                      if (result.error) setError(result.error);
+                      else router.push(`/events?church=${church}`);
+                    })}
+                >
+                  {t("event.archive")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
       {error ? <Banner tone="danger" title={t("event.failed")}>{error}</Banner> : null}
 
       {/* The name and when on the left, the cover beside them, which is what
@@ -182,42 +257,6 @@ export function EventView({
           </Button>
         )}
 
-        {event.archivedAt ? (
-          <IconButton
-            label={t("event.restore")}
-            disabled={pending}
-            onClick={() => run(() => archiveEvent(event.id, false, church))}
-          >
-            <ArchiveRestore />
-          </IconButton>
-        ) : (
-          <Dialog>
-            <DialogTrigger asChild>
-              <IconButton label={t("event.archive")} disabled={pending}>
-                <Archive />
-              </IconButton>
-            </DialogTrigger>
-            <DialogContent
-              title={t("event.archiveTitle", { name: event.name })}
-              closeLabel={t("common.close")}
-            >
-              <DialogFooter>
-                <Button
-                  type="button"
-                  disabled={pending}
-                  onClick={() =>
-                    startTransition(async () => {
-                      const result = await archiveEvent(event.id, true, church);
-                      if (result.error) setError(result.error);
-                      else router.push(`/events?church=${church}`);
-                    })}
-                >
-                  {t("event.archive")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
 
       {/* The tabs, the same three a group's page carries. */}
@@ -266,13 +305,6 @@ export function EventView({
               </span>
             </Block>
 
-            {event.contactName ? (
-              <Block label={t("event.contact")}>
-                <span className="text-[length:var(--d-text-body)] text-fg">
-                  {event.contactName}
-                </span>
-              </Block>
-            ) : null}
           </aside>
         </div>
       ) : null}
