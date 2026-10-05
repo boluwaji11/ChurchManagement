@@ -100,7 +100,13 @@ export default async function GroupPage({
       members,
       canRecord,
       types: manage ? await listGroupTypes(tx) : [],
-      roster: await groupRoster(tx, group.id),
+      /*
+       * R3.1, R9.5. Who is in a group is the church's record, not the finder's.
+       * A member reads what the group is and asks to join it; the roster goes
+       * to the people who run it. Withheld here rather than hidden on screen,
+       * so it is never in the page at all.
+       */
+      roster: canRecord ? await groupRoster(tx, group.id) : [],
       requests: manage
         ? (await pendingRequests(tx, actor)).filter((one) => one.groupId === group.id)
         : [],

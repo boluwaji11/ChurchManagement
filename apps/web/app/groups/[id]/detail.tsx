@@ -163,13 +163,16 @@ export function GroupDetail({
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="overview">{t("group.tab.overview")}</TabsTrigger>
-          <TabsTrigger value="members">{t("group.tab.members")}</TabsTrigger>
-          {canRecord ? (
+        {/* R3.1. A member reads what the group is and asks to join it, so they
+            have the one screen and no bar over it: a row of tabs with a single
+            tab in it names a choice nobody has. */}
+        {canRecord ? (
+          <TabsList>
+            <TabsTrigger value="overview">{t("group.tab.overview")}</TabsTrigger>
+            <TabsTrigger value="members">{t("group.tab.members")}</TabsTrigger>
             <TabsTrigger value="attendance">{t("group.tab.attendance")}</TabsTrigger>
-          ) : null}
-        </TabsList>
+          </TabsList>
+        ) : null}
 
         <TabsContent value="overview">
           <div className="flex flex-wrap items-stretch gap-10">
@@ -271,6 +274,7 @@ export function GroupDetail({
           </div>
         </TabsContent>
 
+        {canRecord ? (
         <TabsContent value="members">
           <div className="flex max-w-[680px] flex-col gap-4">
             {/* Adding somebody sits above the list, because that is the one
@@ -323,8 +327,9 @@ export function GroupDetail({
             </section>
           </div>
         </TabsContent>
+        ) : null}
 
-        {canManage ? (
+        {canRecord ? (
           <TabsContent value="attendance">
             <Register
               church={church}

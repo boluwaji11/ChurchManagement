@@ -39,7 +39,7 @@ export interface FinderGroup {
   forWhom: string | null;
   online: boolean;
   childrenWelcome: boolean;
-  memberCount: number;
+  memberCount: number | null;
   leaderNames: string[];
   openToJoin: boolean;
   full: boolean;
@@ -644,10 +644,12 @@ function GroupCard({
           {leader ? t("find.ledBy", { meets: meets(group), leader }) : meets(group)}
         </div>
 
-        <div className="text-[13px] text-fg">
-          <strong className="font-semibold">{group.memberCount}</strong>{" "}
-          {t("groups.members").toLowerCase()}
-        </div>
+        {group.memberCount !== null ? (
+          <div className="text-[13px] text-fg">
+            <strong className="font-semibold">{group.memberCount}</strong>{" "}
+            {t("groups.members").toLowerCase()}
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -698,9 +700,11 @@ function GroupRow({
         </span>
       ) : null}
 
-      <span className="shrink-0 text-[13px] text-fg-muted tabular-nums">
-        {plural("publicGroups.size", group.memberCount)}
-      </span>
+      {group.memberCount !== null ? (
+        <span className="shrink-0 text-[13px] text-fg-muted tabular-nums">
+          {plural("publicGroups.size", group.memberCount)}
+        </span>
+      ) : null}
 
       <span
         className="shrink-0 text-[12px] font-medium"

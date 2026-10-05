@@ -129,7 +129,8 @@ export default async function GroupsPage({
           forWhom: group.forWhom,
           online: group.online,
           childrenWelcome: group.childrenWelcome,
-          memberCount: group.memberCount,
+          // R3.1. How many are in a group is the church's record, not the finder's.
+          memberCount: manage ? group.memberCount : null,
           leaderNames: group.leaderNames,
           openToJoin: group.openToJoin,
           full: group.full,
