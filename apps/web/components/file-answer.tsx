@@ -12,6 +12,14 @@ import {
 interface Attached {
   key: string;
   name: string;
+  /**
+   * R4.1. The file as the browser still holds it, for looking at.
+   *
+   * Made from the chosen file rather than fetched back, so a parent sees what
+   * they attached without the bucket ever being readable from the open web.
+   */
+  preview: string;
+  image: boolean;
 }
 
 /**
@@ -62,7 +70,12 @@ export function FileAnswer({
         setFailed(result.error ?? t("storage.error.failed"));
         break;
       }
-      taken.push({ key: result.key, name: result.name ?? file.name });
+      taken.push({
+        key: result.key,
+        name: result.name ?? file.name,
+        preview: URL.createObjectURL(file),
+        image: file.type.startsWith("image/"),
+      });
     }
 
     setHeld((was) => [...was, ...taken]);
@@ -72,9 +85,20 @@ export function FileAnswer({
   };
 
   const drop = (key: string) => {
-    setHeld((was) => was.filter((one) => one.key !== key));
+    setHeld((was) => {
+      const going = was.find((one) => one.key === key);
+      if (going) URL.revokeObjectURL(going.preview);
+      return was.filter((one) => one.key !== key);
+    });
     onChange(value.filter((one) => one !== key));
   };
+
+  // Every object URL handed out is handed back when the question leaves the
+  // screen, so a form filled in on a phone does not hold onto the pictures.
+  React.useEffect(
+    () => () => { for (const one of held) URL.revokeObjectURL(one.preview); },
+    [held],
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -83,12 +107,30 @@ export function FileAnswer({
           {held.map((one) => (
             <li
               key={one.key}
-              className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5"
+              className="flex items-center gap-2.5 rounded-lg border border-line bg-surface p-1.5 pr-3"
             >
-              <Paperclip className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-              <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+              {one.image ? (
+                <img
+                  src={one.preview}
+                  alt=""
+                  className="size-10 shrink-0 rounded-md object-cover"
+                />
+              ) : (
+                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-sunken">
+                  <Paperclip className="size-4 text-fg-subtle" aria-hidden />
+                </span>
+              )}
+
+              {/* The name opens it, which is the only preview a document gets
+                  and the larger one a picture deserves. */}
+              <a
+                href={one.preview}
+                target="_blank"
+                rel="noreferrer"
+                className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
+              >
                 {one.name}
-              </span>
+              </a>
               <IconButton
                 label={t("form.files.remove", { name: one.name })}
                 onClick={() => drop(one.key)}
