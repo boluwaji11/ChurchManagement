@@ -1,8 +1,10 @@
 import {
   withTenant, findGroups, listGroupTypes, pendingRequests, personForUser, canManageGroups,
+  canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
+import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { Finder } from "./finder";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -26,6 +28,9 @@ export default async function GroupsPage({
   const session = await requireSession(church);
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   const manage = canManageGroups(session);
+  // R17.5. A member reads this screen in the portal's frame, which is the one
+  // the rest of their screens wear. Staff read the same list inside the app.
+  const portal = !canEditPeople(session) && !canReadIncidents(session) && !manage;
 
   const { groups, types, requests } = await withTenant(actor, async (tx) => {
     const self = await personForUser(tx, session.userId);
@@ -53,12 +58,8 @@ export default async function GroupsPage({
     }
   }
 
-  return (
-    <AppShell
-      session={session}
-      title={t("groups.title")}
-    >
-      <Finder
+  const finder = (
+    <Finder
         church={session.tenantSlug}
         canManage={manage}
         types={types.map((type) => ({
@@ -103,7 +104,21 @@ export default async function GroupsPage({
           archived: group.archived,
           photoUrl: photos.get(group.id) ?? null,
         }))}
-      />
+    />
+  );
+
+  if (portal) {
+    return (
+      <PortalShell session={session}>
+        <PortalTitle title={t("find.title")} under={t("find.lede")} />
+        {finder}
+      </PortalShell>
+    );
+  }
+
+  return (
+    <AppShell session={session} title={t("groups.title")}>
+      {finder}
     </AppShell>
   );
 }

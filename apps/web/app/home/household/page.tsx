@@ -4,18 +4,14 @@ import {
   listContacts, listAddresses, canEditPeople, canReadIncidents,
   type PersonContact, type Visibility,
 } from "@connectapp/db";
-import { Card } from "@connectapp/ui";
+import { Avatar } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { AppShell } from "@/components/app-shell";
+import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { Privacy } from "./privacy";
 import { onDayLong } from "../when";
 
 export const dynamic = "force-dynamic";
-
-/** Two initials, for a face nobody has uploaded. */
-const initials = (name: string): string =>
-  name.split(/\s+/).filter(Boolean).slice(0, 2).map((one) => one[0]!.toUpperCase()).join("");
 
 /**
  * R17.2, R17.3. A member's own household, and what the church publishes of it.
@@ -62,11 +58,12 @@ export default async function MyHouseholdPage({
 
   if (!mine) {
     return (
-      <AppShell session={session} title={t("nav.myHousehold")} density="portal" max="max-w-3xl">
+      <PortalShell session={session}>
+        <PortalTitle title={t("nav.myHousehold")} />
         <p className="text-[length:var(--d-text-body)] text-fg-muted">
           {t("member.error.noRecord")}
         </p>
-      </AppShell>
+      </PortalShell>
     );
   }
 
@@ -83,40 +80,40 @@ export default async function MyHouseholdPage({
   };
 
   return (
-    <AppShell session={session} title={t("nav.myHousehold")} density="portal" max="max-w-3xl">
-      <div className="flex flex-col gap-7">
-        {mine.household ? (
-          <section className="flex flex-col gap-3">
-            <h2 className="text-heading text-fg">{mine.household.name}</h2>
-            <Card className="flex flex-col gap-3">
-              {mine.household.members.map((one) => (
-                <span key={one.id} className="flex items-center gap-3">
-                  <span
-                    aria-hidden
-                    className="grid size-9 shrink-0 place-items-center rounded-full bg-sunken text-caption font-semibold text-fg-muted"
-                  >
-                    {initials(one.displayName)}
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-[length:var(--d-text-body)] font-medium text-fg">
-                      {one.displayName}
-                    </span>
-                    <span className="truncate text-caption text-fg-muted">
-                      {t(`householdRole.${one.role}` as never)}
-                    </span>
+    <PortalShell session={session}>
+      <PortalTitle title={t("nav.myHousehold")} />
+
+      <div className="flex flex-wrap items-start gap-6">
+        <Panel className="flex min-w-0 flex-[1_1_320px] flex-col gap-3">
+          <span className="font-semibold text-fg">{t("home.people")}</span>
+          {mine.household ? (
+            mine.household.members.map((one) => (
+              <span key={one.id} className="flex items-center gap-3">
+                <Avatar
+                  name={one.displayName}
+                  id={one.id}
+                  size="sm"
+                  className="size-9 text-[12px] font-semibold"
+                />
+                <span className="flex min-w-0 flex-1 flex-col leading-5">
+                  <span className="truncate font-medium text-fg">{one.displayName}</span>
+                  <span className="truncate text-caption text-fg-subtle">
+                    {t(`householdRole.${one.role}` as never)}
                   </span>
                 </span>
-              ))}
-            </Card>
-          </section>
-        ) : (
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">
-            {t("home.noHousehold")}
-          </p>
-        )}
+              </span>
+            ))
+          ) : (
+            <p className="text-[length:var(--d-text-body)] text-fg-muted">
+              {t("home.noHousehold")}
+            </p>
+          )}
+        </Panel>
 
-        <Privacy value={mine.privacy} shown={shown} church={session.tenantSlug} />
+        <div className="flex min-w-0 flex-[999_1_420px] flex-col">
+          <Privacy value={mine.privacy} shown={shown} church={session.tenantSlug} />
+        </div>
       </div>
-    </AppShell>
+    </PortalShell>
   );
 }

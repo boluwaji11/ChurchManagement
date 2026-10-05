@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Card, Switch } from "@connectapp/ui";
+import { Switch } from "@connectapp/ui";
 import type { Visibility } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
+import { Panel } from "@/components/portal/panel";
 import { setMyPrivacy } from "../actions";
 
 /** Every field a member can publish, in the order the design reads them. */
@@ -56,15 +57,15 @@ export function Privacy({
   };
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-heading text-fg">{t("home.shows")}</h2>
-      <p className="-mt-1 text-[length:var(--d-text-body)] text-fg-muted">{t("home.showsNote")}</p>
+    <Panel className="flex flex-col gap-1">
+      <span className="font-semibold text-fg">{t("home.shows")}</span>
+      <p className="mb-2 text-[length:var(--d-text-body)] text-fg-muted">{t("home.showsNote")}</p>
 
-      <Card className="flex flex-col divide-y divide-line p-0">
+      <div className="flex flex-col">
         {FIELDS.map(([key, label]) => (
           <label
             key={key}
-            className="flex cursor-pointer items-center gap-3 px-4 py-3"
+            className="flex min-h-12 cursor-pointer items-center gap-3.5 border-t border-line py-3"
           >
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-[length:var(--d-text-body)] font-medium text-fg">
@@ -82,13 +83,13 @@ export function Privacy({
             />
           </label>
         ))}
-      </Card>
+      </div>
 
       {error ? (
         <p role="status" className="text-[length:var(--d-text-body)] text-danger-text">
           {error}
         </p>
       ) : null}
-    </section>
+    </Panel>
   );
 }

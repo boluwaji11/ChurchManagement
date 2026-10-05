@@ -1,93 +1,80 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
-import {
-  Button, Card, DatePicker, Field, IconButton, Input,
-  Dialog, DialogContent, DialogFooter,
-} from "@connectapp/ui";
-import type { Blockout } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
+import { Panel } from "@/components/portal/panel";
 import { addAway, removeAway } from "../actions";
-import { onDayLong } from "../when";
 
-/** The date picker's words, said once rather than at every call. */
-const DATE_LABELS = () => ({
-  open: t("date.open"),
-  clear: t("date.clear"),
-  previousMonth: t("date.previousMonth"),
-  nextMonth: t("date.nextMonth"),
-  month: t("date.month"),
-  year: t("date.year"),
-  today: t("date.today"),
-});
+export interface AwayDay {
+  /** The service day, as YYYY-MM-DD. */
+  on: string;
+  /** How it reads on the pill. */
+  label: string;
+  /** The blockout covering it, where there is one. */
+  blockoutId: string | null;
+}
 
 /**
- * R17.7, R10.4. The days this member has said not to ask.
+ * R17.7, R10.4. The service days this member has said not to ask.
  *
- * A stretch rather than a list of single days, because somebody away for a
- * fortnight should say it once.
+ * A pill a day rather than a form with two dates on it. A member is answering
+ * "which of these can you not do", and the days the church actually meets are
+ * the only answers worth offering, so the question is asked as the answers.
  */
-export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
+export function Away({ days, church }: { days: AwayDay[]; church: string }) {
   const [working, start] = React.useTransition();
-  const [adding, setAdding] = React.useState(false);
-  const [from, setFrom] = React.useState("");
-  const [to, setTo] = React.useState("");
-  const [why, setWhy] = React.useState("");
+  const [now, setNow] = React.useState(days);
   const [error, setError] = React.useState<string | null>(null);
 
-  const span = (one: Blockout) =>
-    one.startsOn === one.endsOn
-      ? onDayLong(one.startsOn)
-      : `${onDayLong(one.startsOn)} to ${onDayLong(one.endsOn)}`;
+  React.useEffect(() => { setNow(days); }, [days]);
 
-  const save = () =>
+  const toggle = (day: AwayDay) => {
+    const was = now;
+    setNow(was.map((one) =>
+      one.on === day.on ? { ...one, blockoutId: day.blockoutId ? null : "pending" } : one));
+
     start(async () => {
-      if (!from) return;
-      const back = await addAway(from, to || from, why.trim() || null, church);
-      setError(back.error ?? null);
-      if (!back.error) {
-        setAdding(false);
-        setFrom("");
-        setTo("");
-        setWhy("");
+      const back = day.blockoutId
+        ? await removeAway(day.blockoutId, church)
+        : await addAway(day.on, day.on, null, church);
+      if (back.error) {
+        setNow(was);
+        setError(back.error);
+      } else {
+        setError(null);
       }
     });
+  };
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-heading text-fg">{t("home.away")}</h2>
-      <p className="-mt-1 text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNote")}</p>
+    <Panel className="flex flex-col gap-3">
+      <span className="font-semibold text-fg">{t("home.away")}</span>
+      <p className="-mt-2 text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNote")}</p>
 
-      {dates.length > 0 ? (
-        <Card className="flex flex-col divide-y divide-line p-0">
-          {dates.map((one) => (
-            <span key={one.id} className="flex items-center gap-3 px-4 py-2.5">
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-[length:var(--d-text-body)] text-fg">
-                  {span(one)}
-                </span>
-                {one.reason ? (
-                  <span className="truncate text-caption text-fg-muted">{one.reason}</span>
-                ) : null}
-              </span>
-              <IconButton
-                label={t("home.awayRemove", { dates: span(one) })}
-                variant="ghost"
-                disabled={working}
-                className="size-8 min-h-0 shrink-0 [&_svg]:size-4"
-                onClick={() => start(async () => {
-                  const back = await removeAway(one.id, church);
-                  setError(back.error ?? null);
-                })}
-              >
-                <X />
-              </IconButton>
-            </span>
-          ))}
-        </Card>
+      {now.length === 0 ? (
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNoDays")}</p>
       ) : (
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNone")}</p>
+        <div className="flex flex-wrap gap-2">
+          {now.map((day) => {
+            const on = Boolean(day.blockoutId);
+            return (
+              <button
+                key={day.on}
+                type="button"
+                disabled={working}
+                aria-pressed={on}
+                onClick={() => toggle(days.find((one) => one.on === day.on) ?? day)}
+                className={
+                  on
+                    ? "min-h-9 cursor-pointer rounded-full border border-fg bg-fg px-3.5 text-[14px] font-medium text-canvas disabled:opacity-60"
+                    : "min-h-9 cursor-pointer rounded-full border border-line-strong bg-surface px-3.5 text-[14px] font-medium text-fg hover:bg-sunken disabled:opacity-60"
+                }
+              >
+                {day.label}
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {error ? (
@@ -95,32 +82,6 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
           {error}
         </p>
       ) : null}
-
-      <div>
-        <Button variant="secondary" onClick={() => setAdding(true)}>{t("home.awayAdd")}</Button>
-      </div>
-
-      <Dialog open={adding} onOpenChange={(open) => { if (!open) setAdding(false); }}>
-        <DialogContent title={t("home.awayAdd")} closeLabel={t("action.cancel")}>
-          <Field label={t("home.awayFrom")} required>
-            <DatePicker value={from} onChange={setFrom} labels={DATE_LABELS()} />
-          </Field>
-          <Field label={t("home.awayTo")}>
-            <DatePicker value={to} onChange={setTo} labels={DATE_LABELS()} />
-          </Field>
-          <Field label={t("home.awayWhy")}>
-            <Input value={why} onChange={(e) => setWhy(e.target.value)} />
-          </Field>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setAdding(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button loading={working} disabled={!from} onClick={save}>
-              {t("action.save")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </section>
+    </Panel>
   );
 }

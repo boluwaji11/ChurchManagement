@@ -1,18 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, CalendarDays, HandHeart } from "lucide-react";
 import {
   withTenant, findGroups, personForUser, householdFor, assignmentsForPerson,
-  upcomingServices, canEditPeople, canReadIncidents,
+  upcomingServices, listEvents, canEditPeople, canReadIncidents,
 } from "@connectapp/db";
-import { Button, Card } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { AppShell } from "@/components/app-shell";
-import { BrandRule } from "@/components/brand-rule";
+import {
+  PortalShell, PortalTitle, PortalSection, Panel,
+} from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./serving/respond";
-import { onDay, atTime, dayName, readableTime } from "./when";
+import { onDay, onDayLong, dayName, readableTime } from "./when";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +20,9 @@ export const dynamic = "force-dynamic";
  *
  * What is being asked of them first, then what is theirs. A member signs in
  * two or three times a year, usually because the church asked them something,
- * so the thing waiting on an answer leads the screen and everything else sits
- * under it.
+ * so the thing waiting on an answer leads the screen. The week down the main
+ * column, the standing facts down the side, which is the shape the redesign
+ * draws.
  *
  * Giving is not here. Money is deferred, and R17.4 comes back with it.
  */
@@ -39,179 +39,206 @@ export default async function MemberHomePage({
     redirect(`/dashboard?church=${session.tenantSlug}`);
   }
 
-  const scope = {
-    tenantId: session.tenantId,
-    role: session.role,
-    userId: session.userId,
-    permissions: session.permissions,
-  };
-
-  const mine = await withTenant(scope, async (tx) => {
-    const self = await personForUser(tx, session.userId);
-    const now = churchNow("America/Chicago");
-
-    return {
-      today: now.date,
-      groups: (await findGroups(tx, { memberId: self })).filter((group) => group.mine),
-      household: self ? await householdFor(tx, self) : null,
-      serving: self
-        ? await assignmentsForPerson(tx, self, { from: now.date, limit: 5 })
-        : [],
-      services: await upcomingServices(tx, { from: now.date, limit: 1 }),
-    };
-  });
+  const mine = await withTenant(
+    {
+      tenantId: session.tenantId,
+      role: session.role,
+      userId: session.userId,
+      permissions: session.permissions,
+    },
+    async (tx) => {
+      const self = await personForUser(tx, session.userId);
+      const now = churchNow("America/Chicago");
+      return {
+        today: now.date,
+        groups: (await findGroups(tx, { memberId: self })).filter((group) => group.mine),
+        household: self ? await householdFor(tx, self) : null,
+        serving: self
+          ? await assignmentsForPerson(tx, self, { from: now.date, limit: 6 })
+          : [],
+        services: await upcomingServices(tx, { from: now.date, limit: 1 }),
+        events: (await listEvents(tx, { from: now.date }))
+          .filter((one) => one.listed && one.status !== "cancelled")
+          .slice(0, 3),
+      };
+    },
+  );
 
   const next = mine.services[0];
   const asked = mine.serving.filter((one) => one.status === "pending");
+  const ahead = mine.serving.filter((one) => one.status !== "pending").slice(0, 3);
   const first = session.displayName.split(" ")[0] ?? session.displayName;
 
   return (
-    <AppShell
-      session={session}
-      title={t("home.hello", { name: first })}
-      density="portal"
-      max="max-w-3xl"
-    >
-      <div className="flex flex-col gap-7">
-        {/* R1.1. The church's colour, on the screen its members are handed. */}
-        <BrandRule tenantId={session.tenantId} role={session.role} />
+    <PortalShell session={session}>
+      <PortalTitle
+        title={t("home.hello", { name: first })}
+        under={
+          next
+            ? t("home.nextService", {
+                name: next.name,
+                when: `${onDayLong(next.occursOn)}, ${readableTime(next.startsAt)}`,
+              })
+            : t("home.noService")
+        }
+      />
 
-        {next ? (
-          <p className="-mt-3 text-[length:var(--d-text-body)] text-fg-muted">
-            {t("home.nextService", {
-              name: next.name,
-              when: `${onDay(next.occursOn)}, ${readableTime(next.startsAt)}`,
-            })}
-          </p>
-        ) : null}
+      {/* The week down the main column, the standing facts down the side. */}
+      <div className="flex flex-wrap items-start gap-6">
+        <div className="flex min-w-0 flex-[999_1_480px] flex-col gap-4">
+          <PortalSection title={t("home.thisWeek")}>
+            {asked.length === 0 && ahead.length === 0 ? (
+              <Panel>
+                <p className="text-[length:var(--d-text-body)] text-fg-muted">
+                  {t("home.noSchedule")}
+                </p>
+              </Panel>
+            ) : null}
 
-        {/* What the church is waiting on. It leads, because it is the reason
-            most members open this at all. */}
-        {asked.length > 0 ? (
-          <section className="flex flex-col gap-3">
-            <h2 className="text-heading text-fg">{t("home.thisWeek")}</h2>
+            {/* What the church is waiting on. It leads, because it is the
+                reason most members open this at all. */}
             {asked.map((one) => (
-              <Card key={one.id} className="flex flex-col gap-3">
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-[length:var(--d-text-body)] font-semibold text-fg">
+              <Panel key={one.id} className="flex flex-wrap items-center gap-4">
+                <span className="flex min-w-[260px] flex-1 flex-col gap-1">
+                  <span className="self-start rounded-full bg-hue-sky-100 px-2 py-0.5 text-caption font-medium text-hue-sky-700">
+                    {one.teamName}
+                  </span>
+                  <span className="mt-1.5 text-[17px] font-semibold leading-6 text-fg">
                     {t("home.servingAsked")}
                   </span>
                   <span className="text-[length:var(--d-text-body)] text-fg-muted">
-                    {t("home.servingOn", { team: one.teamName, position: one.positionName })}
-                  </span>
-                  <span className="text-[length:var(--d-text-body)] text-fg-muted">
-                    {onDay(one.occursOn)} {atTime(one.startsAt)}
+                    {onDay(one.occursOn)} {readableTime(one.startsAt)} {one.positionName}
                   </span>
                 </span>
                 <Respond id={one.id} church={session.tenantSlug} />
-              </Card>
+              </Panel>
             ))}
-          </section>
-        ) : null}
 
-        <section className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-heading text-fg">{t("home.mySchedule")}</h2>
+            {ahead.length > 0 ? (
+              <Panel className="flex flex-col divide-y divide-line px-5 py-0">
+                {ahead.map((one) => (
+                  <span key={one.id} className="flex flex-wrap items-center gap-3.5 py-3">
+                    <span className="flex w-13 shrink-0 flex-col items-center leading-[18px]">
+                      <span className="text-caption font-medium text-fg-subtle">
+                        {onDay(one.occursOn).split(",")[0]}
+                      </span>
+                      <span className="font-display text-[22px] leading-[26px] text-fg">
+                        {new Date(`${one.occursOn}T00:00:00`).getDate()}
+                      </span>
+                    </span>
+                    <span className="flex min-w-[180px] flex-1 flex-col leading-5">
+                      <span className="font-medium text-fg">{one.positionName}</span>
+                      <span className="text-caption text-fg-muted">
+                        {one.teamName} {readableTime(one.startsAt)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-hue-fern-100 px-2.5 py-0.5 text-caption font-medium text-hue-fern-700">
+                      {t("home.accepted")}
+                    </span>
+                  </span>
+                ))}
+              </Panel>
+            ) : null}
+
             <Link
               href={`/home/serving?church=${session.tenantSlug}`}
-              className="text-[length:var(--d-text-body)] font-medium text-primary"
+              className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
             >
               {t("home.seeAll")}
             </Link>
-          </div>
 
-          {mine.serving.length > 0 ? (
-            <Card className="flex flex-col divide-y divide-line p-0">
-              {mine.serving.slice(0, 3).map((one) => (
-                <span key={one.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                  <HandHeart className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-[length:var(--d-text-body)] font-medium text-fg">
-                      {one.positionName}
-                    </span>
-                    <span className="truncate text-caption text-fg-muted">
-                      {one.teamName} {atTime(one.startsAt)}
-                    </span>
+            {/* What the church has on, each row opening its own page. */}
+            {mine.events.length > 0 ? (
+              <Panel className="flex flex-col divide-y divide-line px-5 py-0">
+                {mine.events.map((one) => {
+                  const when = new Date(`${one.startsOn}T00:00:00`);
+                  return (
+                    <Link
+                      key={one.id}
+                      href={`/events/${one.slug}?church=${session.tenantSlug}`}
+                      className="flex flex-wrap items-center gap-3.5 py-3"
+                    >
+                      <span className="flex w-13 shrink-0 flex-col items-center leading-[18px]">
+                        <span className="text-caption font-medium text-fg-subtle">
+                          {when.toLocaleDateString("en-US", { weekday: "short" })}
+                        </span>
+                        <span className="font-display text-[22px] leading-[26px] text-fg">
+                          {when.getDate()}
+                        </span>
+                      </span>
+                      <span
+                        aria-hidden
+                        className="size-2 shrink-0 rounded-full"
+                        style={{ background: `var(--hue-${one.hue}-500)` }}
+                      />
+                      <span className="flex min-w-[180px] flex-1 flex-col leading-5">
+                        <span className="font-medium text-fg">{one.name}</span>
+                        <span className="text-caption text-fg-muted">
+                          {one.startsAt ? readableTime(one.startsAt) : ""}
+                          {one.location ? ` ${one.location}` : ""}
+                        </span>
+                      </span>
+                    </Link>
+                  );
+                })}
+              </Panel>
+            ) : null}
+          </PortalSection>
+        </div>
+
+        <aside className="flex min-w-0 flex-[1_1_300px] flex-col gap-4">
+          <Panel className="flex flex-col gap-2.5">
+            <span className="text-caption font-medium text-fg-subtle">{t("home.myGroups")}</span>
+            {mine.groups.length > 0 ? (
+              mine.groups.map((group) => (
+                <Link
+                  key={group.id}
+                  href={`/groups/${group.slug}?church=${session.tenantSlug}`}
+                  className="flex items-center gap-2.5"
+                >
+                  <span
+                    aria-hidden
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ background: `var(--hue-${group.typeHue ?? "indigo"}-500)` }}
+                  />
+                  <span className="min-w-0 flex-1 truncate font-medium text-fg">{group.name}</span>
+                  <span className="shrink-0 text-caption text-fg-subtle">
+                    {group.dayOfWeek !== null ? `${dayName(group.dayOfWeek)}s` : ""}
                   </span>
-                  <span className="shrink-0 text-caption text-fg-muted">
-                    {onDay(one.occursOn)}
-                  </span>
-                </span>
-              ))}
-            </Card>
-          ) : (
-            <p className="text-[length:var(--d-text-body)] text-fg-muted">
-              {t("home.noSchedule")}
-            </p>
-          )}
-        </section>
+                </Link>
+              ))
+            ) : null}
+            <Link
+              href={`/groups?church=${session.tenantSlug}`}
+              className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
+            >
+              {mine.groups.length > 0 ? t("home.findAnother") : t("find.title")}
+            </Link>
+          </Panel>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-heading text-fg">{t("home.myGroups")}</h2>
-
-          {mine.groups.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {mine.groups.map((group) => (
-                <Card key={group.id} className="relative flex flex-col gap-2">
-                  <Link
-                    href={`/groups/${group.slug}?church=${session.tenantSlug}`}
-                    className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
-                  >
-                    {group.name}
-                  </Link>
-                  <span className="text-[length:var(--d-text-body)] text-fg-muted">
-                    {group.dayOfWeek !== null
-                      ? `${dayName(group.dayOfWeek)}s${group.startsAt ? `, ${readableTime(group.startsAt)}` : ""}`
-                      : ""}
-                    {group.location ? ` ${group.location}` : ""}
-                  </span>
-                </Card>
-              ))}
-            </div>
-          ) : null}
-
-          <div>
-            <Button asChild variant={mine.groups.length > 0 ? "secondary" : "primary"}>
-              <Link href={`/groups?church=${session.tenantSlug}`}>
-                {t("find.title")} <ArrowRight />
-              </Link>
-            </Button>
-          </div>
-        </section>
-
-        {mine.household ? (
-          <section className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 className="text-heading text-fg">{t("home.myHousehold")}</h2>
-              <Link
-                href={`/home/household?church=${session.tenantSlug}`}
-                className="text-[length:var(--d-text-body)] font-medium text-primary"
-              >
-                {t("home.seeAll")}
-              </Link>
-            </div>
-            <Card className="flex flex-col gap-2">
+          {mine.household ? (
+            <Panel className="flex flex-col gap-2.5">
+              <span className="text-caption font-medium text-fg-subtle">
+                {t("home.myHousehold")}
+              </span>
               {mine.household.members.map((one) => (
                 <span key={one.id} className="flex items-center justify-between gap-3">
-                  <span className="truncate text-[length:var(--d-text-body)] font-medium text-fg">
-                    {one.displayName}
-                  </span>
-                  <span className="shrink-0 text-caption text-fg-muted">
+                  <span className="truncate font-medium text-fg">{one.displayName}</span>
+                  <span className="shrink-0 text-caption text-fg-subtle">
                     {t(`householdRole.${one.role}` as never)}
                   </span>
                 </span>
               ))}
-            </Card>
-          </section>
-        ) : null}
-
-        <Link
-          href={`/calendar?church=${session.tenantSlug}`}
-          className="inline-flex items-center gap-1.5 self-start text-[length:var(--d-text-body)] font-medium text-primary"
-        >
-          <CalendarDays className="size-4" aria-hidden /> {t("nav.calendar")}
-        </Link>
+              <Link
+                href={`/home/household?church=${session.tenantSlug}`}
+                className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
+              >
+                {t("home.seeAll")}
+              </Link>
+            </Panel>
+          ) : null}
+        </aside>
       </div>
-    </AppShell>
+    </PortalShell>
   );
 }
