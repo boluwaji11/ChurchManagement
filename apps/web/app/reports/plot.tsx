@@ -46,6 +46,7 @@ export const ceiling = (top: number): number => {
 export function Frame({
   top,
   height = 220,
+  fill = false,
   children,
   footer,
   grid = true,
@@ -53,6 +54,8 @@ export function Frame({
   /** The value the top gridline stands at. */
   top: number;
   height?: number;
+  /** Take the height the tile gives, rather than a fixed one. */
+  fill?: boolean;
   children: React.ReactNode;
   /** The labels along the bottom, drawn in the plot's own column. */
   footer?: React.ReactNode;
@@ -63,8 +66,11 @@ export function Frame({
   const ruled = marks[marks.length - 1] || 1;
 
   return (
-    <div className="flex flex-col">
-      <div className="flex" style={{ height }}>
+    <div className={fill ? "flex min-h-0 flex-1 flex-col" : "flex flex-col"}>
+      <div
+        className={fill ? "flex min-h-0 flex-1" : "flex"}
+        style={fill ? undefined : { height }}
+      >
         {/* The scale. Read before the shapes, so it goes first. */}
         <div className="flex w-10 shrink-0 flex-col justify-between pr-2 text-right">
           {[...marks].reverse().map((mark) => (
@@ -99,7 +105,7 @@ export function Frame({
       </div>
 
       {footer ? (
-        <div className="flex">
+        <div className="flex shrink-0">
           <span className="w-10 shrink-0" />
           <div className="min-w-0 flex-1">{footer}</div>
         </div>

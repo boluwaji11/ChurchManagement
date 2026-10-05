@@ -61,12 +61,12 @@ export default async function CustomReportPage({
     <AppShell session={session} title={t("reports.title")} wide>
       <Link
         href={`/reports?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-mb-5 -mt-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
       </Link>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="-mb-3 flex flex-wrap items-center gap-3">
         <h2 className="flex-1 font-display text-[22px] leading-[28px] text-fg">{saved.name}</h2>
 
         <Link
@@ -111,20 +111,21 @@ export default async function CustomReportPage({
                 {nameOf(tile)}
               </h3>
 
-              <div className="min-h-0 flex-1 overflow-auto">
+              {/* The visual takes the box it was sized to, so reading a report
+                  is reading it rather than scrolling inside each tile. */}
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 {!result || result.rows.length === 0 ? (
                   <p className="text-[13px] text-fg-muted">{t("report.nothingMatches")}</p>
                 ) : (
-                  <>
-                    <Answer spec={tile} result={result} rows={40} />
-                    {result.total !== null ? (
-                      <p className="mt-3 border-t border-line pt-2 text-[13px] text-fg">
-                        {t("report.totalIs", { total: result.total.toLocaleString() })}
-                      </p>
-                    ) : null}
-                  </>
+                  <Answer spec={tile} result={result} rows={40} fill />
                 )}
               </div>
+
+              {result && result.total !== null ? (
+                <p className="mt-2 shrink-0 border-t border-line pt-2 text-[13px] text-fg">
+                  {t("report.totalIs", { total: result.total.toLocaleString() })}
+                </p>
+              ) : null}
             </section>
           );
         })}

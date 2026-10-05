@@ -44,7 +44,7 @@ export default async function BuildReportPage({
     <AppShell session={session} title={saved?.name ?? t("report.build")} wide>
       <Link
         href={`/reports?church=${session.tenantSlug}`}
-        className="-mb-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-mb-5 -mt-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
       </Link>

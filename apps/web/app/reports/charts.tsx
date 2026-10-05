@@ -17,6 +17,12 @@ import { Frame, Hint, ceiling, readable } from "./plot";
 /** Standing on its own on a report, or bare inside a panel that frames it. */
 const CARD = "flex flex-col rounded-[14px] border border-line bg-surface p-5";
 const BARE = "flex flex-col";
+/** Inside a tile, where the chart is given a height rather than choosing one. */
+const FILLED = "flex min-h-0 flex-1 flex-col";
+
+/** What the chart's own element is, standing alone or filling the box it is in. */
+const shell = (title: string | undefined, fill: boolean): string =>
+  fill ? FILLED : title ? CARD : BARE;
 
 export interface Slice {
   key: string;
@@ -31,11 +37,13 @@ export function Donut({
   slices,
   total,
   totalLabel,
+  fill = false,
 }: {
   title?: string;
   slices: Slice[];
   total: number;
   totalLabel: string;
+  fill?: boolean;
 }) {
   const sum = slices.reduce((all, one) => all + one.value, 0) || 1;
 
@@ -46,12 +54,18 @@ export function Donut({
   let turned = 0;
 
   return (
-    <section className={title ? CARD : BARE}>
+    <section className={shell(title, fill)}>
       {title ? (
         <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-6">
+      <div
+        className={
+          fill
+            ? "flex min-h-0 flex-1 flex-wrap items-center gap-6 overflow-hidden"
+            : "flex flex-wrap items-center gap-6"
+        }
+      >
         <div className="relative size-[140px] shrink-0">
           <svg viewBox="0 0 140 140" className="size-full -rotate-90">
             {slices.map((one) => {
@@ -128,6 +142,7 @@ export function Line({
   filled = true,
   labels = false,
   grid = true,
+  fill = false,
 }: {
   title?: string;
   points: Point[];
@@ -137,6 +152,7 @@ export function Line({
   filled?: boolean;
   labels?: boolean;
   grid?: boolean;
+  fill?: boolean;
 }) {
   const values = points.map((one) => one.value);
   const floor = Math.min(0, ...values);
@@ -161,16 +177,19 @@ export function Line({
   const every = points.length > 8 ? Math.ceil(points.length / 8) : 1;
 
   return (
-    <section className={title ? CARD : BARE}>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        {title ? (
-          <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
-        ) : <span />}
-        {aside ? <span className="text-caption text-fg-subtle">{aside}</span> : null}
-      </div>
+    <section className={shell(title, fill)}>
+      {title || aside ? (
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+          {title ? (
+            <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+          ) : <span />}
+          {aside ? <span className="text-caption text-fg-subtle">{aside}</span> : null}
+        </div>
+      ) : null}
 
       <Frame
         grid={grid}
+        fill={fill}
         top={top}
         footer={
           <div className="flex pt-1.5">
@@ -246,6 +265,7 @@ export function Columns({
   labels = false,
   legend = true,
   grid = true,
+  fill = false,
 }: {
   title?: string;
   groups: { key: string; label: string; values: number[] }[];
@@ -253,6 +273,7 @@ export function Columns({
   labels?: boolean;
   legend?: boolean;
   grid?: boolean;
+  fill?: boolean;
 }) {
   const top = ceiling(Math.max(1, ...groups.flatMap((one) => one.values)));
 
@@ -261,29 +282,32 @@ export function Columns({
   const every = groups.length > 12 ? Math.ceil(groups.length / 12) : 1;
 
   return (
-    <section className={title ? CARD : BARE}>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        {title ? (
-          <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
-        ) : <span />}
-        {legend ? (
-          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {series.map((one) => (
-              <li key={one.label} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
-                <span
-                  aria-hidden
-                  className="size-2 rounded-full"
-                  style={{ background: `var(--hue-${one.hue}-500)` }}
-                />
-                {one.label}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+    <section className={shell(title, fill)}>
+      {title || legend ? (
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+          {title ? (
+            <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+          ) : <span />}
+          {legend ? (
+            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {series.map((one) => (
+                <li key={one.label} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
+                  <span
+                    aria-hidden
+                    className="size-2 rounded-full"
+                    style={{ background: `var(--hue-${one.hue}-500)` }}
+                  />
+                  {one.label}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
 
       <Frame
         grid={grid}
+        fill={fill}
         top={top}
         footer={
           <div className="flex gap-2 pt-1.5">
@@ -338,26 +362,44 @@ export function RowBars({
   title,
   rows,
   hue = "teal",
+  fill = false,
 }: {
   title?: string;
   rows: { key: string; label: string; value: number; note?: string }[];
   hue?: string;
+  fill?: boolean;
 }) {
   const most = Math.max(1, ...rows.map((one) => one.value));
 
   return (
-    <section className={title ? CARD : BARE}>
+    <section className={shell(title, fill)}>
       {title ? (
         <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
       ) : null}
 
-      <ol className="flex flex-col gap-2.5">
+      {/* Filling a tile, the rows share the height between them, so however
+          many there are they all land inside it. */}
+      <ol className={fill ? "flex min-h-0 flex-1 flex-col gap-2.5" : "flex flex-col gap-2.5"}>
         {rows.map((one) => (
-          <li key={one.key} className="group relative flex items-center gap-3" tabIndex={0}>
+          <li
+            key={one.key}
+            className={
+              fill
+                ? "group relative flex min-h-0 flex-1 items-center gap-3"
+                : "group relative flex items-center gap-3"
+            }
+            tabIndex={0}
+          >
             <span className="w-24 shrink-0 truncate text-[13px] text-fg-muted" title={one.label}>
               {one.label}
             </span>
-            <span className="relative h-5 min-w-0 flex-1 overflow-hidden rounded-sm bg-sunken">
+            <span
+              className={
+                fill
+                  ? "relative h-full max-h-5 min-w-0 flex-1 overflow-hidden rounded-sm bg-sunken"
+                  : "relative h-5 min-w-0 flex-1 overflow-hidden rounded-sm bg-sunken"
+              }
+            >
               <span
                 aria-hidden
                 className="block h-full rounded-sm transition-opacity group-hover:opacity-80"
@@ -456,19 +498,21 @@ export function Funnel({
 export function Stacked({
   title,
   slices,
+  fill = false,
 }: {
   title?: string;
   slices: Slice[];
+  fill?: boolean;
 }) {
   const sum = slices.reduce((all, one) => all + one.value, 0) || 1;
 
   return (
-    <section className={title ? CARD : BARE}>
+    <section className={shell(title, fill)}>
       {title ? (
         <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
       ) : null}
 
-      <div className="flex h-12 w-full overflow-hidden rounded-lg">
+      <div className={`flex h-12 w-full shrink-0 overflow-hidden rounded-lg${fill ? " mt-auto" : ""}`}>
         {slices.map((one) => {
           const share = (one.value / sum) * 100;
           return (
@@ -490,7 +534,7 @@ export function Stacked({
         })}
       </div>
 
-      <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
+      <ul className={`mt-4 flex flex-wrap gap-x-4 gap-y-1.5${fill ? " mb-auto overflow-hidden" : ""}`}>
         {slices.map((one) => (
           <li key={one.key} className="flex items-center gap-2 text-[13px]">
             <span
@@ -522,6 +566,7 @@ export function Series({
   stacked = false,
   legend = true,
   grid = true,
+  fill = false,
 }: {
   title?: string;
   labels: string[];
@@ -529,6 +574,7 @@ export function Series({
   stacked?: boolean;
   legend?: boolean;
   grid?: boolean;
+  fill?: boolean;
 }) {
   const columnTotals = labels.map((_, i) =>
     series.reduce((all, one) => all + (one.values[i] ?? 0), 0));
@@ -540,29 +586,32 @@ export function Series({
   const every = labels.length > 12 ? Math.ceil(labels.length / 12) : 1;
 
   return (
-    <section className={title ? CARD : BARE}>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        {title ? (
-          <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
-        ) : <span />}
-        {legend ? (
-          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          {series.map((one) => (
-            <li key={one.name} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ background: `var(--hue-${one.hue}-500)` }}
-              />
-              {one.name === "" ? t("report.blank") : one.name}
-            </li>
-          ))}
-          </ul>
-        ) : null}
-      </div>
+    <section className={shell(title, fill)}>
+      {title || legend ? (
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+          {title ? (
+            <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+          ) : <span />}
+          {legend ? (
+            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {series.map((one) => (
+                <li key={one.name} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
+                  <span
+                    aria-hidden
+                    className="size-2 rounded-full"
+                    style={{ background: `var(--hue-${one.hue}-500)` }}
+                  />
+                  {one.name === "" ? t("report.blank") : one.name}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
 
       <Frame
         grid={grid}
+        fill={fill}
         top={top}
         footer={
           <div className="flex gap-2 pt-1.5">

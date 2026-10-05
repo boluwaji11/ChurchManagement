@@ -2392,7 +2392,6 @@ export const en = {
   "report.tab.build": "Build",
   "report.tab.format": "Format",
   "report.format.colour": "Colour",
-  "report.format.seriesColour": "A legend takes the spectrum in order",
   "report.format.onThePlot": "On the plot",
   "report.format.summary": "Summary",
   "report.format.labels": "Value labels",

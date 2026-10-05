@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Switch, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@hearth/ui";
 import {
-  CHART_HUES, CHART_SORTS, GROUPED_VIEWS, SPLIT_VIEWS,
+  CHART_HUES, CHART_SORTS, GROUPED_VIEWS,
   type ChartHue, type ChartSort, type ReportLook, type ReportTile,
 } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
@@ -45,40 +45,35 @@ export function Format({
   const set = (patch: Partial<ReportLook>) => onChange({ look: { ...look, ...patch } });
 
   const charted = GROUPED_VIEWS.has(tile.view);
-  const seriesed = SPLIT_VIEWS.has(tile.view) && Boolean(tile.splitBy);
 
   return (
     <div className="flex flex-col gap-4">
-      {/* The colour. A series chart takes the spectrum in order, so this is
-          the one colour only where there is one. */}
+      {/* The colour. On a chart with a legend it sets where the spectrum
+          starts and the rest follow from it, so the swatches work either way. */}
       {charted ? (
         <section className="flex flex-col gap-2">
           <h4 className="text-caption font-semibold uppercase tracking-wide text-fg-subtle">
             {t("report.format.colour")}
           </h4>
 
-          {seriesed ? (
-            <p className="text-[12px] text-fg-muted">{t("report.format.seriesColour")}</p>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {CHART_HUES.map((hue) => (
-                <button
-                  key={hue}
-                  type="button"
-                  onClick={() => set({ hue: hue as ChartHue })}
-                  aria-pressed={look.hue === hue}
-                  aria-label={t(`hue.${hue}` as never)}
-                  title={t(`hue.${hue}` as never)}
-                  className={
-                    look.hue === hue
-                      ? "size-7 cursor-pointer rounded-full ring-2 ring-fg ring-offset-2 ring-offset-surface"
-                      : "size-7 cursor-pointer rounded-full"
-                  }
-                  style={{ background: `var(--hue-${hue}-500)` }}
-                />
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-1.5">
+            {CHART_HUES.map((hue) => (
+              <button
+                key={hue}
+                type="button"
+                onClick={() => set({ hue: hue as ChartHue })}
+                aria-pressed={look.hue === hue}
+                aria-label={t(`hue.${hue}` as never)}
+                title={t(`hue.${hue}` as never)}
+                className={
+                  look.hue === hue
+                    ? "size-6 cursor-pointer rounded-full ring-2 ring-fg ring-offset-2 ring-offset-surface"
+                    : "size-6 cursor-pointer rounded-full"
+                }
+                style={{ background: `var(--hue-${hue}-500)` }}
+              />
+            ))}
+          </div>
         </section>
       ) : null}
 

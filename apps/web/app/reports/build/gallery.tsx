@@ -49,7 +49,7 @@ export function Gallery({
         {t("report.step.view")}
       </h4>
 
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
         {VIEWS.map((one) => {
           const Icon = ICONS[one];
           const fits = viewFits(one, { groupBy });
@@ -68,13 +68,13 @@ export function Gallery({
               aria-label={t(`report.view.${one}` as never)}
               className={
                 on
-                  ? "grid aspect-square cursor-pointer place-items-center rounded-[10px] border border-primary bg-primary text-primary-fg"
+                  ? "grid size-9 cursor-pointer place-items-center rounded-[10px] border border-primary bg-primary text-primary-fg"
                   : fits
-                    ? "grid aspect-square cursor-pointer place-items-center rounded-[10px] border border-line-strong bg-surface text-fg hover:bg-sunken"
-                    : "grid aspect-square cursor-pointer place-items-center rounded-[10px] border border-dashed border-line text-fg-subtle hover:bg-sunken"
+                    ? "grid size-9 cursor-pointer place-items-center rounded-[10px] border border-line-strong bg-surface text-fg hover:bg-sunken"
+                    : "grid size-9 cursor-pointer place-items-center rounded-[10px] border border-dashed border-line text-fg-subtle hover:bg-sunken"
               }
             >
-              <Icon className="size-[18px]" />
+              <Icon className="size-4" />
             </button>
           );
         })}

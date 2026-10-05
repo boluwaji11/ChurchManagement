@@ -9,12 +9,22 @@
  */
 import * as React from "react";
 import { t } from "@hearth/i18n";
-import { VIEW_NEEDS, type ReportSpec } from "@hearth/db/rules";
+import { CHART_HUES, VIEW_NEEDS, type ReportSpec } from "@hearth/db/rules";
 import { Table, Thead, Tr, Th, Td } from "@hearth/ui";
 import { Columns, Donut, Line, RowBars, Series, Stacked, type Slice } from "./charts";
 
-/** A spectrum for a ring, so nine answers are nine colours. */
-const RING_HUES = ["indigo", "sky", "teal", "fern", "citron", "amber", "clay", "rose", "violet"];
+/**
+ * The spectrum, turned so the chosen colour leads it.
+ *
+ * A chart with a legend still has one colour anybody would call its colour: the
+ * first one. Picking that one turns the whole spectrum under it, so the swatches
+ * do something on a split chart as well as on a plain one.
+ */
+function spectrum(first: string): string[] {
+  const at = CHART_HUES.indexOf(first as (typeof CHART_HUES)[number]);
+  const from = at < 0 ? 0 : at;
+  return CHART_HUES.map((_, i) => CHART_HUES[(from + i) % CHART_HUES.length]!);
+}
 
 /** Booleans come back from Postgres as words nobody wants to read. */
 export function read(value: string): string {
@@ -33,6 +43,7 @@ export function Answer({
   spec,
   result,
   rows: shown = 12,
+  fill = false,
 }: {
   spec: ReportSpec;
   result: {
@@ -43,22 +54,26 @@ export function Answer({
     total?: number | null;
   };
   rows?: number;
+  /** Take the height the tile gives, rather than drawing at a fixed one. */
+  fill?: boolean;
 }) {
   // Each visualization says how many answers it can carry before it stops
   // being readable, and the gallery says so on screen rather than the chart
   // quietly drawing forty slices nobody can tell apart.
   // Two dimensions: one column per answer, split into its series.
   if (result.grid && (spec.view === "bar" || spec.view === "stacked")) {
+    const hues = spectrum(spec.look.hue);
     return (
       <Series
         labels={result.grid.labels.map(read)}
         stacked={spec.view === "stacked"}
         legend={spec.look.legend}
         grid={spec.look.grid}
+        fill={fill}
         series={result.grid.series.map((one, i) => ({
           name: read(one.name),
           values: one.values,
-          hue: RING_HUES[i % RING_HUES.length]!,
+          hue: hues[i % hues.length]!,
         }))}
       />
     );
@@ -92,7 +107,7 @@ export function Answer({
       : null;
 
     return (
-      <div className="flex flex-col gap-1">
+      <div className={fill ? "flex flex-col justify-center gap-1" : "flex flex-col gap-1"}>
         <p data-numeric className="font-display text-[64px] leading-[68px] text-fg">
           {total.toLocaleString()}
         </p>
@@ -114,6 +129,7 @@ export function Answer({
         labels={look.labels}
         legend={look.legend}
         grid={look.grid}
+        fill={fill}
         series={[{ label: t("report.measure.value"), hue: look.hue }]}
         groups={chart.map((one) => ({
           key: one.key, label: one.label, values: [one.value],
@@ -123,23 +139,25 @@ export function Answer({
   }
 
   if (spec.view === "rows" && chart.length > 0) {
-    return <RowBars rows={chart} hue={look.hue} />;
+    return <RowBars rows={chart} hue={look.hue} fill={fill} />;
   }
 
   if ((spec.view === "stacked" || spec.view === "donut") && chart.length > 0) {
+    const hues = spectrum(look.hue);
     const slices: Slice[] = chart.map((one, i) => ({
       key: one.key,
       label: one.label,
       value: one.value,
-      hue: RING_HUES[i % RING_HUES.length]!,
+      hue: hues[i % hues.length]!,
     }));
     return spec.view === "stacked" ? (
-      <Stacked slices={slices} />
+      <Stacked slices={slices} fill={fill} />
     ) : (
       <Donut
         slices={slices}
         total={slices.reduce((all, one) => all + one.value, 0)}
         totalLabel={t("report.measure.value")}
+        fill={fill}
       />
     );
   }
@@ -155,6 +173,7 @@ export function Answer({
         hue={look.hue}
         labels={look.labels}
         grid={look.grid}
+        fill={fill}
         filled={spec.view === "area"}
       />
     );
@@ -167,8 +186,10 @@ export function Answer({
       : 0,
   );
 
+  // A table of rows is the one output that cannot be made to fit a box: it
+  // scrolls inside the tile rather than pushing the tile open.
   return (
-    <div className="overflow-x-auto">
+    <div className={fill ? "min-h-0 flex-1 overflow-auto" : "overflow-x-auto"}>
       <Table>
         <Thead>
           <Tr>

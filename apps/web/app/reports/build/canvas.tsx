@@ -165,13 +165,14 @@ export function Canvas({
               ) : null}
             </div>
 
-            <div className="min-h-0 flex-1 overflow-auto">
+            {/* The visual takes the box, so what was sized is what is drawn. */}
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {result?.error ? (
                 <p className="text-[13px] text-danger-text">{result.error}</p>
               ) : result && result.rows.length === 0 ? (
                 <p className="text-[13px] text-fg-muted">{t("report.nothingMatches")}</p>
               ) : result ? (
-                <Answer spec={tile} result={result} rows={12} />
+                <Answer spec={tile} result={result} rows={12} fill />
               ) : (
                 <p className="text-[13px] text-fg-subtle">{t("report.running")}</p>
               )}
