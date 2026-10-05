@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Switch, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@hearth/ui";
 import {
-  CHART_HUES, CHART_SORTS, GROUPED_VIEWS,
+  CHART_HUES, CHART_SORTS, GROUPED_VIEWS, PAGE_SIZES,
   type ChartHue, type ChartSort, type ReportLook, type ReportTile,
 } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
@@ -100,6 +100,34 @@ export function Format({
             on={look.legend}
             onChange={(on) => set({ legend: on })}
           />
+        </section>
+      ) : null}
+
+      {/* A list of six hundred members is unreadable in a tile, so how many
+          rows a page holds is set here and kept with the report. */}
+      {tile.view === "table" ? (
+        <section className="flex flex-col gap-2">
+          <h4 className="text-caption font-semibold uppercase tracking-wide text-fg-subtle">
+            {t("report.format.rows")}
+          </h4>
+
+          <Select
+            value={look.perPage === null ? "all" : String(look.perPage)}
+            onValueChange={(value) =>
+              set({ perPage: value === "all" ? null : Number(value) })}
+          >
+            <SelectTrigger className="min-h-8 text-[13px]" aria-label={t("report.format.rows")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZES.map((one) => (
+                <SelectItem key={one} value={String(one)}>
+                  {t("report.format.perPage", { count: String(one) })}
+                </SelectItem>
+              ))}
+              <SelectItem value="all">{t("report.format.allRows")}</SelectItem>
+            </SelectContent>
+          </Select>
         </section>
       ) : null}
 

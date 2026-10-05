@@ -117,7 +117,7 @@ export default async function CustomReportPage({
                 {!result || result.rows.length === 0 ? (
                   <p className="text-[13px] text-fg-muted">{t("report.nothingMatches")}</p>
                 ) : (
-                  <Answer spec={tile} result={result} rows={40} fill />
+                  <Answer spec={tile} result={result} fill />
                 )}
               </div>
 

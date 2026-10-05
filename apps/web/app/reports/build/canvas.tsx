@@ -172,7 +172,7 @@ export function Canvas({
               ) : result && result.rows.length === 0 ? (
                 <p className="text-[13px] text-fg-muted">{t("report.nothingMatches")}</p>
               ) : result ? (
-                <Answer spec={tile} result={result} rows={12} fill />
+                <Answer spec={tile} result={result} fill />
               ) : (
                 <p className="text-[13px] text-fg-subtle">{t("report.running")}</p>
               )}

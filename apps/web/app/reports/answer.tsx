@@ -3,15 +3,17 @@
  *
  * No "use client" on purpose. The builder renders this in the browser as it
  * previews, and the saved report renders it on the server, so it has to work in
- * both graphs. That is also why `read` lives here: a plain function exported
- * from a client module cannot be called by a server component, which is exactly
- * the error that put this file here.
+ * both graphs. The one piece that does need the browser is paging a list, and
+ * that is its own client component rendered from here.
  */
 import * as React from "react";
 import { t } from "@hearth/i18n";
 import { CHART_HUES, VIEW_NEEDS, type ReportSpec } from "@hearth/db/rules";
-import { Table, Thead, Tr, Th, Td } from "@hearth/ui";
 import { Columns, Donut, Line, RowBars, Series, Stacked, type Slice } from "./charts";
+import { Rows } from "./rows";
+import { read } from "./read";
+
+export { read };
 
 /**
  * The spectrum, turned so the chosen colour leads it.
@@ -26,13 +28,6 @@ function spectrum(first: string): string[] {
   return CHART_HUES.map((_, i) => CHART_HUES[(from + i) % CHART_HUES.length]!);
 }
 
-/** Booleans come back from Postgres as words nobody wants to read. */
-export function read(value: string): string {
-  if (value === "true") return t("report.yes");
-  if (value === "false") return t("report.no");
-  return value === "" ? t("report.blank") : value;
-}
-
 /**
  * R18.12. The output, drawn the way the report asked for.
  *
@@ -42,7 +37,6 @@ export function read(value: string): string {
 export function Answer({
   spec,
   result,
-  rows: shown = 12,
   fill = false,
 }: {
   spec: ReportSpec;
@@ -53,7 +47,6 @@ export function Answer({
     grid?: { labels: string[]; series: { name: string; values: number[] }[] } | null;
     total?: number | null;
   };
-  rows?: number;
   /** Take the height the tile gives, rather than drawing at a fixed one. */
   fill?: boolean;
 }) {
@@ -179,52 +172,14 @@ export function Answer({
     );
   }
 
-  // The tallest number in each column, so a cell can be drawn against it.
-  const tallest = result.columns.map((column, c) =>
-    column.kind === "number"
-      ? Math.max(0, ...result.rows.map((row) => Number(row[c] ?? 0) || 0))
-      : 0,
-  );
-
-  // A table of rows is the one output that cannot be made to fit a box: it
-  // scrolls inside the tile rather than pushing the tile open.
+  // A list is read a page at a time, as many rows to a page as the report
+  // was built with.
   return (
-    <div className={fill ? "min-h-0 flex-1 overflow-auto" : "overflow-x-auto"}>
-      <Table>
-        <Thead>
-          <Tr>
-            {result.columns.map((one) => (
-              <Th key={one.key}>{t(one.label as never)}</Th>
-            ))}
-          </Tr>
-        </Thead>
-        <tbody>
-          {result.rows.slice(0, shown).map((row, i) => (
-            <Tr key={i}>
-              {row.map((value, c) => {
-                const top = tallest[c] ?? 0;
-                const n = Number(value);
-                const measured = top > 0 && Number.isFinite(n);
-                return (
-                  <Td key={c} className={measured ? "relative text-fg tabular-nums" : "text-fg"}>
-                    {measured ? (
-                      <span
-                        aria-hidden
-                        className="absolute inset-y-1 left-0 rounded-sm"
-                        style={{
-                          width: `${Math.max(1, Math.round((n / top) * 100))}%`,
-                          background: "var(--hue-indigo-tint)",
-                        }}
-                      />
-                    ) : null}
-                    <span className="relative">{read(value)}</span>
-                  </Td>
-                );
-              })}
-            </Tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
+    <Rows
+      columns={result.columns}
+      rows={result.rows}
+      perPage={look.perPage}
+      fill={fill}
+    />
   );
 }

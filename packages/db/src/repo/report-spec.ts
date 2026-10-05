@@ -183,6 +183,9 @@ export type ChartSort = (typeof CHART_SORTS)[number];
  * counted is one pane, how it is drawn is another, and nobody hunting for a
  * colour has to read past a field list to find it.
  */
+/** How many rows a table puts on a page. */
+export const PAGE_SIZES = [10, 25, 50, 100] as const;
+
 export interface ReportLook {
   hue: ChartHue;
   /** The number on each bar, slice or point. */
@@ -194,6 +197,11 @@ export interface ReportLook {
   /** Ordered by what it counted, or by what it is counting. */
   sort: ChartSort;
   dir: "asc" | "desc";
+  /**
+   * Rows to a page on a table. Null puts them all on one, which is what a list
+   * of six wants and what a list of six hundred cannot have.
+   */
+  perPage: number | null;
 }
 
 export const DEFAULT_LOOK: ReportLook = {
@@ -203,6 +211,7 @@ export const DEFAULT_LOOK: ReportLook = {
   grid: true,
   sort: "value",
   dir: "desc",
+  perPage: 10,
 };
 
 export interface ReportSpec {
@@ -340,6 +349,12 @@ export function cleanSpec(raw: unknown): ReportSpec {
       ? (asked.sort as ChartSort)
       : DEFAULT_LOOK.sort,
     dir: asked.dir === "asc" ? "asc" : "desc",
+    perPage:
+      asked.perPage === null
+        ? null
+        : PAGE_SIZES.includes(asked.perPage as (typeof PAGE_SIZES)[number])
+          ? (asked.perPage as number)
+          : DEFAULT_LOOK.perPage,
   };
 
   return {
