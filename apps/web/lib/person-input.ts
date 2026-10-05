@@ -67,8 +67,13 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
     firstVisitOn: str(data, "firstVisitOn") || null,
     allergies: str(data, "allergies") || null,
     medicalNote: str(data, "medicalNote") || null,
-    email: str(data, "email") || null,
-    phone: str(data, "phone") || null,
+    /*
+     * R2.4. Left out where the form did not ask, so an edit cannot clear a
+     * list it never showed. The new-person form carries both; the edit form
+     * sends somebody to the list on the record instead.
+     */
+    email: data.has("email") ? str(data, "email") || null : undefined,
+    phone: data.has("phone") ? str(data, "phone") || null : undefined,
     address: {
       line1: str(data, "addressLine1") || null,
       line2: str(data, "addressLine2") || null,

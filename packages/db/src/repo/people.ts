@@ -659,6 +659,15 @@ async function setContact(
   kind: "email" | "phone",
   value: string | null | undefined,
 ): Promise<void> {
+  /*
+   * R2.4. Not asked is not the same as cleared.
+   *
+   * The edit form no longer carries a single box for these, because the record
+   * holds a list of them. A form that says nothing about an email must leave
+   * the list exactly as it is, where an empty box means take it off.
+   */
+  if (value === undefined) return;
+
   const next = trimmed(value);
 
   const [existing] = await db

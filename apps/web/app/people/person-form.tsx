@@ -231,12 +231,20 @@ export function PersonForm({
           <Field label={t("personForm.lastName")} error={errors.lastName} required>
             <Input name="lastName" defaultValue={values?.lastName ?? ""} autoComplete="off" />
           </Field>
-          <Field label={t("personForm.email")} error={errors.email}>
-            <Input name="email" type="email" defaultValue={values?.email ?? ""} />
-          </Field>
-          <Field label={t("personForm.phone")} error={errors.phone}>
-            <PhoneInput name="phone" defaultValue={values?.phone ?? ""} />
-          </Field>
+          {/* R2.4. Asked once, when the record is written. A person who is
+              already here has a list of these on their own page, and a single
+              box here would overwrite whichever one happened to be leading
+              with no sign the others were there. */}
+          {editing ? null : (
+            <>
+              <Field label={t("personForm.email")} error={errors.email}>
+                <Input name="email" type="email" defaultValue={values?.email ?? ""} />
+              </Field>
+              <Field label={t("personForm.phone")} error={errors.phone}>
+                <PhoneInput name="phone" defaultValue={values?.phone ?? ""} />
+              </Field>
+            </>
+          )}
           <Field label={t("personForm.dateOfBirth")} error={errors.dateOfBirth}>
             <DateField name="dateOfBirth" defaultValue={values?.dateOfBirth ?? ""} />
           </Field>
