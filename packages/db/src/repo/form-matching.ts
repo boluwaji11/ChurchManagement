@@ -381,3 +381,50 @@ async function writeCustom(
       on conflict (field_id, entity_id) do update set value = excluded.value`;
   }
 }
+
+/**
+ * R4.4. Runs the matching again over submissions that never landed anywhere.
+ *
+ * A church builds a form, collects answers, and only then sets which question
+ * holds the name and which holds the email. Without this those responses stay
+ * a list forever, and the church has to type them into the directory by hand,
+ * which is the job forms exist to remove.
+ *
+ * Only the ones that landed nowhere are touched. A submission already attached
+ * to somebody is left alone, because running it again could attach it to
+ * somebody else after a human decided.
+ */
+export async function placeUnplaced(
+  sql: Sql,
+  input: { tenantId: string; formId: string; fields: FormFieldDef[] },
+): Promise<{ placed: number; waiting: number }> {
+  const rows = await sql<{ id: string; answers: Record<string, FormAnswer> }[]>`
+    select id, answers
+      from form_submissions
+     where tenant_id = ${input.tenantId}
+       and form_id = ${input.formId}
+       and person_id is null
+       and match_state <> 'review'
+     order by created_at`;
+
+  let placed = 0;
+  let waiting = 0;
+
+  for (const row of rows) {
+    // One transaction each. A church with two hundred responses should not lose
+    // the lot because the hundredth row is strange.
+    const result = await sql.begin((tx) =>
+      placeSubmission(tx, {
+        tenantId: input.tenantId,
+        submissionId: row.id,
+        fields: input.fields,
+        answers: row.answers ?? {},
+      }),
+    ) as { state: MatchState; personId: string | null };
+
+    if (result.personId) placed += 1;
+    else if (result.state === "review") waiting += 1;
+  }
+
+  return { placed, waiting };
+}

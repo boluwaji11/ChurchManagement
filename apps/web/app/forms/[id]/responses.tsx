@@ -3,11 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
+import { UserCheck } from "lucide-react";
+import { Button, Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
 import type { FormAnswer, FormFieldDef } from "@hearth/db/rules";
 import { Pages } from "@/components/pages";
+import { matchResponses } from "../actions";
 
 export interface SubmissionRow {
   id: string;
@@ -65,6 +67,7 @@ function spoken(answer: FormAnswer): string {
  */
 export function Responses({
   church,
+  formId,
   fields,
   rows,
   page,
@@ -72,6 +75,7 @@ export function Responses({
   total,
 }: {
   church: string;
+  formId: string;
   fields: FormFieldDef[];
   rows: SubmissionRow[];
   page: number;
@@ -81,6 +85,12 @@ export function Responses({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const [matching, startMatching] = React.useTransition();
+
+  // R4.4. How many on this page landed nowhere. A church that has just pointed
+  // its questions at the record can run those through without waiting for the
+  // next person to fill the form in.
+  const unplaced = rows.filter((one) => !one.personId && one.matchState !== "review").length;
 
   // Headings are the questions that have answers, and only as many as sit
   // across a screen without the table scrolling sideways on a laptop.
@@ -101,6 +111,23 @@ export function Responses({
 
   return (
     <div className="flex flex-col gap-4">
+      {unplaced > 0 ? (
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={matching}
+          className="self-start"
+          onClick={() =>
+            startMatching(async () => {
+              await matchResponses(formId, church);
+              router.refresh();
+            })}
+        >
+          <UserCheck className="size-4" aria-hidden />
+          {t("form.match.run")}
+        </Button>
+      ) : null}
+
       <div className="overflow-hidden rounded-[14px] border border-line bg-surface">
         <table className="w-full border-collapse text-left">
           <thead>

@@ -3,6 +3,7 @@
 import {
   withTenant, createForm, updateForm, setFormStatus, setFormArchived,
   addFormField, updateFormField, removeFormField, moveFormField, reorderFormFields,
+  getForm, placeUnplaced, owner, canManageChurch,
   type FormInput, type FormFieldInput, type FormStatus,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -141,6 +142,41 @@ export async function shiftQuestion(
   try {
     await withTenant(ctx, (tx) => moveFormField(tx, actor, { formId, id, direction }));
     return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R4.4. Matches the answers already in, after the questions have been pointed
+ * at the record.
+ *
+ * A church collects a term's worth of responses and only then notices the
+ * picker, so the work has to be runnable over what is already there. Only
+ * submissions that landed nowhere are touched.
+ *
+ * Permission is checked here and the pass itself runs on the owner connection,
+ * because it writes people records on behalf of a form rather than on behalf of
+ * the person pressing the button, which is the same path a public submission
+ * takes.
+ */
+export async function matchResponses(
+  formId: string,
+  church?: string,
+): Promise<FormResult & { placed?: number; waiting?: number }> {
+  const { actor, ctx } = await context(church);
+  if (!canManageChurch(actor.role)) return { error: t("forbidden.askAdmin") };
+
+  try {
+    const form = await withTenant(ctx, (tx) => getForm(tx, formId));
+    if (!form) return { error: t("form.error.missing") };
+
+    const result = await placeUnplaced(owner(), {
+      tenantId: actor.tenantId,
+      formId,
+      fields: form.fields,
+    });
+    return result;
   } catch (error) {
     return { error: explain(error) };
   }

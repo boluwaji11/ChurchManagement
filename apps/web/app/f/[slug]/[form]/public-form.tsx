@@ -76,6 +76,7 @@ export function PublicForm({
       <Empty
         icon="form"
         title={thanks?.trim() || t("publicForm.sent")}
+        className="py-6"
       />
     );
   }
@@ -85,22 +86,27 @@ export function PublicForm({
       <Empty
         icon="form"
         title={state === "full" ? t("publicForm.full") : t("publicForm.closed")}
+        className="py-6"
       />
     );
   }
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-5" aria-busy={sending}>
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-display text-fg">{name}</h1>
+    <form noValidate onSubmit={submit} className="flex flex-col gap-6" aria-busy={sending}>
+      {/* The title, then a hairline, so the questions read as a block rather
+          than as the fourth and fifth lines of the heading. */}
+      <div className="flex flex-col gap-2.5 border-b border-line pb-6">
+        <h1 className="font-display text-[28px] leading-[34px] text-fg sm:text-[32px] sm:leading-[38px]">
+          {name}
+        </h1>
         {intro ? (
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">{intro}</p>
+          <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">{intro}</p>
         ) : null}
       </div>
 
       {failed ? <Banner tone="danger" title={t("publicForm.failed")}>{failed}</Banner> : null}
 
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         {shown.map((field) => (
           <Question
             key={field.id}
@@ -124,7 +130,13 @@ export function PublicForm({
         className="absolute left-[-9999px] size-px opacity-0"
       />
 
-      <Button type="submit" disabled={sending} className="self-start">
+      {/* Full width on a phone, where a form is most often filled in, and the
+          natural width of its words on anything larger. */}
+      <Button
+        type="submit"
+        disabled={sending}
+        className="mt-1 w-full sm:w-auto sm:min-w-[160px] sm:self-start"
+      >
         {sending ? t("publicForm.sending") : t("form.send")}
       </Button>
     </form>

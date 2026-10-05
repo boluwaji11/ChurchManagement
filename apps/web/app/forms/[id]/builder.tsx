@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Type, AlignLeft, Mail, Phone, CircleDot, SquareCheck, Calendar,
   GripVertical, Trash2, Check, Link2, Hash, ToggleLeft, Paperclip, Heading, Plus, X,
-  Archive, ArchiveRestore, Code,
+  Archive, ArchiveRestore, Code, User,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
@@ -51,9 +51,41 @@ const KIND_ICON: Record<FormFieldKind, React.ElementType> = {
   section: Heading,
 };
 
-/** R4.1. The seven a church reaches for, in the order the design puts them. */
-const ADDABLE: FormFieldKind[] = [
-  "text", "long_text", "email", "phone", "select", "multi_select", "date",
+/**
+ * R4.1, R4.4. What the Add row offers, in the order the design puts them.
+ *
+ * A name is two questions rather than one, because a directory holds a first
+ * name and a surname and a single box asking for "name" produces records that
+ * cannot be sorted or searched. Adding it adds both, already pointed at the
+ * record, which is the common case done in one press.
+ *
+ * `target` is what the answer becomes on a person's record. Where an answer can
+ * only ever be one thing, it is set here and the church never has to think
+ * about it: an email question is an email address and nothing else.
+ */
+interface Addable {
+  key: string;
+  icon: React.ElementType;
+  /** The questions this press adds, in order. */
+  questions: { kind: FormFieldKind; labelKey: string; target?: string }[];
+}
+
+const ADDABLE: Addable[] = [
+  {
+    key: "name",
+    icon: User,
+    questions: [
+      { kind: "text", labelKey: "form.target.first_name", target: "first_name" },
+      { kind: "text", labelKey: "form.target.last_name", target: "last_name" },
+    ],
+  },
+  { key: "email", icon: Mail, questions: [{ kind: "email", labelKey: "form.kind.email", target: "email" }] },
+  { key: "phone", icon: Phone, questions: [{ kind: "phone", labelKey: "form.kind.phone", target: "phone" }] },
+  { key: "text", icon: Type, questions: [{ kind: "text", labelKey: "form.kind.text" }] },
+  { key: "long_text", icon: AlignLeft, questions: [{ kind: "long_text", labelKey: "form.kind.long_text" }] },
+  { key: "select", icon: CircleDot, questions: [{ kind: "select", labelKey: "form.kind.select" }] },
+  { key: "multi_select", icon: SquareCheck, questions: [{ kind: "multi_select", labelKey: "form.kind.multi_select" }] },
+  { key: "date", icon: Calendar, questions: [{ kind: "date", labelKey: "form.kind.date" }] },
 ];
 
 /** Radix cannot hold an empty value, so "no field" needs a name of its own. */
@@ -260,6 +292,7 @@ export function Builder({
       {view === "responses" ? (
         <Responses
           church={church}
+          formId={form.id}
           fields={form.fields}
           rows={responses}
           page={page}
@@ -296,33 +329,38 @@ export function Builder({
             <span className="mr-1 text-label font-medium text-fg-muted">
               {t("form.addLabel")}
             </span>
-            {ADDABLE.map((kind) => {
-              const Icon = KIND_ICON[kind];
+            {ADDABLE.map((entry) => {
+              const Icon = entry.icon;
               return (
                 <button
-                  key={kind}
+                  key={entry.key}
                   type="button"
                   disabled={pending}
                   onClick={() =>
-                    run(() =>
-                      saveQuestion(
-                        form.id,
-                        null,
-                        {
-                          kind,
-                          label: t(`form.kind.${kind}` as never),
-                          required: false,
-                          options: NEEDS_OPTIONS.includes(kind)
-                            ? [`${t("form.newChoice")} 1`, `${t("form.newChoice")} 2`]
-                            : null,
-                        },
-                        church,
-                      ),
-                    )}
+                    run(async () => {
+                      for (const question of entry.questions) {
+                        const result = await saveQuestion(
+                          form.id,
+                          null,
+                          {
+                            kind: question.kind,
+                            label: t(question.labelKey as never),
+                            required: false,
+                            options: NEEDS_OPTIONS.includes(question.kind)
+                              ? [`${t("form.newChoice")} 1`, `${t("form.newChoice")} 2`]
+                              : null,
+                            mapsTo: question.target ?? null,
+                          },
+                          church,
+                        );
+                        if (result.error) return result;
+                      }
+                      return {};
+                    })}
                   className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-line-strong bg-surface px-3 text-label font-medium text-fg hover:bg-sunken"
                 >
                   <Icon className="size-3.5" aria-hidden />
-                  {t(`form.kind.${kind}` as never)}
+                  {t(`form.add.${entry.key}` as never)}
                 </button>
               );
             })}

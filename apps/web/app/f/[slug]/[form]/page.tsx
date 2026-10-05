@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { publicForm } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { BrandRuleFor } from "@/components/brand-rule";
+import { supabaseServer } from "@/lib/supabase/server";
 import { PublicForm } from "./public-form";
 
 export const dynamic = "force-dynamic";
@@ -13,8 +14,9 @@ export const dynamic = "force-dynamic";
  * point of a connection card: the person filling it in is the one the church
  * has no record of yet.
  *
- * The same chrome the public group finder wears, so a church linking both from
- * its site hands people one product rather than two.
+ * The church's own mark and colour across the top, then the form on a card.
+ * This is the one screen a church shows the open web, and it has to look like
+ * something the church would be glad to link to.
  */
 export default async function PublicFormPage({
   params,
@@ -25,22 +27,54 @@ export default async function PublicFormPage({
   const found = await publicForm(slug, form);
   if (!found) notFound();
 
+  // The bucket is private, so the mark is served through a signed link.
+  let logoUrl: string | null = null;
+  if (found.church.logoKey) {
+    const supabase = await supabaseServer();
+    const signed = await supabase.storage
+      .from("church")
+      .createSignedUrl(found.church.logoKey, 3600);
+    logoUrl = signed.data?.signedUrl ?? null;
+  }
+
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col bg-canvas">
       <BrandRuleFor hue={found.church.brandHue} className="h-1.5 w-full" />
 
-      <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 py-12 sm:px-6">
-        <PublicForm
-          churchSlug={slug}
-          formSlug={form}
-          name={found.name}
-          intro={found.intro}
-          thanks={found.thanks}
-          state={found.state}
-          fields={found.fields}
-        />
+      {/* The church's name across the top, so somebody who followed a link off
+          a bulletin can see whose form this is before they read a word of it. */}
+      <header className="flex items-center justify-center gap-2.5 border-b border-line bg-surface px-4 py-3.5">
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt=""
+            aria-hidden
+            className="size-7 rounded-lg border border-line bg-surface object-contain p-0.5"
+          />
+        ) : (
+          <span
+            aria-hidden
+            className="size-2.5 rounded-full"
+            style={{ background: `var(--hue-${found.church.brandHue}-500)` }}
+          />
+        )}
+        <span className="text-label font-semibold text-fg">{found.church.name}</span>
+      </header>
 
-        <p className="mt-10 text-caption text-fg-muted">
+      <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
+        <div className="rounded-[14px] border border-line bg-surface p-6 shadow-sm sm:p-9">
+          <PublicForm
+            churchSlug={slug}
+            formSlug={form}
+            name={found.name}
+            intro={found.intro}
+            thanks={found.thanks}
+            state={found.state}
+            fields={found.fields}
+          />
+        </div>
+
+        <p className="mt-6 text-center text-caption text-fg-subtle">
           {t("publicForm.from", { church: found.church.name })}
         </p>
       </main>

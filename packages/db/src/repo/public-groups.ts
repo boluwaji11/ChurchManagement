@@ -27,6 +27,8 @@ export interface PublicChurch {
   brandHue: string;
   phone: string | null;
   website: string | null;
+  /** R1.1. The church's own mark, where it has uploaded one. */
+  logoKey: string | null;
 }
 
 export interface PublicGroup {
@@ -63,7 +65,8 @@ export async function publicChurch(slug: string): Promise<PublicChurch | null> {
   if (!SLUG.test(slug)) return null;
 
   const rows = await owner()<PublicChurch[]>`
-    select slug, name, brand_hue::text as "brandHue", phone, website
+    select slug, name, brand_hue::text as "brandHue", phone, website,
+           logo_key as "logoKey"
       from tenants
      where slug = ${slug}
        and approved_at is not null
