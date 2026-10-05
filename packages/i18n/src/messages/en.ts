@@ -2387,6 +2387,7 @@ export const en = {
   "report.start": "Start",
   "report.saving": "Saving",
   "report.saved": "Saved",
+  "report.savedAt": "Saved {when}",
   "report.done": "Done",
   "report.rename": "Rename",
   "report.more": "More for {name}",

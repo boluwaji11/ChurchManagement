@@ -51,7 +51,7 @@ export function FieldsPanel({ subject }: { subject: SubjectKey }) {
   const measures = matching.filter(isMeasure);
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 lg:w-[260px]">
+    <aside className="flex min-w-0 flex-1 flex-col gap-3">
       <label className="flex items-center gap-2 border-b border-line pb-1.5">
         <Search className="size-4 shrink-0 text-fg-subtle" aria-hidden />
         <input

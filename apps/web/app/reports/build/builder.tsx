@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import {
   ChevronDown, Database, GripVertical, ListFilter, Plus, Sigma, SlidersHorizontal, X,
 } from "lucide-react";
@@ -44,6 +43,12 @@ const CHIP_QUIET =
   + " border-transparent bg-transparent px-2.5 text-[13px] font-medium text-fg-muted shadow-none"
   + " hover:bg-sunken [&>span]:flex-none [&>span]:overflow-visible";
 
+/** When it last saved, short enough to sit in a header. */
+const stamp = (at: number): string =>
+  new Date(at).toLocaleString(undefined, {
+    day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
+  });
+
 /** A fresh visual, filling half the width under whatever is already there. */
 function freshTile(subject: SubjectKey, id: string, y: number): ReportTile {
   return {
@@ -73,8 +78,6 @@ export function Builder({
   church: string;
   saved: { id: string; slug: string; name: string; spec: ReportPage } | null;
 }) {
-  const router = useRouter();
-
   const [page, setPage] = React.useState<ReportPage>(
     saved?.spec ?? { tiles: [freshTile("members", "1", 0)] },
   );
@@ -163,27 +166,25 @@ export function Builder({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-end gap-3">
-        {/* It saves itself, so it says where it has got to rather than asking
+        {/* It saves itself, so it says when it last did rather than asking
             anybody to remember. */}
-        <span role="status" className="text-[13px] text-fg-subtle">
-          {saving ? t("report.saving") : savedAt ? t("report.saved") : ""}
+        <span role="status" className="text-caption text-fg-subtle tabular-nums">
+          {saving
+            ? t("report.saving")
+            : savedAt
+              ? t("report.savedAt", { when: stamp(savedAt) })
+              : ""}
         </span>
         <Button variant="secondary" onClick={addTile}>
           <Plus /> {t("report.addVisual")}
         </Button>
-        {saved ? (
-          <Button
-            onClick={() => router.push(`/reports/custom/${saved.slug}?church=${church}`)}
-          >
-            {t("report.done")}
-          </Button>
-        ) : null}
       </div>
 
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
 
-      {/* The toolbar belongs to the selected visual. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[14px] border border-line bg-surface px-3 py-2">
+      <div className="overflow-hidden rounded-[14px] border border-line bg-surface">
+      {/* The toolbar belongs to the selected visual, and leads the frame. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-3 py-2">
         <Select
           value={tile.subject}
           onValueChange={(value) =>
@@ -439,10 +440,14 @@ export function Builder({
 
       </div>
 
-      <div className="flex flex-wrap items-start gap-4">
-        <FieldsPanel subject={tile.subject} />
+      <div className="flex flex-wrap items-stretch">
+        <div className="flex w-full shrink-0 flex-col border-line p-4 lg:w-[240px] lg:border-r">
+          <FieldsPanel subject={tile.subject} />
+        </div>
 
-        <div className="min-w-[320px] flex-1">
+        {/* The workspace, sunken so the page reads as a page and the panes
+            beside it read as the tools. */}
+        <div className="min-w-[320px] flex-1 bg-sunken p-5">
           <Canvas
             tiles={page.tiles}
             results={results}
@@ -477,7 +482,7 @@ export function Builder({
           />
         </div>
 
-        <div className="flex w-full shrink-0 flex-col gap-4 lg:w-[256px]">
+        <div className="flex w-full shrink-0 flex-col gap-4 border-line p-4 lg:w-[252px] lg:border-l">
           <Gallery
             view={tile.view}
             groupBy={tile.groupBy}
@@ -493,10 +498,11 @@ export function Builder({
               )}
           />
 
-          <div className="rounded-[14px] border border-line bg-surface p-4">
+          <div className="border-t border-line pt-4">
             <Wells tile={tile} onChange={change} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

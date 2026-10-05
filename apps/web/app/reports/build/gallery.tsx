@@ -44,7 +44,7 @@ export function Gallery({
   const crowded = Boolean(needs.readableUpTo && answers > needs.readableUpTo);
 
   return (
-    <section className="flex w-full shrink-0 flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 lg:w-[232px]">
+    <section className="flex min-w-0 flex-col gap-3">
       <h4 className="text-caption font-semibold uppercase tracking-wide text-fg-subtle">
         {t("report.step.view")}
       </h4>

@@ -27,7 +27,7 @@ export const DropdownMenuContent = React.forwardRef<
       align={align}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[12rem] overflow-hidden rounded-lg border border-line bg-surface shadow-lg p-1",
+        "z-50 min-w-[8.5rem] overflow-hidden rounded-lg border border-line bg-surface shadow-lg p-1",
         "data-[state=open]:animate-[hearth-rise_var(--duration-fast)_var(--ease-out)]",
         className,
       )}
