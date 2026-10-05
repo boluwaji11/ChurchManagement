@@ -331,13 +331,29 @@ function MeetingList({
       <h2 className="mb-1.5 font-display text-[22px] font-normal text-fg">{title}</h2>
 
       <div className="relative flex flex-col">
-        {/* Behind the tiles, from the first centre to the last. */}
+        {/* Behind the tiles, from the first centre to the last, with a dot in
+            each gap so the thread reads as a series of stops rather than one
+            long rule. Each row is 64px tall: a 52px tile with 6px above and
+            below, so the gaps fall at a fixed pitch. */}
         {rows.length > 1 ? (
-          <span
-            aria-hidden
-            className="absolute top-[32px] bottom-[32px] left-[28px] w-px"
-            style={{ background: `var(--hue-${hue}-500)`, opacity: 0.35 }}
-          />
+          <>
+            <span
+              aria-hidden
+              className="absolute top-[32px] bottom-[32px] left-[28px] w-px"
+              style={{ background: `var(--hue-${hue}-500)`, opacity: 0.35 }}
+            />
+            {rows.slice(1).map((row, i) => (
+              <span
+                key={`dot${row.on}`}
+                aria-hidden
+                className="absolute left-[25px] size-[7px] rounded-full ring-2 ring-canvas"
+                style={{
+                  top: `${64 * (i + 1) - 3}px`,
+                  background: `var(--hue-${hue}-500)`,
+                }}
+              />
+            ))}
+          </>
         ) : null}
 
         {rows.map((row) => (
