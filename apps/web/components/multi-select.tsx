@@ -33,6 +33,7 @@ export function MultiSelect({
 }) {
   const [open, setOpen] = React.useState(false);
   const [above, setAbove] = React.useState(false);
+  const [room, setRoom] = React.useState(256);
   const root = React.useRef<HTMLDivElement>(null);
 
   /* A list that would run off the bottom of the window opens upwards. */
@@ -41,8 +42,11 @@ export function MultiSelect({
     const place = () => {
       const box = root.current?.getBoundingClientRect();
       if (!box) return;
-      const below = window.innerHeight - box.bottom;
-      setAbove(below < 264 && box.top > below);
+      const below = window.innerHeight - box.bottom - 8;
+      const over = box.top - 8;
+      const flip = below < 160 && over > below + 80;
+      setAbove(flip);
+      setRoom(Math.max(120, Math.min(256, flip ? over : below)));
     };
     place();
     window.addEventListener("resize", place);
@@ -100,8 +104,9 @@ export function MultiSelect({
 
       {open ? (
         <div
+          style={{ maxHeight: room }}
           className={cn(
-            "absolute left-0 z-50 max-h-64 w-full overflow-auto rounded-[var(--d-radius-control)]",
+            "absolute left-0 z-50 w-full overflow-auto rounded-[var(--d-radius-control)]",
             "border border-line bg-surface py-1 shadow-lg",
             above ? "bottom-[calc(100%+4px)]" : "top-[calc(100%+4px)]",
           )}

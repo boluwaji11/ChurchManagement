@@ -468,7 +468,7 @@ function Register({
           {/* R9.7. Which meeting is being recorded. A leader who missed last
               week opens the week they missed. */}
           {days.length > 1 ? (
-            <div className="w-[200px]">
+            <div className="w-[240px]">
               <Picker
                 name="metOn"
                 defaultValue={day}

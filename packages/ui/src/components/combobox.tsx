@@ -69,6 +69,9 @@ export function Combobox({
   const input = React.useRef<HTMLInputElement>(null);
   const listId = React.useId();
   const [above, setAbove] = React.useState(false);
+  // How tall the list may be where it is, so it shortens rather than covering
+  // what is around it.
+  const [room, setRoom] = React.useState(256);
 
   /*
    * A list that would run off the bottom of the window opens upwards instead.
@@ -80,10 +83,14 @@ export function Combobox({
     const place = () => {
       const box = root.current?.getBoundingClientRect();
       if (!box) return;
-      const below = window.innerHeight - box.bottom;
-      // 264px is the list's own cap plus its margin. Only flip where there is
-      // more room the other way, so a short window does not flip onto nothing.
-      setAbove(below < 264 && box.top > below);
+      const below = window.innerHeight - box.bottom - 8;
+      const over = box.top - 8;
+      // Downwards unless there is really not the room, and then only where
+      // upwards is meaningfully better. A list that flips for forty pixels
+      // reads as the page jumping.
+      const flip = below < 160 && over > below + 80;
+      setAbove(flip);
+      setRoom(Math.max(120, Math.min(256, flip ? over : below)));
     };
     place();
     window.addEventListener("resize", place);
@@ -255,8 +262,9 @@ export function Combobox({
         <ul
           id={listId}
           role="listbox"
+          style={{ maxHeight: room }}
           className={cn(
-            "absolute z-50 max-h-64 w-full overflow-y-auto p-1",
+            "absolute z-50 w-full overflow-y-auto p-1",
             above ? "bottom-full mb-1" : "top-full mt-1",
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
