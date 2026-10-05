@@ -33,10 +33,10 @@ export default async function EventRosterPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; columns?: string }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
+  const { church, columns } = await searchParams;
   const session = await requireSession(church);
   if (!canManageEvents(session)) redirect(`/?church=${session.tenantSlug}`);
 
@@ -61,6 +61,17 @@ export default async function EventRosterPage({
 
   const { event, registrations, questions } = found;
 
+  /*
+   * R14.12. Which columns the sheet carries, chosen before it printed.
+   *
+   * A church taking a register at a door wants names and a tick box and
+   * nothing else; a church running a camp wants the allergy answer in front of
+   * it. With nothing asked for, everything is printed.
+   */
+  const wanted = columns ? new Set(columns.split(",").filter(Boolean)) : null;
+  const carries = (key: string) => wanted === null || wanted.has(key);
+  const shownQuestions = questions.filter((one) => carries(one.id));
+
   const when = [
     longDate(event.startsOn),
     event.startsAt ? readableTime(event.startsAt) : null,
@@ -76,21 +87,32 @@ export default async function EventRosterPage({
   });
 
   return (
-    <div className="bg-white p-8 text-black print:p-0">
+    <div className="bg-white p-8 text-black">
+      {/* No margin, so the browser prints the sheet and not its own header and
+          footer around it. The padding above is the margin. */}
+      <style>{"@page { size: auto; margin: 0; }"}</style>
       <AutoPrint />
 
       <h1 className="font-display text-[24px] leading-[30px]">{event.name}</h1>
-      <p className="mt-1 text-[13px]">
-        {[when, event.location, address].filter(Boolean).join(" · ")}
-      </p>
+      <p className="mt-1 text-[13px]">{when}</p>
+      {event.location || address ? (
+        <p className="text-[13px]">{[event.location, address].filter(Boolean).join(", ")}</p>
+      ) : null}
 
       <table className="mt-6 w-full border-collapse text-[12px]">
         <thead>
           <tr className="border-b border-black text-left">
             <th className="py-1.5 pr-3 font-semibold">{t("event.registrant")}</th>
-            <th className="py-1.5 pr-3 font-semibold">{t("person.phone")}</th>
-            <th className="py-1.5 pr-3 font-semibold">{t("event.emergency")}</th>
-            {questions.map((one) => (
+            {carries("email") ? (
+              <th className="py-1.5 pr-3 font-semibold">{t("person.email")}</th>
+            ) : null}
+            {carries("phone") ? (
+              <th className="py-1.5 pr-3 font-semibold">{t("person.phone")}</th>
+            ) : null}
+            {carries("emergency") ? (
+              <th className="py-1.5 pr-3 font-semibold">{t("event.emergency")}</th>
+            ) : null}
+            {shownQuestions.map((one) => (
               <th key={one.id} className="py-1.5 pr-3 font-semibold">{one.label}</th>
             ))}
             <th className="w-16 py-1.5 font-semibold">{t("event.arrived")}</th>
@@ -110,15 +132,22 @@ export default async function EventRosterPage({
                 {one.name}
                 {one.state === "waiting" ? ` (${t("event.onWaitlist")})` : ""}
               </td>
-              <td className="py-2 pr-3 tabular-nums">{one.phone ?? ""}</td>
-              <td className="py-2 pr-3">
-                {one.emergency.length === 0
-                  ? t("event.noContacts")
-                  : one.emergency
-                      .map((c) => [c.name, c.phone].filter(Boolean).join(" "))
-                      .join(", ")}
-              </td>
-              {questions.map((q) => (
+              {carries("email") ? (
+                <td className="py-2 pr-3">{one.email ?? ""}</td>
+              ) : null}
+              {carries("phone") ? (
+                <td className="py-2 pr-3 tabular-nums">{one.phone ?? ""}</td>
+              ) : null}
+              {carries("emergency") ? (
+                <td className="py-2 pr-3">
+                  {one.emergency.length === 0
+                    ? t("event.noContacts")
+                    : one.emergency
+                        .map((c) => [c.name, c.phone].filter(Boolean).join(" "))
+                        .join(", ")}
+                </td>
+              ) : null}
+              {shownQuestions.map((q) => (
                 <td key={q.id} className="py-2 pr-3">{answerText(one.answers[q.id])}</td>
               ))}
               <td className="py-2">

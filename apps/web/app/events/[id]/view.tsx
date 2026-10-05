@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Archive, ArchiveRestore, ArrowLeft, Check, Download, Eye, Link2, Pencil, Printer,
+  Archive, ArchiveRestore, ArrowLeft, Check, Download, Eye, Link2, Pencil,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
@@ -18,6 +18,7 @@ import { Empty } from "@/components/empty";
 import { longDate, readableTime, shortDate } from "@/lib/dates";
 import { oneLineAddress, directionsLink } from "@/lib/address";
 import { publishEvent, openEventRegistration, archiveEvent } from "../actions";
+import { PrintRoster } from "./print-roster";
 
 type Tab = "overview" | "registrations";
 
@@ -70,8 +71,6 @@ export function EventView({
     });
 
   const publicLink = origin ? `${origin}/e/${church}/${event.slug}` : "";
-  const going = registrations.filter((one) => one.state === "going");
-  const waiting = registrations.filter((one) => one.state === "waiting");
   const left = event.capacity === null ? null : Math.max(0, event.capacity - event.going);
 
   const when = [
@@ -290,7 +289,7 @@ export function EventView({
           thing to look at, and a strip of one tab is a control that does
           nothing. */}
       {event.takesRegistrations ? (
-      <div className="flex items-center gap-1 self-start rounded-md bg-sunken p-[3px]">
+      <div className="flex items-center gap-1 self-start rounded-md bg-sunken p-[3px] -mb-1">
         {(["overview", "registrations"] as const).map((one) => (
           <button
             key={one}
@@ -307,6 +306,10 @@ export function EventView({
         ))}
       </div>
       ) : null}
+
+      {/* A hairline under the tabs, so what they switch reads as the panel
+          they belong to rather than as the next thing down the page. */}
+      {event.takesRegistrations ? <span aria-hidden className="h-px w-full bg-line" /> : null}
 
       {showing === "overview" ? (
         <div className="flex flex-wrap items-start gap-10">
@@ -360,23 +363,19 @@ export function EventView({
           <Empty icon="people" title={t("event.registrations.none")} />
         ) : (
           <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="flex-1 text-[length:var(--d-text-body)] text-fg-muted tabular-nums">
-                {[
-                  plural("event.going", going.length),
-                  waiting.length > 0 ? plural("event.waiting", waiting.length) : null,
-                ].filter(Boolean).join(" · ")}
-              </span>
-              <Button variant="secondary" asChild>
-                <a href={`/events/${event.slug}/export?church=${church}`}>
-                  <Download className="size-4" aria-hidden /> {t("event.export")}
-                </a>
-              </Button>
-              <Button variant="secondary" asChild>
-                <a href={`/events/${event.slug}/roster?church=${church}`} target="_blank" rel="noreferrer">
-                  <Printer className="size-4" aria-hidden /> {t("event.roster")}
-                </a>
-              </Button>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {/* A link rather than a button, because it fetches a file.
+                  Shaped from the same tokens the IconButton beside it uses, so
+                  the pair reads as one. */}
+              <a
+                href={`/events/${event.slug}/export?church=${church}`}
+                aria-label={t("event.export")}
+                title={t("event.export")}
+                className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+              >
+                <Download />
+              </a>
+              <PrintRoster church={church} eventSlug={event.slug} questions={questions} />
             </div>
 
             <div className="overflow-x-auto">
