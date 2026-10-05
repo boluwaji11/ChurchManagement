@@ -176,8 +176,10 @@ export async function joinWithCode(input: {
     // what they typed when they made the account.
     const [name] = splitName(fullName, email);
     const [person] = await tx<{ id: string }[]>`
-      insert into people (tenant_id, first_name, last_name, lifecycle_status, app_user_id)
-      values (${target.tenantId}, ${name.first}, ${name.last}, 'visitor', ${input.user.id})
+      insert into people (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
+      values (${target.tenantId},
+              hearth_free_person_slug(${target.tenantId}::uuid, ${`${name.first} ${name.last}`.trim()}),
+              ${name.first}, ${name.last}, 'visitor', ${input.user.id})
       returning id`;
     await tx`
       insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)

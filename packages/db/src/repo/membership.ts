@@ -265,8 +265,10 @@ export async function linkOrCreatePerson(input: {
   const last = parts.length >= 2 ? parts.slice(1).join(" ") : "";
 
   const [made] = await sql<{ id: string }[]>`
-    insert into people (tenant_id, first_name, last_name, lifecycle_status, app_user_id)
-    values (${input.tenantId}, ${first}, ${last}, 'member', ${input.userId})
+    insert into people (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
+    values (${input.tenantId},
+            hearth_free_person_slug(${input.tenantId}::uuid, ${`${first} ${last}`.trim()}),
+            ${first}, ${last}, 'member', ${input.userId})
     returning id`;
 
   await sql`
@@ -472,8 +474,8 @@ export async function createChurch(input: {
     // position is.
     for (const [position, team] of SEED_TEAMS.entries()) {
       const [row] = await tx<{ id: string }[]>`
-        insert into teams (tenant_id, name, hue, position)
-        values (${tenant.id}, ${team.name}, ${team.hue}, ${position})
+        insert into teams (tenant_id, slug, name, hue, position)
+        values (${tenant.id}, hearth_slug(${team.name}), ${team.name}, ${team.hue}, ${position})
         returning id`;
       for (const [at, slot] of team.positions.entries()) {
         await tx`

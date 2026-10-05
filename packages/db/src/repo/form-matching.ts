@@ -231,9 +231,11 @@ async function createPerson(
   const [first, last] = splitName(identity);
 
   const [person] = await tx<{ id: string }[]>`
-    insert into people (tenant_id, first_name, last_name, preferred_name,
+    insert into people (tenant_id, slug, first_name, last_name, preferred_name,
                         date_of_birth, lifecycle_status, first_visit_on)
-    values (${tenantId}, ${first}, ${last}, ${identity.preferredName},
+    values (${tenantId},
+            hearth_free_person_slug(${tenantId}::uuid, ${`${first} ${last}`.trim()}),
+            ${first}, ${last}, ${identity.preferredName},
             ${identity.dateOfBirth}, 'visitor', current_date)
     returning id`;
   const personId = person!.id;
