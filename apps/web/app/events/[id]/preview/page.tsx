@@ -61,10 +61,11 @@ export default async function PreviewEventPage({
   };
 
   /*
-   * Shaped as the public page shapes it, with one difference: the state is
-   * read as "open" whatever the event's own state is, because a preview exists
-   * to show the page rather than to take a place, and a draft would otherwise
-   * preview as closed.
+   * Shaped as the public page shapes it, with one difference: an event that
+   * takes registrations previews as open whatever its own state is, because a
+   * preview exists to show the page rather than to take a place, and a draft
+   * would otherwise preview as closed. An event that asks for no registration
+   * previews without the button, which is what the page will carry.
    */
   const shown: PublicEvent = {
     church: {
@@ -94,7 +95,7 @@ export default async function PreviewEventPage({
     capacity: event.capacity,
     showCapacity: event.showCapacity,
     going: event.going,
-    state: "open",
+    state: event.takesRegistrations && form ? "open" : "none",
     formSlug: form?.slug ?? null,
     questions: form?.fields ?? [],
   };

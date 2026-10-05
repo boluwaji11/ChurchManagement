@@ -206,7 +206,11 @@ export function EventView({
           }}
         />
         <span className="min-w-[180px] flex-1 font-medium text-fg">
-          {event.registrationOpen ? t("event.registrationOpen") : t("event.registrationClosed")}
+          {!event.takesRegistrations
+            ? t("event.registrationNone")
+            : event.registrationOpen
+              ? t("event.registrationOpen")
+              : t("event.registrationClosed")}
           {left !== null ? ` · ${left === 0 ? t("event.full") : plural("event.placesLeft", left)}` : ""}
         </span>
 

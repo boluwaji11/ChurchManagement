@@ -2111,6 +2111,7 @@ export const en = {
   "event.placesLeft.other": "{count} seats left",
   "event.full": "Full",
   "event.registrationClosed": "Registration closed",
+  "event.registrationNone": "No registration",
   "event.registrationOpen": "Taking registrations",
   "event.informationOnly": "Information only",
   "event.takesRegistrations": "Registration required",

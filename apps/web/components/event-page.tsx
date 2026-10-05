@@ -58,7 +58,7 @@ export function EventPage({
           website opens. No coloured rule over the top: the page already carries
           the event's colour, and two bands of colour above the fold is one more
           than the page needs. */}
-      <header className="px-5 pt-5 pb-1 sm:px-8">
+      <header className="px-5 pt-3 pb-1 sm:px-8 sm:pt-4">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
           {logoUrl ? (
             <img
