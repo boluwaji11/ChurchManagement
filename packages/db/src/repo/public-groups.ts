@@ -96,7 +96,7 @@ export async function publicGroups(slug: string): Promise<PublicGroup[]> {
            g.ends_at as "endsAt",
            g.frequency,
            g.location,
-           nullif(concat_ws(', ', g.address_line1, g.city, g.region, g.postal_code), '') as address,
+           nullif(concat_ws(', ', g.address_line1, g.address_line2, g.city, g.region, g.postal_code), '') as address,
            (g.address_line1 is not null and g.address_line1 <> ''
              and coalesce(nullif(g.city, ''), nullif(g.postal_code, ''), nullif(g.region, '')) is not null) as mappable,
            g.for_whom as "forWhom",
