@@ -309,7 +309,7 @@ export function GroupDetail({
                         )}
                       </span>
                     )}
-                    {canManage ? (
+                    {canRecord ? (
                       <IconButton
                         label={t("groups.remove")}
                         variant="ghost"

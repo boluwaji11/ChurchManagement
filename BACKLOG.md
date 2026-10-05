@@ -235,6 +235,7 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Resolved |
+| HRT-221 | Leaving a group: the member's own way out, and a leader keeping their roster | R9.4, R17.5 | Resolved |
 | HRT-84 | A leader sees their own group and nothing else | R9.3 | Resolved |
 | HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | Resolved |
 | HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | Resolved |

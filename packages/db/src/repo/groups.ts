@@ -8,6 +8,7 @@ import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./members";
 import { formSlug, isUuid } from "./form-rules";
+import { personForUser } from "./scope";
 
 /**
  * R9.1 to R9.4. Groups.
@@ -672,37 +673,81 @@ export async function addToGroup(
   return groupRoster(db, input.groupId);
 }
 
+/**
+ * R9.3. Whether this actor runs this particular group.
+ *
+ * A leader keeps their own roster. Whoever runs groups for the church keeps
+ * everybody's. Written here rather than reached for from the attendance module,
+ * which already imports this one.
+ */
+async function leadsGroup(
+  db: Tx,
+  actor: WriteActor,
+  groupId: string,
+): Promise<boolean> {
+  if (!actor.userId) return false;
+  const self = await personForUser(db, actor.userId);
+  if (!self) return false;
+
+  const [row] = await db
+    .select({ id: groupMemberships.id })
+    .from(groupMemberships)
+    .where(
+      and(
+        eq(groupMemberships.groupId, groupId),
+        eq(groupMemberships.memberId, self),
+        isNull(groupMemberships.leftOn),
+        inArray(groupMemberships.role, ["leader", "coleader"]),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
+/**
+ * R9.3. Taking the last leader off a group is refused.
+ *
+ * It would leave a group nobody can record attendance for and nobody can be
+ * asked about, so the church names a replacement first. Checked here rather
+ * than only on screen, because the screen is not the control.
+ */
+async function wouldStrandGroup(
+  db: Tx,
+  groupId: string,
+  memberId: string,
+): Promise<boolean> {
+  const leaders = await db
+    .select({ memberId: groupMemberships.memberId })
+    .from(groupMemberships)
+    .where(
+      and(
+        eq(groupMemberships.groupId, groupId),
+        isNull(groupMemberships.leftOn),
+        inArray(groupMemberships.role, ["leader", "coleader"]),
+      ),
+    );
+  return leaders.length === 1 && leaders[0]!.memberId === memberId;
+}
+
+/** The day somebody went, defaulting to today. */
+function wentOn(given?: string): string {
+  const leftOn = given ?? new Date().toISOString().slice(0, 10);
+  if (!DATE.test(leftOn)) throw new InvalidInputError("group.error.left");
+  return leftOn;
+}
+
 /** R9.4. Somebody leaving. The row stays, with the day they went. */
 export async function removeFromGroup(
   db: Tx,
   actor: WriteActor,
   input: { groupId: string; memberId: string; leftOn?: string },
 ): Promise<GroupMember[]> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor.role) && !(await leadsGroup(db, actor, input.groupId))) {
+    throw new PermissionError(actor.role, "manageGroups");
+  }
 
-  const leftOn = input.leftOn ?? new Date().toISOString().slice(0, 10);
-  if (!DATE.test(leftOn)) throw new InvalidInputError("group.error.left");
-
-  /*
-   * R9.3. A group always has somebody running it.
-   *
-   * Taking the last leader off would leave a group nobody can record attendance
-   * for and nobody can be asked about, so the church names a replacement first.
-   * Checked here rather than only on screen, because the screen is not the
-   * control.
-   */
-  const leaders = await db
-    .select({ memberId: groupMemberships.memberId })
-    .from(groupMemberships)
-    .where(
-      and(
-        eq(groupMemberships.groupId, input.groupId),
-        isNull(groupMemberships.leftOn),
-        inArray(groupMemberships.role, ["leader", "coleader"]),
-      ),
-    );
-
-  if (leaders.length === 1 && leaders[0]!.memberId === input.memberId) {
+  const leftOn = wentOn(input.leftOn);
+  if (await wouldStrandGroup(db, input.groupId, input.memberId)) {
     throw new InvalidInputError("group.error.lastLeader");
   }
 
@@ -718,6 +763,46 @@ export async function removeFromGroup(
     );
 
   return groupRoster(db, input.groupId);
+}
+
+/**
+ * R9.4, R17.5. Somebody taking themselves out of a group.
+ *
+ * Nobody needs a permission to leave something they joined, so this asks for
+ * none. What it does not take is a member id: the person leaving is whoever is
+ * signed in, so the request cannot reach anybody else's membership.
+ *
+ * The last leader is still refused. Somebody running the only group of its kind
+ * cannot walk away from it without the church knowing, and the message says to
+ * name a replacement.
+ */
+export async function leaveGroup(
+  db: Tx,
+  actor: WriteActor,
+  input: { groupId: string; leftOn?: string },
+): Promise<void> {
+  if (!actor.userId) throw new InvalidInputError("member.error.noRecord");
+  const self = await personForUser(db, actor.userId);
+  if (!self) throw new InvalidInputError("member.error.noRecord");
+
+  const leftOn = wentOn(input.leftOn);
+  if (await wouldStrandGroup(db, input.groupId, self)) {
+    throw new InvalidInputError("group.error.lastLeader");
+  }
+
+  const gone = await db
+    .update(groupMemberships)
+    .set({ leftOn, updatedAt: new Date() })
+    .where(
+      and(
+        eq(groupMemberships.groupId, input.groupId),
+        eq(groupMemberships.memberId, self),
+        isNull(groupMemberships.leftOn),
+      ),
+    )
+    .returning({ id: groupMemberships.id });
+
+  if (gone.length === 0) throw new InvalidInputError("group.error.notIn");
 }
 
 /** Every group somebody is in now, for their record. */

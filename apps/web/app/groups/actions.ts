@@ -2,7 +2,7 @@
 
 import {
   withTenant, createGroup, updateGroup, setGroupArchived,
-  addToGroup, removeFromGroup, lookupPeople, getChurch,
+  addToGroup, removeFromGroup, leaveGroup, lookupPeople, getChurch,
   requestToJoin, decideRequest, setGroupPhoto, setGroupOpen, setGroupStatus,
   type GroupRole,
 } from "@connectapp/db";
@@ -126,6 +126,25 @@ export async function leave(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => removeFromGroup(tx, actor, { groupId, memberId }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R9.4, R17.5. Taking yourself out of a group.
+ *
+ * No member id crosses the wire: the person leaving is whoever is signed in,
+ * so this cannot reach anybody else's membership however it is called.
+ */
+export async function leaveMine(
+  groupId: string,
+  church?: string,
+): Promise<RosterResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => leaveGroup(tx, actor, { groupId }));
     return {};
   } catch (error) {
     return { error: explain(error) };
