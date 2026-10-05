@@ -20,7 +20,7 @@ export const TabsTrigger = React.forwardRef<
   <P.Trigger
     ref={ref}
     className={cn(
-      "relative px-3 py-2 text-label text-fg-muted -mb-px border-b-2 border-transparent",
+      "relative cursor-pointer px-3 py-2 text-label text-fg-muted -mb-px border-b-2 border-transparent",
       "transition-colors duration-fast ease-out hover:text-fg",
       "data-[state=active]:text-fg data-[state=active]:border-accent",
       className,

@@ -9,6 +9,7 @@ import {
 } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import type { Meeting, MeetingPerson } from "@hearth/db";
+import { Markdown } from "@/components/markdown";
 import { decide, setOpenToJoin, leave } from "../actions";
 import { AddMember } from "../add-member";
 import { record } from "./meeting-actions";
@@ -142,9 +143,10 @@ export function GroupDetail({
                   <h2 className="font-display text-[24px] font-normal text-fg">
                     {t("group.about", { name: "" }).trim()}
                   </h2>
-                  <p className="max-w-[68ch] text-[15px] leading-6 whitespace-pre-line text-fg">
-                    {about}
-                  </p>
+                  <Markdown
+                    text={about}
+                    className="flex max-w-[68ch] flex-col gap-3 text-[15px] leading-6 text-fg"
+                  />
                 </section>
               ) : null}
 

@@ -4,11 +4,12 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Trash2, X } from "lucide-react";
 import {
-  Banner, Button, Checkbox, Combobox, DatePicker, Field, IconButton, Input, Textarea,
+  Banner, Button, Checkbox, Combobox, DatePicker, Field, IconButton, Input,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { TimeField } from "@/components/time-field";
 import { Picker } from "@/components/picker";
+import { RichText } from "@/components/rich-text";
 import { AddressFields } from "@/components/address-fields";
 import { toAddress } from "@/lib/address";
 import { FormActions } from "@/components/form-actions";
@@ -261,9 +262,8 @@ export function GroupEditor({
       <div className="flex flex-wrap items-start gap-10">
         <div className="flex min-w-0 flex-[999_1_420px] flex-col gap-7">
           <Side label={t("group.about", { name: "" }).trim()}>
-            <Textarea
+            <RichText
               name="description"
-              rows={5}
               defaultValue={group?.description ?? ""}
               className="max-w-[68ch]"
             />
