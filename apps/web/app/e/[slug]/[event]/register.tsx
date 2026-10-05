@@ -14,7 +14,8 @@ import { registerParty } from "./actions";
 
 interface Person {
   key: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   answers: Record<string, FormAnswer>;
@@ -22,7 +23,8 @@ interface Person {
 
 const blank = (): Person => ({
   key: Math.random().toString(36).slice(2),
-  name: "",
+  firstName: "",
+  lastName: "",
   email: "",
   phone: "",
   answers: {},
@@ -88,7 +90,8 @@ export function Register({
 
   /** What a person is called once they have typed a name, and until then. */
   const calls = (person: Person, index: number) =>
-    person.name.trim() || t("publicEvent.person", { number: index + 1 });
+    [person.firstName.trim(), person.lastName.trim()].filter(Boolean).join(" ")
+    || t("publicEvent.person", { number: index + 1 });
 
   /**
    * Each step is checked before it is left, so an answer is corrected where it
@@ -99,7 +102,9 @@ export function Register({
 
     if (which === "who") {
       for (const person of party) {
-        if (!person.name.trim()) found[`${person.key}:name`] = t("publicEvent.nameRequired");
+        if (!person.firstName.trim()) {
+          found[`${person.key}:firstName`] = t("publicEvent.nameRequired");
+        }
       }
     }
 
@@ -137,7 +142,8 @@ export function Register({
         eventSlug,
         today,
         party: party.map((one) => ({
-          name: one.name,
+          firstName: one.firstName,
+          lastName: one.lastName,
           email: one.email,
           phone: one.phone,
           answers: one.answers,
@@ -268,14 +274,21 @@ export function Register({
 
               <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
                 <Field
-                  label={t("publicEvent.name")}
+                  label={t("publicEvent.firstName")}
                   required
-                  error={errors[`${person.key}:name`]}
+                  error={errors[`${person.key}:firstName`]}
                 >
                   <Input
-                    value={person.name}
-                    onChange={(e) => change(person.key, { name: e.target.value })}
-                    autoComplete="name"
+                    value={person.firstName}
+                    onChange={(e) => change(person.key, { firstName: e.target.value })}
+                    autoComplete="given-name"
+                  />
+                </Field>
+                <Field label={t("publicEvent.lastName")}>
+                  <Input
+                    value={person.lastName}
+                    onChange={(e) => change(person.key, { lastName: e.target.value })}
+                    autoComplete="family-name"
                   />
                 </Field>
                 <Field label={t("publicEvent.email")}>

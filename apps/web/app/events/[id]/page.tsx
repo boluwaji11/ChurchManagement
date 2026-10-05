@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
-import { withTenant, getEvent, canManageEvents } from "@hearth/db";
+import {
+  withTenant, getEvent, getForm, listRegistrations, canManageEvents,
+} from "@hearth/db";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -37,7 +39,12 @@ export default async function EventPage({
   const result = await withTenant(ctx, async (tx) => {
     const found = await getEvent(tx, id);
     if (!found) return null;
-    return { event: found };
+    return {
+      event: found,
+      // R14.12. The roster, and the questions that name its columns.
+      registrations: found.takesRegistrations ? await listRegistrations(tx, id) : [],
+      questions: found.formId ? (await getForm(tx, found.formId))?.fields ?? [] : [],
+    };
   });
   if (!result) notFound();
 
@@ -56,6 +63,8 @@ export default async function EventPage({
         church={session.tenantSlug}
         event={result.event}
         coverUrl={coverUrl}
+        registrations={result.registrations}
+        questions={result.questions.map((one) => ({ id: one.id, label: one.label }))}
         tab={tab === "registrations" ? "registrations" : "overview"}
       />
     </AppShell>

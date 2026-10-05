@@ -111,9 +111,17 @@ export function EventPage({
                 {when}
                 {until ? ` ${until}` : ""}
               </p>
-              {event.location || address ? (
+              {/* The place it is, then the address under it, because a reader
+                  looking for the venue and a reader looking for the street are
+                  two different readers. */}
+              {event.location ? (
+                <p className="text-[length:var(--d-text-body)] leading-6 text-fg">
+                  {event.location}
+                </p>
+              ) : null}
+              {address ? (
                 <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
-                  {[event.location, address].filter(Boolean).join(", ")}
+                  {address}
                   {directions ? (
                     <>
                       {" "}

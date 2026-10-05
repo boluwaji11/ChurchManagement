@@ -4,21 +4,30 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Archive, ArchiveRestore, ArrowLeft, Check, Eye, Link2, Pencil,
+  Archive, ArchiveRestore, ArrowLeft, Check, Download, Eye, Link2, Pencil, Printer,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Table, Thead, Tr, Th, Td,
 } from "@hearth/ui";
-import type { ChurchEvent } from "@hearth/db";
+import type { ChurchEvent, EventRegistration } from "@hearth/db";
 import { t, plural } from "@hearth/i18n";
 import { Markdown } from "@/components/markdown";
 import { Empty } from "@/components/empty";
-import { longDate, readableTime } from "@/lib/dates";
+import { longDate, readableTime, shortDate } from "@/lib/dates";
 import { oneLineAddress, directionsLink } from "@/lib/address";
 import { publishEvent, openEventRegistration, archiveEvent } from "../actions";
 
 type Tab = "overview" | "registrations";
+
+/** An answer as one cell. A list of choices reads as a list. */
+function answerText(value: unknown): string {
+  if (value === true) return t("common.yes");
+  if (value === false || value === null || value === undefined) return "";
+  if (Array.isArray(value)) return value.join(", ");
+  return String(value);
+}
 
 
 /**
@@ -32,11 +41,17 @@ export function EventView({
   church,
   event,
   coverUrl,
+  registrations,
+  questions,
   tab,
 }: {
   church: string;
   event: ChurchEvent;
   coverUrl: string | null;
+  /** R14.12. Everybody with a place, bookings kept together. */
+  registrations: EventRegistration[];
+  /** R14.5. The event's questions, which name the roster's extra columns. */
+  questions: { id: string; label: string }[];
   tab: Tab;
 }) {
   const router = useRouter();
@@ -55,6 +70,8 @@ export function EventView({
     });
 
   const publicLink = origin ? `${origin}/e/${church}/${event.slug}` : "";
+  const going = registrations.filter((one) => one.state === "going");
+  const waiting = registrations.filter((one) => one.state === "waiting");
   const left = event.capacity === null ? null : Math.max(0, event.capacity - event.going);
 
   const when = [
@@ -314,8 +331,13 @@ export function EventView({
             </Block>
 
             <Block label={t("event.where")}>
-              <span className="text-[length:var(--d-text-body)] text-fg">
-                {[event.location, address].filter(Boolean).join(", ") || t("common.none")}
+              {event.location ? (
+                <span className="text-[length:var(--d-text-body)] text-fg">
+                  {event.location}
+                </span>
+              ) : null}
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">
+                {address || (event.location ? "" : t("common.none"))}
               </span>
               {directions ? (
                 <a
@@ -334,7 +356,96 @@ export function EventView({
       ) : null}
 
       {showing === "registrations" ? (
-        <Empty icon="people" title={t("event.registrations.none")} />
+        registrations.length === 0 ? (
+          <Empty icon="people" title={t("event.registrations.none")} />
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="flex-1 text-[length:var(--d-text-body)] text-fg-muted tabular-nums">
+                {[
+                  plural("event.going", going.length),
+                  waiting.length > 0 ? plural("event.waiting", waiting.length) : null,
+                ].filter(Boolean).join(" · ")}
+              </span>
+              <Button variant="secondary" asChild>
+                <a href={`/events/${event.id}/export?church=${church}`}>
+                  <Download className="size-4" aria-hidden /> {t("event.export")}
+                </a>
+              </Button>
+              <Button variant="secondary" asChild>
+                <a href={`/events/${event.id}/roster?church=${church}`} target="_blank" rel="noreferrer">
+                  <Printer className="size-4" aria-hidden /> {t("event.roster")}
+                </a>
+              </Button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <Table>
+                <Thead>
+                  <Tr>
+                    <Th>{t("event.registrant")}</Th>
+                    <Th>{t("person.email")}</Th>
+                    <Th>{t("person.phone")}</Th>
+                    <Th>{t("event.registeredOn")}</Th>
+                    {questions.map((one) => (
+                      <Th key={one.id}>{one.label}</Th>
+                    ))}
+                  </Tr>
+                </Thead>
+                <tbody>
+                  {registrations.map((one, index) => (
+                    <Tr
+                      key={one.id}
+                      /* R14.6. A hairline between parties rather than between
+                         rows, so a family reads as the one booking it is. */
+                      className={
+                        index > 0 && registrations[index - 1]!.bookingId !== one.bookingId
+                          ? "border-t-2 border-line-strong"
+                          : undefined
+                      }
+                    >
+                      <Td>
+                        <span className="flex items-center gap-2">
+                          {one.personId ? (
+                            <Link
+                              href={`/people/${one.personId}?church=${church}`}
+                              className="font-medium text-fg underline-offset-4 hover:underline"
+                            >
+                              {one.name}
+                            </Link>
+                          ) : (
+                            <span className="font-medium text-fg">{one.name}</span>
+                          )}
+                          {one.state === "waiting" ? (
+                            <span
+                              className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+                              style={{
+                                background: "var(--hue-amber-tint)",
+                                color: "var(--hue-amber-key)",
+                              }}
+                            >
+                              {t("event.onWaitlist")}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Td>
+                      <Td className="text-fg-muted">{one.email ?? ""}</Td>
+                      <Td className="text-fg-muted tabular-nums">{one.phone ?? ""}</Td>
+                      <Td className="text-fg-muted tabular-nums">
+                        {shortDate(one.registeredAt.slice(0, 10))}
+                      </Td>
+                      {questions.map((q) => (
+                        <Td key={q.id} className="text-fg-muted">
+                          {answerText(one.answers[q.id])}
+                        </Td>
+                      ))}
+                    </Tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          </div>
+        )
       ) : null}
 
     </div>

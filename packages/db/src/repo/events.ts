@@ -546,3 +546,113 @@ export async function setEventForm(
     .returning({ id: events.id });
   if (changed.length === 0) throw new InvalidInputError("event.error.missing");
 }
+
+/** R14.12. One place taken, as the roster and the export read it. */
+export interface EventRegistration {
+  id: string;
+  /** R14.6. Everybody registered in the same breath shares this. */
+  bookingId: string;
+  personId: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  /** "going", "waiting" or "cancelled". */
+  state: string;
+  registeredAt: string;
+  arrivedAt: string | null;
+  /** R14.5. What this person answered, keyed by question id. */
+  answers: Record<string, unknown>;
+  /** R14.12. Who to call, from the person record where there is one. */
+  emergency: { name: string; phone: string | null; relation: string }[];
+}
+
+/**
+ * R14.12. Everybody who has a place, in the order they took one.
+ *
+ * Bookings stay together: a family that registered in one go reads as one
+ * party on the roster and prints as one party on the sheet, because that is
+ * how they arrive.
+ *
+ * Emergency contacts come from the person record rather than from the
+ * registration, so a child registered by a parent carries the contacts the
+ * church already holds instead of whatever was typed on a phone in a car park.
+ */
+export async function listRegistrations(
+  db: Tx,
+  eventId: string,
+): Promise<EventRegistration[]> {
+  const rows = await db.execute<{
+    id: string;
+    bookingId: string;
+    personId: string | null;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    state: string;
+    registeredAt: Date;
+    arrivedAt: Date | null;
+    answers: Record<string, unknown> | null;
+    firstTaken: Date;
+  }>(sql`
+    select r.id,
+           r.booking_id as "bookingId",
+           r.person_id as "personId",
+           r.name,
+           r.email,
+           r.phone,
+           r.state,
+           r.created_at as "registeredAt",
+           r.arrived_at as "arrivedAt",
+           s.answers,
+           min(r.created_at) over (partition by r.booking_id) as "firstTaken"
+      from event_registrations r
+      left join form_submissions s on s.id = r.submission_id
+     where r.event_id = ${eventId}
+     order by "firstTaken", r.created_at`);
+
+  const people = rows.map((row) => row.personId).filter((id): id is string => Boolean(id));
+
+  // R14.12. Guardians and emergency contacts, which are the two kinds a church
+  // reaches for when something has happened.
+  const contacts = people.length === 0
+    ? []
+    : await db.execute<{
+        personId: string;
+        name: string;
+        phone: string | null;
+        relation: string;
+      }>(sql`
+        select rel.person_id as "personId",
+               trim(coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name) as name,
+               (select c.value from contact_methods c
+                 where c.person_id = p.id and c.kind = 'phone'
+                 order by c.is_primary desc nulls last
+                 limit 1) as phone,
+               rel.kind::text as relation
+          from relationships rel
+          join people p on p.id = rel.related_person_id
+         where rel.person_id in (${sql.join(people.map((id) => sql`${id}::uuid`), sql`, `)})
+           and rel.kind in ('guardian', 'emergency_contact')
+         order by rel.kind`);
+
+  const byPerson = new Map<string, EventRegistration["emergency"]>();
+  for (const one of contacts) {
+    const held = byPerson.get(one.personId) ?? [];
+    held.push({ name: one.name, phone: one.phone, relation: one.relation });
+    byPerson.set(one.personId, held);
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    bookingId: row.bookingId,
+    personId: row.personId,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    state: row.state,
+    registeredAt: row.registeredAt.toISOString(),
+    arrivedAt: row.arrivedAt ? row.arrivedAt.toISOString() : null,
+    answers: (row.answers ?? {}) as Record<string, unknown>,
+    emergency: (row.personId ? byPerson.get(row.personId) : undefined) ?? [],
+  }));
+}

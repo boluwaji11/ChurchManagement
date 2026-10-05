@@ -263,7 +263,8 @@ export async function publicEvent(
 
 /** R14.6. One person on a booking: who they are, and what they answered. */
 export interface Registrant {
-  name: string;
+  firstName: string;
+  lastName?: string | null;
   email?: string | null;
   phone?: string | null;
   answers: Record<string, FormAnswer>;
@@ -304,7 +305,7 @@ export async function registerForEvent(input: {
     throw new InvalidInputError("event.error.closedToRegistration");
   }
 
-  const party = input.party.filter((one) => one.name?.trim());
+  const party = input.party.filter((one) => one.firstName?.trim());
   if (party.length === 0) throw new InvalidInputError("event.error.noOne");
   if (party.length > PARTY_LIMIT) throw new InvalidInputError("event.error.party");
 
@@ -366,11 +367,15 @@ export async function registerForEvent(input: {
         submissionId = saved!.id;
       }
 
+      const whole = [person.firstName.trim(), person.lastName?.trim()]
+        .filter(Boolean)
+        .join(" ");
+
       const [registration] = await tx<{ id: string }[]>`
         insert into event_registrations
           (tenant_id, event_id, booking_id, name, email, phone, state, submission_id)
         values (${row.tenantId}, ${row.id}, ${bookingId},
-                ${person.name.trim()},
+                ${whole},
                 ${person.email?.trim().toLowerCase() || null},
                 ${person.phone?.trim() || null},
                 ${asWaiting ? "waiting" : "going"},
@@ -389,15 +394,16 @@ export async function registerForEvent(input: {
         { id: `${registration!.id}:phone`, kind: "phone", label: "phone", help: null, required: false, options: null, position: -1, showWhen: null, mapsTo: "phone" },
       ];
 
-      const [first = "", ...rest] = person.name.trim().split(/\s+/);
       const identity: Record<string, FormAnswer> = {
-        [named[0]!.id]: first,
+        [named[0]!.id]: person.firstName.trim(),
         [named[1]!.id]: person.email?.trim().toLowerCase() ?? null,
         [named[2]!.id]: person.phone?.trim() ?? null,
       };
-      if (rest.length > 0) {
+      // Asked as two fields, so a surname is a surname rather than whatever
+      // followed the first space. "Mary Anne van der Berg" was two guesses.
+      if (person.lastName?.trim()) {
         named.push({ id: `${registration!.id}:last`, kind: "text", label: "last", help: null, required: false, options: null, position: -1.5, showWhen: null, mapsTo: "last_name" });
-        identity[`${registration!.id}:last`] = rest.join(" ");
+        identity[`${registration!.id}:last`] = person.lastName.trim();
       }
 
       const placed = await placeSubmission(tx, {
