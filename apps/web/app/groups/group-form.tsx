@@ -23,8 +23,14 @@ export interface GroupDraft {
   startsAt: string | null;
   endsAt: string | null;
   frequency: string | null;
+  endsOn: string | null;
   location: string | null;
-  address: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+  country: string | null;
   capacity: number | null;
   forWhom: string | null;
   online: boolean;

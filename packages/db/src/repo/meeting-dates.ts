@@ -9,7 +9,7 @@
  * Pure, with no database and no imports, so the browser and the server agree.
  */
 
-export type MeetingFrequency = "weekly" | "fortnightly" | "monthly";
+export type MeetingFrequency = "daily" | "weekly" | "fortnightly" | "monthly";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -23,26 +23,45 @@ const iso = (d: Date): string => d.toISOString().slice(0, 10);
  * 30 days" is not.
  */
 export function upcomingMeetings(
-  pattern: { dayOfWeek: number | null; frequency: string | null },
+  pattern: {
+    dayOfWeek: number | null;
+    frequency: string | null;
+    /** R9.2. The day it stops meeting, where it has one. */
+    endsOn?: string | null;
+  },
   from: string,
   count = 3,
 ): string[] {
-  if (pattern.dayOfWeek === null || !DATE.test(from) || count < 1) return [];
+  if (!DATE.test(from) || count < 1) return [];
+  // A daily group has no weekday, and every other pattern needs one.
+  const daily = pattern.frequency === "daily";
+  if (pattern.dayOfWeek === null && !daily) return [];
 
   const [y, m, d] = from.split("-").map(Number) as [number, number, number];
   const start = new Date(Date.UTC(y, m - 1, d));
 
-  const ahead = (pattern.dayOfWeek - start.getUTCDay() + 7) % 7;
   const first = new Date(start);
-  first.setUTCDate(first.getUTCDate() + ahead);
+  if (!daily) {
+    const ahead = ((pattern.dayOfWeek ?? 0) - start.getUTCDay() + 7) % 7;
+    first.setUTCDate(first.getUTCDate() + ahead);
+  }
 
-  const step =
-    pattern.frequency === "fortnightly" ? 14 : pattern.frequency === "monthly" ? 28 : 7;
+  const step = daily
+    ? 1
+    : pattern.frequency === "fortnightly"
+      ? 14
+      : pattern.frequency === "monthly"
+        ? 28
+        : 7;
+
+  const until = pattern.endsOn && DATE.test(pattern.endsOn) ? pattern.endsOn : null;
 
   const out: string[] = [];
   const cursor = new Date(first);
   for (let n = 0; n < count; n += 1) {
-    out.push(iso(cursor));
+    const day = iso(cursor);
+    if (until && day > until) break;
+    out.push(day);
     cursor.setUTCDate(cursor.getUTCDate() + step);
   }
   return out;
@@ -61,13 +80,13 @@ export function meetingSentence(
     day: (dayOfWeek: number) => string;
     /** "7:30pm", from the reader's own locale. */
     time: (hhmm: string) => string;
-    /** "weekly", "fortnightly", "monthly". */
+    /** "daily", "weekly", "fortnightly", "monthly". */
     frequency: (key: string) => string;
     /** The sentence, with {frequency}, {day}, {from} and {to} filled in. */
     template: (parts: { frequency: string; day: string; span: string }) => string;
   },
 ): string {
-  if (pattern.dayOfWeek === null) return "";
+  if (pattern.dayOfWeek === null && pattern.frequency !== "daily") return "";
 
   const span = pattern.startsAt
     ? pattern.endsAt
@@ -77,7 +96,7 @@ export function meetingSentence(
 
   return words.template({
     frequency: words.frequency(pattern.frequency ?? "weekly"),
-    day: words.day(pattern.dayOfWeek),
+    day: pattern.dayOfWeek === null ? "" : words.day(pattern.dayOfWeek),
     span,
   });
 }

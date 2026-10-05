@@ -75,8 +75,15 @@ export interface Group {
   startsAt: string | null;
   endsAt: string | null;
   frequency: string | null;
+  /** R9.2. The day it stops meeting, where it has one. */
+  endsOn: string | null;
   location: string | null;
-  address: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+  country: string | null;
   capacity: number | null;
   forWhom: string | null;
   online: boolean;
@@ -100,8 +107,14 @@ export interface GroupInput {
   startsAt?: string | null;
   endsAt?: string | null;
   frequency?: string | null;
+  endsOn?: string | null;
   location?: string | null;
-  address?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
   capacity?: number | null;
   forWhom?: string | null;
   online?: boolean;
@@ -222,7 +235,13 @@ function check(input: GroupInput): {
   endsAt: string | null;
   frequency: string | null;
   location: string | null;
-  address: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+  country: string | null;
+  endsOn: string | null;
   capacity: number | null;
   forWhom: string | null;
 } {
@@ -266,8 +285,14 @@ function check(input: GroupInput): {
     startsAt,
     endsAt,
     frequency,
+    endsOn: text(input.endsOn),
     location: text(input.location),
-    address: text(input.address),
+    addressLine1: text(input.addressLine1),
+    addressLine2: text(input.addressLine2),
+    city: text(input.city),
+    region: text(input.region),
+    postalCode: text(input.postalCode),
+    country: text(input.country),
     capacity,
     forWhom,
   };
@@ -322,7 +347,13 @@ const COLUMNS = {
   endsAt: groups.endsAt,
   frequency: groups.frequency,
   location: groups.location,
-  address: groups.address,
+  addressLine1: groups.addressLine1,
+  addressLine2: groups.addressLine2,
+  city: groups.city,
+  region: groups.region,
+  postalCode: groups.postalCode,
+  country: groups.country,
+  endsOn: sql<string | null>`${groups.endsOn}::text`,
   capacity: groups.capacity,
   forWhom: groups.forWhom,
   online: groups.online,

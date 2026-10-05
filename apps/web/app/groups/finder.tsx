@@ -9,6 +9,7 @@ import {
   Sheet, SheetContent, SheetTrigger, LIFT,
 } from "@hearth/ui";
 import { MultiSelect } from "@/components/multi-select";
+import { Empty } from "@/components/empty";
 import { t, plural } from "@hearth/i18n";
 import { decide, archive } from "./actions";
 
@@ -389,19 +390,42 @@ export function Finder({
       </div>
 
       {shown.length === 0 ? (
-        <div className="py-12 text-center text-fg-muted">
-          {t("find.noMatch")}{" "}
-          <button
-            type="button"
-            onClick={() => {
-              clear();
-              setQuery("");
-            }}
-            className="font-medium text-primary"
-          >
-            {t("find.clearFilters")}
-          </button>
-        </div>
+        /*
+         * R24.17. Two different nothings. A church with no groups at all is on
+         * its first week and is offered the way to write one down. A church
+         * whose filters match nothing is offered the way back.
+         */
+        all.length === 0 ? (
+          <Empty
+            icon="group"
+            title={t("groups.none.title")}
+            action={
+              canManage ? (
+                <Button asChild>
+                  <Link href={`/groups/new?church=${church}`}>
+                    <Plus /> {t("groups.add")}
+                  </Link>
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <Empty
+            icon="noResults"
+            title={t("find.noMatch")}
+            action={
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  clear();
+                  setQuery("");
+                }}
+              >
+                {t("find.clearFilters")}
+              </Button>
+            }
+          />
+        )
       ) : (
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
           {shown.map((group) => (

@@ -135,7 +135,7 @@ export function GroupDetail({
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="flex flex-wrap items-start gap-10">
+          <div className="flex flex-wrap items-stretch gap-10">
             <div className="flex min-w-0 flex-[999_1_420px] flex-col gap-7">
               {about ? (
                 <section className="flex flex-col gap-2.5">
@@ -162,7 +162,7 @@ export function GroupDetail({
               />
             </div>
 
-            <aside className="flex flex-[1_1_260px] flex-col gap-6">
+            <aside className="flex flex-[1_1_260px] flex-col gap-6 md:border-l md:border-line md:pl-10">
               {categories.length > 0 ? (
                 <Facts label={t("group.categories")}>
                   <div className="flex flex-wrap gap-1.5">
@@ -341,18 +341,18 @@ function MeetingList({
               </span>
               <span className="font-display text-[24px] leading-[26px]">{row.day}</span>
             </div>
-            <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
               <span className="font-semibold text-fg">{row.when}</span>
+              {row.canTake ? (
+                <Button
+                  variant="secondary"
+                  onClick={onTake}
+                  className="h-8 min-h-0 px-3 text-[13px] whitespace-nowrap"
+                >
+                  {t("group.takeAttendance")}
+                </Button>
+              ) : null}
             </div>
-            {row.canTake ? (
-              <Button
-                variant="secondary"
-                onClick={onTake}
-                className="h-8 min-h-0 px-3 text-[13px] whitespace-nowrap"
-              >
-                {t("group.takeAttendance")}
-              </Button>
-            ) : null}
           </div>
         ))}
       </div>

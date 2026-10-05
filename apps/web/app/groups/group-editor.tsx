@@ -2,19 +2,21 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Upload, Trash2 } from "lucide-react";
+import { ImagePlus, Upload, Trash2, X } from "lucide-react";
 import {
-  Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Textarea,
+  Banner, Button, Checkbox, Combobox, DatePicker, Field, IconButton, Input, Textarea,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { TimeField } from "@/components/time-field";
 import { Picker } from "@/components/picker";
+import { AddressFields } from "@/components/address-fields";
+import { toAddress } from "@/lib/address";
 import { FormActions } from "@/components/form-actions";
 import { create, save, findPerson, join, type PersonHit } from "./actions";
 import type { GroupDraft, GroupTypeOption } from "./group-form";
 
 const DAYS = [0, 1, 2, 3, 4, 5, 6] as const;
-const FREQUENCIES = ["weekly", "fortnightly", "monthly"] as const;
+const FREQUENCIES = ["daily", "weekly", "fortnightly", "monthly"] as const;
 const AUDIENCES = [
   "anyone", "men", "women", "young_adults", "students", "parents", "seniors",
 ] as const;
@@ -26,7 +28,7 @@ const dayName = (day: number) =>
 function Side({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+      <span className="text-[12px] font-bold tracking-[0.06em] text-fg uppercase">
         {label}
       </span>
       {children}
@@ -80,8 +82,10 @@ export function GroupEditor({
   const [childrenWelcome, setChildren] = React.useState(group?.childrenWelcome ?? false);
   const [openToJoin, setOpenToJoin] = React.useState(group?.openToJoin ?? true);
   const [listed, setListed] = React.useState(group?.listed ?? true);
+  const [leaders, setLeaders] = React.useState<{ id: string; name: string }[]>([]);
   const [leader, setLeader] = React.useState("");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
+  const [endsOn, setEndsOn] = React.useState(group?.endsOn ?? "");
   // The picture is held until the group exists to hang it on, which is what
   // makes the banner editable on the way in as well as afterwards.
   const [picture, setPicture] = React.useState<File | null>(null);
@@ -123,9 +127,11 @@ export function GroupEditor({
           if (result.error) return;
 
           const id = result.id ?? group?.id;
-          // A new group with a named leader gets them on its roster, because
-          // "Led by" is the first thing its card will say.
-          if (id && leader && !group) await join(id, leader, "leader", church);
+          // Named leaders go on the roster, because "Led by" is the first thing
+          // the group's card will say.
+          if (id) {
+            for (const one of leaders) await join(id, one.id, "leader", church);
+          }
 
           if (id && picture) {
             const upload = new FormData();
@@ -277,6 +283,43 @@ export function GroupEditor({
               <Field label={t("groups.endsAt")}>
                 <TimeField name="endsAt" defaultValue={group?.endsAt ?? ""} />
               </Field>
+
+              {/* R9.2. A class runs for eight weeks. Most groups leave it
+                  empty and run until they do not. */}
+              <Field label={t("groups.endsOn")}>
+                <DatePicker
+                  value={endsOn}
+                  onChange={setEndsOn}
+                  placeholder={t("date.placeholder")}
+                  labels={{
+                    open: t("date.open"),
+                    clear: t("date.clear"),
+                    previousMonth: t("date.previousMonth"),
+                    nextMonth: t("date.nextMonth"),
+                    month: t("date.month"),
+                    year: t("date.year"),
+                    today: t("date.today"),
+                  }}
+                />
+              </Field>
+            </div>
+          </Side>
+
+          <Side label={t("group.location")}>
+            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+              <Field label={t("groups.location")} className="[grid-column:1/-1]">
+                <Input name="location" defaultValue={group?.location ?? ""} autoComplete="off" />
+              </Field>
+              <AddressFields
+                values={toAddress({
+                  line1: group?.addressLine1,
+                  line2: group?.addressLine2,
+                  city: group?.city,
+                  region: group?.region,
+                  postalCode: group?.postalCode,
+                  country: group?.country,
+                })}
+              />
             </div>
           </Side>
         </div>
@@ -326,42 +369,57 @@ export function GroupEditor({
             </div>
           </Side>
 
-          {/* R9.3. Only on the way in: afterwards the roster is the Members tab,
-              where a leader is changed alongside everybody else. */}
-          {group ? null : (
-            <Side label={t("group.leader")}>
+          {/* R9.3. Looked up in the directory, and more than one, because a
+              group with two leaders is the common case. */}
+          <Side label={t("group.leader")}>
+            <div className="flex flex-col gap-2">
+              {leaders.map((one) => (
+                <span
+                  key={one.id}
+                  className="flex items-center gap-2 rounded-[var(--d-radius-control)] bg-sunken px-3 py-1.5"
+                >
+                  <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+                    {one.name}
+                  </span>
+                  <IconButton
+                    label={t("groups.remove")}
+                    variant="ghost"
+                    className="size-7"
+                    onClick={() => setLeaders((was) => was.filter((x) => x.id !== one.id))}
+                  >
+                    <X />
+                  </IconButton>
+                </span>
+              ))}
+
               <Combobox
-                options={hits.map((one) => ({ value: one.id, label: one.name }))}
+                options={hits
+                  .filter((one) => !leaders.some((x) => x.id === one.id))
+                  .map((one) => ({ value: one.id, label: one.name }))}
                 value={leader}
-                onChange={setLeader}
+                onChange={(id) => {
+                  const hit = hits.find((one) => one.id === id);
+                  if (hit) setLeaders((was) => [...was, { id: hit.id, name: hit.name }]);
+                  setLeader("");
+                }}
                 onQueryChange={lookUp}
-                placeholder={t("groups.addPerson")}
+                placeholder={t("groups.leaders.add")}
                 emptyLabel={t("church.noRegion")}
                 clearLabel={t("date.clear")}
               />
-            </Side>
-          )}
-
-          <Side label={t("group.location")}>
-            <div className="flex flex-col gap-3">
-              <Field label={t("groups.location")}>
-                <Input name="location" defaultValue={group?.location ?? ""} autoComplete="off" />
-              </Field>
-              <Field label={t("groups.address")}>
-                <Input name="address" defaultValue={group?.address ?? ""} autoComplete="off" />
-              </Field>
-              <Field label={t("groups.capacity")}>
-                <Input
-                  name="capacity"
-                  inputMode="numeric"
-                  defaultValue={
-                    group?.capacity === null || group?.capacity === undefined
-                      ? ""
-                      : String(group.capacity)
-                  }
-                />
-              </Field>
             </div>
+          </Side>
+
+          <Side label={t("groups.capacity")}>
+            <Input
+              name="capacity"
+              inputMode="numeric"
+              defaultValue={
+                group?.capacity === null || group?.capacity === undefined
+                  ? ""
+                  : String(group.capacity)
+              }
+            />
           </Side>
         </aside>
       </div>

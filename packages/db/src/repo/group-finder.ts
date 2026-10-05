@@ -457,7 +457,14 @@ export async function markNotified(db: Tx, requestId: string): Promise<void> {
 
 export interface GroupPage extends FoundGroup {
   typeDescription: string | null;
-  address: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+  country: string | null;
+  /** R9.2. The day it stops meeting, where it has one. */
+  endsOn: string | null;
   /** R9.3. Who runs it, which is who a newcomer is really asking about. */
   leaders: { personId: string; name: string }[];
   /** R9.7. Meetings that were held, most recent first. */
@@ -482,7 +489,16 @@ export async function groupPage(
   if (!found) return null;
 
   const [extra] = await db
-    .select({ address: groups.address, typeDescription: groupTypes.description })
+    .select({
+      addressLine1: groups.addressLine1,
+      addressLine2: groups.addressLine2,
+      city: groups.city,
+      region: groups.region,
+      postalCode: groups.postalCode,
+      country: groups.country,
+      endsOn: sql<string | null>`${groups.endsOn}::text`,
+      typeDescription: groupTypes.description,
+    })
     .from(groups)
     .leftJoin(groupTypes, eq(groupTypes.id, groups.typeId))
     .where(eq(groups.id, id))
@@ -520,7 +536,13 @@ export async function groupPage(
 
   return {
     ...found,
-    address: extra?.address ?? null,
+    addressLine1: extra?.addressLine1 ?? null,
+    addressLine2: extra?.addressLine2 ?? null,
+    city: extra?.city ?? null,
+    region: extra?.region ?? null,
+    postalCode: extra?.postalCode ?? null,
+    country: extra?.country ?? null,
+    endsOn: extra?.endsOn ?? null,
     typeDescription: extra?.typeDescription ?? null,
     leaders: leaders.map((l) => ({ personId: l.personId, name: called(l) })),
     past: past.map((row) => ({ metOn: row.metOn, present: Number(row.present) })),

@@ -13,6 +13,7 @@ import { requireSession } from "@/lib/session";
 import { GroupBanner } from "../banner";
 import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
+import { toAddress, oneLineAddress } from "@/lib/address";
 import { JoinButton } from "./join-button";
 import { ManageGroup } from "./manage";
 import { GroupDetail, type DetailMeeting } from "./detail";
@@ -177,8 +178,14 @@ export default async function GroupPage({
               startsAt: group.startsAt,
               endsAt: group.endsAt,
               frequency: group.frequency,
+              endsOn: group.endsOn,
               location: group.location,
-              address: group.address,
+              addressLine1: group.addressLine1,
+              addressLine2: group.addressLine2,
+              city: group.city,
+              region: group.region,
+              postalCode: group.postalCode,
+              country: group.country,
               capacity: group.capacity,
               forWhom: group.forWhom,
               online: group.online,
@@ -243,7 +250,21 @@ export default async function GroupPage({
         categories={categories}
         schedule={schedule}
         leaders={group.leaders.map((one) => one.name)}
-        location={[group.location, group.address].filter(Boolean).join("\n")}
+        location={[
+          group.location,
+          oneLineAddress(
+            toAddress({
+              line1: group.addressLine1,
+              line2: group.addressLine2,
+              city: group.city,
+              region: group.region,
+              postalCode: group.postalCode,
+              country: group.country,
+            }),
+          ),
+        ]
+          .filter(Boolean)
+          .join("\n")}
         requests={requests.map((one) => ({ id: one.id, personName: one.personName }))}
         members={roster
           .filter((one) => !one.leftOn)

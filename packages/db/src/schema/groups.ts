@@ -71,17 +71,36 @@ export const groups = pgTable(
     startsAt: text("starts_at"),
     /** When it finishes, because "7:15 to 8:45" is what people need to know. */
     endsAt: text("ends_at"),
-    /** "weekly", "fortnightly", "monthly", or null where it is irregular. */
+    /**
+     * "daily", "weekly", "fortnightly", "monthly", or null where it is
+     * irregular. Fortnightly is written on screen as every other week, which is
+     * what a church says.
+     */
     frequency: text("frequency"),
+    /**
+     * R9.2. The day the group stops meeting, where it has one.
+     *
+     * A class runs for eight weeks and a small group runs until it does not, so
+     * most groups leave this empty. Where it is set, the dates stop there.
+     */
+    endsOn: date("ends_on"),
     /** Where it meets, as somebody would tell a newcomer: "The Hall", "U-City". */
     location: text("location"),
     /**
      * R9.5. The street address, where the church is willing to publish one.
+     *
      * Separate from the location because "The Hall" is what you say and
      * "6350 Delmar Blvd" is what a map needs, and a group meeting in a home
-     * often has the first and deliberately not the second.
+     * often has the first and deliberately not the second. Held in parts for
+     * the same reason a person's address is: a map and a mail merge both need
+     * the city on its own.
      */
-    address: text("address"),
+    addressLine1: text("address_line1"),
+    addressLine2: text("address_line2"),
+    city: text("city"),
+    region: text("region"),
+    postalCode: text("postal_code"),
+    country: text("country"),
     /** How many it holds. Null means the church has not said. */
     capacity: integer("capacity"),
     /**
