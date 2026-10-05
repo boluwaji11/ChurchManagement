@@ -518,11 +518,17 @@ church actually asks.
 | HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
 | HRT-191 | Milestone and demographic lists | R18.8 | New |
 | HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | New |
-| HRT-193 | CSV and PDF on every report | R18.10 | New |
+| HRT-193 | CSV and PDF on every report | R18.10 | Active |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Resolved |
 | HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Resolved |
 | HRT-220 | The builder as a fields panel, shelves, a gallery and a drawn canvas | R18.12 | Resolved |
+
+**On HRT-193.** A built report exports to CSV and to PDF, the PDF being the print view the browser
+saves, which is how the directory, the run sheet and the room rosters already produce one. The three
+built-in reports still only write CSV, so the story stays Active until they have the same menu.
+PowerPoint was asked for and is not built: it needs a pptx writer the repo does not have, and
+R18.10 asks for CSV and PDF. It gets its own story when it is wanted.
 
 **On HRT-218 and the report builder.** A custom report builder is a non-goal in PRD section 18, and
 it is named there as one of the things that make Rock RMS unusable for a church with one volunteer.

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Download, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import {
   withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents,
   GRID_COLUMNS, type ReportTile, type ReportResult,
@@ -9,6 +9,7 @@ import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Answer } from "../../answer";
+import { DownloadMenu } from "./download";
 
 export const dynamic = "force-dynamic";
 
@@ -78,14 +79,7 @@ export default async function CustomReportPage({
           <Pencil />
         </Link>
 
-        <a
-          href={`/reports/custom/${saved.slug}/export?church=${session.tenantSlug}`}
-          aria-label={t("reports.export")}
-          title={t("reports.export")}
-          className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
-        >
-          <Download />
-        </a>
+        <DownloadMenu slug={saved.slug} church={session.tenantSlug} />
       </div>
 
       {/* Laid out on the grid it was arranged on. */}
