@@ -69,6 +69,7 @@ export function Register({
   today,
   state,
   questions,
+  formSlug,
   onTrial,
 }: {
   churchSlug: string;
@@ -76,6 +77,8 @@ export function Register({
   today: string;
   state: "none" | "open" | "waitlist" | "full" | "closed" | "cancelled";
   questions: FormFieldDef[];
+  /** R4.1. The form behind the questions, so a file question can reach it. */
+  formSlug?: string | null;
   /**
    * R14.2. Where a preview sends its places instead.
    *
@@ -368,6 +371,8 @@ export function Register({
                   <Answer
                     key={field.id}
                     field={field}
+                    churchSlug={churchSlug}
+                    formSlug={formSlug ?? undefined}
                     value={person.answers[field.id] ?? null}
                     error={errors[`${person.key}:${field.id}`]}
                     onChange={(value) => answer(person.key, field.id, value)}

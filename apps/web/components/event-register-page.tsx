@@ -111,6 +111,7 @@ export function EventRegisterPage({
           today={today}
           state={event.state}
           questions={event.questions}
+          formSlug={event.formSlug}
           onTrial={onTrial}
         />
       </main>
