@@ -313,10 +313,6 @@ export function GroupDetail({
           }
           closeLabel={t("common.close")}
         >
-          {/* Only the one that takes something away earns a sentence. */}
-          {deciding?.approve ? null : (
-            <p className="text-[length:var(--d-text-body)] text-fg">{t("find.declineBody")}</p>
-          )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDeciding(null)}>{t("action.cancel")}</Button>
             <Button
