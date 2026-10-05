@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Plus, X } from "lucide-react";
 import { Banner, Button, Field, IconButton, Input } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
@@ -99,6 +100,7 @@ export function Register({
   const [sending, startTransition] = React.useTransition();
   const [at, setAt] = React.useState(0);
   const trap = React.useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const steps: Step[] = [
     "who",
@@ -187,6 +189,9 @@ export function Register({
 
       if (result.ok) {
         setDone({ going: result.going ?? 0, waiting: result.waiting ?? 0 });
+        // R14.4. The places just taken come off the count above, which is read
+        // from the record rather than guessed at here.
+        router.refresh();
         return;
       }
 
