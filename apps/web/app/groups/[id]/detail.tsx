@@ -355,16 +355,16 @@ function MeetingList({
           <>
             <span
               aria-hidden
-              className="absolute top-[32px] bottom-[32px] left-[28px] w-px"
-              style={{ background: `var(--hue-${hue}-500)`, opacity: 0.35 }}
+              className="absolute top-[38px] bottom-[38px] left-[27px] w-0.5 rounded-full"
+              style={{ background: `var(--hue-${hue}-500)`, opacity: 0.45 }}
             />
             {rows.slice(1).map((row, i) => (
               <span
                 key={`dot${row.on}`}
                 aria-hidden
-                className="absolute left-[25px] size-[7px] rounded-full ring-2 ring-canvas"
+                className="absolute left-[25px] size-[6px] rounded-full"
                 style={{
-                  top: `${64 * (i + 1) - 3}px`,
+                  top: `${76 * (i + 1) - 3}px`,
                   background: `var(--hue-${hue}-500)`,
                 }}
               />
@@ -373,7 +373,7 @@ function MeetingList({
         ) : null}
 
         {rows.map((row) => (
-          <div key={row.on} className="relative flex items-center gap-3.5 py-1.5">
+          <div key={row.on} className="relative flex items-center gap-3.5 py-3">
             <div
               className="flex h-[52px] w-[56px] shrink-0 flex-col items-center justify-center rounded-[8px]"
               style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
