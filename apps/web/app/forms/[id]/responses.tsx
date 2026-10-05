@@ -263,7 +263,7 @@ export function Responses({
                     ) : null}
                     {row.personId && row.personName ? (
                       <Link
-                        href={`/people/${row.personId}?church=${church}`}
+                        href={`/members/${row.personId}?church=${church}`}
                         className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
                       >
                         {row.personName}

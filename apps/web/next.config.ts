@@ -22,6 +22,17 @@ const config: NextConfig = {
   transpilePackages: ["@hearth/ui", "@hearth/db", "@hearth/i18n"],
   // postgres.js is a server driver. Keep it out of the bundle entirely.
   serverExternalPackages: ["postgres"],
+  /**
+   * The directory was at /people until the church's own word for it won.
+   * Anything already written down, a bookmark, a printed sheet, a link in an
+   * email, still arrives.
+   */
+  async redirects() {
+    return [
+      { source: "/people", destination: "/members", permanent: true },
+      { source: "/people/:path*", destination: "/members/:path*", permanent: true },
+    ];
+  },
   experimental: {
     // Shared element transitions where a card becomes a detail page. (R24.12)
     viewTransition: true,

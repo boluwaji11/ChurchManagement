@@ -448,7 +448,7 @@ export function EventView({
                         <span className="flex items-center gap-2">
                           {one.personId ? (
                             <Link
-                              href={`/people/${one.personId}?church=${church}`}
+                              href={`/members/${one.personId}?church=${church}`}
                               className="font-medium text-fg underline-offset-4 hover:underline"
                             >
                               {one.name}

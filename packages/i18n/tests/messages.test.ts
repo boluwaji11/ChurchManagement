@@ -27,22 +27,22 @@ describe("lookup", () => {
 
   it("composes a permission message from its two halves", () => {
     expect(t("error.permission", { role: "staff", action: t("error.permission.archivePerson") })).toBe(
-      "The staff role cannot archive a person.",
+      "The staff role cannot archive a member.",
     );
   });
 });
 
 describe("plurals", () => {
   it("picks the form the locale asks for", () => {
-    expect(plural("tags.peopleCount", 1)).toBe("1 person");
-    expect(plural("tags.peopleCount", 7)).toBe("7 people");
+    expect(plural("tags.peopleCount", 1)).toBe("1 member");
+    expect(plural("tags.peopleCount", 7)).toBe("7 members");
     // Zero takes the plural in English, which is the case a hand written
     // ternary on n === 1 gets right by accident and other locales get wrong.
-    expect(plural("tags.peopleCount", 0)).toBe("0 people");
+    expect(plural("tags.peopleCount", 0)).toBe("0 members");
   });
 
   it("always exposes the count without being passed it", () => {
-    expect(plural("tags.peopleCount", 3)).toBe("3 people");
+    expect(plural("tags.peopleCount", 3)).toBe("3 members");
   });
 
   it("has an .other form for every plural stem", () => {

@@ -38,7 +38,7 @@ export async function saveSelection(data: FormData): Promise<ListResult> {
       return { id: made.id, count: made.added };
     });
 
-    revalidatePath("/people");
+    revalidatePath("/members");
     return result;
   } catch (error) {
     return { error: explain(error) };
@@ -61,7 +61,7 @@ export async function saveView(data: FormData): Promise<ListResult> {
       createRuleList(tx, session, { name: field(data, "name"), rule }),
     );
 
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { id: made.id };
   } catch (error) {
     return { error: explain(error) };
@@ -72,7 +72,7 @@ export async function rename(id: string, name: string, church?: string): Promise
   try {
     const session = await allowed(church);
     await withTenant(session, (tx) => renameList(tx, session, { id, name }));
-    revalidatePath("/people");
+    revalidatePath("/members");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -83,7 +83,7 @@ export async function archiveList(id: string, archived: boolean, church?: string
   try {
     const session = await allowed(church);
     await withTenant(session, (tx) => setListArchived(tx, session, { id, archived }));
-    revalidatePath("/people");
+    revalidatePath("/members");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -98,7 +98,7 @@ export async function takeOffList(data: FormData): Promise<ListResult> {
     const count = await withTenant(session, (tx) =>
       removeFromList(tx, session, { listId: field(data, "listId"), personIds: ids }),
     );
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { count };
   } catch (error) {
     return { error: explain(error) };

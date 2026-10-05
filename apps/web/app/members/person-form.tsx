@@ -94,7 +94,7 @@ function HouseholdMembers({
         {others.map((member) => (
           <li key={member.id} className="relative">
             <Link
-              href={`/people/${member.id}?church=${church}`}
+              href={`/members/${member.id}?church=${church}`}
               className="flex items-center gap-2.5"
             >
               <Avatar

@@ -53,8 +53,8 @@ export async function addPersonMilestone(data: FormData): Promise<MilestoneRespo
         personId, kind, occurredOn, notes,
       }),
     );
-    revalidatePath(`/people/${personId}`);
-    revalidatePath("/people");
+    revalidatePath(`/members/${personId}`);
+    revalidatePath("/members");
     return { updatedPerson: result.updatedPerson, kind };
   } catch (error) {
     return { error: explain(error) };
@@ -73,7 +73,7 @@ export async function removePersonMilestone(data: FormData): Promise<MilestoneRe
     await withTenant(ctx, (tx) =>
       removeMilestone(tx, { tenantId: session.tenantId, role: session.role }, id),
     );
-    revalidatePath(`/people/${personId}`);
+    revalidatePath(`/members/${personId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };

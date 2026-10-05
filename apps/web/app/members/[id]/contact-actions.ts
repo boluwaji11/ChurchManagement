@@ -42,7 +42,7 @@ export async function addOne(
         value: input.value,
       }),
     );
-    revalidatePath(`/people/${input.personId}`);
+    revalidatePath(`/members/${input.personId}`);
     void slug;
     return {};
   } catch (error) {
@@ -58,7 +58,7 @@ export async function removeOne(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => removeContact(tx, actor, id));
-    revalidatePath(`/people/${personId}`);
+    revalidatePath(`/members/${personId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -73,7 +73,7 @@ export async function leadWithOne(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => makeContactPrimary(tx, actor, id));
-    revalidatePath(`/people/${personId}`);
+    revalidatePath(`/members/${personId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -97,7 +97,7 @@ export async function addPlace(
         country: input.values.country,
       }),
     );
-    revalidatePath(`/people/${input.personId}`);
+    revalidatePath(`/members/${input.personId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -112,7 +112,7 @@ export async function removePlace(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => removeAddress(tx, actor, id));
-    revalidatePath(`/people/${personId}`);
+    revalidatePath(`/members/${personId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -127,7 +127,7 @@ export async function leadWithPlace(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => makeAddressPrimary(tx, actor, id));
-    revalidatePath(`/people/${personId}`);
+    revalidatePath(`/members/${personId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };

@@ -56,7 +56,7 @@ export async function merge(data: FormData): Promise<MergeOutcome> {
       }),
     );
     revalidatePath("/duplicates");
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { moved: result.movedRows };
   } catch (error) {
     return { error: explain(error) };
@@ -73,7 +73,7 @@ export async function undo(data: FormData): Promise<MergeOutcome> {
       undoMerge(tx, { tenantId: session.tenantId, role: session.role }, mergeId),
     );
     revalidatePath("/duplicates");
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { restored: result.restoredRows };
   } catch (error) {
     return { error: explain(error) };

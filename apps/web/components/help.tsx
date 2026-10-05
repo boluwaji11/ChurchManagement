@@ -19,7 +19,7 @@ import { t } from "@hearth/i18n";
  * translated with the rest of the product rather than forgotten in a wiki.
  */
 const ARTICLES = [
-  { key: "people", match: ["/people", "/duplicates"] },
+  { key: "people", match: ["/members", "/duplicates"] },
   { key: "import", match: ["/import"] },
   { key: "services", match: ["/services"] },
   { key: "checkin", match: ["/checkin"] },

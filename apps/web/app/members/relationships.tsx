@@ -126,7 +126,7 @@ export function Relationships({
                 {label(row.kind)}
               </Badge>
               <Link
-                href={`/people/${row.relatedPersonId}?church=${church}`}
+                href={`/members/${row.relatedPersonId}?church=${church}`}
                 className="text-[length:var(--d-text-body)] text-fg underline-offset-2 hover:underline"
               >
                 {row.relatedName}

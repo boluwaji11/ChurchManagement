@@ -40,5 +40,5 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
     return { error: explain(error) };
   }
 
-  redirect(`/people?church=${slug}&welcome=1`);
+  redirect(`/members?church=${slug}&welcome=1`);
 }

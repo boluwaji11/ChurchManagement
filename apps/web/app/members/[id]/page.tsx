@@ -142,7 +142,7 @@ export default async function PersonPage({
       session={session}
     >
       <Link
-        href={`/people?church=${session.tenantSlug}`}
+        href={`/members?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("people.title")}
@@ -181,7 +181,7 @@ export default async function PersonPage({
               className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
             >
               <Link
-                href={`/people/${person.slug}/edit?church=${session.tenantSlug}`}
+                href={`/members/${person.slug}/edit?church=${session.tenantSlug}`}
                 aria-label={t("action.edit")}
                 title={t("action.edit")}
               >

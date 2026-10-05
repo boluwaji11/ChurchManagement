@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Move, Plus } from "lucide-react";
 import { Banner, Combobox } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { moveToStage } from "../people/followup-actions";
+import { moveToStage } from "../members/followup-actions";
 import { addToStage, findPeople } from "./actions";
 
 export interface BoardCard {
@@ -120,7 +120,7 @@ export function Board({
                   className="flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3"
                 >
                   <Link
-                    href={`/people/${card.personId}?church=${church}`}
+                    href={`/members/${card.personId}?church=${church}`}
                     className="font-medium text-fg"
                   >
                     {card.who}

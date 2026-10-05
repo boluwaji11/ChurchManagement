@@ -55,9 +55,9 @@ export function navFor(role: TenantRole): NavEntry[] {
     staff
       ? {
           label: t("nav.directory"),
-          href: "/people",
+          href: "/members",
           icon: Users,
-          owns: ["/people", "/duplicates", "/import", "/fields", "/tags"],
+          owns: ["/members", "/duplicates", "/import", "/fields", "/tags"],
         }
       : { label: t("nav.directory"), href: "/directory", icon: Users },
   );

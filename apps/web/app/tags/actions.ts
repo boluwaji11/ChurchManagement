@@ -44,7 +44,7 @@ export async function addTag(data: FormData): Promise<TagResult> {
   try {
     const tag = await withTenant(ctx, (tx) => createTag(tx, actor, { name }));
     revalidatePath("/tags");
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { id: tag.id };
   } catch (error) {
     return { error: explain(error) };
@@ -66,7 +66,7 @@ export async function saveTag(data: FormData): Promise<TagResult> {
       if (hue) await setTagHue(tx, actor, id, hue);
     });
     revalidatePath("/tags");
-    revalidatePath("/people");
+    revalidatePath("/members");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -82,7 +82,7 @@ export async function removeTag(data: FormData): Promise<TagResult> {
   try {
     await withTenant(ctx, (tx) => deleteTag(tx, actor, id));
     revalidatePath("/tags");
-    revalidatePath("/people");
+    revalidatePath("/members");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -99,7 +99,7 @@ export async function foldTag(data: FormData): Promise<TagResult> {
   try {
     await withTenant(ctx, (tx) => mergeTags(tx, actor, { fromId, intoId }));
     revalidatePath("/tags");
-    revalidatePath("/people");
+    revalidatePath("/members");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -117,8 +117,8 @@ export async function togglePersonTag(data: FormData): Promise<TagResult> {
   const { actor, ctx } = await context(slug);
   try {
     await withTenant(ctx, (tx) => setPersonTag(tx, actor, personId, tagId, on));
-    revalidatePath(`/people/${personId}`);
-    revalidatePath("/people");
+    revalidatePath(`/members/${personId}`);
+    revalidatePath("/members");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -140,8 +140,8 @@ export async function addTagToPerson(data: FormData): Promise<TagResult> {
       await setPersonTag(tx, actor, personId, tag.id, true);
       return tag.id;
     });
-    revalidatePath(`/people/${personId}`);
-    revalidatePath("/people");
+    revalidatePath(`/members/${personId}`);
+    revalidatePath("/members");
     revalidatePath("/tags");
     return { id };
   } catch (error) {

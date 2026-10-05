@@ -103,7 +103,7 @@ export function Roster({
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="flex flex-wrap items-center gap-2">
                 <Link
-                  href={`/people/${member.personId}?church=${church}`}
+                  href={`/members/${member.personId}?church=${church}`}
                   className="font-medium text-fg underline-offset-4 hover:underline"
                 >
                   {member.name}

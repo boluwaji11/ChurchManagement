@@ -87,7 +87,7 @@ export default async function CelebrationsPage({
       view: next.view ?? view,
       at: next.at ?? at,
     });
-    return `/people/celebrations?${query.toString()}`;
+    return `/members/celebrations?${query.toString()}`;
   };
 
   const step = view === "week" ? 7 : 0;
@@ -111,7 +111,7 @@ export default async function CelebrationsPage({
       max="max-w-[880px]"
     >
       <Link
-        href={`/people?church=${session.tenantSlug}`}
+        href={`/members?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("people.title")}
@@ -166,7 +166,7 @@ export default async function CelebrationsPage({
             ))}
           </div>
           <Link
-            href={`/people/celebrations/print?${new URLSearchParams({
+            href={`/members/celebrations/print?${new URLSearchParams({
               church: session.tenantSlug,
               view,
               at,
@@ -225,7 +225,7 @@ export default async function CelebrationsPage({
                     </td>
                     <td className="border-b border-sunken px-4 py-2.5">
                       <Link
-                        href={`/people/${c.personId}?church=${session.tenantSlug}`}
+                        href={`/members/${c.personId}?church=${session.tenantSlug}`}
                         className="font-medium text-fg underline-offset-4 hover:underline"
                       >
                         {c.partnerName

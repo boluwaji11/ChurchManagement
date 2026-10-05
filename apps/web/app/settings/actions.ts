@@ -58,7 +58,7 @@ export async function saveChurch(data: FormData): Promise<SettingsResult> {
   }
 
   revalidatePath("/settings");
-  revalidatePath("/people");
+  revalidatePath("/members");
   return { saved: true };
 }
 

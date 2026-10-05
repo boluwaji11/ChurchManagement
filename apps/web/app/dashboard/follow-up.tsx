@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import type { OpenFollowUp } from "@hearth/db";
-import { finishStep } from "@/app/people/followup-actions";
+import { finishStep } from "@/app/members/followup-actions";
 import { shortDate } from "@/lib/dates";
 import { Panel } from "./panel";
 
@@ -56,7 +56,7 @@ export function FollowUp({
             >
               <span className="flex min-w-0 flex-1 flex-col leading-[18px]">
                 <Link
-                  href={`/people/${one.personSlug}?church=${church}`}
+                  href={`/members/${one.personSlug}?church=${church}`}
                   className="truncate font-medium text-fg hover:text-primary"
                 >
                   {one.personName}

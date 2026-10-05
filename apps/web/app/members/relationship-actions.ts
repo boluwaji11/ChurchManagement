@@ -51,8 +51,8 @@ export async function addRelation(data: FormData): Promise<RelationshipResponse>
         personId, relatedPersonId, kind,
       }),
     );
-    revalidatePath(`/people/${personId}`);
-    revalidatePath(`/people/${relatedPersonId}`);
+    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${relatedPersonId}`);
     return { cancelled: result.cancelled };
   } catch (error) {
     return { error: explain(error) };
@@ -71,7 +71,7 @@ export async function removeRelation(data: FormData): Promise<RelationshipRespon
     await withTenant(ctx, (tx) =>
       removeRelationship(tx, { tenantId: session.tenantId, role: session.role }, id),
     );
-    revalidatePath(`/people/${personId}`);
+    revalidatePath(`/members/${personId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };

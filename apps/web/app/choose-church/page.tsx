@@ -54,7 +54,7 @@ export default async function ChooseChurch({
               <Link
                 href={`${
                   canEditPeople(m.role as never) || canReadIncidents(m.role as never)
-                    ? "/people"
+                    ? "/members"
                     : "/home"
                 }?church=${m.tenantSlug}`}
                 className={`group flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm ${LIFT}`}

@@ -38,7 +38,7 @@ export default async function NewPersonPage({
       max="max-w-[1080px]"
     >
       <Link
-        href={`/people?church=${session.tenantSlug}`}
+        href={`/members?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("people.title")}

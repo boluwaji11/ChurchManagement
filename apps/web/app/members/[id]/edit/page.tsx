@@ -53,7 +53,7 @@ export default async function EditPersonPage({
       max="max-w-[1080px]"
     >
       <Link
-        href={`/people/${person.slug}?church=${session.tenantSlug}`}
+        href={`/members/${person.slug}?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {display}

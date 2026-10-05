@@ -64,15 +64,15 @@ export async function signInWithPassword(data: FormData) {
 async function landing(userId: string): Promise<string> {
   try {
     const memberships = await membershipsForUser(userId);
-    if (memberships.length !== 1) return "/people";
+    if (memberships.length !== 1) return "/members";
     const role = memberships[0]!.role;
 
     // R5.5. The one role whose job is the follow-ups rather than the records.
     if (role === "pastoral") return "/followups";
     // R3.1. Everybody else who does not work in the church's records lands on
     // the directory the church publishes, which is the one with anybody in it.
-    return canEditPeople(role) ? "/people" : "/home";
+    return canEditPeople(role) ? "/members" : "/home";
   } catch {
-    return "/people";
+    return "/members";
   }
 }

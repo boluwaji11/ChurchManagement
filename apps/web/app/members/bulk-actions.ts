@@ -50,7 +50,7 @@ export async function bulkArchive(data: FormData): Promise<BulkResult> {
     const changed = await withTenant(ctx, (tx) =>
       bulkSetArchived(tx, actor, ids, field(data, "archived") === "1"),
     );
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { changed };
   } catch (error) {
     return { error: explain(error) };
@@ -66,7 +66,7 @@ export async function bulkStatus(data: FormData): Promise<BulkResult> {
   const { actor, ctx } = await context(field(data, "church") || undefined);
   try {
     const changed = await withTenant(ctx, (tx) => bulkSetStatus(tx, actor, ids, status));
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { changed };
   } catch (error) {
     return { error: explain(error) };
@@ -83,7 +83,7 @@ export async function bulkTag(data: FormData): Promise<BulkResult> {
   const { actor, ctx } = await context(field(data, "church") || undefined);
   try {
     const changed = await withTenant(ctx, (tx) => bulkSetPersonTag(tx, actor, ids, tagId, on));
-    revalidatePath("/people");
+    revalidatePath("/members");
     return { changed };
   } catch (error) {
     return { error: explain(error) };
@@ -125,7 +125,7 @@ export async function bulkAddToGroup(data: FormData): Promise<BulkResult> {
         await addToGroup(tx, actor, { groupId, personId, joinedOn: today });
       }
     });
-    revalidatePath("/people");
+    revalidatePath("/members");
     revalidatePath("/groups");
     return { changed: ids.length };
   } catch (error) {

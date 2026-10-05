@@ -40,7 +40,7 @@ const choices = (data: FormData) =>
 
 function done() {
   revalidatePath("/fields");
-  revalidatePath("/people");
+  revalidatePath("/members");
 }
 
 export async function addField(data: FormData): Promise<FieldResult> {

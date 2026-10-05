@@ -560,7 +560,7 @@ function Done({
           </Button>
         )}
         <Button asChild>
-          <Link href={groups ? `/groups?church=${church}` : `/people?church=${church}`}>
+          <Link href={groups ? `/groups?church=${church}` : `/members?church=${church}`}>
             {groups ? t("import.goToGroups") : t("import.goToPeople")}
           </Link>
         </Button>

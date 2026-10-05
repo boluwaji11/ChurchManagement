@@ -96,7 +96,7 @@ export default async function VisitorReport({
     const where = standing(one);
     return {
       key: one.id,
-      href: `/people/${one.slug}?church=${session.tenantSlug}`,
+      href: `/members/${one.slug}?church=${session.tenantSlug}`,
       cells: [
         { text: one.name },
         { text: shortDate(one.firstVisitOn), muted: true },

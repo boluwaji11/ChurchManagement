@@ -298,7 +298,7 @@ export async function runImport(input: {
       },
     );
 
-    revalidatePath("/people");
+    revalidatePath("/members");
     return {
       batchId: result.batchId,
       created: result.created,
@@ -357,7 +357,7 @@ export async function undoImport(data: FormData): Promise<RollbackOutcome> {
       },
     );
 
-    revalidatePath("/people");
+    revalidatePath("/members");
     revalidatePath("/groups");
     revalidatePath("/import");
     return result;

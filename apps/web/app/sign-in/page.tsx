@@ -15,7 +15,7 @@ export default async function SignIn({
   }>;
 }) {
   const params = await searchParams;
-  if (await currentUser()) redirect(params.next ?? "/people");
+  if (await currentUser()) redirect(params.next ?? "/members");
 
   return (
     <main id="main" className="grid min-h-dvh place-items-center px-6 py-16">

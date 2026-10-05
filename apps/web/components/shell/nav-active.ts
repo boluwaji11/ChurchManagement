@@ -13,7 +13,7 @@ export interface NavTarget {
 
 /**
  * Longest match wins, so `/checkin/rooms` lights its own entry rather than
- * Check-in, while `/people/abc/edit` still lights People.
+ * Check-in, while `/members/abc/edit` still lights People.
  */
 export function activeHref(entries: NavTarget[], pathname: string): string | null {
   let best: { href: string; depth: number } | null = null;
