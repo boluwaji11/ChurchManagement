@@ -54,11 +54,15 @@ const VIEW_ORDER: View[] = ["table", "number", "bar", "rows", "donut", "line"];
 
 /** What a control on the toolbar looks like. */
 const CHIP =
-  "flex min-h-8 w-auto cursor-pointer items-center gap-1.5 rounded-[10px] border-primary bg-primary-soft px-2.5 text-[13px] font-medium text-fg shadow-none";
+  "flex min-h-8 w-auto shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px]"
+  + " border-primary bg-primary-soft px-2.5 text-[13px] font-medium text-fg shadow-none"
+  + " [&>span]:flex-none [&>span]:overflow-visible";
 
 /** The same chip, for a control nothing has been chosen on yet. */
 const CHIP_QUIET =
-  "flex min-h-8 w-auto cursor-pointer items-center gap-1.5 rounded-[10px] border-transparent bg-transparent px-2.5 text-[13px] font-medium text-fg-muted shadow-none hover:bg-sunken";
+  "flex min-h-8 w-auto shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px]"
+  + " border-transparent bg-transparent px-2.5 text-[13px] font-medium text-fg-muted shadow-none"
+  + " hover:bg-sunken [&>span]:flex-none [&>span]:overflow-visible";
 
 /** Accents and case set aside, so typing "campus" finds "Campus". */
 const fold = (value: string) =>
@@ -179,7 +183,7 @@ export function Builder({
 
       {/* The toolbar. Every control is a tray, so none of them costs the
           output any height. */}
-      <div className="flex flex-wrap items-center gap-2 rounded-[14px] border border-line bg-surface p-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[14px] border border-line bg-surface px-3 py-2">
         {/* The real dropdown rather than a tray of buttons that look like
             one. Every control on this bar is now the component the rest of the
             product uses. */}
@@ -196,7 +200,7 @@ export function Builder({
           </SelectContent>
         </Select>
 
-        <span className="h-6 w-px bg-line" aria-hidden />
+        <Rule />
 
         <Tray
           icon={ListFilter}
@@ -358,6 +362,8 @@ export function Builder({
           </Button>
         </Tray>
 
+        <Rule />
+
         {/* Group by, the measure, and the sort are each one choice, so each
             is a dropdown in its own right. Wrapping a menu inside a tray put
             one floating panel on top of another for no reason. */}
@@ -428,6 +434,8 @@ export function Builder({
 
         {counted ? null : (
           <>
+            <Rule />
+
             <Tray
               icon={Columns3}
               label={t("report.columns")}
@@ -520,6 +528,8 @@ export function Builder({
 
         <span className="flex-1" />
 
+        <Rule />
+
         {/* The visualization, as the icons themselves. It is a choice of six,
             and six icons read faster than a menu that hides five of them. */}
         <div className="flex items-center gap-0.5 rounded-[10px] bg-sunken p-0.5">
@@ -584,6 +594,9 @@ export function Builder({
   );
 }
 
+/** What rules one group of toolbar controls off from the next. */
+const Rule = () => <span className="h-6 w-px shrink-0 bg-line" aria-hidden />;
+
 /**
  * One toolbar control: a button that says what it is set to, and a tray of the
  * controls that set it.
@@ -612,8 +625,8 @@ function Tray({
           type="button"
           className={
             lit
-              ? "flex min-h-8 cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary bg-primary-soft px-2.5 text-[13px] font-medium text-fg"
-              : "flex min-h-8 cursor-pointer items-center gap-1.5 rounded-[10px] border border-transparent px-2.5 text-[13px] font-medium text-fg-muted hover:bg-sunken hover:text-fg"
+              ? "flex min-h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-primary bg-primary-soft px-2.5 text-[13px] font-medium text-fg"
+              : "flex min-h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-transparent px-2.5 text-[13px] font-medium text-fg-muted hover:bg-sunken hover:text-fg"
           }
         >
           <Icon className="size-4" />
