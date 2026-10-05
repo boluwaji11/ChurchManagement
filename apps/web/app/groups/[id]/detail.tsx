@@ -440,6 +440,9 @@ function Register({
 
   /** R9.7. A leader who missed last week opens the week they missed. */
   const load = (next: string) => {
+    // The register is always for a day. An empty answer is the field being
+    // cleared, which is not a question this one asks.
+    if (!next) return;
     setDay(next);
     setSaved(false);
     startTransition(async () => {
@@ -475,6 +478,7 @@ function Register({
                 options={days.map((one) => ({ value: one.on, label: one.label }))}
                 label={t("meeting.day")}
                 onChange={load}
+                clearable={false}
               />
             </div>
           ) : (

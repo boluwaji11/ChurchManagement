@@ -21,6 +21,7 @@ export function Picker({
   options,
   label,
   onChange,
+  clearable = true,
 }: {
   name: string;
   defaultValue: string | null;
@@ -28,6 +29,8 @@ export function Picker({
   label: string;
   /** Given where the screen changes with the answer. */
   onChange?: (value: string) => void;
+  /** False where the field has to hold one of its answers at all times. */
+  clearable?: boolean;
 }) {
   const [value, setValue] = React.useState(defaultValue ?? "");
 
@@ -36,6 +39,7 @@ export function Picker({
       <input type="hidden" name={name} value={value} />
       <Combobox
         options={options}
+        clearable={clearable}
         value={value}
         onChange={(next) => {
           setValue(next);

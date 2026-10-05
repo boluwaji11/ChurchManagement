@@ -1284,7 +1284,7 @@ export const en = {
   "join.error.code": "That code does not belong to a church. Check it with whoever gave it to you.",
   "join.error.decided": "That request has already been answered.",
   "meeting.title": "Attendance",
-  "meeting.day": "Day it met",
+  "meeting.day": "Event day",
   "meeting.notHeld": "It did not meet",
   "meeting.wasHeld": "It did meet",
   "meeting.saveNotHeld": "Save, it did not meet",
