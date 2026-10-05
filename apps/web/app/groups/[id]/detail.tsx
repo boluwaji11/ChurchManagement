@@ -325,21 +325,21 @@ function MeetingList({
         {rows.length > 1 ? (
           <span
             aria-hidden
-            className="absolute top-[42px] bottom-[42px] left-[35px] w-px"
+            className="absolute top-[32px] bottom-[32px] left-[28px] w-px"
             style={{ background: `var(--hue-${hue}-500)`, opacity: 0.35 }}
           />
         ) : null}
 
         {rows.map((row) => (
-          <div key={row.on} className="relative flex items-center gap-4 py-2.5">
+          <div key={row.on} className="relative flex items-center gap-3.5 py-1.5">
             <div
-              className="flex h-16 w-[72px] shrink-0 flex-col items-center justify-center rounded-[10px]"
+              className="flex h-[52px] w-[56px] shrink-0 flex-col items-center justify-center rounded-[8px]"
               style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
             >
-              <span className="text-[11px] font-semibold tracking-[0.06em] uppercase opacity-80">
+              <span className="text-[10px] font-semibold tracking-[0.06em] uppercase opacity-80">
                 {row.mon}
               </span>
-              <span className="font-display text-[24px] leading-[26px]">{row.day}</span>
+              <span className="font-display text-[19px] leading-[21px]">{row.day}</span>
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-3">
               <span className="font-semibold text-fg">{row.when}</span>

@@ -690,6 +690,98 @@ export async function groupsLedBy(db: Tx, personId: string): Promise<string[]> {
 }
 
 /** R9.1. A type's own words, shown at the top of its section in the finder. */
+/**
+ * R9.1. Changing a kind of group: what it is called, what it is for, and the
+ * colour it wears everywhere.
+ *
+ * The name is unique within the church, because two kinds called "Class" make
+ * every list ambiguous and no filter can tell them apart.
+ */
+export async function updateGroupType(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  input: { name: string; hue: string; description?: string | null },
+): Promise<void> {
+  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+
+  const name = clean(input.name);
+  if (!name) throw new InvalidInputError("groupType.error.name");
+
+  const [taken] = await db
+    .select({ id: groupTypes.id })
+    .from(groupTypes)
+    .where(sql`lower(${groupTypes.name}) = lower(${name})`)
+    .limit(1);
+  if (taken && taken.id !== id) {
+    throw new NameTakenError("groupType.error.taken", name, taken.id);
+  }
+
+  const changed = await db
+    .update(groupTypes)
+    .set({
+      name,
+      hue: input.hue,
+      description: input.description?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(groupTypes.id, id))
+    .returning({ id: groupTypes.id });
+  if (changed.length === 0) throw new InvalidInputError("groupType.error.missing");
+}
+
+/**
+ * R9.1. Taking a kind off the list, and putting it back.
+ *
+ * Archived rather than deleted: the groups already filed under it keep their
+ * kind, and a church that retires "Committee" and brings it back next year
+ * finds its colour and its groups where they were.
+ */
+export async function setGroupTypeArchived(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  archived: boolean,
+): Promise<void> {
+  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+
+  const changed = await db
+    .update(groupTypes)
+    .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
+    .where(eq(groupTypes.id, id))
+    .returning({ id: groupTypes.id });
+  if (changed.length === 0) throw new InvalidInputError("groupType.error.missing");
+}
+
+/** R9.1. The order they appear in, written as one list. */
+export async function reorderGroupTypes(
+  db: Tx,
+  actor: WriteActor,
+  ids: string[],
+): Promise<void> {
+  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+
+  for (const [position, id] of ids.entries()) {
+    await db
+      .update(groupTypes)
+      .set({ position, updatedAt: new Date() })
+      .where(eq(groupTypes.id, id));
+  }
+}
+
+/** R9.1. How many live groups are filed under each kind. */
+export async function groupTypeCounts(db: Tx): Promise<Record<string, number>> {
+  const rows = await db
+    .select({ typeId: groups.typeId, n: sql<number>`count(*)::int` })
+    .from(groups)
+    .where(isNull(groups.archivedAt))
+    .groupBy(groups.typeId);
+
+  return Object.fromEntries(
+    rows.filter((row) => row.typeId).map((row) => [row.typeId as string, Number(row.n)]),
+  );
+}
+
 export async function describeGroupType(
   db: Tx,
   actor: WriteActor,
