@@ -477,6 +477,47 @@ begin
     using (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
   $pol$;
 
+  -- R4.1. What somebody with no account may write, and only that.
+  --
+  -- A form question can ask for a file, and whoever answers it has no session
+  -- to upload on. Rather than putting the service role key in a request path,
+  -- the anon role is given one narrow door: insert only, only into this
+  -- bucket, only under <church>/form_answer/, and only for a church that
+  -- exists and has been approved. It can read nothing, change nothing and
+  -- delete nothing.
+  --
+  -- The route in front of it is what checks the form is open, the question
+  -- takes files, the type is one it asks for, the size is inside the ceiling
+  -- and the church has the room. The policy is the second say, not the first.
+  execute $fn$
+    create or replace function hearth.church_takes_files(p_slug text)
+    returns boolean
+    language sql
+    security definer
+    set search_path = public, pg_catalog
+    stable
+    as $body$
+      select exists (
+        select 1 from public.tenants t
+         where t.slug = p_slug
+           and t.approved_at is not null
+           and t.demo_expires_at is null
+      )
+    $body$
+  $fn$;
+  execute 'grant usage on schema hearth to anon';
+  execute 'grant execute on function hearth.church_takes_files(text) to anon';
+
+  execute 'drop policy if exists church_public_answer on storage.objects';
+  execute $pol$
+    create policy church_public_answer on storage.objects for insert to anon
+    with check (
+      bucket_id = 'church'
+      and (storage.foldername(name))[2] = 'form_answer'
+      and hearth.church_takes_files((storage.foldername(name))[1])
+    )
+  $pol$;
+
   -- Where it used to live, when it was also an RPC endpoint.
   execute 'drop function if exists public.user_in_church(text)';
 end $$;

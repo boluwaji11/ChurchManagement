@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { UserCheck } from "lucide-react";
+import { UserCheck, Paperclip } from "lucide-react";
 import { Button, Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
@@ -45,6 +45,29 @@ function MatchTag({ state }: { state: string }) {
       style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
     >
       {t(`form.match.${state}` as never)}
+    </span>
+  );
+}
+
+/** R4.1. The files on one answer, as links that sign themselves when pressed. */
+function Files({ answer, church }: { answer: FormAnswer; church: string }) {
+  const keys = Array.isArray(answer) ? answer : [];
+  if (keys.length === 0) return null;
+
+  return (
+    <span className="flex flex-col gap-1">
+      {keys.map((key, at) => (
+        <a
+          key={key}
+          href={`/api/forms/file?church=${church}&key=${encodeURIComponent(key)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
+        >
+          <Paperclip className="size-3.5 shrink-0" aria-hidden />
+          {t("form.files.nth", { number: at + 1 })}
+        </a>
+      ))}
     </span>
   );
 }
@@ -181,7 +204,10 @@ export function Responses({
                     </td>
 
                     {columns.map((field) => {
-                      const said = spoken(row.answers[field.id] ?? null);
+                      const answer = row.answers[field.id] ?? null;
+                      const said = field.kind === "file"
+                        ? plural("form.files.count", Array.isArray(answer) ? answer.length : 0)
+                        : spoken(answer);
                       return (
                         <td
                           key={field.id}
@@ -260,7 +286,11 @@ export function Responses({
                                 : "text-[length:var(--d-text-body)] text-fg-subtle"
                             }
                           >
-                            {said || t("form.responses.blank")}
+                            {field.kind === "file" ? (
+                              <Files answer={row.answers[field.id] ?? null} church={church} />
+                            ) : (
+                              said || t("form.responses.blank")
+                            )}
                           </dd>
                         </div>
                       );

@@ -113,6 +113,8 @@ export function PublicForm({
           <Answer
             key={field.id}
             field={field}
+            churchSlug={churchSlug}
+            formSlug={formSlug}
             value={answers[field.id] ?? null}
             error={errors[field.id] ? t(errors[field.id] as never) : undefined}
             onChange={(value) => set(field.id, value)}

@@ -16,6 +16,29 @@ export const FORM_FIELD_KINDS = [
 ] as const;
 export type FormFieldKind = (typeof FORM_FIELD_KINDS)[number];
 
+/**
+ * R4.1. What a file question will take.
+ *
+ * Three answers rather than a list of media types, because a church writing a
+ * question knows whether it wants a photo or a piece of paper and does not
+ * know what image/webp is.
+ */
+export const FILE_KINDS = ["any", "images", "documents"] as const;
+export type FileKind = (typeof FILE_KINDS)[number];
+
+/** The media types each answer accepts, which the browser and the server share. */
+export const FILE_TYPES: Record<FileKind, readonly string[]> = {
+  images: ["image/png", "image/jpeg", "image/webp", "image/heic"],
+  documents: ["application/pdf", "text/plain"],
+  any: [
+    "image/png", "image/jpeg", "image/webp", "image/heic",
+    "application/pdf", "text/plain",
+  ],
+};
+
+/** How many files one question will take at most, whatever it asks for. */
+export const FILES_CEILING = 10;
+
 /** A section is a heading. It has no answer, so nothing is ever required of it. */
 export const ANSWERABLE = FORM_FIELD_KINDS.filter((kind) => kind !== "section");
 
@@ -58,6 +81,10 @@ export interface FormFieldDef {
   showWhen?: FormCondition | null;
   /** R4.4. Which part of a person's record this answer is, or null. */
   mapsTo?: string | null;
+  /** R4.1. How many files a file question takes. */
+  maxFiles?: number;
+  /** R4.1. What kind of file it takes. */
+  fileKinds?: FileKind;
 }
 
 /** An answer as the form holds it, before anything is done with it. */
@@ -129,6 +156,16 @@ export function checkAnswer(field: FormFieldDef, answer: FormAnswer): string | n
 
     case "checkbox":
       return typeof answer === "boolean" ? null : "form.error.checkbox";
+
+    /*
+     * R4.1. The answer is the keys of what was uploaded, so the only thing
+     * worth checking here is how many. The bytes themselves were checked for
+     * type and size on the way in, which is the only place that can be done.
+     */
+    case "file": {
+      const keys = Array.isArray(answer) ? answer : [String(answer)];
+      return keys.length <= (field.maxFiles ?? 1) ? null : "form.error.tooManyFiles";
+    }
 
     case "email":
       return LOOKS_LIKE_EMAIL.test(String(answer).trim()) ? null : "form.error.email";

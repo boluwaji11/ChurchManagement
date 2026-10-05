@@ -96,6 +96,10 @@ export const formFields = pgTable(
     required: boolean("required").notNull().default(false),
     /** The choices, for a select or a multi-select. */
     options: text("options").array(),
+    /** R4.1. How many files a file question takes, and of what kind. */
+    maxFiles: integer("max_files").notNull().default(1),
+    /** "any", "images" or "documents". */
+    fileKinds: text("file_kinds").notNull().default("any"),
     position: integer("position").notNull().default(0),
     /**
      * R4.2. The earlier question this one waits on, when it waits on one.

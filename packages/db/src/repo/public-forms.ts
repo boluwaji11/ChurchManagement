@@ -328,3 +328,46 @@ async function takePlace(
             ${input.who.name}, ${input.who.email}, ${input.who.phone},
             ${state}, ${input.submissionId})`;
 }
+
+/**
+ * R4.1, R1.16. Room for a file somebody with no account is attaching.
+ *
+ * The same ceiling and the same ledger an upload from inside the church goes
+ * through, read on the owner connection because there is no session to set a
+ * tenant from. Checked before a byte is written: a quota found out afterwards
+ * is not a quota.
+ */
+export async function roomForPublicFile(
+  churchSlug: string,
+  bytes: number,
+): Promise<{ tenantId: string } | null> {
+  if (!SLUG.test(churchSlug) || bytes <= 0) return null;
+
+  const rows = await owner()<{ tenantId: string; used: string; quota: string }[]>`
+    select t.id as "tenantId",
+           coalesce((select sum(f.bytes) from stored_files f where f.tenant_id = t.id), 0)::text as used,
+           t.storage_quota_bytes::text as quota
+      from tenants t
+     where t.slug = ${churchSlug}
+       and t.approved_at is not null
+       and t.demo_expires_at is null
+     limit 1`;
+
+  const row = rows[0];
+  if (!row) return null;
+  if (Number(row.used) + bytes > Number(row.quota)) return null;
+  return { tenantId: row.tenantId };
+}
+
+/** R1.16. The ledger row for a file attached from the open web. */
+export async function recordPublicFile(input: {
+  tenantId: string;
+  key: string;
+  contentType: string;
+  bytes: number;
+}): Promise<void> {
+  await owner()`
+    insert into stored_files (tenant_id, bucket, key, purpose, content_type, bytes)
+    values (${input.tenantId}, 'church', ${input.key}, 'form_answer',
+            ${input.contentType}, ${input.bytes})`;
+}

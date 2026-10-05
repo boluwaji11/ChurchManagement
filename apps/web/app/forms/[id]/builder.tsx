@@ -8,13 +8,14 @@ import {
   Archive, ArchiveRestore, Code, User,
 } from "lucide-react";
 import {
-  Banner, Button, IconButton, cn,
+  Banner, Button, IconButton, Input, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
 } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import {
-  NEEDS_OPTIONS, CUSTOM_TARGET, targetsFor,
+  NEEDS_OPTIONS, CUSTOM_TARGET, targetsFor, FILE_KINDS, FILES_CEILING,
+  UPLOAD_RULES, ONE_MIB,
   type FormFieldDef, type FormFieldKind,
 } from "@hearth/db/rules";
 import {
@@ -88,6 +89,7 @@ const ADDABLE: Addable[] = [
   { key: "select", icon: CircleDot, questions: [{ kind: "select", labelKey: "form.kind.select" }] },
   { key: "multi_select", icon: SquareCheck, questions: [{ kind: "multi_select", labelKey: "form.kind.multi_select" }] },
   { key: "date", icon: Calendar, questions: [{ kind: "date", labelKey: "form.kind.date" }] },
+  { key: "file", icon: Paperclip, questions: [{ kind: "file", labelKey: "form.kind.file" }] },
 ];
 
 /** Radix cannot hold an empty value, so "no field" needs a name of its own. */
@@ -496,6 +498,7 @@ function Question({
   onError: (message?: string) => void;
 }) {
   const [label, setLabel] = React.useState(field.label);
+  const [help, setHelp] = React.useState(field.help ?? "");
   const [options, setOptions] = React.useState(field.options ?? []);
   const Icon = KIND_ICON[field.kind];
   const wantsOptions = NEEDS_OPTIONS.includes(field.kind);
@@ -526,6 +529,9 @@ function Question({
     required?: boolean;
     options?: string[];
     mapsTo?: string | null;
+    maxFiles?: number;
+    fileKinds?: string;
+    help?: string | null;
   }) =>
     void saveQuestion(
       formId,
@@ -533,11 +539,13 @@ function Question({
       {
         kind: field.kind,
         label: changes.label ?? label,
-        help: field.help,
         required: changes.required ?? field.required,
         options: wantsOptions ? (changes.options ?? options) : null,
         showWhen: field.showWhen ?? null,
+        help: changes.help === undefined ? (field.help ?? null) : changes.help,
         mapsTo: changes.mapsTo === undefined ? (field.mapsTo ?? null) : changes.mapsTo,
+        maxFiles: changes.maxFiles ?? field.maxFiles ?? 1,
+        fileKinds: changes.fileKinds ?? field.fileKinds ?? "any",
       },
       church,
     ).then((result) => {
@@ -623,6 +631,24 @@ function Question({
           className="h-9.5 rounded-lg border border-line bg-canvas px-2.5 font-medium text-fg outline-none focus-visible:border-primary"
         />
 
+        {/* R4.1. The church's own words under its own question. A question
+            asking for a dedication photo needs to say what the photo is for and
+            what to call the file, and only the church knows that. */}
+        {field.kind !== "section" ? (
+          <textarea
+            value={help}
+            onChange={(e) => setHelp(e.target.value)}
+            onBlur={() => {
+              const next = help.trim();
+              if (next !== (field.help ?? "")) save({ help: next || null });
+            }}
+            rows={help.trim() ? 2 : 1}
+            aria-label={t("form.help")}
+            placeholder={t("form.help")}
+            className="resize-y rounded-lg border border-line bg-canvas px-2.5 py-2 text-[13px] text-fg-muted outline-none placeholder:text-fg-subtle placeholder:italic focus-visible:border-primary"
+          />
+        ) : null}
+
         {/* R4.4. Where this answer goes on the person's record. A church
             writes its questions in its own words, so the words cannot be read
             for meaning and the question is asked here once. */}
@@ -647,6 +673,51 @@ function Question({
               </SelectContent>
             </Select>
           </label>
+        ) : null}
+
+        {/* R4.1. How many files this question takes, and of what kind. A
+            church asking for a dedication photo and one asking for three
+            children's pictures are the same question with a different number
+            on it. */}
+        {field.kind === "file" ? (
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 text-[12px] font-medium text-fg-subtle">
+              {t("form.files.howMany")}
+              <Input
+                type="number"
+                min={1}
+                max={FILES_CEILING}
+                defaultValue={field.maxFiles ?? 1}
+                disabled={pending}
+                onBlur={(e) => {
+                  const next = Math.min(FILES_CEILING, Math.max(1, Number(e.target.value) || 1));
+                  e.target.value = String(next);
+                  if (next !== (field.maxFiles ?? 1)) save({ maxFiles: next });
+                }}
+                className="h-8 min-h-0 w-20 text-[13px]"
+              />
+            </label>
+
+            <label className="flex items-center gap-2 text-[12px] font-medium text-fg-subtle">
+              {t("form.files.kind")}
+              <Select
+                value={field.fileKinds ?? "any"}
+                onValueChange={(next) => save({ fileKinds: next })}
+                disabled={pending}
+              >
+                <SelectTrigger className="h-8 min-h-0 w-auto min-w-[140px] text-[13px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FILE_KINDS.map((one) => (
+                    <SelectItem key={one} value={one}>
+                      {t(`form.files.${one}` as never)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
+          </div>
         ) : null}
 
         {wantsOptions ? (
@@ -714,12 +785,28 @@ function AsRead({ field }: { field: FormFieldDef }) {
         {field.required ? <span className="text-danger-text"> *</span> : null}
       </span>
 
+      {field.help ? (
+        <span className="text-caption leading-5 font-normal text-fg-muted">{field.help}</span>
+      ) : null}
+
       {ONE_LINE.includes(field.kind) ? (
         <span className="h-9 rounded-lg border border-line-strong" />
       ) : null}
 
       {field.kind === "long_text" ? (
         <span className="h-18 rounded-lg border border-line-strong" />
+      ) : null}
+
+      {field.kind === "file" ? (
+        <span className="flex flex-col gap-1 font-normal">
+          <span className="h-9 w-36 rounded-lg border border-dashed border-line-strong" />
+          <span className="text-caption text-fg-subtle">
+            {plural("form.files.limit", field.maxFiles ?? 1, {
+              count: field.maxFiles ?? 1,
+              size: `${Math.round(UPLOAD_RULES.form_answer.maxBytes / ONE_MIB)} MB`,
+            })}
+          </span>
+        </span>
       ) : null}
 
       {options.length > 0 ? (

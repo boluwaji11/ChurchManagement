@@ -113,16 +113,20 @@ export function Field({
         ) : null}
       </Label>
 
+      {/* Under the question and above the box, because it is read before the
+          answer is given rather than after. */}
+      {hint ? (
+        <p id={hintId} className="text-caption leading-5 text-fg-muted">
+          {hint}
+        </p>
+      ) : null}
+
       <FieldControlContext.Provider value={wiring}>{control}</FieldControlContext.Provider>
 
       {error ? (
         <p id={errorId} role="alert" className="flex items-start gap-1.5 text-caption text-danger-text">
           <AlertCircle className="mt-px size-3.5 shrink-0" aria-hidden />
           {error}
-        </p>
-      ) : hint ? (
-        <p id={hintId} className="text-caption text-fg-muted">
-          {hint}
         </p>
       ) : null}
     </div>

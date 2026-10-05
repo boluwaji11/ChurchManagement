@@ -36,6 +36,21 @@ export const UPLOAD_RULES = {
   form_cover: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
   /** R14.1. The picture across the top of an event. */
   event_cover: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
+  /**
+   * R4.1. What somebody attaches when they answer a form.
+   *
+   * A photo for a dedication, a signed consent as a PDF, a reference letter.
+   * The same ceiling a plan item has, and the question itself says how many
+   * files it will take, so a church decides its own exposure rather than the
+   * platform guessing.
+   */
+  form_answer: {
+    types: [
+      "image/png", "image/jpeg", "image/webp", "image/heic",
+      "application/pdf", "text/plain",
+    ],
+    maxBytes: 10 * ONE_MIB,
+  },
   plan_item: {
     types: [
       "application/pdf",
@@ -64,6 +79,7 @@ export const SUGGESTED_PIXELS: Record<UploadPurpose, string | null> = {
   group_photo: "1600 x 900",
   // A cover is a wide band across the top of a page, cropped 6 to 1.
   form_cover: "1800 x 300",
+  form_answer: null,
   event_cover: "1600 x 900",
   plan_item: null,
 };

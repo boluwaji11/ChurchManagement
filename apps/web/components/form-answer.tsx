@@ -4,6 +4,7 @@ import * as React from "react";
 import { Checkbox, Field, Input, RadioGroup, RadioItem, Textarea } from "@hearth/ui";
 import type { FormAnswer, FormFieldDef } from "@hearth/db/rules";
 import { DateField } from "@/components/date-field";
+import { FileAnswer } from "@/components/file-answer";
 
 /** One question, drawn as the kind of answer it wants. */
 export function Answer({
@@ -11,11 +12,16 @@ export function Answer({
   value,
   error,
   onChange,
+  churchSlug,
+  formSlug,
 }: {
   field: FormFieldDef;
   value: FormAnswer;
   error?: string;
   onChange: (value: FormAnswer) => void;
+  /** R4.1. Where a file question sends its bytes. Absent means it cannot. */
+  churchSlug?: string;
+  formSlug?: string;
 }) {
   if (field.kind === "section") {
     return (
@@ -79,6 +85,21 @@ export function Answer({
             </label>
           ))}
         </div>
+      </Field>
+    );
+  }
+
+  if (field.kind === "file") {
+    if (!churchSlug || !formSlug) return null;
+    return (
+      <Field label={field.label} hint={field.help ?? undefined} error={error} required={field.required}>
+        <FileAnswer
+          field={field}
+          churchSlug={churchSlug}
+          formSlug={formSlug}
+          value={Array.isArray(value) ? value : []}
+          onChange={onChange}
+        />
       </Field>
     );
   }

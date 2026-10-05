@@ -7,6 +7,7 @@ import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
 import {
   FORM_FIELD_KINDS, NEEDS_OPTIONS, CONDITION_OPS, OPS_NEED_VALUE,
+  FILE_KINDS, FILES_CEILING, type FileKind,
   formSlug, formProblems, conditionProblem, targetAllowed,
   type ConditionOp, type FormAnswer, type FormCondition, type FormFieldDef,
   type FormFieldKind, type FormStatus,
@@ -76,6 +77,9 @@ export interface FormFieldInput {
   showWhen?: FormCondition | null;
   /** R4.4. Null, or which part of a person's record this answer is. */
   mapsTo?: string | null;
+  /** R4.1. How many files a file question takes, and of what kind. */
+  maxFiles?: number | null;
+  fileKinds?: string | null;
 }
 
 const NAME_LIMIT = 120;
@@ -133,6 +137,8 @@ function checkField(input: FormFieldInput): {
   options: string[] | null;
   showWhen: FormCondition | null;
   mapsTo: string | null;
+  maxFiles: number;
+  fileKinds: FileKind;
 } {
   if (!FORM_FIELD_KINDS.includes(input.kind)) throw new InvalidInputError("form.error.kind");
 
@@ -155,6 +161,14 @@ function checkField(input: FormFieldInput): {
     options,
     showWhen: checkCondition(input.showWhen ?? null),
     mapsTo: checkTarget(input.kind, input.mapsTo ?? null),
+    // R4.1. Only a file question carries these, and a church cannot ask for
+    // more than the ceiling however it is posted.
+    maxFiles: input.kind === "file"
+      ? Math.min(FILES_CEILING, Math.max(1, Math.trunc(input.maxFiles ?? 1)))
+      : 1,
+    fileKinds: input.kind === "file" && FILE_KINDS.includes(input.fileKinds as FileKind)
+      ? (input.fileKinds as FileKind)
+      : "any",
   };
 }
 
@@ -206,6 +220,8 @@ async function fieldsFor(db: Tx, formId: string): Promise<FormFieldDef[]> {
       help: formFields.help,
       required: formFields.required,
       options: formFields.options,
+      maxFiles: formFields.maxFiles,
+      fileKinds: formFields.fileKinds,
       position: formFields.position,
       showWhenFieldId: formFields.showWhenFieldId,
       showWhenOp: formFields.showWhenOp,
@@ -219,6 +235,7 @@ async function fieldsFor(db: Tx, formId: string): Promise<FormFieldDef[]> {
   return rows.map(({ showWhenFieldId, showWhenOp, showWhenValue, ...row }) => ({
     ...row,
     kind: row.kind as FormFieldKind,
+    fileKinds: row.fileKinds as FileKind,
     showWhen: showWhenFieldId && showWhenOp
       ? { fieldId: showWhenFieldId, op: showWhenOp as ConditionOp, value: showWhenValue }
       : null,
