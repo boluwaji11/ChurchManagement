@@ -63,7 +63,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Resolved |
 | HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | Resolved |
 | HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | New |
-| HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | New |
+| HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | Resolved |
 | HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | Resolved |
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
 | HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
@@ -510,7 +510,7 @@ church actually asks.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-185 | The dashboard: attendance, new people, coverage gaps, overdue follow-ups | R18.1 | New |
+| HRT-185 | The dashboard: attendance, new people, coverage gaps, overdue follow-ups | R18.1 | Resolved |
 | HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | New |
 | HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | New |
 | HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | New |

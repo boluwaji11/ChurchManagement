@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Users, UserPlus, Baby, Calendar, CalendarHeart, ListMusic, HandHeart, CircleDot,
-  ClipboardList, Settings, Home,
+  ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn,
 } from "lucide-react";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
@@ -39,6 +39,15 @@ export function navFor(role: TenantRole): NavEntry[] {
    */
   if (!staff && !canCheckIn(role) && !canFollowUp(role) && !canLeadTeams(role)) {
     out.push({ label: t("nav.home"), href: "/home", icon: Home });
+  }
+
+  /*
+   * R18.1. The screen staff open the week on, first in the list because it is
+   * the one that says what needs doing before anybody has gone looking.
+   */
+  if (staff) {
+    out.push({ label: t("dashboard.title"), href: "/dashboard", icon: LayoutDashboard });
+    out.push({ label: t("reports.title"), href: "/reports", icon: ChartNoAxesColumn });
   }
 
   // R3.1. One directory each. Staff work in the church's records; a member sees

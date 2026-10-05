@@ -45,7 +45,7 @@ export default async function MemberHomePage({
 
   // Staff have their own screens, and this is not one of them.
   if (canEditPeople(session) || canReadIncidents(session)) {
-    redirect(`/people?church=${session.tenantSlug}`);
+    redirect(`/dashboard?church=${session.tenantSlug}`);
   }
 
   const mine = await withTenant(

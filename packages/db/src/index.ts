@@ -30,6 +30,7 @@ export {
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
 } from "./repo/people";
+export * from "./repo/reports";
 export {
   listContacts, addContact, removeContact, makeContactPrimary, leadWith, listAddresses,
   addAddress, removeAddress, makeAddressPrimary,
