@@ -38,7 +38,7 @@ export default async function PublicEventPage({
       event={found}
       coverUrl={await sign(found.coverKey)}
       logoUrl={await sign(found.church.logoKey)}
-      registerHref={`/e/${slug}/${event}/register`}
+      registerHref={`/f/${slug}/${found.formSlug}?event=${event}`}
     />
   );
 }

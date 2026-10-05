@@ -58,6 +58,8 @@ export interface PublicEvent {
   showCapacity: boolean;
   /** R14.5. The questions each registrant answers, empty when there are none. */
   questions: FormFieldDef[];
+  /** R14.5. The public slug of the form registration goes through, if any. */
+  formSlug: string | null;
 }
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
@@ -82,6 +84,7 @@ interface Row {
   postalCode: string | null;
   country: string | null;
   status: string;
+  formSlug: string | null;
   takesRegistrations: boolean;
   registrationOpen: boolean;
   registrationClosesOn: string | null;
@@ -99,6 +102,8 @@ async function eventRow(churchSlug: string, eventSlug: string): Promise<Row | nu
     select e.id,
            e.tenant_id as "tenantId",
            e.form_id as "formId",
+           (select f.slug from forms f
+             where f.id = e.form_id and f.archived_at is null) as "formSlug",
            e.name,
            e.description,
            e.hue::text as hue,
@@ -251,6 +256,7 @@ export async function publicEvent(
     showCapacity: row.showCapacity,
     going: row.going,
     state: stateOf(row, today, now),
+    formSlug: row.formSlug,
     questions: await questionRows(row.formId),
   };
 }

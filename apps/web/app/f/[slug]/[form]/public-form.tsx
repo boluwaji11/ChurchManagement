@@ -25,6 +25,7 @@ export function PublicForm({
   thanks,
   state,
   fields,
+  eventSlug,
 }: {
   churchSlug: string;
   formSlug: string;
@@ -33,6 +34,8 @@ export function PublicForm({
   thanks: string | null;
   state: "open" | "closed" | "full";
   fields: FormFieldDef[];
+  /** R14.2. The event this was reached from, so the answer takes a place at it. */
+  eventSlug?: string | null;
 }) {
   const [answers, setAnswers] = React.useState<Record<string, FormAnswer>>({});
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -59,6 +62,7 @@ export function PublicForm({
         formSlug,
         answers,
         trap: trap.current?.value ?? "",
+        eventSlug,
       });
       if (result.ok) {
         setSent(true);

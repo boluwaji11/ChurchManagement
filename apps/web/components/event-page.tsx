@@ -93,63 +93,61 @@ export function EventPage({
         )}
 
         <div className="mt-8 flex flex-col gap-7">
-          <div className="flex flex-col gap-2.5 border-b border-line pb-7">
-            <h1 className="font-display text-[30px] leading-[36px] text-fg sm:text-[36px] sm:leading-[42px]">
-              {event.name}
-            </h1>
-            <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
-              {when}
-              {until ? ` ${until}` : ""}
-            </p>
-            {event.location || address ? (
+          {/* What it is on the left, the way in on the right. Register beside
+              the date is the first thing a reader looks for once they have
+              decided they are coming, and at the end of the page it was below
+              everything they had to scroll past. */}
+          <div className="flex flex-wrap items-center justify-between gap-5 border-b border-line pb-7">
+            <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-2.5">
+              <h1 className="font-display text-[30px] leading-[36px] text-fg sm:text-[36px] sm:leading-[42px]">
+                {event.name}
+              </h1>
               <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
-                {[event.location, address].filter(Boolean).join(", ")}
+                {when}
+                {until ? ` ${until}` : ""}
               </p>
-            ) : null}
-            {left !== null && event.state === "open" ? (
-              <p className="text-caption text-fg-subtle tabular-nums">
-                {plural("publicEvent.placesLeft", left)}
-              </p>
-            ) : null}
+              {event.location || address ? (
+                <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
+                  {[event.location, address].filter(Boolean).join(", ")}
+                </p>
+              ) : null}
+              {left !== null && event.state === "open" ? (
+                <p className="text-caption text-fg-subtle tabular-nums">
+                  {plural("publicEvent.placesLeft", left)}
+                </p>
+              ) : null}
+            </div>
+
+            {event.state === "none" ? null : (
+              <div className="flex flex-col items-end gap-2">
+                {event.state === "open" || event.state === "waitlist" ? (
+                  <>
+                    {event.state === "waitlist" ? (
+                      <p className="text-caption text-fg-muted">
+                        {t("publicEvent.waitlistOpen")}
+                      </p>
+                    ) : null}
+                    <Button asChild className="min-w-[180px]">
+                      <Link href={registerHref}>{t("publicEvent.registerNow")}</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-[length:var(--d-text-body)] text-fg-muted">
+                    {event.state === "cancelled"
+                      ? t("publicEvent.cancelled")
+                      : event.state === "full"
+                        ? t("publicEvent.full")
+                        : t("publicEvent.closed")}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {event.description ? (
             <Markdown text={event.description} className="max-w-[68ch]" />
           ) : null}
 
-          {/*
-            * R14.2. The page says what the event is and offers a way in.
-            *
-            * The questions fill a page of their own rather than sitting under
-            * the description, because somebody reading about a camp and
-            * somebody filling in four children's medical details are doing two
-            * different things, and one long page makes the reading feel like
-            * paperwork.
-            */}
-          {event.state === "none" ? null : (
-            <div className="flex flex-col items-start gap-3 border-t border-line pt-7">
-              {event.state === "open" || event.state === "waitlist" ? (
-                <>
-                  {event.state === "waitlist" ? (
-                    <p className="text-[length:var(--d-text-body)] text-fg-muted">
-                      {t("publicEvent.waitlistOpen")}
-                    </p>
-                  ) : null}
-                  <Button asChild className="w-full sm:w-auto sm:min-w-[200px]">
-                    <Link href={registerHref}>{t("publicEvent.registerNow")}</Link>
-                  </Button>
-                </>
-              ) : (
-                <p className="text-[length:var(--d-text-body)] text-fg-muted">
-                  {event.state === "cancelled"
-                    ? t("publicEvent.cancelled")
-                    : event.state === "full"
-                      ? t("publicEvent.full")
-                      : t("publicEvent.closed")}
-                </p>
-              )}
-            </div>
-          )}
         </div>
       </main>
     </div>

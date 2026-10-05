@@ -95,6 +95,7 @@ export default async function PreviewEventPage({
     showCapacity: event.showCapacity,
     going: event.going,
     state: "open",
+    formSlug: form?.slug ?? null,
     questions: form?.fields ?? [],
   };
 
@@ -103,7 +104,9 @@ export default async function PreviewEventPage({
       event={shown}
       coverUrl={await sign(event.coverKey)}
       logoUrl={await sign(profile?.logoKey ?? null)}
-      registerHref={`/events/${event.id}/preview/register?church=${session.tenantSlug}`}
+      registerHref={
+        form ? `/f/${session.tenantSlug}/${form.slug}?event=${event.slug}` : "#"
+      }
       banner={
         <div
           className="px-4 py-2 text-center text-caption font-medium"

@@ -19,10 +19,15 @@ export const dynamic = "force-dynamic";
  */
 export default async function PublicFormPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; form: string }>;
+  searchParams: Promise<{ event?: string }>;
 }) {
   const { slug, form } = await params;
+  // R14.2. A church links one form from several events, so which event this
+  // was reached from rides the link rather than sitting on the form.
+  const { event } = await searchParams;
   const found = await publicForm(slug, form);
   if (!found) notFound();
 
@@ -83,6 +88,7 @@ export default async function PublicFormPage({
             thanks={found.thanks}
             state={found.state}
             fields={found.fields}
+            eventSlug={event ?? null}
           />
           </div>
         </div>

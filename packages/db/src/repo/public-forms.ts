@@ -1,3 +1,4 @@
+import type { TransactionSql } from "postgres";
 import { owner } from "../client";
 import { InvalidInputError } from "../errors";
 import {
@@ -183,6 +184,15 @@ export async function submitPublicForm(input: {
   churchSlug: string;
   formSlug: string;
   answers: Record<string, FormAnswer>;
+  /**
+   * R14.2. The event this form was reached from, where it was reached from one.
+   *
+   * A church links one form from several events, so the event cannot be read
+   * off the form. It rides the link, and with it the answer becomes a place at
+   * that event as well as a response on the form: counted against its capacity,
+   * on its roster, on the waiting list when it is full.
+   */
+  eventSlug?: string | null;
 }): Promise<SubmitResult> {
   const row = await formRow(input.churchSlug, input.formSlug);
   if (!row) throw new InvalidInputError("form.error.missing");
@@ -223,13 +233,98 @@ export async function submitPublicForm(input: {
 
     // R4.4. The answers become a person record in the same transaction, so a
     // response can never sit in the list with nothing behind it.
-    await placeSubmission(tx, {
+    const placed = await placeSubmission(tx, {
       tenantId: row.tenantId,
       submissionId: saved!.id,
       fields,
       answers,
     });
+
+    if (input.eventSlug) {
+      await takePlace(tx, {
+        tenantId: row.tenantId,
+        eventSlug: input.eventSlug,
+        submissionId: saved!.id,
+        personId: placed.personId,
+        who: nameFrom(fields, answers),
+      });
+    }
   });
 
   return { ok: true, thanks: row.thanks };
+}
+
+/** What to call this registrant on the roster, from whatever the form asked. */
+function nameFrom(
+  fields: FormFieldDef[],
+  answers: Record<string, FormAnswer>,
+): { name: string; email: string | null; phone: string | null } {
+  const read = (target: string): string | null => {
+    const field = fields.find((one) => one.mapsTo === target);
+    const answer = field ? answers[field.id] : null;
+    const text = typeof answer === "string" ? answer.trim() : null;
+    return text || null;
+  };
+
+  const email = read("email");
+  const name = [read("first_name"), read("last_name")].filter(Boolean).join(" ").trim();
+
+  return {
+    name: name || email?.split("@")[0] || "",
+    email: email?.toLowerCase() ?? null,
+    phone: read("phone"),
+  };
+}
+
+/**
+ * R14.2, R14.4. Turns a submission into a place at an event.
+ *
+ * The event row is locked first, so the last place cannot go to two people who
+ * sent the form at the same moment. A full event takes the name for its waiting
+ * list, which is what every event does now.
+ *
+ * A form reached from an event that is not taking registrations still records
+ * the response. The church asked a question and somebody answered it, and
+ * throwing that away because a date passed would lose the one thing worth
+ * keeping.
+ */
+async function takePlace(
+  tx: TransactionSql,
+  input: {
+    tenantId: string;
+    eventSlug: string;
+    submissionId: string;
+    personId: string | null;
+    who: { name: string; email: string | null; phone: string | null };
+  },
+): Promise<void> {
+  const [event] = await tx<{
+    id: string; status: string; takes: boolean; open: boolean; capacity: number | null;
+  }[]>`
+    select id, status,
+           takes_registrations as takes,
+           registration_open as open,
+           capacity
+      from events
+     where tenant_id = ${input.tenantId} and slug = ${input.eventSlug}
+       and archived_at is null
+       for update`;
+
+  if (!event || !event.takes || event.status === "cancelled" || !event.open) return;
+
+  let state = "going";
+  if (event.capacity !== null) {
+    const [count] = await tx<{ n: number }[]>`
+      select count(*)::int as n
+        from event_registrations
+       where event_id = ${event.id} and state = 'going'`;
+    if ((count?.n ?? 0) >= event.capacity) state = "waiting";
+  }
+
+  await tx`
+    insert into event_registrations
+      (tenant_id, event_id, booking_id, person_id, name, email, phone, state, submission_id)
+    values (${input.tenantId}, ${event.id}, gen_random_uuid(), ${input.personId},
+            ${input.who.name}, ${input.who.email}, ${input.who.phone},
+            ${state}, ${input.submissionId})`;
 }

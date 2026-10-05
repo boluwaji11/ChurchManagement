@@ -17,6 +17,8 @@ export async function sendForm(input: {
   formSlug: string;
   answers: Record<string, FormAnswer>;
   trap: string;
+  /** R14.2. The event this form was reached from, where it was reached from one. */
+  eventSlug?: string | null;
 }): Promise<{ ok: boolean; errors?: Record<string, string>; error?: string }> {
   if (input.trap.trim() !== "") return { ok: true };
 
@@ -25,6 +27,7 @@ export async function sendForm(input: {
       churchSlug: input.churchSlug,
       formSlug: input.formSlug,
       answers: input.answers,
+      eventSlug: input.eventSlug ?? null,
     });
     return result.ok ? { ok: true } : { ok: false, errors: result.errors };
   } catch (error) {
