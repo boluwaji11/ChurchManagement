@@ -58,6 +58,7 @@ export default async function EditGroupPage({
           leaders={group.leaders.map((one) => ({ id: one.personId, name: one.name }))}
           group={{
             id: group.id,
+            slug: group.slug,
             name: group.name,
             description: group.description,
             typeId: group.typeId,

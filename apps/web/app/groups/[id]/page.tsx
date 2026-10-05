@@ -193,6 +193,7 @@ export default async function GroupPage({
             types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
             group={{
               id: group.id,
+              slug: group.slug,
               name: group.name,
               description: group.description,
               typeId: group.typeId,
@@ -312,7 +313,6 @@ export default async function GroupPage({
             postalCode: group.postalCode,
             country: group.country,
           }),
-          group.location,
         )}
         requests={requests.map((one) => ({ id: one.id, personName: one.personName }))}
         members={roster

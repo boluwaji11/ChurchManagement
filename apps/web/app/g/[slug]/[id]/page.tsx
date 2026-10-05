@@ -67,7 +67,7 @@ export default async function PublicGroupPage({
                 <>
                   {" "}
                   <a
-                    href={mapsHref([group.location, group.address].filter(Boolean).join(", "))}
+                    href={mapsHref(group.address)}
                     target="_blank"
                     rel="noreferrer noopener"
                     className="font-medium text-primary underline-offset-4 hover:underline"

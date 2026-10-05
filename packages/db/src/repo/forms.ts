@@ -10,6 +10,7 @@ import {
   formSlug, formProblems, conditionProblem, targetAllowed,
   type ConditionOp, type FormAnswer, type FormCondition, type FormFieldDef,
   type FormFieldKind, type FormStatus,
+  isUuid,
 } from "./form-rules";
 import type { WriteActor } from "./people";
 
@@ -265,8 +266,13 @@ export async function listForms(
   }));
 }
 
+/** R4.1. One form, found by its readable address or by its id. */
 export async function getForm(db: Tx, id: string): Promise<Form | null> {
-  const [row] = await db.select().from(forms).where(eq(forms.id, id)).limit(1);
+  const [row] = await db
+    .select()
+    .from(forms)
+    .where(isUuid(id) ? eq(forms.id, id) : eq(forms.slug, id))
+    .limit(1);
   if (!row) return null;
 
   const fields = await fieldsFor(db, row.id);

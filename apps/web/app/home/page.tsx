@@ -81,7 +81,7 @@ export default async function MemberHomePage({
             {mine.map((group) => (
               <Card key={group.id} className="relative flex flex-col gap-2">
                 <Link
-                  href={`/groups/${group.id}?church=${session.tenantSlug}`}
+                  href={`/groups/${group.slug}?church=${session.tenantSlug}`}
                   className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
                 >
                   {group.name}

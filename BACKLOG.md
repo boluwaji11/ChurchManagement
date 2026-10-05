@@ -497,6 +497,7 @@ is recorded, which the notes table already does.
 | HRT-181 | Recurring events and event series | R14.9 | New |
 | HRT-182 | Event check-in through the same station, with badges and rosters | R14.10 | New |
 | HRT-183 | Attendee export, printed roster, and the emergency contact sheet | R14.12 | Resolved |
+| HRT-214 | Readable addresses for events, groups and forms, with ids still resolving | R24.6 | Resolved |
 | HRT-184 | Paid registration, add-ons, discount codes and refunds | R14.3, R14.7, R14.8, R14.11 | Held to 0.3 with money |
 
 ### F18. Reporting and analytics

@@ -37,11 +37,10 @@ export function FormSearch({
     <div className="flex flex-col gap-4">
       {/* The search and the action share one line, because they are the two
           things this screen offers and stacking them wastes a band of the
-          page on nothing. */}
+          page on nothing. The search leads, the action sits at the far end. */}
       <div className="flex flex-wrap items-center gap-3">
-        {action}
         {count > 1 ? (
-          <label className="relative flex max-w-[360px] min-w-[200px] flex-1 items-center">
+          <label className="relative flex max-w-[360px] min-w-[200px] items-center">
             <Search
               className="pointer-events-none absolute left-3 size-4 text-fg-subtle"
               aria-hidden
@@ -56,6 +55,7 @@ export function FormSearch({
             />
           </label>
         ) : null}
+        {action ? <span className="ml-auto">{action}</span> : null}
       </div>
 
       {shown.length === 0 ? (

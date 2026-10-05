@@ -15,6 +15,7 @@ import { archive } from "./actions";
 
 export interface FinderGroup {
   id: string;
+  slug: string;
   /** R9.2. Signed for an hour by the page, because the bucket is private. */
   photoUrl?: string | null;
   name: string;
@@ -561,7 +562,7 @@ function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
         </div>
 
         <Link
-          href={`/groups/${group.id}?church=${church}`}
+          href={`/groups/${group.slug}?church=${church}`}
           className="font-display text-[22px] leading-[28px] text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {group.name}

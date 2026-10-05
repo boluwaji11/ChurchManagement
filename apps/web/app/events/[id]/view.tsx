@@ -92,13 +92,13 @@ export function EventView({
     country: event.country ?? "",
   };
   const address = oneLineAddress(place);
-  const directions = directionsLink(place, event.location);
+  const directions = directionsLink(place);
 
   const showing: Tab = event.takesRegistrations ? tab : "overview";
 
   const go = (next: Tab) => {
     const query = next === "overview" ? "" : `&tab=${next}`;
-    router.push(`/events/${event.id}?church=${church}${query}`, { scroll: false });
+    router.push(`/events/${event.slug}?church=${church}${query}`, { scroll: false });
   };
 
   return (
@@ -116,7 +116,7 @@ export function EventView({
 
         <Button variant="secondary" asChild>
           <a
-            href={`/events/${event.id}/preview?church=${church}`}
+            href={`/events/${event.slug}/preview?church=${church}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -130,7 +130,7 @@ export function EventView({
           className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
         >
           <Link
-            href={`/events/${event.id}/edit?church=${church}`}
+            href={`/events/${event.slug}/edit?church=${church}`}
             aria-label={t("action.edit")}
             title={t("action.edit")}
           >
@@ -368,12 +368,12 @@ export function EventView({
                 ].filter(Boolean).join(" · ")}
               </span>
               <Button variant="secondary" asChild>
-                <a href={`/events/${event.id}/export?church=${church}`}>
+                <a href={`/events/${event.slug}/export?church=${church}`}>
                   <Download className="size-4" aria-hidden /> {t("event.export")}
                 </a>
               </Button>
               <Button variant="secondary" asChild>
-                <a href={`/events/${event.id}/roster?church=${church}`} target="_blank" rel="noreferrer">
+                <a href={`/events/${event.slug}/roster?church=${church}`} target="_blank" rel="noreferrer">
                   <Printer className="size-4" aria-hidden /> {t("event.roster")}
                 </a>
               </Button>

@@ -7,6 +7,7 @@ import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { WriteActor } from "./people";
+import { formSlug, isUuid } from "./form-rules";
 
 /**
  * R9.1 to R9.4. Groups.
@@ -67,6 +68,8 @@ export interface GroupType {
 export interface Group {
   id: string;
   name: string;
+  /** R9.2. The readable part of its address. */
+  slug: string;
   description: string | null;
   typeId: string | null;
   typeName: string | null;
@@ -340,6 +343,7 @@ async function hydrate(db: Tx, rows: { id: string }[]): Promise<Map<string, {
 const COLUMNS = {
   id: groups.id,
   name: groups.name,
+  slug: groups.slug,
   description: groups.description,
   typeId: groups.typeId,
   dayOfWeek: groups.dayOfWeek,
@@ -391,12 +395,33 @@ export async function listGroups(
   }));
 }
 
+/**
+ * R9.2. A readable address that is free, numbering a clash.
+ *
+ * Written once, when the group is created, and kept through every rename. A
+ * link already sent out keeps working, and the id in the URL works too.
+ */
+async function freeSlug(db: Tx, name: string): Promise<string> {
+  const base = formSlug(name);
+  for (let n = 1; n < 200; n += 1) {
+    const candidate = n === 1 ? base : `${base}-${n}`;
+    const [clash] = await db
+      .select({ id: groups.id })
+      .from(groups)
+      .where(eq(groups.slug, candidate))
+      .limit(1);
+    if (!clash) return candidate;
+  }
+  throw new InvalidInputError("group.error.taken");
+}
+
+/** R9.2. One group, found by its readable address or by its id. */
 export async function getGroup(db: Tx, id: string): Promise<Group | null> {
   const [row] = await db
     .select(COLUMNS)
     .from(groups)
     .leftJoin(groupTypes, eq(groupTypes.id, groups.typeId))
-    .where(eq(groups.id, id))
+    .where(isUuid(id) ? eq(groups.id, id) : eq(groups.slug, id))
     .limit(1);
   if (!row) return null;
 
@@ -429,6 +454,7 @@ export async function createGroup(db: Tx, actor: WriteActor, input: GroupInput):
       openToJoin: input.openToJoin ?? true,
       listed: input.listed ?? true,
       ...values,
+      slug: await freeSlug(db, values.name),
     })
     .returning({ id: groups.id });
 

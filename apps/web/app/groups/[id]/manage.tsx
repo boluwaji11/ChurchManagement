@@ -36,7 +36,7 @@ export function ManageGroup({
       {/* A link rather than a button, because it opens a page. Shaped from the
           same tokens the IconButton beside it uses, so the pair reads as one. */}
       <Link
-        href={`/groups/${group.id}/edit?church=${church}`}
+        href={`/groups/${group.slug}/edit?church=${church}`}
         aria-label={t("groups.edit")}
         title={t("groups.edit")}
         className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"

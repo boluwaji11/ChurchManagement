@@ -71,10 +71,14 @@ export const mappable = (a: AddressValues): boolean =>
   Boolean(a.line1?.trim())
   && Boolean(a.city?.trim() || a.postalCode?.trim() || a.region?.trim());
 
-/** A link to directions, or null where the address cannot be resolved. */
-export function directionsLink(a: AddressValues, place?: string | null): string | null {
+/**
+ * A link to directions, or null where the address cannot be resolved.
+ *
+ * The address alone, without the venue's name in front of it. A name Google
+ * recognises wins over the street that follows it, and "Lake Tamarack Camp"
+ * sent a reader to a lake rather than to the road the camp is on.
+ */
+export function directionsLink(a: AddressValues): string | null {
   if (!mappable(a)) return null;
-  return mapsHref(
-    [place?.trim(), oneLineAddress(a)].map((part) => part?.trim()).filter(Boolean).join(", "),
-  );
+  return mapsHref(oneLineAddress(a));
 }

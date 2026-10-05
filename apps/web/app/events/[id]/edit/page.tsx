@@ -49,7 +49,7 @@ export default async function EditEventPage({
   return (
     <AppShell session={session}>
       <Link
-        href={`/events/${event.id}?church=${session.tenantSlug}`}
+        href={`/events/${event.slug}?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {event.name}

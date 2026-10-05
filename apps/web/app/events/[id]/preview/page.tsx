@@ -105,7 +105,7 @@ export default async function PreviewEventPage({
       event={shown}
       coverUrl={await sign(event.coverKey)}
       logoUrl={await sign(profile?.logoKey ?? null)}
-      registerHref={`/events/${event.id}/preview/register?church=${session.tenantSlug}`}
+      registerHref={`/events/${event.slug}/preview/register?church=${session.tenantSlug}`}
       banner={
         <div
           className="px-4 py-2 text-center text-caption font-medium"

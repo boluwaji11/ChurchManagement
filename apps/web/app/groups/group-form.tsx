@@ -16,6 +16,7 @@ export interface GroupTypeOption {
 /** The fields the form writes, which is every field a group has. */
 export interface GroupDraft {
   id: string;
+  slug: string;
   name: string;
   description: string | null;
   typeId: string | null;

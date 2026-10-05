@@ -46,7 +46,7 @@ export function EventPage({
     country: event.country ?? "",
   };
   const address = oneLineAddress(place);
-  const directions = directionsLink(place, event.location);
+  const directions = directionsLink(place);
 
   const left = event.capacity === null || !event.showCapacity
     ? null

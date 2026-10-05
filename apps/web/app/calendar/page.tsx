@@ -127,7 +127,7 @@ export default async function CalendarPage({
                 .filter(Boolean)
                 .join(" \u00b7 "),
               hue: one.hue,
-              href: `/events/${one.id}`,
+              href: `/events/${one.slug}`,
             });
           }
 

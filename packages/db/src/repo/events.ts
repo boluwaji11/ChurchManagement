@@ -1,4 +1,4 @@
-import { and, asc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { events, eventRegistrations } from "../schema/events";
 import { forms } from "../schema/forms";
@@ -8,7 +8,7 @@ import { InvalidInputError } from "../errors";
 import { can, rolesWith, type Who } from "../permissions";
 import type { TenantRole } from "../roles";
 import type { WriteActor } from "./people";
-import { formSlug } from "./form-rules";
+import { formSlug, isUuid } from "./form-rules";
 
 /**
  * R14.1 to R14.12. What the church is putting on.
@@ -187,16 +187,14 @@ function check(input: EventInput) {
 }
 
 /** The public part of the link, unique within the church. */
-async function freeSlug(db: Tx, name: string, exclude?: string): Promise<string> {
+async function freeSlug(db: Tx, name: string): Promise<string> {
   const base = formSlug(name);
   for (let n = 1; n < 200; n += 1) {
     const candidate = n === 1 ? base : `${base}-${n}`;
     const [clash] = await db
       .select({ id: events.id })
       .from(events)
-      .where(exclude
-        ? and(eq(events.slug, candidate), ne(events.id, exclude))
-        : eq(events.slug, candidate))
+      .where(eq(events.slug, candidate))
       .limit(1);
     if (!clash) return candidate;
   }
@@ -312,12 +310,13 @@ export async function listEvents(
   return rows.map((row) => shape(row as Record<string, unknown>));
 }
 
+/** R14.1. One event, found by its readable address or by its id. */
 export async function getEvent(db: Tx, id: string): Promise<ChurchEvent | null> {
   const [row] = await db
     .select(columns)
     .from(events)
     .leftJoin(people, eq(people.id, events.contactPersonId))
-    .where(eq(events.id, id))
+    .where(isUuid(id) ? eq(events.id, id) : eq(events.slug, id))
     .limit(1);
   return row ? shape(row as Record<string, unknown>) : null;
 }
@@ -352,7 +351,12 @@ export async function updateEvent(
 
   const changed = await db
     .update(events)
-    .set({ ...values, slug: await freeSlug(db, values.name, id), updatedAt: new Date() })
+    /*
+     * The slug is written once and kept. A church that fixes a typo in an
+     * event's name has already put the link in a bulletin, and a link that
+     * stops working is worse than a link that says the old name.
+     */
+    .set({ ...values, updatedAt: new Date() })
     .where(eq(events.id, id))
     .returning({ id: events.id });
   if (changed.length === 0) throw new InvalidInputError("event.error.missing");

@@ -75,7 +75,7 @@ export default async function FormsPage({
             return (
               <li key={form.id} className="contents">
                 <Link
-                  href={`/forms/${form.id}?church=${session.tenantSlug}`}
+                  href={`/forms/${form.slug}?church=${session.tenantSlug}`}
                   className={`flex cursor-pointer flex-col gap-2.5 overflow-hidden rounded-[14px] border border-line bg-surface p-5 ${LIFT}`}
                 >
                   {/* R24.4. The form's own colour across the top of its tile,

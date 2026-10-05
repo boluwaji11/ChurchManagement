@@ -31,6 +31,8 @@ export type JoinStatus = (typeof JOIN_STATUSES)[number];
 
 export interface FoundGroup {
   id: string;
+  /** R9.2. The readable part of its address. */
+  slug: string;
   name: string;
   description: string | null;
   typeId: string | null;
@@ -136,6 +138,7 @@ export async function findGroups(
   const rows = await db
     .select({
       id: groups.id,
+      slug: groups.slug,
       name: groups.name,
       description: groups.description,
       typeId: groups.typeId,
@@ -202,6 +205,7 @@ export async function findGroups(
     const memberCount = Number(row.members);
     return {
       id: row.id,
+      slug: row.slug,
       name: row.name,
       description: row.description,
       typeId: row.typeId,

@@ -106,7 +106,7 @@ export default async function PreviewRegisterPage({
       today={clock.date}
       coverUrl={await sign(event.coverKey)}
       logoUrl={await sign(profile?.logoKey ?? null)}
-      backHref={`/events/${event.id}/preview?church=${session.tenantSlug}`}
+      backHref={`/events/${event.slug}/preview?church=${session.tenantSlug}`}
       preview
       banner={
         <div

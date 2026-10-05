@@ -63,6 +63,8 @@ export const groups = pgTable(
     campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "set null" }),
     typeId: uuid("type_id").references(() => groupTypes.id, { onDelete: "set null" }),
     name: text("name").notNull(),
+    /** R9.2. The readable part of its address, unique within the church. */
+    slug: text("slug").notNull(),
     /** What it is for, in the leader's words. Shown in the finder. */
     description: text("description"),
     /** 0 Sunday to 6 Saturday. Null for a group with no weekly pattern. */
@@ -136,6 +138,7 @@ export const groups = pgTable(
     index("group_type_idx").on(t.tenantId, t.typeId),
     index("group_day_idx").on(t.tenantId, t.dayOfWeek),
     uniqueIndex("group_name_unique").on(t.tenantId, t.name),
+    uniqueIndex("group_slug_unique").on(t.tenantId, t.slug),
   ],
 );
 

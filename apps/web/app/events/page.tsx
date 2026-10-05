@@ -12,6 +12,7 @@ import { churchNow } from "@/lib/church-now";
 import { Empty } from "@/components/empty";
 import { NewEventButton } from "./new-event";
 import { EventCard } from "./card";
+import { EventSearch } from "./event-search";
 
 export const dynamic = "force-dynamic";
 
@@ -93,8 +94,8 @@ export default async function EventsPage({
     <AppShell
       session={session}
       title={t("event.title")}
-      /* The action rides the first section's heading, so it is not a band of
-         its own above the content. */
+      /* No action in the band above: it shares a line with the search, and on
+         an empty screen it sits in the empty state where the eye already is. */
     >
       {putAway ? (
         <Link
@@ -112,32 +113,25 @@ export default async function EventsPage({
           action={action}
         />
       ) : (
-        <div className="flex flex-col gap-8">
-          {sections.map((section, at) => (
-            <section key={section.key} className="flex flex-col gap-3.5">
-              {/* The action rides the first heading, so the screen opens on
-                  its content rather than on a band holding one button. */}
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="flex-1 text-[13px] font-bold tracking-wide text-fg uppercase">
-                  {section.heading}
-                </h2>
-                {at === 0 ? action : null}
-              </div>
-
-              <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
-                {section.rows.map((one) => (
-                  <li key={one.id} className="contents">
-                    <EventCard
-                      church={session.tenantSlug}
-                      event={one}
-                      coverUrl={covers.get(one.id) ?? null}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
+        <EventSearch
+          count={events.length}
+          action={action}
+          sections={sections.map((section) => ({
+            key: section.key,
+            heading: section.heading,
+            items: section.rows.map((one) => ({
+              id: one.id,
+              name: one.name,
+              card: (
+                <EventCard
+                  church={session.tenantSlug}
+                  event={one}
+                  coverUrl={covers.get(one.id) ?? null}
+                />
+              ),
+            })),
+          }))}
+        />
       )}
 
       {!putAway && archivedCount > 0 ? (

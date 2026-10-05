@@ -72,7 +72,7 @@ export function EventCard({
         </div>
 
         <Link
-          href={`/events/${event.id}?church=${church}`}
+          href={`/events/${event.slug}?church=${church}`}
           className="font-display text-[22px] leading-[28px] text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {event.name}

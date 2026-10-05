@@ -301,6 +301,15 @@ export function conditionProblem(
 }
 
 /** "Connection card" becomes "connection-card", for the public link. */
+/**
+ * Whether a value in a URL is an id rather than a readable name.
+ *
+ * Every screen that takes one takes both, so a link written before a thing had
+ * a readable address, and a bookmark somebody kept, keep working.
+ */
+export const isUuid = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
 export function formSlug(name: string): string {
   const base = name
     .toLowerCase()
