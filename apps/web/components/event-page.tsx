@@ -120,17 +120,22 @@ export function EventPage({
               <Markdown text={event.description} className="max-w-[68ch]" />
             ) : null}
 
-            <section className="flex flex-col gap-4 border-t border-line pt-7">
-              <h2 className="font-display text-heading text-fg">{t("publicEvent.who")}</h2>
-              <Register
-                churchSlug={churchSlug}
-                eventSlug={eventSlug}
-                today={today}
-                state={event.state}
-                questions={event.questions}
-                preview={preview}
-              />
-            </section>
+            {/* R14.2. A preview shows the page, and the page is what the
+                church is checking. The registration form belongs to whoever
+                is coming, and drawing a dead one under a preview is a control
+                that cannot be used. */}
+            {preview ? null : (
+              <section className="flex flex-col gap-4 border-t border-line pt-7">
+                <h2 className="font-display text-heading text-fg">{t("publicEvent.who")}</h2>
+                <Register
+                  churchSlug={churchSlug}
+                  eventSlug={eventSlug}
+                  today={today}
+                  state={event.state}
+                  questions={event.questions}
+                />
+              </section>
+            )}
           </div>
         </div>
 

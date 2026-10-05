@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { withTenant, getEvent, getForm, canManageEvents } from "@hearth/db";
+import { withTenant, getEvent, getForm, listForms, canManageEvents } from "@hearth/db";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -40,6 +40,7 @@ export default async function EventPage({
     return {
       event: found,
       form: found.formId ? await getForm(tx, found.formId) : null,
+      forms: await listForms(tx),
     };
   });
   if (!result) notFound();
@@ -61,6 +62,7 @@ export default async function EventPage({
         coverUrl={coverUrl}
         questions={result.form?.fields.filter((one) => one.kind !== "section").length ?? 0}
         formId={result.event.formId}
+        forms={result.forms.map((one) => ({ id: one.id, name: one.name }))}
         tab={tab === "registrations" || tab === "questions" ? tab : "overview"}
       />
     </AppShell>

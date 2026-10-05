@@ -156,6 +156,17 @@ export function EventEditor({
       className="flex flex-col gap-5"
     >
       <Working open={busy} label={t("image.uploading")} />
+
+      {/*
+        * The colour and the chosen picture ride hidden fields.
+        *
+        * Save watches the form's own values to decide whether anything has
+        * changed, so a choice held only in React state is a change it cannot
+        * see. Picking a colour or a cover left Save dead and the work
+        * unsaveable.
+        */}
+      <input type="hidden" name="hue" value={hue} />
+      <input type="hidden" name="cover" value={picture?.name ?? ""} />
       {error ? <Banner tone="danger" title={t("event.failed")}>{error}</Banner> : null}
 
       {/* Save sits at the top right, where every other edit screen puts it,

@@ -2,7 +2,7 @@
 
 import {
   withTenant, createEvent, updateEvent, setEventStatus, setEventArchived,
-  setEventRegistrationOpen, setEventHue, setEventCover, ensureEventForm,
+  setEventRegistrationOpen, setEventHue, setEventCover, ensureEventForm, setEventForm,
   getChurch, lookupPeople,
   type EventInput, type EventStatus,
 } from "@hearth/db";
@@ -41,6 +41,7 @@ function read(data: FormData): EventInput {
   return {
     name: text("name") ?? "",
     description: text("description"),
+    hue: text("hue"),
     startsOn: text("startsOn") ?? "",
     startsAt: text("startsAt"),
     endsOn: text("endsOn"),
@@ -191,5 +192,20 @@ export async function findEventContact(
     });
   } catch {
     return [];
+  }
+}
+
+/** R14.5. Points an event at a form the church already wrote, or unlinks it. */
+export async function useFormForEvent(
+  eventId: string,
+  formId: string | null,
+  church?: string,
+): Promise<EventResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setEventForm(tx, actor, eventId, formId));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
   }
 }

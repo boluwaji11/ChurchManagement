@@ -2097,6 +2097,8 @@ export const en = {
   "event.questions": "Registration questions",
   "event.questions.add": "Add questions",
   "event.questions.edit": "Edit the questions",
+  "event.questions.unlink": "Stop using it",
+  "event.questions.useExisting": "Use a form you already wrote",
   "event.tab.overview": "Overview",
   "event.tab.registrations": "Registrations",
   "event.tab.questions": "Questions",

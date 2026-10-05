@@ -492,3 +492,39 @@ export async function ensureEventForm(
     .where(eq(events.id, eventId));
   return { id: row!.id };
 }
+
+/**
+ * R14.5. Points an event at a form the church has already written.
+ *
+ * Linked rather than claimed: the form keeps its own public link and stays in
+ * the Forms list, because a church that built one connection card for the whole
+ * term should be able to use it on an event without losing it everywhere else.
+ * `ensureEventForm` is the other half, for questions that belong to one event.
+ *
+ * Null unlinks, which leaves the form where it is and the event asking only for
+ * a name.
+ */
+export async function setEventForm(
+  db: Tx,
+  actor: WriteActor,
+  eventId: string,
+  formId: string | null,
+): Promise<void> {
+  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+
+  if (formId) {
+    const [found] = await db
+      .select({ id: forms.id })
+      .from(forms)
+      .where(and(eq(forms.id, formId), sql`${forms.archivedAt} is null`))
+      .limit(1);
+    if (!found) throw new InvalidInputError("form.error.missing");
+  }
+
+  const changed = await db
+    .update(events)
+    .set({ formId, updatedAt: new Date() })
+    .where(eq(events.id, eventId))
+    .returning({ id: events.id });
+  if (changed.length === 0) throw new InvalidInputError("event.error.missing");
+}
