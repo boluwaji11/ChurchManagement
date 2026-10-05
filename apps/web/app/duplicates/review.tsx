@@ -171,7 +171,17 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
               <div className="flex items-center border-b border-sunken px-5 py-2.5 text-[12px] text-fg-subtle">
                 {row.label}
               </div>
-              {(["a", "b"] as const).map((side) => (
+              {fixed ? (
+                /* R2.5. Both are kept, so there is nothing to pick. Said here
+                   rather than left as two cells that refuse to be pressed. */
+                <div className="col-span-2 flex items-center gap-3 border-b border-sunken px-5 py-2.5 text-[length:var(--d-text-body)] text-fg">
+                  <span className="min-w-0 flex-1 truncate">{row.a}</span>
+                  <span className="min-w-0 flex-1 truncate">{row.b}</span>
+                  <span className="shrink-0 text-caption text-fg-subtle">
+                    {t("merge.bothKept")}
+                  </span>
+                </div>
+              ) : (["a", "b"] as const).map((side) => (
                 <button
                   key={side}
                   type="button"
