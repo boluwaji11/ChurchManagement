@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   withTenant, findGroups, personForUser, householdFor, assignmentsForPerson,
-  upcomingServices, listEvents, canEditPeople, canReadIncidents,
+  listEvents, canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import {
@@ -11,7 +11,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./serving/respond";
-import { onDay, onDayLong, dayName, readableTime } from "./when";
+import { onDay, dayName, readableTime } from "./when";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +56,6 @@ export default async function MemberHomePage({
         serving: self
           ? await assignmentsForPerson(tx, self, { from: now.date, limit: 6 })
           : [],
-        services: await upcomingServices(tx, { from: now.date, limit: 1 }),
         events: (await listEvents(tx, { from: now.date }))
           .filter((one) => one.listed && one.status !== "cancelled")
           .slice(0, 3),
@@ -64,28 +63,20 @@ export default async function MemberHomePage({
     },
   );
 
-  const next = mine.services[0];
   const asked = mine.serving.filter((one) => one.status === "pending");
   const ahead = mine.serving.filter((one) => one.status !== "pending").slice(0, 3);
   const first = session.displayName.split(" ")[0] ?? session.displayName;
 
   return (
     <PortalShell session={session}>
-      <PortalTitle
-        title={t("home.hello", { name: first })}
-        under={
-          next
-            ? t("home.nextService", {
-                name: next.name,
-                when: `${onDayLong(next.occursOn)}, ${readableTime(next.startsAt)}`,
-              })
-            : t("home.noService")
-        }
-      />
+      <PortalTitle title={t("home.hello", { name: first })} />
 
-      {/* The week down the main column, the standing facts down the side. */}
-      <div className="flex flex-wrap items-start gap-6">
-        <div className="flex min-w-0 flex-[999_1_480px] flex-col gap-4">
+      {/* The week down the main column, the standing facts down the side, with
+          a rule between them. The aside is pushed down by the height of the
+          heading beside it (28px of line plus the 16px gap under it) so the
+          first card on each side starts on the same line. */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-8">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
           <PortalSection title={t("home.thisWeek")}>
             {asked.length === 0 && ahead.length === 0 ? (
               <Panel>
@@ -186,7 +177,7 @@ export default async function MemberHomePage({
           </PortalSection>
         </div>
 
-        <aside className="flex min-w-0 flex-[1_1_300px] flex-col gap-4">
+        <aside className="flex w-full flex-col gap-4 lg:w-[320px] lg:shrink-0 lg:border-l lg:border-line lg:pl-8 lg:pt-11">
           <Panel className="flex flex-col gap-2.5">
             <span className="text-caption font-medium text-fg-subtle">{t("home.myGroups")}</span>
             {mine.groups.length > 0 ? (

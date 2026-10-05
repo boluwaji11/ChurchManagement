@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getChurch, listEvents, countArchivedEvents, canManageEvents,
@@ -13,6 +12,7 @@ import { Empty } from "@/components/empty";
 import { NewEventButton } from "./new-event";
 import { EventCard, EventRow } from "./card";
 import { EventSearch } from "./event-search";
+import { MemberEvents } from "./member-events";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,12 @@ export default async function EventsPage({
   const { church, archived } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageEvents(session)) redirect(`/?church=${session.tenantSlug}`);
+  /*
+   * R14.2, R17.1. A member reads the same list from the other side: what the
+   * church has coming up, in the portal's own frame, with none of the running
+   * of it. Whoever manages events keeps the screen below.
+   */
+  if (!canManageEvents(session)) return <MemberEvents session={session} />;
 
   const putAway = archived === "1";
   const ctx = {

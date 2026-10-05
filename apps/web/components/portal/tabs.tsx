@@ -33,10 +33,20 @@ export interface PortalTab {
 export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string }) {
   const path = usePathname();
 
-  const on = (tab: PortalTab) => {
-    const owns = tab.owns ?? [tab.href];
-    return owns.some((one) => path === one || path.startsWith(`${one}/`));
+  /*
+   * The longest match wins, so /home/serving lights Serving and leaves Home
+   * alone. Matching on a prefix alone underlined both, because every member
+   * screen lives under /home.
+   */
+  const reach = (tab: PortalTab) => {
+    let best = -1;
+    for (const one of tab.owns ?? [tab.href]) {
+      if (path === one || path.startsWith(`${one}/`)) best = Math.max(best, one.length);
+    }
+    return best;
   };
+  const lit = Math.max(...tabs.map(reach));
+  const on = (tab: PortalTab) => lit >= 0 && reach(tab) === lit;
 
   return (
     <nav className="-mb-px flex min-w-0 flex-1 flex-wrap items-stretch">

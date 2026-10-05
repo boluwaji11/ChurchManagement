@@ -4,12 +4,14 @@ import { ArrowLeft, Check } from "lucide-react";
 import {
   withTenant, groupPage, personForUser, getChurch, upcomingMeetings,
   listGroupTypes, groupRoster, canManageGroups, pendingRequests,
+  canEditPeople, canReadIncidents,
   openMeeting, lastMeetingDay, canRecordFor,
   type Meeting, type MeetingPerson,
 } from "@connectapp/db";
 import { Badge } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
+import { PortalShell } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { GroupBanner } from "../banner";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -59,6 +61,7 @@ export default async function GroupPage({
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   const manage = canManageGroups(session);
+  const portal = !canEditPeople(session) && !canReadIncidents(session) && !manage;
 
   const data = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
@@ -173,8 +176,13 @@ export default async function GroupPage({
         .map((on) => ({ on, label: shortDay(on) }))
     : [];
 
+  // R17.5. A member reads a group in the portal's frame, which is the one the
+  // rest of their screens wear. Nothing on the page changes: what they may do
+  // to the group is already decided by `canEdit`.
+  const Frame = portal ? PortalShell : AppShell;
+
   return (
-    <AppShell session={session}>
+    <Frame session={session}>
       {/* The way back on the left, and what this church may do to the group on
           the right, as the icons every other record page carries. */}
       <div className="flex items-center gap-3">
@@ -338,6 +346,6 @@ export default async function GroupPage({
         attendanceDays={attendanceDays}
       />
 
-    </AppShell>
+    </Frame>
   );
 }
