@@ -31,10 +31,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
   return (
     <nav
       aria-label={t("settings.sections")}
-      /* Held in place while the page beside it scrolls, because a menu that
-         leaves the screen is a menu you scroll back up to reach. Clears the top
-         bar, which is sticky too. */
-      className="flex max-w-50 flex-[1_1_160px] flex-col gap-3.5 self-start md:sticky md:top-[76px] md:max-h-[calc(100dvh-92px)] md:overflow-y-auto"
+      className="flex max-w-50 flex-[1_1_160px] flex-col gap-3.5"
     >
       {groups.map((group) => (
         <div key={group.title} className="flex flex-col gap-0.5">
