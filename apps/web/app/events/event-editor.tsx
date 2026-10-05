@@ -4,8 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
 import {
-  ALL_HUES, Banner, Button, Checkbox, Field, IconButton, Input, Working,
-  Dialog, DialogContent, DialogFooter, RadioGroup, RadioItem,
+  ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Working,
+  Dialog, DialogContent, DialogFooter,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { imageLimit } from "@/components/image-limit";
@@ -192,13 +192,18 @@ export function EventEditor({
       {/* R14.5. Which form people answer when they register. */}
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent title={t("event.questions.choose")} closeLabel={t("common.close")}>
-          <RadioGroup value={formId} onValueChange={setFormId}>
-            {forms.map((one) => (
-              <RadioItem key={one.id} value={one.id}>
-                {one.name}
-              </RadioItem>
-            ))}
-          </RadioGroup>
+          {/* A lookup rather than a list of circles: a church that has run a
+              few terms has more forms than fit in a panel, and the one it
+              wants it can name. */}
+          <Combobox
+            value={formId}
+            onChange={setFormId}
+            options={forms.map((one) => ({ value: one.id, label: one.name }))}
+            placeholder={t("common.search")}
+            emptyLabel={t("common.noMatch")}
+            clearLabel={t("date.clear")}
+            aria-label={t("event.questions.choose")}
+          />
 
           <DialogFooter>
             <Button
@@ -206,7 +211,7 @@ export function EventEditor({
               variant="ghost"
               onClick={() => router.push(`/forms?church=${church}`)}
             >
-              {t("form.new")}
+              {t("form.newOne")}
             </Button>
             <Button type="button" onClick={() => setAsking(false)} disabled={!formId}>
               {t("action.save")}
