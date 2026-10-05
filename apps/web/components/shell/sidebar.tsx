@@ -81,13 +81,21 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col gap-6 overflow-y-auto overflow-x-hidden",
+        // Fixed to the window rather than scrolling with the page: the church's
+        // mark stays at the top and signing out stays at the bottom, and only
+        // the list of sections scrolls when a short screen cannot hold it.
+        "sticky top-0 hidden h-screen shrink-0 flex-col gap-6 overflow-hidden",
         "border-r border-line bg-sunken md:flex",
         "motion-safe:transition-[width] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-out)",
         collapsed ? "w-16 px-2.5 py-5" : "w-58 px-3 py-5",
       )}
     >
-      <div className={cn("flex items-center", collapsed ? "flex-col gap-2" : "gap-2.5 pl-2")}>
+      <div
+        className={cn(
+          "flex shrink-0 items-center",
+          collapsed ? "flex-col gap-2" : "gap-2.5 pl-2",
+        )}
+      >
         <Link href="/choose-church" className="flex min-w-0 items-center gap-2.5" aria-label={churchName}>
           <FlameMark logoUrl={logoUrl} />
           {collapsed ? null : (
@@ -117,7 +125,10 @@ export function Sidebar({
         </Tooltip>
       </div>
 
-      <nav className="flex flex-col gap-0.5" aria-label={t("nav.sections")}>
+      <nav
+        className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto"
+        aria-label={t("nav.sections")}
+      >
         {entries.map((entry) => {
           const on = active === entry.href;
           const row = (
@@ -160,7 +171,7 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="mt-auto flex flex-col gap-3">
+      <div className="flex shrink-0 flex-col gap-3">
         {/* Who is signed in, and the way to their own screen. It used to open
             Settings, which is its own row two inches above, and the chevrons
             promised a church switch it never made. */}
