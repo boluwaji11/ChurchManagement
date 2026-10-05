@@ -1,4 +1,5 @@
 import { en } from "./messages/en";
+import { toAmerican, type Spelling } from "./spelling";
 
 /**
  * R22.8. Every user-facing string lives in a catalogue, from the first commit,
@@ -30,6 +31,36 @@ export const DEFAULT_LOCALE: Locale = "en";
 /** The locales that have a complete catalogue. */
 export const LOCALES = Object.keys(CATALOGUES) as Locale[];
 
+/**
+ * R22.8. Which spelling this reader gets, asked at the moment a string is read.
+ *
+ * The host answers, because only the host knows whose church is on screen and
+ * only the host has a per-request store to keep it in. This package stays free
+ * of the framework: it holds a function, calls it, and falls back to the
+ * spelling the catalogue is written in.
+ *
+ * Registered once, where the application starts. A `t()` that runs before then,
+ * such as a constant built at module scope, gets British, which is what the
+ * catalogue says and is wrong for nobody in a way anybody notices: the words
+ * that differ are not the ones in a date picker's buttons.
+ */
+let resolver: (() => Spelling) | null = null;
+
+export function setSpellingResolver(next: (() => Spelling) | null): void {
+  resolver = next;
+}
+
+function spoken(text: string): string {
+  if (!resolver) return text;
+  try {
+    return resolver() === "american" ? toAmerican(text) : text;
+  } catch {
+    // A resolver that cannot answer, such as one reaching for a request store
+    // outside a request, leaves the words as written.
+    return text;
+  }
+}
+
 function interpolate(template: string, params?: Params): string {
   if (!params) return template;
   return template.replace(/\{(\w+)\}/g, (whole, name: string) => {
@@ -51,7 +82,7 @@ export function t(key: MessageKey, params?: Params, locale: Locale = DEFAULT_LOC
   // A key the catalogue does not hold renders as the key. The type makes that
   // unreachable in a build that compiles, and a half-saved file in development
   // used to put an empty button on the screen instead of saying why.
-  return interpolate(catalogue[key] ?? en[key] ?? key, params);
+  return spoken(interpolate(catalogue[key] ?? en[key] ?? key, params));
 }
 
 /**
@@ -74,7 +105,7 @@ export function plural(
   const fallback = `${key}.other` as MessageKey;
   const catalogue = CATALOGUES[locale] ?? en;
   const template = catalogue[exact] ?? catalogue[fallback] ?? en[fallback] ?? key;
-  return interpolate(template, { count, ...params });
+  return spoken(interpolate(template, { count, ...params }));
 }
 
 type PluralCategory = "zero" | "one" | "two" | "few" | "many" | "other";
@@ -89,4 +120,5 @@ type StemOf<K> = K extends `${infer Stem}.${PluralCategory}` ? Stem : never;
 export type PluralKey = StemOf<MessageKey>;
 
 export { en };
+export * from "./spelling";
 export * from "./regions";

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import {
   withTenant, countUnread, listNotifications, NOTIFICATION_LOOK, getChurch,
 } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { t, spellingFor } from "@hearth/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
 import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";
@@ -14,6 +14,8 @@ import { navFor } from "./shell/nav";
 import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
 import { ChurchMarkProvider } from "./church-mark";
 import { supabaseServer } from "@/lib/supabase/server";
+import { readsAs } from "@/lib/spelling";
+import { SpellingProvider } from "./spelling-provider";
 import type { Session } from "@/lib/session";
 
 /**
@@ -61,9 +63,16 @@ export async function AppShell({
       unread: await countUnread(tx, session.userId),
       notifications: await listNotifications(tx, session.userId),
       // R1.1. The church's own mark, for the sidebar and the phone's top bar.
-      logoKey: (await getChurch(tx, session.tenantId))?.logoKey ?? null,
+      church: await getChurch(tx, session.tenantId),
     }),
   );
+
+  /*
+   * R22.8. Which spelling this church reads, set before anything on the page
+   * reads a string and handed to the browser so both sides say the same words.
+   */
+  const spelling = spellingFor(counts.church?.country);
+  readsAs(counts.church?.country);
 
   /*
    * The bucket is private, so the logo is served through a signed URL with an
@@ -71,9 +80,10 @@ export async function AppShell({
    * tab open overnight gets a fresh one on their next navigation.
    */
   let logoUrl: string | null = null;
-  if (counts.logoKey) {
+  const logoKey = counts.church?.logoKey ?? null;
+  if (logoKey) {
     const supabase = await supabaseServer();
-    const signed = await supabase.storage.from("church").createSignedUrl(counts.logoKey, 3600);
+    const signed = await supabase.storage.from("church").createSignedUrl(logoKey, 3600);
     logoUrl = signed.data?.signedUrl ?? null;
   }
 
@@ -136,6 +146,7 @@ export async function AppShell({
           {/* Every screen in the design is a column with 28px between its
               blocks. */}
           <ChurchMarkProvider logoUrl={logoUrl}>
+            <SpellingProvider spelling={spelling}>
             <div className="flex flex-col gap-7">
               {/* R24.6. The screen's one action sits with the screen rather
                   than in the bar, which belongs to the product. Beside the
@@ -144,6 +155,7 @@ export async function AppShell({
               {action ? <div className="flex justify-end">{action}</div> : null}
               {children}
             </div>
+            </SpellingProvider>
           </ChurchMarkProvider>
         </main>
       </div>

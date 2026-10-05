@@ -314,6 +314,7 @@ of money and after everything else.
 | HRT-105 | The setup wizard: church, services, roles, import. Resumable and skippable | R22.1 | Resolved |
 | HRT-108 | Who can get in: the team, invitations, roles | R1.4, R1.7 | Resolved |
 | HRT-106 | In-context help on every screen | R22.2 | Resolved |
+| HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Resolved |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Resolved |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a

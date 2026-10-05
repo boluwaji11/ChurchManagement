@@ -18,6 +18,15 @@ export interface ComboboxProps {
   placeholder?: string;
   /** Shown when nothing matches what was typed. */
   emptyLabel: string;
+  /**
+   * A row pinned under the options, inside the panel.
+   *
+   * For the one action that belongs with a list rather than beside it: making
+   * the thing somebody came looking for and did not find. It sits in the panel
+   * so it is where the eye already is, and it is not an option, so it is never
+   * chosen by the keyboard walking the list.
+   */
+  footer?: React.ReactNode;
   clearLabel: string;
   /** False where the field always holds one of its options. */
   clearable?: boolean;
@@ -54,6 +63,7 @@ export function Combobox({
   onChange,
   placeholder,
   emptyLabel,
+  footer,
   clearLabel,
   clearable = true,
   onQueryChange,
@@ -301,6 +311,12 @@ export function Combobox({
               {option.label}
             </li>
           ))}
+
+          {footer ? (
+            <li className={cn("px-1 pt-1", matches.length > 0 && "mt-1 border-t border-line")}>
+              {footer}
+            </li>
+          ) : null}
         </ul>
       ) : null}
     </div>

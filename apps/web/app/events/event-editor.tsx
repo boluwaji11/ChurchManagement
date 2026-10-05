@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
+import { Check, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
 import {
   ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Working,
   Dialog, DialogContent, DialogFooter,
@@ -199,27 +199,51 @@ export function EventEditor({
           closeLabel={t("common.close")}
           className="overflow-visible"
         >
-          {/* A lookup rather than a list of circles: a church that has run a
-              few terms has more forms than fit in a panel, and the one it
-              wants it can name. */}
-          <Combobox
-            value={formId}
-            onChange={setFormId}
-            options={forms.map((one) => ({ value: one.id, label: one.name }))}
-            placeholder={t("common.search")}
-            emptyLabel={t("common.noMatch")}
-            clearLabel={t("date.clear")}
-            aria-label={t("event.questions.choose")}
-          />
+          {/*
+            * A lookup rather than a list of circles: a church that has run a
+            * few terms has more forms than fit in a panel, and the one it wants
+            * it can name. Writing a new one sits in the panel with them, which
+            * is where somebody is when they find the list does not hold it.
+            */}
+          {forms.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 py-2">
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">
+                {t("event.questions.noForms")}
+              </span>
+              <button
+                type="button"
+                onClick={() => router.push(`/forms?church=${church}`)}
+                className="cursor-pointer text-[length:var(--d-text-body)] font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                {t("form.newOne")}
+              </button>
+            </div>
+          ) : (
+            <Combobox
+              value={formId}
+              onChange={setFormId}
+              options={forms.map((one) => ({ value: one.id, label: one.name }))}
+              placeholder={t("common.search")}
+              emptyLabel={t("common.noMatch")}
+              clearLabel={t("date.clear")}
+              aria-label={t("event.questions.choose")}
+              footer={
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    router.push(`/forms?church=${church}`);
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-left text-[length:var(--d-text-body)] font-semibold text-primary hover:bg-sunken"
+                >
+                  <Plus className="size-4 shrink-0" aria-hidden />
+                  {t("form.newOne")}
+                </button>
+              }
+            />
+          )}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => router.push(`/forms?church=${church}`)}
-            >
-              {t("form.newOne")}
-            </Button>
             <Button type="button" onClick={() => setAsking(false)} disabled={!formId}>
               {t("action.save")}
             </Button>
@@ -349,12 +373,6 @@ export function EventEditor({
         * question below is noise on them.
         */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
-        <span
-          className="size-2 shrink-0 rounded-full"
-          style={{
-            background: takes ? "var(--hue-fern-500)" : "var(--hue-sky-500)",
-          }}
-        />
         <Flag
           name="takesRegistrations"
           label={t("event.takesRegistrations")}

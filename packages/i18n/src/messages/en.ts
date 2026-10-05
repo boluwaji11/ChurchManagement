@@ -2150,6 +2150,7 @@ export const en = {
   "event.questions.edit": "Edit the questions",
   "event.questions.unlink": "Stop using it",
   "event.questions.choose": "Link a registration form",
+  "event.questions.noForms": "No form has been created yet",
   "event.tab.overview": "Overview",
   "event.tab.registrations": "Registrations",
   "event.tab.questions": "Questions",
