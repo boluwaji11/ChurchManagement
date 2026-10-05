@@ -36,6 +36,8 @@ export interface ChurchProfile {
   postalCode: string | null;
   country: string;
   phone: string | null;
+  /** R1.1. Where somebody reading a public page writes to. */
+  email: string | null;
   website: string | null;
   brandHue: string;
   logoKey: string | null;
@@ -54,6 +56,7 @@ export interface ChurchInput {
   postalCode?: string | null;
   country?: string;
   phone?: string | null;
+  email?: string | null;
   website?: string | null;
   brandHue?: string;
 }
@@ -64,7 +67,7 @@ export async function getChurch(db: Tx, tenantId: string): Promise<ChurchProfile
       id: tenants.id, slug: tenants.slug, name: tenants.name, legalName: tenants.legalName,
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
-      postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone,
+      postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       joinCode: tenants.joinCode,
     })
@@ -110,6 +113,7 @@ export async function updateChurch(
       postalCode: trim(input.postalCode),
       country: input.country?.trim() || "US",
       phone: trim(input.phone),
+      email: trim(input.email),
       website: trim(input.website),
       ...(input.brandHue ? { brandHue: input.brandHue as never } : {}),
       updatedAt: new Date(),
@@ -119,7 +123,7 @@ export async function updateChurch(
       id: tenants.id, slug: tenants.slug, name: tenants.name, legalName: tenants.legalName,
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
-      postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone,
+      postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       joinCode: tenants.joinCode,
     });

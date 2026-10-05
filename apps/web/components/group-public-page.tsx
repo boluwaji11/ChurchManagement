@@ -2,6 +2,7 @@ import { t } from "@hearth/i18n";
 import type { PublicChurch, PublicGroup } from "@hearth/db";
 import { mapsHref } from "@/lib/address";
 import { GroupLine } from "@/app/g/[slug]/line";
+import { PublicFooter } from "@/components/public-footer";
 
 /**
  * R9.5. A group as the open web sees it.
@@ -93,12 +94,10 @@ export function GroupPublicPage({
             </section>
           ) : null}
 
-          <p className="text-caption text-fg-muted">
-            {t("publicGroups.contact")}
-            {church.phone ? ` ${church.phone}` : ""}
-          </p>
         </div>
       </main>
+
+      <PublicFooter church={church} />
     </div>
   );
 }

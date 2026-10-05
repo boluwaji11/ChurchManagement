@@ -73,6 +73,7 @@ export default async function PreviewEventPage({
       name: profile?.name ?? session.tenantName,
       brandHue: profile?.brandHue ?? "indigo",
       phone: profile?.phone ?? null,
+    email: profile?.email ?? null,
       website: profile?.website ?? null,
       logoKey: profile?.logoKey ?? null,
     },

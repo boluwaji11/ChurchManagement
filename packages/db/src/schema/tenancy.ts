@@ -25,6 +25,8 @@ export const tenants = pgTable(
     postalCode: text("postal_code"),
     country: text("country").notNull().default("US"),
     phone: text("phone"),
+    /** R1.1. Where somebody reading a public page writes to. */
+    email: text("email"),
     website: text("website"),
     /**
      * R7.6. How many held services somebody misses in a row before the church

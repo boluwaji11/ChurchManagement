@@ -28,6 +28,8 @@ export interface ComboboxProps {
    * so it is where the eye already is, and it is not an option, so it is never
    * chosen by the keyboard walking the list.
    */
+  /** Pinned above the list, never filtered. */
+  header?: React.ReactNode;
   footer?: React.ReactNode;
   clearLabel: string;
   /** False where the field always holds one of its options. */
@@ -66,6 +68,7 @@ export function Combobox({
   placeholder,
   icon,
   emptyLabel,
+  header,
   footer,
   clearLabel,
   clearable = true,
@@ -294,6 +297,12 @@ export function Combobox({
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
         >
+          {header ? (
+            <li className={cn("px-1 pb-1", (matches.length > 0 || emptyLabel) && "mb-1 border-b border-line")}>
+              {header}
+            </li>
+          ) : null}
+
           {matches.length === 0 ? (
             <li className="px-2 py-2 text-[length:var(--d-text-body)] text-fg-muted">
               {emptyLabel}

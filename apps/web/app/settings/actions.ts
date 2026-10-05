@@ -49,6 +49,7 @@ export async function saveChurch(data: FormData): Promise<SettingsResult> {
         postalCode: text(data, "postalCode"),
         country: text(data, "country") || "US",
         phone: text(data, "phone"),
+        email: text(data, "email"),
         website: text(data, "website"),
       }),
     );

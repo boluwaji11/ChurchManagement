@@ -4,6 +4,7 @@ import { t, plural } from "@hearth/i18n";
 import type { PublicEvent } from "@hearth/db";
 import { longDate, readableTime } from "@/lib/dates";
 import { Register } from "@/app/e/[slug]/[event]/register";
+import { PublicFooter } from "@/components/public-footer";
 
 /**
  * R14.2, R14.6. Registering, with the event still on screen.
@@ -113,6 +114,8 @@ export function EventRegisterPage({
           onTrial={onTrial}
         />
       </main>
+
+      <PublicFooter church={event.church} />
     </div>
   );
 }

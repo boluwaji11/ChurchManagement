@@ -5,6 +5,7 @@ import { Button } from "@hearth/ui";
 import { Markdown } from "@/components/markdown";
 import { longDate, readableTime } from "@/lib/dates";
 import { oneLineAddress, directionsLink } from "@/lib/address";
+import { PublicFooter } from "@/components/public-footer";
 
 /**
  * R14.2. An event as the open web sees it.
@@ -180,6 +181,8 @@ export function EventPage({
 
         </div>
       </main>
+
+      <PublicFooter church={event.church} />
     </div>
   );
 }

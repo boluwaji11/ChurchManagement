@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
 import {
-  ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Working,
+  ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Working, cn,
   Dialog, DialogContent, DialogFooter,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -255,6 +255,24 @@ export function EventEditor({
               emptyLabel={t("common.noMatch")}
               clearLabel={t("date.clear")}
               aria-label={t("event.questions.choose")}
+              header={
+                /* R14.5. Always offered and never filtered, because plenty of
+                   events need to know who is coming and nothing more. */
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setFormId("");
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-left text-[length:var(--d-text-body)] font-medium text-fg hover:bg-sunken"
+                >
+                  <Check
+                    className={cn("size-4 shrink-0", formId ? "opacity-0" : "opacity-100")}
+                    aria-hidden
+                  />
+                  {t("event.questions.namesOnly")}
+                </button>
+              }
               footer={
                 <button
                   type="button"
@@ -272,31 +290,9 @@ export function EventEditor({
           )}
 
           <DialogFooter>
-            {/* R14.5. An event that only needs to know who is coming asks no
-                questions, so it carries no form. */}
             <Button
               type="button"
-              variant="secondary"
               disabled={linking}
-              onClick={() => {
-                setFormId("");
-                if (!event) {
-                  setAsking(false);
-                  return;
-                }
-                startLinking(async () => {
-                  const result = await useFormForEvent(event.id, null, church);
-                  if (result.error) setError(result.error);
-                  else setAsking(false);
-                  router.refresh();
-                });
-              }}
-            >
-              {t("event.questions.namesOnly")}
-            </Button>
-            <Button
-              type="button"
-              disabled={!formId || linking}
               onClick={() => {
                 // On an event that exists, the link is written now. On one
                 // being created there is no record to write it to yet, so it
@@ -306,7 +302,7 @@ export function EventEditor({
                   return;
                 }
                 startLinking(async () => {
-                  const result = await useFormForEvent(event.id, formId, church);
+                  const result = await useFormForEvent(event.id, formId || null, church);
                   if (result.error) setError(result.error);
                   else setAsking(false);
                   router.refresh();

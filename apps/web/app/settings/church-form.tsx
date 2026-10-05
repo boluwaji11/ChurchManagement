@@ -20,6 +20,7 @@ export interface ChurchValues {
   postalCode: string | null;
   country: string;
   phone: string | null;
+  email: string | null;
   website: string | null;
   brandHue: string;
 }
@@ -176,6 +177,9 @@ export function ChurchForm({
             <Field label={t("church.phone")}>
               <PhoneInput name="phone" defaultValue={values.phone ?? ""} disabled={!canEdit} />
             </Field>
+            <Field label={t("church.email")}>
+              <Input name="email" type="email" defaultValue={values.email ?? ""} disabled={!canEdit} />
+            </Field>
             <Field label={t("church.website")}>
               <Input name="website" type="url" defaultValue={values.website ?? ""} disabled={!canEdit} />
             </Field>
@@ -228,6 +232,7 @@ function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: s
     [t("church.postalCode"), values.postalCode],
     [t("church.country"), values.country],
     [t("church.phone"), values.phone],
+    [t("church.email"), values.email],
     [t("church.website"), values.website, href(values.website)],
     [t("church.timezone"), values.timezone.replace(/_/g, " ")],
   ];
