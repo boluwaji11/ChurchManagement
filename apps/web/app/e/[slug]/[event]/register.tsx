@@ -10,6 +10,7 @@ import {
 } from "@hearth/db/rules";
 import { Empty } from "@/components/empty";
 import { Answer } from "@/components/form-answer";
+import { FileList, type Attached } from "@/components/file-answer";
 import { registerParty } from "./actions";
 import type { Registrant } from "@hearth/db";
 
@@ -90,6 +91,9 @@ export function Register({
 }) {
   const [party, setParty] = React.useState<Person[]>([blank()]);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  // R4.1. What each person attached, keyed by person and question, so the
+  // summary reads back names rather than the keys the answer carries.
+  const [files, setFiles] = React.useState<Record<string, Attached[]>>({});
   const [failed, setFailed] = React.useState<string>();
   const [done, setDone] = React.useState<{ going: number; waiting: number } | null>(null);
   const [sending, startTransition] = React.useTransition();
@@ -373,6 +377,8 @@ export function Register({
                     field={field}
                     churchSlug={churchSlug}
                     formSlug={formSlug ?? undefined}
+                    onAttached={(attached) =>
+                      setFiles((was) => ({ ...was, [`${person.key}:${field.id}`]: attached }))}
                     value={person.answers[field.id] ?? null}
                     error={errors[`${person.key}:${field.id}`]}
                     onChange={(value) => answer(person.key, field.id, value)}
@@ -395,17 +401,20 @@ export function Register({
               answered are the same kind of thing to somebody checking it. */}
           <ul className="flex flex-col gap-4">
             {party.map((person, index) => {
-              const lines: { key: string; label: string; said: string }[] = [
-                { key: "email", label: t("publicEvent.email"), said: person.email.trim() },
-                { key: "phone", label: t("publicEvent.phone"), said: person.phone.trim() },
+              const lines = [
+                { key: "email", label: t("publicEvent.email"), said: person.email.trim(), files: [] as Attached[] },
+                { key: "phone", label: t("publicEvent.phone"), said: person.phone.trim(), files: [] as Attached[] },
                 ...visibleFields(questions, person.answers)
                   .filter((field) => field.kind !== "section")
                   .map((field) => ({
                     key: field.id,
                     label: field.label,
-                    said: said(person.answers[field.id] ?? null),
+                    said: field.kind === "file" ? "" : said(person.answers[field.id] ?? null),
+                    files: field.kind === "file"
+                      ? files[`${person.key}:${field.id}`] ?? []
+                      : [],
                   })),
-              ].filter((one) => one.said !== "");
+              ].filter((one) => one.said !== "" || one.files.length > 0);
 
               return (
                 <li
@@ -419,7 +428,9 @@ export function Register({
                       {lines.map((one) => (
                         <React.Fragment key={one.key}>
                           <dt className="text-fg-muted">{one.label}</dt>
-                          <dd className="text-fg">{one.said}</dd>
+                          <dd className="text-fg">
+                            {one.files.length > 0 ? <FileList files={one.files} /> : one.said}
+                          </dd>
                         </React.Fragment>
                       ))}
                     </dl>

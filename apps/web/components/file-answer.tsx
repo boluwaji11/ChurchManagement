@@ -2,16 +2,14 @@
 
 import * as React from "react";
 import { Paperclip, X } from "lucide-react";
-import {
-  Button, IconButton, Dialog, DialogContent,
-} from "@hearth/ui";
+import { Button, IconButton, Dialog, DialogContent } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import {
   FILE_TYPES, UPLOAD_RULES, ONE_MIB, type FileKind, type FormFieldDef,
 } from "@hearth/db/rules";
 
 /** One file that is on its way up, or already there. */
-interface Attached {
+export interface Attached {
   key: string;
   name: string;
   /**
@@ -37,16 +35,18 @@ export function FileAnswer({
   formSlug,
   value,
   onChange,
+  onAttached,
 }: {
   field: FormFieldDef;
   churchSlug: string;
   formSlug: string;
   value: string[];
   onChange: (keys: string[]) => void;
+  /** R4.1. What was attached, so a summary can read it back by name. */
+  onAttached?: (files: Attached[]) => void;
 }) {
   const [held, setHeld] = React.useState<Attached[]>([]);
   const [busy, setBusy] = React.useState(false);
-  const [looking, setLooking] = React.useState<Attached | null>(null);
   const [failed, setFailed] = React.useState<string>();
   const input = React.useRef<HTMLInputElement>(null);
 
@@ -81,73 +81,37 @@ export function FileAnswer({
       });
     }
 
-    setHeld((was) => [...was, ...taken]);
+    const now = [...held, ...taken];
+    setHeld(now);
+    onAttached?.(now);
     onChange([...value, ...taken.map((one) => one.key)]);
     setBusy(false);
     if (input.current) input.current.value = "";
   };
 
   const drop = (key: string) => {
-    setHeld((was) => {
-      const going = was.find((one) => one.key === key);
-      if (going) URL.revokeObjectURL(going.preview);
-      return was.filter((one) => one.key !== key);
-    });
+    const now = held.filter((one) => one.key !== key);
+    setHeld(now);
+    onAttached?.(now);
     onChange(value.filter((one) => one !== key));
   };
 
-  // Every object URL handed out is handed back when the question leaves the
-  // screen, so a form filled in on a phone does not hold onto the pictures.
+  /*
+   * Every object URL handed out is handed back when the question leaves the
+   * screen, so a form filled in on a phone does not hold onto the pictures.
+   * Held in a ref rather than read from state, because an effect that depends
+   * on the list would release a preview the moment another file joined it.
+   */
+  const handed = React.useRef<string[]>([]);
+  handed.current = held.map((one) => one.preview);
   React.useEffect(
-    () => () => { for (const one of held) URL.revokeObjectURL(one.preview); },
-    [held],
+    () => () => { for (const url of handed.current) URL.revokeObjectURL(url); },
+    [],
   );
 
   return (
     <div className="flex flex-col gap-2">
-      {held.length > 0 ? (
-        <ul className="flex flex-col gap-1.5">
-          {held.map((one) => (
-            <li
-              key={one.key}
-              className="flex items-center gap-2.5 rounded-lg border border-line bg-surface p-1.5 pr-3"
-            >
-              {one.image ? (
-                <button
-                  type="button"
-                  onClick={() => setLooking(one)}
-                  aria-label={one.name}
-                  className="shrink-0 cursor-pointer"
-                >
-                  <img src={one.preview} alt="" className="size-10 rounded-md object-cover" />
-                </button>
-              ) : (
-                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-sunken">
-                  <Paperclip className="size-4 text-fg-subtle" aria-hidden />
-                </span>
-              )}
-
-              {/* Opened on the page rather than in a tab of its own. What the
-                  browser hands back for a file it is holding is an address
-                  nobody should be shown. */}
-              <button
-                type="button"
-                onClick={() => setLooking(one)}
-                className="min-w-0 flex-1 cursor-pointer truncate text-left text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
-              >
-                {one.name}
-              </button>
-              <IconButton
-                label={t("form.files.remove", { name: one.name })}
-                onClick={() => drop(one.key)}
-                className="size-7 min-h-0 [&_svg]:size-3.5"
-              >
-                <X />
-              </IconButton>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <FileList files={held} onRemove={drop} />
 
       {/* The browser's own file picker is the one control an operating system
           is allowed to draw, because there is no other way to reach the disk.
@@ -180,6 +144,76 @@ export function FileAnswer({
 
       {failed ? <span className="text-caption text-danger-text">{failed}</span> : null}
 
+    </div>
+  );
+}
+
+
+/**
+ * R4.1. Files on an answer, with a way to look at each one.
+ *
+ * Shared by the question that collects them and the summary that reads them
+ * back, so what somebody attached and what they are about to send are the same
+ * row drawn twice.
+ */
+export function FileList({
+  files,
+  onRemove,
+}: {
+  files: Attached[];
+  /** Absent where the list is being read rather than written. */
+  onRemove?: (key: string) => void;
+}) {
+  const [looking, setLooking] = React.useState<Attached | null>(null);
+  if (files.length === 0) return null;
+
+  return (
+    <>
+      <ul className="flex flex-col gap-1.5">
+        {files.map((one) => (
+          <li
+            key={one.key}
+            className="flex items-center gap-2.5 rounded-lg border border-line bg-surface p-1.5 pr-3"
+          >
+            {one.image ? (
+              <button
+                type="button"
+                onClick={() => setLooking(one)}
+                aria-label={one.name}
+                className="shrink-0 cursor-pointer"
+              >
+                <img src={one.preview} alt="" className="size-10 rounded-md object-cover" />
+              </button>
+            ) : (
+              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-sunken">
+                <Paperclip className="size-4 text-fg-subtle" aria-hidden />
+              </span>
+            )}
+
+            {/* Opened on the page rather than in a tab of its own. What the
+                browser hands back for a file it is holding is an address
+                nobody should be shown. */}
+            <button
+              type="button"
+              onClick={() => setLooking(one)}
+              className="min-w-0 flex-1 cursor-pointer truncate text-left text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
+            >
+              {one.name}
+            </button>
+
+            {onRemove ? (
+              <IconButton
+                label={t("form.files.remove", { name: one.name })}
+                onClick={() => onRemove(one.key)}
+                className="size-7 min-h-0 [&_svg]:size-3.5"
+              >
+                <X />
+              </IconButton>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
       <Dialog open={looking !== null} onOpenChange={(on) => { if (!on) setLooking(null); }}>
         <DialogContent title={looking?.name ?? ""} closeLabel={t("common.close")}>
           {looking?.image ? (
@@ -197,6 +231,6 @@ export function FileAnswer({
           ) : null}
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

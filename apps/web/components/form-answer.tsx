@@ -4,7 +4,7 @@ import * as React from "react";
 import { Checkbox, Field, Input, RadioGroup, RadioItem, Textarea } from "@hearth/ui";
 import type { FormAnswer, FormFieldDef } from "@hearth/db/rules";
 import { DateField } from "@/components/date-field";
-import { FileAnswer } from "@/components/file-answer";
+import { FileAnswer, type Attached } from "@/components/file-answer";
 
 /** One question, drawn as the kind of answer it wants. */
 export function Answer({
@@ -14,6 +14,7 @@ export function Answer({
   onChange,
   churchSlug,
   formSlug,
+  onAttached,
 }: {
   field: FormFieldDef;
   value: FormAnswer;
@@ -22,6 +23,8 @@ export function Answer({
   /** R4.1. Where a file question sends its bytes. Absent means it cannot. */
   churchSlug?: string;
   formSlug?: string;
+  /** R4.1. What a file question attached, so a summary can read it back. */
+  onAttached?: (files: Attached[]) => void;
 }) {
   if (field.kind === "section") {
     return (
@@ -99,6 +102,7 @@ export function Answer({
           formSlug={formSlug}
           value={Array.isArray(value) ? value : []}
           onChange={onChange}
+          onAttached={onAttached}
         />
       </Field>
     );
