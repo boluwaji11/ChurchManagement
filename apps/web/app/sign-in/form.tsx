@@ -2,37 +2,53 @@
 
 import * as React from "react";
 import { Mail, KeyRound } from "lucide-react";
-import { Button, Input, Field, Tabs, TabsList, TabsTrigger, TabsContent } from "@connectapp/ui";
+import { Button, Input, Field } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { check, email as validEmail, requiredValue } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
 import Link from "next/link";
 import { sendMagicLink, signInWithPassword } from "./actions";
 import { sendReset } from "../sign-up/actions";
+import { AUTH_INPUT, AUTH_BUTTON } from "../auth-shell";
 
+/**
+ * R17.1. Signing in, with a password or with a link.
+ *
+ * The password leads, because it is what somebody who signs in every week
+ * uses. The link is underneath for everybody else, and it is the only way in
+ * for a member who never set a password: one press and the email arrives.
+ */
 export function SignInForm({ next, email }: { next?: string; email?: string }) {
+  const [byLink, setByLink] = React.useState(false);
+
   return (
-    <Tabs defaultValue={email ? "password" : "link"}>
-      <TabsList>
-        <TabsTrigger value="link">{t("signIn.tab.link")}</TabsTrigger>
-        <TabsTrigger value="password">{t("signIn.tab.password")}</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="link">
+    <div className="flex flex-col gap-5">
+      {byLink ? (
         <MagicLinkForm next={next} email={email} />
-      </TabsContent>
-
-      <TabsContent value="password">
+      ) : (
         <PasswordForm next={next} email={email} />
-      </TabsContent>
+      )}
 
-      <Link
-        href={`/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`}
-        className="mt-4 inline-block text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
-      >
-        {t("signIn.noAccount")}
-      </Link>
-    </Tabs>
+      <div className="flex flex-col gap-2 border-t border-line pt-4 text-center text-[length:var(--d-text-body)]">
+        <button
+          type="button"
+          onClick={() => setByLink((was) => !was)}
+          className="cursor-pointer font-medium text-primary"
+        >
+          {byLink ? t("signIn.tab.password") : t("signIn.tab.link")}
+        </button>
+
+        <span className="text-fg-muted">
+          {t("signIn.noAccountAsk")}{" "}
+          <Link
+            href={`/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+            className="font-medium text-primary"
+          >
+            {t("signUp.title")}
+          </Link>
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -53,9 +69,10 @@ function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
           autoComplete="email"
           defaultValue={email}
           placeholder={t("signIn.emailPlaceholder")}
+          className={AUTH_INPUT}
         />
       </Field>
-      <Button type="submit" full loading={pending}>
+      <Button type="submit" full loading={pending} className={AUTH_BUTTON}>
         <Mail /> {t("signIn.sendLink")}
       </Button>
     </form>
@@ -82,12 +99,18 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
           autoComplete="email"
           defaultValue={email}
           placeholder={t("signIn.emailPlaceholder")}
+          className={AUTH_INPUT}
         />
       </Field>
       <Field label={t("signIn.password")} htmlFor="password" error={errors["password"]} required>
-        <Input name="password" type="password" autoComplete="current-password" />
+        <Input
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          className={AUTH_INPUT}
+        />
       </Field>
-      <Button type="submit" full loading={pending}>
+      <Button type="submit" full loading={pending} className={AUTH_BUTTON}>
         <KeyRound /> {t("signIn.submit")}
       </Button>
 

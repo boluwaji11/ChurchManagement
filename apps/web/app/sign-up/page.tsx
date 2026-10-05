@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { Banner, Card } from "@connectapp/ui";
+import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { Logo } from "@/components/brand";
 import { currentUser } from "@/lib/session";
+import { AuthShell } from "../auth-shell";
 import { SignUpForm } from "./form";
 
 export const dynamic = "force-dynamic";
@@ -17,11 +17,7 @@ export default async function SignUpPage({
   if (await currentUser()) redirect(params.next ?? "/choose-church");
 
   return (
-    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-10">
-      <Logo />
-
-      <h1 className="font-display text-display text-fg">{t("signUp.title")}</h1>
-
+    <AuthShell title={t("signUp.title")} under={t("signUp.free")} width="max-w-[520px]">
       {params.error ? (
         <Banner tone="danger" title={t("signUp.failed")}>{params.error}</Banner>
       ) : null}
@@ -31,10 +27,8 @@ export default async function SignUpPage({
           {t("signUp.sent.body", { email: params.sent })}
         </Banner>
       ) : (
-        <Card>
-          <SignUpForm next={params.next} />
-        </Card>
+        <SignUpForm next={params.next} />
       )}
-    </main>
+    </AuthShell>
   );
 }

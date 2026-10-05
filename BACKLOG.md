@@ -470,7 +470,7 @@ no business in.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-155 | Magic link sign-in, with a password as an option | R17.1 | New |
+| HRT-155 | Magic link sign-in, with a password as an option | R17.1 | Resolved |
 | HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | New |
 | HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Resolved |
 | HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |

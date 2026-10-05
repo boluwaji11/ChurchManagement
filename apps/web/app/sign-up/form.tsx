@@ -8,6 +8,7 @@ import { t } from "@connectapp/i18n";
 import { check, email as validEmail, minLength } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
 import { signUp } from "./actions";
+import { AUTH_INPUT, AUTH_BUTTON } from "../auth-shell";
 
 export const PASSWORD_LENGTH = 10;
 
@@ -31,32 +32,38 @@ export function SignUpForm({ next }: { next?: string }) {
       action={action}
       noValidate
       onInput={revalidate}
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-5"
     >
       <input type="hidden" name="next" value={next ?? ""} />
 
       <Field label={t("signUp.name")} htmlFor="fullName">
-        <Input id="fullName" name="fullName" autoComplete="name" autoFocus />
+        <Input id="fullName" name="fullName" autoComplete="name" autoFocus className={AUTH_INPUT} />
       </Field>
 
       <Field label={t("signIn.email")} htmlFor="email" error={errors["email"]} required>
-        <Input id="email" name="email" type="email" autoComplete="email" />
+        <Input id="email" name="email" type="email" autoComplete="email" className={AUTH_INPUT} />
       </Field>
 
       <Field label={t("signUp.password")} htmlFor="password" error={errors["password"]} required>
-        <Input id="password" name="password" type="password" autoComplete="new-password" />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          className={AUTH_INPUT}
+        />
       </Field>
 
-      <Button type="submit" full loading={pending}>
+      <Button type="submit" full loading={pending} className={AUTH_BUTTON}>
         <UserPlus /> {t("signUp.submit")}
       </Button>
 
-      <Link
-        href="/sign-in"
-        className="text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
-      >
-        {t("signUp.haveAccount")}
-      </Link>
+      <span className="border-t border-line pt-4 text-center text-[length:var(--d-text-body)] text-fg-muted">
+        {t("signUp.haveAccountAsk")}{" "}
+        <Link href="/sign-in" className="font-medium text-primary">
+          {t("signIn.title")}
+        </Link>
+      </span>
     </form>
   );
 }
