@@ -437,6 +437,36 @@ export async function unassign(db: Tx, actor: WriteActor, id: string): Promise<v
   await db.delete(servingAssignments).where(eq(servingAssignments.id, id));
 }
 
+/**
+ * R10.6, R17.7. A member answering their own serving request, signed in.
+ *
+ * The emailed link answers by token and runs as the owner, because nobody is
+ * signed in on that path. In the portal they are, so this one runs inside the
+ * tenant and will only touch a row that is theirs: the member id comes from
+ * the session rather than from the request.
+ */
+export async function answerMyAssignment(
+  db: Tx,
+  actor: WriteActor & { memberId: string },
+  input: { id: string; accept: boolean; reason?: string | null },
+): Promise<void> {
+  const changed = await db
+    .update(servingAssignments)
+    .set({
+      status: input.accept ? "accepted" : "declined",
+      declineReason: input.accept ? null : (input.reason?.trim() || null),
+      respondedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(and(
+      eq(servingAssignments.id, input.id),
+      eq(servingAssignments.memberId, actor.memberId),
+    ))
+    .returning({ id: servingAssignments.id });
+
+  if (changed.length === 0) throw new InvalidInputError("respond.error.unknown");
+}
+
 // ---------------------------------------------------------------------------
 // R10.4. Blockout dates
 // ---------------------------------------------------------------------------

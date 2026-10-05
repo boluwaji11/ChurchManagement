@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Users, UserPlus, Baby, Calendar, CalendarHeart, ListMusic, HandHeart, CircleDot,
-  ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn,
+  ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn, HousePlus,
 } from "lucide-react";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
@@ -37,7 +37,8 @@ export function navFor(role: TenantRole): NavEntry[] {
    * R3.1. Somebody who is not staff has one screen, and it is the one that is
    * theirs. Without this they would open the app onto a groups list.
    */
-  if (!staff && !canCheckIn(role) && !canFollowUp(role) && !canLeadTeams(role)) {
+  const member = !staff && !canCheckIn(role) && !canFollowUp(role) && !canLeadTeams(role);
+  if (member) {
     out.push({ label: t("nav.home"), href: "/home", icon: Home });
   }
 
@@ -96,8 +97,21 @@ export function navFor(role: TenantRole): NavEntry[] {
     out.push({ label: t("nav.serving"), href: "/serving", icon: HandHeart });
   }
 
+  /*
+   * R17.7. A member's own serving is their dates, not the church's rota, so it
+   * is a different screen under the one that is theirs.
+   */
+  if (member) {
+    out.push({ label: t("nav.serving"), href: "/home/serving", icon: HandHeart });
+  }
+
   // R9.5. Groups are for everybody: finding one is the member's question.
   out.push({ label: t("nav.groups"), href: "/groups", icon: CircleDot });
+
+  // R17.2, R17.3. Their household, and what the church directory shows of it.
+  if (member) {
+    out.push({ label: t("nav.myHousehold"), href: "/home/household", icon: HousePlus });
+  }
 
   // R14.1. What the church is putting on, and who has a place at it.
   if (canManageEvents(role)) {
