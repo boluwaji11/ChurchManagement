@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, CalendarCheck, Plus, TrendingUp, UserPlus } from "lucide-react";
+import { ArrowRight, CalendarCheck, TrendingUp, UserPlus } from "lucide-react";
 import { withTenant, listSavedReports, canEditPeople, canReadIncidents } from "@hearth/db";
-import { Button } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { SavedReports } from "./saved";
+import { StartReport } from "./start";
 
 export const dynamic = "force-dynamic";
 
@@ -71,11 +71,7 @@ export default async function ReportsPage({
       {/* No heading: the bar above it already says Reports, and a page that
           says its own name twice reads as a page nobody laid out. */}
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <Button asChild>
-          <Link href={`/reports/build${here}`}>
-            <Plus /> {t("report.build")}
-          </Link>
-        </Button>
+        <StartReport church={session.tenantSlug} />
       </div>
 
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">

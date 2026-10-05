@@ -71,7 +71,7 @@ export function Builder({
   saved,
 }: {
   church: string;
-  saved: { id: string; name: string; spec: ReportPage } | null;
+  saved: { id: string; slug: string; name: string; spec: ReportPage } | null;
 }) {
   const router = useRouter();
 
@@ -79,10 +79,10 @@ export function Builder({
     saved?.spec ?? { tiles: [freshTile("members", "1", 0)] },
   );
   const [chosen, setChosen] = React.useState<string>(saved?.spec.tiles[0]?.id ?? "1");
-  const [name, setName] = React.useState(saved?.name ?? "");
   const [results, setResults] = React.useState<Record<string, ReportResultish | undefined>>({});
   const [running, setRunning] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [savedAt, setSavedAt] = React.useState<number | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const held = React.useRef<number | null>(null);
 
@@ -108,6 +108,35 @@ export function Builder({
     };
   }, [page, church]);
 
+  const first = React.useRef(true);
+  React.useEffect(() => {
+    if (!saved) return;
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+
+    let live = true;
+    const timer = setTimeout(() => {
+      setSaving(true);
+      void saveReport({ id: saved.id, name: saved.name, spec: page }, church).then((back) => {
+        if (!live) return;
+        setSaving(false);
+        if (back.error) {
+          setError(back.error);
+          return;
+        }
+        setError(null);
+        setSavedAt(Date.now());
+      });
+    }, 900);
+
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [page, saved, church]);
+
   const change = (patch: Partial<ReportTile>) =>
     setPage((was) => ({
       tiles: was.tiles.map((one) => (one.id === tile.id ? { ...one, ...patch } : one)),
@@ -131,35 +160,24 @@ export function Builder({
     setChosen(id);
   };
 
-  const save = () => {
-    setSaving(true);
-    setError(null);
-    void saveReport({ id: saved?.id, name, spec: page }, church).then((back) => {
-      setSaving(false);
-      if (back.error) {
-        setError(back.error);
-        return;
-      }
-      router.push(`/reports/custom/${back.slug}?church=${church}`);
-    });
-  };
-
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t("report.namePlaceholder")}
-          aria-label={t("report.name")}
-          className="min-w-[240px] max-w-[460px] flex-1 font-display text-[20px] md:text-[20px]"
-        />
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        {/* It saves itself, so it says where it has got to rather than asking
+            anybody to remember. */}
+        <span role="status" className="text-[13px] text-fg-subtle">
+          {saving ? t("report.saving") : savedAt ? t("report.saved") : ""}
+        </span>
         <Button variant="secondary" onClick={addTile}>
           <Plus /> {t("report.addVisual")}
         </Button>
-        <Button loading={saving} disabled={!name.trim()} onClick={save}>
-          {saved ? t("action.save") : t("report.save")}
-        </Button>
+        {saved ? (
+          <Button
+            onClick={() => router.push(`/reports/custom/${saved.slug}?church=${church}`)}
+          >
+            {t("report.done")}
+          </Button>
+        ) : null}
       </div>
 
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}

@@ -3,7 +3,7 @@
 import {
   withTenant, runReport, createSavedReport, updateSavedReport, setSavedReportArchived,
   getSavedReport,
-  canEditPeople, canReadIncidents, SCREEN_LIMIT,
+  canEditPeople, canReadIncidents, SCREEN_LIMIT, cleanSpec,
   type ReportResult, type ReportSpec, type ReportPage,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
@@ -107,6 +107,53 @@ export async function saveReport(
       const made = await createSavedReport(tx, ctx, { name: input.name, spec: input.spec });
       return { slug: made.slug };
     });
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R18.12. A report begins with its name.
+ *
+ * Created before the builder opens, so the thing being arranged already exists
+ * and the builder only ever edits. It starts with one empty visual, because a
+ * page with nothing on it teaches nobody what to do next.
+ */
+export async function startReport(
+  name: string,
+  church?: string,
+): Promise<SaveResult> {
+  try {
+    const { ctx } = await context(church);
+    const page: ReportPage = {
+      tiles: [
+        {
+          ...cleanSpec({ subject: "members" }),
+          id: "1",
+          title: "",
+          place: { x: 0, y: 0, w: 6, h: 4 },
+        },
+      ],
+    };
+    const made = await withTenant(ctx, (tx) =>
+      createSavedReport(tx, ctx, { name, spec: page }),
+    );
+    return { slug: made.slug };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R18.12. The name, changed from the list without opening the report. */
+export async function renameReport(
+  id: string,
+  name: string,
+  church?: string,
+): Promise<{ error?: string }> {
+  try {
+    const { ctx } = await context(church);
+    await withTenant(ctx, (tx) => updateSavedReport(tx, ctx, { id, name }));
+    return {};
   } catch (error) {
     return { error: explain(error) };
   }

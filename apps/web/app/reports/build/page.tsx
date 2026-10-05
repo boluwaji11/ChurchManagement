@@ -53,7 +53,7 @@ export default async function BuildReportPage({
 
       <Builder
         church={session.tenantSlug}
-        saved={saved ? { id: saved.id, name: saved.name, spec: saved.spec } : null}
+        saved={saved ? { id: saved.id, slug: saved.slug, name: saved.name, spec: saved.spec } : null}
       />
     </AppShell>
   );

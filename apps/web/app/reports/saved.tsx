@@ -3,10 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, Pencil, Table2 } from "lucide-react";
-import { Button, IconButton, Dialog, DialogContent, DialogFooter } from "@hearth/ui";
+import { EllipsisVertical, Table2 } from "lucide-react";
+import {
+  Button, Field, IconButton, Input, Dialog, DialogContent, DialogFooter,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { archiveReport } from "./build/actions";
+import { archiveReport, renameReport } from "./build/actions";
 
 export interface SavedCard {
   id: string;
@@ -25,6 +29,8 @@ export interface SavedCard {
 export function SavedReports({ church, reports }: { church: string; reports: SavedCard[] }) {
   const router = useRouter();
   const [asking, setAsking] = React.useState<SavedCard | null>(null);
+  const [naming, setNaming] = React.useState<SavedCard | null>(null);
+  const [name, setName] = React.useState("");
   const [working, setWorking] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -61,27 +67,75 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
               </span>
             </span>
 
-            <span className="relative z-10 flex shrink-0 items-center">
-              <IconButton
-                label={t("report.edit")}
-                variant="ghost"
-                className="size-8 min-h-0 [&_svg]:size-4"
-                onClick={() => router.push(`/reports/build?church=${church}&id=${one.slug}`)}
-              >
-                <Pencil />
-              </IconButton>
-              <IconButton
-                label={t("report.archive")}
-                variant="ghost"
-                className="size-8 min-h-0 [&_svg]:size-4"
-                onClick={() => setAsking(one)}
-              >
-                <Archive />
-              </IconButton>
+            {/* One way in to everything that is not opening it. */}
+            <span className="relative z-10 shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <IconButton
+                    label={t("report.more", { name: one.name })}
+                    variant="ghost"
+                    className="size-8 min-h-0 [&_svg]:size-4"
+                  >
+                    <EllipsisVertical />
+                  </IconButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onSelect={() => router.push(`/reports/build?church=${church}&id=${one.slug}`)}
+                  >
+                    {t("report.edit")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => { setName(one.name); setNaming(one); }}
+                  >
+                    {t("report.rename")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setAsking(one)}>
+                    {t("report.archiveDo")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </span>
           </div>
         ))}
       </div>
+
+      <Dialog open={naming !== null} onOpenChange={(open) => { if (!open) setNaming(null); }}>
+        <DialogContent title={t("report.rename")} closeLabel={t("action.cancel")}>
+          <Field label={t("report.name")} required>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </Field>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setNaming(null)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              loading={working}
+              disabled={!name.trim()}
+              onClick={() => {
+                if (!naming) return;
+                setWorking(true);
+                void renameReport(naming.id, name, church).then((result) => {
+                  setWorking(false);
+                  setNaming(null);
+                  if (result.error) {
+                    setError(result.error);
+                    return;
+                  }
+                  router.refresh();
+                });
+              }}
+            >
+              {t("action.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={asking !== null} onOpenChange={(open) => { if (!open) setAsking(null); }}>
         <DialogContent title={asking ? t("report.archiveAsk", { name: asking.name }) : ""}>
