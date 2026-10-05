@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { publicForm } from "@hearth/db";
-import { t } from "@hearth/i18n";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { supabaseServer } from "@/lib/supabase/server";
 import { PublicForm } from "./public-form";
@@ -88,9 +87,6 @@ export default async function PublicFormPage({
           </div>
         </div>
 
-        <p className="mt-6 text-center text-caption text-fg-subtle">
-          {t("publicForm.from", { church: found.church.name })}
-        </p>
       </main>
     </div>
   );

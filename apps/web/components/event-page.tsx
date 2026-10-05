@@ -134,9 +134,6 @@ export function EventPage({
           </div>
         </div>
 
-        <p className="mt-6 text-center text-caption text-fg-subtle">
-          {t("publicEvent.from", { church: event.church.name })}
-        </p>
       </main>
     </div>
   );
