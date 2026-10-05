@@ -8,6 +8,7 @@ import {
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
+import { churchLogoUrl } from "@/lib/church-logo";
 import { hueHex } from "@/lib/hue-hex";
 
 export const dynamic = "force-dynamic";
@@ -34,8 +35,51 @@ function palette(tile: ReportTile, many: number): string[] {
     hueHex(tile.look.hues[i] ?? CHART_HUES[(from + i) % CHART_HUES.length]!));
 }
 
-/** A slide's worth of room under the title, in inches on a 16:9 deck. */
-const BODY = { x: 0.6, y: 1.3, w: 12.1, h: 5.6 } as const;
+/**
+ * The slide, in inches, and everything else measured off it.
+ *
+ * Declared rather than taken from a named layout: pptxgenjs reads LAYOUT_16x9
+ * as ten inches by five and five eighths, so a body sized for a widescreen deck
+ * ran off the edge of it. Every box below comes out of these numbers, so the
+ * chart fits whatever the slide is.
+ */
+const SLIDE = { w: 13.333, h: 7.5 } as const;
+const MARGIN = 0.6;
+/** Where the visual's name sits, and how much room the footer keeps. */
+const TITLE_H = 0.7;
+const FOOT_H = 0.45;
+
+const BODY = {
+  x: MARGIN,
+  y: MARGIN + TITLE_H,
+  w: SLIDE.w - MARGIN * 2,
+  h: SLIDE.h - MARGIN * 2 - TITLE_H - FOOT_H,
+} as const;
+
+/** The line under the body, for a total or a row count. */
+const FOOT = {
+  x: MARGIN,
+  y: SLIDE.h - MARGIN - FOOT_H,
+  w: SLIDE.w - MARGIN * 2,
+  h: FOOT_H,
+} as const;
+
+/** The church's logo, fetched once and carried into the deck as bytes. */
+async function logoData(url: string | null): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const answer = await fetch(url);
+    if (!answer.ok) return null;
+    const type = answer.headers.get("content-type") ?? "image/png";
+    const bytes = Buffer.from(await answer.arrayBuffer());
+    // A logo past this is a logo somebody uploaded at print resolution, and it
+    // would make the deck slower to send than it is to read.
+    if (bytes.byteLength > 2_000_000) return null;
+    return `data:${type};base64,${bytes.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * R18.10. A built report as a deck.
@@ -78,44 +122,71 @@ export async function GET(
   if (!found) return new Response("", { status: 404 });
   const { saved, answers, when, hue } = found;
 
+  const logo = await logoData(await churchLogoUrl(session.tenantId, session.role));
+
   const deck = new PptxGenJS();
-  deck.layout = "LAYOUT_16x9";
+  deck.defineLayout({ name: "CHURCH", width: SLIDE.w, height: SLIDE.h });
+  deck.layout = "CHURCH";
   deck.title = saved.name;
   deck.company = session.tenantName;
 
-  // The cover: what this is, whose it is, and when it was run.
+  // The cover: whose this is, what it is, and when it was run.
   const cover = deck.addSlide();
   cover.addShape(deck.ShapeType.rect, {
-    x: 0, y: 0, w: 13.33, h: 0.22, fill: { color: hueHex(hue) },
+    x: 0, y: 0, w: SLIDE.w, h: 0.22, fill: { color: hueHex(hue) },
+  });
+  if (logo) {
+    cover.addImage({ data: logo, x: MARGIN, y: 1.5, w: 1.1, h: 1.1, sizing: { type: "contain", w: 1.1, h: 1.1 } });
+  }
+  cover.addText(session.tenantName, {
+    x: MARGIN, y: logo ? 2.8 : 2.4, w: SLIDE.w - MARGIN * 2, h: 0.5,
+    fontSize: 18, bold: true, color: hueHex(hue, "700"),
   });
   cover.addText(saved.name, {
-    x: 0.8, y: 2.4, w: 11.7, h: 1.1, fontSize: 40, bold: true, color: "1A1A1A",
+    x: MARGIN, y: logo ? 3.3 : 2.9, w: SLIDE.w - MARGIN * 2, h: 1.1,
+    fontSize: 40, bold: true, color: "1A1A1A",
   });
-  cover.addText(`${session.tenantName}  ${when.date}`, {
-    x: 0.8, y: 3.5, w: 11.7, h: 0.5, fontSize: 16, color: "6B6B6B",
+  cover.addText(when.date, {
+    x: MARGIN, y: logo ? 4.4 : 4.0, w: SLIDE.w - MARGIN * 2, h: 0.4,
+    fontSize: 14, color: "6B6B6B",
   });
 
   for (const tile of saved.spec.tiles) {
     const result = answers[tile.id];
     const slide = deck.addSlide();
+
+    // The church's mark and name on every slide, because a slide gets pulled
+    // out of a deck and shown on its own.
+    const titleAt = logo ? MARGIN + 0.75 : MARGIN;
+    if (logo) {
+      slide.addImage({
+        data: logo, x: MARGIN, y: MARGIN - 0.05, w: 0.6, h: 0.6,
+        sizing: { type: "contain", w: 0.6, h: 0.6 },
+      });
+    }
     slide.addText(nameOf(tile), {
-      x: 0.6, y: 0.45, w: 12.1, h: 0.6, fontSize: 24, bold: true, color: "1A1A1A",
+      x: titleAt, y: MARGIN - 0.05, w: SLIDE.w - titleAt - MARGIN, h: TITLE_H,
+      fontSize: 24, bold: true, color: "1A1A1A", valign: "middle",
     });
 
     if (!result || result.rows.length === 0) {
       slide.addText(t("report.nothingMatches"), {
         ...BODY, fontSize: 14, color: "6B6B6B",
       });
-      continue;
+    } else {
+      drawTile(deck, slide, tile, result);
     }
 
-    drawTile(deck, slide, tile, result);
-
-    if (result.total !== null) {
-      slide.addText(t("report.totalIs", { total: result.total.toLocaleString() }), {
-        x: 0.6, y: 6.9, w: 12.1, h: 0.4, fontSize: 12, color: "6B6B6B",
-      });
-    }
+    const total = result && result.total !== null
+      ? t("report.totalIs", { total: result.total.toLocaleString() })
+      : "";
+    slide.addText(
+      [
+        { text: session.tenantName, options: { color: "6B6B6B" } },
+        { text: total ? `   ${total}` : "", options: { color: "6B6B6B" } },
+      ],
+      { ...FOOT, fontSize: 11, valign: "middle" },
+    );
   }
 
   const file = saved.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -263,7 +334,7 @@ function drawTable(slide: PptxGenJS.Slide, result: ReportResult) {
         upto: String(ROWS),
         matching: String(result.rows.length),
       }),
-      { x: 0.6, y: 6.9, w: 12.1, h: 0.4, fontSize: 11, color: "6B6B6B" },
+      { ...FOOT, align: "right", fontSize: 11, color: "6B6B6B" },
     );
   }
 }

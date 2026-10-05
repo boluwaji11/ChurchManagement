@@ -7,6 +7,7 @@ import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
+import { churchLogoUrl } from "@/lib/church-logo";
 import { getChurch } from "@hearth/db";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
@@ -69,6 +70,7 @@ export default async function PrintReportPage({
 
   if (!found) notFound();
   const { saved, answers, when, hue } = found;
+  const logo = await churchLogoUrl(session.tenantId, session.role);
 
   return (
     <main className="mx-auto max-w-5xl bg-white px-8 py-8 text-black print:max-w-none print:px-10">
@@ -80,10 +82,19 @@ export default async function PrintReportPage({
 
       <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
-      <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
-        <h1 className="font-display text-display">{saved.name}</h1>
-        <span className="text-[length:var(--d-text-body)]">
-          {session.tenantName} {when.date}
+      <header className="mb-6 flex items-center justify-between gap-4 border-b border-black pb-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {/* The church's own mark, so a sheet handed round says whose it is. */}
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt="" className="h-10 w-auto max-w-[120px] object-contain" />
+          ) : null}
+          <h1 className="min-w-0 truncate font-display text-display">{saved.name}</h1>
+        </div>
+        <span className="shrink-0 text-right text-[length:var(--d-text-body)]">
+          {session.tenantName}
+          <br />
+          {when.date}
         </span>
       </header>
 
