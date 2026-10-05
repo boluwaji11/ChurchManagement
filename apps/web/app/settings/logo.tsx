@@ -101,6 +101,12 @@ export function ChurchLogo({
               />
               {canEdit ? (
                 <DialogFooter>
+                  {/* What a replacement may be, read where somebody is about
+                      to choose one rather than beside the logo on a screen
+                      about the church. */}
+                  <span className="mr-auto text-[12px] text-fg-subtle">
+                    {imageLimit("logo")}
+                  </span>
                   <IconButton
                     label={t("church.logo.remove")}
                     variant="ghost"
@@ -148,9 +154,6 @@ export function ChurchLogo({
                 if (file) void upload(file);
               }}
             />
-            <span className="self-center text-[12px] text-fg-subtle">
-              {imageLimit("logo")}
-            </span>
           </>
         ) : null}
       </div>

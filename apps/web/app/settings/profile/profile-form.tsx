@@ -154,6 +154,11 @@ export function ProfileForm({
                 className="max-h-[60vh] w-full rounded-lg bg-canvas object-contain"
               />
               <DialogFooter>
+                {/* What a replacement may be, read where somebody is about to
+                    choose one rather than beside their name on the record. */}
+                <span className="mr-auto text-[12px] text-fg-subtle">
+                  {imageLimit("person_photo")}
+                </span>
                 <IconButton
                   label={t("profile.photo.remove")}
                   variant="ghost"
@@ -231,7 +236,6 @@ export function ProfileForm({
         <span className="flex min-w-0 flex-1 flex-col leading-5">
           <span className="text-[17px] font-bold text-fg">{display}</span>
           <span className="truncate text-[13px] text-fg-muted">{signedInAs}</span>
-          <span className="text-[12px] text-fg-subtle">{imageLimit("person_photo")}</span>
         </span>
 
         {editing ? (
