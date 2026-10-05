@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil } from "lucide-react";
 import {
-  withTenant, getPerson, getPersonForEdit, householdFor, addressFor,
+  withTenant, getPerson, householdFor, addressFor,
   personTimeline, servingForPerson, groupsForPerson,
+  listContacts, listAddresses,
   canEditPeople,
 } from "@hearth/db";
 import { Avatar, Button } from "@hearth/ui";
@@ -14,6 +15,8 @@ import { AppShell } from "@/components/app-shell";
 import { lifecycleLabel } from "@/lib/person-input";
 import { longDate } from "@/lib/dates";
 import { Timeline } from "./timeline";
+import { Contacts } from "./contacts";
+import { oneLineAddress, toAddress } from "@/lib/address";
 import { MessageButton } from "./message";
 import { NoteForm } from "../note-form";
 import { canReadConfidentialNotes } from "@hearth/db";
@@ -106,7 +109,9 @@ export default async function PersonPage({
 
     return {
       person,
-      contact: await getPersonForEdit(tx, personId),
+      // R2.4. Every way of reaching them, not only the one that leads.
+      contacts: await listContacts(tx, personId),
+      addresses: await listAddresses(tx, personId),
       household: await householdFor(tx, personId),
       // R2.4. Theirs, or the household's, which is what a church writes.
       address: await addressFor(tx, personId),
@@ -124,7 +129,7 @@ export default async function PersonPage({
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, contact, household, address, groups, serving, history } = result;
+  const { person, contacts, addresses, household, address, groups, serving, history } = result;
 
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const canEdit = canEditPeople(session);
@@ -196,35 +201,52 @@ export default async function PersonPage({
       <div className="flex flex-wrap items-stretch gap-6">
         <div className="grid min-w-0 flex-[3_1_420px] content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
         <InfoCard title={t("person.contact")}>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[length:var(--d-text-body)]">
-            <dt className="text-fg-subtle">{t("person.email")}</dt>
-            <dd className="min-w-0 truncate text-fg">
-              {contact?.email ? (
-                <a href={`mailto:${contact.email}`} className="underline-offset-4 hover:underline">
-                  {contact.email}
-                </a>
-              ) : (
-                EMPTY
-              )}
-            </dd>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
+              <Contacts
+                church={session.tenantSlug}
+                personId={person.id}
+                kind="email"
+                contacts={contacts}
+                canEdit={canEdit}
+              />
+            </div>
 
-            <dt className="text-fg-subtle">{t("person.phone")}</dt>
-            <dd className="text-fg tabular-nums">
-              {contact?.phone ? (
-                <a
-                  href={`tel:${contact.phone.replace(/[^+\d]/g, "")}`}
-                  className="underline-offset-4 hover:underline"
-                >
-                  {contact.phone}
-                </a>
-              ) : (
-                EMPTY
-              )}
-            </dd>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
+              <Contacts
+                church={session.tenantSlug}
+                personId={person.id}
+                kind="phone"
+                contacts={contacts}
+                canEdit={canEdit}
+              />
+            </div>
 
-            <dt className="text-fg-subtle">{t("person.address")}</dt>
-            <dd className="text-fg">{address ?? EMPTY}</dd>
-          </dl>
+            {/* R2.4. Theirs and the household's, each said for what it is. */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
+              {addresses.length === 0 ? (
+                <span className="text-[length:var(--d-text-body)]">{address ?? EMPTY}</span>
+              ) : (
+                addresses.map((one) => (
+                  <span key={one.id} className="flex items-baseline gap-2">
+                    <span className="min-w-0 flex-1 text-[length:var(--d-text-body)] text-fg">
+                      {oneLineAddress(toAddress(one))}
+                    </span>
+                    <span className="shrink-0 text-caption text-fg-subtle">
+                      {one.fromHousehold
+                        ? t("contact.fromHousehold")
+                        : one.isPrimary
+                          ? t("contact.primary")
+                          : t(`contactLabel.${one.label}` as never)}
+                    </span>
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
         </InfoCard>
 
         <InfoCard title={t("person.household")}>

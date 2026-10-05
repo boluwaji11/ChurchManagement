@@ -6,6 +6,13 @@ import { canEditPeople, PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
 import { LOOKS_LIKE_EMAIL } from "./form-rules";
+import {
+  CONTACT_LABELS, type ContactKind, type ContactLabel,
+  type PersonContact, type PersonAddress,
+} from "./contact-rules";
+
+export { CONTACT_LABELS };
+export type { ContactKind, ContactLabel, PersonContact, PersonAddress };
 
 /**
  * R2.4. Every way a church has of reaching somebody.
@@ -20,19 +27,6 @@ import { LOOKS_LIKE_EMAIL } from "./form-rules";
  * refused for removal here so nobody takes away a way in by tidying a profile.
  */
 
-export const CONTACT_LABELS = ["home", "mobile", "work", "other"] as const;
-export type ContactLabel = (typeof CONTACT_LABELS)[number];
-export type ContactKind = "email" | "phone";
-
-export interface PersonContact {
-  id: string;
-  kind: ContactKind;
-  label: ContactLabel;
-  value: string;
-  isPrimary: boolean;
-  /** R17.1. The address this person signs in with, which cannot be removed here. */
-  isSignIn: boolean;
-}
 
 const ENOUGH_DIGITS = 7;
 
@@ -200,19 +194,6 @@ export async function leadWith(
     .where(eq(contactMethods.id, chosen));
 }
 
-export interface PersonAddress {
-  id: string;
-  label: ContactLabel;
-  line1: string;
-  line2: string | null;
-  city: string | null;
-  region: string | null;
-  postalCode: string | null;
-  country: string;
-  isPrimary: boolean;
-  /** R2.4. Held by the household rather than by this person. */
-  fromHousehold: boolean;
-}
 
 /** R2.4. Where somebody lives: theirs, and the household's. */
 export async function listAddresses(db: Tx, personId: string): Promise<PersonAddress[]> {
