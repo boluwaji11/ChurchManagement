@@ -2359,6 +2359,7 @@ export const en = {
   "hue.indigo": "Indigo",
   "hue.violet": "Violet",
   "common.noMatch": "No match",
+  "common.search": "Search",
   "common.chooseOne": "Choose one",
   "common.none": "None",
 } as const satisfies Record<string, string>;

@@ -1,8 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@hearth/ui";
+import { t } from "@hearth/i18n";
+
+/**
+ * Above this many answers, the list gets a box to type in. Below it, reading
+ * the four of them is faster than reaching for a search nobody needed.
+ */
+const SEARCHABLE_FROM = 6;
 
 export interface MultiOption {
   value: string;
@@ -32,6 +39,7 @@ export function MultiSelect({
   summary?: (chosen: MultiOption[]) => string;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
   const [above, setAbove] = React.useState(false);
   const [room, setRoom] = React.useState(256);
   const root = React.useRef<HTMLDivElement>(null);
@@ -73,6 +81,12 @@ export function MultiSelect({
     };
   }, [open]);
 
+  const searchable = options.length >= SEARCHABLE_FROM;
+  const text = query.trim().toLowerCase();
+  const shown = text
+    ? options.filter((one) => one.label.toLowerCase().includes(text))
+    : options;
+
   const chosen = options.filter((one) => value.includes(one.value));
   const said = chosen.length === 0
     ? label
@@ -87,7 +101,10 @@ export function MultiSelect({
     <div className="relative" ref={root}>
       <button
         type="button"
-        onClick={() => setOpen((was) => !was)}
+        onClick={() => {
+          setQuery("");
+          setOpen((was) => !was);
+        }}
         aria-expanded={open}
         aria-label={label}
         className={cn(
@@ -111,7 +128,27 @@ export function MultiSelect({
             above ? "bottom-[calc(100%+4px)]" : "top-[calc(100%+4px)]",
           )}
         >
-          {options.map((one) => {
+          {searchable ? (
+            <div className="sticky top-0 flex items-center gap-2 border-b border-line bg-surface px-3 py-2">
+              <Search className="size-[15px] shrink-0 text-fg-subtle" aria-hidden />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t("common.search")}
+                aria-label={label}
+                autoFocus
+                className="min-w-0 flex-1 border-0 bg-transparent text-[length:var(--d-text-body)] text-fg outline-none placeholder:text-fg-subtle"
+              />
+            </div>
+          ) : null}
+
+          {shown.length === 0 ? (
+            <p className="px-3 py-2 text-[length:var(--d-text-body)] text-fg-muted">
+              {t("common.noMatch")}
+            </p>
+          ) : null}
+
+          {shown.map((one) => {
             const on = value.includes(one.value);
             return (
               <button
