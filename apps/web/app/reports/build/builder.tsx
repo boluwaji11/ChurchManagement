@@ -3,12 +3,12 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  BarChart3, ChartColumnBig, ChartLine, ChartPie, ChevronDown, Columns3, Database,
-  GripVertical, Hash, ListFilter, Plus, Search, SlidersHorizontal, Sigma, Table2, X,
+  BarChart3, ChartColumnBig, ChartLine, ChartPie, ChevronDown, Database,
+  GripVertical, Hash, ListFilter, Plus, SlidersHorizontal, Table2, X,
 } from "lucide-react";
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  DatePicker, Checkbox, Spinner,
+  DatePicker, Spinner,
   Popover, PopoverTrigger, PopoverContent,
 } from "@hearth/ui";
 import {
@@ -18,6 +18,8 @@ import {
 import { t } from "@hearth/i18n";
 import { preview, saveReport, type PreviewResult } from "./actions";
 import { Answer } from "../answer";
+import { FieldsPanel } from "./fields";
+import { Shelf, type Pill } from "./shelf";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -64,10 +66,6 @@ const CHIP_QUIET =
   + " border-transparent bg-transparent px-2.5 text-[13px] font-medium text-fg-muted shadow-none"
   + " hover:bg-sunken [&>span]:flex-none [&>span]:overflow-visible";
 
-/** Accents and case set aside, so typing "campus" finds "Campus". */
-const fold = (value: string) =>
-  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
 /**
  * R18.12. Building a report.
  *
@@ -96,7 +94,6 @@ export function Builder({
   const [running, setRunning] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [columnQuery, setColumnQuery] = React.useState("");
   const held = React.useRef<number | null>(null);
 
   const def = SUBJECTS[spec.subject];
@@ -147,6 +144,15 @@ export function Builder({
         : spec.measure.kind === "average" && spec.measure.field
           ? t("report.measure.average", { field: t(fieldOf(spec.subject, spec.measure.field)!.label as never) })
           : t("report.measure.rows", { rows: t(def.rowLabel as never) });
+
+  const groupPill: Pill[] = groupField
+    ? [{ key: groupField.key, label: t(groupField.label as never) }]
+    : [];
+
+  const valuePills: Pill[] =
+    counted && measureName
+      ? [{ key: "measure", label: measureName }]
+      : [];
 
   const save = () => {
     setSaving(true);
@@ -361,127 +367,9 @@ export function Builder({
 
         <Rule />
 
-        {/* Group by, the measure, and the sort are each one choice, so each
-            is a dropdown in its own right. Wrapping a menu inside a tray put
-            one floating panel on top of another for no reason. */}
-        <Select
-          value={spec.groupBy ?? "none"}
-          onValueChange={(value) =>
-            set(
-              value === "none"
-                ? { groupBy: null, measure: null, view: "table" }
-                : {
-                    groupBy: value,
-                    measure: spec.measure ?? { kind: "rows" },
-                    view: GROUPED_VIEWS.has(spec.view) ? spec.view : "bar",
-                  },
-            )}
-        >
-          <SelectTrigger
-            className={counted ? CHIP : CHIP_QUIET}
-            aria-label={t("report.countBy")}
-          >
-            <Sigma className="size-4 shrink-0" aria-hidden />
-            <span className="shrink-0 text-fg-muted">{t("report.countBy")}</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent searchLabel={t("report.findField")}>
-            <SelectItem value="none">{t("report.everyRow")}</SelectItem>
-            {def.fields.filter((one) => one.groupable).map((one) => (
-              <SelectItem key={one.key} value={one.key}>{t(one.label as never)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {counted ? (
-          <Select
-            value={
-              spec.measure?.kind === "sum" || spec.measure?.kind === "average"
-                ? `${spec.measure.kind}:${spec.measure.field}`
-                : (spec.measure?.kind ?? "rows")
-            }
-            onValueChange={(value) => {
-              const [kind, field] = value.split(":") as [MeasureKind, string | undefined];
-              set({ measure: field ? { kind, field } : { kind } });
-            }}
-          >
-            <SelectTrigger className={CHIP} aria-label={t("report.measure")}>
-              <Hash className="size-4 shrink-0" aria-hidden />
-              <span className="shrink-0 text-fg-muted">{t("report.measure")}</span>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent searchLabel={t("report.findMeasure")}>
-              <SelectItem value="rows">
-                {t("report.measure.rows", { rows: t(def.rowLabel as never) })}
-              </SelectItem>
-              <SelectItem value="members">{t("report.measure.members")}</SelectItem>
-              {def.fields.filter((one) => one.numeric).map((one) => (
-                <SelectItem key={`sum:${one.key}`} value={`sum:${one.key}`}>
-                  {t("report.measure.sum", { field: t(one.label as never) })}
-                </SelectItem>
-              ))}
-              {def.fields.filter((one) => one.numeric).map((one) => (
-                <SelectItem key={`average:${one.key}`} value={`average:${one.key}`}>
-                  {t("report.measure.average", { field: t(one.label as never) })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-
+        {/* The sort is still one choice, so it is still a dropdown. */}
         {counted ? null : (
           <>
-            <Rule />
-
-            <Tray
-              icon={Columns3}
-              label={t("report.columns")}
-              value={String(spec.columns.length)}
-            >
-              {/* A subject can carry a dozen fields and will carry more, so
-                  the list is typed into rather than scrolled through, the same
-                  way a long dropdown is. */}
-              <label className="flex items-center gap-2 border-b border-line pb-1.5">
-                <Search className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-                <input
-                  value={columnQuery}
-                  onChange={(e) => setColumnQuery(e.target.value)}
-                  aria-label={t("report.findField")}
-                  placeholder={t("report.findField")}
-                  className="h-8 w-full bg-transparent text-[length:var(--d-text-body)] text-fg outline-none placeholder:text-fg-subtle"
-                />
-              </label>
-
-              <div className="flex max-h-[260px] flex-col gap-1.5 overflow-y-auto">
-                {def.fields
-                  .filter((one) =>
-                    fold(t(one.label as never)).includes(fold(columnQuery.trim())))
-                  .map((one) => (
-                    <label
-                      key={one.key}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1 text-[13px] text-fg hover:bg-sunken"
-                    >
-                      <Checkbox
-                        checked={spec.columns.includes(one.key)}
-                        onCheckedChange={(on) =>
-                          set({
-                            columns: on
-                              ? [...spec.columns, one.key]
-                              : spec.columns.filter((key) => key !== one.key),
-                          })}
-                      />
-                      {t(one.label as never)}
-                    </label>
-                  ))}
-
-                {def.fields.every(
-                  (one) => !fold(t(one.label as never)).includes(fold(columnQuery.trim())),
-                ) ? (
-                  <p className="px-1 py-1 text-[13px] text-fg-muted">{t("report.noField")}</p>
-                ) : null}
-              </div>
-            </Tray>
-
             <Select
               value={spec.sort?.field ?? "none"}
               onValueChange={(value) =>
@@ -554,8 +442,93 @@ export function Builder({
         </div>
       </div>
 
-      {/* The output, with the whole canvas. */}
-      <section className="flex min-h-[460px] flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
+      <div className="flex flex-wrap items-start gap-4">
+        <FieldsPanel subject={spec.subject} />
+
+        <div className="flex min-w-[320px] flex-1 flex-col gap-4">
+          {/* The shelves. What is on them is what the report asks. */}
+          <div className="grid gap-3 rounded-[14px] border border-line bg-surface p-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+            <Shelf
+              title={t("report.shelf.rows")}
+              empty={t("report.dropDimension")}
+              pills={groupPill}
+              takes={(key) => {
+                const field = fieldOf(spec.subject, key);
+                return Boolean(field?.groupable);
+              }}
+              onDrop={(key) =>
+                set({
+                  groupBy: key,
+                  measure: spec.measure ?? { kind: "rows" },
+                  view: GROUPED_VIEWS.has(spec.view) ? spec.view : "bar",
+                })}
+              onRemove={() => set({ groupBy: null, measure: null, view: "table" })}
+            />
+
+            <Shelf
+              title={t("report.shelf.values")}
+              empty={counted ? t("report.dropMeasure") : t("report.valuesNeedGroup")}
+              pills={valuePills}
+              takes={(key) => {
+                if (!counted) return false;
+                const field = fieldOf(spec.subject, key);
+                return Boolean(field?.numeric);
+              }}
+              onDrop={(key) => set({ measure: { kind: "sum", field: key } })}
+              onRemove={() => set({ measure: { kind: "rows" } })}
+            >
+              {counted ? (
+                <Select
+                  value={
+                    spec.measure?.kind === "sum" || spec.measure?.kind === "average"
+                      ? `${spec.measure.kind}:${spec.measure.field}`
+                      : (spec.measure?.kind ?? "rows")
+                  }
+                  onValueChange={(value) => {
+                    const [kind, field] = value.split(":") as [MeasureKind, string | undefined];
+                    set({ measure: field ? { kind, field } : { kind } });
+                  }}
+                >
+                  <SelectTrigger className="min-h-8 text-[13px]" aria-label={t("report.measure")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent searchLabel={t("report.findMeasure")}>
+                    <SelectItem value="rows">
+                      {t("report.measure.rows", { rows: t(def.rowLabel as never) })}
+                    </SelectItem>
+                    <SelectItem value="people">{t("report.measure.members")}</SelectItem>
+                    {def.fields.filter((one) => one.numeric).map((one) => (
+                      <SelectItem key={`sum:${one.key}`} value={`sum:${one.key}`}>
+                        {t("report.measure.sum", { field: t(one.label as never) })}
+                      </SelectItem>
+                    ))}
+                    {def.fields.filter((one) => one.numeric).map((one) => (
+                      <SelectItem key={`average:${one.key}`} value={`average:${one.key}`}>
+                        {t("report.measure.average", { field: t(one.label as never) })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+            </Shelf>
+
+            {counted ? null : (
+              <Shelf
+                title={t("report.columns")}
+                empty={t("report.dropHere")}
+                pills={spec.columns.map((key) => ({
+                  key,
+                  label: t(fieldOf(spec.subject, key)!.label as never),
+                }))}
+                takes={(key) => !spec.columns.includes(key)}
+                onDrop={(key) => set({ columns: [...spec.columns, key] })}
+                onRemove={(key) => set({ columns: spec.columns.filter((one) => one !== key) })}
+              />
+            )}
+          </div>
+
+      {/* The output, with the rest of the canvas. */}
+      <section className="flex min-h-[420px] flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h3 className="font-display text-[22px] leading-7 text-fg">
             {counted && groupField && measureName
@@ -586,7 +559,9 @@ export function Builder({
             <Answer spec={spec} result={result} rows={20} />
           </div>
         ) : null}
-      </section>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

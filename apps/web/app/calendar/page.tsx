@@ -151,6 +151,7 @@ export default async function CalendarPage({
                 .filter(Boolean)
                 .join(" · "),
               hue: group.typeHue ?? "fern",
+              href: `/groups/${group.slug}`,
             });
           }
 
@@ -217,7 +218,7 @@ export default async function CalendarPage({
                 const body = (
                   <>
                     <div
-                      className="text-[13px] font-medium"
+                      className="text-[13px] font-medium group-hover:underline"
                       style={{ color: `var(--hue-${entry.hue}-key)` }}
                     >
                       {entry.title}
@@ -238,7 +239,7 @@ export default async function CalendarPage({
                   <Link
                     key={entry.id}
                     href={`${entry.href}?church=${session.tenantSlug}`}
-                    className="block cursor-pointer rounded-sm px-2.5 py-2 transition-shadow hover:shadow-sm"
+                    className="group block cursor-pointer rounded-sm px-2.5 py-2 outline-none transition-all hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
                     style={style}
                   >
                     {body}
