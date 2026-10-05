@@ -8,6 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Empty } from "@/components/empty";
 import { NewFormButton } from "./new-form";
+import { FormSearch } from "./form-search";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,7 @@ export default async function FormsPage({
           action={putAway || forms.length === 0 ? undefined : <NewFormButton church={session.tenantSlug} />}
         />
       ) : (
-        <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+        <FormSearch names={forms.map((one) => one.name)} count={forms.length}>
           {forms.map((form) => {
             const open = !form.archivedAt && form.status === "open";
             return (
@@ -106,7 +107,7 @@ export default async function FormsPage({
               </li>
             );
           })}
-        </ul>
+        </FormSearch>
       )}
 
       {!putAway && archivedCount > 0 ? (

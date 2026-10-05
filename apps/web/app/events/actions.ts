@@ -3,10 +3,12 @@
 import {
   withTenant, createEvent, updateEvent, setEventStatus, setEventArchived,
   setEventRegistrationOpen, setEventHue, setEventCover, ensureEventForm,
+  getChurch, lookupPeople,
   type EventInput, type EventStatus,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
+import { churchNow } from "@/lib/church-now";
 
 async function context(church?: string) {
   const session = await requireSession(church);
@@ -157,5 +159,37 @@ export async function startEventForm(id: string, church?: string): Promise<Event
     return { id: form.id };
   } catch (error) {
     return { error: explain(error) };
+  }
+}
+
+export interface PersonHit {
+  id: string;
+  name: string;
+}
+
+/** R14.1. Who to ask about an event, looked up the way every person field is. */
+export async function findEventContact(
+  query: string,
+  church?: string,
+): Promise<PersonHit[]> {
+  const session = await requireSession(church);
+  const ctx = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+  try {
+    return await withTenant(ctx, async (tx) => {
+      const profile = await getChurch(tx, session.tenantId);
+      const asOf = churchNow(profile?.timezone ?? "America/Chicago").date;
+      const matches = await lookupPeople(tx, query, { asOf, limit: 10 });
+      return matches.map((one) => ({
+        id: one.person.id,
+        name: `${one.person.name} ${one.person.lastName}`,
+      }));
+    });
+  } catch {
+    return [];
   }
 }

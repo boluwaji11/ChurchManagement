@@ -34,6 +34,8 @@ export const UPLOAD_RULES = {
    * image per form, and a church with twenty forms is well inside its quota.
    */
   form_cover: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
+  /** R14.1. The picture across the top of an event. */
+  event_cover: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
   plan_item: {
     types: [
       "application/pdf",
@@ -62,5 +64,6 @@ export const SUGGESTED_PIXELS: Record<UploadPurpose, string | null> = {
   group_photo: "1600 x 900",
   // A cover is a wide band across the top of a page, cropped 6 to 1.
   form_cover: "1800 x 300",
+  event_cover: "1600 x 900",
   plan_item: null,
 };
