@@ -451,16 +451,15 @@ a person record or attaches to one, using the duplicate logic already built in F
 The portal is the PWA a member installs. It is the same data behind a different door, so almost
 every story here is a view over something already built.
 
-**Where it stands.** A member's own screens are `/home`, `/home/serving` and `/home/household`, all
-at portal density inside the shell the rest of the product uses. Home leads with what the church is
-waiting on, then their schedule, their groups and their household. Serving carries the whole
-schedule, accept and decline with a reason, and the days they have said not to ask. Household shows
-who is in it and holds the switches for what the church directory publishes, each saving on its own.
+**Where it stands.** The portal has its own frame: the church's mark and name across a 64px bar, the
+tabs Home, Events, Groups, Serving and My household, the account on the right, and the church's
+contact line at the foot. Home leads with the serving request waiting on them, then their dates,
+what the church has on, their groups and their household. Serving carries the schedule, accept and
+decline, and blackout dates on a calendar. Groups opens on the kinds, then a list, then a group they
+can ask to join or leave. My household holds the people and the directory switches.
 
 HRT-157 is half done: the privacy switches are built, and changing your own name or contact details
-is still a question for the church office. The design's Give tab is not built, because money is
-deferred and R17.4 comes back with it. Checking your own children in is HRT-160 and needs the
-check-in codes, so the design's card for it is not here yet.
+is still a question for the church office.
 
 | ID | Story | Req | State |
 |---|---|---|---|
@@ -468,7 +467,7 @@ check-in codes, so the design's card for it is not here yet.
 | HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | New |
 | HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Active |
 | HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |
-| HRT-159 | Browse groups, ask to join, see my groups | R17.5 | New |
+| HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |
 | HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | New |
 | HRT-161 | Submit a form or a prayer request, and the prayer wall for the ones marked public | R17.9, R17.10 | New |
 | HRT-162 | The announcement feed | R16.11 | New |
