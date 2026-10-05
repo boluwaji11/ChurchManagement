@@ -489,7 +489,7 @@ is recorded, which the notes table already does.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-177 | The event record and the public event page | R14.1, R14.2 | New |
+| HRT-177 | The event record and the public event page | R14.1, R14.2 | Active |
 | HRT-178 | Free registration, capacity, and a waitlist that promotes when a place frees | R14.4 | New |
 | HRT-179 | Custom questions per registrant, reusing the form logic | R14.5 | New |
 | HRT-180 | Family registration in one flow, several household members and one submission | R14.6 | New |
