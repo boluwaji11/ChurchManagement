@@ -151,9 +151,11 @@ async function directory(tx: Handle, tenantId: string): Promise<ExistingPerson[]
 /**
  * R4.4. Finds who a submission is about, or writes the record it is about.
  *
- * One certain match is taken. Anything less sure, and anything with two certain
- * matches under it, is left for somebody to look at (R4.5): merging two people
- * because a form was filled in twice is a worse outcome than a row in a queue.
+ * One certain match is taken. Anything less sure writes its own record and is
+ * flagged, rather than guessing: attaching a prayer request to the wrong family
+ * member is worse than holding two records for a moment. The flag reads on the
+ * submission itself and the duplicate finder pairs the two, which is where a
+ * church already goes to join records together (R4.5).
  *
  * Nothing already on a record is overwritten. A connection card filled in with
  * a nickname cannot rename somebody in the directory, so an answer fills a
@@ -192,15 +194,16 @@ export async function placeSubmission(
     return settle(tx, input.submissionId, "matched", personId);
   }
 
-  // Two certain matches is two records that are probably one person, which is
-  // the directory's problem rather than this form's. Somebody looks.
-  if (matches.length > 0) {
-    return settle(tx, input.submissionId, "review", null);
-  }
-
   const personId = await createPerson(tx, input.tenantId, identity);
   await writeCustom(tx, input.tenantId, personId, identity.custom);
-  return settle(tx, input.submissionId, "created", personId);
+
+  /*
+   * Somebody fitted, but not certainly enough to attach this to them. The new
+   * record carries the submission so nothing waits on a queue nobody opens,
+   * and "review" says a person should look: the same signals that made this
+   * uncertain make the two records a pair in the duplicate finder.
+   */
+  return settle(tx, input.submissionId, matches.length > 0 ? "review" : "created", personId);
 }
 
 async function settle(

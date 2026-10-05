@@ -202,13 +202,18 @@ export function Responses({
                         would be swallowed by the press. The link is in the
                         response itself. */}
                     <td className="px-4 py-3 align-top">
-                      {row.personName ? (
-                        <span className="text-[length:var(--d-text-body)] text-fg">
-                          {row.personName}
-                        </span>
-                      ) : (
-                        <MatchTag state={row.matchState} />
-                      )}
+                      <span className="flex flex-wrap items-center gap-2">
+                        {row.personName ? (
+                          <span className="text-[length:var(--d-text-body)] text-fg">
+                            {row.personName}
+                          </span>
+                        ) : null}
+                        {/* R4.5. Flagged where somebody is already reading,
+                            rather than held in a queue of its own. */}
+                        {!row.personName || row.matchState === "review" ? (
+                          <MatchTag state={row.matchState} />
+                        ) : null}
+                      </span>
                     </td>
                   </tr>
                 </DialogTrigger>
@@ -222,6 +227,14 @@ export function Responses({
                       answer. */}
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <MatchTag state={row.matchState} />
+                    {row.matchState === "review" ? (
+                      <Link
+                        href={`/duplicates?church=${church}`}
+                        className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        {t("form.match.compare")}
+                      </Link>
+                    ) : null}
                     {row.personId && row.personName ? (
                       <Link
                         href={`/people/${row.personId}?church=${church}`}
