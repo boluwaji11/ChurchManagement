@@ -103,6 +103,9 @@ const NOTHING: Chosen = {
 
 const AUDIENCES = ["anyone", "men", "women", "young_adults", "students", "parents", "seniors"] as const;
 
+/** Where this device remembers the requests it has put away. */
+const DISMISSED = "hearth:groupRequestsPutAway";
+
 /**
  * R9.5, R9.6. Finding a group.
  *
@@ -138,13 +141,40 @@ export function Finder({
   const [live, setLive] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
-  const [dismissed, setDismissed] = React.useState(false);
+  const [dismissed, setDismissed] = React.useState<string[]>([]);
   const [pending, startTransition] = React.useTransition();
 
-  // Dismissing is for the requests on screen now. Somebody new asking is a new
-  // thing to answer, so the block comes back.
-  const waiting = requests.map((one) => one.id).join(",");
-  React.useEffect(() => setDismissed(false), [waiting]);
+  /*
+   * R9.6. Put away stays put away.
+   *
+   * The ids that were dismissed are kept on this device, so the block does not
+   * come back on the next visit. Only the ones that were there at the time:
+   * somebody new asking is a new thing to answer, and it reopens.
+   *
+   * Browser storage, so every read and write is guarded. A browser that refuses
+   * it is a browser that shows the block, which is the safe way round.
+   */
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DISMISSED);
+      setDismissed(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch {
+      setDismissed([]);
+    }
+  }, []);
+
+  const waiting = requests.filter((one) => !dismissed.includes(one.id));
+
+  const putAway = () => {
+    // Only the ids still asking, so the list cannot grow forever.
+    const next = requests.map((one) => one.id);
+    setDismissed(next);
+    try {
+      localStorage.setItem(DISMISSED, JSON.stringify(next));
+    } catch {
+      // A browser that will not store it is a browser that asks again.
+    }
+  };
 
   const text = query.trim().toLowerCase();
   const archivedGroups = groups.filter((group) => group.archived);
@@ -266,14 +296,14 @@ export function Finder({
        * this screen that is waiting on somebody, and a church that has three
        * people asking should see three people asking before it sees the groups.
        */}
-      {requests.length > 0 && !dismissed ? (
+      {waiting.length > 0 ? (
         <section className="overflow-hidden rounded-[14px] border border-[var(--hue-amber-500)]/20 bg-[var(--hue-amber-tint)]/40">
           <div className="flex items-center gap-2 px-5 pt-4 pb-2.5">
             <span className="text-[12px] font-bold tracking-[0.06em] text-[var(--hue-amber-key)] uppercase">
               {t("find.requests")}
             </span>
             <span className="text-[12px] font-semibold text-[var(--hue-amber-key)]/70">
-              {requests.length}
+              {waiting.length}
             </span>
             <span className="flex-1" />
             {/* Put away for now. It comes back on the next visit, and the
@@ -282,14 +312,14 @@ export function Finder({
               label={t("find.dismiss")}
               variant="ghost"
               className="size-7"
-              onClick={() => setDismissed(true)}
+              onClick={putAway}
             >
               <X />
             </IconButton>
           </div>
 
           <ul className="flex flex-col">
-            {requests.map((request) => (
+            {waiting.map((request) => (
               <li
                 key={request.id}
                 className="relative flex min-h-[56px] flex-wrap items-center gap-3 border-t border-[var(--hue-amber-500)]/20 px-5 py-2"
