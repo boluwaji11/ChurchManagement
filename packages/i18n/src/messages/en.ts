@@ -464,6 +464,7 @@ export const en = {
   "church.save": "Save changes",
   "church.saved": "Saved.",
   "church.error.name": "Enter the church name.",
+  "church.error.email": "That email address does not look right",
   "church.error.timezone": "Choose a timezone.",
   "church.error.notFound": "That church could not be found. Reload and try again.",
   "church.error.serviceName": "Enter a name for the service.",

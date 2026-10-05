@@ -4,6 +4,7 @@ import { tenants, serviceTimes } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
+import { LOOKS_LIKE_EMAIL } from "./form-rules";
 import type { WriteActor } from "./people";
 
 /**
@@ -100,6 +101,13 @@ export async function updateChurch(
   if (!name) throw new InvalidInputError("church.error.name");
   if (!isKnownTimezone(input.timezone)) throw new InvalidInputError("church.error.timezone");
 
+  // R1.1. A church's own address is printed at the foot of every public page,
+  // so a typo here is a typo the congregation reads.
+  const email = trim(input.email);
+  if (email && !LOOKS_LIKE_EMAIL.test(email)) {
+    throw new InvalidInputError("church.error.email");
+  }
+
   const [row] = await db
     .update(tenants)
     .set({
@@ -113,7 +121,7 @@ export async function updateChurch(
       postalCode: trim(input.postalCode),
       country: input.country?.trim() || "US",
       phone: trim(input.phone),
-      email: trim(input.email),
+      email,
       website: trim(input.website),
       ...(input.brandHue ? { brandHue: input.brandHue as never } : {}),
       updatedAt: new Date(),

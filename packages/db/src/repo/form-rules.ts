@@ -78,7 +78,8 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
  * exists to catch the missing @ rather than to rule on what a mail server will
  * accept.
  */
-const LOOKS_LIKE_EMAIL = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
+/** Enough of a check to catch a typo without arguing with the RFC. */
+export const LOOKS_LIKE_EMAIL = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
 
 /** Seven digits is the shortest number anybody can be called back on. */
 const ENOUGH_DIGITS = 7;

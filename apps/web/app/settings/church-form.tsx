@@ -231,8 +231,8 @@ function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: s
     [regionLabel, values.region],
     [t("church.postalCode"), values.postalCode],
     [t("church.country"), values.country],
-    [t("church.phone"), values.phone],
-    [t("church.email"), values.email],
+    [t("church.phone"), values.phone, values.phone?.trim() ? `tel:${values.phone.replace(/[^+\d]/g, "")}` : undefined],
+    [t("church.email"), values.email, values.email?.trim() ? `mailto:${values.email.trim()}` : undefined],
     [t("church.website"), values.website, href(values.website)],
     [t("church.timezone"), values.timezone.replace(/_/g, " ")],
   ];
