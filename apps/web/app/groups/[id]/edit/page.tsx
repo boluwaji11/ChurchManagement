@@ -55,6 +55,7 @@ export default async function EditGroupPage({
         <GroupEditor
           church={session.tenantSlug}
           types={types.map((one) => ({ id: one.id, name: one.name, hue: one.hue }))}
+          leaders={group.leaders.map((one) => ({ id: one.personId, name: one.name }))}
           group={{
             id: group.id,
             name: group.name,

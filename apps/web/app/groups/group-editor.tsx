@@ -12,7 +12,7 @@ import { Picker } from "@/components/picker";
 import { AddressFields } from "@/components/address-fields";
 import { toAddress } from "@/lib/address";
 import { FormActions } from "@/components/form-actions";
-import { create, save, findPerson, join, type PersonHit } from "./actions";
+import { create, save, findPerson, join, leave, type PersonHit } from "./actions";
 import type { GroupDraft, GroupTypeOption } from "./group-form";
 
 const DAYS = [0, 1, 2, 3, 4, 5, 6] as const;
@@ -69,11 +69,14 @@ export function GroupEditor({
   church,
   types,
   group,
+  leaders: already = [],
 }: {
   church: string;
   types: GroupTypeOption[];
   /** Given when an existing group is being changed. */
   group?: GroupDraft;
+  /** R9.3. Who already leads it, so the list opens with them in it. */
+  leaders?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -82,7 +85,7 @@ export function GroupEditor({
   const [childrenWelcome, setChildren] = React.useState(group?.childrenWelcome ?? false);
   const [openToJoin, setOpenToJoin] = React.useState(group?.openToJoin ?? true);
   const [listed, setListed] = React.useState(group?.listed ?? true);
-  const [leaders, setLeaders] = React.useState<{ id: string; name: string }[]>([]);
+  const [leaders, setLeaders] = React.useState(already);
   const [leader, setLeader] = React.useState("");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
   const [endsOn, setEndsOn] = React.useState(group?.endsOn ?? "");
@@ -127,10 +130,22 @@ export function GroupEditor({
           if (result.error) return;
 
           const id = result.id ?? group?.id;
-          // Named leaders go on the roster, because "Led by" is the first thing
-          // the group's card will say.
+          /*
+           * R9.3. The roster follows the list. Named leaders go on it, because
+           * "Led by" is the first thing the group's card will say, and anybody
+           * taken off the list comes off it.
+           */
           if (id) {
-            for (const one of leaders) await join(id, one.id, "leader", church);
+            for (const one of leaders) {
+              if (!already.some((x) => x.id === one.id)) {
+                await join(id, one.id, "leader", church);
+              }
+            }
+            for (const one of already) {
+              if (!leaders.some((x) => x.id === one.id)) {
+                await leave(id, one.id, church);
+              }
+            }
           }
 
           if (id && picture) {
