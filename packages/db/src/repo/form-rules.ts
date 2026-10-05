@@ -56,6 +56,8 @@ export interface FormFieldDef {
   position: number;
   /** R4.2. What has to be true earlier for this one to be shown. */
   showWhen?: FormCondition | null;
+  /** R4.4. Which part of a person's record this answer is, or null. */
+  mapsTo?: string | null;
 }
 
 /** An answer as the form holds it, before anything is done with it. */
@@ -307,4 +309,60 @@ export function formSlug(name: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
   return base || "form";
+}
+
+/**
+ * R4.4. The parts of a person's record a question's answer can become.
+ *
+ * A church writes its questions in its own words ("What's the best number to
+ * reach you on?"), so the label cannot be read for meaning. The builder asks
+ * which part of the record an answer is, once, and every submission after that
+ * lands in the right place.
+ *
+ * Deliberately short. Everything else a church wants to keep is a custom field,
+ * which `custom:<field id>` covers, and a list of forty targets is a list
+ * nobody reads.
+ */
+export const PERSON_TARGETS = [
+  "first_name", "last_name", "preferred_name",
+  "email", "phone", "date_of_birth",
+  "address_line1", "address_line2", "city", "region", "postal_code", "country",
+] as const;
+export type PersonTarget = (typeof PERSON_TARGETS)[number];
+
+/** The prefix that marks one of the church's own fields rather than a core one. */
+export const CUSTOM_TARGET = "custom:";
+
+/**
+ * Which targets a question of this kind can carry.
+ *
+ * An email question can only be an email address and a date question can only
+ * be a date of birth, because an answer that cannot hold the value is a column
+ * that fills up with rubbish. A question of a kind with nothing core to map to
+ * can still carry a custom field, which the builder adds to this list.
+ */
+export function targetsFor(kind: FormFieldKind): PersonTarget[] {
+  switch (kind) {
+    case "email":
+      return ["email"];
+    case "phone":
+      return ["phone"];
+    case "date":
+      return ["date_of_birth"];
+    case "text":
+      return [
+        "first_name", "last_name", "preferred_name",
+        "address_line1", "address_line2", "city", "region", "postal_code", "country",
+      ];
+    default:
+      return [];
+  }
+}
+
+/** Whether a question may carry this target at all. */
+export function targetAllowed(kind: FormFieldKind, target: string | null): boolean {
+  if (!target) return true;
+  if (kind === "section") return false;
+  if (target.startsWith(CUSTOM_TARGET)) return target.length > CUSTOM_TARGET.length;
+  return (targetsFor(kind) as string[]).includes(target);
 }

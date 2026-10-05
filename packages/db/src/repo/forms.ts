@@ -1,12 +1,13 @@
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { forms, formFields, formSubmissions } from "../schema/forms";
+import { people } from "../schema/people";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
 import {
   FORM_FIELD_KINDS, NEEDS_OPTIONS, CONDITION_OPS, OPS_NEED_VALUE,
-  formSlug, formProblems, conditionProblem,
+  formSlug, formProblems, conditionProblem, targetAllowed,
   type ConditionOp, type FormAnswer, type FormCondition, type FormFieldDef,
   type FormFieldKind, type FormStatus,
 } from "./form-rules";
@@ -67,6 +68,8 @@ export interface FormFieldInput {
   options?: string[] | null;
   /** R4.2. Null, or the earlier answer this question waits on. */
   showWhen?: FormCondition | null;
+  /** R4.4. Null, or which part of a person's record this answer is. */
+  mapsTo?: string | null;
 }
 
 const NAME_LIMIT = 120;
@@ -107,6 +110,7 @@ function checkField(input: FormFieldInput): {
   required: boolean;
   options: string[] | null;
   showWhen: FormCondition | null;
+  mapsTo: string | null;
 } {
   if (!FORM_FIELD_KINDS.includes(input.kind)) throw new InvalidInputError("form.error.kind");
 
@@ -128,7 +132,21 @@ function checkField(input: FormFieldInput): {
     required: input.kind === "section" ? false : Boolean(input.required),
     options,
     showWhen: checkCondition(input.showWhen ?? null),
+    mapsTo: checkTarget(input.kind, input.mapsTo ?? null),
   };
+}
+
+/**
+ * R4.4. Holds the chosen target against the kind of question.
+ *
+ * An email address cannot be somebody's date of birth, and a heading is not
+ * anything at all. Refused here rather than quietly cleared, because a church
+ * that picked a target meant to pick one.
+ */
+function checkTarget(kind: FormFieldKind, target: string | null): string | null {
+  const cleaned = target?.trim() || null;
+  if (!targetAllowed(kind, cleaned)) throw new InvalidInputError("form.error.target");
+  return cleaned;
 }
 
 /** R4.2. The shape of a condition, before it is held against the form. */
@@ -170,6 +188,7 @@ async function fieldsFor(db: Tx, formId: string): Promise<FormFieldDef[]> {
       showWhenFieldId: formFields.showWhenFieldId,
       showWhenOp: formFields.showWhenOp,
       showWhenValue: formFields.showWhenValue,
+      mapsTo: formFields.mapsTo,
     })
     .from(formFields)
     .where(eq(formFields.formId, formId))
@@ -507,6 +526,11 @@ export interface FormSubmission {
   receivedAt: string;
   /** Question id to what was given, the shape `FormAnswer` describes. */
   answers: Record<string, FormAnswer>;
+  /** R4.4. Who it turned out to be, where anybody is sure. */
+  personId: string | null;
+  personName: string | null;
+  /** "created", "matched", "review" or "none". */
+  matchState: string;
 }
 
 /**
@@ -526,8 +550,14 @@ export async function listSubmissions(
       id: formSubmissions.id,
       createdAt: formSubmissions.createdAt,
       answers: formSubmissions.answers,
+      personId: formSubmissions.personId,
+      matchState: formSubmissions.matchState,
+      firstName: people.firstName,
+      lastName: people.lastName,
+      preferredName: people.preferredName,
     })
     .from(formSubmissions)
+    .leftJoin(people, eq(people.id, formSubmissions.personId))
     .where(eq(formSubmissions.formId, formId))
     .orderBy(desc(formSubmissions.createdAt))
     .limit(window.limit)
@@ -537,6 +567,11 @@ export async function listSubmissions(
     id: row.id,
     receivedAt: row.createdAt.toISOString(),
     answers: (row.answers ?? {}) as Record<string, FormAnswer>,
+    personId: row.personId,
+    personName: row.firstName
+      ? `${row.preferredName ?? row.firstName} ${row.lastName}`.trim()
+      : null,
+    matchState: row.matchState,
   }));
 }
 

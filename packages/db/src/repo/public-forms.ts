@@ -5,6 +5,7 @@ import {
   type ConditionOp, type FormAnswer, type FormFieldDef, type FormFieldKind,
 } from "./form-rules";
 import { publicChurch, type PublicChurch } from "./public-groups";
+import { placeSubmission } from "./form-matching";
 
 /**
  * R4.3. A form as somebody with no account meets it.
@@ -206,9 +207,19 @@ export async function submitPublicForm(input: {
       if ((count?.n ?? 0) >= fresh.limit) throw new InvalidInputError("form.error.closed");
     }
 
-    await tx`
+    const [saved] = await tx<{ id: string }[]>`
       insert into form_submissions (tenant_id, form_id, answers)
-      values (${row.tenantId}, ${row.id}, ${JSON.stringify(answers)}::jsonb)`;
+      values (${row.tenantId}, ${row.id}, ${JSON.stringify(answers)}::jsonb)
+      returning id`;
+
+    // R4.4. The answers become a person record in the same transaction, so a
+    // response can never sit in the list with nothing behind it.
+    await placeSubmission(tx, {
+      tenantId: row.tenantId,
+      submissionId: saved!.id,
+      fields,
+      answers,
+    });
   });
 
   return { ok: true, thanks: row.thanks };

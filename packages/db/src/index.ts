@@ -53,6 +53,7 @@ export * from "./repo/campuses";
 export * from "./repo/provisional";
 export * from "./repo/public-groups";
 export * from "./repo/public-forms";
+export * from "./repo/form-matching";
 export * from "./repo/forms";
 export * from "./repo/services";
 export * from "./repo/attendance";

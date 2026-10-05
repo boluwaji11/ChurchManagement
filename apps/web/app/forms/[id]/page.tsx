@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, getForm, listSubmissions, countSubmissions, canManageChurch,
+  withTenant, getForm, listSubmissions, countSubmissions, listCustomFields,
+  canManageChurch,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -46,6 +47,9 @@ export default async function FormPage({
         ? await listSubmissions(tx, id, { limit: PER_PAGE, offset: (at - 1) * PER_PAGE })
         : [],
       total: reading ? await countSubmissions(tx, id) : 0,
+      // R4.4. The church's own person fields, so a question can be told to
+      // write its answer onto one.
+      personFields: await listCustomFields(tx, "person"),
     }),
   );
   if (!result.form) notFound();
@@ -74,6 +78,7 @@ export default async function FormPage({
         page={at}
         perPage={PER_PAGE}
         total={result.total}
+        personFields={result.personFields.map((one) => ({ id: one.id, label: one.label }))}
       />
     </AppShell>
   );

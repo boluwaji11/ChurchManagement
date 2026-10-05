@@ -9,10 +9,14 @@ import {
 } from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { NEEDS_OPTIONS, type FormFieldDef, type FormFieldKind } from "@hearth/db/rules";
+import {
+  NEEDS_OPTIONS, CUSTOM_TARGET, targetsFor,
+  type FormFieldDef, type FormFieldKind,
+} from "@hearth/db/rules";
 import {
   saveForm, openOrClose, archiveForm, saveQuestion, dropQuestion, orderQuestions,
 } from "../actions";
@@ -52,6 +56,9 @@ const ADDABLE: FormFieldKind[] = [
   "text", "long_text", "email", "phone", "select", "multi_select", "date",
 ];
 
+/** Radix cannot hold an empty value, so "no field" needs a name of its own. */
+const NOTHING = "nothing";
+
 /** A question that types an answer on one line. */
 const ONE_LINE: FormFieldKind[] = ["text", "email", "phone", "date", "number"];
 
@@ -71,6 +78,7 @@ export function Builder({
   page,
   perPage,
   total,
+  personFields,
 }: {
   church: string;
   form: BuilderForm;
@@ -79,6 +87,8 @@ export function Builder({
   page: number;
   perPage: number;
   total: number;
+  /** R4.4. The church's own person fields, as answers can be saved onto them. */
+  personFields: { id: string; label: string }[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -249,6 +259,7 @@ export function Builder({
 
       {view === "responses" ? (
         <Responses
+          church={church}
           fields={form.fields}
           rows={responses}
           page={page}
@@ -269,6 +280,7 @@ export function Builder({
               church={church}
               formId={form.id}
               field={field}
+              personFields={personFields}
               pending={pending}
               held={held === field.id}
               over={over === field.id}
@@ -386,6 +398,7 @@ function Question({
   church,
   formId,
   field,
+  personFields,
   pending,
   held,
   over,
@@ -398,6 +411,7 @@ function Question({
   church: string;
   formId: string;
   field: FormFieldDef;
+  personFields: { id: string; label: string }[];
   pending: boolean;
   held: boolean;
   over: boolean;
@@ -412,10 +426,33 @@ function Question({
   const Icon = KIND_ICON[field.kind];
   const wantsOptions = NEEDS_OPTIONS.includes(field.kind);
 
+  /*
+   * The core fields this kind of answer can hold, then the church's own. An
+   * email question can only ever be an email address, so the list is short and
+   * nothing in it can be wrong.
+   */
+  const targets = field.kind === "section"
+    ? []
+    : [
+        ...targetsFor(field.kind).map((one) => ({
+          value: one,
+          label: t(`form.target.${one}` as never),
+        })),
+        ...personFields.map((one) => ({
+          value: `${CUSTOM_TARGET}${one.id}`,
+          label: one.label,
+        })),
+      ];
+
   React.useEffect(() => setLabel(field.label), [field.label]);
   React.useEffect(() => setOptions(field.options ?? []), [field.options]);
 
-  const save = (changes: { label?: string; required?: boolean; options?: string[] }) =>
+  const save = (changes: {
+    label?: string;
+    required?: boolean;
+    options?: string[];
+    mapsTo?: string | null;
+  }) =>
     void saveQuestion(
       formId,
       field.id,
@@ -426,6 +463,7 @@ function Question({
         required: changes.required ?? field.required,
         options: wantsOptions ? (changes.options ?? options) : null,
         showWhen: field.showWhen ?? null,
+        mapsTo: changes.mapsTo === undefined ? (field.mapsTo ?? null) : changes.mapsTo,
       },
       church,
     ).then((result) => {
@@ -510,6 +548,32 @@ function Question({
           autoComplete="off"
           className="h-9.5 rounded-lg border border-line bg-canvas px-2.5 font-medium text-fg outline-none focus-visible:border-primary"
         />
+
+        {/* R4.4. Where this answer goes on the person's record. A church
+            writes its questions in its own words, so the words cannot be read
+            for meaning and the question is asked here once. */}
+        {targets.length > 0 ? (
+          <label className="flex flex-wrap items-center gap-2 text-[12px] font-medium text-fg-subtle">
+            {t("form.mapsTo")}
+            <Select
+              value={field.mapsTo ?? NOTHING}
+              onValueChange={(next) => save({ mapsTo: next === NOTHING ? null : next })}
+              disabled={pending}
+            >
+              <SelectTrigger className="h-8 min-h-0 w-auto min-w-[160px] text-[13px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NOTHING}>{t("form.mapsTo.none")}</SelectItem>
+                {targets.map((one) => (
+                  <SelectItem key={one.value} value={one.value}>
+                    {one.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+        ) : null}
 
         {wantsOptions ? (
           <div className="flex flex-wrap gap-1.5">

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -14,6 +15,36 @@ export interface SubmissionRow {
   answers: Record<string, FormAnswer>;
   /** The date already written the way this church reads dates. */
   when: string;
+  /** R4.4. Who this turned out to be, where anybody is sure. */
+  personId: string | null;
+  personName: string | null;
+  matchState: string;
+}
+
+/**
+ * R4.4. The four things that can have become of a submission.
+ *
+ * The hue carries the reading: a new record and a matched one are both settled,
+ * one row needs somebody to look, and a form that asked nothing a person can be
+ * found by was never going to land anywhere.
+ */
+const MATCH_HUE: Record<string, string> = {
+  created: "fern",
+  matched: "sky",
+  review: "amber",
+  none: "clay",
+};
+
+function MatchTag({ state }: { state: string }) {
+  const hue = MATCH_HUE[state] ?? "clay";
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium"
+      style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+    >
+      {t(`form.match.${state}` as never)}
+    </span>
+  );
 }
 
 /** How one answer reads on a screen, whatever shape it arrived in. */
@@ -33,12 +64,14 @@ function spoken(answer: FormAnswer): string {
  * underneath are the ones the directory uses.
  */
 export function Responses({
+  church,
   fields,
   rows,
   page,
   perPage,
   total,
 }: {
+  church: string;
   fields: FormFieldDef[];
   rows: SubmissionRow[];
   page: number;
@@ -52,7 +85,7 @@ export function Responses({
   // Headings are the questions that have answers, and only as many as sit
   // across a screen without the table scrolling sideways on a laptop.
   const asked = fields.filter((one) => one.kind !== "section");
-  const columns = asked.slice(0, 4);
+  const columns = asked.slice(0, 3);
 
   const go = (next: number) => {
     const query = new URLSearchParams(params.toString());
@@ -83,6 +116,9 @@ export function Responses({
                   {field.label}
                 </th>
               ))}
+              <th className="w-[200px] px-4 py-3 text-[12px] font-medium text-fg-subtle">
+                {t("form.match.heading")}
+              </th>
             </tr>
           </thead>
 
@@ -117,6 +153,20 @@ export function Responses({
                         </td>
                       );
                     })}
+
+                    {/* The name reads as text here rather than a link, because
+                        the row already opens the response and a link inside it
+                        would be swallowed by the press. The link is in the
+                        response itself. */}
+                    <td className="px-4 py-3 align-top">
+                      {row.personName ? (
+                        <span className="text-[length:var(--d-text-body)] text-fg">
+                          {row.personName}
+                        </span>
+                      ) : (
+                        <MatchTag state={row.matchState} />
+                      )}
+                    </td>
                   </tr>
                 </DialogTrigger>
 
@@ -124,6 +174,21 @@ export function Responses({
                   title={t("form.responses.title", { date: row.when })}
                   closeLabel={t("common.close")}
                 >
+                  {/* R4.4. Where this landed on the directory, at the top,
+                      because it is the question a church opens a response to
+                      answer. */}
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <MatchTag state={row.matchState} />
+                    {row.personId && row.personName ? (
+                      <Link
+                        href={`/people/${row.personId}?church=${church}`}
+                        className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        {row.personName}
+                      </Link>
+                    ) : null}
+                  </div>
+
                   <dl className="flex flex-col gap-3">
                     {asked.map((field) => {
                       const said = spoken(row.answers[field.id] ?? null);

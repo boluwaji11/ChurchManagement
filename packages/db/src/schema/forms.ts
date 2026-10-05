@@ -3,6 +3,7 @@ import {
   pgTable, uuid, text, boolean, integer, timestamp, jsonb, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
+import { people } from "./people";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -95,6 +96,15 @@ export const formFields = pgTable(
     showWhenOp: text("show_when_op"),
     /** The answer being matched, for "is" and "is_not". */
     showWhenValue: text("show_when_value"),
+    /**
+     * R4.4. Which part of a person's record this answer is, or null.
+     *
+     * One of the core keys `PERSON_TARGETS` names, or `custom:<field id>` for
+     * one of the church's own fields. A church writes its questions in its own
+     * words, so the label cannot be read for meaning and the builder asks once
+     * here instead.
+     */
+    mapsTo: text("maps_to"),
     createdAt: created(),
     updatedAt: updated(),
   },
@@ -122,10 +132,21 @@ export const formSubmissions = pgTable(
     formId: uuid("form_id").notNull().references(() => forms.id, { onDelete: "cascade" }),
     /** Question id to answer, the shape `FormAnswer` describes. */
     answers: jsonb("answers").notNull(),
+    /**
+     * R4.4. Who this turned out to be, once anybody is sure.
+     *
+     * Null while it is waiting for somebody to look, and null for a form that
+     * asks nothing a person can be found by.
+     */
+    personId: uuid("person_id").references(() => people.id, { onDelete: "set null" }),
+    /** "created", "matched", "review" or "none". */
+    matchState: text("match_state").notNull().default("none"),
     createdAt: created(),
   },
   (t) => [
     index("form_submission_tenant_idx").on(t.tenantId),
     index("form_submission_form_idx").on(t.tenantId, t.formId, t.createdAt),
+    index("form_submission_person_idx").on(t.tenantId, t.personId),
+    index("form_submission_review_idx").on(t.tenantId, t.matchState),
   ],
 );
