@@ -215,6 +215,9 @@ export function Directory({
 
         <span className="flex-1" />
 
+        {/* The actions wrap as one block, so the thing this screen is for does
+            not end up alone on a line of its own under the search box. */}
+        <div className="flex flex-wrap items-center justify-end gap-2">
         <FilterDrawer
           tags={tags}
           counts={counts}
@@ -263,6 +266,7 @@ export function Directory({
             </Link>
           </Button>
         ) : null}
+        </div>
       </div>
 
       {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
