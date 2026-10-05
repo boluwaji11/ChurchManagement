@@ -330,15 +330,15 @@ export async function createForm(
   db: Tx,
   actor: WriteActor,
   input: FormInput,
-): Promise<{ id: string }> {
+): Promise<{ id: string; slug: string }> {
   if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
   const values = checkForm(input);
 
   const [row] = await db
     .insert(forms)
     .values({ tenantId: actor.tenantId, ...values, slug: await freeSlug(db, values.name) })
-    .returning({ id: forms.id });
-  return { id: row!.id };
+    .returning({ id: forms.id, slug: forms.slug });
+  return { id: row!.id, slug: row!.slug };
 }
 
 export async function updateForm(
@@ -576,6 +576,8 @@ export interface FormSubmission {
   answers: Record<string, FormAnswer>;
   /** R4.4. Who it turned out to be, where anybody is sure. */
   personId: string | null;
+  /** R24.6. Their readable address, where the response matched somebody. */
+  personSlug: string | null;
   personName: string | null;
   /** "created", "matched", "review" or "none". */
   matchState: string;
@@ -599,6 +601,7 @@ export async function listSubmissions(
       createdAt: formSubmissions.createdAt,
       answers: formSubmissions.answers,
       personId: formSubmissions.personId,
+      personSlug: people.slug,
       matchState: formSubmissions.matchState,
       firstName: people.firstName,
       lastName: people.lastName,
@@ -616,6 +619,7 @@ export async function listSubmissions(
     receivedAt: row.createdAt.toISOString(),
     answers: (row.answers ?? {}) as Record<string, FormAnswer>,
     personId: row.personId,
+    personSlug: row.personSlug,
     personName: row.firstName
       ? `${row.preferredName ?? row.firstName} ${row.lastName}`.trim()
       : null,

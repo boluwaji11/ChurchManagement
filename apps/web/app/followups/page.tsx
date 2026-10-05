@@ -85,6 +85,7 @@ export default async function FollowUpsPage({
       return {
         entryId: entry.id,
         personId: entry.personId,
+        personSlug: entry.personSlug,
         who: entry.personName,
         owner: next
           ? next.dueOn

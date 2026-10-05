@@ -20,6 +20,7 @@ import {
 
 export interface EventDraft {
   id: string;
+  slug: string;
   name: string;
   description: string | null;
   hue: string;
@@ -175,6 +176,7 @@ export function EventEditor({
           }
 
           const id = result.id ?? event?.id;
+          const slug = result.slug ?? event?.slug ?? id;
           if (id && picture) {
             const upload = new FormData();
             upload.set("church", church);
@@ -198,7 +200,7 @@ export function EventEditor({
             router.refresh();
             return;
           }
-          router.push(id ? `/events/${id}/edit?church=${church}` : `/events?church=${church}`);
+          router.push(id ? `/events/${slug}/edit?church=${church}` : `/events?church=${church}`);
         });
       }}
       className="flex flex-col gap-5"

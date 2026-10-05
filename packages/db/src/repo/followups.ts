@@ -133,6 +133,8 @@ export interface Pipeline {
 export interface FollowUp {
   id: string;
   personId: string;
+  /** R24.6. Their readable address, so a card links without exposing an id. */
+  personSlug: string;
   personName: string;
   title: string;
   pipelineName: string | null;
@@ -152,6 +154,7 @@ export interface PipelineEntry {
   pipelineName: string;
   pipelineHue: string;
   personId: string;
+  personSlug: string;
   personName: string;
   status: string;
   reason: string;
@@ -519,6 +522,7 @@ async function tasksWhere(db: Tx, where: ReturnType<typeof eq>): Promise<FollowU
     .select({
       id: followUps.id,
       personId: followUps.personId,
+      personSlug: people.slug,
       firstName: people.firstName,
       lastName: people.lastName,
       preferredName: people.preferredName,
@@ -542,6 +546,7 @@ async function tasksWhere(db: Tx, where: ReturnType<typeof eq>): Promise<FollowU
   return rows.map((row) => ({
     id: row.id,
     personId: row.personId,
+    personSlug: row.personSlug,
     personName: called(row),
     title: row.title,
     pipelineName: row.pipelineName,
@@ -568,6 +573,7 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
       key: pipelines.key,
       name: pipelines.name,
       hue: pipelines.hue,
+      personSlug: people.slug,
       firstName: people.firstName,
       lastName: people.lastName,
       preferredName: people.preferredName,
@@ -591,6 +597,7 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
     pipelineName: row.name,
     pipelineHue: row.hue,
     personId: row.personId,
+    personSlug: row.personSlug,
     personName: called(row),
     status: row.status,
     reason: row.reason,

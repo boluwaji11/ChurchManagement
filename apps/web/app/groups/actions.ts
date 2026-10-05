@@ -22,6 +22,8 @@ async function context(church?: string) {
 
 export interface GroupResult {
   id?: string;
+  /** R24.6. Its readable address, for where to go once it is saved. */
+  slug?: string;
   error?: string;
 }
 
@@ -65,7 +67,7 @@ export async function create(data: FormData): Promise<GroupResult> {
   const { actor, ctx } = await context(church);
   try {
     const group = await withTenant(ctx, (tx) => createGroup(tx, actor, read(data)));
-    return { id: group.id };
+    return { id: group.id, slug: group.slug };
   } catch (error) {
     return { error: explain(error) };
   }
@@ -78,7 +80,7 @@ export async function save(data: FormData): Promise<GroupResult> {
     const group = await withTenant(ctx, (tx) =>
       updateGroup(tx, actor, field(data, "id"), read(data)),
     );
-    return { id: group.id };
+    return { id: group.id, slug: group.slug };
   } catch (error) {
     return { error: explain(error) };
   }

@@ -70,6 +70,7 @@ export default async function GroupsPage({
         requests={requests.map((request) => ({
           id: request.id,
           groupId: request.groupId,
+          groupSlug: request.groupSlug,
           groupName: request.groupName,
           personName: request.personName,
           message: request.message,

@@ -816,7 +816,7 @@ export interface HouseholdOption {
   id: string;
   name: string;
   /** Who is in it, so two households called Smith can be told apart. */
-  members: { id: string; name: string; role: string }[];
+  members: { id: string; slug: string; name: string; role: string }[];
 }
 
 export async function listHouseholds(db: Tx): Promise<HouseholdOption[]> {
@@ -829,6 +829,7 @@ export async function listHouseholds(db: Tx): Promise<HouseholdOption[]> {
           select json_agg(m order by m.role, m.name)
             from (
               select p.id,
+                     p.slug,
                      coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
                      hm.role::text as role
                 from household_memberships hm

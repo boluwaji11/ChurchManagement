@@ -19,6 +19,7 @@ export interface SubmissionRow {
   when: string;
   /** R4.4. Who this turned out to be, where anybody is sure. */
   personId: string | null;
+  personSlug: string | null;
   personName: string | null;
   matchState: string;
 }
@@ -263,7 +264,7 @@ export function Responses({
                     ) : null}
                     {row.personId && row.personName ? (
                       <Link
-                        href={`/members/${row.personId}?church=${church}`}
+                        href={`/members/${row.personSlug}?church=${church}`}
                         className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
                       >
                         {row.personName}

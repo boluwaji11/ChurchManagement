@@ -143,6 +143,7 @@ export default async function TeamPage({
           members={team.members.map((member) => ({
             id: member.id,
             personId: member.personId,
+            personSlug: member.personSlug,
             name: member.name,
             role: member.role,
             joinedOn: member.joinedOn,

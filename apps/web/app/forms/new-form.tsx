@@ -28,7 +28,7 @@ export function NewFormButton({ church }: { church: string }) {
       const result = await newForm({ name: t("form.untitled") }, church, template);
       if (result.id) {
         setOpen(false);
-        router.push(`/forms/${result.id}?church=${church}`);
+        router.push(`/forms/${result.slug ?? result.id}?church=${church}`);
       }
     });
 

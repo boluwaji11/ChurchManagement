@@ -47,6 +47,8 @@ export interface RelationshipView {
   kind: RelationshipKind;
   personId: string;
   relatedPersonId: string;
+  /** R24.6. Their readable address, so the row links without an id in it. */
+  relatedSlug: string;
   relatedName: string;
   relatedArchived: boolean;
   notes: string | null;
@@ -65,6 +67,7 @@ export async function listRelationships(db: Tx, personId: string): Promise<Relat
       kind: relationships.kind,
       personId: relationships.personId,
       relatedPersonId: relationships.relatedPersonId,
+      relatedSlug: people.slug,
       firstName: people.firstName,
       preferredName: people.preferredName,
       lastName: people.lastName,
@@ -82,6 +85,7 @@ export async function listRelationships(db: Tx, personId: string): Promise<Relat
       kind: r.kind as RelationshipKind,
       personId: r.personId,
       relatedPersonId: r.relatedPersonId,
+      relatedSlug: r.relatedSlug,
       relatedName: `${r.preferredName ?? r.firstName} ${r.lastName}`,
       relatedArchived: r.archivedAt !== null,
       notes: r.notes,

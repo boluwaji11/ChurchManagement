@@ -12,6 +12,7 @@ import { addToStage, findPeople } from "./actions";
 export interface BoardCard {
   entryId: string;
   personId: string;
+  personSlug: string;
   who: string;
   owner: string;
   /** The step they are waiting on, which is the column they sit in. */
@@ -120,7 +121,7 @@ export function Board({
                   className="flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3"
                 >
                   <Link
-                    href={`/members/${card.personId}?church=${church}`}
+                    href={`/members/${card.personSlug}?church=${church}`}
                     className="font-medium text-fg"
                   >
                     {card.who}

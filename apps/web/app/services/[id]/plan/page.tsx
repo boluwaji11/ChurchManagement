@@ -125,7 +125,7 @@ export default async function PlanPage({
         <div className="flex flex-col gap-6">
           <Order
             church={session.tenantSlug}
-            occurrenceId={id}
+            occurrenceId={occurrence.slug}
             planId={plan.id}
             serviceStartsAt={plan.serviceStartsAt}
             series={plan.series}
@@ -160,7 +160,7 @@ export default async function PlanPage({
 
         <PlanSide
           church={session.tenantSlug}
-          occurrenceId={id}
+          occurrenceId={occurrence.slug}
           minutes={minutes}
           endsAt={ends.toLocaleTimeString(undefined, {
             hour: "numeric", minute: "2-digit", hour12: true,

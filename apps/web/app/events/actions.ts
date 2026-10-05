@@ -22,6 +22,8 @@ async function context(church?: string) {
 }
 
 export interface EventResult {
+  /** R24.6. Its readable address, for where to go once it is saved. */
+  slug?: string;
   error?: string;
   id?: string;
 }
@@ -69,7 +71,7 @@ export async function createEventFrom(data: FormData): Promise<EventResult> {
   const { actor, ctx } = await context(church);
   try {
     const made = await withTenant(ctx, (tx) => createEvent(tx, actor, read(data)));
-    return { id: made.id };
+    return { id: made.id, slug: made.slug };
   } catch (error) {
     return { error: explain(error) };
   }

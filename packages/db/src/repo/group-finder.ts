@@ -76,6 +76,8 @@ export interface FoundGroup {
 export interface JoinRequest {
   id: string;
   groupId: string;
+  /** R24.6. The group's readable address, so a request links without an id. */
+  groupSlug: string;
   groupName: string;
   personId: string;
   personName: string;
@@ -321,6 +323,7 @@ async function requestsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Join
       notifiedAt: groupJoinRequests.notifiedAt,
       createdAt: groupJoinRequests.createdAt,
       groupName: groups.name,
+      groupSlug: groups.slug,
       firstName: people.firstName,
       lastName: people.lastName,
       preferredName: people.preferredName,
@@ -334,6 +337,7 @@ async function requestsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Join
   return rows.map((r) => ({
     id: r.id,
     groupId: r.groupId,
+    groupSlug: r.groupSlug,
     groupName: r.groupName,
     personId: r.personId,
     personName: called(r),

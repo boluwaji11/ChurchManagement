@@ -136,6 +136,7 @@ export function GroupEditor({
           if (result.error) return;
 
           const id = result.id ?? group?.id;
+          const slug = result.slug ?? group?.slug ?? id;
           /*
            * R9.3. The roster follows the list. Named leaders go on it, because
            * "Led by" is the first thing the group's card will say, and anybody
@@ -162,7 +163,7 @@ export function GroupEditor({
             upload.set("file", picture);
             await fetch("/api/upload", { method: "POST", body: upload });
           }
-          router.push(id ? `/groups/${id}?church=${church}` : `/groups?church=${church}`);
+          router.push(id ? `/groups/${slug}?church=${church}` : `/groups?church=${church}`);
         });
       }}
       className="flex flex-col gap-5"

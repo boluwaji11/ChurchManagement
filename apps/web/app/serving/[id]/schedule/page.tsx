@@ -87,7 +87,7 @@ export default async function SchedulePlanPage({
 
       <SchedulePlan
         church={session.tenantSlug}
-        teamId={team.id}
+        teamId={team.slug}
         chosen={chosen ?? ""}
         gatherings={gatherings.map((o) => ({
           id: o.id,

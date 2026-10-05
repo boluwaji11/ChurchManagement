@@ -15,6 +15,7 @@ export interface RelationRow {
   id: string;
   kind: string;
   relatedPersonId: string;
+  relatedSlug: string;
   relatedName: string;
 }
 
@@ -126,7 +127,7 @@ export function Relationships({
                 {label(row.kind)}
               </Badge>
               <Link
-                href={`/members/${row.relatedPersonId}?church=${church}`}
+                href={`/members/${row.relatedSlug}?church=${church}`}
                 className="text-[length:var(--d-text-body)] text-fg underline-offset-2 hover:underline"
               >
                 {row.relatedName}

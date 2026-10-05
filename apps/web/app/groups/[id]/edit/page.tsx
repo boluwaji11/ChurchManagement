@@ -38,7 +38,7 @@ export default async function EditGroupPage({
     <AppShell session={session} max="max-w-[1080px]">
       <div className="flex items-center gap-3">
         <Link
-          href={`/groups/${id}?church=${session.tenantSlug}`}
+          href={`/groups/${group.slug}?church=${session.tenantSlug}`}
           className="inline-flex items-center gap-1.5 font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {group.name}

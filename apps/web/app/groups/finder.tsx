@@ -77,6 +77,7 @@ export interface FinderType {
 export interface FinderRequest {
   id: string;
   groupId: string;
+  groupSlug: string;
   groupName: string;
   personName: string;
   message: string | null;
@@ -366,7 +367,7 @@ export function Finder({
                   {/* The whole row opens the group, where the request sits
                       beside everything else about it. */}
                   <Link
-                    href={`/groups/${request.groupId}?church=${church}`}
+                    href={`/groups/${request.groupSlug}?church=${church}`}
                     className="truncate font-medium text-fg after:absolute after:inset-0 focus-visible:outline-none"
                   >
                     {request.personName}

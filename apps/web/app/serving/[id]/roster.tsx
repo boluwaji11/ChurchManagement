@@ -12,6 +12,7 @@ import { addMember, removeMember, findPerson, type PersonHit } from "../actions"
 export interface RosterMember {
   id: string;
   personId: string;
+  personSlug: string;
   name: string;
   role: string;
   joinedOn: string;
@@ -103,7 +104,7 @@ export function Roster({
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="flex flex-wrap items-center gap-2">
                 <Link
-                  href={`/members/${member.personId}?church=${church}`}
+                  href={`/members/${member.personSlug}?church=${church}`}
                   className="font-medium text-fg underline-offset-4 hover:underline"
                 >
                   {member.name}

@@ -343,7 +343,7 @@ export async function createEvent(
   db: Tx,
   actor: WriteActor,
   input: EventInput,
-): Promise<{ id: string }> {
+): Promise<{ id: string; slug: string }> {
   if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
   const values = check(input);
 
@@ -354,8 +354,8 @@ export async function createEvent(
       ...values,
       slug: await freeSlug(db, values.name),
     })
-    .returning({ id: events.id });
-  return { id: row!.id };
+    .returning({ id: events.id, slug: events.slug });
+  return { id: row!.id, slug: row!.slug };
 }
 
 export async function updateEvent(
@@ -587,6 +587,8 @@ export interface EventRegistration {
   /** R14.6. Everybody registered in the same breath shares this. */
   bookingId: string;
   personId: string | null;
+  /** R24.6. Their readable address, where the registration matched somebody. */
+  personSlug: string | null;
   name: string;
   email: string | null;
   phone: string | null;
@@ -619,6 +621,7 @@ export async function listRegistrations(
     id: string;
     bookingId: string;
     personId: string | null;
+    personSlug: string | null;
     name: string;
     email: string | null;
     phone: string | null;
@@ -635,6 +638,7 @@ export async function listRegistrations(
     select r.id,
            r.booking_id as "bookingId",
            r.person_id as "personId",
+           p.slug as "personSlug",
            r.name,
            r.email,
            r.phone,
@@ -646,6 +650,7 @@ export async function listRegistrations(
            min(r.created_at) over (partition by r.booking_id) as "firstTaken"
       from event_registrations r
       left join form_submissions s on s.id = r.submission_id
+      left join people p on p.id = r.person_id
      where r.event_id = ${eventId}
      order by "firstTaken", r.created_at`);
 
@@ -685,6 +690,7 @@ export async function listRegistrations(
     id: row.id,
     bookingId: row.bookingId,
     personId: row.personId,
+    personSlug: row.personSlug,
     name: row.name,
     email: row.email,
     phone: row.phone,

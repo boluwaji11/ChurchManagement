@@ -19,6 +19,8 @@ async function context(church?: string) {
 export interface FormResult {
   error?: string;
   id?: string;
+  /** R24.6. Its readable address, for where to go once it exists. */
+  slug?: string;
 }
 
 /**
@@ -64,7 +66,7 @@ export async function newForm(
       }
       return form;
     });
-    return { id: made.id };
+    return { id: made.id, slug: made.slug };
   } catch (error) {
     return { error: explain(error) };
   }

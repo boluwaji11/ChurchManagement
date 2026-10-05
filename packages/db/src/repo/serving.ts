@@ -87,6 +87,8 @@ export interface TeamSummary extends Team {
 export interface TeamMemberView {
   id: string;
   personId: string;
+  /** R24.6. Their readable address, so a roster row links without an id. */
+  personSlug: string;
   name: string;
   role: TeamRole;
   joinedOn: string;
@@ -209,6 +211,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
     .select({
       id: teamMembers.id,
       personId: teamMembers.personId,
+      personSlug: people.slug,
       role: teamMembers.role,
       joinedOn: sql<string>`${teamMembers.joinedOn}::text`,
       firstName: people.firstName,
@@ -244,6 +247,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
     members: rows.map((r) => ({
       id: r.id,
       personId: r.personId,
+      personSlug: r.personSlug,
       name: displayName(r),
       role: r.role as TeamRole,
       joinedOn: r.joinedOn,

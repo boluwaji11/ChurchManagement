@@ -29,6 +29,8 @@ export interface CelebrationWindow {
 export interface Celebration {
   kind: CelebrationKind;
   personId: string;
+  /** R24.6. Their readable address, so the list links without an id in it. */
+  personSlug: string;
   name: string;
   /** The day it falls on inside this window. */
   on: string;
@@ -109,6 +111,7 @@ async function birthdays(db: Tx, window: CelebrationWindow): Promise<Celebration
   const rows = await db
     .select({
       id: people.id,
+      slug: people.slug,
       firstName: people.firstName,
       preferredName: people.preferredName,
       lastName: people.lastName,
@@ -129,6 +132,7 @@ async function birthdays(db: Tx, window: CelebrationWindow): Promise<Celebration
     return {
       kind: "birthday" as const,
       personId: r.id,
+      personSlug: r.slug,
       name: displayName(r),
       on,
       years: Number(on.slice(0, 4)) - Number(r.born.slice(0, 4)),
@@ -149,6 +153,7 @@ async function anniversaries(db: Tx, window: CelebrationWindow): Promise<Celebra
   const rows = await db
     .select({
       personId: milestones.personId,
+      slug: people.slug,
       firstName: people.firstName,
       preferredName: people.preferredName,
       lastName: people.lastName,
@@ -197,6 +202,7 @@ async function anniversaries(db: Tx, window: CelebrationWindow): Promise<Celebra
     out.push({
       kind: "anniversary",
       personId: r.personId,
+      personSlug: r.slug,
       name: displayName(r),
       on,
       years: Number(on.slice(0, 4)) - Number(r.occurredOn.slice(0, 4)),

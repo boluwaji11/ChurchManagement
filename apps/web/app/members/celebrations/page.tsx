@@ -225,7 +225,7 @@ export default async function CelebrationsPage({
                     </td>
                     <td className="border-b border-sunken px-4 py-2.5">
                       <Link
-                        href={`/members/${c.personId}?church=${session.tenantSlug}`}
+                        href={`/members/${c.personSlug}?church=${session.tenantSlug}`}
                         className="font-medium text-fg underline-offset-4 hover:underline"
                       >
                         {c.partnerName

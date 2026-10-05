@@ -16,7 +16,7 @@ import type { WriteActor } from "./people";
 export interface HouseholdRow {
   id: string;
   name: string;
-  members: { id: string; name: string; role: string }[];
+  members: { id: string; slug: string; name: string; role: string }[];
   archived: boolean;
 }
 
@@ -42,6 +42,7 @@ export async function listHouseholdRows(
           select json_agg(m order by m.role, m.name)
             from (
               select p.id,
+                     p.slug,
                      coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
                      hm.role::text as role
                 from household_memberships hm
@@ -93,12 +94,13 @@ export async function peopleWithoutHousehold(
   db: Tx,
   search = "",
   limit = 20,
-): Promise<{ id: string; name: string }[]> {
+): Promise<{ id: string; slug: string; name: string }[]> {
   const needle = search.trim();
 
   const rows = await db
     .select({
       id: people.id,
+      slug: people.slug,
       name: sql<string>`coalesce(${people.preferredName}, ${people.firstName}) || ' ' || ${people.lastName}`,
     })
     .from(people)

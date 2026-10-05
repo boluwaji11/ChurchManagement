@@ -19,7 +19,7 @@ import { add, setName, setRole, putAway, fold, freePeople, putIn, takeOut } from
 export interface HouseholdItem {
   id: string;
   name: string;
-  members: { id: string; name: string; role: string }[];
+  members: { id: string; slug: string; name: string; role: string }[];
   archived: boolean;
 }
 
@@ -122,7 +122,7 @@ export function HouseholdList({
                   {household.members.map((member) => (
                     <li key={member.id}>
                       <Link
-                        href={`/members/${member.id}?church=${church}`}
+                        href={`/members/${member.slug}?church=${church}`}
                         className="flex items-center gap-2 rounded-full bg-sunken py-1 pr-3 pl-1 hover:brightness-95"
                       >
                         <Avatar
@@ -260,7 +260,7 @@ function Members({
   onRole?: (id: string, role: string) => void;
 }) {
   const [find, setFind] = React.useState("");
-  const [free, setFree] = React.useState<{ id: string; name: string }[]>([]);
+  const [free, setFree] = React.useState<{ id: string; slug: string; name: string }[]>([]);
   const [looking, setLooking] = React.useState(false);
 
   /*
@@ -581,7 +581,7 @@ export function NewHousehold({ church }: { church: string }) {
   const [name, setName_] = React.useState("");
   const [chosen, setChosen] = React.useState<HouseholdItem["members"]>([]);
   const [find, setFind] = React.useState("");
-  const [free, setFree] = React.useState<{ id: string; name: string }[]>([]);
+  const [free, setFree] = React.useState<{ id: string; slug: string; name: string }[]>([]);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, createPerson, updatePerson, setPersonArchived,
+  withTenant, createPerson, updatePerson, setPersonArchived, getPerson,
   listCustomFields, setCustomValues, coerceCustomValue, setPersonTag, listTagsForPerson,
   type CustomFieldDef, type CustomValue,
 } from "@hearth/db";
@@ -122,8 +122,13 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
     return { formError: explain(error) };
   }
 
+  const where = await withTenant(ctx, async (tx) => {
+    const saved = await getPerson(tx, personId!, { role: session.role, userId: session.userId });
+    return saved?.slug ?? personId!;
+  });
+
   revalidatePath("/members");
-  redirect(`/members/${personId}?church=${session.tenantSlug}&saved=1`);
+  redirect(`/members/${where}?church=${session.tenantSlug}&saved=1`);
 }
 
 export async function setArchived(data: FormData): Promise<SaveResult> {
@@ -142,10 +147,17 @@ export async function setArchived(data: FormData): Promise<SaveResult> {
     return { formError: explain(error) };
   }
 
+  const back = archived
+    ? null
+    : await withTenant(ctx, async (tx) => {
+        const one = await getPerson(tx, id, { role: session.role, userId: session.userId });
+        return one?.slug ?? id;
+      });
+
   revalidatePath("/members");
   redirect(
     archived
       ? `/members?church=${session.tenantSlug}&archived=1`
-      : `/members/${id}?church=${session.tenantSlug}&restored=1`,
+      : `/members/${back}?church=${session.tenantSlug}&restored=1`,
   );
 }

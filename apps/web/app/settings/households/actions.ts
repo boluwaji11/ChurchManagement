@@ -68,7 +68,7 @@ export async function putAway(
 export async function freePeople(
   search: string,
   church?: string,
-): Promise<{ id: string; name: string }[]> {
+): Promise<{ id: string; slug: string; name: string }[]> {
   const who = await actor(church);
   return withTenant(who, (tx) => peopleWithoutHousehold(tx, search));
 }
