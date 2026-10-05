@@ -53,6 +53,8 @@ export function Answer({
       <Series
         labels={result.grid.labels.map(read)}
         stacked={spec.view === "stacked"}
+        legend={spec.look.legend}
+        grid={spec.look.grid}
         series={result.grid.series.map((one, i) => ({
           name: read(one.name),
           values: one.values,
@@ -68,7 +70,15 @@ export function Answer({
     label: read(one.label),
     value: one.value,
   }));
-  const chart = limit ? all.slice(0, limit) : all;
+  // Ordered the way the look asks: by what it counted, or by what it counts.
+  const look = spec.look;
+  const ordered = [...all].sort((a, b) =>
+    look.sort === "label"
+      ? a.label.localeCompare(b.label, undefined, { numeric: true })
+      : a.value - b.value);
+  if (look.dir === "desc") ordered.reverse();
+
+  const chart = limit ? ordered.slice(0, limit) : ordered;
 
   if (spec.view === "number") {
     const total = result.chart
@@ -101,7 +111,10 @@ export function Answer({
   if (spec.view === "bar" && chart.length > 0) {
     return (
       <Columns
-        series={[{ label: t("report.measure.value"), hue: "indigo" }]}
+        labels={look.labels}
+        legend={look.legend}
+        grid={look.grid}
+        series={[{ label: t("report.measure.value"), hue: look.hue }]}
         groups={chart.map((one) => ({
           key: one.key, label: one.label, values: [one.value],
         }))}
@@ -110,7 +123,7 @@ export function Answer({
   }
 
   if (spec.view === "rows" && chart.length > 0) {
-    return <RowBars rows={chart} hue="indigo" />;
+    return <RowBars rows={chart} hue={look.hue} />;
   }
 
   if ((spec.view === "stacked" || spec.view === "donut") && chart.length > 0) {
@@ -133,9 +146,18 @@ export function Answer({
 
   if ((spec.view === "line" || spec.view === "area") && chart.length > 0) {
     // Along its own order rather than by size, because a line is read as time.
+    // A line is read as time, so it keeps its own order whatever the sort says.
     const points = [...chart].sort((a, b) =>
       a.label.localeCompare(b.label, undefined, { numeric: true }));
-    return <Line points={points} hue="indigo" filled={spec.view === "area"} />;
+    return (
+      <Line
+        points={points}
+        hue={look.hue}
+        labels={look.labels}
+        grid={look.grid}
+        filled={spec.view === "area"}
+      />
+    );
   }
 
   // The tallest number in each column, so a cell can be drawn against it.

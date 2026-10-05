@@ -126,6 +126,8 @@ export function Line({
   hue = "indigo",
   aside,
   filled = true,
+  labels = false,
+  grid = true,
 }: {
   title?: string;
   points: Point[];
@@ -133,6 +135,8 @@ export function Line({
   aside?: string;
   /** Filled under the line, which reads as a quantity rather than a direction. */
   filled?: boolean;
+  labels?: boolean;
+  grid?: boolean;
 }) {
   const values = points.map((one) => one.value);
   const floor = Math.min(0, ...values);
@@ -166,6 +170,7 @@ export function Line({
       </div>
 
       <Frame
+        grid={grid}
         top={top}
         footer={
           <div className="flex pt-1.5">
@@ -214,6 +219,11 @@ export function Line({
                 style={{ left: `${x}%`, top: `${(y / H) * 100}%` }}
               >
                 <Hint label={one.label} value={readable(one.value)} />
+                {labels ? (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] text-fg-muted tabular-nums">
+                    {readable(one.value)}
+                  </span>
+                ) : null}
                 <span
                   aria-hidden
                   className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface transition-transform group-hover:scale-150"
@@ -233,10 +243,16 @@ export function Columns({
   title,
   groups,
   series,
+  labels = false,
+  legend = true,
+  grid = true,
 }: {
   title?: string;
   groups: { key: string; label: string; values: number[] }[];
   series: { label: string; hue: string }[];
+  labels?: boolean;
+  legend?: boolean;
+  grid?: boolean;
 }) {
   const top = ceiling(Math.max(1, ...groups.flatMap((one) => one.values)));
 
@@ -250,21 +266,24 @@ export function Columns({
         {title ? (
           <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
         ) : <span />}
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          {series.map((one) => (
-            <li key={one.label} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ background: `var(--hue-${one.hue}-500)` }}
-              />
-              {one.label}
-            </li>
-          ))}
-        </ul>
+        {legend ? (
+          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {series.map((one) => (
+              <li key={one.label} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
+                <span
+                  aria-hidden
+                  className="size-2 rounded-full"
+                  style={{ background: `var(--hue-${one.hue}-500)` }}
+                />
+                {one.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <Frame
+        grid={grid}
         top={top}
         footer={
           <div className="flex gap-2 pt-1.5">
@@ -290,6 +309,11 @@ export function Columns({
                 label={group.label}
                 value={group.values.map((one) => readable(one)).join(" / ")}
               />
+              {labels ? (
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[11px] text-fg-muted tabular-nums">
+                  {readable(group.values.reduce((all, one) => all + one, 0))}
+                </span>
+              ) : null}
               {group.values.map((value, i) => (
                 <span
                   key={series[i]?.label ?? i}
@@ -496,11 +520,15 @@ export function Series({
   labels,
   series,
   stacked = false,
+  legend = true,
+  grid = true,
 }: {
   title?: string;
   labels: string[];
   series: { name: string; values: number[]; hue: string }[];
   stacked?: boolean;
+  legend?: boolean;
+  grid?: boolean;
 }) {
   const columnTotals = labels.map((_, i) =>
     series.reduce((all, one) => all + (one.values[i] ?? 0), 0));
@@ -517,7 +545,8 @@ export function Series({
         {title ? (
           <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
         ) : <span />}
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        {legend ? (
+          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {series.map((one) => (
             <li key={one.name} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
               <span
@@ -528,10 +557,12 @@ export function Series({
               {one.name === "" ? t("report.blank") : one.name}
             </li>
           ))}
-        </ul>
+          </ul>
+        ) : null}
       </div>
 
       <Frame
+        grid={grid}
         top={top}
         footer={
           <div className="flex gap-2 pt-1.5">

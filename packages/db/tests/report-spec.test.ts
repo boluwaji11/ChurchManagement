@@ -135,3 +135,23 @@ describe("a second dimension", () => {
     expect(cleanSpec({ subject: "people", topN: "lots" }).topN).toBeNull();
   });
 });
+
+describe("how a visual looks", () => {
+  it("gives every visual a look even where none was saved", () => {
+    const spec = cleanSpec({ subject: "members" });
+    expect(spec.look.hue).toBe("indigo");
+    expect(spec.look.grid).toBe(true);
+    expect(spec.look.sort).toBe("value");
+  });
+
+  it("refuses a hue that is not in the spectrum", () => {
+    expect(cleanSpec({ subject: "members", look: { hue: "neon" } }).look.hue).toBe("indigo");
+    expect(cleanSpec({ subject: "members", look: { hue: "rose" } }).look.hue).toBe("rose");
+  });
+
+  it("keeps a switch that was turned off", () => {
+    const spec = cleanSpec({ subject: "members", look: { grid: false, labels: true } });
+    expect(spec.look.grid).toBe(false);
+    expect(spec.look.labels).toBe(true);
+  });
+});

@@ -167,6 +167,44 @@ export function wellLabel(value: ValueWell | undefined, rowsLabel: string): stri
   return value.field ? `${value.agg}:${value.field}` : rowsLabel;
 }
 
+/** The hues a visual can be drawn in. The spectrum, at matched lightness. */
+export const CHART_HUES = [
+  "indigo", "sky", "teal", "fern", "citron", "amber", "clay", "rose", "violet",
+] as const;
+export type ChartHue = (typeof CHART_HUES)[number];
+
+export const CHART_SORTS = ["value", "label"] as const;
+export type ChartSort = (typeof CHART_SORTS)[number];
+
+/**
+ * R18.12. How a visual looks, as against what it says.
+ *
+ * Every tool of this kind keeps these apart, and so does this: what is being
+ * counted is one pane, how it is drawn is another, and nobody hunting for a
+ * colour has to read past a field list to find it.
+ */
+export interface ReportLook {
+  hue: ChartHue;
+  /** The number on each bar, slice or point. */
+  labels: boolean;
+  /** The key naming the series. */
+  legend: boolean;
+  /** The lines across the plot. */
+  grid: boolean;
+  /** Ordered by what it counted, or by what it is counting. */
+  sort: ChartSort;
+  dir: "asc" | "desc";
+}
+
+export const DEFAULT_LOOK: ReportLook = {
+  hue: "indigo",
+  labels: false,
+  legend: true,
+  grid: true,
+  sort: "value",
+  dir: "desc",
+};
+
 export interface ReportSpec {
   subject: SubjectKey;
   filters: Condition[];
@@ -193,6 +231,8 @@ export interface ReportSpec {
   sort: { field: string; dir: "asc" | "desc" } | null;
   /** How it is drawn. */
   view: View;
+  /** And how that drawing looks. */
+  look: ReportLook;
 }
 
 /** How many rows a built report ever puts on screen. */
@@ -290,6 +330,18 @@ export function cleanSpec(raw: unknown): ReportSpec {
     ? { field: sortField.key, dir: input.sort?.dir === "asc" ? ("asc" as const) : ("desc" as const) }
     : null;
 
+  const asked = (input.look ?? {}) as Partial<ReportLook>;
+  const look: ReportLook = {
+    hue: CHART_HUES.includes(asked.hue as ChartHue) ? (asked.hue as ChartHue) : DEFAULT_LOOK.hue,
+    labels: asked.labels === undefined ? DEFAULT_LOOK.labels : Boolean(asked.labels),
+    legend: asked.legend === undefined ? DEFAULT_LOOK.legend : Boolean(asked.legend),
+    grid: asked.grid === undefined ? DEFAULT_LOOK.grid : Boolean(asked.grid),
+    sort: CHART_SORTS.includes(asked.sort as ChartSort)
+      ? (asked.sort as ChartSort)
+      : DEFAULT_LOOK.sort,
+    dir: asked.dir === "asc" ? "asc" : "desc",
+  };
+
   return {
     subject,
     filters,
@@ -303,6 +355,7 @@ export function cleanSpec(raw: unknown): ReportSpec {
     values,
     sort,
     view,
+    look,
   };
 }
 

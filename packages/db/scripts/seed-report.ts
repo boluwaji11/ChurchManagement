@@ -8,6 +8,7 @@
 import { owner, withTenant, closeConnections } from "../src/client";
 import { createSavedReport } from "../src/repo/saved-reports";
 import { runReport } from "../src/repo/report-compiler";
+import { DEFAULT_LOOK } from "../src/repo/report-spec";
 import type { ReportSpec } from "../src/repo/report-spec";
 import type { TenantRole } from "../src/roles";
 
@@ -35,6 +36,7 @@ const reports: { name: string; spec: ReportSpec }[] = [
       values: [],
       sort: null,
       view: "stacked",
+      look: DEFAULT_LOOK,
     },
   },
   {
@@ -59,6 +61,7 @@ const reports: { name: string; spec: ReportSpec }[] = [
       values: [],
       sort: { field: "lastSeenOn", dir: "asc" },
       view: "table",
+      look: DEFAULT_LOOK,
     },
   },
   {
@@ -76,6 +79,7 @@ const reports: { name: string; spec: ReportSpec }[] = [
       values: [{ agg: "distinct" }],
       sort: null,
       view: "bar",
+      look: DEFAULT_LOOK,
     },
   },
 ];

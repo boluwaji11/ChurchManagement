@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import {
-  ChevronDown, Database, GripVertical, ListFilter, Plus, Sigma, SlidersHorizontal, X,
+  ChevronDown, Database, GripVertical, ListFilter, Plus, SlidersHorizontal, X,
 } from "lucide-react";
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  DatePicker, Popover, PopoverTrigger, PopoverContent,
+  DatePicker, Popover, PopoverTrigger, PopoverContent, Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@hearth/ui";
 import {
   SUBJECTS, SUBJECT_KEYS, OPERATORS, BARE_OPERATORS, GROUPED_VIEWS, fieldOf,
@@ -18,6 +18,7 @@ import { previewPage, saveReport, type ReportResultish } from "./actions";
 import { FieldsPanel } from "./fields";
 import { Gallery } from "./gallery";
 import { Wells } from "./wells";
+import { Format } from "./format";
 import { Canvas } from "./canvas";
 
 /** The date picker's words, said once rather than at every call. */
@@ -384,19 +385,6 @@ export function Builder({
               </SelectContent>
             </Select>
 
-            <button
-              type="button"
-              onClick={() => change({ totals: !tile.totals })}
-              aria-pressed={tile.totals}
-              className={
-                tile.totals
-                  ? "flex min-h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-primary bg-primary-soft px-2.5 text-[13px] font-medium text-fg"
-                  : "flex min-h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-transparent px-2.5 text-[13px] font-medium text-fg-muted hover:bg-sunken hover:text-fg"
-              }
-            >
-              <Sigma className="size-4" aria-hidden />
-              {t("report.totals")}
-            </button>
           </>
         ) : (
           <>
@@ -482,25 +470,38 @@ export function Builder({
           />
         </div>
 
-        <div className="flex w-full shrink-0 flex-col gap-4 border-line p-4 lg:w-[252px] lg:border-l">
-          <Gallery
-            view={tile.view}
-            groupBy={tile.groupBy}
-            answers={results[tile.id]?.chart?.length ?? results[tile.id]?.rows.length ?? 0}
-            onPick={(view) =>
-              change(
-                GROUPED_VIEWS.has(view) && !tile.groupBy
-                  ? {
-                      view,
-                      groupBy: def.fields.find((one) => one.groupable)?.key ?? null,
-                    }
-                  : { view },
-              )}
-          />
+        <div className="w-full shrink-0 border-line p-4 lg:w-[252px] lg:border-l">
+          <Tabs defaultValue="build">
+            <TabsList className="mb-4 w-full">
+              <TabsTrigger value="build" className="flex-1">{t("report.tab.build")}</TabsTrigger>
+              <TabsTrigger value="format" className="flex-1">{t("report.tab.format")}</TabsTrigger>
+            </TabsList>
 
-          <div className="border-t border-line pt-4">
-            <Wells tile={tile} onChange={change} />
-          </div>
+            <TabsContent value="build" className="flex flex-col gap-4">
+              <Gallery
+                view={tile.view}
+                groupBy={tile.groupBy}
+                answers={results[tile.id]?.chart?.length ?? results[tile.id]?.rows.length ?? 0}
+                onPick={(view) =>
+                  change(
+                    GROUPED_VIEWS.has(view) && !tile.groupBy
+                      ? {
+                          view,
+                          groupBy: def.fields.find((one) => one.groupable)?.key ?? null,
+                        }
+                      : { view },
+                  )}
+              />
+
+              <div className="border-t border-line pt-4">
+                <Wells tile={tile} onChange={change} />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="format">
+              <Format tile={tile} onChange={change} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       </div>

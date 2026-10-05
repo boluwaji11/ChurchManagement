@@ -48,6 +48,7 @@ export function Frame({
   height = 220,
   children,
   footer,
+  grid = true,
 }: {
   /** The value the top gridline stands at. */
   top: number;
@@ -55,6 +56,8 @@ export function Frame({
   children: React.ReactNode;
   /** The labels along the bottom, drawn in the plot's own column. */
   footer?: React.ReactNode;
+  /** The lines across. The baseline stays either way: a plot needs a floor. */
+  grid?: boolean;
 }) {
   const marks = ticks(top);
   const ruled = marks[marks.length - 1] || 1;
@@ -80,7 +83,12 @@ export function Frame({
                 key={mark}
                 className="w-full border-t"
                 style={{
-                  borderColor: i === 0 ? "var(--line-strong)" : "var(--color-line)",
+                  borderColor:
+                    i === 0
+                      ? "var(--line-strong)"
+                      : grid
+                        ? "var(--color-line)"
+                        : "transparent",
                 }}
               />
             ))}
