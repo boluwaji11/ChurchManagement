@@ -436,7 +436,8 @@ export function Register({
         className="absolute left-[-9999px] size-px opacity-0"
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      {/* At the end of the line, where the eye lands after reading the step. */}
+      <div className="flex flex-wrap items-center justify-end gap-3">
         {at > 0 ? (
           <Button type="button" variant="secondary" onClick={() => setAt((was) => was - 1)}>
             <ArrowLeft className="size-4" aria-hidden /> {t("publicEvent.previous")}
