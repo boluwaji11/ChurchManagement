@@ -206,9 +206,9 @@ export function Directory({
     <>
       <div className="flex flex-col gap-3">
         {/* What you can do to the list, then the box that narrows it. The
-            actions wrap as one block, so the thing this screen is for does not
-            end up alone on a line of its own. */}
-        <div className="flex flex-wrap items-center justify-end gap-2">
+            tools read from the left, and the thing this screen is for sits at
+            the far end where the eye finishes. */}
+        <div className="flex flex-wrap items-center gap-2">
         <FilterDrawer
           tags={tags}
           counts={counts}
@@ -247,6 +247,8 @@ export function Directory({
             <Upload /> {t("import.title")}
           </ToolButton>
         ) : null}
+
+        <span className="flex-1" />
 
         {/* R24.6. The one thing this screen is for, last on the row, where the
             eye finishes reading it. */}
