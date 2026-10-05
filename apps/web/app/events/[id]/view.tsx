@@ -269,14 +269,12 @@ export function EventView({
 
       </div>
 
-      {/* The tabs, the same three a group's page carries. */}
+      {/* The tabs, drawn only where there is a choice. An announcement has one
+          thing to look at, and a strip of one tab is a control that does
+          nothing. */}
+      {event.takesRegistrations ? (
       <div className="flex items-center gap-1 self-start rounded-md bg-sunken p-[3px]">
-        {/* An announcement has one tab. Places, a roster and questions are all
-            about signing up, and nobody signs up for this one. */}
-        {(event.takesRegistrations
-          ? (["overview", "registrations"] as const)
-          : (["overview"] as const)
-        ).map((one) => (
+        {(["overview", "registrations"] as const).map((one) => (
           <button
             key={one}
             type="button"
@@ -291,6 +289,7 @@ export function EventView({
           </button>
         ))}
       </div>
+      ) : null}
 
       {showing === "overview" ? (
         <div className="flex flex-wrap items-start gap-10">
