@@ -73,16 +73,27 @@ export function SetupChecklist({
             <React.Fragment key={step.step}>
               {i > 0 ? (
                 /* The line carries the progress: run through where both ends
-                   are answered, and the step's own colour where they are not. */
+                   are answered, and the step's own colour where they are not.
+                   The dot halfway marks the span rather than leaving a bare
+                   rule between two circles. */
                 <span
                   aria-hidden
-                  className="mt-[15px] h-0.5 min-w-4 flex-1 rounded-full"
+                  className="relative mt-[15px] h-0.5 min-w-4 flex-1 rounded-full"
                   style={{
                     background: run
                       ? "var(--hue-fern-500)"
                       : "color-mix(in oklch, var(--hue-amber-500) 40%, transparent)",
                   }}
-                />
+                >
+                  <span
+                    className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{
+                      background: run
+                        ? "var(--hue-fern-500)"
+                        : "color-mix(in oklch, var(--hue-amber-500) 70%, transparent)",
+                    }}
+                  />
+                </span>
               ) : null}
 
               <li className="flex min-w-0 flex-[0_1_140px] justify-center">
