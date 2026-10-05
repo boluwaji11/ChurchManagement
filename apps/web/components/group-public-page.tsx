@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { PublicChurch, PublicGroup } from "@connectapp/db";
 import { mapsHref } from "@/lib/address";
@@ -92,6 +94,19 @@ export function GroupPublicPage({
                 {group.description}
               </p>
             </section>
+          ) : null}
+
+          {/* R9.5. The whole point of publishing a group. Somebody with no
+              account presses this and ends up in it: the address behind it
+              creates the account, puts them in the church and asks the leader. */}
+          {group.openToJoin && !group.full ? (
+            <Button asChild className="min-h-12 self-start px-6 text-[16px]">
+              <Link href={`/g/${church.slug}/${group.slug}/join`}>
+                {t("publicGroups.join")}
+              </Link>
+            </Button>
+          ) : group.full ? (
+            <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("find.full")}</p>
           ) : null}
 
         </div>

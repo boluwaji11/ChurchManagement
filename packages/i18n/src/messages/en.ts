@@ -2035,6 +2035,7 @@ export const en = {
   "publicGroups.none": "No groups are listed yet",
   "publicGroups.gone": "That link does not name a church",
   "publicGroups.open": "Taking members",
+  "publicGroups.join": "Join this group",
   "publicGroups.full": "Full",
   "publicGroups.online": "Online",
   "publicGroups.children": "Children welcome",

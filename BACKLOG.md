@@ -458,6 +458,12 @@ what the church has on, their groups and their household. Serving carries the sc
 decline, and blackout dates on a calendar. Groups opens on the kinds, then a list, then a group they
 can ask to join or leave. My household holds the people and the directory switches.
 
+**Following a published group in.** A stranger reading a group on the church's website presses Join
+and ends up in it: one address creates the account where they have none, puts them in the church
+through the church's own join code, and asks the group's leader. It asks rather than adds, because
+R9.6 gives a leader the say over who is in their group. The redesign's journey draws it as added
+straight away; the requirement is the one that holds.
+
 **On HRT-156.** The portal is installable and holds an offline shell: a manifest a church at a
 time, so the icon on a phone carries the church's name and opens on that member's own screen, and a
 network-first worker that answers from its cache when there is no signal. Push is the other half and
