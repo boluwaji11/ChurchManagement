@@ -2123,7 +2123,7 @@ export const en = {
   "event.location": "Place",
   "event.registration": "Registration",
   "event.capacity": "Capacity",
-  "event.showCapacity": "Show how many places are left",
+  "event.showCapacity": "Show places left on the event page",
   "event.closesOn": "Registration closes",
   "event.closesAt": "Closing time",
   "event.listed": "Show it on the public page",
