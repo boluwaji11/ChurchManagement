@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import {
   withTenant, groupPage, personForUser, getChurch, upcomingMeetings,
   listGroupTypes, groupRoster, canManageGroups, pendingRequests,
@@ -12,6 +11,7 @@ import { Badge } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { PortalShell } from "@/components/portal-shell";
+import { BackLink } from "@/components/back-link";
 import { requireSession } from "@/lib/session";
 import { GroupBanner } from "../banner";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -198,19 +198,20 @@ export default async function GroupPage({
           ? t("groupType.everything")
           : (group.typeName ?? t("groups.title")),
       }
-    : { href: `/groups?church=${session.tenantSlug}`, label: t("groupType.back") };
+    : {
+        // Reached from somewhere that is not a list of groups: the press goes
+        // to whatever was actually behind it, so the word stays general rather
+        // than naming a screen the reader was never on.
+        href: `/groups?church=${session.tenantSlug}`,
+        label: t("action.back"),
+      };
 
   return (
     <Frame session={session}>
       {/* The way back on the left, and what this church may do to the group on
           the right, as the icons every other record page carries. */}
       <div className="flex items-center gap-3">
-        <Link
-          href={back.href}
-          className="inline-flex items-center gap-1.5 font-medium text-primary"
-        >
-          <ArrowLeft className="size-4" /> {back.label}
-        </Link>
+        <BackLink href={back.href} label={back.label} />
 
         <span className="flex-1" />
 
