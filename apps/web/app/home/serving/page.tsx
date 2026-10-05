@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import {
-  withTenant, personForUser, assignmentsForPerson, listBlockouts, upcomingServices,
+  withTenant, personForUser, assignmentsForPerson, listBlockouts,
   canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -9,7 +9,7 @@ import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./respond";
-import { Away, type AwayDay } from "./away";
+import { Away } from "./away";
 import { onDay, readableTime } from "../when";
 
 export const dynamic = "force-dynamic";
@@ -58,36 +58,13 @@ export default async function MyServingPage({
     async (tx) => {
       const self = await personForUser(tx, session.userId);
       const now = churchNow("America/Chicago");
-      if (!self) return { schedule: [], away: [], services: [] };
+      if (!self) return { schedule: [], away: [] };
       return {
         schedule: await assignmentsForPerson(tx, self, { from: now.date, limit: 20 }),
         away: await listBlockouts(tx, self, { from: now.date }),
-        services: await upcomingServices(tx, { from: now.date, limit: 24 }),
       };
     },
   );
-
-  /*
-   * The days the church actually meets, each marked where a blockout already
-   * covers it. Asking "which of these can you not do" is the question a member
-   * is answering, so the days are the control rather than a date range form.
-   */
-  const seen = new Set<string>();
-  const days: AwayDay[] = [];
-  for (const service of mine.services) {
-    if (seen.has(service.occursOn)) continue;
-    seen.add(service.occursOn);
-    const covering = mine.away.find(
-      (one) => one.startsOn <= service.occursOn && one.endsOn >= service.occursOn,
-    );
-    days.push({
-      on: service.occursOn,
-      label: new Date(`${service.occursOn}T00:00:00`)
-        .toLocaleDateString("en-US", { day: "numeric", month: "short" }),
-      blockoutId: covering?.id ?? null,
-    });
-    if (days.length === 8) break;
-  }
 
   return (
     <PortalShell session={session}>
@@ -144,7 +121,7 @@ export default async function MyServingPage({
         </div>
 
         <aside className="flex min-w-0 flex-[1_1_280px] flex-col">
-          <Away days={days} church={session.tenantSlug} />
+          <Away dates={mine.away} church={session.tenantSlug} />
         </aside>
       </div>
     </PortalShell>

@@ -20,6 +20,7 @@ export {
 export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select";
 export { Combobox, type ComboboxOption, type ComboboxProps } from "./components/combobox";
 export { DatePicker, parseTyped, type DatePickerProps, type DatePickerLabels } from "./components/date-picker";
+export { DayGrid, type DayGridLabels } from "./components/day-grid";
 export { TimePicker, parseTime, formatTime, type TimePickerProps, type TimePickerLabels } from "./components/time-picker";
 export { Tooltip, TooltipProvider } from "./components/tooltip";
 export { Dialog, DialogTrigger, DialogClose, DialogContent, DialogFooter } from "./components/dialog";

@@ -1,80 +1,80 @@
 "use client";
 
 import * as React from "react";
+import { X } from "lucide-react";
+import {
+  Button, DayGrid, IconButton, Dialog, DialogContent, DialogFooter,
+} from "@connectapp/ui";
+import type { Blockout } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { Panel } from "@/components/portal/panel";
 import { addAway, removeAway } from "../actions";
-
-export interface AwayDay {
-  /** The service day, as YYYY-MM-DD. */
-  on: string;
-  /** How it reads on the pill. */
-  label: string;
-  /** The blockout covering it, where there is one. */
-  blockoutId: string | null;
-}
+import { onDayLong } from "../when";
 
 /**
- * R17.7, R10.4. The service days this member has said not to ask.
+ * R17.7, R10.4. The days this member has said they cannot serve.
  *
- * A pill a day rather than a form with two dates on it. A member is answering
- * "which of these can you not do", and the days the church actually meets are
- * the only answers worth offering, so the question is asked as the answers.
+ * Added on a calendar with as many days chosen as they like, because somebody
+ * marking the weekends they are away is answering one question and should not
+ * open a dialog five times to answer it.
+ *
+ * The scheduler sees these the moment they are saved: putting somebody down on
+ * a day they have blocked warns, and going ahead anyway is recorded on the
+ * assignment.
  */
-export function Away({ days, church }: { days: AwayDay[]; church: string }) {
+export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
   const [working, start] = React.useTransition();
-  const [now, setNow] = React.useState(days);
+  const [adding, setAdding] = React.useState(false);
+  const [picked, setPicked] = React.useState<string[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => { setNow(days); }, [days]);
+  const span = (one: Blockout) =>
+    one.startsOn === one.endsOn
+      ? onDayLong(one.startsOn)
+      : t("home.awaySpan", { from: onDayLong(one.startsOn), to: onDayLong(one.endsOn) });
 
-  const toggle = (day: AwayDay) => {
-    const was = now;
-    setNow(was.map((one) =>
-      one.on === day.on ? { ...one, blockoutId: day.blockoutId ? null : "pending" } : one));
-
+  const save = () =>
     start(async () => {
-      const back = day.blockoutId
-        ? await removeAway(day.blockoutId, church)
-        : await addAway(day.on, day.on, null, church);
-      if (back.error) {
-        setNow(was);
-        setError(back.error);
-      } else {
-        setError(null);
+      for (const day of picked) {
+        const back = await addAway(day, day, null, church);
+        if (back.error) {
+          setError(back.error);
+          return;
+        }
       }
+      setError(null);
+      setPicked([]);
+      setAdding(false);
     });
-  };
 
   return (
     <Panel className="flex flex-col gap-3">
       <span className="font-semibold text-fg">{t("home.away")}</span>
-      <p className="-mt-2 text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNote")}</p>
 
-      {now.length === 0 ? (
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNoDays")}</p>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {now.map((day) => {
-            const on = Boolean(day.blockoutId);
-            return (
-              <button
-                key={day.on}
-                type="button"
+      {dates.length > 0 ? (
+        <div className="flex flex-col divide-y divide-line">
+          {dates.map((one) => (
+            <span key={one.id} className="flex items-center gap-3 py-2">
+              <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+                {span(one)}
+              </span>
+              <IconButton
+                label={t("home.awayRemove", { dates: span(one) })}
+                variant="ghost"
                 disabled={working}
-                aria-pressed={on}
-                onClick={() => toggle(days.find((one) => one.on === day.on) ?? day)}
-                className={
-                  on
-                    ? "min-h-9 cursor-pointer rounded-full border border-fg bg-fg px-3.5 text-[14px] font-medium text-canvas disabled:opacity-60"
-                    : "min-h-9 cursor-pointer rounded-full border border-line-strong bg-surface px-3.5 text-[14px] font-medium text-fg hover:bg-sunken disabled:opacity-60"
-                }
+                className="size-8 min-h-0 shrink-0 [&_svg]:size-4"
+                onClick={() => start(async () => {
+                  const back = await removeAway(one.id, church);
+                  setError(back.error ?? null);
+                })}
               >
-                {day.label}
-              </button>
-            );
-          })}
+                <X />
+              </IconButton>
+            </span>
+          ))}
         </div>
+      ) : (
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNone")}</p>
       )}
 
       {error ? (
@@ -82,6 +82,35 @@ export function Away({ days, church }: { days: AwayDay[]; church: string }) {
           {error}
         </p>
       ) : null}
+
+      <Button
+        variant="secondary"
+        className="self-start"
+        onClick={() => { setPicked([]); setAdding(true); }}
+      >
+        {t("home.awayAdd")}
+      </Button>
+
+      <Dialog open={adding} onOpenChange={(open) => { if (!open) setAdding(false); }}>
+        <DialogContent title={t("home.awayAdd")} closeLabel={t("action.cancel")}>
+          <DayGrid
+            value={picked}
+            onChange={setPicked}
+            labels={{
+              previousMonth: t("date.previousMonth"),
+              nextMonth: t("date.nextMonth"),
+            }}
+          />
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setAdding(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button loading={working} disabled={picked.length === 0} onClick={save}>
+              {t("home.awaySave", { count: String(picked.length) })}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Panel>
   );
 }
