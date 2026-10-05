@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, SlidersHorizontal, Check, Tag, CheckCircle2 } from "lucide-react";
+import { X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, SlidersHorizontal, Check, Tag, CheckCircle2 } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
   IconButton,
@@ -18,6 +18,7 @@ import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
 import { Pages } from "@/components/pages";
 import { rename, archiveList } from "./list-actions";
+import { SearchField } from "@/components/search-field";
 
 export interface ListOption {
   id: string;
@@ -206,16 +207,11 @@ export function Directory({
       {/* The row across the top: what you are looking for on the left, what you
           can do to the list on the right. */}
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex h-[34px] min-w-40 flex-[0_1_220px] items-center gap-2 rounded-md border border-line-strong bg-surface px-2.5 text-fg-subtle">
-          <Search className="size-[15px] shrink-0" aria-hidden />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("directory.searchPlaceholder")}
-            aria-label={t("directory.search")}
-            className="min-w-0 flex-1 border-none bg-transparent text-[13px] text-fg outline-none placeholder:text-fg-subtle"
-          />
-        </label>
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t("directory.searchPlaceholder")}
+        />
 
         <span className="flex-1" />
 

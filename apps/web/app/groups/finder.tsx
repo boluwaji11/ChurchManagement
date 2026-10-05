@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, Search, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
+import { X, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Switch,
   Sheet, SheetContent, SheetTrigger, LIFT,
@@ -12,10 +12,16 @@ import { MultiSelect } from "@/components/multi-select";
 import { Empty } from "@/components/empty";
 import { t, plural } from "@hearth/i18n";
 import { archive } from "./actions";
+import { SearchField } from "@/components/search-field";
+import {
+  SortMenu, ViewToggle, useListPreference, type ListView,
+} from "@/components/list-controls";
 
 export interface FinderGroup {
   id: string;
   slug: string;
+  /** R24.6. When it was written, for the order the list reads in. */
+  createdAt: string;
   /** R9.5. "draft" while the open web cannot see it yet. */
   status: "draft" | "published";
   /** R9.2. Signed for an hour by the page, because the bucket is private. */
@@ -42,6 +48,16 @@ export interface FinderGroup {
   listed: boolean;
   archived: boolean;
 }
+
+/** R24.6. The orders a groups list is worth reading in. */
+type GroupOrder = "name" | "newest" | "oldest";
+
+const BY_GROUP: Record<GroupOrder, (a: FinderGroup, b: FinderGroup) => number> = {
+  name: (a, b) => a.name.localeCompare(b.name),
+  newest: (a, b) => b.createdAt.localeCompare(a.createdAt),
+  oldest: (a, b) => a.createdAt.localeCompare(b.createdAt),
+};
+
 
 export interface FinderType {
   id: string;
@@ -198,7 +214,13 @@ export function Finder({
       (group.description ?? "").toLowerCase().includes(text) ||
       (group.location ?? "").toLowerCase().includes(text));
 
-  const shown = all.filter((group) => matches(group, chosen));
+  const [order, setOrder] = useListPreference<GroupOrder>("groups.order", "name");
+  const [view, setView] = useListPreference<ListView>("groups.view", "tiles");
+
+  const shown = all
+    .filter((group) => matches(group, chosen))
+    .slice()
+    .sort(BY_GROUP[order]);
   const drafted = all.filter((group) => matches(group, draft));
 
   /**
@@ -357,19 +379,25 @@ export function Finder({
 
       {/* The box, the count, and one Filter button on the right. */}
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex h-[34px] min-w-40 flex-[0_1_340px] items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-2.5 text-fg-subtle focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--ring)]">
-          <Search className="size-[15px] shrink-0" aria-hidden />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("find.groupOrLeader")}
-            aria-label={t("find.groupOrLeader")}
-            autoComplete="off"
-            className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-fg outline-none placeholder:text-fg-subtle"
-          />
-        </label>
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder={t("find.groupOrLeader")}
+        />
 
         <span className="flex-1" />
+
+        <SortMenu
+          value={order}
+          onChange={(next) => setOrder(next as GroupOrder)}
+          options={[
+            { value: "name", label: t("list.sort.name") },
+            { value: "newest", label: t("list.sort.newest") },
+            { value: "oldest", label: t("list.sort.oldest") },
+          ]}
+        />
+
+        <ViewToggle value={view} onChange={setView} />
 
         <Sheet
           open={open}
@@ -512,11 +540,21 @@ export function Finder({
                   {section.heading}
                 </h2>
               ) : null}
-              <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
-                {section.rows.map((group) => (
-                  <GroupCard key={group.id} church={church} group={group} />
-                ))}
-              </div>
+              {view === "tiles" ? (
+                <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+                  {section.rows.map((group) => (
+                    <GroupCard key={group.id} church={church} group={group} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
+                  {section.rows.map((group) => (
+                    <div key={group.id} className="border-b border-line last:border-b-0">
+                      <GroupRow church={church} group={group} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           ))
       )}
@@ -613,5 +651,62 @@ function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * R9.5. The same group as one row.
+ *
+ * The list view, for a church with forty groups that wants to scan names and
+ * days rather than look at forty pictures.
+ */
+function GroupRow({ church, group }: { church: string; group: FinderGroup }) {
+  const hue = group.typeHue ?? "sky";
+  const leader = group.leaderNames.join(", ");
+
+  return (
+    <div className={`relative flex items-center gap-4 px-4 py-3 ${LIFT}`}>
+      {group.photoUrl ? (
+        <img src={group.photoUrl} alt="" className="size-11 shrink-0 rounded-[10px] object-cover" />
+      ) : (
+        <span
+          aria-hidden
+          className="size-11 shrink-0 rounded-[10px]"
+          style={{ background: `var(--hue-${hue}-tint)` }}
+        />
+      )}
+
+      <div className="flex min-w-0 flex-[2_1_220px] flex-col">
+        <Link
+          href={`/groups/${group.slug}?church=${church}`}
+          className="truncate font-medium text-fg after:absolute after:inset-0 focus-visible:outline-none"
+        >
+          {group.name}
+        </Link>
+        <span className="truncate text-[13px] text-fg-muted">
+          {leader ? t("find.ledBy", { meets: meets(group), leader }) : meets(group)}
+        </span>
+      </div>
+
+      {group.status === "draft" ? (
+        <span
+          className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium"
+          style={{ background: "var(--hue-amber-tint)", color: "var(--hue-amber-key)" }}
+        >
+          {t("event.status.draft")}
+        </span>
+      ) : null}
+
+      <span className="shrink-0 text-[13px] text-fg-muted tabular-nums">
+        {plural("publicGroups.size", group.memberCount)}
+      </span>
+
+      <span
+        className="shrink-0 text-[12px] font-medium"
+        style={{ color: group.openToJoin && !group.full ? "var(--hue-fern-key)" : "var(--fg-muted)" }}
+      >
+        {group.full ? t("find.full") : group.openToJoin ? t("find.open") : t("find.closed")}
+      </span>
+    </div>
   );
 }

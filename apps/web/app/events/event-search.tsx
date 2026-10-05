@@ -1,16 +1,36 @@
 "use client";
 
 import * as React from "react";
-import { Search } from "lucide-react";
-import { Input } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import {
+  SortMenu, ViewToggle, useListPreference, type ListView,
+} from "@/components/list-controls";
+import { SearchField } from "@/components/search-field";
 
 /** One band of the screen: published, draft, cancelled, or what has been. */
 export interface EventSection {
   key: string;
   heading: string;
-  items: { id: string; name: string; card: React.ReactNode }[];
+  items: {
+    id: string;
+    name: string;
+    /** R24.6. What the list is ordered by, when it is not ordered by name. */
+    startsOn: string;
+    createdAt: string;
+    card: React.ReactNode;
+    row: React.ReactNode;
+  }[];
 }
+
+/** R24.6. The orders an events list is worth reading in. */
+const ORDERS = ["soonest", "newest", "name"] as const;
+type Order = (typeof ORDERS)[number];
+
+const BY: Record<Order, (a: EventSection["items"][number], b: EventSection["items"][number]) => number> = {
+  soonest: (a, b) => a.startsOn.localeCompare(b.startsOn),
+  newest: (a, b) => b.createdAt.localeCompare(a.createdAt),
+  name: (a, b) => a.name.localeCompare(b.name),
+};
 
 /**
  * R14.1. Finding an event by name, across the bands it is sorted into.
@@ -30,14 +50,17 @@ export function EventSearch({
   action?: React.ReactNode;
 }) {
   const [query, setQuery] = React.useState("");
+  const [order, setOrder] = useListPreference<Order>("events.order", "soonest");
+  const [view, setView] = useListPreference<ListView>("events.view", "tiles");
   const text = query.trim().toLowerCase();
 
   const shown = sections
     .map((section) => ({
       ...section,
-      items: text
+      items: (text
         ? section.items.filter((one) => one.name.toLowerCase().includes(text))
-        : section.items,
+        : section.items
+      ).slice().sort(BY[order]),
     }))
     .filter((section) => section.items.length > 0);
 
@@ -46,22 +69,25 @@ export function EventSearch({
       {/* The search leads, the action sits at the far end. */}
       <div className="flex flex-wrap items-center gap-3">
         {count > 1 ? (
-          <label className="relative flex max-w-[360px] min-w-[200px] items-center">
-            <Search
-              className="pointer-events-none absolute left-3 size-4 text-fg-subtle"
-              aria-hidden
-            />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label={t("event.search")}
-              placeholder={t("event.search")}
-              autoComplete="off"
-              className="pl-9"
-            />
-          </label>
+          <SearchField
+            value={query}
+            onChange={setQuery}
+            placeholder={t("event.search")}
+          />
         ) : null}
-        {action ? <span className="ml-auto">{action}</span> : null}
+        <span className="ml-auto flex flex-wrap items-center gap-2">
+          <SortMenu
+            value={order}
+            onChange={(next) => setOrder(next as Order)}
+            options={[
+              { value: "soonest", label: t("list.sort.soonest") },
+              { value: "newest", label: t("list.sort.newest") },
+              { value: "name", label: t("list.sort.name") },
+            ]}
+          />
+          <ViewToggle value={view} onChange={setView} />
+          {action}
+        </span>
       </div>
 
       {shown.length === 0 ? (
@@ -81,13 +107,23 @@ export function EventSearch({
             <h2 className="text-[13px] font-bold tracking-wide text-fg uppercase">
               {section.heading}
             </h2>
-            <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
-              {section.items.map((one) => (
-                <li key={one.id} className="contents">
-                  {one.card}
-                </li>
-              ))}
-            </ul>
+            {view === "tiles" ? (
+              <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+                {section.items.map((one) => (
+                  <li key={one.id} className="contents">
+                    {one.card}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="flex flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
+                {section.items.map((one) => (
+                  <li key={one.id} className="border-b border-line last:border-b-0">
+                    {one.row}
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         ))
       )}

@@ -11,7 +11,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { Empty } from "@/components/empty";
 import { NewEventButton } from "./new-event";
-import { EventCard } from "./card";
+import { EventCard, EventRow } from "./card";
 import { EventSearch } from "./event-search";
 
 export const dynamic = "force-dynamic";
@@ -122,8 +122,17 @@ export default async function EventsPage({
             items: section.rows.map((one) => ({
               id: one.id,
               name: one.name,
+              startsOn: one.startsOn,
+              createdAt: one.createdAt.toISOString(),
               card: (
                 <EventCard
+                  church={session.tenantSlug}
+                  event={one}
+                  coverUrl={covers.get(one.id) ?? null}
+                />
+              ),
+              row: (
+                <EventRow
                   church={session.tenantSlug}
                   event={one}
                   coverUrl={covers.get(one.id) ?? null}

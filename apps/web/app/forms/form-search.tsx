@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Search } from "lucide-react";
-import { Input } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { SearchField } from "@/components/search-field";
 
 /**
  * R4.1. Finding a form by name.
@@ -40,20 +39,11 @@ export function FormSearch({
           page on nothing. The search leads, the action sits at the far end. */}
       <div className="flex flex-wrap items-center gap-3">
         {count > 1 ? (
-          <label className="relative flex max-w-[360px] min-w-[200px] items-center">
-            <Search
-              className="pointer-events-none absolute left-3 size-4 text-fg-subtle"
-              aria-hidden
-            />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label={t("form.search")}
-              placeholder={t("form.search")}
-              autoComplete="off"
-              className="pl-9"
-            />
-          </label>
+          <SearchField
+            value={query}
+            onChange={setQuery}
+            placeholder={t("form.search")}
+          />
         ) : null}
         {action ? <span className="ml-auto">{action}</span> : null}
       </div>

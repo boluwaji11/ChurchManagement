@@ -12,6 +12,10 @@ import { t } from "@hearth/i18n";
  * cross on the right once there is something to clear. Somebody who has typed
  * four characters and wants the whole list back should not have to hold
  * backspace to get it.
+ *
+ * One width, written here, so the box over the members list and the box over
+ * the groups are the same box. A caller that genuinely needs another width
+ * passes one and it wins.
  */
 export function SearchField({
   value,
@@ -30,7 +34,7 @@ export function SearchField({
   const input = React.useRef<HTMLInputElement>(null);
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative w-full max-w-[340px]", className)}>
       <Search
         className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle"
         aria-hidden

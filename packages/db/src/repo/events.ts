@@ -36,6 +36,8 @@ export type EventHue = (typeof EVENT_HUES)[number];
 
 export interface ChurchEvent {
   id: string;
+  /** R24.6. When it was written, for the order a list can be read in. */
+  createdAt: Date;
   name: string;
   slug: string;
   description: string | null;
@@ -209,6 +211,7 @@ const countFor = (state: string) => sql<number>`(
 
 const columns = {
   id: events.id,
+  createdAt: events.createdAt,
   name: events.name,
   slug: events.slug,
   description: events.description,
@@ -247,6 +250,7 @@ const columns = {
 
 const shape = (row: Record<string, unknown>): ChurchEvent => ({
   id: row["id"] as string,
+  createdAt: row["createdAt"] as Date,
   name: row["name"] as string,
   slug: row["slug"] as string,
   description: (row["description"] ?? null) as string | null,

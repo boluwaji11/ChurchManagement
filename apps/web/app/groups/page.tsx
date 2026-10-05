@@ -78,6 +78,7 @@ export default async function GroupsPage({
           id: group.id,
           slug: group.slug,
           status: group.status,
+          createdAt: group.createdAt.toISOString(),
           name: group.name,
           description: group.description,
           typeId: group.typeId,

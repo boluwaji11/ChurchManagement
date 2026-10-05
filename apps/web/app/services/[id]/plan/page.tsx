@@ -77,8 +77,11 @@ export default async function PlanPage({
 
   // The one being read is always a tab, even once it has happened, so the
   // strip never loses the plan it is sitting on.
+  // Compared on the record's id rather than on what was in the URL, which may
+  // be the readable address and then matched nothing, putting this gathering
+  // in the row twice.
   const tabs = [
-    ...(others.some((one) => one.id === id) ? [] : [occurrence]),
+    ...(others.some((one) => one.id === occurrence.id) ? [] : [occurrence]),
     ...others,
   ].sort((a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt));
 

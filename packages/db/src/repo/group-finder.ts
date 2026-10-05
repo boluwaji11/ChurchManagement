@@ -31,6 +31,8 @@ export type JoinStatus = (typeof JOIN_STATUSES)[number];
 
 export interface FoundGroup {
   id: string;
+  /** R24.6. When it was written, for the order a list can be read in. */
+  createdAt: Date;
   /** R9.2. The readable part of its address. */
   slug: string;
   /** R9.5. "draft" while the open web cannot see it yet. */
@@ -140,6 +142,7 @@ export async function findGroups(
   const rows = await db
     .select({
       id: groups.id,
+      createdAt: groups.createdAt,
       slug: groups.slug,
       name: groups.name,
       description: groups.description,
@@ -208,6 +211,7 @@ export async function findGroups(
     const memberCount = Number(row.members);
     return {
       id: row.id,
+      createdAt: row.createdAt,
       slug: row.slug,
       status: row.status,
       name: row.name,

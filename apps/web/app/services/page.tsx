@@ -42,6 +42,24 @@ const shift = (iso: string, days: number): string => {
  * whether anybody has done anything about it yet. Opening one goes to its
  * order of service, which is what a church came here to write.
  */
+/**
+ * R11.1. How long after it starts a gathering is still the one to look at.
+ *
+ * A church mid-service should still see this morning under "upcoming", and at
+ * eleven at night it should be behind them. There is no recorded finish, so
+ * three hours stands in for one.
+ */
+const RUNS_FOR_HOURS = 3;
+
+const hasBeen = (one: { occursOn: string; startsAt: string }, today: string, time: string) => {
+  if (one.occursOn < today) return true;
+  if (one.occursOn > today) return false;
+  const [h = 0, m = 0] = one.startsAt.split(":").map(Number);
+  const ends = String(h + RUNS_FOR_HOURS).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+  return time > ends;
+};
+
+
 export default async function ServicesPage({
   searchParams,
 }: {
@@ -83,10 +101,15 @@ export default async function ServicesPage({
   );
 
   // listOccurrences reads newest first, which is the wrong way round for a
-  // list of what is coming.
-  const upcoming = [...rows].sort(
-    (a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
-  );
+  // list of what is coming. A gathering that has already run moves across to
+  // what has been, so the first card is really the next one.
+  const byWhen = (a: { occursOn: string; startsAt: string }, b: { occursOn: string; startsAt: string }) =>
+    a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt);
+
+  const upcoming = rows.filter((one) => !hasBeen(one, now.date, now.time)).sort(byWhen);
+  const over = [...rows.filter((one) => hasBeen(one, now.date, now.time)), ...past]
+    .sort((a, b) => byWhen(b, a))
+    .slice(0, 2);
 
   const card = (one: (typeof rows)[number]): ServiceCard => {
     const plan = plans.get(one.id);
@@ -130,7 +153,7 @@ export default async function ServicesPage({
         <ServiceBoard
           title={t("services.upcoming")}
           upcoming={upcoming.map(card)}
-          past={past.map(card)}
+          past={over.map(card)}
           action={
             canEdit ? (
               <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
