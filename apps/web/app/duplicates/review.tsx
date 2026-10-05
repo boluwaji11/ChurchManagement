@@ -132,7 +132,8 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
   ];
 
   const cell =
-    "flex items-center gap-2 border-b border-sunken px-5 py-2.5 text-left text-[length:var(--d-text-body)]";
+    "flex cursor-pointer items-center gap-2 border-b border-sunken px-5 py-2.5 text-left "
+    + "text-[length:var(--d-text-body)] disabled:cursor-default";
 
   return (
     <section className="overflow-hidden rounded-lg border border-line bg-surface">

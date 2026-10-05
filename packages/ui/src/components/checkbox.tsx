@@ -11,7 +11,7 @@ export const Checkbox = React.forwardRef<
   <P.Root
     ref={ref}
     className={cn(
-      "peer shrink-0 rounded-[6px] border border-line-strong bg-surface shadow-sm",
+      "peer shrink-0 cursor-pointer rounded-[6px] border border-line-strong bg-surface shadow-sm",
       "size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
       "data-[state=indeterminate]:bg-primary data-[state=indeterminate]:border-primary",
       "transition-colors duration-instant ease-out",

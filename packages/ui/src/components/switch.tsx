@@ -10,7 +10,7 @@ export const Switch = React.forwardRef<
   <P.Root
     ref={ref}
     className={cn(
-      "peer inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent",
+      "peer inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border border-transparent",
       "bg-line-strong data-[state=checked]:bg-primary",
       "transition-colors duration-fast ease-out",
       "disabled:opacity-45 disabled:pointer-events-none",
