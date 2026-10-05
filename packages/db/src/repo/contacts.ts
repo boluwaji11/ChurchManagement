@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people, contactMethods } from "../schema/people";
+import { people, contactMethods, addresses } from "../schema/people";
 import { appUsers } from "../schema/tenancy";
 import { canEditPeople, PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
@@ -221,4 +221,108 @@ export async function listAddresses(db: Tx, personId: string): Promise<PersonAdd
      order by (a.person_id is null), a.is_primary desc, a.created_at`);
 
   return rows.map((row) => ({ ...row, label: row.label as ContactLabel }));
+}
+
+export interface AddressInputValues {
+  label?: ContactLabel;
+  line1: string;
+  line2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+}
+
+/** R2.4. Somewhere else this person is reached. The first one leads. */
+export async function addAddress(
+  db: Tx,
+  actor: WriteActor,
+  personId: string,
+  input: AddressInputValues,
+): Promise<{ id: string }> {
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+
+  const line1 = input.line1?.trim();
+  if (!line1) throw new InvalidInputError("contact.error.empty");
+
+  const held = await db
+    .select({ id: addresses.id })
+    .from(addresses)
+    .where(eq(addresses.personId, personId));
+
+  const [row] = await db
+    .insert(addresses)
+    .values({
+      tenantId: actor.tenantId,
+      personId,
+      label: input.label ?? "home",
+      line1,
+      line2: input.line2?.trim() || null,
+      city: input.city?.trim() || null,
+      region: input.region?.trim() || null,
+      postalCode: input.postalCode?.trim() || null,
+      country: input.country?.trim() || "US",
+      isPrimary: held.length === 0,
+    })
+    .returning({ id: addresses.id });
+  return { id: row!.id };
+}
+
+/**
+ * R2.4. Takes one away.
+ *
+ * Only the person's own. A household's address belongs to the household and is
+ * changed there, so a volunteer cannot take a family's address off one member.
+ */
+export async function removeAddress(db: Tx, actor: WriteActor, id: string): Promise<void> {
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+
+  const [row] = await db
+    .select({ personId: addresses.personId, isPrimary: addresses.isPrimary })
+    .from(addresses)
+    .where(eq(addresses.id, id))
+    .limit(1);
+  if (!row?.personId) throw new InvalidInputError("contact.error.household");
+
+  await db.delete(addresses).where(eq(addresses.id, id));
+  if (row.isPrimary) await leadAddressWith(db, row.personId, null);
+}
+
+/** R2.4. Which address a letter goes to first. */
+export async function makeAddressPrimary(db: Tx, actor: WriteActor, id: string): Promise<void> {
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+
+  const [row] = await db
+    .select({ personId: addresses.personId })
+    .from(addresses)
+    .where(eq(addresses.id, id))
+    .limit(1);
+  if (!row?.personId) throw new InvalidInputError("contact.error.household");
+
+  await leadAddressWith(db, row.personId, id);
+}
+
+/** R2.4. Exactly one of a person's own addresses leads. */
+async function leadAddressWith(
+  db: Tx,
+  personId: string,
+  id: string | null,
+): Promise<void> {
+  const chosen = id ?? (
+    await db
+      .select({ id: addresses.id })
+      .from(addresses)
+      .where(eq(addresses.personId, personId))
+      .orderBy(asc(addresses.createdAt))
+      .limit(1)
+  )[0]?.id ?? null;
+
+  if (!chosen) return;
+
+  await db
+    .update(addresses)
+    .set({ isPrimary: false })
+    .where(and(eq(addresses.personId, personId), ne(addresses.id, chosen)));
+
+  await db.update(addresses).set({ isPrimary: true }).where(eq(addresses.id, chosen));
 }

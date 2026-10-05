@@ -32,6 +32,7 @@ export {
 } from "./repo/people";
 export {
   listContacts, addContact, removeContact, makeContactPrimary, leadWith, listAddresses,
+  addAddress, removeAddress, makeAddressPrimary,
   CONTACT_LABELS,
   type PersonContact, type PersonAddress, type ContactKind, type ContactLabel,
 } from "./repo/contacts";

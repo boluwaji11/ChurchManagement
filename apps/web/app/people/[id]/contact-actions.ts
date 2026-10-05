@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, addContact, removeContact, makeContactPrimary,
+  addAddress, removeAddress, makeAddressPrimary,
   type ContactKind, type ContactLabel,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
@@ -72,6 +73,60 @@ export async function leadWithOne(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => makeContactPrimary(tx, actor, id));
+    revalidatePath(`/people/${personId}`);
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function addPlace(
+  input: { personId: string; label: string; values: Record<string, string> },
+  church?: string,
+): Promise<{ error?: string }> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) =>
+      addAddress(tx, actor, input.personId, {
+        label: input.label as ContactLabel,
+        line1: input.values.line1 ?? "",
+        line2: input.values.line2,
+        city: input.values.city,
+        region: input.values.region,
+        postalCode: input.values.postalCode,
+        country: input.values.country,
+      }),
+    );
+    revalidatePath(`/people/${input.personId}`);
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function removePlace(
+  id: string,
+  personId: string,
+  church?: string,
+): Promise<{ error?: string }> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => removeAddress(tx, actor, id));
+    revalidatePath(`/people/${personId}`);
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+export async function leadWithPlace(
+  id: string,
+  personId: string,
+  church?: string,
+): Promise<{ error?: string }> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => makeAddressPrimary(tx, actor, id));
     revalidatePath(`/people/${personId}`);
     return {};
   } catch (error) {

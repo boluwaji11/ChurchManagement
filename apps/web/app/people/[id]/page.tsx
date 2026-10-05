@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil } from "lucide-react";
 import {
-  withTenant, getPerson, householdFor, addressFor,
+  withTenant, getPerson, householdFor,
   personTimeline, servingForPerson, groupsForPerson,
   listContacts, listAddresses,
   canEditPeople,
@@ -16,7 +16,7 @@ import { lifecycleLabel } from "@/lib/person-input";
 import { longDate } from "@/lib/dates";
 import { Timeline } from "./timeline";
 import { Contacts } from "./contacts";
-import { oneLineAddress, toAddress } from "@/lib/address";
+import { Places } from "./places";
 import { MessageButton } from "./message";
 import { NoteForm } from "../note-form";
 import { canReadConfidentialNotes } from "@hearth/db";
@@ -113,8 +113,6 @@ export default async function PersonPage({
       contacts: await listContacts(tx, personId),
       addresses: await listAddresses(tx, personId),
       household: await householdFor(tx, personId),
-      // R2.4. Theirs, or the household's, which is what a church writes.
-      address: await addressFor(tx, personId),
       groups: await groupsForPerson(tx, personId),
       serving: await servingForPerson(tx, personId),
       // R2.15. Everything that has happened with this person, in one order.
@@ -129,7 +127,7 @@ export default async function PersonPage({
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, contacts, addresses, household, address, groups, serving, history } = result;
+  const { person, contacts, addresses, household, groups, serving, history } = result;
 
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   const canEdit = canEditPeople(session);
@@ -227,24 +225,12 @@ export default async function PersonPage({
             {/* R2.4. Theirs and the household's, each said for what it is. */}
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
-              {addresses.length === 0 ? (
-                <span className="text-[length:var(--d-text-body)]">{address ?? EMPTY}</span>
-              ) : (
-                addresses.map((one) => (
-                  <span key={one.id} className="flex items-baseline gap-2">
-                    <span className="min-w-0 flex-1 text-[length:var(--d-text-body)] text-fg">
-                      {oneLineAddress(toAddress(one))}
-                    </span>
-                    <span className="shrink-0 text-caption text-fg-subtle">
-                      {one.fromHousehold
-                        ? t("contact.fromHousehold")
-                        : one.isPrimary
-                          ? t("contact.primary")
-                          : t(`contactLabel.${one.label}` as never)}
-                    </span>
-                  </span>
-                ))
-              )}
+              <Places
+                church={session.tenantSlug}
+                personId={person.id}
+                places={addresses}
+                canEdit={canEdit}
+              />
             </div>
           </div>
         </InfoCard>
