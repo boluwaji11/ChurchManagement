@@ -34,6 +34,9 @@ const readableTime = (hhmm: string) => {
 
 const asDate = (iso: string) => new Date(`${iso}T00:00:00`);
 
+const shortDay = (iso: string) =>
+  asDate(iso).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+
 /**
  * R9.5. A group's own page.
  *
@@ -150,6 +153,28 @@ export default async function GroupPage({
   ].filter(Boolean) as { k: string; v: string }[];
 
   const hue = group.typeHue ?? "sky";
+
+  /*
+   * R9.7. The meetings a register can be opened for: the ones that have already
+   * happened, newest first, and the one coming up. A leader who missed last
+   * week records last week from here rather than hunting for a date field.
+   */
+  const attendanceDays = metOn
+    ? [
+        ...new Set([
+          metOn,
+          ...group.past.map((one) => one.metOn),
+          ...upcomingMeetings(
+            { dayOfWeek: group.dayOfWeek, frequency: group.frequency, endsOn: group.endsOn },
+            today,
+            1,
+          ),
+        ]),
+      ]
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, 10)
+        .map((on) => ({ on, label: shortDay(on) }))
+    : [];
 
   return (
     <AppShell session={session}>
@@ -271,13 +296,8 @@ export default async function GroupPage({
           .map((one) => ({ personId: one.personId, name: one.name, role: one.role }))}
         meeting={meeting}
         people={people}
-        attendanceDate={
-          metOn
-            ? asDate(metOn).toLocaleDateString("en-US", {
-                weekday: "short", day: "numeric", month: "short",
-              })
-            : ""
-        }
+        attendanceDate={metOn ? shortDay(metOn) : ""}
+        attendanceDays={attendanceDays}
       />
 
     </AppShell>

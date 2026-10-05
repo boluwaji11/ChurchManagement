@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, X } from "lucide-react";
+import { Check, X, Save } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
   Tabs, TabsList, TabsTrigger, TabsContent,
@@ -12,7 +12,8 @@ import type { Meeting, MeetingPerson } from "@hearth/db";
 import { Markdown } from "@/components/markdown";
 import { decide, setOpenToJoin, leave } from "../actions";
 import { AddMember } from "../add-member";
-import { record } from "./meeting-actions";
+import { Picker } from "@/components/picker";
+import { record, open as openMeeting } from "./meeting-actions";
 
 export interface DetailMeeting {
   /** The day, as YYYY-MM-DD. */
@@ -61,6 +62,7 @@ export function GroupDetail({
   meeting,
   people,
   attendanceDate,
+  attendanceDays,
 }: {
   church: string;
   groupId: string;
@@ -82,6 +84,8 @@ export function GroupDetail({
   meeting: Meeting | null;
   people: MeetingPerson[];
   attendanceDate: string;
+  /** R9.7. The meetings a register can be opened for, newest first. */
+  attendanceDays: { on: string; label: string }[];
 }) {
   const router = useRouter();
   const [tab, setTab] = React.useState("overview");
@@ -272,9 +276,11 @@ export function GroupDetail({
           <TabsContent value="attendance">
             <Register
               church={church}
+              groupId={groupId}
               meeting={meeting}
               people={people}
               date={attendanceDate}
+              days={attendanceDays}
             />
           </TabsContent>
         ) : null}
@@ -404,35 +410,76 @@ function MeetingList({
  */
 function Register({
   church,
-  meeting,
-  people,
+  groupId,
+  meeting: first,
+  people: firstPeople,
   date,
+  days,
 }: {
   church: string;
+  groupId: string;
   meeting: Meeting | null;
   people: MeetingPerson[];
   date: string;
+  days: { on: string; label: string }[];
 }) {
-  const recorded = (meeting?.present ?? 0) > 0 || (meeting?.notHeld ?? false);
-  const [here, setHere] = React.useState<Record<string, boolean>>(() =>
-    Object.fromEntries(people.map((p) => [p.personId, recorded ? p.present : true])),
-  );
+  const [day, setDay] = React.useState(days[0]?.on ?? "");
+  const [meeting, setMeeting] = React.useState(first);
+  const [people, setPeople] = React.useState(firstPeople);
   const [error, setError] = React.useState<string>();
   const [saved, setSaved] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
+  /** Everybody present unless the day has been recorded before. */
+  const fill = React.useCallback((rows: MeetingPerson[], was: Meeting | null) => {
+    const recorded = (was?.present ?? 0) > 0 || (was?.notHeld ?? false);
+    return Object.fromEntries(rows.map((p) => [p.personId, recorded ? p.present : true]));
+  }, []);
+
+  const [here, setHere] = React.useState<Record<string, boolean>>(() => fill(firstPeople, first));
+
+  /** R9.7. A leader who missed last week opens the week they missed. */
+  const load = (next: string) => {
+    setDay(next);
+    setSaved(false);
+    startTransition(async () => {
+      const result = await openMeeting(groupId, next, church);
+      setError(result.error);
+      if (result.meeting && result.people) {
+        setMeeting(result.meeting);
+        setPeople(result.people);
+        setHere(fill(result.people, result.meeting));
+      }
+    });
+  };
+
   const count = people.filter((p) => here[p.personId]).length;
+  const shownDate = days.find((one) => one.on === day)?.label ?? date;
 
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-line bg-surface">
       {error ? <Banner tone="danger" title={t("meeting.title")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-        <div>
+        <div className="flex min-w-0 flex-col gap-2">
           <div className="font-display text-[20px] text-fg">
-            {t("group.attendanceOn", { date })}
+            {t("group.attendanceOn", { date: shownDate })}
           </div>
-          <div className="text-[12px] text-fg-subtle">{t("group.tapToMark")}</div>
+          {/* R9.7. Which meeting is being recorded. A leader who missed last
+              week opens the week they missed. */}
+          {days.length > 1 ? (
+            <div className="w-[200px]">
+              <Picker
+                name="metOn"
+                defaultValue={day}
+                options={days.map((one) => ({ value: one.on, label: one.label }))}
+                label={t("meeting.day")}
+                onChange={load}
+              />
+            </div>
+          ) : (
+            <div className="text-[12px] text-fg-subtle">{t("group.tapToMark")}</div>
+          )}
         </div>
         <div className="font-display text-[28px] tabular-nums text-fg">
           {count}
@@ -476,7 +523,9 @@ function Register({
             {t("meeting.of", { present: count, roster: people.length })}
           </span>
         ) : null}
-        <Button
+        <IconButton
+          label={t("group.saveAttendance")}
+          variant="primary"
           disabled={pending || !meeting}
           onClick={() => {
             if (!meeting) return;
@@ -495,8 +544,8 @@ function Register({
             });
           }}
         >
-          {t("group.saveAttendance")}
-        </Button>
+          <Save />
+        </IconButton>
       </div>
     </section>
   );
