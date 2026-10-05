@@ -212,11 +212,10 @@ export function EventEditor({
         open={asking}
         onOpenChange={(next) => {
           /*
-           * Walking away from the panel without choosing leaves the tick off.
-           * Registration required with no form behind it is an event that takes
-           * names and asks nothing, which is not a state anybody meant to pick.
+           * Walking away without choosing leaves the tick on and no form
+           * behind it. Plenty of events only need to know who is coming: a
+           * work day, a prayer meeting. Those take names and ask nothing.
            */
-          if (!next && !formId) setTakes(false);
           setAsking(next);
         }}
       >
@@ -273,6 +272,28 @@ export function EventEditor({
           )}
 
           <DialogFooter>
+            {/* R14.5. An event that only needs to know who is coming asks no
+                questions, so it carries no form. */}
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={linking}
+              onClick={() => {
+                setFormId("");
+                if (!event) {
+                  setAsking(false);
+                  return;
+                }
+                startLinking(async () => {
+                  const result = await useFormForEvent(event.id, null, church);
+                  if (result.error) setError(result.error);
+                  else setAsking(false);
+                  router.refresh();
+                });
+              }}
+            >
+              {t("event.questions.namesOnly")}
+            </Button>
             <Button
               type="button"
               disabled={!formId || linking}
@@ -429,7 +450,7 @@ export function EventEditor({
 
         {/* Under the question it answers, named, so it reads as a sentence
             rather than as a word floating at the other end of the line. */}
-        {takes && formId ? (
+        {takes ? (
           <span className="text-label text-fg-muted">
             {t("event.formNamed")}{" "}
             <button
@@ -437,7 +458,9 @@ export function EventEditor({
               onClick={() => setAsking(true)}
               className="cursor-pointer font-bold text-primary underline underline-offset-4"
             >
-              {forms.find((one) => one.id === formId)?.name ?? t("event.questions.choose")}
+              {formId
+                ? forms.find((one) => one.id === formId)?.name ?? t("event.questions.choose")
+                : t("event.questions.namesOnly")}
             </button>
           </span>
         ) : null}

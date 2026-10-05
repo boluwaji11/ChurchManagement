@@ -7,6 +7,7 @@ import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EventRegisterPage } from "@/components/event-register-page";
+import { registerFromPreview } from "./actions";
 import { churchNow } from "@/lib/church-now";
 
 export const dynamic = "force-dynamic";
@@ -107,7 +108,14 @@ export default async function PreviewRegisterPage({
       coverUrl={await sign(event.coverKey)}
       logoUrl={await sign(profile?.logoKey ?? null)}
       backHref={`/events/${event.slug}/preview?church=${session.tenantSlug}`}
-      preview
+      onTrial={async (party) => {
+        "use server";
+        return registerFromPreview({
+          eventId: event.id,
+          party,
+          church: session.tenantSlug,
+        });
+      }}
       banner={
         <div
           className="px-4 py-2 text-center text-caption font-medium"

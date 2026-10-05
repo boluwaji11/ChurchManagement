@@ -24,7 +24,7 @@ export function EventRegisterPage({
   logoUrl,
   backHref,
   banner,
-  preview = false,
+  onTrial,
 }: {
   event: PublicEvent;
   churchSlug: string;
@@ -35,7 +35,8 @@ export function EventRegisterPage({
   /** Back to the event itself, live or previewed. */
   backHref: string;
   banner?: React.ReactNode;
-  preview?: boolean;
+  /** R14.2. Where the church's own preview sends its places instead. */
+  onTrial?: React.ComponentProps<typeof Register>["onTrial"];
 }) {
   const when = [
     longDate(event.startsOn),
@@ -109,7 +110,7 @@ export function EventRegisterPage({
           today={today}
           state={event.state}
           questions={event.questions}
-          preview={preview}
+          onTrial={onTrial}
         />
       </main>
     </div>

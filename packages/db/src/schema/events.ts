@@ -155,6 +155,11 @@ export const eventRegistrations = pgTable(
     state: text("state").notNull().default("going"),
     /** R14.5. The answers to this event's questions, for this person. */
     submissionId: uuid("submission_id"),
+    /**
+     * R14.2. Taken while the event was a draft, so the church could walk
+     * through its own registration. Cleared when the event is published.
+     */
+    trial: boolean("trial").notNull().default(false),
     /** R14.10. When they turned up. */
     arrivedAt: timestamp("arrived_at", { withTimezone: true }),
     note: text("note"),

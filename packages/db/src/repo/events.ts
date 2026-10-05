@@ -394,6 +394,16 @@ export async function setEventStatus(
   status: EventStatus,
 ): Promise<void> {
   if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+
+  /*
+   * R14.2. Publishing clears whatever the church took while trying its own
+   * page. Those are test bookings, and a roster that opens with them is a
+   * roster somebody has to clean up by hand.
+   */
+  if (status === "published") {
+    await db.execute(sql`
+      delete from event_registrations where event_id = ${id} and trial`);
+  }
   if (!EVENT_STATUSES.includes(status)) throw new InvalidInputError("event.error.status");
 
   const changed = await db
@@ -572,6 +582,8 @@ export async function setEventForm(
 /** R14.12. One place taken, as the roster and the export read it. */
 export interface EventRegistration {
   id: string;
+  /** R14.2. Taken from the preview, and cleared when the event is published. */
+  trial: boolean;
   /** R14.6. Everybody registered in the same breath shares this. */
   bookingId: string;
   personId: string | null;
@@ -611,6 +623,7 @@ export async function listRegistrations(
     email: string | null;
     phone: string | null;
     state: string;
+    trial: boolean;
     registeredAt: Date;
     arrivedAt: Date | null;
     answers: Record<string, unknown> | null;
@@ -623,6 +636,7 @@ export async function listRegistrations(
            r.email,
            r.phone,
            r.state,
+           r.trial,
            r.created_at as "registeredAt",
            r.arrived_at as "arrivedAt",
            s.answers,
@@ -672,6 +686,7 @@ export async function listRegistrations(
     email: row.email,
     phone: row.phone,
     state: row.state,
+    trial: row.trial,
     registeredAt: row.registeredAt.toISOString(),
     arrivedAt: row.arrivedAt ? row.arrivedAt.toISOString() : null,
     answers: (row.answers ?? {}) as Record<string, unknown>,

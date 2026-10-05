@@ -416,6 +416,17 @@ export function EventView({
                           ) : (
                             <span className="font-medium text-fg">{one.name}</span>
                           )}
+                          {one.trial ? (
+                            <span
+                              className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+                              style={{
+                                background: "var(--hue-violet-tint)",
+                                color: "var(--hue-violet-key)",
+                              }}
+                            >
+                              {t("event.trial")}
+                            </span>
+                          ) : null}
                           {one.state === "waiting" ? (
                             <span
                               className="rounded-full px-2 py-0.5 text-[12px] font-medium"

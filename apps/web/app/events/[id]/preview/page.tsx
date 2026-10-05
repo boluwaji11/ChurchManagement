@@ -95,7 +95,7 @@ export default async function PreviewEventPage({
     capacity: event.capacity,
     showCapacity: event.showCapacity,
     going: event.going,
-    state: event.takesRegistrations && form ? "open" : "none",
+    state: event.takesRegistrations ? "open" : "none",
     formSlug: form?.slug ?? null,
     questions: form?.fields ?? [],
   };

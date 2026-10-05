@@ -11,6 +11,16 @@ import {
 import { Empty } from "@/components/empty";
 import { Answer } from "@/components/form-answer";
 import { registerParty } from "./actions";
+import type { Registrant } from "@hearth/db";
+
+/** What either way of sending a registration answers with. */
+interface SendResult {
+  ok: boolean;
+  going?: number;
+  waiting?: number;
+  errors?: { at: number; fieldId: string; message: string }[];
+  error?: string;
+}
 
 interface Person {
   key: string;
@@ -51,15 +61,21 @@ export function Register({
   today,
   state,
   questions,
-  preview = false,
+  onTrial,
 }: {
   churchSlug: string;
   eventSlug: string;
   today: string;
   state: "none" | "open" | "waitlist" | "full" | "closed" | "cancelled";
   questions: FormFieldDef[];
-  /** R14.2. Drawn, and refusing to send, so a preview takes no places. */
-  preview?: boolean;
+  /**
+   * R14.2. Where a preview sends its places instead.
+   *
+   * The church's own preview books for real against the draft, flagged as a
+   * trial and cleared when the event is published, so what gets tried is the
+   * whole path rather than a drawing of it.
+   */
+  onTrial?: (party: Registrant[]) => Promise<SendResult>;
 }) {
   const [party, setParty] = React.useState<Person[]>([blank()]);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -132,24 +148,27 @@ export function Register({
       forward();
       return;
     }
-    if (preview) return;
     setFailed(undefined);
     setErrors({});
 
     startTransition(async () => {
-      const result = await registerParty({
-        churchSlug,
-        eventSlug,
-        today,
-        party: party.map((one) => ({
-          firstName: one.firstName,
-          lastName: one.lastName,
-          email: one.email,
-          phone: one.phone,
-          answers: one.answers,
-        })),
-        trap: trap.current?.value ?? "",
-      });
+      const going: Registrant[] = party.map((one) => ({
+        firstName: one.firstName,
+        lastName: one.lastName,
+        email: one.email,
+        phone: one.phone,
+        answers: one.answers,
+      }));
+
+      const result = onTrial
+        ? await onTrial(going)
+        : await registerParty({
+            churchSlug,
+            eventSlug,
+            today,
+            party: going,
+            trap: trap.current?.value ?? "",
+          });
 
       if (result.ok) {
         setDone({ going: result.going ?? 0, waiting: result.waiting ?? 0 });
@@ -388,7 +407,7 @@ export function Register({
         ) : null}
         <Button
           type="submit"
-          disabled={sending || (step === "confirm" && preview)}
+          disabled={sending}
           className="min-w-[160px]"
         >
           {step === "confirm"

@@ -95,7 +95,12 @@ interface Row {
   going: number;
 }
 
-async function eventRow(churchSlug: string, eventSlug: string): Promise<Row | null> {
+async function eventRow(
+  churchSlug: string,
+  eventSlug: string,
+  /** R14.2. Only the church's own preview reads a draft, and only to try it. */
+  includeDrafts = false,
+): Promise<Row | null> {
   if (!SLUG.test(churchSlug) || !SLUG.test(eventSlug)) return null;
 
   const rows = await owner()<Row[]>`
@@ -137,7 +142,7 @@ async function eventRow(churchSlug: string, eventSlug: string): Promise<Row | nu
        and e.slug = ${eventSlug}
        and e.archived_at is null
        and e.listed
-       and e.status <> 'draft'
+       and (${includeDrafts} or e.status <> 'draft')
      limit 1`;
   return rows[0] ?? null;
 }
@@ -296,8 +301,15 @@ export async function registerForEvent(input: {
   today: string;
   now: string;
   party: Registrant[];
+  /**
+   * R14.2. A place taken from the church's own preview of a draft.
+   *
+   * Written like any other so the whole path is exercised, flagged so it can
+   * be cleared the moment the event is published.
+   */
+  trial?: boolean;
 }): Promise<RegisterResult> {
-  const row = await eventRow(input.churchSlug, input.eventSlug);
+  const row = await eventRow(input.churchSlug, input.eventSlug, input.trial === true);
   if (!row) throw new InvalidInputError("event.error.missing");
 
   const state = stateOf(row, input.today, input.now);
@@ -373,13 +385,14 @@ export async function registerForEvent(input: {
 
       const [registration] = await tx<{ id: string }[]>`
         insert into event_registrations
-          (tenant_id, event_id, booking_id, name, email, phone, state, submission_id)
+          (tenant_id, event_id, booking_id, name, email, phone, state, submission_id, trial)
         values (${row.tenantId}, ${row.id}, ${bookingId},
                 ${whole},
                 ${person.email?.trim().toLowerCase() || null},
                 ${person.phone?.trim() || null},
                 ${asWaiting ? "waiting" : "going"},
-                ${submissionId})
+                ${submissionId},
+                ${input.trial === true})
         returning id`;
 
       /*
