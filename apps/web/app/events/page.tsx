@@ -52,10 +52,25 @@ export default async function EventsPage({
   const lastDay = (one: { startsOn: string; endsOn: string | null }) =>
     one.endsOn ?? one.startsOn;
 
-  const upcoming = events.filter((one) => lastDay(one) >= today);
-  const past = events
+  const ahead = events.filter((one) => lastDay(one) >= today);
+  const gone = events
     .filter((one) => lastDay(one) < today)
     .sort((a, b) => b.startsOn.localeCompare(a.startsOn));
+
+  /*
+   * R14.1. Grouped by what state each event is in, not by when it happens.
+   *
+   * Published leads, because that is what the congregation can see and what a
+   * church checks first. Drafts sit under it, which is the pile of work. What
+   * has been and gone goes last, newest first, which is the order history is
+   * read in.
+   */
+  const sections = [
+    { key: "published", heading: t("event.published"), rows: ahead.filter((one) => one.status === "published") },
+    { key: "draft", heading: t("event.draft"), rows: ahead.filter((one) => one.status === "draft") },
+    { key: "cancelled", heading: t("event.cancelled"), rows: ahead.filter((one) => one.status === "cancelled") },
+    { key: "past", heading: t("event.past"), rows: gone },
+  ].filter((section) => section.rows.length > 0);
 
   // The bucket is private, so each banner is served through a signed link.
   const covers = new Map<string, string>();
@@ -78,7 +93,8 @@ export default async function EventsPage({
     <AppShell
       session={session}
       title={t("event.title")}
-      action={events.length === 0 ? undefined : action}
+      /* The action rides the first section's heading, so it is not a band of
+         its own above the content. */
     >
       {putAway ? (
         <Link
@@ -97,29 +113,30 @@ export default async function EventsPage({
         />
       ) : (
         <div className="flex flex-col gap-8">
-          {[
-            { key: "upcoming", heading: t("event.upcoming"), rows: upcoming },
-            { key: "past", heading: t("event.past"), rows: past },
-          ]
-            .filter((section) => section.rows.length > 0)
-            .map((section) => (
-              <section key={section.key} className="flex flex-col gap-3.5">
-                <h2 className="text-[13px] font-bold tracking-wide text-fg-subtle uppercase">
+          {sections.map((section, at) => (
+            <section key={section.key} className="flex flex-col gap-3.5">
+              {/* The action rides the first heading, so the screen opens on
+                  its content rather than on a band holding one button. */}
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="flex-1 text-[13px] font-bold tracking-wide text-fg-subtle uppercase">
                   {section.heading}
                 </h2>
-                <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
-                  {section.rows.map((one) => (
-                    <li key={one.id} className="contents">
-                      <EventCard
-                        church={session.tenantSlug}
-                        event={one}
-                        coverUrl={covers.get(one.id) ?? null}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+                {at === 0 ? action : null}
+              </div>
+
+              <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+                {section.rows.map((one) => (
+                  <li key={one.id} className="contents">
+                    <EventCard
+                      church={session.tenantSlug}
+                      event={one}
+                      coverUrl={covers.get(one.id) ?? null}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
       )}
 
