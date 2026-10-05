@@ -1,24 +1,28 @@
 import { redirect } from "next/navigation";
 import {
   withTenant, getChurch, canEditPeople, canReadIncidents,
+  attendanceByService, attendanceByName, attendanceSummary, attendanceByWeekday,
 } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { hueForId } from "@hearth/ui";
+import { t, plural } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { attendanceByService, attendanceByName } from "@hearth/db";
-import { Table, Thead, Tr, Th, Td } from "@hearth/ui";
 import { shortDate } from "@/lib/dates";
 import { ReportFrame, backBy, windowOf } from "../frame";
+import { Figure } from "../figure";
+import { Donut, Line, RowBars, type Slice } from "../charts";
+import { PagedTable, type Row } from "../paged-table";
 
 export const dynamic = "force-dynamic";
 
 /**
  * R18.2. How many came, service by service.
  *
- * Two readings of the same record: every service in order, and each kind of
- * service averaged. A church with a nine o'clock and an eleven o'clock wants
- * to know which one is growing, and a single line across both cannot say.
+ * Read in the order the question is asked: what the window came to and whether
+ * that is up or down, the shape over time, where the people actually are
+ * between one service and another, which day of the week is carrying the
+ * church, and then the two lists.
  */
 export default async function AttendanceReport({
   searchParams,
@@ -33,7 +37,7 @@ export default async function AttendanceReport({
 
   const window = windowOf(days);
 
-  const { services, byName } = await withTenant(
+  const { services, byName, summary, weekdays } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const clock = churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago");
@@ -41,65 +45,141 @@ export default async function AttendanceReport({
       return {
         services: await attendanceByService(tx, range),
         byName: await attendanceByName(tx, range),
+        summary: await attendanceSummary(tx, range),
+        weekdays: await attendanceByWeekday(tx, range),
       };
     },
   );
 
+  // One hue per service name, settled once so the chart, the legend, the ring
+  // and both lists all key the same service the same colour.
+  const hues = new Map(byName.map((one) => [one.name, hueForId(one.name) as string]));
+  const hueOf = (name: string) => hues.get(name) ?? "indigo";
+
+  const change = summary.average - summary.before;
+
+  const dayName = (weekday: number) =>
+    new Date(Date.UTC(2024, 0, 7 + weekday)).toLocaleDateString(undefined, { weekday: "long" });
+
+  const slices: Slice[] = byName
+    .filter((one) => one.total > 0)
+    .map((one) => ({ key: one.name, label: one.name, value: one.total, hue: hueOf(one.name) }));
+
+  const everyService: Row[] = [...services].reverse().map((one) => ({
+    key: one.occurrenceId,
+    cells: [
+      { text: one.name, hue: hueOf(one.name) },
+      { text: shortDate(one.occursOn), muted: true },
+      { text: String(one.present), numeric: true },
+    ],
+  }));
+
+  const eachService: Row[] = byName.map((one) => ({
+    key: one.name,
+    cells: [
+      { text: one.name, hue: hueOf(one.name) },
+      { text: String(one.held), numeric: true, muted: true },
+      { text: String(one.average), numeric: true },
+      { text: String(one.best), numeric: true, muted: true },
+      { text: String(one.total), numeric: true, muted: true },
+    ],
+  }));
+
   return (
-    <AppShell session={session} title={t("reports.title")}>
+    <AppShell session={session} title={t("reports.title")} wide>
       <ReportFrame
         church={session.tenantSlug}
         title={t("reports.attendance.title")}
         window={window}
         path="attendance"
       >
-        {byName.length === 0 ? (
+        {summary.held === 0 ? (
           <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("reports.none")}</p>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <Table>
-                <Thead>
-                  <Tr>
-                    <Th>{t("reports.service")}</Th>
-                    <Th>{t("reports.held")}</Th>
-                    <Th>{t("reports.average")}</Th>
-                    <Th>{t("reports.best")}</Th>
-                  </Tr>
-                </Thead>
-                <tbody>
-                  {byName.map((one) => (
-                    <Tr key={one.name}>
-                      <Td className="font-medium text-fg">{one.name}</Td>
-                      <Td className="text-fg-muted tabular-nums">{one.held}</Td>
-                      <Td className="text-fg tabular-nums">{one.average}</Td>
-                      <Td className="text-fg-muted tabular-nums">{one.best}</Td>
-                    </Tr>
-                  ))}
-                </tbody>
-              </Table>
+            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+              <Figure
+                label={t("reports.attendance.average")}
+                value={String(summary.average)}
+                hue="violet"
+                sub={
+                  summary.before === 0
+                    ? t("reports.attendance.noBefore")
+                    : t("reports.attendance.vsBefore", {
+                        delta: `${change > 0 ? "+" : ""}${change}`,
+                      })
+                }
+              />
+              <Figure
+                label={t("reports.attendance.people")}
+                value={String(summary.people)}
+                hue="indigo"
+                sub={t("reports.attendance.peopleSub")}
+              />
+              <Figure
+                label={t("reports.attendance.bestDay")}
+                value={summary.best ? String(summary.best.present) : "0"}
+                hue="fern"
+                sub={
+                  summary.best
+                    ? `${summary.best.name} · ${shortDate(summary.best.occursOn)}`
+                    : t("reports.none")
+                }
+              />
+              <Figure
+                label={t("reports.attendance.held")}
+                value={String(summary.held)}
+                hue="teal"
+                sub={plural("reports.attendance.heldSub", byName.length)}
+              />
             </div>
 
-            <div className="overflow-x-auto">
-              <Table>
-                <Thead>
-                  <Tr>
-                    <Th>{t("reports.month")}</Th>
-                    <Th>{t("reports.service")}</Th>
-                    <Th>{t("reports.people")}</Th>
-                  </Tr>
-                </Thead>
-                <tbody>
-                  {[...services].reverse().map((one) => (
-                    <Tr key={one.occurrenceId}>
-                      <Td className="text-fg-muted tabular-nums">{shortDate(one.occursOn)}</Td>
-                      <Td className="font-medium text-fg">{one.name}</Td>
-                      <Td className="text-fg tabular-nums">{one.present}</Td>
-                    </Tr>
-                  ))}
-                </tbody>
-              </Table>
+            <Line
+              title={t("reports.attendance.overTime")}
+              hue="violet"
+              aside={t("reports.attendance.averageLine", { count: String(summary.average) })}
+              points={services.map((one) => ({
+                key: one.occurrenceId,
+                label: `${one.name} · ${shortDate(one.occursOn)}`,
+                value: one.present,
+              }))}
+            />
+
+            <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))]">
+              <Donut
+                title={t("reports.attendance.share")}
+                slices={slices}
+                total={slices.reduce((all, one) => all + one.value, 0)}
+                totalLabel={t("reports.attendance.seats")}
+              />
+              <RowBars
+                title={t("reports.attendance.byWeekday")}
+                rows={weekdays.map((one) => ({
+                  key: String(one.weekday),
+                  label: dayName(one.weekday),
+                  value: one.average,
+                  note: plural("reports.attendance.timesHeld", one.held),
+                }))}
+              />
             </div>
+
+            <PagedTable
+              title={t("reports.attendance.byService")}
+              columns={[
+                t("reports.service"),
+                t("reports.held"),
+                t("reports.average"),
+                t("reports.best"),
+                t("reports.people"),
+              ]}
+              rows={eachService}
+            />
+
+            <PagedTable
+              title={t("reports.attendance.everyService")}
+              columns={[t("reports.service"), t("reports.date"), t("reports.people")]}
+              rows={everyService}
+            />
           </>
         )}
       </ReportFrame>

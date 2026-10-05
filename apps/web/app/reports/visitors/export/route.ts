@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import {
-  withTenant, getChurch, toCsv, visitorFunnel, canEditPeople, canReadIncidents,
+  withTenant, getChurch, toCsv, visitorList, canEditPeople, canReadIncidents,
 } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -8,7 +8,12 @@ import { backBy, windowOf } from "../../frame";
 
 export const dynamic = "force-dynamic";
 
-/** R18.10. The funnel as a file, over the window it was read at. */
+/**
+ * R18.10. The visitors as a file, over the window the report was read at.
+ *
+ * The names rather than the rates: a church opens this to work through it, and
+ * five percentages in a spreadsheet are nobody's afternoon.
+ */
 export async function GET(request: NextRequest) {
   const church = request.nextUrl.searchParams.get("church") ?? undefined;
   const session = await requireSession(church);
@@ -18,22 +23,30 @@ export async function GET(request: NextRequest) {
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);
 
-  const steps = await withTenant(
+  const visitors = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const clock = churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago");
-      return visitorFunnel(tx, { from: backBy(clock.date, window), to: clock.date });
+      return visitorList(tx, { from: backBy(clock.date, window), to: clock.date });
     },
   );
 
+  const columns = [
+    "Name", "First visit", "Visits", "Last seen", "In a group", "Serving", "Status", "Follow-up",
+  ];
+
   const csv = toCsv(
-    steps.map((one) => ({
-      Step: one.key,
-      People: one.people,
-      "Of the step before": `${one.rate}%`,
-      "Median days": one.medianDays ?? "",
+    visitors.map((one) => ({
+      Name: one.name,
+      "First visit": one.firstVisitOn,
+      Visits: one.visits,
+      "Last seen": one.lastSeenOn ?? "",
+      "In a group": one.inGroup ? "Yes" : "No",
+      Serving: one.serving ? "Yes" : "No",
+      Status: one.status,
+      "Follow-up": one.contacted ? "Started" : "None",
     })),
-    ["Step", "People", "Of the step before", "Median days"],
+    columns,
   );
 
   return new Response(csv, {

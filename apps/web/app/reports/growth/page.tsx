@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
 import {
   withTenant, getChurch, canEditPeople, canReadIncidents,
+  growthByMonth, growthSummary,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { growthByMonth } from "@hearth/db";
-import { Table, Thead, Tr, Th, Td } from "@hearth/ui";
 import { ReportFrame, backBy, windowOf } from "../frame";
+import { Figure } from "../figure";
+import { Columns, Line } from "../charts";
+import { PagedTable, type Row } from "../paged-table";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,10 @@ export const dynamic = "force-dynamic";
  *
  * "Lapsed" waits two months before it says so, because a church should not be
  * told it lost somebody who was on holiday.
+ *
+ * The number that matters most is at the top and it is not the roll: it is how
+ * many of the people who came last window came again in this one. A church can
+ * add names all year and still be emptying.
  */
 export default async function GrowthReport({
   searchParams,
@@ -31,16 +37,42 @@ export default async function GrowthReport({
 
   const window = windowOf(days);
 
-  const months = await withTenant(
+  const { months, kept } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const clock = churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago");
-      return growthByMonth(tx, { from: backBy(clock.date, window), to: clock.date });
+      const range = { from: backBy(clock.date, window), to: clock.date };
+      return {
+        months: await growthByMonth(tx, range),
+        kept: await growthSummary(tx, range),
+      };
     },
   );
 
+  const joined = months.reduce((all, one) => all + one.joined, 0);
+  const lapsed = months.reduce((all, one) => all + one.lapsed, 0);
+  const net = joined - lapsed;
+
+  const label = (month: string) =>
+    new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
+      month: "short", year: "numeric",
+    });
+
+  const rows: Row[] = [...months].reverse().map((one) => ({
+    key: one.month,
+    cells: [
+      { text: label(one.month) },
+      { text: String(one.joined), numeric: true },
+      { text: String(one.lapsed), numeric: true, muted: true },
+      {
+        text: one.net > 0 ? `+${one.net}` : String(one.net),
+        pill: one.net > 0 ? "fern" : one.net < 0 ? "rose" : "clay",
+      },
+    ],
+  }));
+
   return (
-    <AppShell session={session} title={t("reports.title")}>
+    <AppShell session={session} title={t("reports.title")} wide>
       <ReportFrame
         church={session.tenantSlug}
         title={t("reports.growth.title")}
@@ -50,40 +82,75 @@ export default async function GrowthReport({
         {months.length === 0 ? (
           <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("reports.none")}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <Thead>
-                <Tr>
-                  <Th>{t("reports.month")}</Th>
-                  <Th>{t("reports.joined")}</Th>
-                  <Th>{t("reports.lapsed")}</Th>
-                  <Th>{t("reports.net")}</Th>
-                </Tr>
-              </Thead>
-              <tbody>
-                {[...months].reverse().map((one) => (
-                  <Tr key={one.month}>
-                    <Td className="font-medium text-fg tabular-nums">{one.month}</Td>
-                    <Td className="text-fg tabular-nums">{one.joined}</Td>
-                    <Td className="text-fg-muted tabular-nums">{one.lapsed}</Td>
-                    <Td
-                      className="tabular-nums"
-                      style={{
-                        color:
-                          one.net > 0
-                            ? "var(--hue-fern-key)"
-                            : one.net < 0
-                              ? "var(--hue-rose-key)"
-                              : undefined,
-                      }}
-                    >
-                      {one.net > 0 ? `+${one.net}` : one.net}
-                    </Td>
-                  </Tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
+          <>
+            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+              <Figure
+                label={t("reports.growth.kept")}
+                value={`${kept.retention}%`}
+                hue={kept.retention >= 70 ? "fern" : kept.retention >= 50 ? "amber" : "rose"}
+                sub={
+                  kept.before === 0
+                    ? t("reports.growth.noBefore")
+                    : t("reports.growth.keptSub", {
+                        kept: String(kept.kept),
+                        before: String(kept.before),
+                      })
+                }
+              />
+              <Figure
+                label={t("reports.joined")}
+                value={String(joined)}
+                hue="sky"
+                sub={t("reports.growth.joinedSub")}
+              />
+              <Figure
+                label={t("reports.lapsed")}
+                value={String(lapsed)}
+                hue="clay"
+                sub={t("reports.growth.lapsedSub")}
+              />
+              <Figure
+                label={t("reports.net")}
+                value={net > 0 ? `+${net}` : String(net)}
+                hue={net > 0 ? "fern" : net < 0 ? "rose" : "teal"}
+                sub={t("reports.growth.netSub")}
+              />
+            </div>
+
+            <Line
+              title={t("reports.growth.netOverTime")}
+              hue={net >= 0 ? "fern" : "rose"}
+              points={months.map((one) => ({
+                key: one.month,
+                label: label(one.month),
+                value: one.net,
+              }))}
+            />
+
+            <Columns
+              title={t("reports.growth.inAndOut")}
+              series={[
+                { label: t("reports.joined"), hue: "sky" },
+                { label: t("reports.lapsed"), hue: "clay" },
+              ]}
+              groups={months.map((one) => ({
+                key: one.month,
+                label: label(one.month),
+                values: [one.joined, one.lapsed],
+              }))}
+            />
+
+            <PagedTable
+              title={t("reports.growth.monthByMonth")}
+              columns={[
+                t("reports.month"),
+                t("reports.joined"),
+                t("reports.lapsed"),
+                t("reports.net"),
+              ]}
+              rows={rows}
+            />
+          </>
         )}
       </ReportFrame>
     </AppShell>

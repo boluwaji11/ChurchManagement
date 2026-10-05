@@ -283,6 +283,8 @@ export interface ServiceAverage {
   held: number;
   average: number;
   best: number;
+  /** Everybody counted across every time it was held, for the share chart. */
+  total: number;
 }
 
 /**
@@ -300,11 +302,13 @@ export async function attendanceByName(
     held: string;
     average: string;
     best: string;
+    total: string;
   }>(sql`
     select o.name,
            count(*)::text as held,
            round(avg(c.present))::text as average,
-           max(c.present)::text as best
+           max(c.present)::text as best,
+           sum(c.present)::text as total
       from service_occurrences o
       cross join lateral (
         select count(*) as present from attendance_records a where a.occurrence_id = o.id
@@ -319,6 +323,7 @@ export async function attendanceByName(
     held: Number(row.held),
     average: Number(row.average),
     best: Number(row.best),
+    total: Number(row.total),
   }));
 }
 
@@ -428,4 +433,221 @@ export async function openFollowUps(db: Tx, limit = 5): Promise<OpenFollowUp[]> 
     owner: row["owner"] ?? null,
     dueOn: row["dueOn"] ?? null,
   }));
+}
+
+export interface AttendanceSummary {
+  /** How many services were held in the window. */
+  held: number;
+  /** The average across them, rounded. */
+  average: number;
+  /** The same average over the window before this one, for the comparison. */
+  before: number;
+  /** The best attended one in the window. */
+  best: { name: string; occursOn: string; present: number } | null;
+  /** How many different people were at anything at all. */
+  people: number;
+}
+
+/**
+ * R18.2. What the window adds up to, for the numbers across the top.
+ *
+ * The window before this one is counted too, because an average on its own
+ * says nothing: 94 is good news or bad news depending on what last quarter was.
+ */
+export async function attendanceSummary(
+  db: Tx,
+  opts: { from: string; to: string },
+): Promise<AttendanceSummary> {
+  const span = sql`(${opts.to}::date - ${opts.from}::date)`;
+
+  const [row] = await db.execute<Record<string, string | null>>(sql`
+    with counted as (
+      select o.id, o.name, o.occurs_on,
+             (select count(*) from attendance_records a where a.occurrence_id = o.id) as present
+        from service_occurrences o
+       where o.occurs_on between ${opts.from} and ${opts.to}
+         and o.status <> 'cancelled'
+    ),
+    earlier as (
+      select (select count(*) from attendance_records a where a.occurrence_id = o.id) as present
+        from service_occurrences o
+       where o.occurs_on between ${opts.from}::date - ${span} and ${opts.from}::date - 1
+         and o.status <> 'cancelled'
+    )
+    select (select count(*) from counted)::text as held,
+           coalesce((select round(avg(present)) from counted), 0)::text as average,
+           coalesce((select round(avg(present)) from earlier), 0)::text as before,
+           (select name from counted order by present desc, occurs_on desc limit 1) as "bestName",
+           (select to_char(occurs_on, 'YYYY-MM-DD') from counted
+             order by present desc, occurs_on desc limit 1) as "bestOn",
+           coalesce((select max(present) from counted), 0)::text as "bestPresent",
+           (select count(distinct a.person_id)
+              from attendance_records a
+              join counted c on c.id = a.occurrence_id)::text as people`);
+
+  const best = row?.["bestName"]
+    ? {
+        name: String(row["bestName"]),
+        occursOn: String(row["bestOn"]),
+        present: Number(row["bestPresent"]),
+      }
+    : null;
+
+  return {
+    held: Number(row?.["held"] ?? 0),
+    average: Number(row?.["average"] ?? 0),
+    before: Number(row?.["before"] ?? 0),
+    best,
+    people: Number(row?.["people"] ?? 0),
+  };
+}
+
+export interface WeekdayAverage {
+  /** 0 is Sunday, the way Postgres counts it. */
+  weekday: number;
+  held: number;
+  average: number;
+}
+
+/**
+ * R18.2. Which day of the week the church is actually full on.
+ *
+ * A church that moved a service to a Thursday night wants to see whether the
+ * Thursday took, and a single line across every service cannot say.
+ */
+export async function attendanceByWeekday(
+  db: Tx,
+  opts: { from: string; to: string },
+): Promise<WeekdayAverage[]> {
+  const rows = await db.execute<{ weekday: string; held: string; average: string }>(sql`
+    select extract(dow from o.occurs_on)::text as weekday,
+           count(*)::text as held,
+           round(avg(c.present))::text as average
+      from service_occurrences o
+      cross join lateral (
+        select count(*) as present from attendance_records a where a.occurrence_id = o.id
+      ) c
+     where o.occurs_on between ${opts.from} and ${opts.to}
+       and o.status <> 'cancelled'
+     group by 1
+     order by 1`);
+
+  return rows.map((row) => ({
+    weekday: Number(row.weekday),
+    held: Number(row.held),
+    average: Number(row.average),
+  }));
+}
+
+export interface VisitorRow {
+  id: string;
+  slug: string;
+  name: string;
+  firstVisitOn: string;
+  /** How many separate days they have been recorded present since. */
+  visits: number;
+  lastSeenOn: string | null;
+  inGroup: boolean;
+  serving: boolean;
+  status: string;
+  /** Whether anybody has started a follow-up for them at all. */
+  contacted: boolean;
+}
+
+/**
+ * R18.3. The visitors behind the funnel, by name.
+ *
+ * A rate nobody can act on is a wall decoration. The church reads "forty per
+ * cent came back" and the next question is always the same: which of them did
+ * not, and has anybody spoken to them. This is that list.
+ */
+export async function visitorList(
+  db: Tx,
+  opts: { from: string; to: string },
+): Promise<VisitorRow[]> {
+  const rows = await db.execute<Record<string, string | null>>(sql`
+    select p.id,
+           p.slug,
+           coalesce(nullif(p.preferred_name, ''), p.first_name) || ' ' || p.last_name as name,
+           to_char(p.first_visit_on, 'YYYY-MM-DD') as "firstVisitOn",
+           p.lifecycle_status as status,
+           (select count(distinct o.occurs_on)
+              from attendance_records a
+              join service_occurrences o on o.id = a.occurrence_id
+             where a.person_id = p.id)::text as visits,
+           (select to_char(max(o.occurs_on), 'YYYY-MM-DD')
+              from attendance_records a
+              join service_occurrences o on o.id = a.occurrence_id
+             where a.person_id = p.id) as "lastSeenOn",
+           (exists (select 1 from group_memberships m where m.person_id = p.id))::text as "inGroup",
+           (exists (select 1 from team_members tm where tm.person_id = p.id))::text as serving,
+           (exists (select 1 from follow_ups f where f.person_id = p.id))::text as contacted
+      from people p
+     where p.archived_at is null
+       and p.first_visit_on between ${opts.from} and ${opts.to}
+     order by p.first_visit_on desc`);
+
+  return rows.map((row) => ({
+    id: String(row["id"]),
+    slug: String(row["slug"]),
+    name: String(row["name"]),
+    firstVisitOn: String(row["firstVisitOn"]),
+    visits: Number(row["visits"] ?? 0),
+    lastSeenOn: row["lastSeenOn"] ?? null,
+    inGroup: row["inGroup"] === "true",
+    serving: row["serving"] === "true",
+    status: String(row["status"]),
+    contacted: row["contacted"] === "true",
+  }));
+}
+
+export interface GrowthSummary {
+  /**
+   * R18.4. Of the people who came at all in the window before this one, how
+   * many came again in this one. The honest churn signal, as a percentage.
+   */
+  retention: number;
+  /** How many that is, so the percentage is readable. */
+  kept: number;
+  before: number;
+}
+
+/**
+ * R18.4. What the window comes to, and whether the church kept who it had.
+ *
+ * Retention is counted against the window before rather than against the roll,
+ * because a name on a roll is not somebody who turned up.
+ */
+export async function growthSummary(
+  db: Tx,
+  opts: { from: string; to: string },
+): Promise<GrowthSummary> {
+  const span = sql`(${opts.to}::date - ${opts.from}::date)`;
+
+  const [row] = await db.execute<Record<string, string | null>>(sql`
+    with seen as (
+      select a.person_id, o.occurs_on
+        from attendance_records a
+        join service_occurrences o on o.id = a.occurrence_id
+    ),
+    earlier as (
+      select distinct person_id from seen
+       where occurs_on between ${opts.from}::date - ${span} and ${opts.from}::date - 1
+    ),
+    now_ as (
+      select distinct person_id from seen
+       where occurs_on between ${opts.from} and ${opts.to}
+    )
+    select (select count(*) from earlier)::text as before,
+           (select count(*) from earlier e
+             where exists (select 1 from now_ n where n.person_id = e.person_id))::text as kept`);
+
+  const before = Number(row?.["before"] ?? 0);
+  const kept = Number(row?.["kept"] ?? 0);
+
+  return {
+    before,
+    kept,
+    retention: before === 0 ? 0 : Math.round((kept / before) * 100),
+  };
 }
