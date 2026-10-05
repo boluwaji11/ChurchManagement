@@ -13,6 +13,14 @@ import { Answer } from "@/components/form-answer";
 import { registerParty } from "./actions";
 import type { Registrant } from "@hearth/db";
 
+/** An answer as the confirmation step reads it back. */
+function said(value: FormAnswer): string {
+  if (value === true) return t("common.yes");
+  if (value === false || value === null || value === undefined) return "";
+  if (Array.isArray(value)) return value.join(", ");
+  return String(value).trim();
+}
+
 /** What either way of sending a registration answers with. */
 interface SendResult {
   ok: boolean;
@@ -372,19 +380,47 @@ export function Register({
       ) : null}
 
       {step === "confirm" ? (
-        <div className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
+        <div className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
           <span className="text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
             {t("publicEvent.who")}
           </span>
-          <ul className="flex flex-col gap-2.5">
-            {party.map((person, index) => (
-              <li key={person.key} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="font-medium text-fg">{calls(person, index)}</span>
-                <span className="text-caption text-fg-muted">
-                  {[person.email.trim(), person.phone.trim()].filter(Boolean).join(" · ")}
-                </span>
-              </li>
-            ))}
+
+          {/* Everything that is about to be sent, person by person, answers
+              included. A reader confirming a registration is checking what
+              they typed, and answers they cannot see are answers they cannot
+              check. */}
+          <ul className="flex flex-col gap-4">
+            {party.map((person, index) => {
+              const given = visibleFields(questions, person.answers)
+                .filter((field) => field.kind !== "section")
+                .map((field) => ({ field, said: said(person.answers[field.id] ?? null) }))
+                .filter((one) => one.said !== "");
+
+              return (
+                <li
+                  key={person.key}
+                  className="flex flex-col gap-1.5 border-b border-line pb-4 last:border-b-0 last:pb-0"
+                >
+                  <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="font-medium text-fg">{calls(person, index)}</span>
+                    <span className="text-caption text-fg-muted">
+                      {[person.email.trim(), person.phone.trim()].filter(Boolean).join(" · ")}
+                    </span>
+                  </span>
+
+                  {given.length > 0 ? (
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-caption">
+                      {given.map(({ field, said: answer }) => (
+                        <React.Fragment key={field.id}>
+                          <dt className="text-fg-subtle">{field.label}</dt>
+                          <dd className="text-fg">{answer}</dd>
+                        </React.Fragment>
+                      ))}
+                    </dl>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}

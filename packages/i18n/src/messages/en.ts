@@ -2090,7 +2090,7 @@ export const en = {
   "publicEvent.waitlistOpen": "This event is full, and taking names for a waiting list",
   "publicEvent.cancelled": "This event has been cancelled",
   "publicEvent.failed": "That could not be sent",
-  "publicEvent.stepQuestions": "Questions",
+  "publicEvent.stepQuestions": "Additional questions",
   "publicEvent.stepConfirm": "Confirm",
   "publicEvent.continue": "Continue",
   "publicEvent.previous": "Back",
