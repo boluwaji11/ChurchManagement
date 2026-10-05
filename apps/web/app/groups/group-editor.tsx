@@ -167,7 +167,13 @@ export function GroupEditor({
           same two columns the group's own page opens with. */}
       <div className="grid items-start gap-7 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
         <div className="flex flex-col gap-4">
-          <Field label={t("groups.name")} required>
+          {/* The label reads as the small-caps heading the rest of the page
+              uses, so Name sits alongside About and Categories. */}
+          <Field
+            label={t("groups.name")}
+            required
+            className="[&>label]:text-[12px] [&>label]:font-bold [&>label]:tracking-[0.06em] [&>label]:text-fg [&>label]:uppercase"
+          >
             <Input
               name="name"
               defaultValue={group?.name ?? ""}
