@@ -382,38 +382,39 @@ export function Register({
       {step === "confirm" ? (
         <div className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
           <span className="text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
-            {t("publicEvent.who")}
+            {questions.length > 0 ? t("publicEvent.summary") : t("publicEvent.who")}
           </span>
 
-          {/* Everything that is about to be sent, person by person, answers
-              included. A reader confirming a registration is checking what
-              they typed, and answers they cannot see are answers they cannot
-              check. */}
+          {/* Everything that is about to be sent, person by person, read back
+              in one voice: what they gave about themselves and what they
+              answered are the same kind of thing to somebody checking it. */}
           <ul className="flex flex-col gap-4">
             {party.map((person, index) => {
-              const given = visibleFields(questions, person.answers)
-                .filter((field) => field.kind !== "section")
-                .map((field) => ({ field, said: said(person.answers[field.id] ?? null) }))
-                .filter((one) => one.said !== "");
+              const lines: { key: string; label: string; said: string }[] = [
+                { key: "email", label: t("publicEvent.email"), said: person.email.trim() },
+                { key: "phone", label: t("publicEvent.phone"), said: person.phone.trim() },
+                ...visibleFields(questions, person.answers)
+                  .filter((field) => field.kind !== "section")
+                  .map((field) => ({
+                    key: field.id,
+                    label: field.label,
+                    said: said(person.answers[field.id] ?? null),
+                  })),
+              ].filter((one) => one.said !== "");
 
               return (
                 <li
                   key={person.key}
                   className="flex flex-col gap-1.5 border-b border-line pb-4 last:border-b-0 last:pb-0"
                 >
-                  <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span className="font-medium text-fg">{calls(person, index)}</span>
-                    <span className="text-caption text-fg-muted">
-                      {[person.email.trim(), person.phone.trim()].filter(Boolean).join(" · ")}
-                    </span>
-                  </span>
+                  <span className="font-medium text-fg">{calls(person, index)}</span>
 
-                  {given.length > 0 ? (
-                    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-caption">
-                      {given.map(({ field, said: answer }) => (
-                        <React.Fragment key={field.id}>
-                          <dt className="text-fg-subtle">{field.label}</dt>
-                          <dd className="text-fg">{answer}</dd>
+                  {lines.length > 0 ? (
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-[length:var(--d-text-body)]">
+                      {lines.map((one) => (
+                        <React.Fragment key={one.key}>
+                          <dt className="text-fg-muted">{one.label}</dt>
+                          <dd className="text-fg">{one.said}</dd>
                         </React.Fragment>
                       ))}
                     </dl>

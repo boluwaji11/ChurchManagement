@@ -2074,6 +2074,7 @@ export const en = {
   "publicEvent.register": "Register",
   "publicEvent.registering": "Registering",
   "publicEvent.who": "Who is coming",
+  "publicEvent.summary": "Summary",
   "publicEvent.registerNow": "Register",
   "publicEvent.back": "Back to {name}",
   "publicEvent.addPerson": "Add another person",
