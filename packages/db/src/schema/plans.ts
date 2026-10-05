@@ -12,9 +12,9 @@ const created = () => timestamp("created_at", { withTimezone: true }).defaultNow
 const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
 
 /**
- * R11.1. The order of service for one gathering.
+ * R11.1. The order of service for one service.
  *
- * One plan a gathering, because a church with two services on a day runs two
+ * One plan a service, because a church with two services on a day runs two
  * plans even where the order is identical: the second one drops the baptism and
  * runs four minutes short, and a shared plan cannot say so.
  */
@@ -25,19 +25,19 @@ export const servicePlans = pgTable(
     tenantId: tenantId(),
     occurrenceId: uuid("occurrence_id").notNull()
       .references(() => serviceOccurrences.id, { onDelete: "cascade" }),
-    /** What this gathering is called on the plan, where it differs from the service. */
+    /** What this service is called on the plan, where it differs from the name on the calendar. */
     title: text("title"),
     /** "Advent", "The Sermon on the Mount". The run of weeks this belongs to. */
     series: text("series"),
     /** The one idea of the day, in the leader's words. */
     theme: text("theme"),
     /**
-     * R11.11. Live mode. The item the gathering is on, when the gathering
+     * R11.11. Live mode. The item the service is on, when the service
      * started, and when that item started.
      *
      * Held on the plan rather than in a session, because the team is following
      * on their own phones and a leader's browser tab is not somewhere a team
-     * can read from. All three are null between gatherings.
+     * can read from. All three are null between services.
      */
     liveItemId: uuid("live_item_id"),
     liveStartedAt: timestamp("live_started_at", { withTimezone: true }),
@@ -96,7 +96,7 @@ export const planItems = pgTable(
  *
  * All three targets empty means everybody. They are narrowing, so a note on the
  * Drums position reaches whoever is scheduled to play drums, whoever that turns
- * out to be by the time the gathering comes round.
+ * out to be by the time the service comes round.
  */
 export const planItemNotes = pgTable(
   "plan_item_notes",

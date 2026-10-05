@@ -19,7 +19,7 @@ export interface LiveResult {
 }
 
 /**
- * R11.11. What the gathering is on, asked for again every few seconds.
+ * R11.11. What the service is on, asked for again every few seconds.
  *
  * Polled rather than pushed, because realtime is unused in v1 and a phone
  * asking every three seconds is well inside the time it takes somebody to

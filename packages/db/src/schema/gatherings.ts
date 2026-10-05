@@ -8,7 +8,7 @@ const created = () => timestamp("created_at", { withTimezone: true }).defaultNow
 const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
 
 /**
- * R7.1. One gathering that happened, or is going to.
+ * R7.1. One service that happened, or is going to.
  *
  * Generated from the church's service times, and editable afterwards, because
  * the generated calendar is a starting point rather than the truth. Christmas
@@ -55,7 +55,7 @@ export const serviceOccurrences = pgTable(
 );
 
 /**
- * R7.3. One person, at one gathering.
+ * R7.3. One person, at one service.
  *
  * A row means present. There is no absent row, because absence is the lack of a
  * record rather than a fact somebody asserts, and a table holding a row per

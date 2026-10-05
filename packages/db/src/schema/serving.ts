@@ -153,7 +153,7 @@ export const teamMemberPositions = pgTable(
 );
 
 /**
- * R10.3. One person, in one position, at one gathering.
+ * R10.3. One person, in one position, at one service.
  *
  * The schedule is held against the service occurrence rather than against a
  * date, because a church with two services on the same day schedules two
@@ -201,7 +201,7 @@ export const servingAssignments = pgTable(
     index("assignment_occurrence_idx").on(t.tenantId, t.occurrenceId),
     index("assignment_person_idx").on(t.tenantId, t.personId),
     index("assignment_team_idx").on(t.tenantId, t.teamId, t.occurrenceId),
-    // The same person is not put in the same position twice at one gathering.
+    // The same person is not put in the same position twice at one service.
     uniqueIndex("assignment_unique").on(t.occurrenceId, t.positionId, t.personId),
     uniqueIndex("assignment_token_unique").on(t.respondToken),
   ],

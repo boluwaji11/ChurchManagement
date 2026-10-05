@@ -27,7 +27,7 @@ const when = (iso: string): string =>
 /**
  * R11.12. Who changed what, and when.
  *
- * Worship leaders change plans the night before a gathering, and the question
+ * Worship leaders change plans the night before a service, and the question
  * on a service morning is which of the eight people with the password did it.
  */
 export function History({ changes }: { changes: PlanChange[] }) {

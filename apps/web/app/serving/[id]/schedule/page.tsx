@@ -17,7 +17,7 @@ import { SchedulePlan } from "./plan";
 export const dynamic = "force-dynamic";
 
 /**
- * R10.3. One team's schedule across the gatherings coming up.
+ * R10.3. One team's schedule across the services coming up.
  *
  * Six of them, because a schedule built further out than that is rebuilt before it
  * is used, and a leader filling one service at a time is doing the work the way

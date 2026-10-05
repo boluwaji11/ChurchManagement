@@ -44,7 +44,7 @@ function MonthStep({
   );
 }
 
-/** How many gatherings the grid shows. A month of weekends, as the design draws. */
+/** How many services the grid shows. A month of weekends, as the design draws. */
 const COLUMNS = 4;
 
 /**

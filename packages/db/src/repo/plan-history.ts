@@ -9,7 +9,7 @@ import type { Tx } from "../client";
  * every row, and a second history kept by application code is a history that
  * disagrees with the first one the day somebody forgets to write to it.
  *
- * Worship leaders change plans the night before a gathering, and the question
+ * Worship leaders change plans the night before a service, and the question
  * on a service morning is which of the eight people with the password did it.
  */
 
@@ -32,7 +32,7 @@ export interface PlanChange {
 /**
  * Columns nobody wants to read about.
  *
- * The live mode columns matter most: a gathering of twenty items writes twenty
+ * The live mode columns matter most: a service of twenty items writes twenty
  * updates to the plan row as it runs, and a history drowned in those is a
  * history nobody scrolls.
  */
@@ -76,7 +76,7 @@ function movedFields(
  * R11.12. The history of one plan, newest first.
  *
  * An update where nothing but the noise moved is dropped, so running a
- * gathering in live mode leaves no trail here.
+ * service in live mode leaves no trail here.
  */
 export async function planHistory(
   db: Tx,

@@ -71,7 +71,7 @@ export default function Type() {
       <Section title="In context" note="Fewer containers, better type.">
         <article className="max-w-prose rounded-lg border border-line bg-surface p-6">
           <p className="text-label text-accent-fg/70 uppercase tracking-wide">Sunday, 12 October</p>
-          <h3 className="mt-1 font-display text-display text-fg">Morning Gathering</h3>
+          <h3 className="mt-1 font-display text-display text-fg">Morning Service</h3>
           <p className="mt-3 text-body-lg text-fg-muted">
             Four songs, a baptism, and the second week of the series. Running time is 74 minutes, which is
             six over, so the announcements come down to two.

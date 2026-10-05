@@ -164,7 +164,7 @@ function PlanLine({ service, quiet }: { service: ServiceCard; quiet?: boolean })
     );
   }
 
-  // A gathering that has happened was never going to be planned after the fact,
+  // A service that has happened was never going to be planned after the fact,
   // so saying "not planned yet" of it is saying nothing true.
   if (quiet) return <span className="flex-1 text-fg-subtle">{t("services.noPlan")}</span>;
 

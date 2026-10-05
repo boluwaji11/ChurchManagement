@@ -10,6 +10,7 @@ import { t, plural } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow, hasHappened } from "@/lib/church-now";
+import { shortDate } from "@/lib/dates";
 import { SetupChecklist } from "./checklist";
 import { Tiles, type Tile } from "./tiles";
 import { Weeks } from "./weeks";
@@ -151,7 +152,7 @@ export default async function DashboardPage({
       setup: await setupProgress(tx, session.tenantId),
       tasks: await openFollowUps(tx, 5),
       week: entries,
-      // The gathering the church is heading towards, which is the one thing
+      // The service the church is heading towards, which is the one thing
       // worth saying beside today's date.
       next: occurrences.find((one) => !hasHappened(clockNow, one.occursOn, one.startsAt)) ?? null,
     };
@@ -165,10 +166,17 @@ export default async function DashboardPage({
       id: "attendance",
       label: t("dashboard.attendance"),
       value: last ? String(last.present) : "0",
-      sub:
-        delta === null
-          ? t("dashboard.noAttendance")
-          : t("dashboard.againstAverage", { delta: `${delta > 0 ? "+" : ""}${delta}` }),
+      /*
+       * The comparison where there is one. A church with a single service on
+       * the record has nothing to compare against, so it reads the day it was
+       * held rather than being told no attendance was recorded under a number
+       * that plainly was.
+       */
+      sub: last
+        ? delta === null
+          ? `${last.name} \u00b7 ${shortDate(last.occursOn)}`
+          : t("dashboard.againstAverage", { delta: `${delta > 0 ? "+" : ""}${delta}` })
+        : t("dashboard.noAttendance"),
       hue: "violet",
     },
     {

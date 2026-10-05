@@ -203,7 +203,7 @@ export async function applyTemplate(
 /**
  * R11.8. Plans already run, newest first, as starting points for this one.
  *
- * Only gatherings before this one, and only ones with something on the plan, so
+ * Only services before this one, and only ones with something on the plan, so
  * the list offers nothing that would copy across as nothing.
  */
 export async function recentPlans(

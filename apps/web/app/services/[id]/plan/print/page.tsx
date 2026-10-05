@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 /**
  * R11.10. The order of service on paper, in two versions.
  *
- * The full one is what the team runs the gathering from: the clock, the
+ * The full one is what the team runs the service from: the clock, the
  * lengths, the notes and who is doing what. The bulletin one is what is handed
  * to the congregation, so it is the titles in order and nothing else. The same
  * plan printed two ways, because a church that has to retype its order into a

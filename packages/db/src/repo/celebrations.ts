@@ -11,7 +11,7 @@ import { milestones, people, relationships } from "../schema/people";
  * recurring day is matched on its month and day rather than on its date.
  *
  * Two windows, because churches ask in two sizes. A month for the notices that
- * go out once, a week for the ones read out at a gathering.
+ * go out once, a week for the ones read out at a service.
  *
  * The admin list ignores the directory preferences in R3.2. Those govern what
  * the congregation is shown about somebody. A church holding a birthday it was

@@ -27,7 +27,7 @@ export interface ServingRequest {
   startsAt: string;
   status: "pending" | "accepted" | "declined";
   declineReason: string | null;
-  /** True once the gathering has been and gone, which closes the question. */
+  /** True once the service has been and gone, which closes the question. */
   past: boolean;
 }
 

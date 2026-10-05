@@ -187,7 +187,7 @@ const LOOK = {
 } as const;
 
 /**
- * R10.3, R10.4. One team's month: a row per position, a column per gathering.
+ * R10.3, R10.4. One team's month: a row per position, a column per service.
  *
  * A leader fills a rota by looking across a month rather than one service at a
  * time, so the whole month is the screen and a volunteer is dragged from the

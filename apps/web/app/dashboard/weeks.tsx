@@ -6,8 +6,8 @@ import { Panel } from "./panel";
 /**
  * R18.2. Attendance over the last weeks, as a line of bars.
  *
- * One bar per gathering in the order they were held, the most recent one in
- * full ink so the eye lands on where the church is now. A gathering nobody
+ * One bar per service in the order they were held, the most recent one in
+ * full ink so the eye lands on where the church is now. A service nobody
  * recorded is still drawn, flat, because a gap in the record is a fact about
  * the record and smoothing it over tells a church it has twelve weeks of
  * numbers when it has nine.

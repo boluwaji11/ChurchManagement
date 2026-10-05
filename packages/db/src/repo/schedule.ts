@@ -12,10 +12,10 @@ import { canManageTeams, leadsTeam } from "./serving";
 import type { WriteActor } from "./people";
 
 /**
- * R10.3 to R10.5. The schedule: who is doing what, at which gathering.
+ * R10.3 to R10.5. The schedule: who is doing what, at which service.
  *
  * The schedule hangs off the service occurrence rather than off a date. A
- * church with two gatherings on one day runs two different bands, and a row
+ * church with two services on one day runs two different bands, and a row
  * holding a date alone cannot say which one somebody is in.
  *
  * Serving in two places at one hour is allowed, and nothing is said about it.
@@ -106,7 +106,7 @@ async function mayScheduleFor(db: Tx, actor: WriteActor, teamId: string): Promis
   throw new PermissionError(actor.role, "schedule");
 }
 
-/** R10.3. The gatherings this schedule covers, soonest first. */
+/** R10.3. The services this schedule covers, soonest first. */
 export async function upcomingServices(
   db: Tx,
   options: { from: string; limit?: number },
@@ -127,7 +127,7 @@ export async function upcomingServices(
     .limit(options.limit ?? 6);
 }
 
-/** R10.3. Everyone scheduled on this team across these gatherings. */
+/** R10.3. Everyone scheduled on this team across these services. */
 export async function assignmentsForTeam(
   db: Tx,
   teamId: string,
@@ -303,7 +303,7 @@ export async function checkFor(
 }
 
 /**
- * R10.3 to R10.5. Who could fill this position at this gathering, and what the
+ * R10.3 to R10.5. Who could fill this position at this service, and what the
  * scheduler should know about each of them.
  */
 export async function candidatesFor(
@@ -587,7 +587,7 @@ export async function answerCounts(
 // ---------------------------------------------------------------------------
 
 /**
- * One person down for one position at this gathering.
+ * One person down for one position at this service.
  *
  * The status is carried through, because a request somebody declined leaves the
  * position open and the plan has to say so.
@@ -619,7 +619,7 @@ export interface PlanRosterTeam {
 }
 
 /**
- * R11.9. The teams and positions for one gathering, with who is in them.
+ * R11.9. The teams and positions for one service, with who is in them.
  *
  * This is the same schedule the serving pages write, read from the other end,
  * so a name put down here is a request that person answers in the usual way.
@@ -731,7 +731,7 @@ export async function blockoutsFor(
 }
 
 /**
- * R10.3. How many slots each team still has to fill across these gatherings.
+ * R10.3. How many slots each team still has to fill across these services.
  *
  * Counted as what the positions ask for against what has been scheduled, so a
  * declined request reads as an open slot, which is what it is.

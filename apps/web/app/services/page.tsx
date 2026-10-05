@@ -38,12 +38,12 @@ const shift = (iso: string, days: number): string => {
 /**
  * R11.1. What is coming, and what each one has planned.
  *
- * A card a gathering, in the order they happen, with the two numbers that say
+ * A card a service, in the order they happen, with the two numbers that say
  * whether anybody has done anything about it yet. Opening one goes to its
  * order of service, which is what a church came here to write.
  */
 /**
- * R11.1. How long after it starts a gathering is still the one to look at.
+ * R11.1. How long after it starts a service is still the one to look at.
  *
  * A church mid-service should still see this morning under "upcoming", and at
  * eleven at night it should be behind them. There is no recorded finish, so
@@ -101,7 +101,7 @@ export default async function ServicesPage({
   );
 
   // listOccurrences reads newest first, which is the wrong way round for a
-  // list of what is coming. A gathering that has already run moves across to
+  // list of what is coming. A service that has already run moves across to
   // what has been, so the first card is really the next one.
   const byWhen = (a: { occursOn: string; startsAt: string }, b: { occursOn: string; startsAt: string }) =>
     a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt);

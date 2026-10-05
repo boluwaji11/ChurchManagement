@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
   );
 
   const csv = toCsv(
-    rows.map((one) => ({ Date: one.occursOn, Gathering: one.name, Present: one.present })),
-    ["Date", "Gathering", "Present"],
+    rows.map((one) => ({ Date: one.occursOn, Service: one.name, Present: one.present })),
+    ["Date", "Service", "Present"],
   );
 
   return new Response(csv, {

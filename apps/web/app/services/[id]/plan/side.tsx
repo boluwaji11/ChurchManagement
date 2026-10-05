@@ -5,7 +5,7 @@ import { t } from "@hearth/i18n";
 import type { ServingTeam } from "./who-serves";
 
 /**
- * R11.3, R11.9. What a leader checks before a gathering: how long it runs, and
+ * R11.3, R11.9. What a leader checks before a service: how long it runs, and
  * whether anybody is missing from it.
  *
  * Down the right of the plan, sticky, because both answers change as the plan

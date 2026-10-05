@@ -17,7 +17,7 @@ import { PlanTabs } from "./tabs";
 export const dynamic = "force-dynamic";
 
 /**
- * R11.1 to R11.3. The order of service for one gathering.
+ * R11.1 to R11.3. The order of service for one service.
  *
  * Opening it creates it, because a church that generates a year of services
  * does not want a year of empty plans in every list and every export.
@@ -57,7 +57,7 @@ export default async function PlanPage({
       sources: await recentPlans(tx, occurrenceId),
       // R11.9. Who serves, read from the same schedule the serving pages write.
       roster: await rosterFor(tx, occurrenceId),
-      // R11.1. The church's other gatherings, so a leader planning three in a
+      // R11.1. The church's other services, so a leader planning three in a
       // week moves between them without going back to the list.
       others: await listOccurrences(tx, {
         from: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
@@ -78,7 +78,7 @@ export default async function PlanPage({
   // The one being read is always a tab, even once it has happened, so the
   // strip never loses the plan it is sitting on.
   // Compared on the record's id rather than on what was in the URL, which may
-  // be the readable address and then matched nothing, putting this gathering
+  // be the readable address and then matched nothing, putting this service
   // in the row twice.
   const tabs = [
     ...(others.some((one) => one.id === occurrence.id) ? [] : [occurrence]),

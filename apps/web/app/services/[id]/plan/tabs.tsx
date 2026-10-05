@@ -10,7 +10,7 @@ const LEAST = 3;
 const MOST = 6;
 
 /**
- * R11.1. The church's other gatherings, so a leader planning three in a week
+ * R11.1. The church's other services, so a leader planning three in a week
  * moves between them without going back to the list.
  *
  * As many as the row comfortably holds, worked out from its width, so a wide

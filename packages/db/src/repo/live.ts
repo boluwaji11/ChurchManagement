@@ -10,7 +10,7 @@ import type { ItemKind } from "./plans";
 import type { WriteActor } from "./people";
 
 /**
- * R11.11. Live mode: what the gathering is on right now.
+ * R11.11. Live mode: what the service is on right now.
  *
  * The state is a row rather than something held in the leader's browser,
  * because the point is that the team is following on their own phones. A tab
@@ -40,14 +40,14 @@ export interface LiveState {
   startsAt: string;
   /** True once somebody has started it. */
   running: boolean;
-  /** When the gathering was started, and when the current item was reached. */
+  /** When the service was started, and when the current item was reached. */
   startedAt: string | null;
   itemAt: string | null;
   currentId: string | null;
   items: LiveItem[];
 }
 
-/** R11.11. What the gathering is on, and everything it runs through. */
+/** R11.11. What the service is on, and everything it runs through. */
 export async function liveFor(db: Tx, occurrenceId: string): Promise<LiveState | null> {
   const [plan] = await db
     .select({
@@ -117,7 +117,7 @@ async function itemIds(db: Tx, planId: string): Promise<string[]> {
 }
 
 /**
- * R11.11. Starts the gathering on its first item.
+ * R11.11. Starts the service on its first item.
  *
  * Starting an empty plan is refused: there is nothing to be on, and a clock
  * running against nothing tells a leader nothing.
@@ -143,7 +143,7 @@ export async function startLive(
 /**
  * R11.11. Moves to the next item, or back to the one before.
  *
- * Going on from the last item ends the gathering, because that is what pressing
+ * Going on from the last item ends the service, because that is what pressing
  * next at the end means. Going back from the first stays where it is.
  */
 export async function moveLive(

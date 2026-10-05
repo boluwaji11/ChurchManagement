@@ -9,7 +9,7 @@ import type { WriteActor } from "./people";
 import { formSlug, isUuid } from "./form-rules";
 
 /**
- * R7.1. The church's calendar of gatherings.
+ * R7.1. The church's calendar of services.
  *
  * Generated from the weekly pattern in settings, then edited, because the
  * generated calendar is a starting point rather than the truth. Christmas Eve
@@ -289,7 +289,7 @@ export interface SpecialServiceInput {
 }
 
 /**
- * A gathering outside the weekly pattern: Christmas Eve, a funeral, a
+ * A service outside the weekly pattern: Christmas Eve, a funeral, a
  * Wednesday the youth group met in the hall.
  *
  * It carries no service time, so regenerating the calendar leaves it alone.
@@ -361,7 +361,7 @@ export async function updateOccurrence(
 }
 
 /**
- * Cancels a gathering, or puts it back.
+ * Cancels a service, or puts it back.
  *
  * The record stays either way. A cancelled service that vanished from the
  * calendar leaves a gap that reads as a collapse in attendance, and somebody
@@ -407,7 +407,7 @@ export async function removeSpecialService(
   return { removed: gone.length };
 }
 
-/** The gatherings a church is about to hold, for the attendance screens. */
+/** The services a church is about to hold, for the attendance screens. */
 export async function upcomingOccurrences(db: Tx, limit = 5): Promise<Occurrence[]> {
   const today = new Date().toISOString().slice(0, 10);
   const rows = await db

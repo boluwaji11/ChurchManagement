@@ -8,7 +8,7 @@ import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
 
 /**
- * R7.3 and R7.7. Who was at a gathering.
+ * R7.3 and R7.7. Who was at a service.
  *
  * A row means present. There is no absent row: absence is the lack of a record
  * rather than something anybody asserts, and R7.6 reads it from the gaps. That
@@ -32,7 +32,7 @@ export interface RosterEntry {
 /**
  * Everyone who could be marked present, and who already is.
  *
- * One query, left joined against the records for this gathering, because two
+ * One query, left joined against the records for this service, because two
  * queries and a merge in the page is the version that goes wrong when somebody
  * is added between them.
  */
@@ -233,7 +233,7 @@ export async function attendanceForPerson(
     .limit(limit);
 }
 
-/** How many were marked present at each of these gatherings. */
+/** How many were marked present at each of these services. */
 export async function countsFor(
   db: Tx,
   occurrenceIds: string[],
@@ -251,7 +251,7 @@ export async function countsFor(
 
 export interface VisitNumber {
   personId: string;
-  /** 1 on their first ever gathering, 2 on their second. */
+  /** 1 on their first ever service, 2 on their second. */
   visit: number;
 }
 
@@ -260,7 +260,7 @@ export interface VisitNumber {
  *
  * Counted from the record rather than stored on the person, because a flag
  * written at the time is wrong the moment somebody corrects a mistake, adds a
- * gathering that was missed, or imports a year of history.
+ * service that was missed, or imports a year of history.
  *
  * Only people the church has recorded as visitors. A church of two hundred
  * starts using Hearth at one service and marks two hundred regulars present: the

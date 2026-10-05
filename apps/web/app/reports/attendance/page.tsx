@@ -14,10 +14,10 @@ import { ReportFrame, backBy, windowOf } from "../frame";
 export const dynamic = "force-dynamic";
 
 /**
- * R18.2. How many came, gathering by gathering.
+ * R18.2. How many came, service by service.
  *
- * Two readings of the same record: every gathering in order, and each kind of
- * gathering averaged. A church with a nine o'clock and an eleven o'clock wants
+ * Two readings of the same record: every service in order, and each kind of
+ * service averaged. A church with a nine o'clock and an eleven o'clock wants
  * to know which one is growing, and a single line across both cannot say.
  */
 export default async function AttendanceReport({

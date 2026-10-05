@@ -21,10 +21,10 @@ export interface ServiceCount {
 }
 
 /**
- * R18.2. How many were at each of the last gatherings, oldest first.
+ * R18.2. How many were at each of the last services, oldest first.
  *
  * Oldest first because it is drawn as a line of weeks and read left to right.
- * A gathering nobody recorded attendance at is still here with a zero: a gap in
+ * A service nobody recorded attendance at is still here with a zero: a gap in
  * the record is a fact about the record, and hiding it makes a church believe
  * it has twelve weeks of numbers when it has nine.
  */
@@ -52,7 +52,7 @@ export async function attendanceByService(
 }
 
 export interface Dashboard {
-  /** R18.1. The gathering just held, and how it compares. */
+  /** R18.1. The service just held, and how it compares. */
   lastService: { name: string; occursOn: string; present: number; average: number } | null;
   /** R2.1. People first recorded this month. */
   newThisMonth: number;
@@ -60,7 +60,7 @@ export interface Dashboard {
   visitors: { total: number; uncontacted: number };
   /** R5.5. Follow-ups still open, and how many are past their date. */
   followUps: { open: number; overdue: number };
-  /** R10.6. Positions on the next gathering with nobody in them. */
+  /** R10.6. Positions on the next service with nobody in them. */
   coverageGaps: number;
 }
 
@@ -132,7 +132,7 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
       (select count(*) from follow_ups f
         where f.done_at is null and f.due_on is not null and f.due_on < ${today}::date)::text as overdue`);
 
-  // R10.6. The next gathering's rota against what each position needs.
+  // R10.6. The next service's rota against what each position needs.
   const [gaps] = await db.execute<{ gaps: string }>(sql`
     with next_service as (
       select o.id from service_occurrences o
@@ -191,7 +191,7 @@ export interface FunnelStep {
  * than "what fraction of everybody". That is the question a church is actually
  * asking.
  *
- * The cohort is people whose first recorded gathering falls in the window. A
+ * The cohort is people whose first recorded service falls in the window. A
  * church that started using Hearth in March cannot be asked about February,
  * and a report that quietly counts the import as a hundred first visits is a
  * report that lies on its most important line.
@@ -286,7 +286,7 @@ export interface ServiceAverage {
 }
 
 /**
- * R18.2. How each gathering does, averaged over the window.
+ * R18.2. How each service does, averaged over the window.
  *
  * A church with a nine o'clock and an eleven o'clock wants to know which one is
  * growing, and a single trend line across both cannot say.
@@ -332,8 +332,8 @@ export interface MonthChange {
 /**
  * R18.4. New, lapsed and the net change, month by month.
  *
- * "New" is somebody whose first recorded gathering was that month. "Lapsed" is
- * somebody who had been coming and whose last recorded gathering was that
+ * "New" is somebody whose first recorded service was that month. "Lapsed" is
+ * somebody who had been coming and whose last recorded service was that
  * month, counted only once enough time has passed to be sure: a church should
  * not be told it lost somebody who was on holiday.
  */

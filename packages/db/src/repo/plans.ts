@@ -13,7 +13,7 @@ import type { WriteActor } from "./people";
 /**
  * R11.1 to R11.3. The order of service.
  *
- * This is the document a church runs a gathering from, and the thing it is
+ * This is the document a church runs a service from, and the thing it is
  * asked of most often is "are we going to overrun". So the durations are
  * required and the running total is the point of the screen: every item carries
  * the clock time it starts at, and the plan carries the time it ends.
@@ -96,7 +96,7 @@ export interface ServicePlan {
   occurrenceId: string;
   serviceName: string;
   occursOn: string;
-  /** The gathering's own start, which the running total counts from. */
+  /** The service's own start, which the running total counts from. */
   serviceStartsAt: string;
   title: string | null;
   series: string | null;
@@ -163,7 +163,7 @@ const COLUMNS = {
   position: planItems.position,
 };
 
-/** R11.1. The plan for one gathering, or null where nobody has started it. */
+/** R11.1. The plan for one service, or null where nobody has started it. */
 export async function getPlan(db: Tx, occurrenceId: string): Promise<ServicePlan | null> {
   const [row] = await db
     .select({
@@ -209,7 +209,7 @@ export async function getPlan(db: Tx, occurrenceId: string): Promise<ServicePlan
 /**
  * R11.1. The plan, creating it the first time somebody opens the editor.
  *
- * Created on first edit rather than with the gathering, because a church that
+ * Created on first edit rather than with the service, because a church that
  * generates a year of services does not want a year of empty plans in every
  * list and every export.
  */
@@ -473,7 +473,7 @@ export async function removeItemNote(db: Tx, actor: WriteActor, id: string): Pro
 }
 
 /**
- * R11.6. Who the plan can address: the positions scheduled on this gathering,
+ * R11.6. Who the plan can address: the positions scheduled on this service,
  * and the people in them.
  *
  * Read from the schedule rather than from every team, because a note addressed
@@ -647,9 +647,9 @@ export interface PlanSummary {
 }
 
 /**
- * R11.1. What each of these gatherings has planned, in one query.
+ * R11.1. What each of these services has planned, in one query.
  *
- * The services screen draws a card a gathering and needs two numbers on each
+ * The services screen draws a card a service and needs two numbers on each
  * of them. Reading the whole plan for every card would be a plan a card.
  */
 export async function planSummaries(

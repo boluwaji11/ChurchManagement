@@ -82,7 +82,7 @@ export default async function CheckinPage({
         rosters,
         waiting: chosen ? await arriving(tx, chosen, clock.date) : [],
         // R8.14. Anybody the church holds who is not already checked in to
-        // this gathering, so a child who walked past the desk can still be
+        // this service, so a child who walked past the desk can still be
         // checked in from here.
         directory: await listPeople(tx, { sort: "name" }),
         here: chosen ? await visitsFor(tx, chosen) : [],

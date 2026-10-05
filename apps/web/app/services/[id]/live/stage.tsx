@@ -17,7 +17,7 @@ const clock = (seconds: number): string => {
 };
 
 /**
- * R11.11. The screen a gathering is run from, and the one the team follows.
+ * R11.11. The screen a service is run from, and the one the team follows.
  *
  * Big type, two controls, nothing else. It is read at arm's length on a music
  * stand by somebody who is also playing, so the current item is the largest
@@ -74,7 +74,7 @@ export function Stage({
   const planned = (current?.minutes ?? 0) * 60;
   const against = planned - sinceItem;
 
-  // R11.11. Elapsed against planned, for the whole gathering rather than the
+  // R11.11. Elapsed against planned, for the whole service rather than the
   // item, because the question on a service morning is whether to cut something.
   const sinceStart = live.startedAt ? (now - Date.parse(live.startedAt)) / 1000 : 0;
   const plannedSoFar = live.items
