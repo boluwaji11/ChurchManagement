@@ -65,7 +65,6 @@ export async function PortalShell({
     { label: t("nav.home"), href: "/home" },
     { label: t("nav.events"), href: "/events" },
     { label: t("nav.groups"), href: "/groups" },
-    { label: t("form.title"), href: "/home/forms" },
     { label: t("nav.serving"), href: "/home/serving" },
     { label: t("nav.myHousehold"), href: "/home/household" },
   ];

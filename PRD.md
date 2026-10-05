@@ -799,8 +799,8 @@ A PWA, not a native app. Four minutes of use a week, and it should never need ex
 | R17.6 | 1.0 | Register for events, view my registrations. |
 | R17.7 | 1.0 | **My serving schedule**, with accept and decline, blockout dates, and substitute requests. |
 | R17.8 | 1.0 | **Check my children in from my phone**, generating the codes that the station prints on arrival. |
-| R17.9 | 1.0 | Submit forms and prayer requests. |
-| R17.10 | 1.0 | Prayer wall, for requests marked public. |
+| R17.9 | ✗ | **Cut.** A form belongs on the church's own website, where the public link already serves everybody including members. A second way in behind a sign-in is a second place to keep the same form working. |
+| R17.10 | 1.x | Prayer wall, for requests marked public. Waits on R6.3 giving a prayer request its own record with a privacy level: a form submission carries nothing a wall could read. |
 | R17.11 | 1.0 | Installable PWA with offline shell and push notifications. |
 
 *Accept R17.1:* a member signs in from a magic link and reaches their giving history in two taps.

@@ -26,7 +26,6 @@ export function PublicForm({
   state,
   fields,
   eventSlug,
-  prefill,
 }: {
   churchSlug: string;
   formSlug: string;
@@ -37,16 +36,8 @@ export function PublicForm({
   fields: FormFieldDef[];
   /** R14.2. The event this was reached from, so the answer takes a place at it. */
   eventSlug?: string | null;
-  /**
-   * R17.9. Answers already known, keyed by question id.
-   *
-   * Only ever filled in for somebody signed in, from their own record. The
-   * public link knows nobody and starts empty, which is the whole point of a
-   * connection card.
-   */
-  prefill?: Record<string, FormAnswer>;
 }) {
-  const [answers, setAnswers] = React.useState<Record<string, FormAnswer>>(prefill ?? {});
+  const [answers, setAnswers] = React.useState<Record<string, FormAnswer>>({});
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [failed, setFailed] = React.useState<string>();
   const [sent, setSent] = React.useState(false);

@@ -458,14 +458,11 @@ what the church has on, their groups and their household. Serving carries the sc
 decline, and blackout dates on a calendar. Groups opens on the kinds, then a list, then a group they
 can ask to join or leave. My household holds the people and the directory switches.
 
-R17.9 is built on the forms engine rather than beside it: the Forms tab lists what the church has
-open and opens each one through the same component and the same submit the public link uses, with
-the boxes the church can already fill in filled in. A prayer request is whichever form the church
-makes from the prayer template.
-
-R17.10's wall is not built and cannot be until HRT-166 gives a prayer request its own record with a
-privacy level on it. A form submission has nothing a wall could filter on. HRT-161 stays Active for
-that half.
+**HRT-161 is cut.** A form is something a church puts on its own website for whoever reads it, and
+the public link already does that for everybody including members. A second way in, behind a
+sign-in, is a second place to keep the same form working. R17.9 and R17.10 come back only if a
+church asks for them, and R17.10 would need HRT-166 first, since a form submission carries no
+privacy level a wall could read.
 
 Their own record is edited on Profile, reached from the account menu, in the portal's frame. The
 form was already there and was being read through the app's sidebar, which is a screen a member has
@@ -479,7 +476,7 @@ no business in.
 | HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |
 | HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |
 | HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | Resolved |
-| HRT-161 | Submit a form or a prayer request, and the prayer wall for the ones marked public | R17.9, R17.10 | Active |
+| HRT-161 | Submit a form or a prayer request, and the prayer wall for the ones marked public | R17.9, R17.10 | Cut |
 | HRT-162 | The announcement feed | R16.11 | New |
 | HRT-163 | Give, see my giving, manage a recurring gift, download a statement | R17.4 | Held to 0.3 with money |
 

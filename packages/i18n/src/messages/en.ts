@@ -2037,8 +2037,6 @@ export const en = {
   "error.permission.manageForms": "build the forms",
   "error.permission.editRoles": "change what a role can do",
   "error.permission.manageHouseholds": "change a household",
-  "form.noneOpen": "Nothing to fill in just now",
-  "form.questionCount": "{count} questions",
   "form.title": "Forms",
   "form.new": "Create a form",
   "form.newOne": "Create a new form",
