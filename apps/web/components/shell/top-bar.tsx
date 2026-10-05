@@ -12,8 +12,9 @@ import { FlameMark } from "../brand";
  *
  * On the right, the one action that belongs to this page. One, because a row of
  * six filled buttons tells a volunteer nothing about which to press. A page's
- * other actions live on the page, next to the thing they act on, and some
- * pages have no action at all.
+ * The screen's one action is not here: it sits with the screen, at the top of
+ * its content. Beside the bell it read as another piece of product chrome, and
+ * the thing a page is for should not.
  *
  * There is no search box here. Cmd+K opens the palette from anywhere, and a
  * box in the chrome of every screen earns its width on none of them.
@@ -22,7 +23,6 @@ import { FlameMark } from "../brand";
  */
 export function TopBar({
   title,
-  action,
   bell,
   logoUrl,
   children,
@@ -32,13 +32,11 @@ export function TopBar({
    * person's or the group's own name, and those pass none.
    */
   title?: string;
-  /** The one filled button for this page. */
-  action?: React.ReactNode;
   /** R24.6. The notification bell, which every screen carries. */
   bell?: React.ReactNode;
   /** R1.1. This church's own logo, where it has uploaded one. */
   logoUrl?: string | null;
-  /** Anything that sits between the title and the action. */
+  /** Anything that sits between the title and the bell. */
   children?: React.ReactNode;
 }) {
   return (
@@ -54,15 +52,6 @@ export function TopBar({
         <span className="min-w-0 flex-1" />
       )}
       {children}
-      {/* The design's top-bar action is 36px rather than the 40px a button is
-          everywhere else, so the one place it appears sets it here instead of
-          thirty pages passing a height.
-
-          The action comes before the bell: it is what this screen is for, and
-          the bell is the same on every screen. */}
-      {action ? (
-        <div className="flex items-center gap-3 [&_a]:min-h-9 [&_button]:min-h-9">{action}</div>
-      ) : null}
       {bell}
     </header>
   );

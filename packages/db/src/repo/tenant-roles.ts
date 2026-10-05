@@ -131,14 +131,35 @@ export async function permissionsFor(
   fallback: TenantRole,
 ): Promise<Permission[]> {
   const [row] = await db
-    .select({ permissions: tenantRoles.permissions })
+    .select({
+      permissions: tenantRoles.permissions,
+      key: tenantRoles.key,
+      builtin: tenantRoles.builtin,
+      customised: tenantRoles.customised,
+    })
     .from(tenantMembers)
     .innerJoin(tenantRoles, eq(tenantRoles.id, tenantMembers.roleId))
     .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
     .limit(1);
 
   // No custom role means the built-in, which the matrix already answers for.
-  return row ? known(row.permissions) : [...ROLE_PERMISSIONS[fallback]];
+  if (!row) return [...ROLE_PERMISSIONS[fallback]];
+
+  /*
+   * A built-in the church has left alone answers from the matrix rather than
+   * from its stored row.
+   *
+   * The stored copy is written when the church is first read and refreshed on
+   * the roles screen, so a permission added to the product does not reach a
+   * church that has not opened that screen. Reading the matrix here means a new
+   * permission works for everybody on the built-ins the moment it ships, and a
+   * church that has edited a role still owns every answer for it.
+   */
+  const key = row.key as TenantRole;
+  if (row.builtin && !row.customised && ROLE_PERMISSIONS[key]) {
+    return [...ROLE_PERMISSIONS[key]];
+  }
+  return known(row.permissions);
 }
 
 export async function createRole(

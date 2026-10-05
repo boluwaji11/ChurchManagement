@@ -101,7 +101,6 @@ export async function AppShell({
 
         <TopBar
           title={title}
-          action={action}
           logoUrl={logoUrl}
           bell={
             <NotificationBell
@@ -136,7 +135,14 @@ export async function AppShell({
           {/* Every screen in the design is a column with 28px between its
               blocks. */}
           <ChurchMarkProvider logoUrl={logoUrl}>
-            <div className="flex flex-col gap-7">{children}</div>
+            <div className="flex flex-col gap-7">
+              {/* R24.6. The screen's one action sits with the screen rather
+                  than in the bar, which belongs to the product. Beside the
+                  notification bell it read as another piece of chrome, and the
+                  thing this page is for should not. */}
+              {action ? <div className="flex justify-end">{action}</div> : null}
+              {children}
+            </div>
           </ChurchMarkProvider>
         </main>
       </div>

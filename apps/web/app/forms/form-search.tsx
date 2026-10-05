@@ -10,10 +10,8 @@ import { t } from "@hearth/i18n";
  *
  * Filtered here rather than on the server, because a church has tens of forms
  * and not thousands, and a round trip per keystroke to narrow a list already on
- * the screen is work nobody asked for. It hides itself on a short list, where
- * reading the tiles is faster than reaching for a box.
+ * the screen is work nobody asked for.
  */
-const SEARCHABLE_FROM = 6;
 
 export function FormSearch({
   children,
@@ -34,7 +32,7 @@ export function FormSearch({
 
   return (
     <div className="flex flex-col gap-4">
-      {count >= SEARCHABLE_FROM ? (
+      {count > 1 ? (
         <label className="relative flex max-w-[360px] items-center">
           <Search
             className="pointer-events-none absolute left-3 size-4 text-fg-subtle"
