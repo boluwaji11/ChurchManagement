@@ -95,6 +95,7 @@ export default async function GroupsPage({
   const finder = (
     <Finder
         church={session.tenantSlug}
+        from={type ? `&type=${encodeURIComponent(type)}` : ""}
         canManage={manage}
         types={types.map((type) => ({
           id: type.id,

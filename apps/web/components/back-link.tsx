@@ -24,14 +24,11 @@ export function BackLink({ href, label }: { href: string; label: string }) {
 
   React.useEffect(() => {
     /*
-     * Whether the entry behind this one is ours. Next writes its own key into
-     * history state on every client navigation, so a page that was reached
-     * through the app has one and a page somebody landed on cold does not.
+     * Whether there is an entry behind this one at all. A page opened in a new
+     * tab or followed from a bookmark has none, and that reader gets the
+     * address instead.
      */
-    mine.current =
-      window.history.length > 1
-      && Boolean((window.history.state as { key?: string } | null)?.key)
-      && (document.referrer === "" || document.referrer.startsWith(window.location.origin));
+    mine.current = window.history.length > 1;
   }, []);
 
   return (
