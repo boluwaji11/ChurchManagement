@@ -46,6 +46,11 @@ export function DownloadMenu({
           {t("export.csv")}
         </DropdownMenuItem>
         <DropdownMenuItem
+          onSelect={() => go(`/reports/custom/${slug}/pptx?church=${church}`, false)}
+        >
+          {t("export.pptx")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
           onSelect={() => go(`/reports/custom/${slug}/print?church=${church}`, true)}
         >
           {t("export.pdf")}

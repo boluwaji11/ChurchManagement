@@ -1500,6 +1500,7 @@ export const en = {
   "reports.title": "Reports",
   "reports.export": "Export",
   "export.csv": "CSV",
+  "export.pptx": "PowerPoint",
   "export.pdf": "PDF",
   "reports.window.90": "90 days",
   "reports.window.180": "6 months",
