@@ -254,6 +254,7 @@ export default async function GroupPage({
       <GroupDetail
         church={session.tenantSlug}
         groupId={group.id}
+        groupName={group.name}
         canManage={manage}
         openToJoin={group.openToJoin}
         hue={hue}

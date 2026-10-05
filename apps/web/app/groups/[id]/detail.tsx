@@ -46,6 +46,7 @@ export interface DetailRequest {
 export function GroupDetail({
   church,
   groupId,
+  groupName,
   canManage,
   openToJoin,
   hue,
@@ -66,6 +67,7 @@ export function GroupDetail({
 }: {
   church: string;
   groupId: string;
+  groupName: string;
   canManage: boolean;
   openToJoin: boolean;
   /** The group kind's colour, which its dates wear. */
@@ -209,7 +211,7 @@ export function GroupDetail({
                         </span>
                         <IconButton
                           label={t("find.approve")}
-                          variant="ghost"
+                          variant="secondary"
                           disabled={pending}
                           onClick={() => setDeciding({ ...request, approve: true })}
                         >
@@ -217,7 +219,7 @@ export function GroupDetail({
                         </IconButton>
                         <IconButton
                           label={t("find.decline")}
-                          variant="ghost"
+                          variant="secondary"
                           disabled={pending}
                           onClick={() => setDeciding({ ...request, approve: false })}
                         >
@@ -304,15 +306,17 @@ export function GroupDetail({
       <Dialog open={deciding !== null} onOpenChange={(open) => (open ? null : setDeciding(null))}>
         <DialogContent
           alert={deciding?.approve === false}
-          title={t(
-            deciding?.approve ? "find.approveTitle" : "find.declineTitle",
-            { name: deciding?.personName ?? "" },
-          )}
+          title={
+            deciding?.approve
+              ? t("find.approveTitle", { name: deciding.personName, group: groupName })
+              : t("find.declineTitle", { name: deciding?.personName ?? "" })
+          }
           closeLabel={t("common.close")}
         >
-          <p className="text-[length:var(--d-text-body)] text-fg">
-            {t(deciding?.approve ? "find.approveBody" : "find.declineBody")}
-          </p>
+          {/* Only the one that takes something away earns a sentence. */}
+          {deciding?.approve ? null : (
+            <p className="text-[length:var(--d-text-body)] text-fg">{t("find.declineBody")}</p>
+          )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDeciding(null)}>{t("action.cancel")}</Button>
             <Button
