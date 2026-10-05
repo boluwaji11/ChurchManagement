@@ -84,7 +84,7 @@ export function EventPage({
           <img
             src={coverUrl}
             alt=""
-            className="aspect-[16/9] w-full rounded-[14px] object-cover"
+            className="aspect-[5/2] w-full rounded-[14px] object-cover"
           />
         ) : (
           /* No picture, so the event's own colour fills the same space the
@@ -92,7 +92,7 @@ export function EventPage({
              nothing. */
           <span
             aria-hidden
-            className="block aspect-[16/9] w-full rounded-[14px]"
+            className="block aspect-[5/2] w-full rounded-[14px]"
             style={{ background: `var(--hue-${event.hue}-tint)` }}
           />
         )}
