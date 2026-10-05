@@ -11,7 +11,7 @@ import * as React from "react";
 import { t } from "@hearth/i18n";
 import { VIEW_NEEDS, type ReportSpec } from "@hearth/db/rules";
 import { Table, Thead, Tr, Th, Td } from "@hearth/ui";
-import { Columns, Donut, Line, RowBars, Stacked, type Slice } from "./charts";
+import { Columns, Donut, Line, RowBars, Series, Stacked, type Slice } from "./charts";
 
 /** A spectrum for a ring, so nine answers are nine colours. */
 const RING_HUES = ["indigo", "sky", "teal", "fern", "citron", "amber", "clay", "rose", "violet"];
@@ -39,12 +39,29 @@ export function Answer({
     columns: { key: string; label: string; kind: string }[];
     rows: string[][];
     chart: { label: string; value: number }[] | null;
+    grid?: { labels: string[]; series: { name: string; values: number[] }[] } | null;
+    total?: number | null;
   };
   rows?: number;
 }) {
   // Each visualization says how many answers it can carry before it stops
   // being readable, and the gallery says so on screen rather than the chart
   // quietly drawing forty slices nobody can tell apart.
+  // Two dimensions: one column per answer, split into its series.
+  if (result.grid && (spec.view === "bar" || spec.view === "stacked")) {
+    return (
+      <Series
+        labels={result.grid.labels.map(read)}
+        stacked={spec.view === "stacked"}
+        series={result.grid.series.map((one, i) => ({
+          name: read(one.name),
+          values: one.values,
+          hue: RING_HUES[i % RING_HUES.length]!,
+        }))}
+      />
+    );
+  }
+
   const limit = VIEW_NEEDS[spec.view].readableUpTo;
   const all = (result.chart ?? []).map((one, i) => ({
     key: `${one.label}-${i}`,

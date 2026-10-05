@@ -160,6 +160,15 @@ export interface ReportSpec {
   columns: string[];
   /** Counted by this field, which turns the list into a chart and a summary. */
   groupBy: string | null;
+  /**
+   * A second field, which splits every answer into series. "Attendance by
+   * month, split by service" is two questions a church asks as one.
+   */
+  splitBy: string | null;
+  /** Keep only the biggest few answers, which is how a long tail is read. */
+  topN: number | null;
+  /** Add the column up and say so under it. */
+  totals: boolean;
   measure: Measure | null;
   sort: { field: string; dir: "asc" | "desc" } | null;
   /** How it is drawn. */
@@ -209,6 +218,19 @@ export function cleanSpec(raw: unknown): ReportSpec {
   const groupBy =
     input.groupBy && fieldOf(subject, input.groupBy)?.groupable ? input.groupBy : null;
 
+  // A split with nothing to split is meaningless, and splitting a field by
+  // itself is a chart of one series.
+  const splitBy =
+    groupBy && input.splitBy && input.splitBy !== groupBy
+      && fieldOf(subject, input.splitBy)?.groupable
+      ? input.splitBy
+      : null;
+
+  const topN =
+    typeof input.topN === "number" && input.topN >= 3 && input.topN <= 50
+      ? Math.round(input.topN)
+      : null;
+
   let measure: Measure | null = null;
   if (groupBy) {
     const kind = input.measure?.kind;
@@ -237,6 +259,9 @@ export function cleanSpec(raw: unknown): ReportSpec {
     // A list with no columns is a blank screen, so it falls back to the first few.
     columns: columns.length > 0 ? columns : def.fields.slice(0, 4).map((one) => one.key),
     groupBy,
+    splitBy,
+    topN,
+    totals: Boolean(input.totals),
     measure,
     sort,
     view,
@@ -269,3 +294,6 @@ export const VIEW_NEEDS: Record<View, ViewNeeds> = {
 /** Whether this report can be drawn this way as it stands. */
 export const viewFits = (view: View, spec: { groupBy: string | null }): boolean =>
   !VIEW_NEEDS[view].grouped || Boolean(spec.groupBy);
+
+/** The visualizations that can draw a second dimension as series. */
+export const SPLIT_VIEWS = new Set<View>(["bar", "stacked"]);

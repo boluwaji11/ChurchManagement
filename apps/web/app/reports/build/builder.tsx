@@ -2,14 +2,16 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Database, GripVertical, ListFilter, Plus, SlidersHorizontal, X } from "lucide-react";
+import {
+  ChevronDown, Database, GripVertical, ListFilter, Plus, Sigma, SlidersHorizontal, X,
+} from "lucide-react";
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   DatePicker, Spinner,
   Popover, PopoverTrigger, PopoverContent,
 } from "@hearth/ui";
 import {
-  SUBJECTS, SUBJECT_KEYS, OPERATORS, BARE_OPERATORS, GROUPED_VIEWS, fieldOf,
+  SUBJECTS, SUBJECT_KEYS, OPERATORS, BARE_OPERATORS, GROUPED_VIEWS, SPLIT_VIEWS, fieldOf,
   type ReportSpec, type SubjectKey, type Condition, type MeasureKind,
 } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
@@ -36,6 +38,9 @@ const blank = (subject: SubjectKey): ReportSpec => ({
   join: "and",
   columns: SUBJECTS[subject].fields.slice(0, 4).map((one) => one.key),
   groupBy: null,
+  splitBy: null,
+  topN: null,
+  totals: false,
   measure: null,
   sort: null,
   view: "table",
@@ -134,6 +139,11 @@ export function Builder({
 
   const groupPill: Pill[] = groupField
     ? [{ key: groupField.key, label: t(groupField.label as never) }]
+    : [];
+
+  const splitField = spec.splitBy ? fieldOf(spec.subject, spec.splitBy) : null;
+  const splitPill: Pill[] = splitField
+    ? [{ key: splitField.key, label: t(splitField.label as never) }]
     : [];
 
   const valuePills: Pill[] =
@@ -354,6 +364,43 @@ export function Builder({
 
         <Rule />
 
+        {counted ? (
+          <>
+            <Select
+              value={spec.topN ? String(spec.topN) : "all"}
+              onValueChange={(value) => set({ topN: value === "all" ? null : Number(value) })}
+            >
+              <SelectTrigger
+                className={spec.topN ? CHIP : CHIP_QUIET}
+                aria-label={t("report.topN")}
+              >
+                <span className="shrink-0 text-fg-muted">{t("report.topN")}</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("report.topAll")}</SelectItem>
+                {[5, 10, 20].map((n) => (
+                  <SelectItem key={n} value={String(n)}>{String(n)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <button
+              type="button"
+              onClick={() => set({ totals: !spec.totals })}
+              aria-pressed={spec.totals}
+              className={
+                spec.totals
+                  ? "flex min-h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-primary bg-primary-soft px-2.5 text-[13px] font-medium text-fg"
+                  : "flex min-h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-transparent px-2.5 text-[13px] font-medium text-fg-muted hover:bg-sunken hover:text-fg"
+              }
+            >
+              <Sigma className="size-4" aria-hidden />
+              {t("report.totals")}
+            </button>
+          </>
+        ) : null}
+
         {/* The sort is still one choice, so it is still a dropdown. */}
         {counted ? null : (
           <>
@@ -420,7 +467,26 @@ export function Builder({
                   measure: spec.measure ?? { kind: "rows" },
                   view: GROUPED_VIEWS.has(spec.view) ? spec.view : "bar",
                 })}
-              onRemove={() => set({ groupBy: null, measure: null, view: "table" })}
+              onRemove={() => set({ groupBy: null, splitBy: null, measure: null, view: "table" })}
+            />
+
+            <Shelf
+              title={t("report.shelf.legend")}
+              empty={
+                counted
+                  ? SPLIT_VIEWS.has(spec.view)
+                    ? t("report.dropDimension")
+                    : t("report.legendNeedsBar")
+                  : t("report.valuesNeedGroup")
+              }
+              pills={splitPill}
+              takes={(key) => {
+                if (!counted || !SPLIT_VIEWS.has(spec.view)) return false;
+                const field = fieldOf(spec.subject, key);
+                return Boolean(field?.groupable) && key !== spec.groupBy;
+              }}
+              onDrop={(key) => set({ splitBy: key })}
+              onRemove={() => set({ splitBy: null })}
             />
 
             <Shelf

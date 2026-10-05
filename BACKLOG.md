@@ -521,6 +521,8 @@ church actually asks.
 | HRT-193 | CSV and PDF on every report | R18.10 | New |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Resolved |
+| HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Resolved |
+| HRT-220 | The builder as a fields panel, shelves, a gallery and a drawn canvas | R18.12 | Resolved |
 
 **On HRT-218 and the report builder.** A custom report builder is a non-goal in PRD section 18, and
 it is named there as one of the things that make Rock RMS unusable for a church with one volunteer.

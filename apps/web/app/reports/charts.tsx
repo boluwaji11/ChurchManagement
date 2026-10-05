@@ -482,3 +482,119 @@ export function Stacked({
     </section>
   );
 }
+
+
+/**
+ * R18.12. One column per answer, split into its series.
+ *
+ * The grouped form stands them side by side, which compares the series. The
+ * stacked form puts them on top of each other, which compares the totals. Both
+ * are the same numbers and the choice is which question is being asked.
+ */
+export function Series({
+  title,
+  labels,
+  series,
+  stacked = false,
+}: {
+  title?: string;
+  labels: string[];
+  series: { name: string; values: number[]; hue: string }[];
+  stacked?: boolean;
+}) {
+  const columnTotals = labels.map((_, i) =>
+    series.reduce((all, one) => all + (one.values[i] ?? 0), 0));
+  const top = ceiling(
+    stacked
+      ? Math.max(1, ...columnTotals)
+      : Math.max(1, ...series.flatMap((one) => one.values)),
+  );
+  const every = labels.length > 12 ? Math.ceil(labels.length / 12) : 1;
+
+  return (
+    <section className={title ? CARD : BARE}>
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+        {title ? (
+          <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+        ) : <span />}
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          {series.map((one) => (
+            <li key={one.name} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
+              <span
+                aria-hidden
+                className="size-2 rounded-full"
+                style={{ background: `var(--hue-${one.hue}-500)` }}
+              />
+              {one.name === "" ? t("report.blank") : one.name}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <Frame
+        top={top}
+        footer={
+          <div className="flex gap-2 pt-1.5">
+            {labels.map((label, i) => (
+              <span
+                key={label + i}
+                className="min-w-0 flex-1 truncate text-center text-[11px] text-fg-subtle"
+              >
+                {i % every === 0 ? label : ""}
+              </span>
+            ))}
+          </div>
+        }
+      >
+        <ol className="flex h-full items-end gap-2">
+          {labels.map((label, i) => (
+            <li
+              key={label + i}
+              tabIndex={0}
+              className="group relative flex h-full min-w-0 flex-1 items-end justify-center gap-[2px] outline-none"
+            >
+              <Hint
+                label={label === "" ? t("report.blank") : label}
+                value={readable(columnTotals[i] ?? 0)}
+              />
+
+              {stacked ? (
+                <span
+                  className="flex w-full max-w-7 flex-col-reverse overflow-hidden rounded-t-[3px]"
+                  style={{ height: `${Math.round(((columnTotals[i] ?? 0) / top) * 100)}%` }}
+                >
+                  {series.map((one) => {
+                    const share = (one.values[i] ?? 0) / (columnTotals[i] || 1);
+                    return (
+                      <span
+                        key={one.name}
+                        aria-hidden
+                        className="w-full"
+                        style={{
+                          height: `${share * 100}%`,
+                          background: `var(--hue-${one.hue}-500)`,
+                        }}
+                      />
+                    );
+                  })}
+                </span>
+              ) : (
+                series.map((one) => (
+                  <span
+                    key={one.name}
+                    aria-hidden
+                    className="w-full max-w-5 rounded-t-[3px] transition-opacity group-hover:opacity-80"
+                    style={{
+                      height: `${Math.max((one.values[i] ?? 0) > 0 ? 1 : 0, Math.round(((one.values[i] ?? 0) / top) * 100))}%`,
+                      background: `var(--hue-${one.hue}-500)`,
+                    }}
+                  />
+                ))
+              )}
+            </li>
+          ))}
+        </ol>
+      </Frame>
+    </section>
+  );
+}

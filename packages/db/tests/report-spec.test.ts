@@ -99,3 +99,26 @@ describe("how the answer is drawn", () => {
     expect(cleanSpec({ subject: "members", view: "treemap" }).view).toBe("table");
   });
 });
+
+describe("a second dimension", () => {
+  it("refuses a split with nothing to split", () => {
+    expect(cleanSpec({ subject: "people", splitBy: "status" }).splitBy).toBeNull();
+  });
+
+  it("refuses to split a field by itself", () => {
+    const spec = cleanSpec({ subject: "people", groupBy: "status", splitBy: "status" });
+    expect(spec.splitBy).toBeNull();
+  });
+
+  it("keeps a split on a second groupable field", () => {
+    const spec = cleanSpec({ subject: "people", groupBy: "status", splitBy: "inGroup" });
+    expect(spec.splitBy).toBe("inGroup");
+  });
+
+  it("holds top N inside what a chart can show", () => {
+    expect(cleanSpec({ subject: "people", topN: 10 }).topN).toBe(10);
+    expect(cleanSpec({ subject: "people", topN: 1 }).topN).toBeNull();
+    expect(cleanSpec({ subject: "people", topN: 5000 }).topN).toBeNull();
+    expect(cleanSpec({ subject: "people", topN: "lots" }).topN).toBeNull();
+  });
+});
