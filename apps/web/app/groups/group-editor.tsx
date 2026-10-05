@@ -427,7 +427,7 @@ export function GroupEditor({
                 }}
                 onQueryChange={lookUp}
                 placeholder={t("groups.leaders.add")}
-                emptyLabel={t("church.noRegion")}
+                emptyLabel={t("person.noMatch")}
                 clearLabel={t("date.clear")}
               />
             </div>

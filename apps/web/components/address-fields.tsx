@@ -45,8 +45,8 @@ export function AddressFields({ values }: { values: AddressValues }) {
             // A state from the country you just left is wrong everywhere.
             setRegion("");
           }}
-          placeholder={t("church.chooseRegion")}
-          emptyLabel={t("church.noRegion")}
+          placeholder={t("common.chooseOne")}
+          emptyLabel={t("common.noMatch")}
           clearLabel={t("date.clear")}
         />
       </Field>
@@ -61,8 +61,8 @@ export function AddressFields({ values }: { values: AddressValues }) {
             options={regions.map((r) => ({ value: r.code, label: r.name, keywords: r.code }))}
             value={region}
             onChange={setRegion}
-            placeholder={t("church.chooseRegion")}
-            emptyLabel={t("church.noRegion")}
+            placeholder={t("common.chooseOne")}
+            emptyLabel={t("common.noMatch")}
             clearLabel={t("date.clear")}
           />
         ) : (

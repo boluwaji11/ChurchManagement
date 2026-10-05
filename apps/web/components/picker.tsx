@@ -46,7 +46,7 @@ export function Picker({
           onChange?.(next);
         }}
         placeholder={label}
-        emptyLabel={t("church.noRegion")}
+        emptyLabel={t("common.noMatch")}
         clearLabel={t("date.clear")}
       />
     </>

@@ -548,6 +548,7 @@ export const en = {
   "message.sendText": "Send text",
   "message.hint": "Write your message. {first} becomes each person's first name.",
   "person.addNote": "Add note",
+  "person.noMatch": "Nobody matches",
   "person.address": "Address",
   "address.line1": "Street",
   "address.line2": "Apartment or unit",
@@ -2352,5 +2353,7 @@ export const en = {
   "hue.sky": "Sky",
   "hue.indigo": "Indigo",
   "hue.violet": "Violet",
+  "common.noMatch": "No match",
+  "common.chooseOne": "Choose one",
   "common.none": "None",
 } as const satisfies Record<string, string>;

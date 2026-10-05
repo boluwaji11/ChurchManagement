@@ -55,7 +55,7 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
         onChange={add}
         onQueryChange={look}
         placeholder={t("groups.addPerson")}
-        emptyLabel={t("find.noMatch")}
+        emptyLabel={t("person.noMatch")}
         clearLabel={t("date.clear")}
       />
     </div>
