@@ -205,7 +205,13 @@ export function Directory({
   return (
     <>
       <div className="flex flex-col gap-3">
-        {/* What you can do to the list, then the box that narrows it. The
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t("directory.searchPlaceholder")}
+        />
+
+        {/* The box that narrows the list, then what you can do to it. The
             tools read from the left, and the thing this screen is for sits at
             the far end where the eye finishes. */}
         <div className="flex flex-wrap items-center gap-2">
@@ -260,12 +266,6 @@ export function Directory({
           </Button>
         ) : null}
         </div>
-
-        <SearchField
-          value={search}
-          onChange={setSearch}
-          placeholder={t("directory.searchPlaceholder")}
-        />
       </div>
 
       {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
