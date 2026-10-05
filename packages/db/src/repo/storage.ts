@@ -41,6 +41,13 @@ export const UPLOAD_RULES = {
    * No video. Sermon video is a non-goal and a church that uploads one fills
    * its quota in a single file.
    */
+  /**
+   * R4.1. The picture across the top of a form.
+   *
+   * The same ceiling as a group's, and for the same reason: it is one wide
+   * image per form, and a church with twenty forms is well inside its quota.
+   */
+  form_cover: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
   plan_item: {
     types: [
       "application/pdf",

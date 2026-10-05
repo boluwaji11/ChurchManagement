@@ -32,6 +32,8 @@ export interface Form {
   id: string;
   name: string;
   intro: string | null;
+  hue: string;
+  coverKey: string | null;
   slug: string;
   status: FormStatus;
   submissionLimit: number | null;
@@ -46,6 +48,7 @@ export interface FormSummary {
   id: string;
   name: string;
   slug: string;
+  hue: string;
   status: FormStatus;
   questions: number;
   /** R4.4. How many people have answered it. */
@@ -58,6 +61,8 @@ export interface FormInput {
   intro?: string | null;
   thanks?: string | null;
   submissionLimit?: number | null;
+  /** R24.4. One of the twelve, or left as it is. */
+  hue?: string | null;
 }
 
 export interface FormFieldInput {
@@ -79,6 +84,7 @@ function checkForm(input: FormInput): {
   intro: string | null;
   thanks: string | null;
   submissionLimit: number | null;
+  hue?: FormHue;
 } {
   const name = input.name?.trim().replace(/\s+/g, " ");
   if (!name) throw new InvalidInputError("form.error.name");
@@ -88,13 +94,28 @@ function checkForm(input: FormInput): {
     throw new InvalidInputError("form.error.limit");
   }
 
+  const chosen = input.hue?.trim() || null;
+  if (chosen && !FORM_HUES.includes(chosen as FormHue)) {
+    throw new InvalidInputError("form.error.hue");
+  }
+
   return {
     name: name.slice(0, NAME_LIMIT),
     intro: input.intro?.trim() || null,
     thanks: input.thanks?.trim() || null,
     submissionLimit: limit,
+    // Left out entirely when nothing was chosen, so an update that says nothing
+    // about colour does not reset it.
+    ...(chosen ? { hue: chosen as FormHue } : {}),
   };
 }
+
+/** R24.4. The twelve the storage enum permits. */
+export const FORM_HUES = [
+  "rose", "coral", "amber", "citron", "fern", "jade",
+  "teal", "sky", "indigo", "violet", "orchid", "clay",
+] as const;
+export type FormHue = (typeof FORM_HUES)[number];
 
 /**
  * R4.1. Checks one question.
@@ -213,6 +234,7 @@ export async function listForms(
       id: forms.id,
       name: forms.name,
       slug: forms.slug,
+      hue: forms.hue,
       status: forms.status,
       archivedAt: forms.archivedAt,
       questions: sql<number>`count(${formFields.id}) filter (where ${formFields.kind} <> 'section')::int`,
@@ -228,13 +250,14 @@ export async function listForms(
           ? undefined
           : sql`${forms.archivedAt} is null`,
     )
-    .groupBy(forms.id, forms.name, forms.slug, forms.status, forms.archivedAt, forms.createdAt)
+    .groupBy(forms.id, forms.name, forms.slug, forms.hue, forms.status, forms.archivedAt, forms.createdAt)
     .orderBy(desc(forms.createdAt));
 
   return rows.map((row) => ({
     id: row.id,
     name: row.name,
     slug: row.slug,
+    hue: row.hue,
     status: row.status as FormStatus,
     questions: row.questions,
     responses: row.responses,
@@ -251,6 +274,8 @@ export async function getForm(db: Tx, id: string): Promise<Form | null> {
     id: row.id,
     name: row.name,
     intro: row.intro,
+    hue: row.hue,
+    coverKey: row.coverKey,
     slug: row.slug,
     status: row.status as FormStatus,
     submissionLimit: row.submissionLimit,
@@ -582,4 +607,57 @@ export async function countSubmissions(db: Tx, formId: string): Promise<number> 
     .from(formSubmissions)
     .where(eq(formSubmissions.formId, formId));
   return row?.count ?? 0;
+}
+
+/**
+ * R4.1. Puts a picture across the top of a form, or takes it off.
+ *
+ * Returns the key that is no longer wanted, so the caller can take the bytes
+ * out of the bucket and leave the ledger and the object store agreeing.
+ */
+export async function setFormCover(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  key: string | null,
+): Promise<{ removed: string | null }> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+
+  const [row] = await db
+    .select({ coverKey: forms.coverKey })
+    .from(forms)
+    .where(eq(forms.id, id))
+    .limit(1);
+  if (!row) throw new InvalidInputError("form.error.missing");
+
+  await db
+    .update(forms)
+    .set({ coverKey: key, updatedAt: new Date() })
+    .where(eq(forms.id, id));
+
+  return { removed: row.coverKey && row.coverKey !== key ? row.coverKey : null };
+}
+
+/**
+ * R24.4. The colour a form wears.
+ *
+ * Its own function rather than part of `updateForm`, because changing a colour
+ * is one press on a swatch and should not require the screen to hand back every
+ * other field to avoid clearing one.
+ */
+export async function setFormHue(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  value: string,
+): Promise<void> {
+  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!FORM_HUES.includes(value as FormHue)) throw new InvalidInputError("form.error.hue");
+
+  const changed = await db
+    .update(forms)
+    .set({ hue: value as FormHue, updatedAt: new Date() })
+    .where(eq(forms.id, id))
+    .returning({ id: forms.id });
+  if (changed.length === 0) throw new InvalidInputError("form.error.missing");
 }

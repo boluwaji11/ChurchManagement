@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import {
   withTenant, assertCanStore, recordFile, setChurchLogo, attachToItem, setGroupPhoto,
+  setFormCover,
   canManageChurch, canManageServices, canManageGroups,
   type UploadPurpose,
   setOwnPhoto,
@@ -47,6 +48,8 @@ export async function POST(request: Request) {
   const label = String(form.get("label") ?? "").trim() || null;
   // R9.2. Which group the picture belongs to.
   const groupId = String(form.get("groupId") ?? "") || null;
+  // R4.1. Which form the cover belongs to.
+  const formId = String(form.get("formId") ?? "") || null;
 
   const session = await requireSession(slug);
 
@@ -62,6 +65,14 @@ export async function POST(request: Request) {
     }
     if (!groupId) {
       return NextResponse.json({ error: t("group.error.missing") }, { status: 400 });
+    }
+  }
+  if (purpose === "form_cover") {
+    if (!canManageChurch(session)) {
+      return NextResponse.json({ error: t("error.permission.editChurch") }, { status: 403 });
+    }
+    if (!formId) {
+      return NextResponse.json({ error: t("form.error.missing") }, { status: 400 });
     }
   }
   if (purpose === "plan_item") {
@@ -108,6 +119,9 @@ export async function POST(request: Request) {
       }
       if (purpose === "group_photo" && groupId) {
         return (await setGroupPhoto(tx, actor, groupId, key)).removed;
+      }
+      if (purpose === "form_cover" && formId) {
+        return (await setFormCover(tx, actor, formId, key)).removed;
       }
       // R17.1. Somebody's own face. No id is read from the request: the record
       // is the one the signed in account owns.

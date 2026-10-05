@@ -70,8 +70,16 @@ export default async function FormsPage({
               <li key={form.id} className="contents">
                 <Link
                   href={`/forms/${form.id}?church=${session.tenantSlug}`}
-                  className={`flex cursor-pointer flex-col gap-2.5 rounded-[14px] border border-line bg-surface p-5 ${LIFT}`}
+                  className={`flex cursor-pointer flex-col gap-2.5 overflow-hidden rounded-[14px] border border-line bg-surface p-5 ${LIFT}`}
                 >
+                  {/* R24.4. The form's own colour across the top of its tile,
+                      so the grid reads as a set of things rather than a list of
+                      names. */}
+                  <span
+                    aria-hidden
+                    className="-mx-5 -mt-5 mb-0.5 h-1.5 w-[calc(100%+2.5rem)]"
+                    style={{ background: `var(--hue-${form.hue}-500)` }}
+                  />
                   <span className="font-display text-[22px] leading-7 text-fg">{form.name}</span>
                   <span className="flex flex-wrap items-center gap-2">
                     <span

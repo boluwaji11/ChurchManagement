@@ -8,6 +8,7 @@ import {
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { supabaseServer } from "@/lib/supabase/server";
 import { longDate } from "@/lib/dates";
 import { NewFormButton } from "../new-form";
 import { Builder } from "./builder";
@@ -54,6 +55,16 @@ export default async function FormPage({
   );
   if (!result.form) notFound();
 
+  // The bucket is private, so the cover is served through a signed link.
+  let coverUrl: string | null = null;
+  if (result.form.coverKey) {
+    const supabase = await supabaseServer();
+    const signed = await supabase.storage
+      .from("church")
+      .createSignedUrl(result.form.coverKey, 3600);
+    coverUrl = signed.data?.signedUrl ?? null;
+  }
+
   return (
     <AppShell
       session={session}
@@ -79,6 +90,7 @@ export default async function FormPage({
         perPage={PER_PAGE}
         total={result.total}
         personFields={result.personFields.map((one) => ({ id: one.id, label: one.label }))}
+        coverUrl={coverUrl}
       />
     </AppShell>
   );

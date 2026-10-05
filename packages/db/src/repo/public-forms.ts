@@ -30,6 +30,9 @@ export interface PublicForm {
   intro: string | null;
   thanks: string | null;
   state: PublicFormState;
+  /** R24.4. The form's own colour, and the picture across the top. */
+  hue: string;
+  coverKey: string | null;
   fields: FormFieldDef[];
 }
 
@@ -44,6 +47,8 @@ interface FormRow {
   status: string;
   submissionLimit: number | null;
   received: number;
+  hue: string;
+  coverKey: string | null;
 }
 
 /**
@@ -64,6 +69,8 @@ async function formRow(churchSlug: string, formSlug: string): Promise<FormRow | 
            f.thanks,
            f.status,
            f.submission_limit as "submissionLimit",
+           f.hue::text as hue,
+           f.cover_key as "coverKey",
            (select count(*) from form_submissions s where s.form_id = f.id)::int as received
       from forms f
       join tenants t on t.id = f.tenant_id
@@ -150,6 +157,8 @@ export async function publicForm(
     intro: row.intro,
     thanks: row.thanks,
     state: stateOf(row),
+    hue: row.hue,
+    coverKey: row.coverKey,
     fields: await fieldRows(row.id),
   };
 }

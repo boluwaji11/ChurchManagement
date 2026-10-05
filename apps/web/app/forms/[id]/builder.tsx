@@ -20,6 +20,7 @@ import {
 import {
   saveForm, openOrClose, archiveForm, saveQuestion, dropQuestion, orderQuestions,
 } from "../actions";
+import { FormCover } from "./cover";
 import { FormViews } from "./views";
 import { Responses, type SubmissionRow } from "./responses";
 
@@ -27,6 +28,7 @@ export interface BuilderForm {
   id: string;
   name: string;
   intro: string | null;
+  hue: string;
   thanks: string | null;
   slug: string;
   status: string;
@@ -111,6 +113,7 @@ export function Builder({
   perPage,
   total,
   personFields,
+  coverUrl,
 }: {
   church: string;
   form: BuilderForm;
@@ -121,6 +124,8 @@ export function Builder({
   total: number;
   /** R4.4. The church's own person fields, as answers can be saved onto them. */
   personFields: { id: string; label: string }[];
+  /** R4.1. The cover, signed, because the bucket is private. */
+  coverUrl: string | null;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -214,9 +219,18 @@ export function Builder({
             <button
               type="button"
               onClick={() => copy(publicLink, "link")}
-              className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3.5 text-label font-medium text-fg hover:bg-sunken"
+              className={cn(
+                "flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border px-3.5 text-label font-medium",
+                copied === "link"
+                  ? "border-[var(--hue-fern-500)] bg-[var(--hue-fern-tint)] text-[var(--hue-fern-key)]"
+                  : "border-line-strong bg-surface text-fg hover:bg-sunken",
+              )}
             >
-              <Link2 className="size-4" aria-hidden />
+              {copied === "link" ? (
+                <Check className="size-4" aria-hidden />
+              ) : (
+                <Link2 className="size-4" aria-hidden />
+              )}
               {copied === "link" ? t("form.linkCopied") : t("form.copyLink")}
             </button>
 
@@ -236,6 +250,7 @@ export function Builder({
                 </pre>
                 <DialogFooter>
                   <Button type="button" onClick={() => copy(snippet, "embed")}>
+                    {copied === "embed" ? <Check className="size-4" aria-hidden /> : null}
                     {copied === "embed" ? t("form.linkCopied") : t("form.copySnippet")}
                   </Button>
                 </DialogFooter>
@@ -300,6 +315,14 @@ export function Builder({
           total={total}
         />
       ) : (
+      <>
+      <FormCover
+        church={church}
+        formId={form.id}
+        hue={form.hue}
+        coverUrl={coverUrl}
+      />
+
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[999_1_440px] flex-col gap-2.5">
           <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
@@ -371,7 +394,18 @@ export function Builder({
             as, so the two columns are not mistaken for one list. */}
         <aside className="sticky top-21 flex flex-[1_1_300px] flex-col gap-2 border-line md:border-l md:pl-6">
           <span className="text-[12px] font-medium text-fg-subtle">{t("form.preview")}</span>
-          <div className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-[22px]">
+          <div className="flex flex-col gap-4 overflow-hidden rounded-[14px] border border-line bg-surface">
+            {coverUrl ? (
+              <img src={coverUrl} alt="" className="aspect-[6/1] w-full object-cover" />
+            ) : (
+              <span
+                aria-hidden
+                className="h-2 w-full"
+                style={{ background: `var(--hue-${form.hue}-500)` }}
+              />
+            )}
+
+            <div className="flex flex-col gap-4 px-[22px] pt-0 pb-[22px]">
             <span className="font-display text-[22px] leading-7 text-fg">{name}</span>
 
             {form.intro ? (
@@ -385,9 +419,11 @@ export function Builder({
             <span className="grid h-10 place-items-center rounded-[10px] bg-primary font-semibold text-primary-fg">
               {t("form.send")}
             </span>
+            </div>
           </div>
         </aside>
       </div>
+      </>
       )}
     </div>
   );

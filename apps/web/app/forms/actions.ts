@@ -3,7 +3,7 @@
 import {
   withTenant, createForm, updateForm, setFormStatus, setFormArchived,
   addFormField, updateFormField, removeFormField, moveFormField, reorderFormFields,
-  getForm, placeUnplaced, owner, canManageChurch,
+  getForm, placeUnplaced, owner, canManageChurch, setFormCover, setFormHue,
   type FormInput, type FormFieldInput, type FormStatus,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -177,6 +177,32 @@ export async function matchResponses(
       fields: form.fields,
     });
     return result;
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R4.1. Takes the picture off a form. Putting one on goes through the upload route. */
+export async function clearFormCover(formId: string, church?: string): Promise<FormResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setFormCover(tx, actor, formId, null));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R24.4. The colour a form wears, changed on one press of a swatch. */
+export async function recolourForm(
+  formId: string,
+  hue: string,
+  church?: string,
+): Promise<FormResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setFormHue(tx, actor, formId, hue));
+    return {};
   } catch (error) {
     return { error: explain(error) };
   }

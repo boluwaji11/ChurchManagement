@@ -3,6 +3,7 @@ import {
   pgTable, uuid, text, boolean, integer, timestamp, jsonb, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
+import { hue } from "./enums";
 import { people } from "./people";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
@@ -27,8 +28,15 @@ export const forms = pgTable(
     id: pk(),
     tenantId: tenantId(),
     name: text("name").notNull(),
-    /** The words at the top of the form, in the church's own voice. */
+    /** The words at the top of the form, in the church's own voice. Markdown. */
     intro: text("intro"),
+    /**
+     * R24.4. The form's colour, from the same twelve the rest of the product
+     * assigns to things. It paints the cover and the heading band.
+     */
+    hue: hue("hue").notNull().default("indigo"),
+    /** R4.1. The picture across the top, where a church uploaded one. */
+    coverKey: text("cover_key"),
     /** The part of the public link that names this form. */
     slug: text("slug").notNull(),
     /** "draft", "open" or "closed". A draft has no public link. */

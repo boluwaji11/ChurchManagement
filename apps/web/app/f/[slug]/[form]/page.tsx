@@ -27,15 +27,15 @@ export default async function PublicFormPage({
   const found = await publicForm(slug, form);
   if (!found) notFound();
 
-  // The bucket is private, so the mark is served through a signed link.
-  let logoUrl: string | null = null;
-  if (found.church.logoKey) {
-    const supabase = await supabaseServer();
-    const signed = await supabase.storage
-      .from("church")
-      .createSignedUrl(found.church.logoKey, 3600);
-    logoUrl = signed.data?.signedUrl ?? null;
-  }
+  // The bucket is private, so the mark and the cover come through signed links.
+  const supabase = await supabaseServer();
+  const sign = async (key: string | null) => {
+    if (!key) return null;
+    const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
+    return signed.data?.signedUrl ?? null;
+  };
+  const logoUrl = await sign(found.church.logoKey);
+  const coverUrl = await sign(found.coverKey);
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
@@ -62,7 +62,20 @@ export default async function PublicFormPage({
       </header>
 
       <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
-        <div className="rounded-[14px] border border-line bg-surface p-6 shadow-sm sm:p-9">
+        <div className="overflow-hidden rounded-[14px] border border-line bg-surface shadow-sm">
+          {/* R24.4. The form's own picture, or its colour flat across the top
+              where there is none, which is the rule the group finder follows. */}
+          {coverUrl ? (
+            <img src={coverUrl} alt="" className="aspect-[6/1] w-full object-cover" />
+          ) : (
+            <span
+              aria-hidden
+              className="block h-2.5 w-full"
+              style={{ background: `var(--hue-${found.hue}-500)` }}
+            />
+          )}
+
+          <div className="p-6 sm:p-9">
           <PublicForm
             churchSlug={slug}
             formSlug={form}
@@ -72,6 +85,7 @@ export default async function PublicFormPage({
             state={found.state}
             fields={found.fields}
           />
+          </div>
         </div>
 
         <p className="mt-6 text-center text-caption text-fg-subtle">
