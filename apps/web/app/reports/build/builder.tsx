@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  DatePicker, Checkbox, Table, Thead, Tr, Th, Td, Spinner,
+  DatePicker, Checkbox, Spinner,
   Popover, PopoverTrigger, PopoverContent,
 } from "@hearth/ui";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
 import { preview, saveReport, type PreviewResult } from "./actions";
-import { Columns, Donut, Line, RowBars, type Slice } from "../charts";
+import { Answer } from "../answer";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -67,9 +67,6 @@ const CHIP_QUIET =
 /** Accents and case set aside, so typing "campus" finds "Campus". */
 const fold = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
-/** A spectrum for a ring, so nine answers are nine colours. */
-const RING_HUES = ["indigo", "sky", "teal", "fern", "citron", "amber", "clay", "rose", "violet"];
 
 /**
  * R18.12. Building a report.
@@ -160,7 +157,7 @@ export function Builder({
         setError(back.error);
         return;
       }
-      router.push(`/reports/custom/${back.id}?church=${church}`);
+      router.push(`/reports/custom/${back.slug}?church=${church}`);
     });
   };
 
@@ -639,110 +636,5 @@ function Tray({
         {children}
       </PopoverContent>
     </Popover>
-  );
-}
-
-/** Booleans come back from Postgres as words nobody wants to read. */
-export function read(value: string): string {
-  if (value === "true") return t("report.yes");
-  if (value === "false") return t("report.no");
-  return value === "" ? t("report.blank") : value;
-}
-
-/**
- * R18.12. The output, drawn the way the report asked for.
- *
- * Shared by the builder and the saved report, so what was built is what is
- * read.
- */
-export function Answer({
-  spec,
-  result,
-  rows: shown = 12,
-}: {
-  spec: ReportSpec;
-  result: {
-    columns: { key: string; label: string; kind: string }[];
-    rows: string[][];
-    chart: { label: string; value: number }[] | null;
-  };
-  rows?: number;
-}) {
-  const chart = (result.chart ?? []).map((one, i) => ({
-    key: `${one.label}-${i}`,
-    label: read(one.label),
-    value: one.value,
-  }));
-
-  if (spec.view === "number") {
-    const total = result.chart
-      ? result.chart.reduce((all, one) => all + one.value, 0)
-      : result.rows.length;
-    return (
-      <p data-numeric className="font-display text-[64px] leading-[68px] text-fg">
-        {total.toLocaleString()}
-      </p>
-    );
-  }
-
-  if (spec.view === "bar" && chart.length > 0) {
-    return (
-      <Columns
-        series={[{ label: t("report.measure.value"), hue: "indigo" }]}
-        groups={chart.slice(0, 24).map((one) => ({
-          key: one.key, label: one.label, values: [one.value],
-        }))}
-      />
-    );
-  }
-
-  if (spec.view === "rows" && chart.length > 0) {
-    return <RowBars rows={chart.slice(0, 20)} hue="indigo" />;
-  }
-
-  if (spec.view === "donut" && chart.length > 0) {
-    const slices: Slice[] = chart.slice(0, 9).map((one, i) => ({
-      key: one.key,
-      label: one.label,
-      value: one.value,
-      hue: RING_HUES[i % RING_HUES.length]!,
-    }));
-    return (
-      <Donut
-        slices={slices}
-        total={slices.reduce((all, one) => all + one.value, 0)}
-        totalLabel={t("report.measure.value")}
-      />
-    );
-  }
-
-  if (spec.view === "line" && chart.length > 0) {
-    // Along its own order rather than by size, because a line is read as time.
-    const points = [...chart].sort((a, b) =>
-      a.label.localeCompare(b.label, undefined, { numeric: true }));
-    return <Line points={points} hue="indigo" />;
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <Table>
-        <Thead>
-          <Tr>
-            {result.columns.map((one) => (
-              <Th key={one.key}>{t(one.label as never)}</Th>
-            ))}
-          </Tr>
-        </Thead>
-        <tbody>
-          {result.rows.slice(0, shown).map((row, i) => (
-            <Tr key={i}>
-              {row.map((value, c) => (
-                <Td key={c} className="text-fg">{read(value)}</Td>
-              ))}
-            </Tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
   );
 }

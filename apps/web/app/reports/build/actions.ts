@@ -2,6 +2,7 @@
 
 import {
   withTenant, runReport, createSavedReport, updateSavedReport, setSavedReportArchived,
+  getSavedReport,
   canEditPeople, canReadIncidents, SCREEN_LIMIT,
   type ReportResult, type ReportSpec,
 } from "@hearth/db";
@@ -47,7 +48,8 @@ export async function preview(spec: ReportSpec, church?: string): Promise<Previe
 }
 
 export interface SaveResult {
-  id?: string;
+  /** The report's readable address, for where to go next. */
+  slug?: string;
   error?: string;
 }
 
@@ -60,10 +62,12 @@ export async function saveReport(
     return await withTenant(ctx, async (tx) => {
       if (input.id) {
         await updateSavedReport(tx, ctx, { id: input.id, name: input.name, spec: input.spec });
-        return { id: input.id };
+        // Renaming moves the address, so the fresh one is read back.
+        const after = await getSavedReport(tx, input.id);
+        return { slug: after?.slug };
       }
       const made = await createSavedReport(tx, ctx, { name: input.name, spec: input.spec });
-      return { id: made.id };
+      return { slug: made.slug };
     });
   } catch (error) {
     return { error: explain(error) };

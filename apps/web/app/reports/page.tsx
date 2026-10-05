@@ -112,7 +112,9 @@ export default async function ReportsPage({
       {saved.length > 0 ? (
         <SavedReports
           church={session.tenantSlug}
-          reports={saved.map((one) => ({ id: one.id, name: one.name, subject: one.subject }))}
+          reports={saved.map((one) => ({
+            id: one.id, slug: one.slug, name: one.name, subject: one.subject,
+          }))}
         />
       ) : null}
     </AppShell>

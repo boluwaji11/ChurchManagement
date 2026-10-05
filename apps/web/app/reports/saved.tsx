@@ -10,6 +10,7 @@ import { archiveReport } from "./build/actions";
 
 export interface SavedCard {
   id: string;
+  slug: string;
   name: string;
   subject: string;
 }
@@ -50,7 +51,7 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
               {/* Stretched, so the whole tile opens it and the buttons beside
                   it stay buttons rather than links inside a link. */}
               <Link
-                href={`/reports/custom/${one.id}?church=${church}`}
+                href={`/reports/custom/${one.slug}?church=${church}`}
                 className="font-semibold text-fg after:absolute after:inset-0 after:content-['']"
               >
                 {one.name}
@@ -65,7 +66,7 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
                 label={t("report.edit")}
                 variant="ghost"
                 className="size-8 min-h-0 [&_svg]:size-4"
-                onClick={() => router.push(`/reports/build?church=${church}&id=${one.id}`)}
+                onClick={() => router.push(`/reports/build?church=${church}&id=${one.slug}`)}
               >
                 <Pencil />
               </IconButton>

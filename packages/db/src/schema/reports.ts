@@ -15,6 +15,8 @@ export const savedReports = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    /** R24.6. The readable part of its address, unique within the church. */
+    slug: text("slug").notNull(),
     /** "people", "attendance" or "followups". */
     subject: text("subject").notNull(),
     spec: jsonb("spec").notNull().default({}),

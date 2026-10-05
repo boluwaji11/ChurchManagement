@@ -17,6 +17,7 @@ import { cleanSpec, type ReportSpec } from "./report-spec";
 export interface SavedReport {
   id: string;
   name: string;
+  slug: string;
   subject: string;
   spec: ReportSpec;
   createdByUserId: string | null;
@@ -38,6 +39,7 @@ const clean = (name: string): string => name.trim().replace(/\s+/g, " ");
 const shape = (row: typeof savedReports.$inferSelect): SavedReport => ({
   id: row.id,
   name: row.name,
+  slug: row.slug,
   subject: row.subject,
   // Read back through the catalogue, so a field that has since been taken out
   // cannot come back through a row saved last year.
@@ -59,8 +61,15 @@ export async function listSavedReports(
   return rows.map(shape);
 }
 
-export async function getSavedReport(db: Tx, id: string): Promise<SavedReport | null> {
-  const [row] = await db.select().from(savedReports).where(eq(savedReports.id, id)).limit(1);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** R24.6. By its readable address, or by its id where that is what was given. */
+export async function getSavedReport(db: Tx, key: string): Promise<SavedReport | null> {
+  const [row] = await db
+    .select()
+    .from(savedReports)
+    .where(UUID.test(key) ? eq(savedReports.id, key) : eq(savedReports.slug, key))
+    .limit(1);
   return row ? shape(row) : null;
 }
 
@@ -81,6 +90,7 @@ export async function createSavedReport(
       .values({
         tenantId: actor.tenantId,
         name,
+        slug: sql`hearth_free_report_slug(${actor.tenantId}::uuid, ${name})`,
         subject: spec.subject,
         spec,
         createdByUserId: actor.userId ?? null,
@@ -109,6 +119,7 @@ export async function updateSavedReport(
     const name = clean(input.name);
     if (!name) throw new InvalidInputError("report.error.name");
     patch.name = name;
+    patch.slug = sql`hearth_free_report_slug(${actor.tenantId}::uuid, ${name}, ${input.id}::uuid)` as never;
   }
   if (input.spec !== undefined) {
     const spec = cleanSpec(input.spec);

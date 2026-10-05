@@ -8,7 +8,7 @@ import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { PagedTable, type Row } from "../../paged-table";
-import { Answer, read } from "../../build/builder";
+import { Answer, read } from "../../answer";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,7 @@ export default async function CustomReportPage({
         <h2 className="flex-1 font-display text-[22px] leading-[28px] text-fg">{saved.name}</h2>
 
         <Link
-          href={`/reports/build?church=${session.tenantSlug}&id=${saved.id}`}
+          href={`/reports/build?church=${session.tenantSlug}&id=${saved.slug}`}
           aria-label={t("report.edit")}
           title={t("report.edit")}
           className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
@@ -75,7 +75,7 @@ export default async function CustomReportPage({
         </Link>
 
         <a
-          href={`/reports/custom/${saved.id}/export?church=${session.tenantSlug}`}
+          href={`/reports/custom/${saved.slug}/export?church=${session.tenantSlug}`}
           aria-label={t("reports.export")}
           title={t("reports.export")}
           className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"

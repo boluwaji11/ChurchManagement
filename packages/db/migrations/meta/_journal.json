@@ -624,6 +624,13 @@
       "when": 1791189000000,
       "tag": "0088_saved_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1791190000000,
+      "tag": "0089_report_slugs",
+      "breakpoints": true
     }
   ]
 }
