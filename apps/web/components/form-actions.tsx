@@ -75,7 +75,11 @@ export function FormActions({
   pending?: boolean;
 }) {
   const dirty = useDirty(form);
-  const working = pending || useFormBusy(form);
+  // Both hooks run every render. Reading the registry on the right of a `||`
+  // skipped the call whenever `pending` was already true, and a hook that is
+  // sometimes called is a hook React refuses to line up.
+  const registered = useFormBusy(form);
+  const working = pending || registered;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
