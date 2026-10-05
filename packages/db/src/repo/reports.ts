@@ -376,3 +376,56 @@ export async function growthByMonth(
     return { month: row.month, joined, lapsed, net: joined - lapsed };
   });
 }
+
+export interface OpenFollowUp {
+  id: string;
+  personId: string;
+  personSlug: string;
+  personName: string;
+  /** What the step is: "First visit", "Asked about baptism". */
+  title: string;
+  /** Who it is waiting on, shortened to a first name and an initial. */
+  owner: string | null;
+  dueOn: string | null;
+}
+
+/**
+ * R5.5, R18.1. The few follow-ups the dashboard shows, soonest first.
+ *
+ * Only what is open, and only enough of it to be answered between two other
+ * jobs. The board is where the rest of it lives, and the panel links there.
+ */
+export async function openFollowUps(db: Tx, limit = 5): Promise<OpenFollowUp[]> {
+  const rows = await db.execute<Record<string, string | null>>(sql`
+    select f.id,
+           f.person_id as "personId",
+           p.slug as "personSlug",
+           coalesce(nullif(p.preferred_name, ''), p.first_name) || ' ' || p.last_name as "personName",
+           f.title,
+           case
+             when u.id is null then null
+             when coalesce(nullif(u.full_name, ''), '') = '' then u.email
+             else split_part(u.full_name, ' ', 1)
+                  || case when position(' ' in u.full_name) > 0
+                       then ' ' || left(split_part(u.full_name, ' ', 2), 1) || '.'
+                       else '' end
+           end as owner,
+           to_char(f.due_on, 'YYYY-MM-DD') as "dueOn"
+      from follow_ups f
+      join people p on p.id = f.person_id
+      left join app_users u on u.id = f.assignee_user_id
+     where f.done_at is null
+       and p.archived_at is null
+     order by f.due_on asc nulls last, f.created_at asc
+     limit ${limit}`);
+
+  return rows.map((row) => ({
+    id: String(row["id"]),
+    personId: String(row["personId"]),
+    personSlug: String(row["personSlug"]),
+    personName: String(row["personName"]),
+    title: String(row["title"]),
+    owner: row["owner"] ?? null,
+    dueOn: row["dueOn"] ?? null,
+  }));
+}

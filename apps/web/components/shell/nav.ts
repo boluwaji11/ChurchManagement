@@ -47,7 +47,6 @@ export function navFor(role: TenantRole): NavEntry[] {
    */
   if (staff) {
     out.push({ label: t("dashboard.title"), href: "/dashboard", icon: LayoutDashboard });
-    out.push({ label: t("reports.title"), href: "/reports", icon: ChartNoAxesColumn });
   }
 
   // R3.1. One directory each. Staff work in the church's records; a member sees
@@ -109,6 +108,15 @@ export function navFor(role: TenantRole): NavEntry[] {
   // Owner and Admin build them.
   if (canManageChurch(role)) {
     out.push({ label: t("form.title"), href: "/forms", icon: ClipboardList });
+  }
+
+  /*
+   * R18.2. Reports sit at the bottom beside Settings. They are read when a
+   * church goes looking for a number, which is not the same errand as the work
+   * the rows above it carry.
+   */
+  if (staff) {
+    out.push({ label: t("reports.title"), href: "/reports", icon: ChartNoAxesColumn });
   }
 
   /*
