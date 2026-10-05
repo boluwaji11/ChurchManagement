@@ -529,7 +529,7 @@ function Register({
         ) : null}
         <IconButton
           label={t("group.saveAttendance")}
-          variant="primary"
+          variant="secondary"
           disabled={pending || !meeting}
           onClick={() => {
             if (!meeting) return;

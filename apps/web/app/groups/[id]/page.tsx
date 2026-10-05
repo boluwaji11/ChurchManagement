@@ -12,7 +12,7 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { GroupBanner } from "../banner";
 import { supabaseServer } from "@/lib/supabase/server";
-import { churchNow } from "@/lib/church-now";
+import { churchNow, hasHappened } from "@/lib/church-now";
 import { toAddress, oneLineAddress } from "@/lib/address";
 import { JoinButton } from "./join-button";
 import { ManageGroup } from "./manage";
@@ -65,7 +65,8 @@ export default async function GroupPage({
     const group = await groupPage(tx, id, { personId: self, manage });
     if (!group) return null;
 
-    const today = churchNow(profile?.timezone ?? "America/Chicago").date;
+    const now = churchNow(profile?.timezone ?? "America/Chicago");
+    const today = now.date;
 
     /*
      * R9.7. The register for the day it last met, opened here so the tab has
@@ -85,6 +86,7 @@ export default async function GroupPage({
 
     return {
       group,
+      now,
       today,
       metOn,
       meeting,
@@ -98,7 +100,7 @@ export default async function GroupPage({
   });
 
   if (!data) notFound();
-  const { group, today, metOn, meeting, people, types, roster, requests } = data;
+  const { group, now, today, metOn, meeting, people, types, roster, requests } = data;
 
   // R9.2. The bucket is private, so the picture is served through a link signed
   // for an hour. A leaked path is then a leak with an expiry.
@@ -155,22 +157,16 @@ export default async function GroupPage({
   const hue = group.typeHue ?? "sky";
 
   /*
-   * R9.7. The meetings a register can be opened for: the ones that have already
-   * happened, newest first, and the one coming up. A leader who missed last
-   * week records last week from here rather than hunting for a date field.
+   * R9.7. The meetings a register can be opened for.
+   *
+   * Only the ones that have actually happened, in the church's own time: a
+   * group meeting at two o'clock appears on its date at two o'clock, not at
+   * midnight and not next week. A leader who missed last week records last week
+   * from here rather than hunting for a date field.
    */
   const attendanceDays = metOn
-    ? [
-        ...new Set([
-          metOn,
-          ...group.past.map((one) => one.metOn),
-          ...upcomingMeetings(
-            { dayOfWeek: group.dayOfWeek, frequency: group.frequency, endsOn: group.endsOn },
-            today,
-            1,
-          ),
-        ]),
-      ]
+    ? [...new Set([metOn, ...group.past.map((one) => one.metOn)])]
+        .filter((on) => hasHappened(now, on, group.startsAt ?? "00:00"))
         .sort((a, b) => b.localeCompare(a))
         .slice(0, 10)
         .map((on) => ({ on, label: shortDay(on) }))
