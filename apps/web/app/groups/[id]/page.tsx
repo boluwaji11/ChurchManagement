@@ -53,10 +53,10 @@ export default async function GroupPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; type?: string }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
+  const { church, type } = await searchParams;
   const session = await requireSession(church);
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
@@ -185,16 +185,31 @@ export default async function GroupPage({
   // to the group is already decided by `canEdit`.
   const Frame = portal ? PortalShell : AppShell;
 
+  /*
+   * R9.5. Back to the list this group was opened from, which is a kind, or
+   * everything, or the kinds themselves. Walking somebody through two screens
+   * and then returning them to the first is the one thing a back link must not
+   * do.
+   */
+  const back = type
+    ? {
+        href: `/groups?church=${session.tenantSlug}&type=${encodeURIComponent(type)}`,
+        label: type === "all"
+          ? t("groupType.everything")
+          : (group.typeName ?? t("groups.title")),
+      }
+    : { href: `/groups?church=${session.tenantSlug}`, label: t("groupType.back") };
+
   return (
     <Frame session={session}>
       {/* The way back on the left, and what this church may do to the group on
           the right, as the icons every other record page carries. */}
       <div className="flex items-center gap-3">
         <Link
-          href={`/groups?church=${session.tenantSlug}`}
+          href={back.href}
           className="inline-flex items-center gap-1.5 font-medium text-primary"
         >
-          <ArrowLeft className="size-4" /> {t("groups.title")}
+          <ArrowLeft className="size-4" /> {back.label}
         </Link>
 
         <span className="flex-1" />

@@ -146,12 +146,19 @@ const DISMISSED = "connectapp:groupRequestsPutAway";
  */
 export function Finder({
   church,
+  from = "",
   groups,
   types,
   requests,
   canManage,
 }: {
   church: string;
+  /**
+   * The query that brought the reader here, carried onto every group so its
+   * own page can send them back to the list they came from rather than to the
+   * kinds they started at.
+   */
+  from?: string;
   groups: FinderGroup[];
   types: FinderType[];
   requests: FinderRequest[];
@@ -540,6 +547,7 @@ export function Finder({
             <GroupBand
               key={band.key}
               church={church}
+              from={from}
               heading={bands.length > 1 ? band.heading() : null}
               rows={band.rows}
               view={view}
@@ -579,7 +587,9 @@ export function Finder({
  * opens the group, so the name carries a stretched link rather than the card
  * carrying a click handler.
  */
-function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
+function GroupCard({
+  church, group, from,
+}: { church: string; group: FinderGroup; from: string }) {
   const hue = group.typeHue ?? "sky";
   // Every leader, the same as the group's own page. A card naming one of two
   // leaders reads as a correction the moment the page is opened.
@@ -624,7 +634,7 @@ function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
         </div>
 
         <Link
-          href={`/groups/${group.slug}?church=${church}`}
+          href={`/groups/${group.slug}?church=${church}${from}`}
           className="font-display text-[22px] leading-[28px] text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {group.name}
@@ -649,7 +659,9 @@ function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
  * The list view, for a church with forty groups that wants to scan names and
  * days rather than look at forty pictures.
  */
-function GroupRow({ church, group }: { church: string; group: FinderGroup }) {
+function GroupRow({
+  church, group, from,
+}: { church: string; group: FinderGroup; from: string }) {
   const hue = group.typeHue ?? "sky";
   const leader = group.leaderNames.join(", ");
 
@@ -667,7 +679,7 @@ function GroupRow({ church, group }: { church: string; group: FinderGroup }) {
 
       <div className="flex min-w-0 flex-[2_1_220px] flex-col">
         <Link
-          href={`/groups/${group.slug}?church=${church}`}
+          href={`/groups/${group.slug}?church=${church}${from}`}
           className="truncate font-medium text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {group.name}
@@ -703,12 +715,14 @@ function GroupRow({ church, group }: { church: string; group: FinderGroup }) {
 /** One band, which draws as much of itself as anybody has asked for. */
 function GroupBand({
   church,
+  from,
   heading,
   rows,
   view,
   rule,
 }: {
   church: string;
+  from: string;
   heading: string | null;
   rows: FinderGroup[];
   view: ListView;
@@ -731,14 +745,14 @@ function GroupBand({
       {view === "tiles" ? (
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
           {shown.map((group) => (
-            <GroupCard key={group.id} church={church} group={group} />
+            <GroupCard key={group.id} church={church} group={group} from={from} />
           ))}
         </div>
       ) : (
         <div className="flex flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
           {shown.map((group) => (
             <div key={group.id} className="border-b border-line last:border-b-0">
-              <GroupRow church={church} group={group} />
+              <GroupRow church={church} group={group} from={from} />
             </div>
           ))}
         </div>
