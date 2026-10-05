@@ -2431,6 +2431,7 @@ export const en = {
   "report.joinSwap": "Switch between and and or",
   "report.findField": "Find a field",
   "report.findMeasure": "Find a measure",
+  "report.noField": "No field by that name",
   "report.moveFilter": "Reorder this condition",
   "report.view.table": "Table",
   "report.view.number": "Single value",
