@@ -4,10 +4,10 @@ import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getChurch, listEvents, countArchivedEvents, canManageEvents,
 } from "@hearth/db";
-import { LIFT } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { Empty } from "@/components/empty";
 import { NewEventButton } from "./new-event";
@@ -57,6 +57,19 @@ export default async function EventsPage({
     .filter((one) => lastDay(one) < today)
     .sort((a, b) => b.startsOn.localeCompare(a.startsOn));
 
+  // The bucket is private, so each banner is served through a signed link.
+  const covers = new Map<string, string>();
+  const withCovers = events.filter((one) => one.coverKey);
+  if (withCovers.length > 0) {
+    const supabase = await supabaseServer();
+    for (const one of withCovers) {
+      const signed = await supabase.storage
+        .from("church")
+        .createSignedUrl(one.coverKey!, 3600);
+      if (signed.data?.signedUrl) covers.set(one.id, signed.data.signedUrl);
+    }
+  }
+
   const action = putAway ? undefined : <NewEventButton church={session.tenantSlug} />;
 
   // R24.17. An empty screen offers the action in the middle, where the eye
@@ -94,10 +107,14 @@ export default async function EventsPage({
                 <h2 className="text-[13px] font-bold tracking-wide text-fg-subtle uppercase">
                   {section.heading}
                 </h2>
-                <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+                <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
                   {section.rows.map((one) => (
                     <li key={one.id} className="contents">
-                      <EventCard church={session.tenantSlug} event={one} lift={LIFT} />
+                      <EventCard
+                        church={session.tenantSlug}
+                        event={one}
+                        coverUrl={covers.get(one.id) ?? null}
+                      />
                     </li>
                   ))}
                 </ul>

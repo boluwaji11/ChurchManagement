@@ -1,22 +1,25 @@
 import Link from "next/link";
 import type { ChurchEvent } from "@hearth/db";
+import { LIFT } from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import { longDate, readableTime } from "@/lib/dates";
 
 /**
- * R14.1. One event in the list.
+ * R14.1. One event, as a card.
  *
- * The date tile leads, in the event's own colour, because a church scanning
- * this screen is scanning for when. The whole card opens the event (R24.6).
+ * The same shape the group finder uses: a banner across the top, the event's
+ * own picture where it has one and its colour flat where it does not, then
+ * what it is, its name, when and where, and how it is going. A church reading
+ * one of these screens has read both.
  */
 export function EventCard({
   church,
   event,
-  lift,
+  coverUrl,
 }: {
   church: string;
   event: ChurchEvent;
-  lift: string;
+  coverUrl: string | null;
 }) {
   const left = !event.takesRegistrations || event.capacity === null
     ? null
@@ -25,63 +28,70 @@ export function EventCard({
   const when = [
     longDate(event.startsOn),
     event.startsAt ? readableTime(event.startsAt) : null,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  ].filter(Boolean).join(", ");
 
   const where = event.location ?? event.city;
 
   return (
-    <div
-      className={`relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-[14px] border border-line bg-surface p-5 ${lift}`}
+    <section
+      className={`relative flex flex-col overflow-hidden rounded-lg border border-line bg-surface ${LIFT}`}
     >
-      <span
-        aria-hidden
-        className="-mx-5 -mt-5 h-1.5 w-[calc(100%+2.5rem)]"
-        style={{ background: `var(--hue-${event.hue}-500)` }}
-      />
+      {coverUrl ? (
+        <img src={coverUrl} alt="" className="h-[120px] w-full object-cover" />
+      ) : (
+        <div className="h-[120px]" style={{ background: `var(--hue-${event.hue}-tint)` }} />
+      )}
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-2 px-[18px] pt-4 pb-[18px]">
+        <div className="flex items-center gap-2">
+          <span
+            className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+            style={
+              event.archivedAt
+                ? { background: "var(--hue-clay-tint)", color: "var(--hue-clay-key)" }
+                : {
+                    background: `var(--hue-${STATE_HUE[event.status]}-tint)`,
+                    color: `var(--hue-${STATE_HUE[event.status]}-key)`,
+                  }
+            }
+          >
+            {event.archivedAt
+              ? t("event.status.archived")
+              : t(`event.status.${event.status}` as never)}
+          </span>
+
+          <span className="ml-auto text-[12px] font-medium text-fg-muted">
+            {!event.takesRegistrations
+              ? t("event.informationOnly")
+              : left === 0
+                ? t("event.full")
+                : left === null
+                  ? t("event.registrationOpen")
+                  : plural("event.placesLeft", left)}
+          </span>
+        </div>
+
         <Link
           href={`/events/${event.id}?church=${church}`}
-          className="font-display text-[22px] leading-7 text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
+          className="font-display text-[22px] leading-[28px] text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {event.name}
         </Link>
-        <span className="text-[13px] text-fg-muted">
+
+        <div className="text-[13px] text-fg-muted">
           {when}
           {where ? ` · ${where}` : ""}
-        </span>
-      </div>
+        </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span
-          className="rounded-full px-2 py-0.5 text-[12px] font-medium"
-          style={
-            event.archivedAt
-              ? { background: "var(--hue-clay-tint)", color: "var(--hue-clay-key)" }
-              : {
-                  background: `var(--hue-${STATE_HUE[event.status]}-tint)`,
-                  color: `var(--hue-${STATE_HUE[event.status]}-key)`,
-                }
-          }
-        >
-          {event.archivedAt
-            ? t("event.status.archived")
-            : t(`event.status.${event.status}` as never)}
-        </span>
-
-        <span className="text-[12px] text-fg-subtle tabular-nums">
-          {event.takesRegistrations
-            ? plural("event.registered", event.going)
-            : t("event.informationOnly")}
-          {event.waiting > 0 ? ` · ${plural("event.waiting", event.waiting)}` : ""}
-          {left !== null
-            ? ` · ${left === 0 ? t("event.full") : plural("event.placesLeft", left)}`
-            : ""}
-        </span>
+        {event.takesRegistrations ? (
+          <div className="text-[13px] text-fg">
+            <strong className="font-semibold">{event.going}</strong>{" "}
+            {t("event.registeredWord")}
+            {event.waiting > 0 ? ` · ${plural("event.waiting", event.waiting)}` : ""}
+          </div>
+        ) : null}
       </div>
-    </div>
+    </section>
   );
 }
 
