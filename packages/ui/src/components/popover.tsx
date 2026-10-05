@@ -31,7 +31,7 @@ export const PopoverContent = React.forwardRef<
       sideOffset={sideOffset}
       collisionPadding={12}
       className={cn(
-        "z-50 flex max-h-[min(70vh,560px)] w-[min(92vw,420px)] flex-col gap-3 overflow-y-auto",
+        "z-50 flex max-h-[min(62vh,440px)] w-[min(92vw,420px)] flex-col gap-3 overflow-y-auto",
         "rounded-[14px] border border-line bg-surface p-4 shadow-lg",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",

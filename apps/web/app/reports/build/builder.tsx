@@ -447,7 +447,7 @@ export function Builder({
                 />
               </label>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex max-h-[260px] flex-col gap-1.5 overflow-y-auto">
                 {def.fields
                   .filter((one) =>
                     fold(t(one.label as never)).includes(fold(columnQuery.trim())))

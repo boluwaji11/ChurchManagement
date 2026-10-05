@@ -141,7 +141,7 @@ export const SelectContent = React.forwardRef<
           </div>
         ) : null}
 
-        <P.Viewport className="flex max-h-72 flex-col gap-1.5">{shown}</P.Viewport>
+        <P.Viewport className="flex max-h-[260px] flex-col gap-1.5 overflow-y-auto">{shown}</P.Viewport>
       </P.Content>
     </P.Portal>
   );
