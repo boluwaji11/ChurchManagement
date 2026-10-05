@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import * as P from "@radix-ui/react-select";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { cn } from "../lib/cn";
 import { useFieldControl } from "./field";
 
@@ -103,7 +103,7 @@ export const SelectContent = React.forwardRef<
         sideOffset={6}
         onCloseAutoFocus={() => setQuery("")}
         className={cn(
-          "z-50 min-w-[10rem] overflow-hidden rounded-lg border border-line bg-surface shadow-lg p-1",
+          "z-50 min-w-[11rem] overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg p-2",
           "data-[state=open]:animate-[hearth-rise_var(--duration-fast)_var(--ease-out)]",
           className,
         )}
@@ -136,13 +136,22 @@ export const SelectContent = React.forwardRef<
           </div>
         ) : null}
 
-        <P.Viewport className="max-h-72">{shown}</P.Viewport>
+        <P.Viewport className="flex max-h-72 flex-col gap-1.5">{shown}</P.Viewport>
       </P.Content>
     </P.Portal>
   );
 });
 SelectContent.displayName = "SelectContent";
 
+/**
+ * One option, drawn as its own card.
+ *
+ * A row of them reads as a set of things to choose between rather than as a
+ * list of words, and the one in force is filled rather than ticked: the fill
+ * is visible from across a room, and a check mark at the far right of a wide
+ * menu is not. Nothing is lost for anybody who cannot see the fill, because
+ * Radix keeps aria-selected on the item either way.
+ */
 export const SelectItem = React.forwardRef<
   React.ComponentRef<typeof P.Item>,
   React.ComponentPropsWithoutRef<typeof P.Item>
@@ -150,18 +159,21 @@ export const SelectItem = React.forwardRef<
   <P.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center gap-2 rounded-md",
-      "py-2 pl-2 pr-8 text-[length:var(--d-text-body)] outline-none",
-      "data-[highlighted]:bg-sunken data-[state=checked]:text-primary",
+      "relative flex cursor-pointer select-none items-center gap-2",
+      "rounded-[10px] border border-line-strong bg-surface px-3 py-2",
+      "text-[length:var(--d-text-body)] font-medium text-fg outline-none",
+      "transition-colors duration-instant ease-out",
+      "data-[highlighted]:bg-sunken data-[highlighted]:border-fg-subtle",
+      // After the highlighted rules, so the chosen one stays filled while the
+      // pointer is over it.
+      "data-[state=checked]:border-primary data-[state=checked]:bg-primary",
+      "data-[state=checked]:text-primary-fg",
       "data-[disabled]:opacity-45 data-[disabled]:pointer-events-none",
       className,
     )}
     {...props}
   >
     <P.ItemText>{children}</P.ItemText>
-    <P.ItemIndicator className="absolute right-2 flex items-center">
-      <Check className="size-4" />
-    </P.ItemIndicator>
   </P.Item>
 ));
 SelectItem.displayName = "SelectItem";
