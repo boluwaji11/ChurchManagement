@@ -546,6 +546,7 @@ export const en = {
   "contact.signIn": "Signs in with this",
   "contact.remove": "Remove {value}",
   "contactLabel.home": "Home",
+  "contact.personal": "Personal",
   "contactLabel.mobile": "Mobile",
   "contactLabel.work": "Work",
   "contactLabel.other": "Other",

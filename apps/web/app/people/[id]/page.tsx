@@ -207,7 +207,7 @@ export default async function PersonPage({
                 personId={person.id}
                 kind="email"
                 contacts={contacts}
-                canEdit={canEdit}
+                canEdit={false}
               />
             </div>
 
@@ -218,7 +218,7 @@ export default async function PersonPage({
                 personId={person.id}
                 kind="phone"
                 contacts={contacts}
-                canEdit={canEdit}
+                canEdit={false}
               />
             </div>
 
@@ -229,7 +229,7 @@ export default async function PersonPage({
                 church={session.tenantSlug}
                 personId={person.id}
                 places={addresses}
-                canEdit={canEdit}
+                canEdit={false}
               />
             </div>
           </div>

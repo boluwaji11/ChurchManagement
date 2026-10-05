@@ -18,6 +18,9 @@ import {
   type PersonErrors,
 } from "@/lib/person-input";
 import { AddressFields } from "@/components/address-fields";
+import { Contacts } from "./[id]/contacts";
+import { Places } from "./[id]/places";
+import type { PersonContact, PersonAddress } from "@hearth/db/rules";
 import { Picker } from "@/components/picker";
 import { emptyAddress, type AddressValues } from "@/lib/address";
 import { savePerson } from "./actions";
@@ -152,6 +155,8 @@ export function PersonForm({
   tags = [],
   assignedTags = [],
   campuses = [],
+  contacts,
+  places,
 }: {
   church: string;
   values?: PersonFormValues;
@@ -160,6 +165,9 @@ export function PersonForm({
   campuses?: CampusOption[];
   customFields?: FieldDef[];
   customValues?: FieldValues;
+  /** R2.4. Every email and phone on the record, where it already has one. */
+  contacts?: PersonContact[];
+  places?: PersonAddress[];
   /** R2.x. Every tag the church has, for the row on this screen. */
   tags?: { id: string; name: string }[];
   /** Which of them this person already carries. */
@@ -282,9 +290,50 @@ export function PersonForm({
           ) : null}
 
 
-          <AddressFields values={values?.address ?? emptyAddress()} />
+          {/* R2.4. Asked once, when the record is written. A person already
+              here keeps a list of these in the card below, which is where a
+              second address or a work number goes. */}
+          {editing ? null : <AddressFields values={values?.address ?? emptyAddress()} />}
         </div>
       </FormCard>
+
+      {/* R2.4. Every way of reaching them, each a list. The lists write as
+          they are pressed, so they sit outside the form that saves the rest. */}
+      {editing && contacts ? (
+        <FormCard title={t("person.contact")}>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
+              <Contacts
+                church={church}
+                personId={values!.id!}
+                kind="email"
+                contacts={contacts}
+                canEdit
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
+              <Contacts
+                church={church}
+                personId={values!.id!}
+                kind="phone"
+                contacts={contacts}
+                canEdit
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
+              <Places
+                church={church}
+                personId={values!.id!}
+                places={places ?? []}
+                canEdit
+              />
+            </div>
+          </div>
+        </FormCard>
+      ) : null}
 
       {/* Status as pills rather than a dropdown. Four values a church picks
           between every day, all visible, one press each. */}

@@ -11,6 +11,17 @@ export type ContactLabel = (typeof CONTACT_LABELS)[number];
 
 export type ContactKind = "email" | "phone";
 
+/**
+ * R2.4. Which labels suit which kind.
+ *
+ * "Mobile" is a phone and nothing else, and an email is personal or work. The
+ * stored set is shared, so only what is offered differs.
+ */
+export const LABELS_FOR: Record<ContactKind, readonly ContactLabel[]> = {
+  email: ["home", "work", "other"],
+  phone: ["mobile", "home", "work", "other"],
+};
+
 export interface PersonContact {
   id: string;
   kind: ContactKind;

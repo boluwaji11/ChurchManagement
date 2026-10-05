@@ -7,7 +7,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
-import { CONTACT_LABELS, type PersonContact, type ContactKind } from "@hearth/db/rules";
+import { LABELS_FOR, type ContactLabel, type PersonContact, type ContactKind } from "@hearth/db/rules";
 import { addOne, removeOne, leadWithOne } from "./contact-actions";
 
 /**
@@ -42,6 +42,14 @@ export function Contacts({
 
   const mine = contacts.filter((one) => one.kind === kind);
 
+  /*
+   * R2.4. "Mobile" is a phone and nothing else, and an email is personal
+   * rather than at home. The stored labels are shared; what is offered and
+   * what it is called are not.
+   */
+  const named = (one: ContactLabel) =>
+    kind === "email" && one === "home" ? t("contact.personal") : t(`contactLabel.${one}` as never);
+
   const act = (work: () => Promise<{ error?: string }>) =>
     run(async () => setError((await work()).error));
 
@@ -65,7 +73,7 @@ export function Contacts({
               ? t("contact.signIn")
               : one.isPrimary
                 ? t("contact.primary")
-                : t(`contactLabel.${one.label}` as never)}
+                : named(one.label)}
           </span>
 
           {canEdit ? (
@@ -113,14 +121,17 @@ export function Contacts({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {CONTACT_LABELS.map((one) => (
+              {LABELS_FOR[kind].map((one) => (
                 <SelectItem key={one} value={one}>
-                  {t(`contactLabel.${one}` as never)}
+                  {named(one)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {/* Typed, because this sits inside the form that saves the record
+              and an untyped button submits it. */}
           <Button
+            type="button"
             disabled={pending || !value.trim()}
             className="h-9 min-h-0 px-3 text-[13px]"
             onClick={() =>
