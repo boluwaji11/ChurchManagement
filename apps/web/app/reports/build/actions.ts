@@ -4,7 +4,7 @@ import {
   withTenant, runReport, createSavedReport, updateSavedReport, setSavedReportArchived,
   getSavedReport,
   canEditPeople, canReadIncidents, SCREEN_LIMIT,
-  type ReportResult, type ReportSpec,
+  type ReportResult, type ReportSpec, type ReportPage,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -24,6 +24,9 @@ async function context(church?: string) {
     },
   };
 }
+
+/** One visual's answer, or why it has none. */
+export type ReportResultish = ReportResult & { error?: string };
 
 export interface PreviewResult {
   result?: ReportResult;
@@ -47,6 +50,41 @@ export async function preview(spec: ReportSpec, church?: string): Promise<Previe
   }
 }
 
+/**
+ * R18.12. Every visual on the page, in one round trip.
+ *
+ * One request rather than one per tile: a page of six visuals redrawing on
+ * every change is six requests a church on a village connection waits for, and
+ * they all read the same church in the same transaction anyway.
+ */
+export async function previewPage(
+  tiles: (ReportSpec & { id: string })[],
+  church?: string,
+): Promise<Record<string, ReportResultish>> {
+  try {
+    const { ctx } = await context(church);
+    return await withTenant(ctx, async (tx) => {
+      const out: Record<string, ReportResultish> = {};
+      for (const tile of tiles) {
+        try {
+          out[tile.id] = await runReport(tx, tile, { limit: SCREEN_LIMIT });
+        } catch (error) {
+          out[tile.id] = {
+            columns: [], rows: [], chart: null, grid: null, total: null, more: false,
+            error: explain(error),
+          };
+        }
+      }
+      return out;
+    });
+  } catch (error) {
+    return { page: {
+      columns: [], rows: [], chart: null, grid: null, total: null, more: false,
+      error: explain(error),
+    } };
+  }
+}
+
 export interface SaveResult {
   /** The report's readable address, for where to go next. */
   slug?: string;
@@ -54,7 +92,7 @@ export interface SaveResult {
 }
 
 export async function saveReport(
-  input: { id?: string; name: string; spec: ReportSpec },
+  input: { id?: string; name: string; spec: ReportPage },
   church?: string,
 ): Promise<SaveResult> {
   try {

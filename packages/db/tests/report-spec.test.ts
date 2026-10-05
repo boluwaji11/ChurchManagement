@@ -54,13 +54,26 @@ describe("cleanSpec", () => {
     expect(cleanSpec({ subject: "members", groupBy: "status" }).groupBy).toBe("status");
   });
 
-  it("refuses to add up a field that is not a number", () => {
+  it("counts a field it cannot add up rather than summing a name", () => {
     const spec = cleanSpec({
       subject: "members",
       groupBy: "status",
-      measure: { kind: "sum", field: "name" },
+      values: [{ agg: "sum", field: "name" }],
     });
-    expect(spec.measure).toEqual({ kind: "rows" });
+    expect(spec.values).toEqual([{ agg: "count", field: "name" }]);
+  });
+
+  it("reads a report saved before the Values well existed", () => {
+    const spec = cleanSpec({
+      subject: "members",
+      groupBy: "status",
+      measure: { kind: "members" },
+    });
+    expect(spec.values).toEqual([{ agg: "distinct" }]);
+  });
+
+  it("treats an empty well as counting the rows", () => {
+    expect(cleanSpec({ subject: "members", groupBy: "status" }).values).toEqual([]);
   });
 
   it("gives a list columns when it was sent none", () => {

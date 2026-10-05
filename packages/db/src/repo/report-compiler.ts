@@ -2,7 +2,7 @@ import { sql, type SQL } from "drizzle-orm";
 import type { Tx } from "../client";
 import {
   SUBJECTS, fieldOf, cleanSpec, SCREEN_LIMIT,
-  type ReportSpec, type SubjectKey, type FieldKind,
+  type ReportSpec, type SubjectKey, type FieldKind, type ValueWell,
 } from "./report-spec";
 
 /**
@@ -96,16 +96,26 @@ const EXPR: Record<SubjectKey, Record<string, SQL>> = {
 
 const exprOf = (subject: SubjectKey, key: string): SQL | null => EXPR[subject]?.[key] ?? null;
 
-/** What a measure compiles to, in one place, because two paths ask for it. */
-function measureOf(subject: SubjectKey, measure: { kind: string; field?: string }): SQL {
-  if (measure.kind === "people") return sql`count(distinct p.id)`;
-  if (measure.kind === "sum" && measure.field) {
-    return sql`coalesce(sum(${exprOf(subject, measure.field)!}), 0)`;
+/**
+ * What the Values well compiles to, in one place, because both grouped paths
+ * ask for it.
+ *
+ * An empty well counts the rows, which is what a chart with nothing in Values
+ * falls back to in every tool of this kind.
+ */
+function measureOf(subject: SubjectKey, values: ValueWell[]): SQL {
+  const one = values[0];
+  if (!one) return sql`count(*)`;
+
+  const expr = one.field ? exprOf(subject, one.field) : null;
+  if (!expr) return one.agg === "distinct" ? sql`count(distinct p.id)` : sql`count(*)`;
+
+  switch (one.agg) {
+    case "sum": return sql`coalesce(sum(${expr}), 0)`;
+    case "average": return sql`coalesce(round(avg(${expr})), 0)`;
+    case "distinct": return sql`count(distinct ${expr})`;
+    default: return sql`count(${expr})`;
   }
-  if (measure.kind === "average" && measure.field) {
-    return sql`coalesce(round(avg(${exprOf(subject, measure.field)!})), 0)`;
-  }
-  return sql`count(*)`;
 }
 
 /** One condition, as SQL, with whatever was typed bound rather than pasted. */
@@ -210,8 +220,7 @@ export async function runReport(
   if (spec.groupBy && spec.splitBy) {
     const by = exprOf(subject, spec.groupBy)!;
     const split = exprOf(subject, spec.splitBy)!;
-    const measure = spec.measure ?? { kind: "rows" as const };
-    const measureSql = measureOf(subject, measure);
+    const measureSql = measureOf(subject, spec.values);
 
     const rows = await db.execute<{ label: string | null; series: string | null; value: string }>(sql`
       select (${by})::text as label, (${split})::text as series, (${measureSql})::text as value
@@ -264,15 +273,7 @@ export async function runReport(
 
   if (spec.groupBy) {
     const by = exprOf(subject, spec.groupBy)!;
-    const measure = spec.measure ?? { kind: "rows" as const };
-    const measureSql =
-      measure.kind === "members"
-        ? sql`count(distinct p.id)`
-        : measure.kind === "sum" && measure.field
-          ? sql`coalesce(sum(${exprOf(subject, measure.field)!}), 0)`
-          : measure.kind === "average" && measure.field
-            ? sql`coalesce(round(avg(${exprOf(subject, measure.field)!})), 0)`
-            : sql`count(*)`;
+    const measureSql = measureOf(subject, spec.values);
 
     const rows = await db.execute<{ label: string | null; value: string }>(sql`
       select (${by})::text as label, (${measureSql})::text as value

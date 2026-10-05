@@ -65,22 +65,22 @@ export function Gallery({
                   ? t(`report.view.${one}` as never)
                   : `${t(`report.view.${one}` as never)} · ${t("report.needsGroup")}`
               }
+              aria-label={t(`report.view.${one}` as never)}
               className={
                 on
-                  ? "flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-[10px] border border-primary bg-primary text-primary-fg"
+                  ? "grid aspect-square cursor-pointer place-items-center rounded-[10px] border border-primary bg-primary text-primary-fg"
                   : fits
-                    ? "flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-[10px] border border-line-strong bg-surface text-fg hover:bg-sunken"
-                    : "flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-[10px] border border-dashed border-line text-fg-subtle hover:bg-sunken"
+                    ? "grid aspect-square cursor-pointer place-items-center rounded-[10px] border border-line-strong bg-surface text-fg hover:bg-sunken"
+                    : "grid aspect-square cursor-pointer place-items-center rounded-[10px] border border-dashed border-line text-fg-subtle hover:bg-sunken"
               }
             >
-              <Icon className="size-4" />
-              <span className="px-1 text-center text-[10px] leading-3">
-                {t(`report.view.${one}` as never)}
-              </span>
+              <Icon className="size-[18px]" />
             </button>
           );
         })}
       </div>
+
+      <p className="text-[13px] font-medium text-fg">{t(`report.view.${view}` as never)}</p>
 
       {/* What this choice needs, said where the choice was made. */}
       {!viewFits(view, { groupBy }) ? (

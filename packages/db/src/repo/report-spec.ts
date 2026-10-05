@@ -64,9 +64,9 @@ const PEOPLE: SubjectDef = {
     { key: "status", label: "report.field.status", kind: "choice", choices: LIFECYCLE_CHOICES, groupable: true },
     { key: "age", label: "report.field.age", kind: "number", numeric: true },
     { key: "birthMonth", label: "report.field.birthMonth", kind: "number", groupable: true },
-    { key: "joinedOn", label: "report.field.joinedOn", kind: "date" },
-    { key: "firstVisitOn", label: "report.field.firstVisitOn", kind: "date" },
-    { key: "lastSeenOn", label: "report.field.lastSeenOn", kind: "date" },
+    { key: "joinedOn", label: "report.field.joinedOn", kind: "date", groupable: true },
+    { key: "firstVisitOn", label: "report.field.firstVisitOn", kind: "date", groupable: true },
+    { key: "lastSeenOn", label: "report.field.lastSeenOn", kind: "date", groupable: true },
     { key: "visits", label: "report.field.visits", kind: "number", numeric: true },
     { key: "household", label: "report.field.household", kind: "text", groupable: true },
     { key: "inGroup", label: "report.field.inGroup", kind: "boolean", groupable: true },
@@ -85,7 +85,7 @@ const ATTENDANCE: SubjectDef = {
   fields: [
     { key: "name", label: "report.field.name", kind: "text" },
     { key: "service", label: "report.field.service", kind: "text", groupable: true },
-    { key: "date", label: "report.field.date", kind: "date" },
+    { key: "date", label: "report.field.date", kind: "date", groupable: true },
     { key: "month", label: "report.field.month", kind: "text", groupable: true },
     { key: "weekday", label: "report.field.weekday", kind: "number", groupable: true },
     { key: "status", label: "report.field.status", kind: "choice", choices: LIFECYCLE_CHOICES, groupable: true },
@@ -105,7 +105,7 @@ const FOLLOWUPS: SubjectDef = {
     { key: "step", label: "report.field.step", kind: "text", groupable: true },
     { key: "pipeline", label: "report.field.pipeline", kind: "text", groupable: true },
     { key: "owner", label: "report.field.owner", kind: "text", groupable: true },
-    { key: "dueOn", label: "report.field.dueOn", kind: "date" },
+    { key: "dueOn", label: "report.field.dueOn", kind: "date", groupable: true },
     { key: "done", label: "report.field.done", kind: "boolean", groupable: true },
     { key: "overdue", label: "report.field.overdue", kind: "boolean", groupable: true },
     { key: "daysOpen", label: "report.field.daysOpen", kind: "number", numeric: true },
@@ -132,6 +132,16 @@ export const BARE_OPERATORS = new Set(["empty", "notEmpty", "yes", "no"]);
 
 export type MeasureKind = "rows" | "members" | "sum" | "average";
 
+/** How a field in the Values well is added up. */
+export const AGGREGATIONS = ["sum", "average", "count", "distinct"] as const;
+export type Aggregation = (typeof AGGREGATIONS)[number];
+
+export interface ValueWell {
+  /** The field being aggregated. Absent means the rows themselves. */
+  field?: string;
+  agg: Aggregation;
+}
+
 /** How the answer is drawn. */
 export const VIEWS = ["table", "number", "bar", "rows", "stacked", "donut", "line", "area"] as const;
 export type View = (typeof VIEWS)[number];
@@ -149,6 +159,12 @@ export interface Measure {
   kind: MeasureKind;
   /** The field being added up, for sum and average. */
   field?: string;
+}
+
+/** What a well comes to, for the chart's own axis label. */
+export function wellLabel(value: ValueWell | undefined, rowsLabel: string): string {
+  if (!value) return rowsLabel;
+  return value.field ? `${value.agg}:${value.field}` : rowsLabel;
 }
 
 export interface ReportSpec {
@@ -169,7 +185,11 @@ export interface ReportSpec {
   topN: number | null;
   /** Add the column up and say so under it. */
   totals: boolean;
-  measure: Measure | null;
+  /**
+   * What is being counted. Empty is the rows themselves, which is what every
+   * chart falls back to, so the well can be emptied rather than only swapped.
+   */
+  values: ValueWell[];
   sort: { field: string; dir: "asc" | "desc" } | null;
   /** How it is drawn. */
   view: View;
@@ -231,16 +251,34 @@ export function cleanSpec(raw: unknown): ReportSpec {
       ? Math.round(input.topN)
       : null;
 
-  let measure: Measure | null = null;
-  if (groupBy) {
-    const kind = input.measure?.kind;
-    if (kind === "sum" || kind === "average") {
-      const field = input.measure?.field ? fieldOf(subject, input.measure.field) : null;
-      measure = field?.numeric ? { kind, field: field.key } : { kind: "rows" };
-    } else {
-      measure = { kind: kind === "members" ? "members" : "rows" };
+  // Reports saved before the well existed carry a measure instead.
+  const fromMeasure = (): ValueWell[] => {
+    const old = (input as { measure?: Measure }).measure;
+    if (!old) return [];
+    if (old.kind === "members") return [{ agg: "distinct" }];
+    if ((old.kind === "sum" || old.kind === "average") && old.field) {
+      return fieldOf(subject, old.field)?.numeric ? [{ agg: old.kind, field: old.field }] : [];
     }
-  }
+    return [];
+  };
+
+  const values: ValueWell[] = (Array.isArray(input.values) ? input.values : fromMeasure())
+    .map((one) => {
+      const agg: Aggregation = AGGREGATIONS.includes(one?.agg as Aggregation)
+        ? (one.agg as Aggregation)
+        : "sum";
+      if (!one?.field) {
+        return { agg: agg === "sum" || agg === "average" ? "count" : agg } as ValueWell;
+      }
+      const field = fieldOf(subject, one.field);
+      if (!field) return null;
+      // A name cannot be summed. Counting one is fine.
+      const settled: Aggregation =
+        (agg === "sum" || agg === "average") && !field.numeric ? "count" : agg;
+      return { agg: settled, field: field.key } as ValueWell;
+    })
+    .filter((one): one is ValueWell => one !== null)
+    .slice(0, 1);
 
   // A chart of a list is a chart of nothing, so a view that needs a count
   // falls back to the table rather than drawing an empty frame.
@@ -262,7 +300,7 @@ export function cleanSpec(raw: unknown): ReportSpec {
     splitBy,
     topN,
     totals: Boolean(input.totals),
-    measure,
+    values,
     sort,
     view,
   };
@@ -297,3 +335,85 @@ export const viewFits = (view: View, spec: { groupBy: string | null }): boolean 
 
 /** The visualizations that can draw a second dimension as series. */
 export const SPLIT_VIEWS = new Set<View>(["bar", "stacked"]);
+
+/**
+ * R18.12. Where a visual sits on the page.
+ *
+ * A twelve-column grid, which is what every tool of this kind lands on: wide
+ * enough to halve, third and quarter, and small enough that a church dragging
+ * a tile does not have to be precise.
+ */
+export interface TilePlace {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export const GRID_COLUMNS = 12;
+
+export interface ReportTile extends ReportSpec {
+  id: string;
+  /** What the church called it. Empty means the chart names itself. */
+  title: string;
+  place: TilePlace;
+}
+
+/**
+ * R18.12. A report is a page of visuals.
+ *
+ * Tableau calls the single-visual thing a worksheet and the page of them a
+ * dashboard; Power BI puts several on one canvas and calls the lot a report.
+ * Both arrive at the same place, which is that one question rarely has one
+ * picture, and this follows them.
+ */
+export interface ReportPage {
+  tiles: ReportTile[];
+}
+
+const whole = (value: unknown, fallback: number, low: number, high: number): number => {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) ? Math.min(high, Math.max(low, n)) : fallback;
+};
+
+/**
+ * Everything the builder sent, reduced to a page this catalogue recognises.
+ *
+ * A report saved before the page existed is one spec rather than a list of
+ * them, and it opens as a single tile filling the width.
+ */
+export function cleanPage(raw: unknown): ReportPage {
+  const input = (raw ?? {}) as Partial<ReportPage>;
+  const list = Array.isArray(input.tiles) ? input.tiles : null;
+
+  if (!list) {
+    return {
+      tiles: [
+        {
+          ...cleanSpec(raw),
+          id: "1",
+          title: "",
+          place: { x: 0, y: 0, w: GRID_COLUMNS, h: 4 },
+        },
+      ],
+    };
+  }
+
+  return {
+    tiles: list.slice(0, 12).map((tile, i) => {
+      const w = whole(tile?.place?.w, 6, 2, GRID_COLUMNS);
+      return {
+        ...cleanSpec(tile),
+        id: String(tile?.id ?? i + 1).slice(0, 24),
+        title: String(tile?.title ?? "").slice(0, 80),
+        place: {
+          w,
+          h: whole(tile?.place?.h, 4, 2, 12),
+          // A tile cannot start so far right that it hangs off the page.
+          x: whole(tile?.place?.x, 0, 0, GRID_COLUMNS - w),
+          y: whole(tile?.place?.y, 0, 0, 200),
+        },
+      };
+    }),
+  };
+}

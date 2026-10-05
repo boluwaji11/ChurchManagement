@@ -24,7 +24,11 @@ export async function GET(
     async (tx) => {
       const saved = await getSavedReport(tx, id);
       if (!saved) return null;
-      return { saved, result: await runReport(tx, saved.spec, { limit: FILE_LIMIT }) };
+      // The first visual, which is the one the report leads with. A file of
+      // six visuals is six files, and that is a different ask.
+      const lead = saved.spec.tiles[0];
+      if (!lead) return null;
+      return { saved, result: await runReport(tx, lead, { limit: FILE_LIMIT }) };
     },
   );
 

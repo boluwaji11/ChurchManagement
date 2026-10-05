@@ -4,7 +4,7 @@ import { savedReports } from "../schema/reports";
 import { InvalidInputError, NameTakenError } from "../errors";
 import { PermissionError, canEditPeople, type TenantRole } from "../roles";
 import { canReadIncidents } from "./incidents";
-import { cleanSpec, type ReportSpec } from "./report-spec";
+import { cleanPage, type ReportPage } from "./report-spec";
 
 /**
  * R18.x. Reports a church built for itself.
@@ -19,7 +19,7 @@ export interface SavedReport {
   name: string;
   slug: string;
   subject: string;
-  spec: ReportSpec;
+  spec: ReportPage;
   createdByUserId: string | null;
   archivedAt: Date | null;
   updatedAt: Date;
@@ -43,7 +43,7 @@ const shape = (row: typeof savedReports.$inferSelect): SavedReport => ({
   subject: row.subject,
   // Read back through the catalogue, so a field that has since been taken out
   // cannot come back through a row saved last year.
-  spec: cleanSpec(row.spec),
+  spec: cleanPage(row.spec),
   createdByUserId: row.createdByUserId,
   archivedAt: row.archivedAt,
   updatedAt: row.updatedAt,
@@ -82,7 +82,7 @@ export async function createSavedReport(
 
   const name = clean(input.name);
   if (!name) throw new InvalidInputError("report.error.name");
-  const spec = cleanSpec(input.spec);
+  const spec = cleanPage(input.spec);
 
   try {
     const [row] = await db
@@ -91,7 +91,7 @@ export async function createSavedReport(
         tenantId: actor.tenantId,
         name,
         slug: sql`hearth_free_report_slug(${actor.tenantId}::uuid, ${name})`,
-        subject: spec.subject,
+        subject: spec.tiles[0]?.subject ?? "members",
         spec,
         createdByUserId: actor.userId ?? null,
       })
@@ -122,9 +122,9 @@ export async function updateSavedReport(
     patch.slug = sql`hearth_free_report_slug(${actor.tenantId}::uuid, ${name}, ${input.id}::uuid)` as never;
   }
   if (input.spec !== undefined) {
-    const spec = cleanSpec(input.spec);
+    const spec = cleanPage(input.spec);
     patch.spec = spec;
-    patch.subject = spec.subject;
+    patch.subject = spec.tiles[0]?.subject ?? "members";
   }
 
   try {

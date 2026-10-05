@@ -9,6 +9,7 @@ import { owner, withTenant, closeConnections } from "../src/client";
 import { createSavedReport } from "../src/repo/saved-reports";
 import { runReport } from "../src/repo/report-compiler";
 import type { ReportSpec } from "../src/repo/report-spec";
+import type { TenantRole } from "../src/roles";
 
 const churchSlug = process.argv[2] ?? "riverside";
 
@@ -31,7 +32,7 @@ const reports: { name: string; spec: ReportSpec }[] = [
       splitBy: "inGroup",
       topN: null,
       totals: true,
-      measure: { kind: "rows" },
+      values: [],
       sort: null,
       view: "stacked",
     },
@@ -55,7 +56,7 @@ const reports: { name: string; spec: ReportSpec }[] = [
       splitBy: null,
       topN: null,
       totals: false,
-      measure: null,
+      values: [],
       sort: { field: "lastSeenOn", dir: "asc" },
       view: "table",
     },
@@ -72,7 +73,7 @@ const reports: { name: string; spec: ReportSpec }[] = [
       splitBy: null,
       topN: null,
       totals: true,
-      measure: { kind: "people" },
+      values: [{ agg: "distinct" }],
       sort: null,
       view: "bar",
     },
@@ -91,8 +92,8 @@ async function main(): Promise<void> {
 
   const actor = {
     tenantId: String(church["id"]),
-    role: String(member?.["role"] ?? "owner") as never,
-    userId: member?.["user_id"] ? String(member["user_id"]) : null,
+    role: (member?.["role"] ?? "owner") as TenantRole,
+    userId: member?.["user_id"] ? String(member["user_id"]) : undefined,
   };
 
   for (const one of reports) {

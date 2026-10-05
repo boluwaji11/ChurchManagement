@@ -2,22 +2,29 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Download, Pencil } from "lucide-react";
 import {
-  withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents, SUBJECTS,
+  withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents,
+  GRID_COLUMNS, type ReportTile, type ReportResult,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
-import { PagedTable, type Row } from "../../paged-table";
-import { Answer, read } from "../../answer";
+import { Answer } from "../../answer";
 
 export const dynamic = "force-dynamic";
 
+/** What a visual is called when nobody has named it. */
+const nameOf = (tile: ReportTile): string =>
+  tile.title
+  || (tile.groupBy
+    ? t("report.by", { field: t(`report.field.${tile.groupBy}` as never) })
+    : t(`report.subject.${tile.subject}` as never));
+
 /**
- * R18.x. A report the church built, run.
+ * R18.12. A report the church built, run.
  *
- * The same compiler the preview used, so what was built is what is read, and
- * the spec is checked against the catalogue on the way out of the database as
- * well as on the way in.
+ * The same compiler the builder previewed with, laid out on the same grid, so
+ * what was arranged is what is read. The spec is checked against the catalogue
+ * on the way out of the database as well as on the way in.
  */
 export default async function CustomReportPage({
   params,
@@ -38,20 +45,17 @@ export default async function CustomReportPage({
     async (tx) => {
       const saved = await getSavedReport(tx, id);
       if (!saved) return null;
-      return { saved, result: await runReport(tx, saved.spec) };
+
+      const answers: Record<string, ReportResult> = {};
+      for (const tile of saved.spec.tiles) {
+        answers[tile.id] = await runReport(tx, tile);
+      }
+      return { saved, answers };
     },
   );
 
   if (!found) notFound();
-  const { saved, result } = found;
-  const rows: Row[] = result.rows.map((row, i) => ({
-    key: String(i),
-    cells: result.columns.map((column, c) => ({
-      text: read(row[c] ?? ""),
-      numeric: column.kind === "number",
-      muted: c > 0,
-    })),
-  }));
+  const { saved, answers } = found;
 
   return (
     <AppShell session={session} title={t("reports.title")} wide>
@@ -84,34 +88,47 @@ export default async function CustomReportPage({
         </a>
       </div>
 
-      {result.rows.length === 0 ? (
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">
-          {t("report.nothingMatches")}
-        </p>
-      ) : (
-        <>
-          {/* Drawn by the same renderer the builder previewed it with, so
-              what was built is what is read. */}
-          {saved.spec.view !== "table" ? (
-            <section className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
-              <h3 className="font-display text-[22px] leading-7 text-fg">{t("report.answer")}</h3>
-              <Answer spec={saved.spec} result={result} />
+      {/* Laid out on the grid it was arranged on. */}
+      <div
+        className="grid gap-3"
+        style={{
+          gridTemplateColumns: `repeat(${GRID_COLUMNS}, minmax(0, 1fr))`,
+          gridAutoRows: "72px",
+        }}
+      >
+        {saved.spec.tiles.map((tile) => {
+          const result = answers[tile.id];
+          return (
+            <section
+              key={tile.id}
+              style={{
+                gridColumn: `${tile.place.x + 1} / span ${tile.place.w}`,
+                gridRow: `${tile.place.y + 1} / span ${tile.place.h}`,
+              }}
+              className="flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface p-4"
+            >
+              <h3 className="mb-2 truncate font-display text-[17px] leading-6 text-fg">
+                {nameOf(tile)}
+              </h3>
+
+              <div className="min-h-0 flex-1 overflow-auto">
+                {!result || result.rows.length === 0 ? (
+                  <p className="text-[13px] text-fg-muted">{t("report.nothingMatches")}</p>
+                ) : (
+                  <>
+                    <Answer spec={tile} result={result} rows={40} />
+                    {result.total !== null ? (
+                      <p className="mt-3 border-t border-line pt-2 text-[13px] text-fg">
+                        {t("report.totalIs", { total: result.total.toLocaleString() })}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </div>
             </section>
-          ) : null}
-
-          <PagedTable
-            title={t(SUBJECTS[saved.spec.subject].label as never)}
-            columns={result.columns.map((one) => t(one.label as never))}
-            rows={rows}
-          />
-
-          {result.more ? (
-            <p className="text-caption text-fg-muted">
-              {t("report.firstRows", { count: String(result.rows.length) })}
-            </p>
-          ) : null}
-        </>
-      )}
+          );
+        })}
+      </div>
     </AppShell>
   );
 }
