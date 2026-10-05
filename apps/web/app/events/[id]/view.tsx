@@ -15,7 +15,7 @@ import { t, plural } from "@hearth/i18n";
 import { Markdown } from "@/components/markdown";
 import { Empty } from "@/components/empty";
 import { longDate, readableTime } from "@/lib/dates";
-import { oneLineAddress } from "@/lib/address";
+import { oneLineAddress, directionsLink } from "@/lib/address";
 import { publishEvent, openEventRegistration, archiveEvent } from "../actions";
 
 type Tab = "overview" | "registrations";
@@ -66,14 +66,16 @@ export function EventView({
     ? longDate(event.endsOn)
     : null;
 
-  const address = oneLineAddress({
+  const place = {
     line1: event.addressLine1 ?? "",
     line2: event.addressLine2 ?? "",
     city: event.city ?? "",
     region: event.region ?? "",
     postalCode: event.postalCode ?? "",
     country: event.country ?? "",
-  });
+  };
+  const address = oneLineAddress(place);
+  const directions = directionsLink(place, event.location);
 
   const showing: Tab = event.takesRegistrations ? tab : "overview";
 
@@ -316,6 +318,16 @@ export function EventView({
               <span className="text-[length:var(--d-text-body)] text-fg">
                 {[event.location, address].filter(Boolean).join(", ") || t("common.none")}
               </span>
+              {directions ? (
+                <a
+                  href={directions}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  {t("common.directions")}
+                </a>
+              ) : null}
             </Block>
 
           </aside>

@@ -55,3 +55,25 @@ export const oneLineAddress = (a: AddressValues, home = "US"): string =>
     .map((part) => part?.trim())
     .filter(Boolean)
     .join(", ");
+
+/** Google Maps, pointed at a place, for whatever words name it. */
+export const mapsHref = (query: string): string =>
+  `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`;
+
+/**
+ * Whether an address has enough in it for a map to find.
+ *
+ * A venue name on its own ("The Hall") drops a pin in the wrong town, so a
+ * street line and either a city or a postal code are the minimum. Where that
+ * is missing, no link is drawn rather than a link that lands somewhere else.
+ */
+export const mappable = (a: AddressValues): boolean =>
+  Boolean(a.line1?.trim()) && Boolean(a.city?.trim() || a.postalCode?.trim());
+
+/** A link to directions, or null where the address cannot be resolved. */
+export function directionsLink(a: AddressValues, place?: string | null): string | null {
+  if (!mappable(a)) return null;
+  return mapsHref(
+    [place?.trim(), oneLineAddress(a)].map((part) => part?.trim()).filter(Boolean).join(", "),
+  );
+}

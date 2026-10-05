@@ -58,6 +58,7 @@ export function GroupDetail({
   schedule,
   leaders,
   location,
+  directions,
   requests,
   members,
   meeting,
@@ -81,6 +82,8 @@ export function GroupDetail({
   schedule: string | null;
   leaders: string[];
   location: string | null;
+  /** R9.2. Google Maps, where the address is one a map can find. */
+  directions: string | null;
   requests: DetailRequest[];
   members: DetailMember[];
   meeting: Meeting | null;
@@ -193,6 +196,16 @@ export function GroupDetail({
               {location ? (
                 <Facts label={t("group.location")}>
                   <span className="whitespace-pre-line">{location}</span>
+                  {directions ? (
+                    <a
+                      href={directions}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      {t("common.directions")}
+                    </a>
+                  ) : null}
                 </Facts>
               ) : null}
 

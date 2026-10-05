@@ -43,6 +43,8 @@ export interface PublicGroup {
   frequency: string | null;
   location: string | null;
   address: string | null;
+  /** R9.5. Whether the address is one a map can find, so a link is worth drawing. */
+  mappable: boolean;
   forWhom: string | null;
   online: boolean;
   childrenWelcome: boolean;
@@ -92,6 +94,8 @@ export async function publicGroups(slug: string): Promise<PublicGroup[]> {
            g.frequency,
            g.location,
            nullif(concat_ws(', ', g.address_line1, g.city, g.region, g.postal_code), '') as address,
+           (g.address_line1 is not null and g.address_line1 <> ''
+             and coalesce(nullif(g.city, ''), nullif(g.postal_code, '')) is not null) as mappable,
            g.for_whom as "forWhom",
            g.online,
            g.children_welcome as "childrenWelcome",

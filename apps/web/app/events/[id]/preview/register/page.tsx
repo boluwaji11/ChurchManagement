@@ -6,22 +6,18 @@ import {
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
-import { EventPage } from "@/components/event-page";
+import { EventRegisterPage } from "@/components/event-register-page";
+import { churchNow } from "@/lib/church-now";
 
 export const dynamic = "force-dynamic";
 
 /**
- * R14.2. The public page, before anybody else can see it.
+ * R14.2, R14.6. The registration page, before anybody else can see it.
  *
- * A church writing a camp page wants to look at it the way the congregation
- * will, and a draft has no public link to look at. This renders the same
- * component the public page renders, from the church's own session, so what is
- * previewed and what is published cannot drift apart.
- *
- * Read through the tenant context rather than the public query, which is what
- * lets a draft be previewed without opening drafts to the open web.
+ * Drawn from the church's own session so a draft can be walked through, and
+ * refusing to send, so looking at it takes no places.
  */
-export default async function PreviewEventPage({
+export default async function PreviewRegisterPage({
   params,
   searchParams,
 }: {
@@ -95,17 +91,23 @@ export default async function PreviewEventPage({
     capacity: event.capacity,
     showCapacity: event.showCapacity,
     going: event.going,
-    state: event.takesRegistrations && form ? "open" : "none",
+    state: "open",
     formSlug: form?.slug ?? null,
     questions: form?.fields ?? [],
   };
 
+  const clock = churchNow(profile?.timezone ?? "America/Chicago");
+
   return (
-    <EventPage
+    <EventRegisterPage
       event={shown}
+      churchSlug={session.tenantSlug}
+      eventSlug={event.slug}
+      today={clock.date}
       coverUrl={await sign(event.coverKey)}
       logoUrl={await sign(profile?.logoKey ?? null)}
-      registerHref={`/events/${event.id}/preview/register?church=${session.tenantSlug}`}
+      backHref={`/events/${event.id}/preview?church=${session.tenantSlug}`}
+      preview
       banner={
         <div
           className="px-4 py-2 text-center text-caption font-medium"

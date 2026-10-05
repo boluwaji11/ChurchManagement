@@ -2,29 +2,28 @@ import { notFound } from "next/navigation";
 import { publicEvent, publicChurchTimezone } from "@hearth/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
-import { EventPage } from "@/components/event-page";
+import { EventRegisterPage } from "@/components/event-register-page";
 
 export const dynamic = "force-dynamic";
 
 /**
- * R14.2. The event page a church links to from its own website.
+ * R14.2, R14.6. Taking a place at an event, from the open web.
  *
- * Whoever follows it has no account and should not need one to say they are
- * coming to the picnic.
+ * The registration belongs to the event rather than to the form behind it, so
+ * the reader never leaves the thing they are signing up for. The form supplies
+ * the questions, the event supplies the page.
  */
-export default async function PublicEventPage({
+export default async function RegisterPage({
   params,
 }: {
   params: Promise<{ slug: string; event: string }>;
 }) {
   const { slug, event } = await params;
 
-  // The church's own date, so an event closing on the 6th is open all of the
-  // 6th wherever the reader happens to be.
   const clock = churchNow(await publicChurchTimezone(slug));
-
   const found = await publicEvent(slug, event, clock.date, clock.time);
-  if (!found) notFound();
+  // An announcement has nothing to register for, so there is no page here.
+  if (!found || found.state === "none") notFound();
 
   const supabase = await supabaseServer();
   const sign = async (key: string | null) => {
@@ -34,11 +33,14 @@ export default async function PublicEventPage({
   };
 
   return (
-    <EventPage
+    <EventRegisterPage
       event={found}
+      churchSlug={slug}
+      eventSlug={event}
+      today={clock.date}
       coverUrl={await sign(found.coverKey)}
       logoUrl={await sign(found.church.logoKey)}
-      registerHref={`/e/${slug}/${event}/register`}
+      backHref={`/e/${slug}/${event}`}
     />
   );
 }

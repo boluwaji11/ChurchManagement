@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@hearth/ui";
 import { Markdown } from "@/components/markdown";
 import { longDate, readableTime } from "@/lib/dates";
-import { oneLineAddress } from "@/lib/address";
+import { oneLineAddress, directionsLink } from "@/lib/address";
 
 /**
  * R14.2. An event as the open web sees it.
@@ -37,14 +37,16 @@ export function EventPage({
     ? t("event.toDate", { date: longDate(event.endsOn) })
     : null;
 
-  const address = oneLineAddress({
+  const place = {
     line1: event.addressLine1 ?? "",
     line2: event.addressLine2 ?? "",
     city: event.city ?? "",
     region: event.region ?? "",
     postalCode: event.postalCode ?? "",
     country: event.country ?? "",
-  });
+  };
+  const address = oneLineAddress(place);
+  const directions = directionsLink(place, event.location);
 
   const left = event.capacity === null || !event.showCapacity
     ? null
@@ -85,10 +87,13 @@ export function EventPage({
             className="aspect-[16/9] w-full rounded-[14px] object-cover"
           />
         ) : (
+          /* No picture, so the event's own colour fills the same space the
+             picture would have. A page that opens on a hairline opens on
+             nothing. */
           <span
             aria-hidden
-            className="block h-2.5 w-full rounded-full"
-            style={{ background: `var(--hue-${event.hue}-500)` }}
+            className="block aspect-[16/9] w-full rounded-[14px]"
+            style={{ background: `var(--hue-${event.hue}-tint)` }}
           />
         )}
 
@@ -109,6 +114,19 @@ export function EventPage({
               {event.location || address ? (
                 <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
                   {[event.location, address].filter(Boolean).join(", ")}
+                  {directions ? (
+                    <>
+                      {" "}
+                      <a
+                        href={directions}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        {t("common.directions")}
+                      </a>
+                    </>
+                  ) : null}
                 </p>
               ) : null}
               {left !== null && event.state === "open" ? (

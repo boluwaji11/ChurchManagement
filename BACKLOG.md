@@ -490,10 +490,10 @@ is recorded, which the notes table already does.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-177 | The event record and the public event page | R14.1, R14.2 | Active |
-| HRT-178 | Free registration, capacity, and a waitlist that promotes when a place frees | R14.4 | New |
-| HRT-179 | Custom questions per registrant, reusing the form logic | R14.5 | New |
-| HRT-180 | Family registration in one flow, several household members and one submission | R14.6 | New |
+| HRT-177 | The event record and the public event page | R14.1, R14.2 | Resolved |
+| HRT-178 | Free registration, capacity, and a waitlist that promotes when a place frees | R14.4 | Resolved |
+| HRT-179 | Custom questions per registrant, reusing the form logic | R14.5 | Resolved |
+| HRT-180 | Family registration in one flow, several household members and one submission | R14.6 | Resolved |
 | HRT-181 | Recurring events and event series | R14.9 | New |
 | HRT-182 | Event check-in through the same station, with badges and rosters | R14.10 | New |
 | HRT-183 | Attendee export, printed roster, and the emergency contact sheet | R14.12 | New |

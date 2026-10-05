@@ -6,6 +6,7 @@ import { Card } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { supabaseServer } from "@/lib/supabase/server";
+import { mapsHref } from "@/lib/address";
 import { GroupLine } from "../line";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +61,22 @@ export default async function PublicGroupPage({
           <GroupLine group={group} />
 
           {group.address ? (
-            <span className="text-[length:var(--d-text-body)] text-fg">{group.address}</span>
+            <span className="text-[length:var(--d-text-body)] text-fg">
+              {group.address}
+              {group.mappable ? (
+                <>
+                  {" "}
+                  <a
+                    href={mapsHref([group.location, group.address].filter(Boolean).join(", "))}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {t("common.directions")}
+                  </a>
+                </>
+              ) : null}
+            </span>
           ) : null}
 
           {group.description ? (

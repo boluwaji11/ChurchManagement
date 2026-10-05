@@ -14,7 +14,7 @@ import { requireSession } from "@/lib/session";
 import { GroupBanner } from "../banner";
 import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow, hasHappened } from "@/lib/church-now";
-import { toAddress, oneLineAddress } from "@/lib/address";
+import { toAddress, oneLineAddress, directionsLink } from "@/lib/address";
 import { JoinButton } from "./join-button";
 import { ManageGroup } from "./manage";
 import { GroupDetail, type DetailMeeting } from "./detail";
@@ -303,6 +303,17 @@ export default async function GroupPage({
         ]
           .filter(Boolean)
           .join("\n")}
+        directions={directionsLink(
+          toAddress({
+            line1: group.addressLine1,
+            line2: group.addressLine2,
+            city: group.city,
+            region: group.region,
+            postalCode: group.postalCode,
+            country: group.country,
+          }),
+          group.location,
+        )}
         requests={requests.map((one) => ({ id: one.id, personName: one.personName }))}
         members={roster
           .filter((one) => !one.leftOn)
