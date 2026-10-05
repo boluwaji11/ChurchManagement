@@ -317,7 +317,7 @@ export default async function GroupPage({
          */
         join={
           group.mine ? (
-            <Badge tone="success">{t("find.member")}</Badge>
+            <Badge tone="success"><Check aria-hidden /> {t("find.member")}</Badge>
           ) : group.requested === "pending" ? (
             <Badge tone="neutral"><Check aria-hidden /> {t("find.asked")}</Badge>
           ) : group.requested === "declined" ? (
