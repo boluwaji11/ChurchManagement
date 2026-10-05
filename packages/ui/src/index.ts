@@ -24,6 +24,9 @@ export { TimePicker, parseTime, formatTime, type TimePickerProps, type TimePicke
 export { Tooltip, TooltipProvider } from "./components/tooltip";
 export { Dialog, DialogTrigger, DialogClose, DialogContent, DialogFooter } from "./components/dialog";
 export { Sheet, SheetTrigger, SheetClose, SheetContent } from "./components/sheet";
+export {
+  Popover, PopoverTrigger, PopoverAnchor, PopoverClose, PopoverContent,
+} from "./components/popover";
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/tabs";
 export { Banner, type BannerProps } from "./components/banner";
 export { CriticalBanner, CodeDisplay, OfflineBar, BlockingInterrupt } from "./components/station";

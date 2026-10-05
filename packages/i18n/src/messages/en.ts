@@ -2396,6 +2396,7 @@ export const en = {
   "report.row.attendance": "times present",
   "report.row.followups": "follow-ups",
   "report.allOf": "No filters applied",
+  "report.by": "by {field}",
   "report.addFilter": "Add a condition",
   "report.removeFilter": "Remove this condition",
   "report.field": "Field",
