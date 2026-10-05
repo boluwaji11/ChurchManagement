@@ -494,7 +494,10 @@ export async function groupPage(
   const [found] = await findGroups(db, { personId: opts.personId, manage: opts.manage }).then((all) =>
     all.filter((g) => g.id === id || g.slug === id),
   );
+  // Found by slug or by id, so everything after this works from the record's
+  // own id rather than from whatever was in the URL.
   if (!found) return null;
+  const groupId = found.id;
 
   const [extra] = await db
     .select({
@@ -509,7 +512,7 @@ export async function groupPage(
     })
     .from(groups)
     .leftJoin(groupTypes, eq(groupTypes.id, groups.typeId))
-    .where(eq(groups.id, id))
+    .where(eq(groups.id, groupId))
     .limit(1);
 
   const leaders = await db
@@ -523,7 +526,7 @@ export async function groupPage(
     .innerJoin(people, eq(people.id, groupMemberships.personId))
     .where(
       and(
-        eq(groupMemberships.groupId, id),
+        eq(groupMemberships.groupId, groupId),
         isNull(groupMemberships.leftOn),
         inArray(groupMemberships.role, ["leader", "coleader"]),
       ),
@@ -538,7 +541,7 @@ export async function groupPage(
       )`,
     })
     .from(groupMeetings)
-    .where(and(eq(groupMeetings.groupId, id), eq(groupMeetings.notHeld, false)))
+    .where(and(eq(groupMeetings.groupId, groupId), eq(groupMeetings.notHeld, false)))
     .orderBy(desc(groupMeetings.metOn))
     .limit(3);
 
