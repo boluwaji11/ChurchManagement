@@ -218,7 +218,7 @@ export default async function CalendarPage({
                 const body = (
                   <>
                     <div
-                      className="text-[13px] font-medium group-hover:underline"
+                      className="text-[13px] font-medium"
                       style={{ color: `var(--hue-${entry.hue}-key)` }}
                     >
                       {entry.title}

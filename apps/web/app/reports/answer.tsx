@@ -9,7 +9,7 @@
  */
 import * as React from "react";
 import { t } from "@hearth/i18n";
-import type { ReportSpec } from "@hearth/db/rules";
+import { VIEW_NEEDS, type ReportSpec } from "@hearth/db/rules";
 import { Table, Thead, Tr, Th, Td } from "@hearth/ui";
 import { Columns, Donut, Line, RowBars, type Slice } from "./charts";
 
@@ -42,11 +42,16 @@ export function Answer({
   };
   rows?: number;
 }) {
-  const chart = (result.chart ?? []).map((one, i) => ({
+  // Each visualization says how many answers it can carry before it stops
+  // being readable, and the gallery says so on screen rather than the chart
+  // quietly drawing forty slices nobody can tell apart.
+  const limit = VIEW_NEEDS[spec.view].readableUpTo;
+  const all = (result.chart ?? []).map((one, i) => ({
     key: `${one.label}-${i}`,
     label: read(one.label),
     value: one.value,
   }));
+  const chart = limit ? all.slice(0, limit) : all;
 
   if (spec.view === "number") {
     const total = result.chart
@@ -63,7 +68,7 @@ export function Answer({
     return (
       <Columns
         series={[{ label: t("report.measure.value"), hue: "indigo" }]}
-        groups={chart.slice(0, 24).map((one) => ({
+        groups={chart.map((one) => ({
           key: one.key, label: one.label, values: [one.value],
         }))}
       />
@@ -71,11 +76,11 @@ export function Answer({
   }
 
   if (spec.view === "rows" && chart.length > 0) {
-    return <RowBars rows={chart.slice(0, 20)} hue="indigo" />;
+    return <RowBars rows={chart} hue="indigo" />;
   }
 
   if (spec.view === "donut" && chart.length > 0) {
-    const slices: Slice[] = chart.slice(0, 9).map((one, i) => ({
+    const slices: Slice[] = chart.map((one, i) => ({
       key: one.key,
       label: one.label,
       value: one.value,

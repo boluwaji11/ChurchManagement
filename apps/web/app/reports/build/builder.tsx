@@ -2,10 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import {
-  BarChart3, ChartColumnBig, ChartLine, ChartPie, ChevronDown, Database,
-  GripVertical, Hash, ListFilter, Plus, SlidersHorizontal, Table2, X,
-} from "lucide-react";
+import { ChevronDown, Database, GripVertical, ListFilter, Plus, SlidersHorizontal, X } from "lucide-react";
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   DatePicker, Spinner,
@@ -13,13 +10,14 @@ import {
 } from "@hearth/ui";
 import {
   SUBJECTS, SUBJECT_KEYS, OPERATORS, BARE_OPERATORS, GROUPED_VIEWS, fieldOf,
-  type ReportSpec, type SubjectKey, type Condition, type MeasureKind, type View,
+  type ReportSpec, type SubjectKey, type Condition, type MeasureKind,
 } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
 import { preview, saveReport, type PreviewResult } from "./actions";
 import { Answer } from "../answer";
 import { FieldsPanel } from "./fields";
 import { Shelf, type Pill } from "./shelf";
+import { Gallery } from "./gallery";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -42,17 +40,6 @@ const blank = (subject: SubjectKey): ReportSpec => ({
   sort: null,
   view: "table",
 });
-
-const VIEW_ICONS = {
-  table: Table2,
-  number: Hash,
-  bar: ChartColumnBig,
-  rows: BarChart3,
-  donut: ChartPie,
-  line: ChartLine,
-} as const;
-
-const VIEW_ORDER: View[] = ["table", "number", "bar", "rows", "donut", "line"];
 
 /** What a control on the toolbar looks like. */
 const CHIP =
@@ -411,35 +398,6 @@ export function Builder({
           </>
         )}
 
-        <span className="flex-1" />
-
-        <Rule />
-
-        {/* The visualization, as the icons themselves. It is a choice of six,
-            and six icons read faster than a menu that hides five of them. */}
-        <div className="flex items-center gap-0.5 rounded-[10px] bg-sunken p-0.5">
-          {VIEW_ORDER.filter((view) => counted || !GROUPED_VIEWS.has(view)).map((view) => {
-            const Icon = VIEW_ICONS[view];
-            const on = spec.view === view;
-            return (
-              <button
-                key={view}
-                type="button"
-                onClick={() => set({ view })}
-                aria-pressed={on}
-                aria-label={t(`report.view.${view}` as never)}
-                title={t(`report.view.${view}` as never)}
-                className={
-                  on
-                    ? "grid size-8 cursor-pointer place-items-center rounded-lg bg-surface text-fg shadow-sm"
-                    : "grid size-8 cursor-pointer place-items-center rounded-lg text-fg-subtle hover:text-fg"
-                }
-              >
-                <Icon className="size-4" aria-hidden />
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       <div className="flex flex-wrap items-start gap-4">
@@ -561,6 +519,25 @@ export function Builder({
         ) : null}
           </section>
         </div>
+
+        <Gallery
+          view={spec.view}
+          groupBy={spec.groupBy}
+          answers={result?.chart?.length ?? result?.rows.length ?? 0}
+          onPick={(view) =>
+            set(
+              GROUPED_VIEWS.has(view) && !spec.groupBy
+                ? // Picking a chart that needs a grouping is how somebody says
+                  // they want one, so the first field that can carry it goes on
+                  // the shelf rather than the chart quietly refusing.
+                  {
+                    view,
+                    groupBy: def.fields.find((one) => one.groupable)?.key ?? null,
+                    measure: spec.measure ?? { kind: "rows" },
+                  }
+                : { view },
+            )}
+        />
       </div>
     </div>
   );

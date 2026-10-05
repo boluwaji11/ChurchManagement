@@ -242,3 +242,26 @@ export function cleanSpec(raw: unknown): ReportSpec {
     view,
   };
 }
+
+/** What a visualization needs on its shelves before it can draw anything. */
+export interface ViewNeeds {
+  /** Whether the report has to be grouped by a field. */
+  grouped: boolean;
+  /** How many answers it can show before it stops being readable. */
+  readableUpTo?: number;
+}
+
+export const VIEW_NEEDS: Record<View, ViewNeeds> = {
+  table: { grouped: false },
+  number: { grouped: false },
+  bar: { grouped: true, readableUpTo: 24 },
+  rows: { grouped: true, readableUpTo: 20 },
+  // A ring of thirty slices is a ring nobody can read, and the answer to that
+  // is to say so rather than to draw it.
+  donut: { grouped: true, readableUpTo: 9 },
+  line: { grouped: true, readableUpTo: 60 },
+};
+
+/** Whether this report can be drawn this way as it stands. */
+export const viewFits = (view: View, spec: { groupBy: string | null }): boolean =>
+  !VIEW_NEEDS[view].grouped || Boolean(spec.groupBy);

@@ -2439,6 +2439,8 @@ export const en = {
   "report.dropDimension": "Drag a dimension here",
   "report.dropMeasure": "Drag a measure here",
   "report.valuesNeedGroup": "Group by a dimension first",
+  "report.needsGroup": "Needs a Group by",
+  "report.tooMany": "Showing the top {shown} of {answers}",
   "report.removeFromShelf": "Take {field} off",
   "report.findMeasure": "Find a measure",
   "report.noField": "No field by that name",
