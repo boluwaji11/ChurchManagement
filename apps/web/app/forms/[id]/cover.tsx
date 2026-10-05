@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Trash2, Upload } from "lucide-react";
+import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
 import { Button, IconButton, Working, ALL_HUES } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearFormCover, recolourForm } from "../actions";
@@ -131,11 +131,17 @@ export function FormCover({
             onClick={() =>
               void recolourForm(formId, one, church).then(() => router.refresh())}
             className={
-              "size-6 cursor-pointer rounded-full border-2 transition-colors "
+              "grid size-6 cursor-pointer place-items-center rounded-full border-2 transition-colors "
               + (hue === one ? "border-fg" : "border-transparent hover:border-line-strong")
             }
             style={{ background: `var(--hue-${one}-500)` }}
-          />
+          >
+            {/* The ring says which one, and the check says it again for anybody
+                who cannot pick the ring out of twelve coloured circles. */}
+            {hue === one ? (
+              <Check className="size-3.5 text-white" strokeWidth={3} aria-hidden />
+            ) : null}
+          </button>
         ))}
       </div>
     </div>

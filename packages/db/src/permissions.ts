@@ -57,6 +57,8 @@ export const PERMISSIONS = [
   "followups.manage",
   "groups.manage",
   "services.manage",
+  // R14.x. What the church is putting on, and who has a place at it.
+  "events.manage",
   "teams.manage",
   "teams.lead",
 ] as const;
@@ -76,13 +78,13 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
     "church.manage", "church.fields", "church.tags",
     "checkin.rooms", "checkin.stations", "checkin.run", "checkin.supervise",
     "checkin.incidents", "checkin.checks",
-    "followups.manage", "groups.manage", "services.manage",
+    "followups.manage", "groups.manage", "services.manage", "events.manage",
     "teams.manage", "teams.lead",
   ],
   staff: [
     "people.edit", "people.households",
     "checkin.run", "checkin.supervise",
-    "followups.manage", "groups.manage", "services.manage",
+    "followups.manage", "groups.manage", "services.manage", "events.manage",
     "teams.manage", "teams.lead",
   ],
   finance: ["giving.amounts"],

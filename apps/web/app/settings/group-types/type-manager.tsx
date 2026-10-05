@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus, Archive, Undo2, ChevronUp, ChevronDown } from "lucide-react";
+import { Pencil, Plus, Archive, Undo2, ChevronUp, ChevronDown, Check } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, HueDot, IconButton, Input, Textarea, ALL_HUES, type Hue,
@@ -215,11 +215,15 @@ function TypeDialog({
                   aria-pressed={hue === one}
                   onClick={() => setHue(one)}
                   className={
-                    "size-9 rounded-full border-2 transition-colors " +
+                    "grid size-9 place-items-center rounded-full border-2 transition-colors " +
                     (hue === one ? "border-fg" : "border-transparent hover:border-line-strong")
                   }
                   style={{ background: `var(--hue-${one}-500)` }}
-                />
+                >
+                  {hue === one ? (
+                    <Check className="size-4 text-white" strokeWidth={3} aria-hidden />
+                  ) : null}
+                </button>
               ))}
             </div>
           </div>

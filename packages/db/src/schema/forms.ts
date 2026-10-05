@@ -39,6 +39,18 @@ export const forms = pgTable(
     coverKey: text("cover_key"),
     /** The part of the public link that names this form. */
     slug: text("slug").notNull(),
+    /**
+     * R14.5. The event whose registration questions these are, or null.
+     *
+     * A form with an event belongs to that event's Register section and never
+     * shows in the Forms list, which keeps that list the standalone forms a
+     * church actually goes looking for.
+     *
+     * No foreign key, because the event points at the form as well and two
+     * references in a circle make either row impossible to insert first. The
+     * event's reference is the one that cascades.
+     */
+    eventId: uuid("event_id"),
     /** "draft", "open" or "closed". A draft has no public link. */
     status: text("status").notNull().default("draft"),
     /**
