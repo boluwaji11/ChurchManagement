@@ -2053,7 +2053,7 @@ export const en = {
   "event.status.cancelled": "Cancelled",
   "event.status.archived": "Put away",
   "event.published": "Published",
-  "event.draft": "In draft",
+  "event.draft": "Draft",
   "event.cancelled": "Cancelled",
   "event.past": "Been and gone",
   "event.registered.one": "{count} registered",
