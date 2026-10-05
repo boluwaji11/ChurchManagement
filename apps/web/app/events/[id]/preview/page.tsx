@@ -113,9 +113,7 @@ export default async function PreviewEventPage({
           className="px-4 py-2 text-center text-caption font-medium"
           style={{ background: "var(--hue-amber-tint)", color: "var(--hue-amber-key)" }}
         >
-          {event.status === "published"
-            ? t("event.previewingLive")
-            : t("event.previewing")}
+          {t("event.previewing")}
         </div>
       }
     />
