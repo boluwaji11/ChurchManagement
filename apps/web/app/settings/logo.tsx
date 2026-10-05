@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { Pencil, RefreshCw, Trash2 } from "lucide-react";
 import {
   Banner, Button, IconButton, Dialog, DialogTrigger, DialogContent, DialogFooter, Working,
 } from "@hearth/ui";
@@ -139,9 +139,27 @@ export function ChurchLogo({
               disabled={!canEdit || busy}
               onClick={() => input.current?.click()}
               aria-label={t("church.logo.upload")}
-              className="grid size-14 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg enabled:cursor-pointer enabled:hover:brightness-110"
+              className="group relative grid size-14 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg enabled:cursor-pointer"
             >
               {churchName.trim().charAt(0).toUpperCase()}
+
+              {/* R24.6. The letter is a square of colour and nothing about it
+                  says it can be pressed, so it carries the pencil the rest of
+                  the product uses for editing, and dims under the pointer the
+                  way a photograph does. */}
+              {canEdit ? (
+                <>
+                  <span className="absolute inset-0 grid place-items-center rounded-xl bg-fg/0 transition-colors group-hover:bg-fg/45 group-focus-visible:bg-fg/45">
+                    <Pencil
+                      className="size-5 text-surface opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                      aria-hidden
+                    />
+                  </span>
+                  <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full border border-line bg-surface text-fg shadow-sm">
+                    <Pencil className="size-2.5" aria-hidden />
+                  </span>
+                </>
+              ) : null}
             </button>
             {canEdit ? (
               <span className="text-center text-[11px] leading-tight text-fg-subtle">
