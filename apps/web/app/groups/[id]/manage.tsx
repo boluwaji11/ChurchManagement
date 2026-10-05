@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Archive } from "lucide-react";
+import { Pencil, Archive, Eye } from "lucide-react";
 import Link from "next/link";
-import { Banner, IconButton } from "@hearth/ui";
+import { Banner, Button, IconButton } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { archive } from "../actions";
 import { ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-form";
@@ -32,6 +32,18 @@ export function ManageGroup({
   return (
     <div className="flex items-center gap-1" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.title")}>{error}</Banner> : null}
+
+      {/* R9.5. The public page in a tab of its own, so a draft can be looked
+          at the way the congregation will see it. */}
+      <Button variant="secondary" asChild className="h-[34px] min-h-0 px-3 text-[13px]">
+        <Link
+          href={`/groups/${group.slug}/preview?church=${church}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Eye className="size-4" aria-hidden /> {t("event.preview")}
+        </Link>
+      </Button>
 
       {/* A link rather than a button, because it opens a page. Shaped from the
           same tokens the IconButton beside it uses, so the pair reads as one. */}

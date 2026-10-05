@@ -10,7 +10,7 @@ import {
 import { t, plural } from "@hearth/i18n";
 import type { Meeting, MeetingPerson } from "@hearth/db";
 import { Markdown } from "@/components/markdown";
-import { decide, setOpenToJoin, leave } from "../actions";
+import { decide, setOpenToJoin, leave, publishGroup } from "../actions";
 import { AddMember } from "../add-member";
 import { Picker } from "@/components/picker";
 import { record, open as openMeeting } from "./meeting-actions";
@@ -59,6 +59,7 @@ export function GroupDetail({
   leaders,
   location,
   directions,
+  status,
   requests,
   members,
   meeting,
@@ -84,6 +85,8 @@ export function GroupDetail({
   location: string | null;
   /** R9.2. Google Maps, where the address is one a map can find. */
   directions: string | null;
+  /** R9.5. "draft" while the open web cannot see it yet. */
+  status: "draft" | "published";
   requests: DetailRequest[];
   members: DetailMember[];
   meeting: Meeting | null;
@@ -115,18 +118,36 @@ export function GroupDetail({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
-      {/* Whether it is taking people, and the one press that changes it. */}
+      {/* Whether the open web can see it, and whether it is taking people. */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
         <span
           className="size-2 shrink-0 rounded-full"
-          style={{ background: openToJoin ? "var(--hue-fern-500)" : "var(--fg-subtle)" }}
+          style={{
+            background: status === "draft"
+              ? "var(--hue-amber-500)"
+              : openToJoin ? "var(--hue-fern-500)" : "var(--fg-subtle)",
+          }}
         />
         <span className="min-w-[140px] flex-1 font-medium text-fg">
-          {openToJoin ? t("group.openText") : t("group.closedText")}
+          {status === "draft"
+            ? t("group.draftText")
+            : openToJoin ? t("group.openText") : t("group.closedText")}
         </span>
         {join}
 
         {canManage ? (
+          <Button
+            variant={status === "draft" ? "primary" : "secondary"}
+            disabled={pending}
+            onClick={() =>
+              run(() => publishGroup(groupId, status === "draft" ? "published" : "draft", church))}
+            className="h-[34px] min-h-0 px-3 text-[13px]"
+          >
+            {status === "draft" ? t("group.publish") : t("group.unpublish")}
+          </Button>
+        ) : null}
+
+        {canManage && status === "published" ? (
           <Button
             variant="secondary"
             disabled={pending}

@@ -65,11 +65,15 @@ export interface GroupType {
   archivedAt: Date | null;
 }
 
+export type GroupStatus = "draft" | "published";
+
 export interface Group {
   id: string;
   name: string;
   /** R9.2. The readable part of its address. */
   slug: string;
+  /** R9.5. Whether the open web can see it yet. */
+  status: GroupStatus;
   description: string | null;
   typeId: string | null;
   typeName: string | null;
@@ -344,6 +348,7 @@ const COLUMNS = {
   id: groups.id,
   name: groups.name,
   slug: groups.slug,
+  status: sql<GroupStatus>`${groups.status}`,
   description: groups.description,
   typeId: groups.typeId,
   dayOfWeek: groups.dayOfWeek,
@@ -455,6 +460,8 @@ export async function createGroup(db: Tx, actor: WriteActor, input: GroupInput):
       listed: input.listed ?? true,
       ...values,
       slug: await freeSlug(db, values.name),
+      // R9.5. Written first, published when the church is ready.
+      status: "draft",
     })
     .returning({ id: groups.id });
 
@@ -887,4 +894,27 @@ export async function countGroups(db: Tx): Promise<number> {
     .from(groups)
     .where(sql`${groups.archivedAt} is null`);
   return row?.n ?? 0;
+}
+
+/**
+ * R9.5. Publishes a group, or takes it back to a draft.
+ *
+ * Taking it back hides it from the finder and from its own public page. The
+ * roster, the attendance and everything else the church holds stay exactly
+ * where they were.
+ */
+export async function setGroupStatus(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  status: GroupStatus,
+): Promise<void> {
+  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+
+  const changed = await db
+    .update(groups)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(groups.id, id))
+    .returning({ id: groups.id });
+  if (changed.length === 0) throw new InvalidInputError("group.error.missing");
 }

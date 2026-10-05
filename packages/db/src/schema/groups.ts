@@ -65,6 +65,13 @@ export const groups = pgTable(
     name: text("name").notNull(),
     /** R9.2. The readable part of its address, unique within the church. */
     slug: text("slug").notNull(),
+    /**
+     * R9.5. "draft" or "published".
+     *
+     * The finder and the group's own public page are places a church shows the
+     * world, so a group is written first and published when it is ready.
+     */
+    status: text("status").notNull().default("draft"),
     /** What it is for, in the leader's words. Shown in the finder. */
     description: text("description"),
     /** 0 Sunday to 6 Saturday. Null for a group with no weekly pattern. */
@@ -137,6 +144,7 @@ export const groups = pgTable(
     index("group_tenant_idx").on(t.tenantId),
     index("group_type_idx").on(t.tenantId, t.typeId),
     index("group_day_idx").on(t.tenantId, t.dayOfWeek),
+    index("group_status_idx").on(t.tenantId, t.status),
     uniqueIndex("group_name_unique").on(t.tenantId, t.name),
     uniqueIndex("group_slug_unique").on(t.tenantId, t.slug),
   ],

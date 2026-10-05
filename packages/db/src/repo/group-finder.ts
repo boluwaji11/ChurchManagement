@@ -33,6 +33,8 @@ export interface FoundGroup {
   id: string;
   /** R9.2. The readable part of its address. */
   slug: string;
+  /** R9.5. "draft" while the open web cannot see it yet. */
+  status: "draft" | "published";
   name: string;
   description: string | null;
   typeId: string | null;
@@ -153,6 +155,7 @@ export async function findGroups(
       childrenWelcome: groups.childrenWelcome,
       openToJoin: groups.openToJoin,
       listed: groups.listed,
+      status: sql<"draft" | "published">`${groups.status}`,
       photoKey: groups.photoKey,
       archivedAt: groups.archivedAt,
       typeName: groupTypes.name,
@@ -206,6 +209,7 @@ export async function findGroups(
     return {
       id: row.id,
       slug: row.slug,
+      status: row.status,
       name: row.name,
       description: row.description,
       typeId: row.typeId,
@@ -488,7 +492,7 @@ export async function groupPage(
   opts: { personId?: string | null; manage?: boolean } = {},
 ): Promise<GroupPage | null> {
   const [found] = await findGroups(db, { personId: opts.personId, manage: opts.manage }).then((all) =>
-    all.filter((g) => g.id === id),
+    all.filter((g) => g.id === id || g.slug === id),
   );
   if (!found) return null;
 

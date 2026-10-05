@@ -3,7 +3,7 @@
 import {
   withTenant, createGroup, updateGroup, setGroupArchived,
   addToGroup, removeFromGroup, lookupPeople, getChurch,
-  requestToJoin, decideRequest, setGroupPhoto, setGroupOpen,
+  requestToJoin, decideRequest, setGroupPhoto, setGroupOpen, setGroupStatus,
   type GroupRole,
 } from "@hearth/db";
 import { explain } from "@/lib/explain";
@@ -217,6 +217,21 @@ export async function setOpenToJoin(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => setGroupOpen(tx, actor, id, open));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R9.5. Publishes a group, or takes it back to a draft. */
+export async function publishGroup(
+  id: string,
+  status: "draft" | "published",
+  church?: string,
+): Promise<GroupResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => setGroupStatus(tx, actor, id, status));
     return {};
   } catch (error) {
     return { error: explain(error) };

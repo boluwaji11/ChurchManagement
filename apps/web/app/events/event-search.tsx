@@ -54,8 +54,8 @@ export function EventSearch({
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label={t("common.search")}
-              placeholder={t("common.search")}
+              aria-label={t("event.search")}
+              placeholder={t("event.search")}
               autoComplete="off"
               className="pl-9"
             />

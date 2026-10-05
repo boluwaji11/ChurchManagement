@@ -42,7 +42,7 @@ export async function GET(
       if (!event) return null;
       return {
         event,
-        registrations: await listRegistrations(tx, id),
+        registrations: await listRegistrations(tx, event.id),
         questions: event.formId ? (await getForm(tx, event.formId))?.fields ?? [] : [],
       };
     },

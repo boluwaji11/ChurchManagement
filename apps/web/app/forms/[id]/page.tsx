@@ -41,16 +41,21 @@ export default async function FormPage({
 
   const result = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
-    async (tx) => ({
-      form: await getForm(tx, id),
-      responses: reading
-        ? await listSubmissions(tx, id, { limit: PER_PAGE, offset: (at - 1) * PER_PAGE })
+    async (tx) => {
+      // Found by its readable address or by its id, so everything after this
+      // works from the record's own id rather than from what was in the URL.
+      const form = await getForm(tx, id);
+      return {
+      form,
+      responses: reading && form
+        ? await listSubmissions(tx, form.id, { limit: PER_PAGE, offset: (at - 1) * PER_PAGE })
         : [],
-      total: reading ? await countSubmissions(tx, id) : 0,
+      total: reading && form ? await countSubmissions(tx, form.id) : 0,
       // R4.4. The church's own person fields, so a question can be told to
       // write its answer onto one.
       personFields: await listCustomFields(tx, "person"),
-    }),
+      };
+    },
   );
   if (!result.form) notFound();
 

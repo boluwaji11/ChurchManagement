@@ -78,9 +78,9 @@ export default async function GroupPage({
     let meeting: Meeting | null = null;
     let people: MeetingPerson[] = [];
     let metOn = "";
-    if (manage || (await canRecordFor(tx, actor, id))) {
+    if (manage || (await canRecordFor(tx, actor, group.id))) {
       metOn = lastMeetingDay(group.dayOfWeek, today);
-      const opened = await openMeeting(tx, actor, { groupId: id, metOn });
+      const opened = await openMeeting(tx, actor, { groupId: group.id, metOn });
       meeting = opened.meeting;
       people = opened.people;
     }
@@ -93,9 +93,9 @@ export default async function GroupPage({
       meeting,
       people,
       types: manage ? await listGroupTypes(tx) : [],
-      roster: await groupRoster(tx, id),
+      roster: await groupRoster(tx, group.id),
       requests: manage
-        ? (await pendingRequests(tx, actor)).filter((one) => one.groupId === id)
+        ? (await pendingRequests(tx, actor)).filter((one) => one.groupId === group.id)
         : [],
     };
   });
@@ -224,14 +224,27 @@ export default async function GroupPage({
           them, on one line until the screen is too narrow for two. */}
       <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
         <div className="flex flex-col gap-2.5">
-          {group.typeName ? (
-            <span
-              className="self-start rounded-full px-2 py-0.5 text-[12px] font-medium"
-              style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
-            >
-              {group.typeName}
-            </span>
-          ) : null}
+          <span className="flex flex-wrap items-center gap-2">
+            {group.status === "draft" ? (
+              <span
+                className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+                style={{
+                  background: "var(--hue-amber-tint)",
+                  color: "var(--hue-amber-key)",
+                }}
+              >
+                {t("event.status.draft")}
+              </span>
+            ) : null}
+            {group.typeName ? (
+              <span
+                className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+                style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+              >
+                {group.typeName}
+              </span>
+            ) : null}
+          </span>
           <div className="font-display text-[36px] leading-[42px] text-balance text-fg">
             {group.name}
           </div>
@@ -258,6 +271,7 @@ export default async function GroupPage({
         groupName={group.name}
         canManage={manage}
         openToJoin={group.openToJoin}
+        status={group.status}
         hue={hue}
         /*
          * R9.5. Where this reader stands with the group.

@@ -48,8 +48,8 @@ export function FormSearch({
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label={t("common.search")}
-              placeholder={t("common.search")}
+              aria-label={t("form.search")}
+              placeholder={t("form.search")}
               autoComplete="off"
               className="pl-9"
             />

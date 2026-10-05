@@ -42,7 +42,7 @@ export default async function EventPage({
     return {
       event: found,
       // R14.12. The roster, and the questions that name its columns.
-      registrations: found.takesRegistrations ? await listRegistrations(tx, id) : [],
+      registrations: found.takesRegistrations ? await listRegistrations(tx, found.id) : [],
       questions: found.formId ? (await getForm(tx, found.formId))?.fields ?? [] : [],
     };
   });

@@ -45,6 +45,8 @@ export interface PublicGroup {
   address: string | null;
   /** R9.5. Whether the address is one a map can find, so a link is worth drawing. */
   mappable: boolean;
+  /** R9.2. The readable part of its address. */
+  slug: string;
   forWhom: string | null;
   online: boolean;
   childrenWelcome: boolean;
@@ -85,6 +87,7 @@ export async function publicGroups(slug: string): Promise<PublicGroup[]> {
   return owner()<PublicGroup[]>`
     select g.id,
            g.name,
+           g.slug,
            g.description,
            gt.name as "typeName",
            gt.hue::text as "typeHue",
@@ -114,14 +117,15 @@ export async function publicGroups(slug: string): Promise<PublicGroup[]> {
       ) m on m.group_id = g.id
      where t.slug = ${slug}
        and g.listed
+       and g.status = 'published'
        and g.archived_at is null
      order by gt.name nulls last, g.name`;
 }
 
-/** R9.5. One published group, for a link straight to it. */
+/** R9.5. One published group, found by its readable address or by its id. */
 export async function publicGroup(slug: string, id: string): Promise<PublicGroup | null> {
   const all = await publicGroups(slug);
-  return all.find((group) => group.id === id) ?? null;
+  return all.find((group) => group.id === id || group.slug === id) ?? null;
 }
 
 /**
