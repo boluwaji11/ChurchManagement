@@ -4,7 +4,7 @@
  * What a service is, as data.
  *
  * One shape serves two sources. A **set list** is built inside Stage by a church
- * that presents without the platform, and a **plan** comes from Hearth over the
+ * that presents without the platform, and a **plan** comes from ConnectApp over the
  * sync API. They carry the same information in the same order, so the deck
  * compiler takes one type and the renderer cannot tell which it was handed.
  *

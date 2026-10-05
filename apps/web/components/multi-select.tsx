@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
-import { cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * Above this many answers, the list gets a box to type in. Below it, reading

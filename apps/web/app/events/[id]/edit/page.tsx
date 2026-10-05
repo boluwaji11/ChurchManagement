@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, getChurch, getEvent, listForms, canManageEvents } from "@hearth/db";
+import { withTenant, getChurch, getEvent, listForms, canManageEvents } from "@connectapp/db";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";

@@ -1,4 +1,4 @@
-import { t, plural } from "@hearth/i18n";
+import { t, plural } from "@connectapp/i18n";
 
 /**
  * R24.6. How long ago, in the words the design uses.

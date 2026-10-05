@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { ArrowRight } from "lucide-react";
-import { Banner, Button, Field, Input } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Button, Field, Input } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { goToCode } from "./actions";
 
 /**

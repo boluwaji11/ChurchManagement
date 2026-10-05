@@ -1,7 +1,7 @@
-import { t, plural } from "@hearth/i18n";
-import type { PublicEvent } from "@hearth/db";
+import { t, plural } from "@connectapp/i18n";
+import type { PublicEvent } from "@connectapp/db";
 import Link from "next/link";
-import { Button } from "@hearth/ui";
+import { Button } from "@connectapp/ui";
 import { Markdown } from "@/components/markdown";
 import { longDate, readableTime } from "@/lib/dates";
 import { oneLineAddress, directionsLink } from "@/lib/address";

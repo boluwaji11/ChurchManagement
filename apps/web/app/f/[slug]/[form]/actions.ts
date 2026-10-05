@@ -1,7 +1,7 @@
 "use server";
 
-import { submitPublicForm } from "@hearth/db";
-import type { FormAnswer } from "@hearth/db/rules";
+import { submitPublicForm } from "@connectapp/db";
+import type { FormAnswer } from "@connectapp/db/rules";
 import { explain } from "@/lib/explain";
 
 /**

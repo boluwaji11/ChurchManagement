@@ -5,9 +5,9 @@ import { Printer } from "lucide-react";
 import {
   Banner, Button, Switch,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import { LABEL_SIZES, type LabelLayout, type LabelSize } from "@hearth/db/rules";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { LABEL_SIZES, type LabelLayout, type LabelSize } from "@connectapp/db/rules";
 import { openLabels } from "../open-labels";
 import { saveLayout } from "./actions";
 

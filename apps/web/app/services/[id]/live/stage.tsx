@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { Play, Square, ChevronLeft, ChevronRight } from "lucide-react";
-import { Banner, Button, Card } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Button, Card } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import type { LiveState } from "@hearth/db";
+import type { LiveState } from "@connectapp/db";
 import { liveNow, begin, move, jumpTo, end } from "./actions";
 
 const TICK = 3000;

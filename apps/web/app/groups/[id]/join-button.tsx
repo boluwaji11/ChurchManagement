@@ -3,8 +3,8 @@
 import * as React from "react";
 import {useRouter } from "next/navigation";
 import {
-  Banner, Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+  Banner, Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { ask } from "../actions";
 
 /** R9.5. Asking, from the group's own page. */

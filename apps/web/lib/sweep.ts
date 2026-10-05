@@ -1,5 +1,5 @@
 import "server-only";
-import { withTenant, getChurch, sweepFollowUps } from "@hearth/db";
+import { withTenant, getChurch, sweepFollowUps } from "@connectapp/db";
 import { churchNow } from "@/lib/church-now";
 
 /**

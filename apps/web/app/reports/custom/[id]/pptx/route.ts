@@ -4,8 +4,8 @@ import {
   withTenant, getChurch, getSavedReport, runReport, canEditPeople, canReadIncidents,
   CHART_HUES, SCREEN_LIMIT,
   type ReportResult, type ReportTile,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { churchLogoUrl } from "@/lib/church-logo";

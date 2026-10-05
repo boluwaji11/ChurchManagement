@@ -4,9 +4,9 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import {
   withTenant, listCelebrations, monthWindow, weekWindow, getChurch, canEditPeople,
   type CelebrationWindow,
-} from "@hearth/db";
-import { HueTag } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { HueTag } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";

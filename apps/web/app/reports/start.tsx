@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogFooter, Field, Input,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { startReport } from "./build/actions";
 
 /**

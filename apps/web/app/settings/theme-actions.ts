@@ -8,10 +8,10 @@ export type Theme = "system" | "light" | "dark";
 export async function setTheme(theme: Theme): Promise<void> {
   const jar = await cookies();
   if (theme === "system") {
-    jar.delete("hearth-theme");
+    jar.delete("connectapp-theme");
     return;
   }
-  jar.set("hearth-theme", theme, {
+  jar.set("connectapp-theme", theme, {
     httpOnly: false,
     sameSite: "lax",
     path: "/",

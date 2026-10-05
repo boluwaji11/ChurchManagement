@@ -1,8 +1,8 @@
 import {
   withTenant, personForUser, getPerson, getPersonForEdit, listCampuses, anniversaryOf,
-} from "@hearth/db";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { cookies } from "next/headers";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
@@ -28,7 +28,7 @@ export default async function ProfilePage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  const theme = ((await cookies()).get("hearth-theme")?.value ?? "system") as Theme;
+  const theme = ((await cookies()).get("connectapp-theme")?.value ?? "system") as Theme;
 
   const result = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },

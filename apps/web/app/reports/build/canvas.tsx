@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { Copy, GripVertical, Trash2 } from "lucide-react";
-import { IconButton, Spinner } from "@hearth/ui";
-import { GRID_COLUMNS, type ReportTile } from "@hearth/db/rules";
-import { t } from "@hearth/i18n";
+import { IconButton, Spinner } from "@connectapp/ui";
+import { GRID_COLUMNS, type ReportTile } from "@connectapp/db/rules";
+import { t } from "@connectapp/i18n";
 import { Answer } from "../answer";
 import type { Part } from "../plot";
 import type { ReportResultish } from "./actions";

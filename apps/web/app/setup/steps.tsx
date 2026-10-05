@@ -4,8 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ArrowRight } from "lucide-react";
-import { Badge, Banner, Button, Card, Separator } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Badge, Banner, Button, Card, Separator } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { skip, putAway } from "./actions";
 
 export interface StepView {

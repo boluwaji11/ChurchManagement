@@ -15,7 +15,7 @@ import type { Archive } from "./archive";
 export async function zipArchive(archive: Archive): Promise<Buffer> {
   const zip = new JSZip();
 
-  zip.file("hearth-export.json", JSON.stringify({ meta: archive.meta, data: archive.data }, null, 2));
+  zip.file("connectapp-export.json", JSON.stringify({ meta: archive.meta, data: archive.data }, null, 2));
 
   const csv = zip.folder("csv");
   for (const [table, content] of Object.entries(archive.csv)) {
@@ -43,23 +43,23 @@ function readme(archive: Archive): string {
 
   return `${archive.meta.church}
 Exported ${archive.meta.exportedAt}
-Hearth archive format ${archive.meta.format}
+ConnectApp archive format ${archive.meta.format}
 
 This is everything. There is no other copy held back, no paid tier that would
-have given you more, and nothing here needs Hearth to read it.
+have given you more, and nothing here needs ConnectApp to read it.
 
 csv/
   One file per table, UTF-8 with a byte order mark so Excel opens it correctly.
   Ids are kept, so the files join back together: members.csv has an id, and
   contact_methods.csv has a member_id pointing at it.
 
-hearth-export.json
+connectapp-export.json
   The same data, with types and nesting intact. This is the file to use if you
   are moving to another system or reading it with a program.
 
 What is in it:
 ${counts}
 ${withheld}
-Licence: Hearth is AGPL-3.0. Your data is yours.
+Licence: ConnectApp is AGPL-3.0. Your data is yours.
 `;
 }

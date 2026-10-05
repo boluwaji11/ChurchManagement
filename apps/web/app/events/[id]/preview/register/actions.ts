@@ -3,7 +3,7 @@
 import {
   withTenant, getChurch, getEvent, registerForEvent, canManageEvents,
   type Registrant,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { explain } from "@/lib/explain";

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { setSpellingResolver, type Spelling } from "@hearth/i18n";
+import { setSpellingResolver, type Spelling } from "@connectapp/i18n";
 
 /**
  * R22.8. The same spelling, in the browser.

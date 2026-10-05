@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
-import { TooltipProvider } from "@hearth/ui";
+import { TooltipProvider } from "@connectapp/ui";
 import "./globals.css";
 
 /**
@@ -15,7 +15,7 @@ const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swa
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap", preload: false });
 
 export const metadata: Metadata = {
-  title: "Hearth",
+  title: "ConnectApp",
   description: "Church management software.",
 };
 
@@ -34,7 +34,7 @@ export const viewport: Viewport = {
  * the device decides, which is what most members want and nobody has to choose.
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = (await cookies()).get("hearth-theme")?.value;
+  const theme = (await cookies()).get("connectapp-theme")?.value;
 
   return (
     <html

@@ -4,8 +4,8 @@ import * as React from "react";
 import { LayoutGrid, List, Plus } from "lucide-react";
 import {
   cn, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /** Tiles, or one row each. */
 export type ListView = "tiles" | "list";

@@ -5,8 +5,8 @@ import { Church } from "lucide-react";
 import {
   Button, Input, Field, Banner,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { createChurchAccount } from "./actions";
 
 /**

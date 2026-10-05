@@ -9,8 +9,8 @@ import {
   Sheet, SheetTrigger, SheetContent, Switch,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   LIFT,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { ageLine, say } from "@/lib/room-ages";
 import { createRoom, saveRoom, archiveRoom } from "./actions";

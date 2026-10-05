@@ -1,8 +1,8 @@
 import {
   withTenant, getChurch, memberDirectory, canEditPeople, canReadIncidents,
-} from "@hearth/db";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { BrandRuleFor } from "@/components/brand-rule";
@@ -16,7 +16,7 @@ const birthday = (iso: string) =>
 /**
  * R3.5. The directory a church hands out.
  *
- * The only directory of the congregation Hearth produces, and it is an act the
+ * The only directory of the congregation ConnectApp produces, and it is an act the
  * church takes rather than a box anybody can type into. Every field in it is
  * one the member turned on: the default is a name, and a child is here as a
  * name in their household or not at all.

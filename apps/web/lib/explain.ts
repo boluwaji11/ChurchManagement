@@ -1,5 +1,5 @@
-import { t } from "@hearth/i18n";
-import { PermissionError, NameTakenError, InvalidInputError } from "@hearth/db";
+import { t } from "@connectapp/i18n";
+import { PermissionError, NameTakenError, InvalidInputError } from "@connectapp/db";
 
 /**
  * Turns an error from the data layer into a sentence for this reader.

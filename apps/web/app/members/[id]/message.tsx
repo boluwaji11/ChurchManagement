@@ -6,8 +6,8 @@ import {
   Button, Field, IconButton, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * Messaging somebody from their own page.

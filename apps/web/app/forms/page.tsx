@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, listForms, countArchivedForms, canManageChurch } from "@hearth/db";
-import { LIFT } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { withTenant, listForms, countArchivedForms, canManageChurch } from "@connectapp/db";
+import { LIFT } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Empty } from "@/components/empty";

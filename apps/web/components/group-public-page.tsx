@@ -1,5 +1,5 @@
-import { t } from "@hearth/i18n";
-import type { PublicChurch, PublicGroup } from "@hearth/db";
+import { t } from "@connectapp/i18n";
+import type { PublicChurch, PublicGroup } from "@connectapp/db";
 import { mapsHref } from "@/lib/address";
 import { GroupLine } from "@/app/g/[slug]/line";
 import { PublicFooter } from "@/components/public-footer";

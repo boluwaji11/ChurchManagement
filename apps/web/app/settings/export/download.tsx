@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Download } from "lucide-react";
-import { Banner, IconButton, Working } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, IconButton, Working } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R19.8. One row of the export table, and the wait it puts on the screen.

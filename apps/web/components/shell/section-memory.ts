@@ -4,7 +4,7 @@ import * as React from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { activeHref, type NavTarget } from "./nav-active";
 
-const KEY = "hearth:section";
+const KEY = "connectapp:section";
 
 /**
  * R24.6. Where you were, the last time you were in this section.

@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ListOrdered } from "lucide-react";
 import {
   withTenant, getOccurrence, listRoster, visitNumbers, canManageServices,
-} from "@hearth/db";
-import { Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { PageMeta } from "@/components/section";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";

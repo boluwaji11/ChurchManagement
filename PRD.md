@@ -1,21 +1,21 @@
-# Hearth
+# ConnectApp
 
 **Product Requirements Document**
 
 | | |
 |---|---|
-| **Product** | Hearth, a church management platform. Phase 2 adds Hearth Stage, a worship presenter. |
+| **Product** | ConnectApp, a church management platform. Phase 2 adds Hearth Stage, a worship presenter. |
 | **Version** | 1.0 (draft) |
 | **Date** | 29 September 2026 |
 | **Status** | Approved for build |
 | **Owner** | Boluwaji Oyewumi |
-| **Name** | "Hearth" chosen after "Sanctuary" was found in use by three competing products. A formal trademark search is a pre-launch task. The name lives in configuration, not in code. |
+| **Name** | "ConnectApp" chosen after "Sanctuary" was found in use by three competing products. A formal trademark search is a pre-launch task. The name lives in configuration, not in code. |
 
 ---
 
 ## 1. Summary
 
-Hearth is a church management platform for small churches, given to them at no cost and built for
+ConnectApp is a church management platform for small churches, given to them at no cost and built for
 the volunteer who actually runs it.
 
 It starts as the system a church runs its week on: people, families, attendance, children's
@@ -28,7 +28,7 @@ property of the licence rather than a promise in a blog post.
 
 ### 1.1 The one-sentence thesis
 
-Free church software already exists and churches cannot use it. Hearth is the first one that is
+Free church software already exists and churches cannot use it. ConnectApp is the first one that is
 both free and usable by a volunteer who gives four hours a week.
 
 ---
@@ -81,7 +81,7 @@ job and will not be installing IIS.
 
 > Free software for churches exists. Easy software for churches exists. Nothing is both.
 
-Hearth's target is Rock RMS's price with Breeze's usability. That sentence is the product
+ConnectApp's target is Rock RMS's price with Breeze's usability. That sentence is the product
 strategy, and every scoping decision in this document comes from it: if a feature makes the product
 more powerful but less usable by a volunteer, it is cut or deferred, no matter how much the
 competition markets it.
@@ -100,7 +100,7 @@ Churches of **50 to 500 weekly attendance**, with **zero to two paid staff**, ad
 Multi-site churches. Congregations over 2,000. Denominational or diocesan rollups. Churches with an
 IT staff member.
 
-This exclusion is not modesty, it is what buys us the ability to ship. It is why Hearth has no
+This exclusion is not modesty, it is what buys us the ability to ship. It is why ConnectApp has no
 workflow automation engine and no engagement scoring model. Both are a reason Rock RMS is unusable
 for everyone else, and a 180 member church has never once needed either.
 
@@ -116,16 +116,16 @@ boundaries is the one mistake you cannot undo cheaply. The UI simply does not ex
 **Maria, volunteer administrator.** In the office two mornings a week. Adds new families, keeps
 contact details current, prints the directory, prepares Sunday's check-in labels, chases the people
 who have gone quiet. She is the daily user and the product's real judge. Her enemy is retyping
-things she has already typed. If Hearth makes her do double entry, she goes back to the
+things she has already typed. If ConnectApp makes her do double entry, she goes back to the
 spreadsheet, and the church goes with her.
 
 **Pastor Dave, lead pastor.** Wants to know who is new, who is slipping away, and whether Sunday
 will run smoothly. Not a software person, and not interested in becoming one. He evaluates
-Hearth with exactly one question: can Maria use it?
+ConnectApp with exactly one question: can Maria use it?
 
 **Grace, treasurer, volunteer.** Records the cash and cheques from Sunday, reconciles the deposit,
 and every January produces year end giving statements that must satisfy the IRS. That is a legal
-deadline, not a nice to have. If Hearth cannot produce compliant statements in January, Hearth
+deadline, not a nice to have. If ConnectApp cannot produce compliant statements in January, ConnectApp
 is not a giving system.
 
 **Ruth, children's ministry lead.** Runs check-in on Sunday with a rotating team of volunteers. Her
@@ -136,10 +136,10 @@ a first-time volunteer, and to keep working when the church wifi drops. Which it
 **James, worship and tech lead, volunteer.** Plans the set, schedules the band, runs the slides.
 Today he is paying for ProPresenter personally, or the church runs a copy from 2016, or he is
 building slides in PowerPoint on Saturday night. He is the Phase 2 user, and he is the one who will
-tell four other churches about Hearth.
+tell four other churches about ConnectApp.
 
 **Members and attendees.** Want the directory, a way to give, to sign their kids in from the car
-park, and to find a small group. They will use Hearth for four minutes a week and should never
+park, and to find a small group. They will use ConnectApp for four minutes a week and should never
 need to be taught how.
 
 ---
@@ -147,7 +147,7 @@ need to be taught how.
 ## 4. Positioning
 
 **For** small and mid-size churches, **who** cannot justify $150 a month in software,
-**Hearth is** a complete church management platform **that** costs nothing and is built for a
+**ConnectApp is** a complete church management platform **that** costs nothing and is built for a
 volunteer, **unlike** Planning Center and Breeze, which charge per module, **and unlike** Rock RMS,
 which also costs nothing and needs a developer.
 
@@ -160,7 +160,7 @@ Messaging, in the product's own voice. Said once each, not repeated as a refrain
 
 ### 4.1 What makes this more than one more ChMS
 
-Hearth owns the whole Sunday loop:
+ConnectApp owns the whole Sunday loop:
 
 ```
   Service plan            order of service, songs, who is serving
@@ -213,7 +213,7 @@ Four things fall out of that, and all four are good:
    never afford to enter.
 3. Our PCI scope stays at SAQ-A, because card data never touches our servers. Stripe-hosted elements
    only, always.
-4. Giving through Hearth costs the church less than Tithe.ly, because there is no platform margin
+4. Giving through ConnectApp costs the church less than Tithe.ly, because there is no platform margin
    stacked on top of Stripe's rate.
 
 Manual entry of cash and cheques is a first-class feature, not an afterthought, because most churches
@@ -222,7 +222,7 @@ in this segment still take most of their giving in a plate.
 ### 5.2 Messaging: bring your own credentials
 
 Churches supply their own Resend or SMTP credentials for bulk email, and their own Twilio credentials
-for SMS. Hearth sends through them.
+for SMS. ConnectApp sends through them.
 
 This looks like a limitation. It is survival. Reselling messaging credits is the line item that
 bankrupts donation funded platforms, because cost scales linearly with the thing you cannot control.
@@ -301,7 +301,7 @@ feature count.
 | **0.1** | Foundation | Nothing yet, internal only | Tenancy, auth, roles, people, households, import, export, audit log all working with RLS verified by test |
 | **0.2** | Sunday Core | Run Sunday and know who came | 3 pilot churches complete four consecutive Sundays of check-in with zero safety incidents |
 | **0.3** | Money | Take and record giving, and file statements | One pilot church issues compliant year end statements from real data |
-| **0.4** | Service Ops | Plan and staff the service | One pilot church plans and staffs four consecutive services entirely in Hearth |
+| **0.4** | Service Ops | Plan and staff the service | One pilot church plans and staffs four consecutive services entirely in ConnectApp |
 | **1.0** | GA | Replace their existing ChMS entirely | 10 churches migrated off a paid product, 12 week retention above 80%, donation coverage ratio at 1.0 |
 | **P2** | Hearth Stage | Run slides from the service plan | Separate PRD at build time. Outline in section 8.23. |
 
@@ -459,7 +459,7 @@ and cannot read its content through the UI, the API, an export, or a report.
 
 ### 8.7 Attendance
 
-Most churches in this segment count heads on a clipboard. Hearth has to be better than the
+Most churches in this segment count heads on a clipboard. ConnectApp has to be better than the
 clipboard on the first Sunday, or it does not get a second.
 
 | ID | Rel | Requirement |
@@ -583,7 +583,7 @@ single most common reason a worship leader pays for Planning Center.
 | ID | Rel | Requirement |
 |---|---|---|
 | R10.1 | 0.4 | Teams and positions: worship, tech, hospitality, children, ushers, and custom, each with named positions. |
-| R10.2 | 0.4 | Required background check per position, and which of the team's positions each person plays. (Required skills was cut with R2.9: Hearth keeps no list of what a congregant is good at. What a team has asked of somebody is held on the team.) |
+| R10.2 | 0.4 | Required background check per position, and which of the team's positions each person plays. (Required skills was cut with R2.9: ConnectApp keeps no list of what a congregant is good at. What a team has asked of somebody is held on the team.) |
 | R10.3 | 0.4 | Scheduling by service occurrence: assign a person to a position, reading **across all teams** so the scheduler is shown where else somebody is at that hour. (Amended October 2026: serving in two places at one hour is allowed. The church ruled that somebody who runs the desk and reads a lesson in the same service is doing what small churches do.) |
 | R10.4 | 0.4 | **Availability and blockout dates** entered by the volunteer through the portal, respected by scheduling with a warning on override. |
 | R10.5 | 0.4 | Serving frequency preference per volunteer, for example once a month, surfaced to the scheduler. |
@@ -663,7 +663,7 @@ CCLI number, and validates against CCLI's required columns.
 ### 8.13 Giving
 
 Where the money is, and where the mission is. A church of two hundred pays roughly $1,200 a month in
-processing fees on Tithe.ly-class platforms. Hearth's giving is cheaper to operate than that, not
+processing fees on Tithe.ly-class platforms. ConnectApp's giving is cheaper to operate than that, not
 because of a discount, but because we take nothing at all.
 
 #### Online giving
@@ -675,7 +675,7 @@ because of a discount, but because we take nothing at all.
 | R13.3 | 0.3 | One-time and **recurring gifts**, with the giver able to change amount, fund, frequency, and payment method, and to cancel, without contacting the church. |
 | R13.4 | 0.3 | Fund selection at the point of giving, and split gifts across multiple funds. |
 | R13.5 | 0.3 | **Optional fee coverage**: the giver may choose to add the processing fee. Displayed honestly, never defaulted on. |
-| R13.6 | 0.3 | Giving page hosted at the church's Hearth subdomain, brandable, mobile first, working with no login. |
+| R13.6 | 0.3 | Giving page hosted at the church's ConnectApp subdomain, brandable, mobile first, working with no login. |
 | R13.7 | 1.0 | Text-to-give and a printable QR code for the foyer and the bulletin. |
 | R13.8 | 0.3 | Failed payment handling: retry schedule, giver notification, and a staff report of failed recurring gifts. |
 
@@ -713,10 +713,10 @@ because of a discount, but because we take nothing at all.
 | R13.26 | 1.0 | Budget versus actual at fund level. Not a general ledger, a single comparison the treasurer needs. |
 
 *Accept R13.1:* the Stripe Connect account is owned by the church, payouts settle to the church's bank
-without passing through any Hearth-controlled account, and the application fee on every charge is
+without passing through any ConnectApp-controlled account, and the application fee on every charge is
 verifiably zero.
 *Accept R13.2:* a full PCI scan and SAQ-A self-assessment confirms no cardholder data touches
-Hearth infrastructure.
+ConnectApp infrastructure.
 *Accept R13.10:* a batch cannot be closed while the entered total differs from the declared total,
 unless a variance note is recorded.
 *Accept R13.17:* a sample statement is reviewed against IRS Publication 1771 by a CPA before 0.3 ships.
@@ -762,7 +762,7 @@ named.
 
 ### 8.16 Communication
 
-Constrained by section 5.2. Churches bring their own sending credentials, and Hearth is a very good
+Constrained by section 5.2. Churches bring their own sending credentials, and ConnectApp is a very good
 front end for them.
 
 | ID | Rel | Requirement |
@@ -829,8 +829,8 @@ lists the people it refers to.
 
 ### 8.19 Data portability and migration
 
-The trust mechanism, and the adoption mechanism. A church will not move to Hearth if moving is
-hard, and will not trust Hearth if leaving is hard.
+The trust mechanism, and the adoption mechanism. A church will not move to ConnectApp if moving is
+hard, and will not trust ConnectApp if leaving is hard.
 
 | ID | Rel | Requirement |
 |---|---|---|
@@ -847,7 +847,7 @@ hard, and will not trust Hearth if leaving is hard.
 *Accept R19.5:* a Planning Center export of 800 people with households, 2,000 giving records, and 30
 groups imports with zero manual field mapping and under 2% requiring review.
 *Accept R19.8:* the export completes for a 5,000 person church within ten minutes and reimports into a
-clean Hearth instance with no data loss.
+clean ConnectApp instance with no data loss.
 
 ### 8.20 Integrations and API
 
@@ -925,7 +925,7 @@ It wins by being the only presenter that already knows this Sunday's plan, this 
 keys they are in, and who is on the team, because it reads the same database that Maria and James
 already use.
 
-**Delivery:** Electron desktop for macOS, Windows, and Linux, sharing a `@hearth/songs` package
+**Delivery:** Electron desktop for macOS, Windows, and Linux, sharing a `@connectapp/songs` package
 with the web platform, with a local SQLite cache. **Offline first.** The building's internet is not a
 dependency for Sunday morning.
 
@@ -957,7 +957,7 @@ Stage never ships.
 
 ### 8.24 Design system and front end
 
-Cross-cutting, and a requirement rather than a preference. Hearth replaces software churches pay for,
+Cross-cutting, and a requirement rather than a preference. ConnectApp replaces software churches pay for,
 so it has to look better than that software, not merely cost less.
 
 Full specification in [docs/design-system.md](docs/design-system.md). The requirements that belong in
@@ -1174,7 +1174,7 @@ whether the product works. The second tells us whether it survives.
 | **A data breach of counselling notes or minors' records** | High | Field-level enforcement at the query layer, separate encryption for confidential notes, audit on read, MFA for privileged roles, annual penetration test. |
 | **Feature comparison against Planning Center loses deals** | Medium | We are not competing on the comparison table. Positioning is section 4, and the non-goals in section 6 are the strategy. Losing a 2,000 member church is the intended outcome. |
 | **Stripe Connect onboarding friction blocks giving adoption** | Medium | In-app guided flow, and manual batch giving fully usable without Stripe so a church gets value before it connects anything. |
-| **The name "Hearth" is unavailable** | Low | A formal search by a trademark attorney before any brand spend. The name lives in configuration, so a rename is a find and replace, not a refactor. Fallbacks held in reserve: Vestry, Ember. |
+| **The name "ConnectApp" is unavailable** | Low | A formal search by a trademark attorney before any brand spend. The name lives in configuration, so a rename is a find and replace, not a refactor. Fallbacks held in reserve: Vestry, Ember. |
 
 ---
 
@@ -1183,13 +1183,13 @@ whether the product works. The second tells us whether it survives.
 These were open questions. All eight are now closed, with the reasoning recorded so they do not get
 reopened without new information.
 
-### 13.1 Name: Hearth
+### 13.1 Name: ConnectApp
 
 **"Sanctuary" is unusable.** It is in active use by at least three church management products,
 including [SanctuaryOS](https://sanctuaryos.app/), a direct competitor covering member management,
 giving, volunteers, and pastoral care.
 
-**Decision: Hearth.** The presenter is **Hearth Stage**. A hearth is the warm centre of a house,
+**Decision: ConnectApp.** The presenter is **Hearth Stage**. A connectapp is the warm centre of a house,
 where people gather, and it is plain English rather than liturgical vocabulary, which matters for a
 US market of largely non-denominational churches. Short, spellable, sayable, and not in use in this
 category. It also gives the palette its story, which the design system uses directly.
@@ -1213,14 +1213,14 @@ benefit. After either, it is necessary for governance, liability, and grant elig
 The real problem was never recruitment, it was that no responsible church will let a pre-1.0 product
 be the source of truth for where their children are.
 
-**Decision: 0.2 pilots run check-in in shadow mode.** Hearth runs alongside the church's existing
-paper or software process for four Sundays. The church's existing process stays authoritative. Hearth
+**Decision: 0.2 pilots run check-in in shadow mode.** ConnectApp runs alongside the church's existing
+paper or software process for four Sundays. The church's existing process stays authoritative. ConnectApp
 prints its labels, generates its codes, and records its events, and every discrepancy is compared
-afterwards. Nothing about a child's safety depends on Hearth during the pilot.
+afterwards. Nothing about a child's safety depends on ConnectApp during the pilot.
 
 That makes the ask to a pilot church nearly free, and it makes the 0.2 exit criteria stronger rather
 than weaker, because four shadow Sundays produce a measured discrepancy rate rather than an absence
-of complaints. Hearth becomes authoritative only when a church chooses to switch after shadow mode.
+of complaints. ConnectApp becomes authoritative only when a church chooses to switch after shadow mode.
 
 Pilot criteria: 80 to 400 attendance, an active children's ministry, a named volunteer administrator,
 and currently paying for software. Recruitment is a tracked task, not an open specification question.

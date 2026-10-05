@@ -4,8 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Move, Plus } from "lucide-react";
-import { Banner, Combobox } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Combobox } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { moveToStage } from "../members/followup-actions";
 import { addToStage, findPeople } from "./actions";
 

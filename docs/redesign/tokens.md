@@ -1,4 +1,4 @@
-# Hearth color tokens
+# ConnectApp color tokens
 
 Every color in the prototypes is a CSS custom property. Light values are the default; dark values apply under `html[data-theme="dark"]` (and `data-theme="auto"` + `prefers-color-scheme: dark`). Elements that must stay light (check-in kiosk, live service mode, print previews) set `data-theme="light"` on their root.
 

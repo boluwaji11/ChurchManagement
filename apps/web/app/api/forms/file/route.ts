@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { canManageChurch, canManageEvents } from "@hearth/db";
+import { canManageChurch, canManageEvents } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 

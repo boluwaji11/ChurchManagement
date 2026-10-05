@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R2.14, R24.6. Numbered pages, as the design has them.

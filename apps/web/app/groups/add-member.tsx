@@ -3,8 +3,8 @@
 import * as React from "react";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Banner, Combobox } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Combobox } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { findPerson, join, type PersonHit } from "./actions";
 
 /**

@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Banner, Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import { visibleFields, type FormAnswer, type FormFieldDef } from "@hearth/db/rules";
+import { Banner, Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { visibleFields, type FormAnswer, type FormFieldDef } from "@connectapp/db/rules";
 import { Empty } from "@/components/empty";
 import { Answer } from "@/components/form-answer";
 import { sendForm } from "./actions";
@@ -11,7 +11,7 @@ import { sendForm } from "./actions";
 /**
  * R4.3. The form, as somebody with no account fills it in.
  *
- * Drawn with the same Field, Input and Button the rest of Hearth is drawn with,
+ * Drawn with the same Field, Input and Button the rest of ConnectApp is drawn with,
  * because this is the one screen a church shows the open web and a second-rate
  * version of the product is worse than none. Conditions (R4.2) are resolved
  * here as the answers change, so a follow-up question appears under the answer

@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { LegendSpot } from "@hearth/db/rules";
+import type { LegendSpot } from "@connectapp/db/rules";
 
 /**
  * R18.x. The parts every chart shares: a scale, round numbers up the side, a

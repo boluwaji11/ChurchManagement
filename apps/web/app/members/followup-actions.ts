@@ -3,7 +3,7 @@
 import {
   withTenant, getChurch, enterPipeline, exitPipeline, completeFollowUp, reopenFollowUp,
   addTask, assignFollowUp, setEntryStage,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";

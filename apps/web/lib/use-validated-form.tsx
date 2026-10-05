@@ -8,7 +8,7 @@ export type Errors = Record<string, string | undefined>;
  * Validation is ours, not the browser's.
  *
  * The native bubble is unstyled, unlocalised, vanishes on its own, speaks in
- * character counts, and looks like a different product. Every form in Hearth
+ * character counts, and looks like a different product. Every form in ConnectApp
  * sets `noValidate` and renders its messages through Field, which wires
  * aria-invalid and aria-describedby, and the first invalid control takes focus
  * so a keyboard or screen reader user lands on the problem.

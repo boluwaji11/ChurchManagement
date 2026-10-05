@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Plus, Minus } from "lucide-react";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 /** Fewest shown, and the most, however wide the screen is. */
 const LEAST = 3;

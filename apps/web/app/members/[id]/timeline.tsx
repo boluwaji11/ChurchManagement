@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
-import { t } from "@hearth/i18n";
-import type { TimelineEntry } from "@hearth/db";
+import { t } from "@connectapp/i18n";
+import type { TimelineEntry } from "@connectapp/db";
 import { longDate } from "@/lib/dates";
 
 /**

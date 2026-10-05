@@ -8,8 +8,8 @@ import {
   Button, Field, IconButton, Input, Dialog, DialogContent, DialogFooter,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { archiveReport, renameReport } from "./build/actions";
 
 export interface SavedCard {

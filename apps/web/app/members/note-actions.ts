@@ -1,7 +1,7 @@
 "use server";
 
-import { withTenant, createNote, canEditPeople, canReadConfidentialNotes } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { withTenant, createNote, canEditPeople, canReadConfidentialNotes } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

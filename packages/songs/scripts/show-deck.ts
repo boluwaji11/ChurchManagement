@@ -6,8 +6,8 @@
  * song records and the arrangement sequences with nobody typing a slide, which
  * is the thing the schema exists to make possible.
  *
- *   pnpm --filter @hearth/songs deck
- *   pnpm --filter @hearth/songs deck -- --lines 2
+ *   pnpm --filter @connectapp/songs deck
+ *   pnpm --filter @connectapp/songs deck -- --lines 2
  *
  * Developer facing, so the strings here are deliberately outside
  * `packages/i18n`. Nothing in this file reaches a church.
@@ -38,7 +38,7 @@ console.log("");
 console.log(bold(`${deck.title}  ${deck.date}`));
 console.log(
   dim(
-    `${deck.source === "set_list" ? "Stage set list" : "Hearth plan"} · ` +
+    `${deck.source === "set_list" ? "Stage set list" : "ConnectApp plan"} · ` +
       `${deck.groups.length} items · ${deck.cues.length} cues · ` +
       `${minutes(plannedSeconds(sundayService))} planned · ${maxLines} lines a slide`,
   ),

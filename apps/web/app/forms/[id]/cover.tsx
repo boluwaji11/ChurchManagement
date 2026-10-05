@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
-import { Button, IconButton, Working, ALL_HUES } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Button, IconButton, Working, ALL_HUES } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { clearFormCover, recolourForm } from "../actions";
 

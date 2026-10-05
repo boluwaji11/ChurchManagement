@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { canManageChurch } from "@hearth/db";
+import { canManageChurch } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";

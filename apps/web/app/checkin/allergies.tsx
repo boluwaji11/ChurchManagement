@@ -1,7 +1,7 @@
 "use client";
 
-import { CriticalBanner, Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { CriticalBanner, Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import type { FoundPerson } from "./actions";
 
 /**

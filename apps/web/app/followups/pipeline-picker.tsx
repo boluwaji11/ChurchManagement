@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Combobox } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Combobox } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R5.5. Which pipeline the board is showing.

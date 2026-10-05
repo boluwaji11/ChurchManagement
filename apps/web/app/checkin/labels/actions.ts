@@ -1,6 +1,6 @@
 "use server";
 
-import { withTenant, setLabelLayout, type LabelLayout } from "@hearth/db";
+import { withTenant, setLabelLayout, type LabelLayout } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

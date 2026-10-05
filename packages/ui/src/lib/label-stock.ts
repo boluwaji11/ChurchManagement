@@ -58,7 +58,7 @@ export function printCss(stock: Stock): string {
     return `
       @page { size: auto; margin: 10mm; }
       @media print {
-        .hearth-label { break-inside: avoid; outline: 1px dashed #999; }
+        .connectapp-label { break-inside: avoid; outline: 1px dashed #999; }
       }
     `;
   }
@@ -67,7 +67,7 @@ export function printCss(stock: Stock): string {
     @page { size: ${shape.page}; margin: 0; }
     @media print {
       html, body { margin: 0; padding: 0; }
-      .hearth-label {
+      .connectapp-label {
         width: ${shape.width}mm;
         height: ${shape.height}mm;
         break-inside: avoid;
@@ -77,7 +77,7 @@ export function printCss(stock: Stock): string {
         border-radius: 0;
         padding: 2mm 3mm;
       }
-      .hearth-label:last-child { break-after: auto; }
+      .connectapp-label:last-child { break-after: auto; }
     }
   `;
 }

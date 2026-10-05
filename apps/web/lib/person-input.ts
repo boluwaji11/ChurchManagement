@@ -1,6 +1,6 @@
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { check, email as validEmail, requiredValue } from "./validate";
-import type { PersonInput, LifecycleStatus, HouseholdRole } from "@hearth/db";
+import type { PersonInput, LifecycleStatus, HouseholdRole } from "@connectapp/db";
 
 /**
  * One definition of a valid person, used by the form in the browser and again by

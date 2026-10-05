@@ -3,8 +3,8 @@ import {
   withTenant, getChurch, listCelebrations, addressesFor,
   monthWindow, weekWindow, canEditPeople,
   type CelebrationWindow,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";

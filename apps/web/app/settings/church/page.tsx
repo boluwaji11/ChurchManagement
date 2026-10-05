@@ -1,7 +1,7 @@
 import {
   withTenant, getChurch, canManageChurch,
   primaryCampus,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { ChurchSections } from "./sections";
 import { ChurchLogo } from "../logo";

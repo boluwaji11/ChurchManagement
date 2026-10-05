@@ -4,8 +4,8 @@ import * as React from "react";
 import { Printer } from "lucide-react";
 import {
   Button, Checkbox, Dialog, DialogTrigger, DialogContent, DialogFooter, IconButton,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R14.12. Choosing what the printed sheet carries, before it prints.

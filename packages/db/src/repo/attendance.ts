@@ -263,7 +263,7 @@ export interface VisitNumber {
  * service that was missed, or imports a year of history.
  *
  * Only members the church has recorded as visitors. A church of two hundred
- * starts using Hearth at one service and marks two hundred regulars present: the
+ * starts using ConnectApp at one service and marks two hundred regulars present: the
  * attendance record says every one of them is here for the first time, and it
  * is wrong about all two hundred. The record began that day. They did not.
  *

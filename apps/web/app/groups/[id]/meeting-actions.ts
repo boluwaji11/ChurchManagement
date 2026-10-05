@@ -2,7 +2,7 @@
 
 import {
   withTenant, openMeeting, recordMeeting, type Meeting, type MeetingPerson,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

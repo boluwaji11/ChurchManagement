@@ -7,9 +7,9 @@ import {
   withTenant, createPerson, updatePerson, setPersonArchived, getPerson,
   listCustomFields, setCustomValues, coerceCustomValue, setPersonTag, listTagsForPerson,
   type CustomFieldDef, type CustomValue,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { parsePerson, personErrors, hasErrors, type PersonErrors } from "@/lib/person-input";
 

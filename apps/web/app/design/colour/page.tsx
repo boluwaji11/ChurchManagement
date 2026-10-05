@@ -1,4 +1,4 @@
-import { HUES, HueTag, Badge } from "@hearth/ui";
+import { HUES, HueTag, Badge } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
 const RAMPS = {

@@ -5,8 +5,8 @@ import { Undo2 } from "lucide-react";
 import {
   Button, IconButton, Banner, Badge,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { undoImport, type RollbackOutcome } from "./actions";
 
 export interface BatchRow {

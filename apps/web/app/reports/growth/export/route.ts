@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import {
   withTenant, getChurch, toCsv, growthByMonth, canEditPeople, canReadIncidents,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { backBy, windowOf } from "../../frame";

@@ -7,7 +7,7 @@ import {
   lookupPeople, listPeople, getChurch,
   assign, unassign, candidatesFor, addBlockout, removeBlockout, setServingPreference,
   type TeamRole, type TagHue, type PlanCandidate, type ServingFrequency,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";

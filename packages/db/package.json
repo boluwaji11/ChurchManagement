@@ -1,5 +1,5 @@
 {
-  "name": "@hearth/db",
+  "name": "@connectapp/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "census": "tsx scripts/census.ts"
   },
   "dependencies": {
-    "@hearth/i18n": "workspace:*",
+    "@connectapp/i18n": "workspace:*",
     "drizzle-orm": "^0.38.3",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.2",

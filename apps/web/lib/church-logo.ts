@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { withTenant, getChurch, type TenantRole } from "@hearth/db";
+import { withTenant, getChurch, type TenantRole } from "@connectapp/db";
 import { supabaseServer } from "./supabase/server";
 
 /**

@@ -1,4 +1,4 @@
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 /**
  * R18.12. A value out of Postgres, in words a church reads.

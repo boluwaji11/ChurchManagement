@@ -24,7 +24,7 @@
 <sc-if value="{{ is.landing }}" hint-placeholder-val="{{ false }}">
   <div style="height:100%; background: var(--js4); display:flex; flex-direction:column;">
     <div style="display:flex; align-items:center; gap:32px; padding:28px 64px;">
-      <span style="display:flex; align-items:center; gap:12px;"><span style="width:40px; height:40px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:28px;">Hearth</span></span>
+      <span style="display:flex; align-items:center; gap:12px;"><span style="width:40px; height:40px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:28px;">ConnectApp</span></span>
       <span style="font-size:18px; color: var(--js6);">Features</span><span style="font-size:18px; color: var(--js6);">Why it is free</span><span style="font-size:18px; color: var(--js6);">Trust</span>
       <span style="flex:1;"></span>
       <span style="{{ linkSignin }}">Sign in</span>
@@ -80,7 +80,7 @@
     <div style="width:280px; padding:32px 24px; display:flex; flex-direction:column; gap:14px; border-right:1px solid var(--js11); font-size:18px; color: var(--js6);"><span style="font-weight:600; color: var(--js1);">Inbox</span><span>Starred</span><span>Sent</span></div>
     <div style="flex:1; padding:40px 56px; display:flex; flex-direction:column; gap:20px; background: var(--surface);">
       <div style="font-size:30px; font-weight:600; line-height:38px;">{{ emailSubject }}</div>
-      <div style="font-size:17px; color: var(--js6);">Grace Fellowship via Hearth · to {{ email }}</div>
+      <div style="font-size:17px; color: var(--js6);">Grace Fellowship via ConnectApp · to {{ email }}</div>
       <div style="border-top:1px solid var(--js11); padding-top:28px; display:flex; flex-direction:column; gap:20px; max-width:640px;">
         <span style="display:flex; align-items:center; gap:12px;"><span style="width:44px; height:44px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:26px;">Grace Fellowship</span></span>
         <span style="font-size:20px; line-height:30px;">{{ emailBody }}</span>
@@ -180,7 +180,7 @@
         <span style="font-family: Fraunces, serif; font-size:34px; line-height:40px;">Give, join a group, check your kids in</span>
         <span style="{{ btnCreate }}">Create an account</span>
         <span style="text-align:center; font-size:18px; color: var(--js6);">Already have one? <span style="color: var(--js2); font-weight:600;">Sign in</span></span>
-        <span style="font-size:14px; color: var(--js10); text-align:center;">Powered by Hearth</span>
+        <span style="font-size:14px; color: var(--js10); text-align:center;">Powered by ConnectApp</span>
       </div>
     </div>
   </div>
@@ -232,7 +232,7 @@
 <sc-if value="{{ is.appHome }}" hint-placeholder-val="{{ false }}">
   <div style="height:100%; display:flex; background: var(--js4);">
     <div style="width:260px; background: var(--js0); border-right:1px solid var(--js11); padding:28px 18px; display:flex; flex-direction:column; gap:6px;">
-      <span style="display:flex; align-items:center; gap:12px; padding:0 10px 22px;"><span style="width:40px; height:40px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:24px;">Hearth</span></span>
+      <span style="display:flex; align-items:center; gap:12px; padding:0 10px 22px;"><span style="width:40px; height:40px; border-radius:12px; background: var(--js5);"></span><span style="font-family: Fraunces, serif; font-size:24px;">ConnectApp</span></span>
       <sc-for list="{{ nav }}" as="nv" hint-placeholder-count="5"><span style="{{ nv.style }}">{{ nv.label }}</span></sc-for>
     </div>
     <div style="flex:1; padding:40px 48px; display:flex; flex-direction:column; gap:26px;">

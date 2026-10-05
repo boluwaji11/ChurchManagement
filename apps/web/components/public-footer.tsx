@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { PublicChurch } from "@hearth/db";
+import type { PublicChurch } from "@connectapp/db";
 
 /** A hairline between two things in the line, never before the first. */
 function Rule() {

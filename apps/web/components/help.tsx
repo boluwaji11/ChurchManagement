@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { CircleHelp, Search } from "lucide-react";
 import {
   Button, Dialog, DialogTrigger, DialogContent, Input, Separator,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R22.2. Help, where somebody is rather than where we filed it.

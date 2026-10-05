@@ -8,12 +8,12 @@ import {
   type CheckinEntry, type OverrideKind, type PickupPerson,
   type Roster, type OfflineEvent, type Reconciliation,
   type Board, type RoomRosterEntry, type ArrivingChild,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { getChurch } from "@hearth/db";
+import { getChurch } from "@connectapp/db";
 
 async function context(church?: string) {
   const session = await requireSession(church);

@@ -28,7 +28,7 @@ export function useFieldControl() {
 }
 
 /** A component with this static takes its wiring from context rather than a clone. */
-type Managed = { hearthFieldManaged?: boolean; hearthFieldGroup?: boolean };
+type Managed = { connectappFieldManaged?: boolean; connectappFieldGroup?: boolean };
 
 /**
  * A labelled form control.
@@ -71,8 +71,8 @@ export function Field({
   const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
 
   const type = React.isValidElement(children) ? (children.type as Managed) : undefined;
-  const managed = type?.hearthFieldManaged === true;
-  const group = type?.hearthFieldGroup === true;
+  const managed = type?.connectappFieldManaged === true;
+  const group = type?.connectappFieldGroup === true;
 
   const control =
     React.isValidElement(children) && !managed

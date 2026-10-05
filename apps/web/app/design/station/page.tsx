@@ -5,7 +5,7 @@ import { Printer, ArrowRight, UserCheck } from "lucide-react";
 import {
   Button, Input, CriticalBanner, CodeDisplay, OfflineBar, BlockingInterrupt,
   Card, Avatar, HueTag, Banner, Badge, Switch,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
 /**

@@ -27,8 +27,8 @@ Group.displayName = "RadioGroup";
  * for a label element to point at. Field reads these two statics.
  */
 export const RadioGroup = Object.assign(Group, {
-  hearthFieldManaged: true,
-  hearthFieldGroup: true,
+  connectappFieldManaged: true,
+  connectappFieldGroup: true,
 });
 
 export const RadioItem = React.forwardRef<

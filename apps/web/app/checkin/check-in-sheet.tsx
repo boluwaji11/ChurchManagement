@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   Banner, Button, Combobox, Field,
   Sheet, SheetTrigger, SheetContent,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { place, checkInTo } from "./actions";
 
 export interface Candidate {

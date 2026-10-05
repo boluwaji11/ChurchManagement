@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, ArrowRight } from "lucide-react";
-import { Badge, Button, Banner, cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Badge, Button, Banner, cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { merge, undo, type MergeOutcome } from "./actions";
 
 export interface PersonSide {

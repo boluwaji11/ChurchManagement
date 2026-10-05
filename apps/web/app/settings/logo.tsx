@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { Pencil, RefreshCw, Trash2 } from "lucide-react";
 import {
   Banner, Button, IconButton, Dialog, DialogTrigger, DialogContent, DialogFooter, Working,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { clearLogo } from "./actions";
 

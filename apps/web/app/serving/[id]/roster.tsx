@@ -4,8 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X, UserPlus } from "lucide-react";
-import { Avatar, Banner, Badge, Combobox, IconButton } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Avatar, Banner, Badge, Combobox, IconButton } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Confirm } from "@/components/confirm";
 import { addMember, removeMember, findPerson, type PersonHit } from "../actions";
 

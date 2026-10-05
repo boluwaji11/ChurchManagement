@@ -1,6 +1,6 @@
 "use server";
 
-import { registerForEvent, publicChurchTimezone, type Registrant } from "@hearth/db";
+import { registerForEvent, publicChurchTimezone, type Registrant } from "@connectapp/db";
 import { churchNow } from "@/lib/church-now";
 import { explain } from "@/lib/explain";
 

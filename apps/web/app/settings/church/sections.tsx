@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { Campus } from "@hearth/db";
+import type { Campus } from "@connectapp/db";
 import { ChurchForm, type ChurchValues } from "../church-form";
 import { Places } from "./places";
 

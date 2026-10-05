@@ -1,7 +1,7 @@
 import {
   withTenant, findGroups, listGroupTypes, pendingRequests, personForUser, canManageGroups,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Finder } from "./finder";

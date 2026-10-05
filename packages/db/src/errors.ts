@@ -1,4 +1,4 @@
-import { t, type MessageKey, type Params } from "@hearth/i18n";
+import { t, type MessageKey, type Params } from "@connectapp/i18n";
 
 /**
  * Errors that are outcomes, not faults.

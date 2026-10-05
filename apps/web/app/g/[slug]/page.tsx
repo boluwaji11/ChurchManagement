@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { publicChurch, publicGroups } from "@hearth/db";
-import { Card } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { publicChurch, publicGroups } from "@connectapp/db";
+import { Card } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { supabaseServer } from "@/lib/supabase/server";

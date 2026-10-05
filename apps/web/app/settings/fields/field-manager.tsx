@@ -8,8 +8,8 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { addField, saveField, removeField } from "../../fields/actions";
 
 export interface FieldItem {

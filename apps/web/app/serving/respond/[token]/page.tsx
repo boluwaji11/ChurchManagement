@@ -1,5 +1,5 @@
-import { servingRequestFor } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { servingRequestFor } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { PageTitle } from "@/components/section";
 import { Logo } from "@/components/brand";

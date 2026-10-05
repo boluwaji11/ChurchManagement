@@ -1,5 +1,5 @@
-import { withTenant, labelsFor, getLabelLayout, type LabelPair } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { withTenant, labelsFor, getLabelLayout, type LabelPair } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { LabelSheet } from "../sheet";
 import { LocalLabels } from "../local";

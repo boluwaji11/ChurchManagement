@@ -5,8 +5,8 @@ import {ClipboardPen } from "lucide-react";
 import {
   Banner,
   Button, IconButton, Dialog, DialogTrigger, DialogContent, Field, Input, Textarea, Checkbox,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import { report } from "./actions";
 

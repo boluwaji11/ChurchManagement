@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { GripVertical } from "lucide-react";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 export interface Tile {
   id: string;
@@ -13,7 +13,7 @@ export interface Tile {
 }
 
 /** Where this browser last left the tiles. One church's order is not another's. */
-const keyFor = (church: string) => `hearth.dashboard.tiles.${church}`;
+const keyFor = (church: string) => `connectapp.dashboard.tiles.${church}`;
 
 /**
  * R18.1. The four numbers, in the order this reader wants them.

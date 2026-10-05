@@ -6,10 +6,10 @@ import { Plus, X } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Input, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
-import type { ServingFrequency } from "@hearth/db";
+import type { ServingFrequency } from "@connectapp/db";
 import { saveBlockout, dropBlockout, saveFrequency } from "../serving/actions";
 
 export interface AwayRange {

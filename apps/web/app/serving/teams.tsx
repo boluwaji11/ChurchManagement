@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { ShieldCheck, Plus } from "lucide-react";
-import { Button, Badge, LIFT } from "@hearth/ui";
+import { Button, Badge, LIFT } from "@connectapp/ui";
 import { Empty } from "@/components/empty";
-import { t, plural } from "@hearth/i18n";
+import { t, plural } from "@connectapp/i18n";
 
 export interface TeamCard {
   id: string;

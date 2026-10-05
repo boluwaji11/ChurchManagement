@@ -1,4 +1,4 @@
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { can, rolesWith, type TenantRole, type Who } from "./permissions";
 
 export {

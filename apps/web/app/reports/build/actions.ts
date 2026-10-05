@@ -5,7 +5,7 @@ import {
   getSavedReport,
   canEditPeople, canReadIncidents, SCREEN_LIMIT, cleanSpec,
   type ReportResult, type ReportSpec, type ReportPage,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

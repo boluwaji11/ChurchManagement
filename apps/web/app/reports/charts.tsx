@@ -1,6 +1,6 @@
 import * as React from "react";
-import { t } from "@hearth/i18n";
-import type { LabelKind, LegendSpot } from "@hearth/db/rules";
+import { t } from "@connectapp/i18n";
+import type { LabelKind, LegendSpot } from "@connectapp/db/rules";
 import { Frame, Hint, Key, Keyed, Tappable, ceiling, readable, type Part } from "./plot";
 
 /** What a label on a shape says, given the share it stands for. */

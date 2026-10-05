@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, Clock } from "lucide-react";
-import { Button, Card, Separator } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Button, Card, Separator } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Logo } from "@/components/brand";
 import { StartDemoButton } from "./demo/start";
 

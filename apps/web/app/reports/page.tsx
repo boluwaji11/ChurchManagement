@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, CalendarCheck, TrendingUp, UserPlus } from "lucide-react";
-import { withTenant, listSavedReports, canEditPeople, canReadIncidents } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { withTenant, listSavedReports, canEditPeople, canReadIncidents } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { SavedReports } from "./saved";

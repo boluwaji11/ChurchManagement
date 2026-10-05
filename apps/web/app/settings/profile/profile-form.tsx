@@ -6,8 +6,8 @@ import { Camera, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import {
   Avatar, Banner, Button, DatePicker, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, IconButton, Input, Working,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";

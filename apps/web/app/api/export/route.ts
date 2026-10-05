@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import {
   withTenant, buildArchive, buildView, zipArchive, listPeople, resolveList, toCsv, PermissionError,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import {
   queryFromParams, isFiltered, paramsFromRule, type DirectoryParams,
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   }
 
   const stamp = new Date().toISOString().slice(0, 10);
-  const filename = `hearth-${session.tenantSlug}-${stamp}.zip`;
+  const filename = `connectapp-${session.tenantSlug}-${stamp}.zip`;
 
   return new Response(new Uint8Array(zip), {
     headers: {
@@ -71,11 +71,11 @@ export async function GET(request: NextRequest) {
 async function exportTable(
   session: {
     tenantId: string;
-    role: import("@hearth/db").TenantRole;
+    role: import("@connectapp/db").TenantRole;
     tenantSlug: string;
     userId: string;
     tenantName: string;
-    permissions: import("@hearth/db").Permission[] | null;
+    permissions: import("@connectapp/db").Permission[] | null;
   },
   only: string,
 ) {
@@ -112,10 +112,10 @@ async function exportTable(
 async function exportView(
   session: {
     tenantId: string;
-    role: import("@hearth/db").TenantRole;
+    role: import("@connectapp/db").TenantRole;
     tenantSlug: string;
     userId: string;
-    permissions: import("@hearth/db").Permission[] | null;
+    permissions: import("@connectapp/db").Permission[] | null;
   },
   params: DirectoryParams,
 ) {
@@ -164,7 +164,7 @@ async function exportView(
   return new Response(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="hearth-${session.tenantSlug}-directory-${stamp}.csv"`,
+      "Content-Disposition": `attachment; filename="connectapp-${session.tenantSlug}-directory-${stamp}.csv"`,
       "Cache-Control": "no-store, private",
     },
   });

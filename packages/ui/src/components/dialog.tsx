@@ -47,7 +47,7 @@ export const DialogContent = React.forwardRef<
     <P.Overlay
       className={cn(
         "fixed inset-0 z-40 bg-overlay",
-        "data-[state=open]:animate-[hearth-fade_var(--duration-base)_var(--ease-out)]",
+        "data-[state=open]:animate-[connectapp-fade_var(--duration-base)_var(--ease-out)]",
       )}
     />
     <P.Content
@@ -80,7 +80,7 @@ export const DialogContent = React.forwardRef<
         // runs off the bottom and the submit button cannot be got to at all.
         "max-h-[calc(100dvh-2rem)] overflow-y-auto",
         "rounded-xl border border-line bg-surface shadow-lg p-6",
-        "data-[state=open]:animate-[hearth-pop_var(--duration-base)_var(--ease-out)]",
+        "data-[state=open]:animate-[connectapp-pop_var(--duration-base)_var(--ease-out)]",
         className,
       )}
       {...props}

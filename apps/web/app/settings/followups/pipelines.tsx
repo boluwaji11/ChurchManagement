@@ -7,8 +7,8 @@ import {
   Badge, Banner, Button, Combobox, IconButton, Field, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   LIFT,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { addPipeline, savePipeline, switchPipeline } from "./actions";
 

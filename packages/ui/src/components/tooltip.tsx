@@ -23,7 +23,7 @@ export function Tooltip({
           sideOffset={6}
           className={cn(
             "z-50 rounded-md bg-stone-900 px-2.5 py-1.5 text-caption text-stone-50 shadow-md",
-            "select-none data-[state=delayed-open]:animate-[hearth-rise_var(--duration-fast)_var(--ease-out)]",
+            "select-none data-[state=delayed-open]:animate-[connectapp-rise_var(--duration-fast)_var(--ease-out)]",
           )}
         >
           {content}

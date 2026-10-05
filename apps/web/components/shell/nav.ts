@@ -6,8 +6,8 @@ import {
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
   canLeadTeams, canManageChurch, canManageEvents, type TenantRole,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import type { NavTarget } from "./nav-active";
 
 /**

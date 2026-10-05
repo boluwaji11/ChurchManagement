@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { after } from "next/server";
-import { createDemoChurch, topUpDemoPool } from "@hearth/db";
+import { createDemoChurch, topUpDemoPool } from "@connectapp/db";
 import { issueDemoPass, newDemoUserId } from "@/lib/demo-pass";
 
 /**

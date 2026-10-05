@@ -238,7 +238,7 @@ export const tenantRoles = pgTable(
     permissions: text("permissions").array().notNull().default(sql`'{}'::text[]`),
     builtin: boolean("builtin").notNull().default(false),
     /**
-     * R1.6. Whether this church has changed a built-in from what Hearth ships.
+     * R1.6. Whether this church has changed a built-in from what ConnectApp ships.
      *
      * An untouched built-in keeps following the product, so a permission we add
      * later reaches a church that has been running for a year. One a church has

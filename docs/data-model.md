@@ -82,7 +82,7 @@ SongUsage                         drives CCLI reporting in R12.10
 
 **1. Lyrics are structured, not a blob (R12.4).** Stage renders one slide group per section (S2). A
 blob would force a parser, a parser would force an import step, and an import step is exactly the
-ProPresenter handoff Hearth exists to delete.
+ProPresenter handoff ConnectApp exists to delete.
 
 **2. Sequence is data (R12.5).** The arrangement says `V1 C V2 C B C C`, so Stage builds the slide
 order with no human step, and the same sequence drives the printed chart and the music stand view

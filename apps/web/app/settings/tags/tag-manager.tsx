@@ -8,8 +8,8 @@ import {
   Button, IconButton, Input, Field, Separator, Banner, HueDot,
   Dialog, DialogTrigger, DialogContent, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { addTag, saveTag, removeTag, foldTag } from "../../tags/actions";
 
 export interface TagItem {

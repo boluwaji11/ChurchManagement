@@ -1,4 +1,4 @@
-import type { SetupStep } from "@hearth/db";
+import type { SetupStep } from "@connectapp/db";
 
 /** Where each setup step is actually done. The wizard sends members to the product. */
 export const SETUP_LINKS: Record<SetupStep, string> = {

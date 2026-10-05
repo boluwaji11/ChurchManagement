@@ -3,14 +3,14 @@
 import * as React from "react";
 import {
   Switch, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import {
   AXIS_WAYS, CHART_HUES, CHART_SORTS, GROUPED_VIEWS, LABEL_KINDS, LEGEND_SPOTS, PAGE_SIZES,
   SPLIT_VIEWS,
   type AxisWay, type ChartHue, type ChartSort, type LabelKind, type LegendSpot,
   type ReportLook, type ReportTile,
-} from "@hearth/db/rules";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db/rules";
+import { t } from "@connectapp/i18n";
 import type { Part } from "../plot";
 
 /** Everything in here is set at the size the field list is read at. */

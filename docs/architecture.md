@@ -213,7 +213,7 @@ already holding everything it needs.
 other station is given it, and `freeCode` on the online path will not generate it either. A station
 holds 150, which is more children than one station checks in at a service.
 
-**The same rules on both sides.** `@hearth/db/rules` is a pure entry point with no database and no
+**The same rules on both sides.** `@connectapp/db/rules` is a pure entry point with no database and no
 node built-ins: the lookup ranking, the age and room rules, the code alphabet, and the release
 decision. The station runs that code, and the SQL in `lookup.ts` is written to agree with it. A test
 runs both against the same church and compares the answers.
@@ -257,7 +257,7 @@ Written out in full, with routes, payloads, the cursor model, the device princip
 six things 0.4 owes it: [stage-sync-contract.md](stage-sync-contract.md).
 
 **Stage also runs unpaired**, with a song library of its own, which is how it reaches churches that do
-not use the platform. Pairing adds a second source of songs and the plans, and `hearth` records are
+not use the platform. Pairing adds a second source of songs and the plans, and `connectapp` records are
 read-only in Stage so there is one writer per record. See
 [stage-architecture.md](stage-architecture.md).
 
@@ -310,3 +310,20 @@ donation coverage ratio and you cannot gate on a number you do not measure (N10)
 The cost bombs in a donation-funded platform are messaging and media storage, and both are
 architecturally closed off: messaging runs on the church's own credentials, and storage is capped per
 tenant with transcoding on upload and no video hosting.
+
+## The name, and what kept the old one
+
+The product is **ConnectApp**, at **connectapp.church**. It was called Hearth until October 2026 and
+the rename went through the code, the copy and every document. **Hearth Stage** keeps its name: it is
+a separate product in a separate repository.
+
+Three things in Postgres still say `hearth`, on purpose:
+
+- the login role `hearth_app`, which the application's connection string names
+- the schema `hearth`, which holds `user_in_church` and `church_takes_files`
+- the slug functions `hearth_free_member_slug`, `hearth_free_report_slug` and `hearth_free_person_slug`
+
+Every RLS policy on every table calls into that schema, and the role carries a password that the
+connection string and the deploy environment both hold. Renaming them is a migration that rewrites
+every policy plus a credential rotation, which is a different job from renaming a product, and it
+buys a church nothing. They are internal names no user ever reads.

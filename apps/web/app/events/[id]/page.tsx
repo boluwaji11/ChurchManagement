@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import {
   withTenant, getEvent, getForm, listRegistrations, canManageEvents,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";

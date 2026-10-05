@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import {
   withTenant, getEvent, getForm, listRegistrations, toCsv, canManageEvents,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";

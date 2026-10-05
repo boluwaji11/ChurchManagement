@@ -5,8 +5,8 @@ import { headers } from "next/headers";
 import {
   withTenant, createCustomField, updateCustomField, deleteCustomField,
   type CustomFieldType,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, markRead, markAllRead, listNotifications, NOTIFICATION_LOOK,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { when } from "@/lib/when";
 import type { BellItem } from "./bell";
 import { requireSession } from "@/lib/session";

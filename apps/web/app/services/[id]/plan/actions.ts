@@ -6,7 +6,7 @@ import {
   templateItems, planItemsFor, type ShapeItem,
   saveAsTemplate, renameTemplate, removeTemplate, applyTemplate, copyPlan,
   type ItemKind,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";

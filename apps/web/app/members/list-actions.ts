@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import {
   withTenant, createStaticList, createRuleList, renameList, setListArchived,
   addToList, removeFromList, cleanRule, canEditPeople,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 

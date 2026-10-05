@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getChurch, listEvents, countArchivedEvents, canManageEvents,
-} from "@hearth/db";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";

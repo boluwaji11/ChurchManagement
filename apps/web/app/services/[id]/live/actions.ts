@@ -2,7 +2,7 @@
 
 import {
   withTenant, liveFor, startLive, moveLive, goLiveTo, stopLive, type LiveState,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

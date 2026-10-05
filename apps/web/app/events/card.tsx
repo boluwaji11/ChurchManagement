@@ -1,7 +1,7 @@
 import Link from "next/link";
-import type { ChurchEvent } from "@hearth/db";
-import { LIFT } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import type { ChurchEvent } from "@connectapp/db";
+import { LIFT } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { longDate, readableTime } from "@/lib/dates";
 
 /**

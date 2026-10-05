@@ -6,9 +6,9 @@ import {
   Banner, Button, Field, IconButton,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import { CONTACT_LABELS, type PersonAddress } from "@hearth/db/rules";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { CONTACT_LABELS, type PersonAddress } from "@connectapp/db/rules";
 import { AddressFields } from "@/components/address-fields";
 import { emptyAddress, oneLineAddress, toAddress } from "@/lib/address";
 import { addPlace, removePlace, leadWithPlace } from "./contact-actions";

@@ -6,10 +6,10 @@ import { LogOut } from "lucide-react";
 import {
   Badge, Banner, BlockingInterrupt, Button, IconButton, Dialog, DialogTrigger, DialogContent, Field, Input,
   RadioGroup, RadioItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { pickup, release } from "./actions";
-import type { PickupPerson, OverrideKind } from "@hearth/db";
+import type { PickupPerson, OverrideKind } from "@connectapp/db";
 
 /**
  * R8.7 to R8.9. Letting a child go.

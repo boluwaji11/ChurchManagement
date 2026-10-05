@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import {
   SortMenu, ViewToggle, ShowMore, useListPreference, useShowMore, type ListView,
 } from "@/components/list-controls";

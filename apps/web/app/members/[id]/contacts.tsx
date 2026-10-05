@@ -5,9 +5,9 @@ import { Plus, Star, Trash2 } from "lucide-react";
 import {
   Banner, Button, IconButton, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import { LABELS_FOR, type ContactLabel, type PersonContact, type ContactKind } from "@hearth/db/rules";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { LABELS_FOR, type ContactLabel, type PersonContact, type ContactKind } from "@connectapp/db/rules";
 import { formatPhone } from "@/components/phone-input";
 import { addOne, removeOne, leadWithOne } from "./contact-actions";
 

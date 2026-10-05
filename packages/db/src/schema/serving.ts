@@ -128,7 +128,7 @@ export const teamMembers = pgTable(
  * R10.2. Which positions this person plays.
  *
  * The question a scheduler asks is "who can do this", and the answer is held
- * per team rather than as a property of the person. Hearth does not keep a
+ * per team rather than as a property of the person. ConnectApp does not keep a
  * list of what a congregant is good at: it keeps what a team has asked of
  * them. So a worship leader marking somebody as a vocalist is recording a
  * decision about their own schedule, and it means nothing on the production team.

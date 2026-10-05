@@ -2,8 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import {
   withTenant, getOccurrence, getPlan, runningTimes,
   canManageServices,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { dayAndMonth, readableTime } from "@/lib/dates";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";

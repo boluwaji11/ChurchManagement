@@ -4,9 +4,9 @@ import {
   withTenant, getChurch, dashboard, attendanceByService, openFollowUps, setupProgress,
   listOccurrences, listGroups, listEvents,
   canEditPeople, canReadIncidents,
-} from "@hearth/db";
-import { upcomingMeetings } from "@hearth/db/rules";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/db";
+import { upcomingMeetings } from "@connectapp/db/rules";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow, hasHappened } from "@/lib/church-now";

@@ -11,7 +11,7 @@
  * It takes GET requests only. A check-in is a POST, and a POST that quietly
  * came out of a cache would be a check-in that never happened.
  */
-const CACHE = "hearth-station-v1";
+const CACHE = "connectapp-station-v1";
 
 self.addEventListener("install", () => self.skipWaiting());
 

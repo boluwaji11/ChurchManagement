@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { LabelPair } from "@hearth/db";
+import type { LabelPair } from "@connectapp/db";
 import { readLabels } from "../offline/store";
 import { LabelSheet } from "./sheet";
 

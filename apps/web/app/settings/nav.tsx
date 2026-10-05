@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 export interface SettingsLink {
   href: string;

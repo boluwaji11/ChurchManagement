@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { search, suggestRoom } from "@hearth/db/rules";
-import type { Conflict, OfflineEvent, RosterPerson } from "@hearth/db";
+import { search, suggestRoom } from "@connectapp/db/rules";
+import type { Conflict, OfflineEvent, RosterPerson } from "@connectapp/db";
 import { snapshot as pullSnapshot, sync } from "../actions";
 import type { FoundMatch, FoundPerson } from "../actions";
-import { releaseBlock, readCode, type OverrideKind } from "@hearth/db/rules";
+import { releaseBlock, readCode, type OverrideKind } from "@connectapp/db/rules";
 import {
   appendEvent, forgetEvents, pendingEvents, putSnapshot, readSnapshot, takeCode,
   type StationSnapshot,
@@ -124,7 +124,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
   /**
    * R8.20. The same lookup the server does, against what the station holds.
    *
-   * The ranking rules come from `@hearth/db/rules`, which is the file the SQL
+   * The ranking rules come from `@connectapp/db/rules`, which is the file the SQL
    * is written to match, so a family found at 09:57 is found the same way at
    * 09:59 with the router unplugged.
    */

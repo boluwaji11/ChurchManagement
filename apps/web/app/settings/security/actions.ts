@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { explainAuth } from "@/lib/auth-errors";

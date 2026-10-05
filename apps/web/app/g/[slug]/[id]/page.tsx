@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { publicChurch, publicGroup } from "@hearth/db";
+import { publicChurch, publicGroup } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { GroupPublicPage } from "@/components/group-public-page";
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { withTenant, mergePeople, undoMerge, type MergePlan } from "@hearth/db";
+import { withTenant, mergePeople, undoMerge, type MergePlan } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 

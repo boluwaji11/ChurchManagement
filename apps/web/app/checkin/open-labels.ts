@@ -6,6 +6,6 @@
  * way to work out why. The caller gets false and can offer the link instead.
  */
 export function openLabels(href: string): boolean {
-  const window_ = window.open(href, "hearth-labels", "width=520,height=720");
+  const window_ = window.open(href, "connectapp-labels", "width=520,height=720");
   return window_ !== null;
 }

@@ -19,7 +19,7 @@ import type { WriteActor } from "./members";
  * rather than each ministry keeping a list only it can see.
  *
  * What a position requires is held here, on the position, because that is a
- * claim about the job. Hearth keeps no list of what a congregant is good at.
+ * claim about the job. ConnectApp keeps no list of what a congregant is good at.
  */
 
 /** Teams are church structure, so creating one is staff and up. */

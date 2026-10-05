@@ -3,9 +3,9 @@ import { ArrowLeft, Plus, Clock, CheckCircle2 } from "lucide-react";
 import {
   withTenant, listIncidents, listRooms, listPeople, listOccurrences, stillHere, getChurch,
   canReadIncidents, canCheckIn, type Incident,
-} from "@hearth/db";
-import { Banner, Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Banner, Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";

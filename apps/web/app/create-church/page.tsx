@@ -5,7 +5,7 @@ import { currentUser } from "@/lib/session";
 import { CreateChurchForm } from "./form";
 import { BrandBar } from "@/components/brand";
 import { SignOutButton } from "@/components/sign-out-button";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
 

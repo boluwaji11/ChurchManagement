@@ -18,7 +18,7 @@ export default function DesignLayout({ children }: { children: React.ReactNode }
       <header className="sticky top-0 z-30 border-b border-line bg-canvas/90 backdrop-blur-none">
         <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-baseline gap-2">
-            <span className="font-display text-heading text-fg">Hearth</span>
+            <span className="font-display text-heading text-fg">ConnectApp</span>
             <span className="text-caption text-fg-subtle">design system</span>
           </Link>
           <GalleryControls />

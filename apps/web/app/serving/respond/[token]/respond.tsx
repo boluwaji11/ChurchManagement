@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { Check, X } from "lucide-react";
-import { Banner, Button, Card, Field, Textarea } from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import type { ServingRequest } from "@hearth/db";
+import { Banner, Button, Card, Field, Textarea } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import type { ServingRequest } from "@connectapp/db";
 import { answer } from "./actions";
 
 /**

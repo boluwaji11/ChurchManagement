@@ -5,7 +5,7 @@ import {
   withTenant, addContact, removeContact, makeContactPrimary,
   addAddress, removeAddress, makeAddressPrimary,
   type ContactKind, type ContactLabel,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 

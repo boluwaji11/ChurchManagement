@@ -4,8 +4,8 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import {
   withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents,
   GRID_COLUMNS, type ReportTile, type ReportResult,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Answer } from "../../answer";

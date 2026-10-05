@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { t, plural } from "@hearth/i18n";
-import type { PublicEvent } from "@hearth/db";
+import { t, plural } from "@connectapp/i18n";
+import type { PublicEvent } from "@connectapp/db";
 import { longDate, readableTime } from "@/lib/dates";
 import { Register } from "@/app/e/[slug]/[event]/register";
 import { PublicFooter } from "@/components/public-footer";

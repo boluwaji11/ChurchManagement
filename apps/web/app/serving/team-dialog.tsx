@@ -8,8 +8,8 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   HUES, type Hue,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { saveTeam, savePosition } from "./actions";
 
 export interface TeamDraft {

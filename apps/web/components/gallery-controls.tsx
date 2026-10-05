@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Monitor, Moon, Sun, LayoutDashboard, ScanLine, Smartphone } from "lucide-react";
-import { cn } from "@hearth/ui";
+import { cn } from "@connectapp/ui";
 
 type Density = "office" | "station" | "portal";
 type Theme = "light" | "dark" | "system";
@@ -40,22 +40,22 @@ export function GalleryControls() {
   const [theme, setTheme] = React.useState<Theme>("system");
 
   React.useEffect(() => {
-    const d = read("hearth.density") as Density | null;
-    const t = read("hearth.theme") as Theme | null;
+    const d = read("connectapp.density") as Density | null;
+    const t = read("connectapp.theme") as Theme | null;
     if (d) setDensity(d);
     if (t) setTheme(t);
   }, []);
 
   React.useEffect(() => {
     document.documentElement.dataset.density = density;
-    write("hearth.density", density);
+    write("connectapp.density", density);
   }, [density]);
 
   React.useEffect(() => {
     const root = document.documentElement;
     if (theme === "system") delete root.dataset.theme;
     else root.dataset.theme = theme;
-    write("hearth.theme", theme);
+    write("connectapp.theme", theme);
   }, [theme]);
 
   return (

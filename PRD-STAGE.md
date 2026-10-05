@@ -7,15 +7,15 @@
 | **Status** | Draft 2, October 2026. Written before any Stage code. |
 | **Board** | [BACKLOG-STAGE.md](BACKLOG-STAGE.md) |
 | **Architecture** | [docs/stage-architecture.md](docs/stage-architecture.md) |
-| **Pairing with Hearth** | [docs/stage-sync-contract.md](docs/stage-sync-contract.md) |
+| **Pairing with ConnectApp** | [docs/stage-sync-contract.md](docs/stage-sync-contract.md) |
 
 Requirement IDs are `ST<domain>.<n>`. The eighteen `S1` to `S18` items in PRD.md section 8.23 are the
 outline those IDs expand, and section 23 maps every one of them to the requirements that deliver it.
 
 > **Draft 2 changed the shape of this document.** Draft 1 specified Stage as a thin client of the
-> platform, which made a Hearth account the only way a song could reach a slide. Stage is a complete
+> platform, which made a ConnectApp account the only way a song could reach a slide. Stage is a complete
 > presenter that installs and runs by itself, in the way ProPresenter and OpenLP do. Pairing with
-> Hearth is additive. Section 2 covers what that changes.
+> ConnectApp is additive. Section 2 covers what that changes.
 
 ---
 
@@ -26,11 +26,11 @@ whole thing to a different vendor. Planning Center plans the service and exports
 through an import that loses the arrangement. ProPresenter runs the screens and knows nothing about
 the church. The loop breaks in the one place a volunteer has to stand in front of six hundred people.
 
-Stage closes it. A church that uses Hearth pairs Stage with it, and the plan Maria built and the songs
+Stage closes it. A church that uses ConnectApp pairs Stage with it, and the plan Maria built and the songs
 James chose arrive on the laptop out of the same database. The export step is gone, and so is the file
 somebody used to carry across the room.
 
-A church that has never heard of Hearth downloads Stage and uses it anyway.
+A church that has never heard of ConnectApp downloads Stage and uses it anyway.
 
 ### Two things Stage is at once
 
@@ -39,13 +39,13 @@ church already has, builds its own set lists, carries its own public-domain scri
 Sunday service on a laptop that has never signed in to anything and is not on a network. Measured against OpenLP, FreeShow, Quelea
 and Church Presenter, it has to be as complete as they are and look considerably better.
 
-**The only presenter that already knows this Sunday.** Paired with Hearth, the plan, the song order,
+**The only presenter that already knows this Sunday.** Paired with ConnectApp, the plan, the song order,
 the key, the arrangement, the scripture reference, the announcement list, and the team are already
 there before the laptop is opened. No other presenter can do this, because no other presenter's
 vendor also runs the church's database.
 
 The first makes Stage installable. The second makes it worth keeping, and it is also the reason a
-church that liked Stage ends up on Hearth. **Stage is the front door to the platform**, which is a
+church that liked Stage ends up on ConnectApp. **Stage is the front door to the platform**, which is a
 better distribution route than the platform being a toll gate on Stage.
 
 ### The design case
@@ -71,7 +71,7 @@ STG-144 multi-campus. Everything else in S0.5 and S1.0 works alone.
 |---|---|
 | Licensed scripture translations, under the church's own licence (ST7.6) | Presents from the bundled public-domain translations, or types the passage in (ST7.1, ST7.5) |
 | The service plan arriving by itself (ST5.3) | Builds a set list in Stage (ST2.8), which somebody types |
-| Announcements typed in Hearth reaching the foyer screen (ST13.5) | Builds the loop's slides in Stage (ST13.4) |
+| Announcements typed in ConnectApp reaching the foyer screen (ST13.5) | Builds the loop's slides in Stage (ST13.4) |
 | Plan notes addressed to a position (ST5.5, ST11.6) | Does without. Who is serving lives in the management system. |
 | The library existing in a second place | Relies on Stage's backup and restore (ST19.5) and its ungated export (ST2.12) |
 | Themes matching across three laptops (ST8.5) | Sets the theme on each laptop |
@@ -93,17 +93,17 @@ difference is a column.
 | Origin | Who may edit it | Why |
 |---|---|---|
 | `local` | Stage | Typed in or imported here. Stage is the only copy, and Stage owns it. |
-| `hearth` | The platform | Synced from a paired church. Read-only in Stage, so the library has one writer and cannot diverge. |
+| `connectapp` | The platform | Synced from a paired church. Read-only in Stage, so the library has one writer and cannot diverge. |
 
-A `hearth` song is adjusted for one service through a run override (ST6.7), which lives against the
-run. A correction that should stick is made in Hearth, by a person, and arrives at the next sync. A
+A `connectapp` song is adjusted for one service through a run override (ST6.7), which lives against the
+run. A correction that should stick is made in ConnectApp, by a person, and arrives at the next sync. A
 `local` song is promoted into a paired church's library by the operator's explicit action (ST4.11),
 one way, once. There is no merge algorithm anywhere in Stage, and that is deliberate.
 
 **3. Scripture needs a source.** A standalone Stage cannot ask the platform for resolved text, so it
 carries its own. Public-domain translations are bundled (ST7.1). Licensed translations cannot be
 bundled or fetched by us at any price, so a church that presents from the NIV either pairs with
-Hearth and uses the text its own licence covers (R11.5), or types the passage in. This is stated in
+ConnectApp and uses the text its own licence covers (R11.5), or types the passage in. This is stated in
 the product rather than discovered by a church in week three.
 
 **4. The platform stops being a prerequisite.** Sync moves to S0.4 and gates nothing before it. S0.1
@@ -111,7 +111,7 @@ through S0.3 are a complete presenter, buildable start to finish with no platfor
 
 What does **not** change: the song schema. Stage's local library uses the schema in
 [PRD.md section 9.4](PRD.md) exactly, through the shared `packages/songs` package, which is why a
-locally authored song promotes into Hearth as an insert rather than a translation.
+locally authored song promotes into ConnectApp as an insert rather than a translation.
 
 ---
 
@@ -127,7 +127,7 @@ song moves on. Rotates weekly, and may never have opened Stage before this morni
 trained, so the control surface has to be obvious at a glance and impossible to break.
 
 **Maria, administrator, non-technical.** Does not open Stage. She feels it, because the announcement
-loop on the screens before the service is the one she typed into Hearth on Thursday.
+loop on the screens before the service is the one she typed into ConnectApp on Thursday.
 
 **The production volunteer, where a church has one.** Runs the livestream, wants the lower third keyed
 over camera, owns a Stream Deck, and is the only person in the building who knows what NDI is. Stage
@@ -141,13 +141,13 @@ must not require them, and must not insult them when they show up.
 |---|---|---|
 | Standalone | **Stage installs and presents without ever signing in to anything.** Offline, with no server of ours involved. | It competes with OpenLP and ProPresenter, which is where the users are. A presenter that needs a ChMS account has no users. |
 | Pairing | Optional, additive, reversible. | Pairing is the upgrade that closes the loop. It is never the price of entry. |
-| Price | Free, like the rest of Hearth. | Settled in PRD.md section 2. No paid tier for Stage, ever. |
+| Price | Free, like the rest of ConnectApp. | Settled in PRD.md section 2. No paid tier for Stage, ever. |
 | Delivery | Electron desktop, macOS, Windows, Linux. | The output drives real displays, holds a video decode pipeline, and runs with the network off. |
 | Offline | Offline always. The network is an optional extra. | The building's internet is not a Sunday dependency. |
-| Library | Stage holds a real library. Songs are `local` or `hearth`, with one writer each (section 2). | Independence without a merge problem. |
-| Song schema | The schema in PRD section 9.4, through `packages/songs`, in both products. | A locally authored song promotes into Hearth as an insert. |
+| Library | Stage holds a real library. Songs are `local` or `connectapp`, with one writer each (section 2). | Independence without a merge problem. |
+| Song schema | The schema in PRD section 9.4, through `packages/songs`, in both products. | A locally authored song promotes into ConnectApp as an insert. |
 | Scripture | Public-domain translations bundled. Licensed text comes from a paired church's own licence. | We cannot redistribute the NIV, and pretending otherwise is a lawsuit. |
-| Data direction | Stage reads plans and `hearth` songs. It writes usage and promotes `local` songs on request. | One writer per record, everywhere. |
+| Data direction | Stage reads plans and `connectapp` songs. It writes usage and promotes `local` songs on request. | One writer per record, everywhere. |
 | Licence | AGPL-3.0, same as the platform. | |
 | Song content | Stage ships with no lyrics of any kind. | Lyrics are the church's CCLI responsibility. Bundling any would make them ours. |
 | Telemetry | None beyond the usage a paired church asked for. | Carried from the platform's trust constraints. |
@@ -186,7 +186,7 @@ line, or a flash between slides.
 
 ### S0.2 The library
 
-The release that makes Stage usable by a church that has never heard of Hearth.
+The release that makes Stage usable by a church that has never heard of ConnectApp.
 
 Import from ProPresenter, EasyWorship, OpenLP, OpenSong and OpenLyrics. Library search, song and
 arrangement editing, ChordPro charts. Bundled public-domain scripture with reference parsing and verse
@@ -209,15 +209,15 @@ five seconds.
 
 ### S0.4 The plan
 
-**The loop. The only release that needs the platform**, and the only reason Hearth owns a presenter at
+**The loop. The only release that needs the platform**, and the only reason ConnectApp owns a presenter at
 all. Ready when platform 0.4 has shipped the song library and the sync API, and pulled forward the
 moment it does.
 
-Device pairing, delta sync, Hearth plans compiled into decks, plan notes addressed to a position,
+Device pairing, delta sync, ConnectApp plans compiled into decks, plan notes addressed to a position,
 scripture resolved under the church's own licence, the two-origin rule, local songs promoted into the
 church library, and usage pushed back for the platform's CCLI report.
 
-**Exit criteria:** a plan edited in Hearth on Saturday night is on the screen on Sunday morning
+**Exit criteria:** a plan edited in ConnectApp on Saturday night is on the screen on Sunday morning
 without anyone exporting a file, the whole service runs after the network cable is pulled out mid-set,
 and the songs used appear in the platform's CCLI report on Monday.
 
@@ -240,7 +240,7 @@ camera input, PowerPoint and Keynote import, signed and notarised builds for thr
 and auto-update that will not touch a Sunday.
 
 **Exit criteria:** a livestream carries a keyed lower third from Stage into OBS over NDI, and ten
-churches have moved to Stage from a paid presenter, at least five of them without using Hearth.
+churches have moved to Stage from a paid presenter, at least five of them without using ConnectApp.
 
 ### Beyond S1.0
 
@@ -255,11 +255,11 @@ surface. Rehearsal mode playing the reference track against the slides.
 |---|---|---|
 | ST1.1 | S0.1 | **Stage opens and presents without signing in to anything.** First run reaches a usable library in under a minute. |
 | ST1.2 | S0.1 | First run offers to import an existing library, and offers a sample song set for a church starting from nothing. The sample set is public domain. |
-| ST1.3 | S0.4 | **Pairing by short code.** An admin generates a code in Hearth, the operator types it into Stage once, and Stage receives a device token and the church's identity. |
+| ST1.3 | S0.4 | **Pairing by short code.** An admin generates a code in ConnectApp, the operator types it into Stage once, and Stage receives a device token and the church's identity. |
 | ST1.4 | S0.4 | The pairing code is six characters from an unambiguous alphabet, single use, and expires in fifteen minutes. |
 | ST1.5 | S0.4 | The device token is stored in the operating system keychain. It stays out of the cache directory and out of the logs. |
 | ST1.6 | S0.4 | A paired device appears in the platform's device list with its name, platform, last sync time, and a **Revoke** control, beside the active session list (R1.10). |
-| ST1.7 | S0.4 | A revoked or unpaired device **keeps its local library and keeps working.** Unpairing removes `hearth` songs and plans, and leaves every `local` song untouched. |
+| ST1.7 | S0.4 | A revoked or unpaired device **keeps its local library and keeps working.** Unpairing removes `connectapp` songs and plans, and leaves every `local` song untouched. |
 | ST1.8 | S0.4 | The device token is scoped: read on plans, songs, arrangements, scripture, and the team roster for synced services. Write on song usage and promoted songs. Nothing else, enforced server side. |
 | ST1.9 | S0.1 | Stage names itself after the machine on first run, and the name is editable, because a church with three laptops needs to tell them apart. |
 | ST1.10 | S1.0 | Multi-campus: a device pairs to one campus, and only that campus's services sync. |
@@ -267,7 +267,7 @@ surface. Rehearsal mode playing the reference track against the slides.
 *Accept ST1.1:* a clean install on a laptop with the wifi switched off reaches a presentable slide.
 
 *Accept ST1.7:* unpairing a device mid-week leaves every song the church typed into Stage, and removes
-the ones that came from Hearth.
+the ones that came from ConnectApp.
 
 *Accept ST1.8:* an adversarial suite calls every platform API path with a Stage device token, including
 people, giving, and check-in, and every call outside the scope above is refused.
@@ -291,9 +291,9 @@ Stage's own library, which is what makes it a presenter rather than a viewer.
 | ST2.9 | S0.2 | A set list is duplicated from a previous week, carrying structure. |
 | ST2.10 | S0.2 | **Local usage log**: every song presented, with date, set list, arrangement and key, and a last-used date on the song. A row is written when a song is actually shown rather than when a set list is opened, so the report reflects the service. |
 | ST2.11 | S0.2 | **CCLI usage export** from the local log, in the format CCLI accepts, for a chosen period. Small churches get fined for failing this, and no free presenter does it. |
-| ST2.12 | S0.2 | **Export the whole library** as OpenLyrics and as a Hearth-schema JSON bundle, ungated. A church leaving Stage takes its library, which is the same trust commitment the platform makes. |
-| ST2.13 | S0.4 | Song origin is `local` or `hearth`, shown in the library, with `hearth` songs read-only in Stage (section 2). |
-| ST2.14 | S0.4 | **Promote a `local` song into a paired church's Hearth library**, on the operator's action, one way, with a duplicate check against CCLI number and title first. |
+| ST2.12 | S0.2 | **Export the whole library** as OpenLyrics and as a ConnectApp-schema JSON bundle, ungated. A church leaving Stage takes its library, which is the same trust commitment the platform makes. |
+| ST2.13 | S0.4 | Song origin is `local` or `connectapp`, shown in the library, with `connectapp` songs read-only in Stage (section 2). |
+| ST2.14 | S0.4 | **Promote a `local` song into a paired church's ConnectApp library**, on the operator's action, one way, with a duplicate check against CCLI number and title first. |
 | ST2.15 | S0.1 | Nothing in the library is reachable from the live presentation surface (ST12.3). |
 
 *Accept ST2.2:* a song typed in with three verses, a chorus and a bridge, then exported and reimported,
@@ -333,7 +333,7 @@ were there beforehand untouched.
 
 ---
 
-## 9. Domain 4. Pairing with Hearth, and sync
+## 9. Domain 4. Pairing with ConnectApp, and sync
 
 The loop. Additive, and the only domain that needs the platform.
 
@@ -368,14 +368,14 @@ full service including backgrounds and scripture text.
 
 ## 10. Domain 5. The deck: set lists, plans, and cues
 
-The deck is the service, compiled. It comes from a Stage set list or from a Hearth plan, and the
+The deck is the service, compiled. It comes from a Stage set list or from a ConnectApp plan, and the
 renderer cannot tell the difference.
 
 | ID | Rel | Requirement |
 |---|---|---|
 | ST5.1 | S0.2 | **A set list opens as a deck**, in the order it was built. |
 | ST5.2 | S0.1 | A song compiles to slides by resolving its arrangement's sequence against its labelled sections. `V1 C V2 C B C C` produces exactly those sections in that order, with repeats as separate cues. |
-| ST5.3 | S0.4 | **A Hearth plan opens as a deck** with no building step, plan items in the order Maria and James put them in (R11.2). |
+| ST5.3 | S0.4 | **A ConnectApp plan opens as a deck** with no building step, plan items in the order Maria and James put them in (R11.2). |
 | ST5.4 | S0.2 | Non-presenting items, sermon, prayer, offering, announcements, appear as markers, so the operator's position in the deck matches the service's position in the room. |
 | ST5.5 | S0.4 | **Plan notes are visible to the operator**, including the note addressed to their position (R11.6), on the control surface and the stage display. |
 | ST5.6 | S0.1 | The deck shows the arrangement's key and tempo, and honours a per-item key override. |
@@ -407,8 +407,8 @@ Words on a wall, done properly. The bar is the back row of a dark room.
 | ST6.4 | S0.1 | Every glyph stays inside the safe area, with no clipped descender and no scrollbar. An automated render test verifies it. |
 | ST6.5 | S0.1 | Transition is a cross-dissolve at a theme-set duration, defaulting to 200ms, GPU composited, with no flash of background. |
 | ST6.6 | S0.1 | **Black, clear, and logo** are each one keypress, independent of deck position, and returning from them restores the exact slide. |
-| ST6.7 | S0.3 | Per-slide override of size, alignment, and background, stored against this run. The song is untouched, which is also how a `hearth` song is adjusted. |
-| ST6.8 | S0.2 | A slide is corrected live for a typo. On a `local` song the correction is offered to the library. On a `hearth` song it stays with the run. |
+| ST6.7 | S0.3 | Per-slide override of size, alignment, and background, stored against this run. The song is untouched, which is also how a `connectapp` song is adjusted. |
+| ST6.8 | S0.2 | A slide is corrected live for a typo. On a `local` song the correction is offered to the library. On a `connectapp` song it stays with the run. |
 | ST6.9 | S1.0 | Two languages on one slide, primary and translation, from section-aligned translations (R12.8), with independent sizing. |
 | ST6.10 | S1.0 | Right-to-left text, vertical centring, and a font fallback chain covering the scripts a church actually uses. |
 
@@ -441,7 +441,7 @@ theme, every slide carries the reference, and no verse splits across two slides 
 exceeds one slide, in which case it breaks at a sentence.
 
 *Accept ST7.8:* searching Stage for a licensed translation explains in two sentences what is possible
-and what pairing with Hearth changes.
+and what pairing with ConnectApp changes.
 
 ---
 
@@ -561,7 +561,7 @@ acceleration, asserted on the cue index.
 *Accept ST13.1:* a countdown to 10:30 restarted at 10:27 resumes showing three minutes, having been
 told nothing.
 
-*Accept ST13.5:* an announcement added in Hearth appears in the next pre-service loop with no action in
+*Accept ST13.5:* an announcement added in ConnectApp appears in the next pre-service loop with no action in
 Stage beyond a sync.
 
 ---
@@ -639,7 +639,7 @@ than an empty half.
 | ST18.4 | S0.4 | A song added live and absent from the plan is still reported, because that is exactly the usage a church forgets and gets fined for. |
 | ST18.5 | S0.5 | Run telemetry for the plan's revision history: what ran, in what order, and how long each item actually took, against R11.3's planned durations. |
 | ST18.6 | S0.4 | **No other data leaves Stage.** What a church sings is its own business, and the platform's trust constraints carry here unchanged. |
-| ST18.7 | S0.2 | An unpaired Stage keeps the same usage log locally and exports it itself (ST2.11), so the CCLI obligation is met with or without Hearth. |
+| ST18.7 | S0.2 | An unpaired Stage keeps the same usage log locally and exports it itself (ST2.11), so the CCLI obligation is met with or without ConnectApp. |
 
 *Accept ST18.1:* a service run with the network off appears in the platform's CCLI export for the period
 after the laptop reconnects, with the correct key.

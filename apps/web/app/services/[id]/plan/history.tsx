@@ -1,7 +1,7 @@
-import { Card } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Card } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import type { PlanChange } from "@hearth/db";
+import type { PlanChange } from "@connectapp/db";
 
 /** The fields worth naming. Anything else is reported as a change without one. */
 const NAMED = new Set([

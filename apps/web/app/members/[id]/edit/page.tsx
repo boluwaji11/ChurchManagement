@@ -4,13 +4,13 @@ import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getPersonForEdit, listHouseholds, listCustomFields, getCustomValues,
   listTagsWithCounts, listTagsForPerson, listContacts, listAddresses, listCampuses, canEditPeople,
-} from "@hearth/db";
-import { Banner } from "@hearth/ui";
+} from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PersonForm, PersonFormActions } from "../../person-form";
 import { toAddress } from "@/lib/address";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
 

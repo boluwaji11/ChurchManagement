@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Trash2, X } from "lucide-react";
 import {
   Banner, Button, Checkbox, Combobox, DatePicker, Field, IconButton, Input,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { TimeField } from "@/components/time-field";
 import { Picker } from "@/components/picker";

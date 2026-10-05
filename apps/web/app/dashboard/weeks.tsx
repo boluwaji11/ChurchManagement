@@ -1,5 +1,5 @@
-import { t } from "@hearth/i18n";
-import type { ServiceCount } from "@hearth/db";
+import { t } from "@connectapp/i18n";
+import type { ServiceCount } from "@connectapp/db";
 import { shortDate } from "@/lib/dates";
 import { Panel } from "./panel";
 

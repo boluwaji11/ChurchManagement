@@ -18,7 +18,7 @@
  */
 export const en = {
   // Brand and chrome
-  "app.name": "Hearth",
+  "app.name": "ConnectApp",
   "nav.skip": "Skip to the page",
   "nav.sections": "Sections",
   "nav.home": "Home",
@@ -75,11 +75,11 @@ export const en = {
   "trust.source.title": "The source is public",
   "trust.source.body": "Licensed AGPL-3.0, which means anybody can read what runs your church and nobody can take this and close it. The licence is the reason free forever is a fact rather than a promise.",
   "trust.winddown.title": "If this ends, you get ninety days",
-  "trust.winddown.body": "Should Hearth stop, every church gets ninety days of notice, the product keeps running throughout, and the export keeps working to the last day. The source stays public, so a church that wants to keep running it can.",
+  "trust.winddown.body": "Should ConnectApp stop, every church gets ninety days of notice, the product keeps running throughout, and the export keeps working to the last day. The source stays public, so a church that wants to keep running it can.",
   "trust.money.title": "Your giving never passes through us",
   "trust.money.body": "Giving runs on your own Stripe account. Money goes from your giver to you. We take no cut and never hold a balance.",
   "trust.who.title": "Who else touches your records",
-  "trust.who.body": "These are the companies that run parts of Hearth. Each is bound by contract to the same rule: no training on church data.",
+  "trust.who.body": "These are the companies that run parts of ConnectApp. Each is bound by contract to the same rule: no training on church data.",
   "trust.who.supabase": "Supabase. The database, sign-in and file storage. Hosted in the United States.",
   "trust.who.vercel": "Vercel. Runs the web application. No records are stored there.",
   "trust.who.stripe": "Stripe. Processes giving, against the church's own account. Arrives with giving.",
@@ -110,7 +110,7 @@ export const en = {
   "home.price.giving": "Giving runs on the church's own Stripe account. Our platform fee is zero.",
   "home.price.messaging": "Email and SMS run on the church's own credentials, at cost.",
   "home.free.title": "Why it costs nothing",
-  "home.free.body": "Free church software already exists and churches cannot use it. Hearth is funded by donations and grants so it can be free and usable at the same time.",
+  "home.free.body": "Free church software already exists and churches cannot use it. ConnectApp is funded by donations and grants so it can be free and usable at the same time.",
   "home.end.title": "Look around first.",
 
   // Sign in
@@ -766,7 +766,7 @@ export const en = {
   "roles.failed": "That did not save. Try again.",
   "roles.error.name": "Enter a name.",
   "roles.error.taken": "There is already a role with that name.",
-  "roles.error.builtin": "A role Hearth ships with cannot be deleted.",
+  "roles.error.builtin": "A role ConnectApp ships with cannot be deleted.",
   "roles.error.owner": "The Owner cannot be changed.",
   "roles.error.missing": "That role could not be found.",
   "roles.error.permission": "That permission does not exist.",
@@ -857,7 +857,7 @@ export const en = {
   "import.rowsFound.one": "{count} row found",
   "import.rowsFound.other": "{count} rows found",
   "import.column": "Column in your file",
-  "import.field": "Hearth field",
+  "import.field": "ConnectApp field",
   "import.sample": "First row",
   "import.ignore": "Do not import",
   "import.strategy": "When someone is already in the directory",
@@ -1432,7 +1432,7 @@ export const en = {
   "help.people.body": "Every member the church knows, and the households they belong to. Search by a name, an email or a phone number. A member is archived rather than deleted, so their giving and their attendance stay answerable. Two records for the same member are merged from Duplicates, and a merge can be undone for thirty days.",
 
   "help.import.title": "Bringing members in",
-  "help.import.body": "A spreadsheet from whatever you use now. Hearth shows you what it read before anything is written, and you say which column is which. An import can be rolled back for thirty days, so the first one does not have to be the right one.",
+  "help.import.body": "A spreadsheet from whatever you use now. ConnectApp shows you what it read before anything is written, and you say which column is which. An import can be rolled back for thirty days, so the first one does not have to be the right one.",
 
   "help.services.title": "Services and attendance",
   "help.services.body": "A service time repeats, and each time it comes round is an occurrence. Recording attendance is ticking a roster, or a headcount if that is all you keep. A cancelled service is marked cancelled rather than deleted, so nobody is counted absent from a service the church called off.",

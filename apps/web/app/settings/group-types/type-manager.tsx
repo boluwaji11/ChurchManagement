@@ -6,8 +6,8 @@ import { Archive, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, IconButton, Input, LIFT,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { saveType, archiveType } from "./actions";
 

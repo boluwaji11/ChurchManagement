@@ -7,7 +7,7 @@
  * build failure instead of a review habit, the same way the owner connection
  * is kept out of request paths.
  *
- * It fails loudly and it is meant to. If a model genuinely belongs in Hearth
+ * It fails loudly and it is meant to. If a model genuinely belongs in ConnectApp
  * one day, that is a decision taken in the open, with the trust page and the
  * terms changed in the same commit as this list.
  */

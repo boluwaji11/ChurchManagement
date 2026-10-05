@@ -1,8 +1,8 @@
 import {
   withTenant, listOccurrences, topUpCalendar, planSummaries, getChurch, canManageServices,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { Empty } from "@/components/empty";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";

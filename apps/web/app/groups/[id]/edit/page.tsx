@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, getGroup, listGroupTypes, canManageGroups } from "@hearth/db";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { withTenant, getGroup, listGroupTypes, canManageGroups } from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { GroupEditor, GroupFormActions } from "../../group-editor";

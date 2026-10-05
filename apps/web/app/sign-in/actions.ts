@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { syncUserAndAcceptInvitations, membershipsForUser, canEditPeople } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { syncUserAndAcceptInvitations, membershipsForUser, canEditPeople } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { explainAuth } from "@/lib/auth-errors";
 

@@ -6,9 +6,9 @@ import {
   withTenant, listTeams, getTeam, getChurch, answerCounts, listOccurrences,
   assignmentsForTeam, blockoutsFor, openSlots, positionsForTeams,
   canManageTeams, canLeadTeams,
-} from "@hearth/db";
-import { Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";

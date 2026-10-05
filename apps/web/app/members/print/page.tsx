@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { withTenant, listPeople, canEditPeople } from "@hearth/db";
-import { t, plural } from "@hearth/i18n";
+import { withTenant, listPeople, canEditPeople } from "@connectapp/db";
+import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AutoPrint } from "../../checkin/rooms/print/auto-print";
 

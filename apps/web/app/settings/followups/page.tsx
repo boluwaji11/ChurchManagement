@@ -1,6 +1,6 @@
-import { withTenant, listPipelines, assignableUsers, canManageChurch } from "@hearth/db";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { withTenant, listPipelines, assignableUsers, canManageChurch } from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { Pipelines, NewPipeline } from "./pipelines";

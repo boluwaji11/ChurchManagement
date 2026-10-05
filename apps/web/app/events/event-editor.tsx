@@ -6,8 +6,8 @@ import { Check, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
 import {
   ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Working, cn,
   Dialog, DialogContent, DialogFooter,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";

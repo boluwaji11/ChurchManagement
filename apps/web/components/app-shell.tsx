@@ -2,8 +2,8 @@ import * as React from "react";
 import { cookies } from "next/headers";
 import {
   withTenant, countUnread, listNotifications, NOTIFICATION_LOOK, getChurch,
-} from "@hearth/db";
-import { t, spellingFor } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t, spellingFor } from "@connectapp/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
 import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";

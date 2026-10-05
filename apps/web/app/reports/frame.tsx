@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 /** R18.x. How far back a report reads, in days. */
 export const WINDOWS = [90, 180, 365] as const;

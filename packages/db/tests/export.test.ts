@@ -170,11 +170,11 @@ describe("the file itself", () => {
     const opened = await JSZip.loadAsync(buffer);
     const names = Object.keys(opened.files);
 
-    expect(names).toContain("hearth-export.json");
+    expect(names).toContain("connectapp-export.json");
     expect(names).toContain("README.txt");
     expect(names).toContain("csv/members.csv");
 
-    const json = JSON.parse(await opened.file("hearth-export.json")!.async("string"));
+    const json = JSON.parse(await opened.file("connectapp-export.json")!.async("string"));
     expect(json.meta.format).toBe(ARCHIVE_FORMAT);
     expect(json.data.members.length).toBe(archive.data["members"]!.length);
 

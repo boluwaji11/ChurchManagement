@@ -4,7 +4,7 @@ How Stage is built. [PRD-STAGE.md](../PRD-STAGE.md) says what it does.
 [stage-sync-contract.md](stage-sync-contract.md) says how it talks to the platform when a church pairs it.
 
 **Stage runs on its own.** It holds its own song library, imports the library a church already has,
-and presents a service with nothing of ours on the network. Pairing with Hearth adds a second source
+and presents a service with nothing of ours on the network. Pairing with ConnectApp adds a second source
 of songs and plans, and it adds no dependency to anything described here except the sync client.
 
 ## Shape
@@ -96,7 +96,7 @@ is achievable.
 Compilation is pure, lives in `packages/songs`, and runs in main.
 
 ```
-set list or Hearth plan + songs + arrangements + themes
+set list or ConnectApp plan + songs + arrangements + themes
           │
           ▼  compileDeck()        pure, deterministic, unit tested
    Deck { groups: CueGroup[] }
@@ -108,7 +108,7 @@ set list or Hearth plan + songs + arrangements + themes
    OutputState per output
 ```
 
-- A **cue group** is one item of a Stage set list or one item of a Hearth plan, which compile to the
+- A **cue group** is one item of a Stage set list or one item of a ConnectApp plan, which compile to the
   same structure. A **cue** is a slide, or a marker for a non-presenting item (ST5.4).
 - A song's cues come from resolving the arrangement's `sequence` against the song's labelled sections.
   `V1 C V2 C B C C` produces seven groups of slides, repeats included as separate cues (ST5.2).
@@ -162,7 +162,7 @@ Three stores, and the split is the thing that makes a standalone presenter safe 
 **`library.db` and `cache.db` are never the same table.** A resync truncates and rebuilds `cache.db`
 and cannot reach a song the church typed in (ST4.3), and a corrupt cache therefore costs a download
 rather than a library (ST19.4). It is also what enforces the two-origin rule in PRD-STAGE section 2:
-a song's origin is which file it lives in, so "Stage cannot edit a `hearth` song" is a property of the
+a song's origin is which file it lives in, so "Stage cannot edit a `connectapp` song" is a property of the
 storage rather than a check somebody has to remember to write.
 
 Queries read both stores through one view, so the renderer and the deck compiler never know or care
@@ -249,7 +249,7 @@ The themes borrow the palette and the type scale, and they do not borrow the com
 | Layer | How |
 |---|---|
 | `packages/songs` | Unit tests. Sequence resolution, section splitting, ChordPro transposition against the same fifty-chart fixture set the platform uses for R12.6. |
-| Deck compilation | Golden fixtures. Fifty arrangements compile to expected decks, including the failure cases, from a Stage set list and from a Hearth plan. |
+| Deck compilation | Golden fixtures. Fifty arrangements compile to expected decks, including the failure cases, from a Stage set list and from a ConnectApp plan. |
 | `packages/song-import` | Golden fixtures per format. A real ProPresenter, EasyWorship, OpenLP, OpenSong and OpenLyrics library each imports to an expected set of records with section labels intact (ST3.2). |
 | The library | Round-trip: a song typed in, exported, and reimported comes back with the same section types, labels and line breaks (ST2.2). Backup and restore returns every song, set list and usage row (ST19.5). |
 | Rendering | A headless harness rasterises every slide in a 200-song fixture library at three resolutions, asserting no glyph crosses the safe area and no region falls below 7:1 contrast (ST6.4, ST20.4). |

@@ -3,8 +3,8 @@
 import { LogOut } from "lucide-react";
 import {
   Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { clearSectionMemory } from "./shell/section-memory";
 
 /**

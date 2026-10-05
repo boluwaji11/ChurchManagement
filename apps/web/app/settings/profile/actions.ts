@@ -1,8 +1,8 @@
 "use server";
 
-import { withTenant, updateOwnProfile, setOwnPhoto, setAccountName } from "@hearth/db";
+import { withTenant, updateOwnProfile, setOwnPhoto, setAccountName } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

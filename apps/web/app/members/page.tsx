@@ -3,9 +3,9 @@ import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
   listSavedLists, resolveList, countPeopleByStatus, listGroups, PER_PAGE,
-} from "@hearth/db";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";

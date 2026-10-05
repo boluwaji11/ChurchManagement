@@ -6,7 +6,7 @@ import {
   History, Inbox, ListMusic, ListPlus, Printer, SearchX, ShieldAlert, Tablet,
   Tag, Users,
 } from "lucide-react";
-import { EmptyState } from "@hearth/ui";
+import { EmptyState } from "@connectapp/ui";
 import { useChurchMark } from "./church-mark";
 
 /**

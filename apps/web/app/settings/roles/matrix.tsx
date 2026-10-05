@@ -6,8 +6,8 @@ import { Archive, Check, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Checkbox, Field, IconButton, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { addRole, saveRole, putAway } from "./actions";
 
 export interface RoleRow {

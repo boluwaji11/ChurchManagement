@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, addGroupType, updateGroupType, setGroupTypeArchived, reorderGroupTypes,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

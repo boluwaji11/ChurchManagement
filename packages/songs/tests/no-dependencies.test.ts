@@ -1,7 +1,7 @@
 /**
  * STG-1. The guard on the package's one architectural rule.
  *
- * `@hearth/songs` is imported by a Next.js server action, an Electron main
+ * `@connectapp/songs` is imported by a Next.js server action, an Electron main
  * process, a worker thread reading a ProPresenter file, and a test. Anything it
  * depends on, all four have to carry, so it depends on nothing.
  *

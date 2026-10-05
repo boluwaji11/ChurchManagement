@@ -5,7 +5,7 @@ specification is [PRD.md](../PRD.md); this is the part you need in your head whi
 
 ## What this is
 
-**Hearth** is a church management platform for small churches, given to them at no cost and built for
+**ConnectApp** is a church management platform for small churches, given to them at no cost and built for
 the volunteer who actually runs it.
 
 Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and reads the same
@@ -16,7 +16,7 @@ Read [PRD.md](../PRD.md) before proposing features. Requirement IDs from the PRD
 
 ## The thesis, in one line
 
-Church software churches can afford already exists and they cannot use it. Hearth is the first that is
+Church software churches can afford already exists and they cannot use it. ConnectApp is the first that is
 both affordable and usable by a volunteer who gives four hours a week.
 
 Rock RMS costs nothing and needs a developer. Breeze is usable and costs $72 a month. The target is
@@ -34,7 +34,7 @@ matter what the competition markets.
 | Presenter | Phase 2, separate PRD at build time. Phase 1 owes it the song schema and the sync contract, nothing else. |
 | Licence | AGPL-3.0 |
 | Database | Supabase. Postgres plus auth plus storage. See PRD section 13.9. |
-| Name | Hearth. "Sanctuary" was in use by three competitors. Name lives in config. |
+| Name | ConnectApp. "Sanctuary" was in use by three competitors. Name lives in config. |
 | Target | Churches of 50 to 500 attendance, 0 to 2 paid staff, one non-technical admin. |
 
 Anything implying a paid tier, self-hosting in v1, platform-held funds, or platform-paid SMS
@@ -71,7 +71,7 @@ song list now is a rewrite later.
 TypeScript end to end, pnpm workspaces plus Turborepo, Next.js App Router, **Supabase** (Postgres,
 auth, storage), Drizzle, a durable job queue, Stripe Connect, PWA for members. Front end is Tailwind
 CSS v4, shadcn/ui on Radix, Lucide icons, Motion. Phase 2 presenter is Electron sharing a
-`@hearth/songs` package with a local SQLite cache.
+`@connectapp/songs` package with a local SQLite cache.
 
 **Supabase rules.** Use Drizzle against Postgres directly, never the auto-generated PostgREST API,
 because field-level permissions belong in our query layer. Connect as a role RLS applies to and set
@@ -106,7 +106,7 @@ See [architecture.md](architecture.md), [data-model.md](data-model.md), and
 ## Design
 
 Full specification in [design-system.md](design-system.md). Read it before writing any UI.
-Hearth replaces software churches pay for, so it has to look better than that software.
+ConnectApp replaces software churches pay for, so it has to look better than that software.
 
 - **Three density modes, one system.** `office` dense and keyboard-first, `station` a check-in kiosk at
   56px targets and 20px text, `portal` app-like on a phone. Resolved through tokens on the root

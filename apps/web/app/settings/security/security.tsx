@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Check, ChevronRight, KeyRound, Mail } from "lucide-react";
-import { Banner, Button, Field, Input } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Button, Field, Input } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { changeEmail, changePassword, emailMeALink } from "./actions";
 
 /**

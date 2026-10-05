@@ -11,8 +11,8 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   Tabs, TabsList, TabsTrigger,
   cn, type Hue,
-} from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";

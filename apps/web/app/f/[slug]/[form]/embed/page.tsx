@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { publicForm } from "@hearth/db";
+import { publicForm } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { PublicForm } from "../public-form";
 

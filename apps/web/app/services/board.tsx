@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { ChevronRight, LayoutGrid, List, Plus, Minus } from "lucide-react";
-import { cn, LIFT } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn, LIFT } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 export interface ServiceCard {
   id: string;

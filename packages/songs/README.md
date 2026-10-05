@@ -1,4 +1,4 @@
-# @hearth/songs
+# @connectapp/songs
 
 The song model, shared by the web platform and Hearth Stage.
 

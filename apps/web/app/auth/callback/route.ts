@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { syncUserAndAcceptInvitations } from "@hearth/db";
+import { syncUserAndAcceptInvitations } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { explainAuth } from "@/lib/auth-errors";
 

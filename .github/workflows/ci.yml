@@ -33,17 +33,17 @@ jobs:
       # against colours that no longer exist in the source.
       - name: Design tokens are up to date
         run: |
-          pnpm --filter @hearth/ui run tokens
+          pnpm --filter @connectapp/ui run tokens
           git diff --exit-code packages/ui/src/tokens.css
 
       - name: Typecheck
         run: pnpm typecheck
 
       - name: Contrast audit (R22.7)
-        run: pnpm --filter @hearth/ui test
+        run: pnpm --filter @connectapp/ui test
 
       - name: Strings are externalised (R22.8)
-        run: pnpm --filter @hearth/i18n test
+        run: pnpm --filter @connectapp/i18n test
 
       - name: Every shipped requirement has a story
         run: node scripts/check-backlog.mjs
@@ -85,8 +85,8 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_PASSWORD: hearth
-          POSTGRES_DB: hearth
+          POSTGRES_PASSWORD: connectapp
+          POSTGRES_DB: connectapp
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
@@ -94,11 +94,11 @@ jobs:
           --health-retries 10
         ports: ["5432:5432"]
     env:
-      DATABASE_URL: postgresql://postgres:hearth@localhost:5432/hearth
-      APP_DATABASE_URL: postgresql://hearth_app:hearth-app-ci@localhost:5432/hearth
+      DATABASE_URL: postgresql://postgres:connectapp@localhost:5432/connectapp
+      APP_DATABASE_URL: postgresql://hearth_app:connectapp-app-ci@localhost:5432/connectapp
       # A throwaway key for a throwaway database. Real keys are never in a repo.
       NOTE_ENCRYPTION_KEY: AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=
-      HEARTH_APP_PASSWORD: hearth-app-ci
+      CONNECTAPP_APP_PASSWORD: connectapp-app-ci
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -125,4 +125,4 @@ jobs:
       # it needs a live project rather than a Postgres container. Everything
       # else, including the whole adversarial isolation suite, runs.
       - name: Isolation, writes, tags, fields, hardening
-        run: pnpm --filter @hearth/db test
+        run: pnpm --filter @connectapp/db test

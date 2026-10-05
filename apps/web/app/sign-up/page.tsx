@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { Banner, Card } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Card } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Logo } from "@/components/brand";
 import { currentUser } from "@/lib/session";
 import { SignUpForm } from "./form";

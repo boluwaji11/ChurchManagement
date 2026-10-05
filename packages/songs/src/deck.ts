@@ -5,7 +5,7 @@
  *
  * A deck is the service as a flat list of cues the operator advances through,
  * grouped by item so the control surface can show where in the service they
- * are. It is built from a Stage set list or a Hearth plan without caring which,
+ * are. It is built from a Stage set list or a ConnectApp plan without caring which,
  * and the build is **pure and deterministic**, which is what makes it testable
  * against golden fixtures and what keeps measurement and network out of a cue
  * advance.

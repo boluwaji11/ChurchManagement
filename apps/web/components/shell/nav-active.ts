@@ -2,7 +2,7 @@
  * Which nav entry the current path sits under.
  *
  * Pure, and imported by the sidebar, which runs in the browser. Nothing here
- * may reach for the database or a node built-in: `@hearth/db` pulls in
+ * may reach for the database or a node built-in: `@connectapp/db` pulls in
  * `node:crypto` and webpack refuses to build a client component that does.
  */
 export interface NavTarget {

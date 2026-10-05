@@ -2,8 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import {
   withTenant, getChurch, getEvent, getForm, canManageEvents,
   type PublicEvent,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EventPage } from "@/components/event-page";

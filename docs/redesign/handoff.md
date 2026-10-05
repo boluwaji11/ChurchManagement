@@ -1,7 +1,7 @@
-# Handoff: Hearth church management platform redesign
+# Handoff: ConnectApp church management platform redesign
 
 ## Overview
-Hearth is free church management software for churches of 50 to 500 people. This redesign covers the whole product for six personas: Administrator, Senior pastor, Group leader, Check-in volunteer, Member, and Network admin. It also covers how each persona enters the product from the church's own website.
+ConnectApp is free church management software for churches of 50 to 500 people. This redesign covers the whole product for six personas: Administrator, Senior pastor, Group leader, Check-in volunteer, Member, and Network admin. It also covers how each persona enters the product from the church's own website.
 
 Target repo: `boluwaji11/ChurchManagement` (`apps/web`, Next.js). `github.md` maps each design screen to the route files it was built from.
 
@@ -16,15 +16,15 @@ Open any `.dc.html` file directly in a browser. `support.js` is the prototype ru
 ## Files
 | File | What it is |
 |---|---|
-| `design/Hearth A - Warm Office.dc.html` | **The whole staff app, single source.** Every office screen for every persona. Persona and start screen come from props. |
-| `design/Hearth A - Pastor.dc.html` | Loads Warm Office with `persona="pastor"` (home: Pastor home) |
-| `design/Hearth A - Group Leader.dc.html` | `persona="leader"` (home: My group) |
-| `design/Hearth A - Check-in Station.dc.html` | `persona="volunteer"`: full-screen tablet kiosk |
-| `design/Hearth A - Member Portal.dc.html` | `persona="member"`: member app at phone width |
-| `design/Hearth A - Network Admin.dc.html` | `persona="network"`: multi-church overview |
-| `design/Hearth A - Member Web.dc.html` | Member experience embedded in the church's website (desktop) |
-| `design/Hearth States and Messages.dc.html` | Empty / first-run states, emails (invitation, serving request, receipt, follow-up digest), errors and loading |
-| `design/Hearth Journeys.dc.html` | Sign-up and invite journeys per persona, website to first screen. Includes a "Step through" mode. |
+| `design/ConnectApp A - Warm Office.dc.html` | **The whole staff app, single source.** Every office screen for every persona. Persona and start screen come from props. |
+| `design/ConnectApp A - Pastor.dc.html` | Loads Warm Office with `persona="pastor"` (home: Pastor home) |
+| `design/ConnectApp A - Group Leader.dc.html` | `persona="leader"` (home: My group) |
+| `design/ConnectApp A - Check-in Station.dc.html` | `persona="volunteer"`: full-screen tablet kiosk |
+| `design/ConnectApp A - Member Portal.dc.html` | `persona="member"`: member app at phone width |
+| `design/ConnectApp A - Network Admin.dc.html` | `persona="network"`: multi-church overview |
+| `design/ConnectApp A - Member Web.dc.html` | Member experience embedded in the church's website (desktop) |
+| `design/ConnectApp States and Messages.dc.html` | Empty / first-run states, emails (invitation, serving request, receipt, follow-up digest), errors and loading |
+| `design/ConnectApp Journeys.dc.html` | Sign-up and invite journeys per persona, website to first screen. Includes a "Step through" mode. |
 | `design/JourneyScreen.dc.html` | The mock screens used inside Journeys |
 | `design/data.js` | Sample data: people, households, groups, teams, funds, rooms, plan items, hue palette |
 | `tokens.md` | Every color token, with light and dark values |

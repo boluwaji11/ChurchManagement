@@ -7,9 +7,9 @@ import {
   personTimeline, servingForPerson, groupsForPerson,
   listContacts, listAddresses,
   canEditPeople,
-} from "@hearth/db";
-import { Avatar, Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Avatar, Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { lifecycleLabel } from "@/lib/person-input";
@@ -19,7 +19,7 @@ import { Contacts } from "./contacts";
 import { Places } from "./places";
 import { MessageButton } from "./message";
 import { NoteForm } from "../note-form";
-import { canReadConfidentialNotes } from "@hearth/db";
+import { canReadConfidentialNotes } from "@connectapp/db";
 
 export const dynamic = "force-dynamic";
 

@@ -11,9 +11,9 @@
  * triggers are, so a table added next quarter is in the next drill without
  * anybody remembering to add it.
  *
- *   pnpm --filter @hearth/db census <slug>
- *   pnpm --filter @hearth/db census <slug> --out before.json
- *   pnpm --filter @hearth/db census <slug> --against before.json
+ *   pnpm --filter @connectapp/db census <slug>
+ *   pnpm --filter @connectapp/db census <slug> --out before.json
+ *   pnpm --filter @connectapp/db census <slug> --against before.json
  */
 import { writeFileSync, readFileSync } from "node:fs";
 import { owner, closeConnections } from "../src/client";
@@ -122,7 +122,7 @@ async function main(): Promise<void> {
   const slug = args[0];
 
   if (!slug || slug.startsWith("--")) {
-    console.log("pnpm --filter @hearth/db census <slug> [--out <file>] [--against <file>]");
+    console.log("pnpm --filter @connectapp/db census <slug> [--out <file>] [--against <file>]");
     await closeConnections();
     return;
   }

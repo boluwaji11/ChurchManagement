@@ -3,7 +3,7 @@
 import {
   withTenant, roomBoard, roomRoster, fileIncident,
   type Board, type RoomRosterEntry,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

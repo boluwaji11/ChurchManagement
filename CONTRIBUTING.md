@@ -1,6 +1,6 @@
 # Contributing
 
-Hearth is church management software for small churches, funded by donations and licensed
+ConnectApp is church management software for small churches, funded by donations and licensed
 [AGPL-3.0](LICENSE). Help is welcome.
 
 > **Status: pre-alpha.** The specification is complete, the code is not started. The most useful

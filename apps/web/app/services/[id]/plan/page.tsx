@@ -4,8 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
   listTemplates, recentPlans, rosterFor, listOccurrences, getChurch,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { longDate, readableTime, shortDate } from "@/lib/dates";

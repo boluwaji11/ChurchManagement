@@ -6,10 +6,10 @@ import {
   canManageChurch, canManageServices, canManageGroups,
   type UploadPurpose,
   setOwnPhoto,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 
 export const dynamic = "force-dynamic";

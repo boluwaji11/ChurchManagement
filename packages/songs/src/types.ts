@@ -100,13 +100,13 @@ export interface ArrangementMedia {
  * Where a song came from, which decides who may write it.
  *
  * PRD-STAGE section 2. A `local` song was typed into Stage or imported there,
- * and Stage owns it. A `hearth` song was synced from the platform, and is
+ * and Stage owns it. A `connectapp` song was synced from the platform, and is
  * read-only on the laptop. One writer per record, so nothing merges.
  *
- * The platform's own rows are all `hearth` from its point of view, which is why
+ * The platform's own rows are all `connectapp` from its point of view, which is why
  * this field has a default rather than being asked for on every insert.
  */
-export const SONG_ORIGINS = ["local", "hearth"] as const;
+export const SONG_ORIGINS = ["local", "connectapp"] as const;
 
 export type SongOrigin = (typeof SONG_ORIGINS)[number];
 

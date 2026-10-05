@@ -11,13 +11,13 @@ import {
   Banner, Button, IconButton, Input, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
-} from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import {
   NEEDS_OPTIONS, CUSTOM_TARGET, targetsFor, FILE_KINDS, FILES_CEILING,
   UPLOAD_RULES, ONE_MIB,
   type FormFieldDef, type FormFieldKind,
-} from "@hearth/db/rules";
+} from "@connectapp/db/rules";
 import {
   saveForm, openOrClose, archiveForm, saveQuestion, dropQuestion, orderQuestions,
 } from "../actions";

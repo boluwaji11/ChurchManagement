@@ -1,5 +1,5 @@
 /**
- * @hearth/songs
+ * @connectapp/songs
  *
  * The song model, shared by the web platform and Hearth Stage. See the package
  * README for what belongs here and what deliberately does not.

@@ -3,7 +3,7 @@
  *
  * A station with no network applies the same rules the server does, so they
  * live in a file that imports nothing and is served to the browser through
- * `@hearth/db/rules`.
+ * `@connectapp/db/rules`.
  */
 
 /** What suggesting a room needs to know about one. The repo's Room satisfies it. */

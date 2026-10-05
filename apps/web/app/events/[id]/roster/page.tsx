@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import {
   withTenant, getEvent, getForm, listRegistrations, canManageEvents,
-} from "@hearth/db";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { longDate, readableTime } from "@/lib/dates";
 import { oneLineAddress } from "@/lib/address";

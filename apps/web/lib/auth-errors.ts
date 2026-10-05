@@ -1,4 +1,4 @@
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 /**
  * What a sign-in provider said, in words the person can act on.

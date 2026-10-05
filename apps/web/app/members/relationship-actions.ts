@@ -5,9 +5,9 @@ import { headers } from "next/headers";
 import {
   withTenant, addRelationship, removeRelationship,
   RELATIONSHIP_KINDS, type RelationshipKind,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 
 export interface RelationshipResponse {

@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Monitor, Sun, Moon } from "lucide-react";
-import { cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { setTheme, type Theme } from "./theme-actions";
 
 /** The default leads, then the two that override it. */

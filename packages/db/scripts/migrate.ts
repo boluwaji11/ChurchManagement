@@ -32,7 +32,13 @@ async function main() {
 
   // The app role's password is passed as a session setting rather than
   // interpolated into the file, so it never appears in a committed artefact.
-  await sql.unsafe(`set hearth.app_password = '${required("HEARTH_APP_PASSWORD").replace(/'/g, "''")}'`);
+  // The old name is still read, so an environment set up before the rename
+  // keeps working. The Postgres setting itself is unchanged: every RLS policy
+  // names the schema it lives in.
+  const appPassword = process.env.CONNECTAPP_APP_PASSWORD
+    ? required("CONNECTAPP_APP_PASSWORD")
+    : required("HEARTH_APP_PASSWORD");
+  await sql.unsafe(`set hearth.app_password = '${appPassword.replace(/'/g, "''")}'`);
   await sql.unsafe(security);
 
   /*

@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Checkbox, Field, Input, RadioGroup, RadioItem, Textarea } from "@hearth/ui";
-import type { FormAnswer, FormFieldDef } from "@hearth/db/rules";
+import { Checkbox, Field, Input, RadioGroup, RadioItem, Textarea } from "@connectapp/ui";
+import type { FormAnswer, FormFieldDef } from "@connectapp/db/rules";
 import { DateField } from "@/components/date-field";
 import { FileAnswer, type Attached } from "@/components/file-answer";
 

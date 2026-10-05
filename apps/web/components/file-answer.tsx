@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { Paperclip, X } from "lucide-react";
-import { Button, IconButton, Dialog, DialogContent } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { Button, IconButton, Dialog, DialogContent } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import {
   FILE_TYPES, UPLOAD_RULES, ONE_MIB, type FileKind, type FormFieldDef,
-} from "@hearth/db/rules";
+} from "@connectapp/db/rules";
 
 /** One file that is on its way up, or already there. */
 export interface Attached {

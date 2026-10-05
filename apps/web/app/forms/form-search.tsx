@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { SearchField } from "@/components/search-field";
 
 /**

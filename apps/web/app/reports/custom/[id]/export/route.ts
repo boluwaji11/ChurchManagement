@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import {
   withTenant, toCsv, getSavedReport, runReport, canEditPeople, canReadIncidents, FILE_LIMIT,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";

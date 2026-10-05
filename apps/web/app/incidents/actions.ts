@@ -1,6 +1,6 @@
 "use server";
 
-import { withTenant, markGuardianNotified } from "@hearth/db";
+import { withTenant, markGuardianNotified } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

@@ -350,14 +350,14 @@ export { raw, and, eq, gt, isNull };
  *
  * A church whose slug is "sign-in" is not a security hole, since the slug is a
  * query parameter rather than a path today. It is reserved anyway, because the
- * day the URL becomes hearth.church/sign-in it would be, and renaming a church
+ * day the URL becomes connectapp.church/sign-in it would be, and renaming a church
  * that has been in use for a year is not a fix anybody enjoys.
  */
 export const RESERVED_SLUGS: readonly string[] = [
   "about", "account", "admin", "api", "app", "assets", "auth", "billing", "blog",
   "choose-church", "contact", "create-church", "dashboard", "design", "docs", "download",
   "fields",
-  "give", "giving", "help", "home", "hearth", "icon", "images", "index", "invite",
+  "give", "giving", "help", "home", "connectapp", "icon", "images", "index", "invite",
   "legal", "login", "logout", "new", "members", "portal", "pricing", "privacy",
   "public", "register", "reset", "root", "security", "settings", "setup", "sign-in",
   "sign-out", "sign-up", "start", "static", "status", "stage", "support", "system", "tags",

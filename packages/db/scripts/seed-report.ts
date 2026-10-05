@@ -3,7 +3,7 @@
  * uses, so the spec is checked against the catalogue and the address is picked
  * the same way.
  *
- *   pnpm --filter @hearth/db exec tsx scripts/seed-report.ts <slug>
+ *   pnpm --filter @connectapp/db exec tsx scripts/seed-report.ts <slug>
  */
 import { owner, withTenant, closeConnections } from "../src/client";
 import { createSavedReport } from "../src/repo/saved-reports";

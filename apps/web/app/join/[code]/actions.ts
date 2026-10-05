@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { joinWithCode } from "@hearth/db";
+import { joinWithCode } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { currentUser } from "@/lib/session";
 

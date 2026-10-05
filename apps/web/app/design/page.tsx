@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Users, HandCoins, CalendarDays, HeartHandshake } from "lucide-react";
-import { StatTile, Card, CardTitle, CardDescription, Badge, LIFT } from "@hearth/ui";
+import { StatTile, Card, CardTitle, CardDescription, Badge, LIFT } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
 export default function Overview() {
@@ -8,7 +8,7 @@ export default function Overview() {
     <>
       <PageTitle
         title="The design system"
-        lede="Hearth replaces software churches pay for, so it has to look better than that software."
+        lede="ConnectApp replaces software churches pay for, so it has to look better than that software."
       />
 
       <Section

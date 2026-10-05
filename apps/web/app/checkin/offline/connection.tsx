@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { TriangleAlert } from "lucide-react";
-import { Button, Card, OfflineBar } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
-import type { Conflict } from "@hearth/db";
+import { Button, Card, OfflineBar } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
+import type { Conflict } from "@connectapp/db";
 import type { StationState } from "./station";
 
 /**

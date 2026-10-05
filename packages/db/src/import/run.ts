@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { MessageKey } from "@hearth/i18n";
+import type { MessageKey } from "@connectapp/i18n";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
 import { importBatches, importRows } from "../schema/imports";

@@ -27,7 +27,7 @@
 </style>
 </helmet>
 
-<div data-screen-label="Hearth A" style="display:flex; min-height:100vh; background: var(--c0);">
+<div data-screen-label="ConnectApp A" style="display:flex; min-height:100vh; background: var(--c0);">
 
 <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
   <div data-screen-label="Sign in" style="flex:1; display:grid; place-items:center; padding:32px 16px;">
@@ -50,7 +50,7 @@
       <div style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:24px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
         <span style="width:44px; height:44px; border-radius:999px; background: var(--c10); color: var(--c11); display:grid; place-items:center;"><span data-icon="mail-check" style="width:20px;height:20px;"></span></span>
         <div style="font-weight:600; font-size:16px;">Check your email</div>
-        <div style="font-size:13px; color: var(--c6);">If {{ resetEmail }} has a Hearth account, a reset link is on its way. Look in spam if it has not arrived in a few minutes.</div>
+        <div style="font-size:13px; color: var(--c6);">If {{ resetEmail }} has a ConnectApp account, a reset link is on its way. Look in spam if it has not arrived in a few minutes.</div>
         <button onClick="{{ backToSignIn }}" style="height:40px; padding:0 18px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500; margin-top:4px;">Back to sign in</button>
       </div>
       </sc-if>
@@ -67,7 +67,7 @@
       </div>
       </sc-if>
       <div style="text-align:center; font-size:12px; color: var(--c4);">Volunteer at a check-in station? <button onClick="{{ openStation }}" style="border:none; background:none; padding:0; color: var(--c2); font-size:12px; font-weight:500;">Open the station</button></div>
-      <div style="text-align:center; font-size:12px;"><button onClick="{{ go }}" data-screen="trust" style="border:none; background:none; padding:0; color: var(--c6); font-size:12px; text-decoration:underline; text-underline-offset:3px;">How Hearth looks after your records</button></div>
+      <div style="text-align:center; font-size:12px;"><button onClick="{{ go }}" data-screen="trust" style="border:none; background:none; padding:0; color: var(--c6); font-size:12px; text-decoration:underline; text-underline-offset:3px;">How ConnectApp looks after your records</button></div>
     </div>
   </div>
 </sc-if>
@@ -80,7 +80,7 @@
     <div style="width:32px; height:32px; flex:none; border-radius:10px; background: var(--c5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:16px;height:16px;"></span></div>
     <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex; flex-direction:column; flex:1; min-width:0;">
-        <span style="font-family: Fraunces, serif; font-size:18px; line-height:20px;">Hearth</span>
+        <span style="font-family: Fraunces, serif; font-size:18px; line-height:20px;">ConnectApp</span>
         <span style="font-size:12px; color: var(--c4); white-space:nowrap;">Grace Fellowship</span>
       </div>
     </sc-if>
@@ -980,7 +980,7 @@
             <thead><tr style="text-align:left; font-size:12px; color: var(--c4);">
               <th style="padding:12px 16px; font-weight:500; border-bottom:1px solid var(--c7);">Column in your file</th>
               <th style="padding:12px 16px; font-weight:500; border-bottom:1px solid var(--c7);">First row</th>
-              <th style="padding:12px 16px; font-weight:500; border-bottom:1px solid var(--c7);">Hearth field</th>
+              <th style="padding:12px 16px; font-weight:500; border-bottom:1px solid var(--c7);">ConnectApp field</th>
             </tr></thead>
             <tbody>
               <sc-for list="{{ impCols }}" as="c" hint-placeholder-count="7">
@@ -988,7 +988,7 @@
                   <td style="padding:10px 16px; border-bottom:1px solid var(--c12); font-weight:500;">{{ c.col }}</td>
                   <td style="padding:10px 16px; border-bottom:1px solid var(--c12); color: var(--c6); font-size:13px;">{{ c.sample }}</td>
                   <td style="padding:10px 16px; border-bottom:1px solid var(--c12);">
-                    <select key="{{ c.key }}" data-col="{{ c.col }}" defaultValue="{{ c.field }}" onChange="{{ setImpField }}" aria-label="Hearth field" style="height:34px; padding:0 10px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font:inherit; font-size:13px; color: var(--c1); min-width:180px;">
+                    <select key="{{ c.key }}" data-col="{{ c.col }}" defaultValue="{{ c.field }}" onChange="{{ setImpField }}" aria-label="ConnectApp field" style="height:34px; padding:0 10px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font:inherit; font-size:13px; color: var(--c1); min-width:180px;">
                       <sc-for list="{{ c.options }}" as="o" hint-placeholder-count="8"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for>
                     </select>
                   </td>
@@ -1197,7 +1197,7 @@
 
       <sc-if value="{{ stRooms }}" hint-placeholder-val="{{ false }}">
       <div style="flex:999 1 400px; min-width:0; display:flex; flex-direction:column; gap:20px;">
-        <div><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">Rooms</div><div style="color: var(--c6); margin-top:4px;">Check-in sends each child to the room that fits their age. Hearth warns when a room is full.</div></div>
+        <div><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">Rooms</div><div style="color: var(--c6); margin-top:4px;">Check-in sends each child to the room that fits their age. ConnectApp warns when a room is full.</div></div>
         <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:12px;">
           <sc-for list="{{ roomRows }}" as="rr" hint-placeholder-count="4">
             <section style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:12px;">
@@ -1224,7 +1224,7 @@
         <sc-if value="{{ pairCode }}" hint-placeholder-val="{{ false }}">
           <section style="background: var(--c32); border:1px solid var(--c33); border-radius:14px; padding:16px 20px; display:flex; flex-wrap:wrap; align-items:center; gap:16px;">
             <span style="font-family: 'JetBrains Mono', monospace; font-size:30px; letter-spacing:0.08em;">{{ pairCode }}</span>
-            <span style="flex:1 1 240px; color: var(--c13);">On the tablet, open hearth.church/station and enter this code. It expires in 10 minutes.</span>
+            <span style="flex:1 1 240px; color: var(--c13);">On the tablet, open connectapp.church/station and enter this code. It expires in 10 minutes.</span>
           </section>
         </sc-if>
         <section style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:4px 20px;">
@@ -1341,7 +1341,7 @@
 
       <sc-if value="{{ stAppearance }}" hint-placeholder-val="{{ false }}">
       <div style="flex:999 1 400px; min-width:0; display:flex; flex-direction:column; gap:20px;">
-        <div><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">Appearance</div><div style="color: var(--c6); margin-top:4px;">Only changes Hearth on this device. Live service mode and printouts stay light.</div></div>
+        <div><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">Appearance</div><div style="color: var(--c6); margin-top:4px;">Only changes ConnectApp on this device. Live service mode and printouts stay light.</div></div>
         <div style="display:flex; flex-wrap:wrap; gap:12px;">
           <sc-for list="{{ appearanceOpts }}" as="ap" hint-placeholder-count="3"><button onClick="{{ setAppearance }}" data-v="{{ ap.v }}" style="{{ ap.style }}"><span data-icon="{{ ap.icon }}" style="width:20px;height:20px;"></span>{{ ap.v }}</button></sc-for>
         </div>
@@ -1365,14 +1365,14 @@
 
       <sc-if value="{{ stWebsite }}" hint-placeholder-val="{{ false }}">
       <div style="flex:999 1 400px; min-width:0; display:flex; flex-direction:column; gap:20px;">
-        <div><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">Your website</div><div style="color: var(--c6); margin-top:4px;">Hearth runs inside gracefellowship.org. Add one line to your site, then choose what shows.</div></div>
+        <div><div style="font-family: Fraunces, serif; font-size:28px; line-height:34px;">Your website</div><div style="color: var(--c6); margin-top:4px;">ConnectApp runs inside gracefellowship.org. Add one line to your site, then choose what shows.</div></div>
         <section style="background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
           <span style="font-weight:600;">Embed code</span>
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
-            <code style="flex:1 1 320px; min-width:0; font-family: 'JetBrains Mono', monospace; font-size:12px; line-height:18px; padding:12px 14px; border-radius:10px; background: var(--c1); color: var(--c7); overflow-x:auto; white-space:nowrap;">&lt;script src="https://hearth.church/embed.js" data-church="grace-fellowship"&gt;&lt;/script&gt;</code>
+            <code style="flex:1 1 320px; min-width:0; font-family: 'JetBrains Mono', monospace; font-size:12px; line-height:18px; padding:12px 14px; border-radius:10px; background: var(--c1); color: var(--c7); overflow-x:auto; white-space:nowrap;">&lt;script src="https://connectapp.church/embed.js" data-church="grace-fellowship"&gt;&lt;/script&gt;</code>
             <button onClick="{{ copyEmbed }}" style="display:flex; align-items:center; gap:6px; height:38px; padding:0 14px; border:1px solid var(--c8); border-radius:10px; background: var(--surface); font-weight:500;"><span data-icon="copy" style="width:16px;height:16px;"></span>Copy</button>
           </div>
-          <span style="font-size:13px; color: var(--c4);">Works with Squarespace, Wix, WordPress and plain HTML. Paste it where you want Hearth to appear.</span>
+          <span style="font-size:13px; color: var(--c4);">Works with Squarespace, Wix, WordPress and plain HTML. Paste it where you want ConnectApp to appear.</span>
         </section>
         <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start;">
           <section style="flex:1 1 300px; background: var(--surface); border:1px solid var(--c7); border-radius:14px; padding:8px 20px;">
@@ -1396,7 +1396,7 @@
                   <span style="font-size:11px; font-weight:600; color: var(--c4);">My Grace Fellowship</span>
                   <span style="font-family: Fraunces, serif; font-size:19px; line-height:24px;">{{ embedHeadline }}</span>
                   <span style="{{ embedBtn }}">Create an account</span>
-                  <span style="font-size:11px; color: var(--c4); text-align:center;">Powered by Hearth</span>
+                  <span style="font-size:11px; color: var(--c4); text-align:center;">Powered by ConnectApp</span>
                 </div>
               </div>
             </div>
@@ -1984,7 +1984,7 @@
 <sc-if value="{{ isTrust }}" hint-placeholder-val="{{ false }}">
 <div data-screen-label="Trust" style="flex:1; display:flex; flex-direction:column; min-height:100vh;">
   <header style="display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 24px; border-bottom:1px solid var(--c7);">
-    <span style="display:flex; align-items:center; gap:10px;"><span style="width:28px; height:28px; border-radius:8px; background: var(--c5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:14px;height:14px;"></span></span><span style="font-family: Fraunces, serif; font-size:18px;">Hearth</span></span>
+    <span style="display:flex; align-items:center; gap:10px;"><span style="width:28px; height:28px; border-radius:8px; background: var(--c5); display:grid; place-items:center; color:white;"><span data-icon="flame" style="width:14px;height:14px;"></span></span><span style="font-family: Fraunces, serif; font-size:18px;">ConnectApp</span></span>
     <button onClick="{{ go }}" data-screen="login" style="display:flex; align-items:center; gap:6px; border:none; background:none; color: var(--c6); font-weight:500; font-size:13px;"><span data-icon="arrow-left" style="width:16px;height:16px;"></span>Back to sign in</button>
   </header>
   <main style="width:100%; max-width:680px; margin:0 auto; padding:56px 24px 80px; display:flex; flex-direction:column; gap:20px;">
@@ -2320,7 +2320,7 @@ class Component extends DCLogic {
       savePw: () => { if (!x.pwCur) return set({ pwErr: "Enter your current password." }); if ((x.pwNew || "").length < 10) return set({ pwErr: "Use at least 10 characters for the new password." }); set({ pwCur: "", pwNew: "", pwErr: "" }); say("Password updated. Other devices stay signed in."); },
       sessionRows: sessions.map(([device, where, icon, current], i) => ({ device, where, icon, current, other: !current, i })),
       endSession: e => { const i = idx(e); set({ sessions: sessions.filter((_, j) => j !== i) }); say(sessions[i][0] + " signed out"); },
-      exportRows: [["People", "Everyone, with contact details and custom fields", "people.csv"], ["Households", "Families and who belongs to each", "households.csv"], ["Giving", "Every gift this year, by fund", "giving-2026.csv"], ["Attendance", "Services, groups and check-in", "attendance.csv"], ["Everything", "All of the above plus forms and notes", "hearth-export.zip"]].map(([name, desc, file]) => ({ name, desc, file })),
+      exportRows: [["People", "Everyone, with contact details and custom fields", "people.csv"], ["Households", "Families and who belongs to each", "households.csv"], ["Giving", "Every gift this year, by fund", "giving-2026.csv"], ["Attendance", "Services, groups and check-in", "attendance.csv"], ["Everything", "All of the above plus forms and notes", "connectapp-export.zip"]].map(([name, desc, file]) => ({ name, desc, file })),
       doExport: e => say(e.currentTarget.dataset.f + " is being prepared. We will email you when it is ready."),
     };
   }
@@ -2535,7 +2535,7 @@ class Component extends DCLogic {
       gSummaryLabel: s.gFund + (s.gFreq === "Monthly" ? ", monthly" : ", one time"), gBase: money(s.gAmount), gFee: money(fee), gTotal: money(total),
       feeTrack: t1.track, feeKnob: t1.knob, toggleFees: () => set({ gFees: !s.gFees }),
       payMethods: methods.map(([id, icon, label, sub, bad]) => { const on = id === method; return { id, icon, label, sub, subColor: bad ? "var(--h-rose-x)" : "var(--c6)", style: { display: "flex", alignItems: "center", gap: "12px", minHeight: "60px", padding: "10px 14px", borderRadius: "14px", border: on ? "1.5px solid var(--accent-fill)" : "1px solid var(--c8)", background: "var(--surface)" }, radio: { width: "20px", height: "20px", flex: "none", borderRadius: "999px", border: on ? "6px solid var(--accent-fill)" : "2px solid var(--c8)", display: id === "new" ? "none" : "block" } }; }),
-      setPayMethod: e => { const v = e.currentTarget.dataset.v; if (v === "new") return this.setState({ flash: "You'd add a card or bank here. Hearth never stores full card numbers." }); set({ gMethod: v, gFailed: false }); },
+      setPayMethod: e => { const v = e.currentTarget.dataset.v; if (v === "new") return this.setState({ flash: "You'd add a card or bank here. ConnectApp never stores full card numbers." }); set({ gMethod: v, gFailed: false }); },
       giveLabel: "Give " + money(total) + (s.gFreq === "Monthly" ? " monthly" : ""),
       giveNow: () => method === "mc" ? set({ gFailed: true }) : set({ gGiven: true, gPay: false, gFailed: false }),
       myKids: kids.map(([id, name, room, allergy]) => { const on = !!ks[id]; return { id, name, room, allergy, style: { display: "flex", alignItems: "center", gap: "12px", minHeight: "60px", padding: "8px 14px", borderRadius: "14px", border: on ? "1.5px solid var(--accent-fill)" : "1px solid var(--c8)", background: "var(--surface)" }, box: { width: "24px", height: "24px", flex: "none", borderRadius: "7px", display: "grid", placeItems: "center", background: on ? "var(--accent-fill)" : "transparent", border: on ? "none" : "2px solid var(--c8)", color: "white" } }; }),
@@ -2562,7 +2562,7 @@ class Component extends DCLogic {
       network: { name: "Ann Walker", role: "Network admin", initials: "AW", hue: "rose", chrome: "office", surface: "Office", home: "network", nav: [["network", "Churches", "building-2", "5"], ["reports", "Reports", "bar-chart-3", ""]] },
     };
   }
-  goPersona(id) { if (id === this.state.persona) return this.setState({ personaMenu: false }); const files = { admin: "Hearth A - Warm Office.dc.html", pastor: "Hearth A - Pastor.dc.html", leader: "Hearth A - Group Leader.dc.html", volunteer: "Hearth A - Check-in Station.dc.html", member: "Hearth A - Member Portal.dc.html", memberweb: "Hearth A - Member Web.dc.html", network: "Hearth A - Network Admin.dc.html" }; window.location.href = encodeURI(files[id]); }
+  goPersona(id) { if (id === this.state.persona) return this.setState({ personaMenu: false }); const files = { admin: "ConnectApp A - Warm Office.dc.html", pastor: "ConnectApp A - Pastor.dc.html", leader: "ConnectApp A - Group Leader.dc.html", volunteer: "ConnectApp A - Check-in Station.dc.html", member: "ConnectApp A - Member Portal.dc.html", memberweb: "ConnectApp A - Member Web.dc.html", network: "ConnectApp A - Network Admin.dc.html" }; window.location.href = encodeURI(files[id]); }
   applyPersona(id) { const p = this.personas()[id]; if (!p) return; this.setState({ persona: id, screen: p.home, groupId: p.groupId || "g1", personaMenu: false, stStep: "search", stQuery: "", stPicked: {}, stFamily: null, pTab: "home", paletteOpen: false, sheetOpen: false }); }
   applyTheme() { const t = this.state.appearance || this.props.theme || "light"; const v = t === "System" || t === "auto" ? "auto" : t.toLowerCase(); if (document.documentElement.dataset.theme !== v) document.documentElement.dataset.theme = v; }
   async componentDidMount() { this.applyTheme();
@@ -2696,7 +2696,7 @@ class Component extends DCLogic {
     const impFields = ["First name", "Last name", "Email", "Phone", "Household", "Membership date", "Birthday", "Don't import"];
     const impDefs = [["First Name", "Kate", "First name"], ["Last Name", "Walker", "Last name"], ["E-mail", "kate.walker@gmail.com", "Email"], ["Mobile", "(312) 555-0187", "Phone"], ["Family", "Walker", "Household"], ["Member Since", "03/14/2019", "Membership date"], ["Notes", "Prefers text", "Don't import"]];
     const impCols = impDefs.map(([col, sample, def]) => { const field = s.impMap[col] || def; return { col, sample, field, key: col + "|" + field, options: impFields.map(v => ({ v, sel: v === field })) }; });
-    const impProblems = [{ row: 37, text: "The email kate@@gmail.com does not look right. Fix it in the file, or the person imports without an email." }, { row: 88, text: "Birthday 31/02/1990 is not a real date." }, { row: 140, text: "No last name. Hearth needs one to place this person in a household." }, { row: 201, text: "Phone number has 6 digits." }];
+    const impProblems = [{ row: 37, text: "The email kate@@gmail.com does not look right. Fix it in the file, or the person imports without an email." }, { row: 88, text: "Birthday 31/02/1990 is not a real date." }, { row: 140, text: "No last name. ConnectApp needs one to place this person in a household." }, { row: 201, text: "Phone number has 6 digits." }];
     const impOrder = ["upload", "map", "review", "done"];
     const impIdx = impOrder.indexOf(s.impStep);
     const impSteps = [["Choose file"], ["Match columns"], ["Check"], ["Done"]].map(([label], i) => { const done = i < impIdx, cur = i === impIdx; return { n: done ? "✓" : String(i + 1), label, line: i < 3, lineStyle: { flex: "1 1 24px", minWidth: "24px", height: "2px", margin: "0 10px", borderRadius: "2px", background: i < impIdx ? "var(--c27)" : "var(--c7)" }, style: { flex: "none", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: cur ? 600 : 500, color: cur || done ? "var(--c1)" : "var(--c4)", whiteSpace: "nowrap" }, dot: { width: "24px", height: "24px", borderRadius: "999px", display: "grid", placeItems: "center", fontSize: "12px", fontWeight: 600, background: done ? "var(--c27)" : cur ? "var(--accent-fill)" : "var(--surface)", color: done || cur ? "white" : "var(--c4)", border: done || cur ? "none" : "1px solid var(--c8)" } }; });
@@ -2796,11 +2796,11 @@ class Component extends DCLogic {
     const over = liveNow.min && s.liveSec > liveNow.min * 60;
     const liveList = planItems.map((p, i) => ({ ...p, i: String(i), style: { display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", border: "none", borderRadius: "10px", background: i === liveIdx ? "var(--c14)" : "transparent", color: i < liveIdx ? "var(--c4)" : "var(--c12)", fontWeight: i === liveIdx ? 600 : 400, width: "100%", textDecoration: i < liveIdx ? "line-through" : "none" } }));
     const promises = [
-      { t: "We never train models on your records", b: "No one at Hearth, and none of the companies we use, may train an AI model on your church's data. It is written into the contract with every processor." },
+      { t: "We never train models on your records", b: "No one at ConnectApp, and none of the companies we use, may train an AI model on your church's data. It is written into the contract with every processor." },
       { t: "Export everything, any time", b: "One click exports every person, gift, attendance record and note. There is no plan to upgrade and no ticket to file. Our own backups are tested with the same export." },
-      { t: "The code is public", b: "Hearth is licensed AGPL-3.0. Anyone can read it, run it, or fork it, and no one can turn it into a closed product." },
-      { t: "If we ever stop", b: "You get ninety days' notice, a final export, and a guide to running Hearth on your own server." },
-      { t: "We never hold your money", b: "Gifts go from the giver to your church's own Stripe account and on to your bank. Hearth's platform fee is zero." },
+      { t: "The code is public", b: "ConnectApp is licensed AGPL-3.0. Anyone can read it, run it, or fork it, and no one can turn it into a closed product." },
+      { t: "If we ever stop", b: "You get ninety days' notice, a final export, and a guide to running ConnectApp on your own server." },
+      { t: "We never hold your money", b: "Gifts go from the giver to your church's own Stripe account and on to your bank. ConnectApp's platform fee is zero." },
     ];
     const C = s.collapsed;
     const asideStyle = { width: C ? "64px" : "232px", flex: "none", borderRight: "1px solid var(--c7)", display: "flex", flexDirection: "column", padding: C ? "20px 10px" : "20px 12px", gap: "24px", position: "sticky", top: 0, height: "100vh", background: "var(--c12)", transition: "width 200ms cubic-bezier(0.16, 1, 0.3, 1)", overflowY: "auto", overflowX: "hidden" };
@@ -2869,7 +2869,7 @@ class Component extends DCLogic {
     // Website embed
     const tog = on => ({ track: { width: "40px", height: "24px", borderRadius: "999px", background: on ? "var(--c2)" : "var(--c8)", position: "relative", flex: "none", transition: "background 140ms" }, knob: { position: "absolute", top: "3px", left: on ? "19px" : "3px", width: "18px", height: "18px", borderRadius: "999px", background: "var(--surface)", boxShadow: "0 1px 2px oklch(0 0 0 / 0.2)", transition: "left 140ms cubic-bezier(0.16, 1, 0.3, 1)" } });
     const embedParts = [["account", "My account", "Sign up, sign in and the member home"], ["giving", "Giving", "One-time and recurring gifts"], ["groups", "Group finder", "Public list of groups. No leader names or rosters"], ["events", "Events", "Registration and waitlists"], ["serving", "Serving sign-up", "Open volunteer slots"]].map(([k, label, desc]) => ({ k, label, desc, ...tog(!!s.embed[k]) }));
-    const accents = { ink: ["Hearth indigo", "var(--c2)"], navy: ["Navy", "var(--c31)"], teal: ["Teal", "var(--c50)"], ember: ["Ember", "var(--c24)"] };
+    const accents = { ink: ["ConnectApp indigo", "var(--c2)"], navy: ["Navy", "var(--c31)"], teal: ["Teal", "var(--c50)"], ember: ["Ember", "var(--c24)"] };
     const accentOpts = Object.keys(accents).map(v => ({ v, name: accents[v][0], style: { width: "28px", height: "28px", borderRadius: "999px", border: "none", background: accents[v][1], boxShadow: s.accent === v ? "0 0 0 2px white, 0 0 0 4px " + accents[v][1] : "none" } }));
     const embedHeadline = ["Give", s.embed.groups ? "join a group" : null, "check your kids in"].filter(Boolean).join(", ");
     // Forms

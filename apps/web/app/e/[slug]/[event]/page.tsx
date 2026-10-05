@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { publicEvent, publicChurchTimezone } from "@hearth/db";
+import { publicEvent, publicChurchTimezone } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { EventPage } from "@/components/event-page";

@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { ScheduleGrid, type GridService, type GridTeam, type GridSlot, type GridPosition, type GridVolunteer } from "./grid";
 
 /**

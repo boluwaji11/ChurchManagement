@@ -1,8 +1,8 @@
 import {
   canManageChurch, canManageCustomFields, canEditPeople, canManageRooms,
   canArchivePeople, canManageHouseholds, canManageGroups, withTenant, setupProgress,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { SettingsNav, type SettingsGroup } from "./nav";

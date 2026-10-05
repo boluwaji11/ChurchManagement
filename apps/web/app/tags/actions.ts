@@ -5,8 +5,8 @@ import { headers } from "next/headers";
 import {
   withTenant, createTag, renameTag, setTagHue, deleteTag, mergeTags, setPersonTag,
   type TagHue,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

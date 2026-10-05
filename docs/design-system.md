@@ -5,7 +5,7 @@
 > three hue values we kept, and what in it is not being built. The shell, the navigation and any
 > screen's layout follow that file.
 
-Hearth has to look better than the software it replaces.
+ConnectApp has to look better than the software it replaces.
 
 Requirement IDs refer to [../PRD.md](../PRD.md). This document is the source of truth for tokens,
 type, motion, and component behaviour. Web first. Native mobile later, which is why tokens are
@@ -19,7 +19,7 @@ Tuesday afternoon office screens take care of themselves. This is why there are 
 (section 2) and not one.
 
 **2. Colourful where it carries meaning, quiet everywhere else.** Every competitor is a blue SaaS
-dashboard, grey on grey, with one accent colour and no joy. Hearth uses a warm canvas and a spectrum
+dashboard, grey on grey, with one accent colour and no joy. ConnectApp uses a warm canvas and a spectrum
 that earns its place by doing real work: every ministry, team, room, group type, and fund has its own
 colour, so a calendar, a check-in floor, and a giving chart are readable at a glance rather than
 after reading.

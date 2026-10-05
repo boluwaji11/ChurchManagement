@@ -7,13 +7,13 @@ import {
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   DatePicker, Popover, PopoverTrigger, PopoverContent, Tabs, TabsList, TabsTrigger, TabsContent,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import {
   SUBJECTS, SUBJECT_KEYS, OPERATORS, BARE_OPERATORS, GROUPED_VIEWS, fieldOf,
   cleanSpec,
   type ReportPage, type ReportTile, type SubjectKey, type Condition,
-} from "@hearth/db/rules";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db/rules";
+import { t } from "@connectapp/i18n";
 import { previewPage, saveReport, type ReportResultish } from "./actions";
 import { FieldsPanel } from "./fields";
 import { Gallery } from "./gallery";

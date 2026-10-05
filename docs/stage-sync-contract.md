@@ -21,7 +21,7 @@ Stage holds two kinds of song, and the difference is which store the row lives i
 | Origin | Writer | Over this interface |
 |---|---|---|
 | `local` | Stage | Typed in or imported on the laptop. Invisible to the platform until the operator promotes it. |
-| `hearth` | The platform | Pulled through this interface, read-only in Stage, rebuilt by any resync. |
+| `connectapp` | The platform | Pulled through this interface, read-only in Stage, rebuilt by any resync. |
 
 Everything else in this document follows from that. Stage never sends an edit to a record it pulled,
 so there is no conflict resolution to get wrong and no path by which a laptop in a cupboard corrupts a
@@ -32,7 +32,7 @@ Two writes go upward, and both are additive:
 
 - **`song_usage`**, append-only and idempotent, so pushing the same row twice is harmless.
 - **A promoted song**, inserted once, on the operator's explicit action, after a duplicate check.
-  After promotion the platform owns it and Stage treats it as `hearth`.
+  After promotion the platform owns it and Stage treats it as `connectapp`.
 
 There is no merge algorithm anywhere in this contract, and any future requirement that would need one
 is refused.
@@ -327,7 +327,7 @@ S0.5 is planned.
 ## Promoting a local song
 
 The second write, and the one that lets a church that started on Stage alone move its library into
-Hearth when it adopts the platform.
+ConnectApp when it adopts the platform.
 
 ```
 POST /api/stage/v1/songs/promote
@@ -348,10 +348,10 @@ POST /api/stage/v1/songs/promote
   offers to adopt it in place of promoting.
 - A promoted song arrives in the platform library like any other song, through the same validation the
   web UI uses. It is not a privileged insert.
-- On success Stage marks its local copy as `hearth` with the returned id, so the library stops having
+- On success Stage marks its local copy as `connectapp` with the returned id, so the library stops having
   two rows for one song and the platform becomes the writer.
 - The device principal may insert a song and may not update or archive one. A correction after
-  promotion is made in Hearth, by a person.
+  promotion is made in ConnectApp, by a person.
 
 *This is the only path by which data Stage authored enters the platform.*
 
@@ -383,7 +383,7 @@ A client that hits 429 is a client with a bug.
   interruption.
 - **No update path for songs, plans, or lyrics.** A song is inserted once by promotion and is the
   platform's thereafter. ST6.8's typo correction stays with the run, and a correction that should
-  stick is made in Hearth by a person.
+  stick is made in ConnectApp by a person.
 - **No bible API.** Resolved text only.
 - **No person data beyond names and positions.**
 - **No analytics.** Usage rows serve the church's CCLI obligation and nothing else (ST18.6).

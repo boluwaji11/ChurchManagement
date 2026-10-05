@@ -1,4 +1,4 @@
--- Hearth security layer. Hand-written, because Drizzle owns table shape and not
+-- ConnectApp security layer. Hand-written, because Drizzle owns table shape and not
 -- security. Applied after the generated table migrations, and idempotent so it
 -- can be re-run whenever a table is added.
 --
@@ -361,7 +361,7 @@ create policy tenant_isolation on public.audit_entries
 -- 7. Nothing is reachable over the auto-generated REST API
 -- ---------------------------------------------------------------------------
 -- Supabase exposes the public schema through PostgREST to the anon and
--- authenticated roles. Hearth does not use PostgREST at all: every query goes
+-- authenticated roles. ConnectApp does not use PostgREST at all: every query goes
 -- through Drizzle on the hearth_app connection, because field-level permissions
 -- belong in our query layer.
 --
@@ -427,8 +427,8 @@ begin
   -- as the authenticated role, so the role has to be able to execute it. A
   -- schema PostgREST does not expose gives the policies what they need without
   -- publishing a security definer function on the open API.
-  create schema if not exists hearth;
-  execute 'grant usage on schema hearth to authenticated';
+  create schema if not exists connectapp;
+  execute 'grant usage on schema connectapp to authenticated';
 
   execute $fn$
     create or replace function hearth.user_in_church(p_slug text)
@@ -505,7 +505,7 @@ begin
       )
     $body$
   $fn$;
-  execute 'grant usage on schema hearth to anon';
+  execute 'grant usage on schema connectapp to anon';
   execute 'grant execute on function hearth.church_takes_files(text) to anon';
 
   execute 'drop policy if exists church_public_answer on storage.objects';

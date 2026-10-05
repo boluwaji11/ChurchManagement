@@ -5,12 +5,12 @@ import Link from "next/link";
 import {
   Avatar, Input, Field, Banner, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { DateField } from "@/components/date-field";
 import { FormActions, FormBusy } from "@/components/form-actions";
-import { t } from "@hearth/i18n";
-import type { HouseholdOption } from "@hearth/db";
+import { t } from "@connectapp/i18n";
+import type { HouseholdOption } from "@connectapp/db";
 import {
   parsePerson, personErrors, hasErrors,
   lifecycleOptions, householdRoleOptions, HOUSEHOLD_NEW, HOUSEHOLD_NONE,
@@ -20,7 +20,7 @@ import {
 import { AddressFields } from "@/components/address-fields";
 import { Contacts } from "./[id]/contacts";
 import { Places } from "./[id]/places";
-import type { PersonContact, PersonAddress } from "@hearth/db/rules";
+import type { PersonContact, PersonAddress } from "@connectapp/db/rules";
 import { Picker } from "@/components/picker";
 import { emptyAddress, type AddressValues } from "@/lib/address";
 import { savePerson } from "./actions";

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { canManageChurch, listRoles, withTenant, PERMISSIONS } from "@hearth/db";
+import { canManageChurch, listRoles, withTenant, PERMISSIONS } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { Matrix, NewRole } from "./matrix";

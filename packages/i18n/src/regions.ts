@@ -43,7 +43,7 @@ export const isCountryCode = (value: string): value is CountryCode =>
 /**
  * The subdivisions a postal address actually needs.
  *
- * The countries Hearth is built for first, plus the ones churches using it are
+ * The countries ConnectApp is built for first, plus the ones churches using it are
  * most likely to be in. Everywhere else takes a text field, which is the honest
  * answer: half-listing the regions of a country is worse than asking.
  *

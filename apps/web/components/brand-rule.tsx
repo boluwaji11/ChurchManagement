@@ -1,4 +1,4 @@
-import { withTenant, getChurch, type TenantRole } from "@hearth/db";
+import { withTenant, getChurch, type TenantRole } from "@connectapp/db";
 
 /**
  * R1.1. The church's own colour, on the surfaces its congregation sees.

@@ -10,9 +10,9 @@ import {
   Banner, Button, IconButton, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Table, Thead, Tr, Th, Td,
-} from "@hearth/ui";
-import type { ChurchEvent, EventRegistration } from "@hearth/db";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/ui";
+import type { ChurchEvent, EventRegistration } from "@connectapp/db";
+import { t, plural } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { Empty } from "@/components/empty";
 import { longDate, readableTime, shortDate } from "@/lib/dates";

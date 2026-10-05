@@ -192,7 +192,7 @@ export interface FunnelStep {
  * asking.
  *
  * The cohort is members whose first recorded service falls in the window. A
- * church that started using Hearth in March cannot be asked about February,
+ * church that started using ConnectApp in March cannot be asked about February,
  * and a report that quietly counts the import as a hundred first visits is a
  * report that lies on its most important line.
  *

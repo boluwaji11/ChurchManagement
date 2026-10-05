@@ -7,10 +7,10 @@ import {
   Banner, Badge, IconButton, Card, Separator,
   Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import type { PlanCandidate } from "@hearth/db";
+import type { PlanCandidate } from "@connectapp/db";
 import { schedule, unschedule, whoCouldFill } from "../../actions";
 
 export interface Gathering {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Printer } from "lucide-react";
-import { Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import type { ServingTeam } from "./who-serves";
 
 /**

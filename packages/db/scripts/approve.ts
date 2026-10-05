@@ -6,9 +6,9 @@
  * somebody, because a queue was built and taken out on the same day for putting
  * work on a volunteer.
  *
- *   pnpm --filter @hearth/db approve                    list what is waiting
- *   pnpm --filter @hearth/db approve <slug> <your name> say it is a church
- *   pnpm --filter @hearth/db approve --revoke <slug>    say it is not
+ *   pnpm --filter @connectapp/db approve                    list what is waiting
+ *   pnpm --filter @connectapp/db approve <slug> <your name> say it is a church
+ *   pnpm --filter @connectapp/db approve --revoke <slug>    say it is not
  */
 import { owner, closeConnections } from "../src/client";
 import { withAuditTriggersOff } from "../src/maintenance";
@@ -50,7 +50,7 @@ async function waiting(): Promise<void> {
     console.log(`    ${row.name}`);
     console.log(`    ${row.who ?? "no account yet"}, ${row.members} members, ${age} minutes old\n`);
   }
-  console.log("pnpm --filter @hearth/db approve <slug> <your name>");
+  console.log("pnpm --filter @connectapp/db approve <slug> <your name>");
 }
 
 async function approve(slug: string, by: string): Promise<void> {
@@ -79,7 +79,7 @@ async function main(): Promise<void> {
   if (args[0] === "--revoke" && args[1]) await revoke(args[1]);
   else if (args.length === 0) await waiting();
   else if (args[0] && args.length >= 2) await approve(args[0], args.slice(1).join(" "));
-  else console.log("pnpm --filter @hearth/db approve <slug> <your name>");
+  else console.log("pnpm --filter @connectapp/db approve <slug> <your name>");
 
   await closeConnections();
 }

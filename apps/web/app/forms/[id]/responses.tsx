@@ -4,10 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { UserCheck, Paperclip } from "lucide-react";
-import { Button, Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { Button, Dialog, DialogTrigger, DialogContent } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import type { FormAnswer, FormFieldDef } from "@hearth/db/rules";
+import type { FormAnswer, FormFieldDef } from "@connectapp/db/rules";
 import { Pages } from "@/components/pages";
 import { matchResponses } from "../actions";
 

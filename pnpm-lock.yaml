@@ -17,13 +17,13 @@ importers:
 
   apps/web:
     dependencies:
-      '@hearth/db':
+      '@connectapp/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@hearth/i18n':
+      '@connectapp/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
-      '@hearth/ui':
+      '@connectapp/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@supabase/ssr':
@@ -69,7 +69,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@hearth/i18n':
+      '@connectapp/i18n':
         specifier: workspace:*
         version: link:../i18n
       drizzle-orm:

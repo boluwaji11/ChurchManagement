@@ -5,8 +5,8 @@ import {
   addFormField, updateFormField, removeFormField, moveFormField, reorderFormFields,
   getForm, placeUnplaced, owner, canManageChurch, setFormCover, setFormHue, templateFor,
   type FormInput, type FormFieldInput, type FormStatus,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

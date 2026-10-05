@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { Pencil } from "lucide-react";
-import { Banner, Combobox, Field, IconButton, Input } from "@hearth/ui";
+import { Banner, Combobox, Field, IconButton, Input } from "@connectapp/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
-import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
+import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@connectapp/i18n";
 import { saveChurch } from "./actions";
 
 export interface ChurchValues {

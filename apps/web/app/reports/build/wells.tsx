@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@hearth/ui";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@connectapp/ui";
 import {
   AGGREGATIONS, SPLIT_VIEWS, GROUPED_VIEWS, SUBJECTS, fieldOf,
   type Aggregation, type ReportTile, type ValueWell,
-} from "@hearth/db/rules";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db/rules";
+import { t } from "@connectapp/i18n";
 import { Shelf, type Pill } from "./shelf";
 
 /** What a value in the well is called on its pill. */

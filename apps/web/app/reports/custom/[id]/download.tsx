@@ -5,8 +5,8 @@ import { Download } from "lucide-react";
 import {
   IconButton, Spinner,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R18.10. A built report taken off the screen, in the format it is wanted in.

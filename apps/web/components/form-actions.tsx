@@ -5,8 +5,8 @@ import { useFormStatus } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogFooter, IconButton,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R24.6. The button that commits a form, and the warning that it has not been.

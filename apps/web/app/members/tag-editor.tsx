@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Plus, X } from "lucide-react";
-import { Button, Input, Banner, HueTag, HueDot, cn, type Hue } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Button, Input, Banner, HueTag, HueDot, cn, type Hue } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { togglePersonTag, addTagToPerson } from "../tags/actions";
 
 export interface TagOption {

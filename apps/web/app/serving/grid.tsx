@@ -3,10 +3,10 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, XCircle, X, AlertTriangle, Plus } from "lucide-react";
-import { Avatar, Banner, Button, Combobox, Input, cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Avatar, Banner, Button, Combobox, Input, cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { schedule, unschedule, whoCouldFill, savePosition } from "./actions";
-import type { PlanCandidate } from "@hearth/db";
+import type { PlanCandidate } from "@connectapp/db";
 
 export interface GridService {
   id: string;

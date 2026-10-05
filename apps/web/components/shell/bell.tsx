@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   Bell, UserPlus, CircleX, CircleCheck, TriangleAlert, Copy, ClipboardList,
 } from "lucide-react";
-import { cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { readOne, readAll, olderThan } from "./bell-actions";
 

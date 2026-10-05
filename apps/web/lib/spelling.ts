@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { setSpellingResolver, spellingFor, type Spelling } from "@hearth/i18n";
+import { setSpellingResolver, spellingFor, type Spelling } from "@connectapp/i18n";
 
 /**
  * R22.8. Which spelling this request reads, held for the length of it.

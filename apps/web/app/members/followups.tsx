@@ -8,8 +8,8 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import {
   startFollowUp, finishStep, undoStep, leaveFollowUp, addPersonTask, takeStep,

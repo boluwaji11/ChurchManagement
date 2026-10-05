@@ -1,4 +1,4 @@
-import { Card, CardTitle, CardDescription } from "@hearth/ui";
+import { Card, CardTitle, CardDescription } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
 export default function Space() {

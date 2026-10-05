@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Church, Plus } from "lucide-react";
-import { membershipsForUser, canEditPeople, canReadIncidents } from "@hearth/db";
-import { Banner, Button, LIFT } from "@hearth/ui";
+import { membershipsForUser, canEditPeople, canReadIncidents } from "@connectapp/db";
+import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
 import { BrandBar } from "@/components/brand";
 import { JoinWithCode } from "./join-with-code";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
 

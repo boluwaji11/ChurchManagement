@@ -1,7 +1,7 @@
 "use client";
 
-import type { Roster } from "@hearth/db";
-import type { OfflineEvent } from "@hearth/db";
+import type { Roster } from "@connectapp/db";
+import type { OfflineEvent } from "@connectapp/db";
 
 /**
  * R8.20, R8.21. What the station is holding.
@@ -16,7 +16,7 @@ import type { OfflineEvent } from "@hearth/db";
  * than failing to load.
  */
 
-const DB_NAME = "hearth-station";
+const DB_NAME = "connectapp-station";
 const DB_VERSION = 1;
 const KV = "kv";
 const EVENTS = "events";

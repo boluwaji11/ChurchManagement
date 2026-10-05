@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { withTenant, addRoom, updateRoom, setRoomArchived, orderRooms } from "@hearth/db";
+import { withTenant, addRoom, updateRoom, setRoomArchived, orderRooms } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

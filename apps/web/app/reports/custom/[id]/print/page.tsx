@@ -2,13 +2,13 @@ import { notFound } from "next/navigation";
 import {
   withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents,
   GRID_COLUMNS, type ReportTile, type ReportResult,
-} from "@hearth/db";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { churchLogoUrl } from "@/lib/church-logo";
-import { getChurch } from "@hearth/db";
+import { getChurch } from "@connectapp/db";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { Answer } from "../../../answer";

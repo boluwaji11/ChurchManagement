@@ -3,9 +3,9 @@ import { randomUUID } from "node:crypto";
 import {
   publicForm, roomForPublicFile, recordPublicFile, UPLOAD_RULES, FILE_TYPES,
   type FileKind,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
 

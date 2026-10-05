@@ -5,7 +5,7 @@ import {
   addToGroup, removeFromGroup, lookupPeople, getChurch,
   requestToJoin, decideRequest, setGroupPhoto, setGroupOpen, setGroupStatus,
   type GroupRole,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";

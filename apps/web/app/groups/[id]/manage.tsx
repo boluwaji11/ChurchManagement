@@ -4,8 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Archive } from "lucide-react";
 import Link from "next/link";
-import { Banner, IconButton } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, IconButton } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { archive } from "../actions";
 import { ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-form";
 

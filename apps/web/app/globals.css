@@ -1,5 +1,5 @@
 /* Tokens are generated from packages/ui/tokens/*.json. See scripts/build-tokens.mjs. */
-@import "@hearth/ui/tokens.css";
+@import "@connectapp/ui/tokens.css";
 
 /* Tailwind must see the component sources to generate their utilities. */
 @source "../../../packages/ui/src";

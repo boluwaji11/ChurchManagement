@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Combobox, Field, Input } from "@hearth/ui";
-import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@hearth/i18n";
+import { Combobox, Field, Input } from "@connectapp/ui";
+import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@connectapp/i18n";
 import type { AddressValues } from "@/lib/address";
 
 /**

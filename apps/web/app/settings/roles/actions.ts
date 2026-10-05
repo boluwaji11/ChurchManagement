@@ -2,7 +2,7 @@
 
 import {
   withTenant, createRole, renameRole, setPermissions, archiveRole,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

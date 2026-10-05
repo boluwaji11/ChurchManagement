@@ -1,10 +1,10 @@
-# Hearth
+# ConnectApp
 
 [![CI](https://github.com/boluwaji11/ChurchManagement/actions/workflows/ci.yml/badge.svg)](https://github.com/boluwaji11/ChurchManagement/actions/workflows/ci.yml)
 
 **Church management software.**
 
-Hearth is a complete church management platform for small churches, given to them at no cost. Every
+ConnectApp is a complete church management platform for small churches, given to them at no cost. Every
 feature, every church, every time. No modules, no tiers, no upsell.
 
 Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and already knows
@@ -35,7 +35,7 @@ target church does not have.
 
 **Software churches can afford exists. Software churches can use exists. Nothing is both.**
 
-Hearth is Rock RMS's price with Breeze's usability.
+ConnectApp is Rock RMS's price with Breeze's usability.
 
 ## Who it is for
 
@@ -94,7 +94,7 @@ Promises are cheap, so these are structural instead.
 
 ## What it looks like
 
-Every competitor is a blue SaaS dashboard, grey on grey, one accent colour, no joy. Hearth uses a
+Every competitor is a blue SaaS dashboard, grey on grey, one accent colour, no joy. ConnectApp uses a
 warm canvas and eight hues that do real work: every room, team, group type, fund, and ministry owns
 one, so a calendar, a check-in floor, and a giving chart are readable at a glance instead of after
 reading. Your check-in room's colour prints on the child's label, so a volunteer can point a parent

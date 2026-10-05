@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { withTenant, setPresent, setPresentMany } from "@hearth/db";
+import { withTenant, setPresent, setPresentMany } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 import { sweepAfterAttendance } from "@/lib/sweep";

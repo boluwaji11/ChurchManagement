@@ -6,10 +6,10 @@ import { Plus, UserMinus, TriangleAlert, Link2 } from "lucide-react";
 import {
   Banner, Badge, Card, IconButton, Separator,
   Dialog, DialogTrigger, DialogContent,
-} from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import type { PlanCandidate } from "@hearth/db";
+import type { PlanCandidate } from "@connectapp/db";
 import { schedule, unschedule, whoCouldFill } from "../../../serving/actions";
 
 export interface ServingEntry {

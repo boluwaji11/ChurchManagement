@@ -18,7 +18,7 @@ inline-style approach the prototypes use is a property of the drawing tool.
 fake data must never be loadable into a real church covers it.
 
 The persona files (`Pastor`, `Group Leader`, `Member Portal`, `Member Web`, `Network Admin`,
-`Check-in Station`) are one-line wrappers that load `Hearth A - Warm Office.dc.html` with a
+`Check-in Station`) are one-line wrappers that load `ConnectApp A - Warm Office.dc.html` with a
 `persona` prop. Warm Office is the whole staff app and the single source. Open it and use the Tweaks
 panel to switch persona, layout and theme.
 
@@ -62,7 +62,7 @@ harder of the two numbers, and the design's three all come in under 4.5 there. C
 plain white as well. Ours clear both with room. The design system's own rule decides this one: if a
 trend costs contrast, the trend loses.
 
-Figures from `pnpm --filter @hearth/ui contrast`, which audits all 66 pairs on every run.
+Figures from `pnpm --filter @connectapp/ui contrast`, which audits all 66 pairs on every run.
 
 ## What the redesign actually changes
 
@@ -101,7 +101,7 @@ and is its own story.
 
 ## The journeys, against what the product does
 
-`design/Hearth Journeys.dc.html` draws seven ways in, website to first screen. Six of them match
+`design/ConnectApp Journeys.dc.html` draws seven ways in, website to first screen. Six of them match
 what is built. Where they differ, the backlog section "How somebody gets an account" is the decision,
 because it was argued from how a congregation's directory has to be protected rather than from how a
 screen looks.
@@ -166,12 +166,12 @@ now says People.
 
 ### The measurements the shell is built to
 
-Taken from `Hearth A - Warm Office.dc.html` rather than approximated.
+Taken from `ConnectApp A - Warm Office.dc.html` rather than approximated.
 
 | Part | The design |
 |---|---|
 | Sidebar | 232px, 64px collapsed. 20px padding, 12px at the sides (10px collapsed). 24px between its three blocks. `--c12` behind it, hairline on the right. 200ms on `cubic-bezier(0.16, 1, 0.3, 1)`. |
-| Brand | A 32px ember square, 10px radius, white flame at 16px. "Hearth" in Fraunces 18/20 over the church's name at 12px. |
+| Brand | A 32px ember square, 10px radius, white flame at 16px. "ConnectApp" in Fraunces 18/20 over the church's name at 12px. |
 | Collapse toggle | 30px square, 8px radius, `panel-left-close` and `panel-left-open` at 18px. |
 | Nav row | 36px tall, **8px radius**, 2px between rows, 10px gap, 10px side padding, 13px at weight 500, icon 18px. Current row is `--surface` with `--c1` and a 1px/3px shadow; the rest are `--c6`. Count right-aligned at 12px. |
 | Person row | 10px radius, hairline border, `--surface`. 32px round avatar on its hue, name 13px/500, role 12px, `chevrons-up-down` at 16px. |
@@ -207,7 +207,7 @@ live.
 ## Taken off the Person screen, October 2026
 
 The instruction is to replicate the redesign and remove what is not in it. The person's page in
-`Hearth A - Warm Office.dc.html` is the back link, the header, and four cards: Contact, Household,
+`ConnectApp A - Warm Office.dc.html` is the back link, the header, and four cards: Contact, Household,
 Giving this year, Groups and teams, then a full-width Timeline.
 
 These came off that screen. The server actions, the repo functions and the components are all still

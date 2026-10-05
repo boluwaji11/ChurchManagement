@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { churchForJoinCode, normaliseJoinCode } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { churchForJoinCode, normaliseJoinCode } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 
 /** R1.7. A typed code goes to the same screen the church's link goes to. */
 export async function goToCode(data: FormData): Promise<{ error?: string } | void> {

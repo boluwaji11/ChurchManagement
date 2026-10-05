@@ -1,4 +1,4 @@
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 /** Months as the church would say them: 24 is two years, 18 is eighteen months. */
 export function say(months: number): { value: number; unit: "years" | "months" } {

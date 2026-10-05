@@ -1,5 +1,5 @@
 {
-  "name": "hearth",
+  "name": "connectapp",
   "private": true,
   "packageManager": "pnpm@10.18.3",
   "scripts": {
@@ -7,12 +7,12 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "tokens": "pnpm --filter @hearth/ui run tokens",
-    "db:generate": "pnpm --filter @hearth/db run generate",
-    "db:migrate": "pnpm --filter @hearth/db run migrate",
-    "db:seed": "pnpm --filter @hearth/db run seed",
+    "tokens": "pnpm --filter @connectapp/ui run tokens",
+    "db:generate": "pnpm --filter @connectapp/db run generate",
+    "db:migrate": "pnpm --filter @connectapp/db run migrate",
+    "db:seed": "pnpm --filter @connectapp/db run seed",
     "test": "turbo run test",
-    "db:seed:users": "pnpm --filter @hearth/db run seed:users"
+    "db:seed:users": "pnpm --filter @connectapp/db run seed:users"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

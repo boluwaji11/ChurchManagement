@@ -12,7 +12,7 @@ import { useFieldControl } from "./field";
 export function Select(props: React.ComponentProps<typeof P.Root>) {
   return <P.Root {...props} />;
 }
-Select.hearthFieldManaged = true;
+Select.connectappFieldManaged = true;
 
 export const SelectValue = P.Value;
 
@@ -108,7 +108,7 @@ export const SelectContent = React.forwardRef<
         onCloseAutoFocus={() => setQuery("")}
         className={cn(
           "z-50 min-w-[11rem] overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg p-2",
-          "data-[state=open]:animate-[hearth-rise_var(--duration-fast)_var(--ease-out)]",
+          "data-[state=open]:animate-[connectapp-rise_var(--duration-fast)_var(--ease-out)]",
           className,
         )}
         {...props}

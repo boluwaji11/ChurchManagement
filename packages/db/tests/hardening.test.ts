@@ -103,14 +103,14 @@ describe("nothing is reachable over the auto-generated REST API", () => {
    * The storage bucket policies are evaluated as that role, so the membership
    * check they call has to be executable by it. PostgREST publishes every
    * function in the exposed schema as an RPC endpoint, so the function sits in
-   * `hearth`, which is not exposed. It answers one question about the caller's
+   * `connectapp`, which is not exposed. It answers one question about the caller's
    * own account: am I in this church.
    */
   it.skipIf(!HAS_STORAGE)("keeps the storage membership check out of the exposed schema", async () => {
     const [fn] = await owner()<{ definer: boolean }[]>`
       select p.prosecdef as definer
         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-       where n.nspname = 'hearth' and p.proname = 'user_in_church'`;
+       where n.nspname = 'connectapp' and p.proname = 'user_in_church'`;
     expect(fn?.definer, "hearth.user_in_church is missing").toBe(true);
 
     const [gone] = await owner()<{ present: boolean }[]>`

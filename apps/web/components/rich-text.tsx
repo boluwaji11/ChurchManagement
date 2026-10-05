@@ -6,8 +6,8 @@ import {
 } from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input, cn,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/rich-text";
 
 /**

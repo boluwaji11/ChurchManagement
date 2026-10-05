@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
-import { Banner, Button, IconButton, Input } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Button, IconButton, Input } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Confirm } from "@/components/confirm";
 import { savePosition, archivePosition } from "../actions";
 

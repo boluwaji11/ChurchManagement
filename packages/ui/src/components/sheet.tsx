@@ -35,11 +35,11 @@ export function SheetContent({
 }) {
   return (
     <P.Portal>
-      <P.Overlay className="fixed inset-0 z-40 bg-overlay data-[state=open]:animate-[hearth-fade_var(--duration-fast)_var(--ease-out)]" />
+      <P.Overlay className="fixed inset-0 z-40 bg-overlay data-[state=open]:animate-[connectapp-fade_var(--duration-fast)_var(--ease-out)]" />
       <P.Content
         className={cn(
           "fixed inset-y-0 right-0 z-50 flex h-full flex-col bg-canvas shadow-lg",
-          "data-[state=open]:animate-[hearth-slide-in_var(--duration-base)_var(--ease-out)]",
+          "data-[state=open]:animate-[connectapp-slide-in_var(--duration-base)_var(--ease-out)]",
           className,
         )}
         style={{ width: `min(${width}, 100%)` }}

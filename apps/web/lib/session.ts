@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import {
   membershipsForUser, verifyMembership, resolveTenantBySlug, demoMembership,
   type Membership, type TenantRole, type Permission,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { supabaseServer } from "./supabase/server";
 import { readDemoPass } from "./demo-pass";
 

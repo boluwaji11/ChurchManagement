@@ -1,6 +1,6 @@
 "use server";
 
-import { withTenant, recordCheck, type CheckResult } from "@hearth/db";
+import { withTenant, recordCheck, type CheckResult } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { AlertTriangle } from "lucide-react";
-import { Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import type { Board, RoomRosterEntry, ArrivingChild } from "@hearth/db";
+import type { Board, RoomRosterEntry, ArrivingChild } from "@connectapp/db";
 import { floor, place } from "./actions";
 
 /** What the server knew when the page was drawn. */

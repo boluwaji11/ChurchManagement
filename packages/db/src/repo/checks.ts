@@ -13,7 +13,7 @@ import {
  * R2.10, R21.11. Background checks: who checked, when, what it said, when it
  * runs out.
  *
- * Status tracking only. Hearth never holds the report or what the provider
+ * Status tracking only. ConnectApp never holds the report or what the provider
  * found, because a platform given away free is the last place a criminal record
  * should live. The church's provider holds that, and this holds the answer.
  *

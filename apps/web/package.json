@@ -1,5 +1,5 @@
 {
-  "name": "@hearth/web",
+  "name": "@connectapp/web",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -10,9 +10,9 @@
     "build:verify": "NEXT_DIST_DIR=.next-verify next build"
   },
   "dependencies": {
-    "@hearth/db": "workspace:*",
-    "@hearth/i18n": "workspace:*",
-    "@hearth/ui": "workspace:*",
+    "@connectapp/db": "workspace:*",
+    "@connectapp/i18n": "workspace:*",
+    "@connectapp/ui": "workspace:*",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "lucide-react": "^0.469.0",

@@ -3,7 +3,7 @@
 import {
   withTenant, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
   peopleWithoutHousehold, addToHousehold, removeFromHousehold, setHouseholdRole,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

@@ -1,4 +1,4 @@
-import { CodeDisplay } from "@hearth/ui";
+import { CodeDisplay } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
 const SCALE = [

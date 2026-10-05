@@ -7,8 +7,8 @@ import { Plus, X, ShieldAlert } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Combobox, Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { addRelation, removeRelation } from "./relationship-actions";
 
 export interface RelationRow {

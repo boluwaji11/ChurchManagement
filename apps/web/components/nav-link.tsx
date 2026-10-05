@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@hearth/ui";
+import { cn } from "@connectapp/ui";
 
 /**
  * One link in the header, and whether it is the screen you are on.

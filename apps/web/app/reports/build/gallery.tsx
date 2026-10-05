@@ -5,8 +5,8 @@ import {
   AlignHorizontalDistributeCenter, BarChart3, ChartArea, ChartColumnBig, ChartLine, ChartPie,
   Hash, Table2,
 } from "lucide-react";
-import { VIEWS, VIEW_NEEDS, viewFits, type View } from "@hearth/db/rules";
-import { t } from "@hearth/i18n";
+import { VIEWS, VIEW_NEEDS, viewFits, type View } from "@connectapp/db/rules";
+import { t } from "@connectapp/i18n";
 
 const ICONS: Record<View, React.ComponentType<{ className?: string }>> = {
   table: Table2,

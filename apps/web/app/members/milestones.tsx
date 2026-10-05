@@ -6,9 +6,9 @@ import { Plus, X } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Input, Dialog, DialogTrigger, DialogContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import { DateField } from "@/components/date-field";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { addPersonMilestone, removePersonMilestone } from "./milestone-actions";
 
 export interface MilestoneRow {

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { Button, Skeleton, Card, CardTitle, Avatar, Banner, IconButton } from "@hearth/ui";
+import { Button, Skeleton, Card, CardTitle, Avatar, Banner, IconButton } from "@connectapp/ui";
 import { PageTitle, Section, Row } from "@/components/section";
 
 const DURATIONS = [
@@ -68,7 +68,7 @@ export default function Motion() {
               <li
                 key={p.id}
                 className="flex items-center justify-between gap-3 rounded-md border border-line bg-canvas p-2"
-                style={{ animation: "hearth-rise var(--duration-base) var(--ease-out)" }}
+                style={{ animation: "connectapp-rise var(--duration-base) var(--ease-out)" }}
               >
                 <span className="flex items-center gap-2.5">
                   <Avatar name={p.name} id={String(p.id)} size="sm" />
@@ -104,7 +104,7 @@ export default function Motion() {
           </Button>
           <Button
             variant="secondary"
-            className={saved === "fail" ? "animate-[hearth-shake_var(--duration-slow)_var(--ease-in-out)]" : ""}
+            className={saved === "fail" ? "animate-[connectapp-shake_var(--duration-slow)_var(--ease-in-out)]" : ""}
             onClick={() => {
               setSaved("fail");
               setTimeout(() => setSaved("idle"), 900);

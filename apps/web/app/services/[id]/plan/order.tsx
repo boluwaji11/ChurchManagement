@@ -10,9 +10,9 @@ import {
   Banner, Button, Field, IconButton, Input, Separator, Textarea, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import type { ItemKind, ShapeItem } from "@hearth/db";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import type { ItemKind, ShapeItem } from "@connectapp/db";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
   keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom, shapeOf,

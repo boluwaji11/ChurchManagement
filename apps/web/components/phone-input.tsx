@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "@hearth/ui";
+import { Input } from "@connectapp/ui";
 
 /**
  * R2.4. A phone number, punctuated as it is typed.

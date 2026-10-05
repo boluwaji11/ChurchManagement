@@ -49,7 +49,7 @@ function warnIfDirectHost(url: string): void {
     if (!/^db\..+\.supabase\.co$/.test(host)) return;
     warnedAboutDirectHost = true;
     console.warn(
-      `[hearth/db] ${host} resolves over IPv6 only. On a network without IPv6 this fails as ` +
+      `[connectapp/db] ${host} resolves over IPv6 only. On a network without IPv6 this fails as ` +
         "ENOTFOUND. Use the Supabase connection pooler instead: " +
         "postgresql://<role>.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres",
     );

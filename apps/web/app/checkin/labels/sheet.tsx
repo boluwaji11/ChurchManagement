@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { Printer } from "lucide-react";
-import { Button, STOCK, printCss, stockOf, type Stock } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Button, STOCK, printCss, stockOf, type Stock } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import type { LabelPair } from "@hearth/db";
-import { DEFAULT_LABEL_LAYOUT, type LabelLayout } from "@hearth/db/rules";
+import type { LabelPair } from "@connectapp/db";
+import { DEFAULT_LABEL_LAYOUT, type LabelLayout } from "@connectapp/db/rules";
 
 /**
  * R8.11, R8.25, R8.26. Two labels a child, printed together.
@@ -146,7 +146,7 @@ function Label({
 }) {
   const shape = STOCK[stock];
   const box =
-    "hearth-label flex flex-col justify-between gap-1 rounded-lg border border-line bg-surface p-3 " +
+    "connectapp-label flex flex-col justify-between gap-1 rounded-lg border border-line bg-surface p-3 " +
     "text-fg print:border-black print:bg-white print:text-black";
 
   // A Dymo address label is 28mm tall, which is one line of name and one of

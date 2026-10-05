@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { TimePicker } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { TimePicker } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 const LABELS = { open: t("time.open"), clear: t("time.clear") };
 

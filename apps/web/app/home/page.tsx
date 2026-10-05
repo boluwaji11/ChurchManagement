@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { withTenant, findGroups, personForUser, canEditPeople, canReadIncidents } from "@hearth/db";
-import { Button, Card } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { withTenant, findGroups, personForUser, canEditPeople, canReadIncidents } from "@connectapp/db";
+import { Button, Card } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { BrandRule } from "@/components/brand-rule";
 import { requireSession } from "@/lib/session";

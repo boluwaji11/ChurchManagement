@@ -3,8 +3,8 @@
 import * as React from "react";
 import {
   Button, Dialog, DialogTrigger, DialogContent, DialogFooter,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * R24.x. Asking before something comes off a list.

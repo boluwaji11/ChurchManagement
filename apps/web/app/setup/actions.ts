@@ -1,6 +1,6 @@
 "use server";
 
-import { withTenant, skipSetupStep, dismissSetup, type SetupStep } from "@hearth/db";
+import { withTenant, skipSetupStep, dismissSetup, type SetupStep } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

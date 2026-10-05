@@ -4,9 +4,9 @@ import * as React from "react";
 import {
   Input, Field, Checkbox,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import { DateField } from "@/components/date-field";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 export interface FieldDef {
   id: string;

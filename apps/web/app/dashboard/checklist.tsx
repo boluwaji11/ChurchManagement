@@ -4,9 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
-import { IconButton } from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import type { SetupProgress } from "@hearth/db";
+import { IconButton } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import type { SetupProgress } from "@connectapp/db";
 import { SETUP_LINKS } from "@/lib/setup-links";
 import { putAway } from "@/app/setup/actions";
 

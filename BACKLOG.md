@@ -208,7 +208,7 @@ coming, growth and retention.
 
 Two lists were briefly on the Services page and were wrong there twice over: they pushed the day's
 work down the screen, and they were unbounded, so a church of two hundred got a wall. The queries
-behind them are built and tested, and they sit in `@hearth/db` until there is a page for them.
+behind them are built and tested, and they sit in `@connectapp/db` until there is a page for them.
 
 **Deferred at release planning, 30 September 2026.** F18 is a 1.0 domain (E5 Reporting). It was
 pulled forward to house those two lists, which is a reason to have somewhere to put them, and not a
@@ -1376,7 +1376,7 @@ rather than a feature to try.
 
 1. **The sidebar** is down the left on a desktop. The entry for the screen you are on is white with a
    hairline shadow; the rest are grey.
-2. **Collapse it** with the button beside the Hearth mark. It becomes a 64px rail of icons. Hover any
+2. **Collapse it** with the button beside the ConnectApp mark. It becomes a 64px rail of icons. Hover any
    icon and its words appear. Reload: it is still collapsed, because the width is in a cookie and the
    server renders it that way with no flicker.
 3. **The top bar** carries the page title and one filled button, the one that belongs to that page.
@@ -1507,7 +1507,7 @@ a token. The shades are `-100`, `-500`, `-700`, `-900`. It was showing nothing.
 The deliverable is the drill, not the backup setting: an untested backup is not a backup. The
 runbook is [docs/backup-and-restore.md](docs/backup-and-restore.md).
 
-1. `pnpm --filter @hearth/db census riverside` counts every row of every table that church holds,
+1. `pnpm --filter @connectapp/db census riverside` counts every row of every table that church holds,
    biggest first.
 2. `--out before.json` writes it. `--against before.json` compares a fresh census with it, exits 0
    when every table matches and 1 when it does not, naming the table.
@@ -1535,11 +1535,11 @@ the migration ran, so your own church is unaffected.
    thing, that it opens once somebody has looked at it.
 4. Add people up to 25. The twenty-sixth is refused, and an import that would go past it in one go
    is refused as a whole rather than half-landing.
-5. `pnpm --filter @hearth/db approve` lists what is waiting: the church, who made it, how many
+5. `pnpm --filter @connectapp/db approve` lists what is waiting: the church, who made it, how many
    people, how old it is.
-6. `pnpm --filter @hearth/db approve <slug> <your name>` approves it. Reload: the banner is gone, the
+6. `pnpm --filter @connectapp/db approve <slug> <your name>` approves it. Reload: the banner is gone, the
    cap is gone, the join link works and invitations send.
-7. `pnpm --filter @hearth/db approve --revoke <slug>` puts it back, and the join code already handed
+7. `pnpm --filter @connectapp/db approve --revoke <slug>` puts it back, and the join code already handed
    out stops working.
 
 ### HRT-111, how to test it
@@ -1915,7 +1915,7 @@ Sign out. From the front page, **Start a church**.
 
 ### HRT-107, how to test it
 
-`pnpm --filter @hearth/db metrics`, against the real database.
+`pnpm --filter @connectapp/db metrics`, against the real database.
 
 1. **Every church, and how long it took** from signing up to a directory somebody can use: a
    committed import, or twenty-five people entered by hand, whichever came first.
@@ -1934,7 +1934,7 @@ The **?** beside your name, on any screen.
    everything else is under it.
 2. **Search** across all of it.
 3. **It is behind a button.** A product that explains itself on the page shouts at the ninety-nine
-   people who already knew, which is why there is no hint text under any field in Hearth.
+   people who already knew, which is why there is no hint text under any field in ConnectApp.
 4. **The articles are in the catalogue** like every other string, so they are translated with the
    product rather than left in a wiki somebody forgets.
 
@@ -2062,7 +2062,7 @@ Nothing to press. Record attendance and the follow-ups raise themselves.
    open, dated the day they came, with the first step due two days later. That is the acceptance
    criterion, and the sweep runs off the back of the attendance write.
 2. **Members are left alone.** Mark a member present and nothing happens. A church of two hundred
-   that starts using Hearth on a Sunday is not two hundred first-time visitors. The record began
+   that starts using ConnectApp on a Sunday is not two hundred first-time visitors. The record began
    that day; they did not.
 3. **A second visit.** Mark the same visitor present on a later service. Second visit opens
    alongside, dated that Sunday.

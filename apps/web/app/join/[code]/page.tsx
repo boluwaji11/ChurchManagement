@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { churchForJoinCode, normaliseJoinCode } from "@hearth/db";
-import { Banner, Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { churchForJoinCode, normaliseJoinCode } from "@connectapp/db";
+import { Banner, Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { BrandBar } from "@/components/brand";
 import { SignOutButton } from "@/components/sign-out-button";
 import { currentUser } from "@/lib/session";

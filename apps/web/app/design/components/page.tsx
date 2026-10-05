@@ -8,7 +8,7 @@ import {
   RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, DatePicker, TimePicker, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
   TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import { check, email } from "@/lib/validate";
 import { PageTitle, Section, Row } from "@/components/section";
 
@@ -259,7 +259,7 @@ export default function Components() {
               title="Archive Tyler Carter?"
               description="Archiving removes someone from lists and counts. Giving and attendance history is kept."
             >
-              <Banner tone="info">Hearth archives rather than deletes. This is reversible.</Banner>
+              <Banner tone="info">ConnectApp archives rather than deletes. This is reversible.</Banner>
               <div className="mt-5 flex justify-end gap-2">
                 <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
                 <DialogClose asChild><Button variant="danger">Archive</Button></DialogClose>

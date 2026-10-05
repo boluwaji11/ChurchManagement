@@ -25,13 +25,13 @@ function walk(dir: string, out: string[] = []): string[] {
 describe("the owner connection never reaches a request path", () => {
   it("is not imported anywhere in the web app", () => {
     const offenders = walk(webRoot).filter((file) =>
-      /\bimport\s*\{[^}]*\bowner\b[^}]*\}\s*from\s*["']@hearth\/db["']/.test(readFileSync(file, "utf8")),
+      /\bimport\s*\{[^}]*\bowner\b[^}]*\}\s*from\s*["']@connectapp\/db["']/.test(readFileSync(file, "utf8")),
     );
     expect(offenders.map((f) => f.replace(webRoot, "apps/web"))).toEqual([]);
   });
 
   it("reaches the database through withTenant in the web app", () => {
-    const usesDb = walk(webRoot).filter((f) => /@hearth\/db/.test(readFileSync(f, "utf8")));
+    const usesDb = walk(webRoot).filter((f) => /@connectapp\/db/.test(readFileSync(f, "utf8")));
     expect(usesDb.length).toBeGreaterThan(0);
     for (const file of usesDb) {
       const source = readFileSync(file, "utf8");

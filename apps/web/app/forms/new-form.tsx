@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { FilePlus2, Plus } from "lucide-react";
 import {
   Button, Dialog, DialogTrigger, DialogContent, LIFT,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
-import { FORM_TEMPLATES } from "@hearth/db/rules";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { FORM_TEMPLATES } from "@connectapp/db/rules";
 import { newForm } from "./actions";
 
 /**

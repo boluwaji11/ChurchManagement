@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { Panel } from "./panel";
 
 export interface WeekEntry {

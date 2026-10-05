@@ -1,6 +1,6 @@
-import { Badge } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
-import type { PublicGroup } from "@hearth/db";
+import { Badge } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
+import type { PublicGroup } from "@connectapp/db";
 
 const dayName = (day: number) =>
   new Date(2024, 0, 7 + day).toLocaleDateString(undefined, { weekday: "long" });

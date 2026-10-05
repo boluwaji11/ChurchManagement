@@ -3,8 +3,8 @@
 import * as React from "react";
 import {useRouter } from "next/navigation";
 import {
-  Banner, Button } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+  Banner, Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { told } from "./actions";
 
 /** R8.13. One press, and the moment it happened is kept with the report. */

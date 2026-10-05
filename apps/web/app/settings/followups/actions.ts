@@ -1,6 +1,6 @@
 "use server";
 
-import { withTenant, createPipeline, updatePipeline, setPipelineArchived } from "@hearth/db";
+import { withTenant, createPipeline, updatePipeline, setPipelineArchived } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 

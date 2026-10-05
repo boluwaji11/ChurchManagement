@@ -1,4 +1,4 @@
-import type { MessageKey } from "@hearth/i18n";
+import type { MessageKey } from "@connectapp/i18n";
 import type { FormFieldKind } from "./form-rules";
 
 /**

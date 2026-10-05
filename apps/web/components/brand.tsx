@@ -1,8 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { Flame } from "lucide-react";
-import { cn } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 /**
  * Three rising embers. The same mark as the favicon and the app icon.

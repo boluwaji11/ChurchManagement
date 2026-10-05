@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { Banner } from "@hearth/ui";
+import { Banner } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignInForm } from "./form";
 import { Logo } from "@/components/brand";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
 

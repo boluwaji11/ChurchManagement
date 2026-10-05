@@ -6,9 +6,9 @@ import { Check, X } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
   Tabs, TabsList, TabsTrigger, TabsContent,
-} from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
-import type { Meeting, MeetingPerson } from "@hearth/db";
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
+import type { Meeting, MeetingPerson } from "@connectapp/db";
 import { Markdown } from "@/components/markdown";
 import { decide, setOpenToJoin, leave, publishGroup } from "../actions";
 import { AddMember } from "../add-member";

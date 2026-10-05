@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Card, Separator } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Card, Separator } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Logo } from "@/components/brand";
 
 export const dynamic = "force-static";

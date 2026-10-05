@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import {
   withTenant, addService, setOccurrenceCancelled, updateOccurrence, stopRepeating,
   setHeadcount, isFrequency,
-} from "@hearth/db";
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 
 import { explain } from "@/lib/explain";

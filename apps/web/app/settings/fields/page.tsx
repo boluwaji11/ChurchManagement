@@ -1,9 +1,9 @@
-import { withTenant, listCustomFields, canManageCustomFields } from "@hearth/db";
-import { Banner } from "@hearth/ui";
+import { withTenant, listCustomFields, canManageCustomFields } from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
 import { Empty } from "@/components/empty";
 import { requireSession } from "@/lib/session";
 import { FieldManager, NewField } from "./field-manager";
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 import { SettingsHeading } from "../heading";
 
 export const dynamic = "force-dynamic";

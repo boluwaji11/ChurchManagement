@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Search, Check } from "lucide-react";
-import { Badge, Banner, Button, Input, cn } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { Badge, Banner, Button, Input, cn } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import { markPresent, markManyPresent } from "./actions";
 
 export interface RosterPerson {

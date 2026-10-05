@@ -1,7 +1,7 @@
 import {
   UPLOAD_RULES, SUGGESTED_PIXELS, ONE_MIB, type UploadPurpose,
-} from "@hearth/db/rules";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db/rules";
+import { t } from "@connectapp/i18n";
 
 /**
  * What a picture should be, wherever one is uploaded.

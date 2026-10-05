@@ -8,8 +8,8 @@ import {
   Button, Card, CardTitle, Separator, Banner, Badge,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   RadioGroup, RadioItem, Spinner, Working,
-} from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import {
   inspectFile, previewImport, runImport, undoImport,
   type Inspection, type Preview, type ImportResult,

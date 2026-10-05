@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Archive, ArchiveRestore } from "lucide-react";
-import { Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter, Banner } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter, Banner } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { setArchived } from "./actions";
 
 /**

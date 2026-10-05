@@ -1,4 +1,4 @@
-import type { DirectoryQuery } from "@hearth/db";
+import type { DirectoryQuery } from "@connectapp/db";
 
 export interface DirectoryParams {
   page?: string;

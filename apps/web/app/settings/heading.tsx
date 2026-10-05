@@ -1,6 +1,6 @@
 import * as React from "react";
-import type { MessageKey } from "@hearth/i18n";
-import { t } from "@hearth/i18n";
+import type { MessageKey } from "@connectapp/i18n";
+import { t } from "@connectapp/i18n";
 
 /**
  * R24.6. What this section is, and the one line that says what it is for.

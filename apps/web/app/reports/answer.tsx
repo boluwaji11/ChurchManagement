@@ -7,8 +7,8 @@
  * that is its own client component rendered from here.
  */
 import * as React from "react";
-import { t } from "@hearth/i18n";
-import { CHART_HUES, VIEW_NEEDS, type ReportLook, type ReportSpec } from "@hearth/db/rules";
+import { t } from "@connectapp/i18n";
+import { CHART_HUES, VIEW_NEEDS, type ReportLook, type ReportSpec } from "@connectapp/db/rules";
 import { Columns, Donut, Line, RowBars, Series, Stacked, type Slice } from "./charts";
 import type { Part } from "./plot";
 import { Rows } from "./rows";

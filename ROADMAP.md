@@ -73,7 +73,7 @@ and CCLI usage export, plus volunteer teams, scheduling with conflict detection,
 accept and decline without login, substitute swaps, the background check gate, and the coverage gap
 dashboard.
 
-**Exit criteria:** one pilot church plans and staffs four consecutive services entirely in Hearth.
+**Exit criteria:** one pilot church plans and staffs four consecutive services entirely in ConnectApp.
 A song's lyrics round-trip through export and import with section types and labels intact.
 
 Requirements: R10.1 to R10.9, R10.12, R11.1 to R11.12, R12.1 to R12.7, R12.9, R12.10, R12.12
@@ -105,14 +105,14 @@ SongSelect import, background check provider integration, Mailchimp sync, barcod
 Specified in [PRD-STAGE.md](PRD-STAGE.md), built on its own board,
 [BACKLOG-STAGE.md](BACKLOG-STAGE.md). Outline in [PRD.md section 8.23](PRD.md).
 
-An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@hearth/songs` package with
+An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@connectapp/songs` package with
 the web platform. Offline always.
 
 **Stage installs and runs on its own**, holding its own song library, importing the library a church
-already has, and presenting a Sunday service for a church that has never heard of Hearth. That is
+already has, and presenting a Sunday service for a church that has never heard of ConnectApp. That is
 what gets it onto a laptop, and it is also how Stage becomes the front door to the platform.
 
-**Paired with Hearth it renders slides directly from the song sections and arrangement sequences
+**Paired with ConnectApp it renders slides directly from the song sections and arrangement sequences
 Phase 1 already stores**, with no import step, which is the entire reason the two products are one
 platform and the thing no other presenter can copy.
 

@@ -6,8 +6,8 @@ import { CalendarX, Undo2 } from "lucide-react";
 import {
   Banner, Button,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { setCancelled } from "../actions";
 
 /**

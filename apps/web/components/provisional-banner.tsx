@@ -1,6 +1,6 @@
-import { Banner } from "@hearth/ui";
-import { withTenant, churchStanding, type TenantRole } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { Banner } from "@connectapp/ui";
+import { withTenant, churchStanding, type TenantRole } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 
 /**
  * R1.1. Says, while a church is being checked, that it is being checked.

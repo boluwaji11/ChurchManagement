@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { canArchivePeople } from "@hearth/db";
-import { t } from "@hearth/i18n";
-import type { MessageKey } from "@hearth/i18n";
+import { canArchivePeople } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
+import type { MessageKey } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { DownloadRow } from "./download";
@@ -25,7 +25,7 @@ const ROWS: Array<{ name: MessageKey; what: MessageKey; file: string; only?: str
   { name: "settings.export.milestones", what: "settings.export.milestonesWhat", file: "milestones.csv", only: "milestones" },
   { name: "settings.export.checks", what: "settings.export.checksWhat", file: "checks.csv", only: "checks" },
   { name: "settings.export.forms", what: "settings.export.formsWhat", file: "forms.csv", only: "forms" },
-  { name: "settings.export.everything", what: "settings.export.everythingWhat", file: "hearth-export.zip" },
+  { name: "settings.export.everything", what: "settings.export.everythingWhat", file: "connectapp-export.zip" },
 ];
 
 /**

@@ -36,7 +36,7 @@ works is how a drill becomes an outage.
 Pick a real church with a reasonable amount of data. Count what it holds right now.
 
 ```
-pnpm --filter @hearth/db census <slug> --out drills/<yyyy-mm-dd>-before.json
+pnpm --filter @connectapp/db census <slug> --out drills/<yyyy-mm-dd>-before.json
 ```
 
 The census counts every row of every table carrying a `tenant_id`, found by looking for the column
@@ -61,7 +61,7 @@ restore, which is why step 4 exists.
 ```
 APP_DATABASE_URL=<the restored project> \
 DATABASE_URL=<the restored project> \
-  pnpm --filter @hearth/db census <slug> --against drills/<yyyy-mm-dd>-before.json
+  pnpm --filter @connectapp/db census <slug> --against drills/<yyyy-mm-dd>-before.json
 ```
 
 It exits 0 when every table matches and 1 when anything does not, naming the table and whether the

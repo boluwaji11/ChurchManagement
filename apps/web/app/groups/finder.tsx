@@ -7,10 +7,10 @@ import { X, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Switch,
   Sheet, SheetContent, SheetTrigger, LIFT,
-} from "@hearth/ui";
+} from "@connectapp/ui";
 import { MultiSelect } from "@/components/multi-select";
 import { Empty } from "@/components/empty";
-import { t, plural } from "@hearth/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { archive } from "./actions";
 import { SearchField } from "@/components/search-field";
 import {
@@ -132,7 +132,7 @@ const NOTHING: Chosen = {
 const AUDIENCES = ["anyone", "men", "women", "young_adults", "students", "parents", "seniors"] as const;
 
 /** Where this device remembers the requests it has put away. */
-const DISMISSED = "hearth:groupRequestsPutAway";
+const DISMISSED = "connectapp:groupRequestsPutAway";
 
 /**
  * R9.5, R9.6. Finding a group.

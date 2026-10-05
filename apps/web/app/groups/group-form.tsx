@@ -4,8 +4,8 @@ import * as React from "react";
 import { Archive } from "lucide-react";
 import {
   Button, Dialog, DialogTrigger, DialogContent, DialogFooter,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
 export interface GroupTypeOption {
   id: string;

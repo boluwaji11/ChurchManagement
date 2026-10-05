@@ -1,4 +1,4 @@
-import tokens from "@hearth/ui/tokens/color.json";
+import tokens from "@connectapp/ui/tokens/color.json";
 
 /**
  * The spectrum as hex, for a file the product does not draw itself.

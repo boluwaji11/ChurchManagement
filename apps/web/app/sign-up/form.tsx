@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
-import { Button, Field, Input } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Button, Field, Input } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { check, email as validEmail, minLength } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
 import { signUp } from "./actions";

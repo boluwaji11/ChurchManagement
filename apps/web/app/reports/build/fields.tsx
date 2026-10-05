@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { Calendar, Hash, Search, ToggleLeft, Type, X } from "lucide-react";
-import { IconButton } from "@hearth/ui";
-import { SUBJECTS, type FieldDef, type SubjectKey } from "@hearth/db/rules";
-import { t } from "@hearth/i18n";
+import { IconButton } from "@connectapp/ui";
+import { SUBJECTS, type FieldDef, type SubjectKey } from "@connectapp/db/rules";
+import { t } from "@connectapp/i18n";
 
 /** Accents and case set aside, so typing "campus" finds "Campus". */
 export const fold = (value: string) =>
@@ -29,7 +29,7 @@ const ICONS = {
 } as const;
 
 /** What a field being dragged carries with it. */
-export const FIELD_MIME = "application/x-hearth-field";
+export const FIELD_MIME = "application/x-connectapp-field";
 
 /**
  * R18.12. The fields a report can be built from, down the left.

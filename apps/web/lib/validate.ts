@@ -1,9 +1,9 @@
-import { t } from "@hearth/i18n";
+import { t } from "@connectapp/i18n";
 
 /**
  * Shared validators, so two forms cannot disagree about what a valid email is.
  *
- * These live here rather than in @hearth/ui because they are copy, and a design
+ * These live here rather than in @connectapp/ui because they are copy, and a design
  * system should not own the product's sentences. A Field renders a message; it
  * does not decide what the message says.
  *

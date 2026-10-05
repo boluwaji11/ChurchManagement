@@ -1,7 +1,7 @@
 import {
   withTenant, listStations, listRooms, listOccurrences, getChurch, canManageStations,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";

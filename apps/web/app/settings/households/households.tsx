@@ -9,8 +9,8 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   LIFT,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";

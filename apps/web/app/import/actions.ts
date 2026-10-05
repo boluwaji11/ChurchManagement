@@ -8,8 +8,8 @@ import {
   isGroupSheet, guessGroupMapping, GROUP_FIELDS, planGroups, commitGroups, rollbackGroupImport,
   canManageGroups, type TenantRole,
   type DuplicateStrategy, type PlannedRow, type PlannedGroupRow, type Sheet,
-} from "@hearth/db";
-import { t } from "@hearth/i18n";
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 

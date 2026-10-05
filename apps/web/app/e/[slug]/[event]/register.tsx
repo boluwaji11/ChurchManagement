@@ -3,17 +3,17 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Plus, X } from "lucide-react";
-import { Banner, Button, Field, IconButton, Input } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { Banner, Button, Field, IconButton, Input } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import {
   checkSubmission, visibleFields,
   type FormAnswer, type FormFieldDef,
-} from "@hearth/db/rules";
+} from "@connectapp/db/rules";
 import { Empty } from "@/components/empty";
 import { Answer } from "@/components/form-answer";
 import { FileList, type Attached } from "@/components/file-answer";
 import { registerParty } from "./actions";
-import type { Registrant } from "@hearth/db";
+import type { Registrant } from "@connectapp/db";
 
 /** An answer as the confirmation step reads it back. */
 function said(value: FormAnswer): string {

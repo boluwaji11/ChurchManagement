@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { KeyRound } from "lucide-react";
-import { Banner, Button, Field, Input } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { Banner, Button, Field, Input } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { check, minLength } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
 import { setPassword } from "../sign-up/actions";

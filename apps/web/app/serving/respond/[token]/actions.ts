@@ -1,6 +1,6 @@
 "use server";
 
-import { answerServingRequest, type ServingRequest } from "@hearth/db";
+import { answerServingRequest, type ServingRequest } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 
 export interface AnswerResult {

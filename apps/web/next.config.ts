@@ -19,7 +19,7 @@ const config: NextConfig = {
    * of the way.
    */
   distDir: process.env["NEXT_DIST_DIR"] || ".next",
-  transpilePackages: ["@hearth/ui", "@hearth/db", "@hearth/i18n"],
+  transpilePackages: ["@connectapp/ui", "@connectapp/db", "@connectapp/i18n"],
   // postgres.js is a server driver. Keep it out of the bundle entirely.
   serverExternalPackages: ["postgres"],
   /**

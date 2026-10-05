@@ -7,11 +7,11 @@ import {
   Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { openLabels } from "./open-labels";
-import { serviceNow } from "@hearth/db/rules";
+import { serviceNow } from "@connectapp/db/rules";
 import { checkIn, undo, type FoundMatch, type FoundPerson } from "./actions";
 import { useFind } from "./use-find";
 import { useStation } from "./offline/station";

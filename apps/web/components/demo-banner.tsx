@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Banner, Button } from "@hearth/ui";
-import { demoChurchInfo } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { Banner, Button } from "@connectapp/ui";
+import { demoChurchInfo } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 
 /**
  * R19.7. Says, on every page of a demo, that it is one.

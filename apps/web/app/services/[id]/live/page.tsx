@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, liveFor, canManageServices } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { withTenant, liveFor, canManageServices } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { PageMeta } from "@/components/section";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";

@@ -7,8 +7,8 @@ import {
   Banner, Button, Field, Input,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@hearth/ui";
-import { t } from "@hearth/i18n";
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
 import { addGathering } from "./actions";

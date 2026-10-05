@@ -6,7 +6,7 @@ in parallel without two people editing one table.
 Requirement IDs (`ST5.2`, `ST19.1`) point at [PRD-STAGE.md](PRD-STAGE.md) and say **what** to build.
 Work item IDs (`STG-14`) say **when** it is being built and whether it is finished.
 
-> **Draft 2, October 2026.** Draft 1 made Stage a thin client of the platform, which put a Hearth
+> **Draft 2, October 2026.** Draft 1 made Stage a thin client of the platform, which put a ConnectApp
 > account between a church and a slide. Stage is a complete presenter that runs by itself, so the
 > library and the importers are Stage's own work and sync is additive. **SE1 to SE3, fifty-eight
 > stories, need nothing from the platform board.** The board was renumbered while nothing was built.
@@ -136,7 +136,7 @@ The release a church with a 300 song ProPresenter library can actually adopt. No
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-32 | Scaffold `packages/song-import`: one reader interface, the Hearth schema as output, golden fixtures per format | ST3.9 | New |
+| STG-32 | Scaffold `packages/song-import`: one reader interface, the ConnectApp schema as output, golden fixtures per format | ST3.9 | New |
 | STG-33 | Read OpenLyrics and OpenSong libraries | ST3.1, ST3.2 | New |
 | STG-34 | Read an OpenLP database | ST3.1, ST3.2 | New |
 | STG-35 | Read a ProPresenter 6 and 7 library, keeping section labels | ST3.1, ST3.2 | New |
@@ -163,7 +163,7 @@ The release a church with a 300 song ProPresenter library can actually adopt. No
 | STG-51 | Correct a typo on a live slide, offering the fix to the library for a local song | ST6.8 | New |
 | STG-52 | **Log usage when a song is actually shown**, with date, set list, arrangement and key | ST2.10, ST18.7 | New |
 | STG-53 | **Export a CCLI usage report** for a period, validated against the same fixture as the platform's R12.10 | ST2.11, ST18.7 | New |
-| STG-54 | Export the whole library as OpenLyrics and as a Hearth-schema bundle, ungated | ST2.12 | New |
+| STG-54 | Export the whole library as OpenLyrics and as a ConnectApp-schema bundle, ungated | ST2.12 | New |
 
 ### SF7. Scripture
 
@@ -253,7 +253,7 @@ and the sync API, and pulled forward the moment it does. The dependency table be
 |---|---|---|---|
 | STG-88 | Pair with a six character code, and store the token in the keychain | ST1.3 to ST1.5 | New |
 | STG-89 | Show the device in the platform's device list, named and revocable | ST1.6, ST1.9 | New |
-| STG-90 | Unpair or handle revocation by removing `hearth` records and keeping every local one | ST1.7 | New |
+| STG-90 | Unpair or handle revocation by removing `connectapp` records and keeping every local one | ST1.7 | New |
 
 ### SF4. Sync
 
@@ -261,7 +261,7 @@ and the sync API, and pulled forward the moment it does. The dependency table be
 |---|---|---|---|
 | STG-91 | Build the synced store, separate and disposable, beside the local library | ST4.3 | New |
 | STG-92 | Sync by cursor, one transaction per page writing rows and advancing the cursor together | ST4.1, ST4.2 | New |
-| STG-93 | Mark song origin, make `hearth` songs read-only in Stage, and show which is which | ST2.13, ST4.4 | New |
+| STG-93 | Mark song origin, make `connectapp` songs read-only in Stage, and show which is which | ST2.13, ST4.4 | New |
 | STG-94 | Run sync on a worker thread, and prove it cannot delay a cue advance | ST4.7 | New |
 | STG-95 | Fetch media by content hash, resumable and verified | ST4.9 | New |
 | STG-96 | Show the last successful sync, and say when the plan on screen is older than the server's | ST4.8 | New |
@@ -272,7 +272,7 @@ and the sync API, and pulled forward the moment it does. The dependency table be
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| STG-99 | Open a Hearth plan as a deck, in the order it was planned | ST5.3 | New |
+| STG-99 | Open a ConnectApp plan as a deck, in the order it was planned | ST5.3 | New |
 | STG-100 | Show plan notes, global and addressed to a position, on the control surface and the stage display | ST5.5, ST11.6 | New |
 | STG-101 | Render scripture from the platform's resolved text, under the church's own licence | ST7.6 | New |
 | STG-102 | Build the announcement loop from the church's announcements and plan items | ST13.5 | New |
@@ -401,7 +401,7 @@ belongs to the platform board, so that line is corrected there.
 ### The order, and why
 
 **SE1 first, and it is a real presenter.** By the end of SE1 a worship leader types four songs in and
-runs the set on a projector. That is judgeable, and it is judgeable without a Hearth account, which is
+runs the set on a projector. That is judgeable, and it is judgeable without a ConnectApp account, which is
 the point of draft 2. Inside SE1 the order is forced: `packages/songs` before anything compiles a deck,
 the library before there is a song to compile, the deck before there is anything to render, the render
 before the control surface has something to control, and the measurement harness alongside the render,
@@ -412,9 +412,9 @@ so the five importers come before the stage display, before video backgrounds, a
 also carries the local CCLI export, which is a genuine reason to choose Stage over OpenLP on its own.
 
 **SE3 before SE4.** A church leaves ProPresenter when it has the stage display, several outputs, video
-backgrounds, and crash recovery. Pairing with Hearth is what makes it stay.
+backgrounds, and crash recovery. Pairing with ConnectApp is what makes it stay.
 
-**SE4 when the platform is ready, and no earlier.** It is the differentiator and the reason Hearth owns
+**SE4 when the platform is ready, and no earlier.** It is the differentiator and the reason ConnectApp owns
 a presenter, and it is also the one epic whose dependency we do not control. Fifty-eight stories sit in
 front of it, which is long enough that the platform will have shipped 0.4 before Stage is waiting.
 
@@ -438,7 +438,7 @@ are gone. The only blocked epic is SE4, and nothing before it waits on anybody.
 | | |
 |---|---|
 | **Active** | Nothing |
-| **Waiting on a test** | **STG-1** the schema as types, **STG-2** sequence resolution, **STG-3** slide splitting, **STG-4** the deck compiler. `pnpm --filter @hearth/songs deck` prints a real service. |
+| **Waiting on a test** | **STG-1** the schema as types, **STG-2** sequence resolution, **STG-3** slide splitting, **STG-4** the deck compiler. `pnpm --filter @connectapp/songs deck` prints a real service. |
 | **Next** | **STG-5**, ChordPro parsing and transposition, which finishes the logic. Then STG-6 to STG-10, the local library, and STG-11, the first Electron process. |
 | **Blocked** | **SE4** only, on the six platform deliverables above. Fifty-four stories sit in front of it. |
 | **Watch** | `packages/songs` is read by the platform's song library screens in 0.4, and `packages/song-import` by its R20.10 importers. The schema in PRD section 9.4 is the contract, and a change to it is a platform story. |
@@ -451,8 +451,8 @@ are gone. The only blocked epic is SE4, and nothing before it waits on anybody.
 `packages/songs` is the spine. It has no screen, so the test is the suite and the types.
 
 ```
-pnpm --filter @hearth/songs test
-pnpm --filter @hearth/songs typecheck
+pnpm --filter @connectapp/songs test
+pnpm --filter @connectapp/songs typecheck
 ```
 
 Thirty-three tests, three files. What each one is defending:
@@ -489,7 +489,7 @@ transcription, and both are open to being overruled now while nothing depends on
 - **`tenantId` is absent.** The platform holds these records with a tenant and row-level security,
   and Stage holds them with no tenant at all, so tenancy belongs to each store rather than to the
   shared type.
-- **`origin` is present**, `local` or `hearth`, carrying the two-writer rule from PRD-STAGE section 2
+- **`origin` is present**, `local` or `connectapp`, carrying the two-writer rule from PRD-STAGE section 2
   into the type itself.
 
 The sample library is two public-domain hymns. Stage offers them on first run so a church starting
@@ -504,9 +504,9 @@ Three stories grouped, because separately none of them produces anything to look
 at and together they produce the first thing that does.
 
 ```
-pnpm --filter @hearth/songs deck
-pnpm --filter @hearth/songs deck -- --lines 2
-pnpm --filter @hearth/songs test
+pnpm --filter @connectapp/songs deck
+pnpm --filter @connectapp/songs deck -- --lines 2
+pnpm --filter @connectapp/songs test
 ```
 
 **`deck` prints a Sunday service, compiled.** Six items: a welcome, two hymns, a
