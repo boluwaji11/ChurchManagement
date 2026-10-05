@@ -14,7 +14,7 @@ import { t, plural } from "@hearth/i18n";
 import { archive } from "./actions";
 import { SearchField } from "@/components/search-field";
 import {
-  SortMenu, ViewToggle, useListPreference, type ListView,
+  SortMenu, ViewToggle, ShowMore, useListPreference, useShowMore, type ListView,
 } from "@/components/list-controls";
 
 export interface FinderGroup {
@@ -49,13 +49,21 @@ export interface FinderGroup {
   archived: boolean;
 }
 
+/** R9.5. The two bands a groups list is read in, published first. */
+const BANDS = [
+  { key: "published" as const, heading: () => t("event.published") },
+  { key: "draft" as const, heading: () => t("event.draft") },
+];
+
 /** R24.6. The orders a groups list is worth reading in. */
-type GroupOrder = "name" | "newest" | "oldest";
+type GroupOrder = "name" | "newest" | "oldest" | "draftsFirst";
 
 const BY_GROUP: Record<GroupOrder, (a: FinderGroup, b: FinderGroup) => number> = {
   name: (a, b) => a.name.localeCompare(b.name),
   newest: (a, b) => b.createdAt.localeCompare(a.createdAt),
   oldest: (a, b) => a.createdAt.localeCompare(b.createdAt),
+  // Orders the bands rather than the rows. Inside a band, by name.
+  draftsFirst: (a, b) => a.name.localeCompare(b.name),
 };
 
 
@@ -394,6 +402,7 @@ export function Finder({
             { value: "name", label: t("list.sort.name") },
             { value: "newest", label: t("list.sort.newest") },
             { value: "oldest", label: t("list.sort.oldest") },
+            { value: "draftsFirst", label: t("list.sort.draftsFirst") },
           ]}
         />
 
@@ -519,43 +528,22 @@ export function Finder({
       ) : (
         /* R9.5. Published leads, because that is what the congregation can
            see. Drafts sit under it with a hairline between, which is the shape
-           the events list carries. A reader who has learned one has learned
-           both. */
-        [
-          { key: "published", heading: t("event.published"), rows: shown.filter((g) => g.status === "published") },
-          { key: "draft", heading: t("event.draft"), rows: shown.filter((g) => g.status === "draft") },
-        ]
-          .filter((section) => section.rows.length > 0)
-          .map((section, at, sections) => (
-            <section
-              key={section.key}
-              className={
-                at === 0 || sections.length === 1
-                  ? "flex flex-col gap-3.5"
-                  : "flex flex-col gap-3.5 border-t border-line pt-6"
-              }
-            >
-              {sections.length > 1 ? (
-                <h2 className="text-[13px] font-bold tracking-wide text-fg uppercase">
-                  {section.heading}
-                </h2>
-              ) : null}
-              {view === "tiles" ? (
-                <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
-                  {section.rows.map((group) => (
-                    <GroupCard key={group.id} church={church} group={group} />
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
-                  {section.rows.map((group) => (
-                    <div key={group.id} className="border-b border-line last:border-b-0">
-                      <GroupRow church={church} group={group} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
+           the events list carries, and "drafts first" turns the pair round. */
+        (order === "draftsFirst"
+          ? [...BANDS].reverse()
+          : BANDS
+        )
+          .map((band) => ({ ...band, rows: shown.filter((g) => g.status === band.key) }))
+          .filter((band) => band.rows.length > 0)
+          .map((band, at, bands) => (
+            <GroupBand
+              key={band.key}
+              church={church}
+              heading={bands.length > 1 ? band.heading() : null}
+              rows={band.rows}
+              view={view}
+              rule={at > 0}
+            />
           ))
       )}
 
@@ -708,5 +696,54 @@ function GroupRow({ church, group }: { church: string; group: FinderGroup }) {
         {group.full ? t("find.full") : group.openToJoin ? t("find.open") : t("find.closed")}
       </span>
     </div>
+  );
+}
+
+/** One band, which draws as much of itself as anybody has asked for. */
+function GroupBand({
+  church,
+  heading,
+  rows,
+  view,
+  rule,
+}: {
+  church: string;
+  heading: string | null;
+  rows: FinderGroup[];
+  view: ListView;
+  /** A hairline above, for every band after the first. */
+  rule: boolean;
+}) {
+  const { limit, hidden, more } = useShowMore(rows.length);
+  const shown = rows.slice(0, limit);
+
+  return (
+    <section
+      className={
+        rule ? "flex flex-col gap-3.5 border-t border-line pt-6" : "flex flex-col gap-3.5"
+      }
+    >
+      {heading ? (
+        <h2 className="text-[13px] font-bold tracking-wide text-fg uppercase">{heading}</h2>
+      ) : null}
+
+      {view === "tiles" ? (
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+          {shown.map((group) => (
+            <GroupCard key={group.id} church={church} group={group} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
+          {shown.map((group) => (
+            <div key={group.id} className="border-b border-line last:border-b-0">
+              <GroupRow church={church} group={group} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <ShowMore hidden={hidden} onClick={more} />
+    </section>
   );
 }

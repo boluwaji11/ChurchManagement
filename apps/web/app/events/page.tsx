@@ -17,6 +17,21 @@ import { EventSearch } from "./event-search";
 export const dynamic = "force-dynamic";
 
 /**
+ * R14.1. How far back the list reads.
+ *
+ * Two years of what a church has run is enough to copy last year's camp from.
+ * Anything older is found by searching or in the archive.
+ */
+const PAST_DAYS = 730;
+
+/** The same date, a number of days earlier, as YYYY-MM-DD. */
+function backBy(iso: string, days: number): string {
+  const at = new Date(`${iso}T00:00:00Z`);
+  at.setUTCDate(at.getUTCDate() - days);
+  return at.toISOString().slice(0, 10);
+}
+
+/**
  * R14.1. What the church is putting on.
  *
  * Two lists, not one. Everything still to come leads, because that is what
@@ -42,11 +57,21 @@ export default async function EventsPage({
     permissions: session.permissions,
   };
 
-  const { events, archivedCount, today } = await withTenant(ctx, async (tx) => ({
-    events: await listEvents(tx, putAway ? { archivedOnly: true } : {}),
-    archivedCount: await countArchivedEvents(tx),
-    today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
-  }));
+  const { events, archivedCount, today } = await withTenant(ctx, async (tx) => {
+    const clock = churchNow(
+      (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
+    );
+    return {
+      today: clock.date,
+      // R14.1. A window rather than everything the church has ever run. Older
+      // events are still there, through the archive link under the list.
+      events: await listEvents(
+        tx,
+        putAway ? { archivedOnly: true } : { from: backBy(clock.date, PAST_DAYS) },
+      ),
+      archivedCount: await countArchivedEvents(tx),
+    };
+  });
 
   // An event runs until its last day, so one that started on Friday is still to
   // come on the Saturday somebody looks at this screen.

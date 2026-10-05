@@ -296,19 +296,33 @@ const shape = (row: Record<string, unknown>): ChurchEvent => ({
  */
 export async function listEvents(
   db: Tx,
-  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
+  opts: {
+    includeArchived?: boolean;
+    archivedOnly?: boolean;
+    /**
+     * R14.1. The earliest start day to read, as YYYY-MM-DD.
+     *
+     * A church five years in has hundreds of events behind it and wants none
+     * of them on the screen it opens every week. The ones outside the window
+     * are still there, reached by searching or through the archive.
+     */
+    from?: string;
+  } = {},
 ): Promise<ChurchEvent[]> {
+  const where = [
+    opts.archivedOnly
+      ? sql`${events.archivedAt} is not null`
+      : opts.includeArchived
+        ? undefined
+        : sql`${events.archivedAt} is null`,
+    opts.from ? sql`${events.startsOn} >= ${opts.from}` : undefined,
+  ].filter(Boolean);
+
   const rows = await db
     .select(columns)
     .from(events)
     .leftJoin(people, eq(people.id, events.contactPersonId))
-    .where(
-      opts.archivedOnly
-        ? sql`${events.archivedAt} is not null`
-        : opts.includeArchived
-          ? undefined
-          : sql`${events.archivedAt} is null`,
-    )
+    .where(where.length > 0 ? and(...(where as never[])) : undefined)
     .orderBy(asc(events.startsOn), asc(events.startsAt), asc(events.name));
 
   return rows.map((row) => shape(row as Record<string, unknown>));

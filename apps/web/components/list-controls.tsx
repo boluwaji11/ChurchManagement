@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Plus } from "lucide-react";
 import {
   cn, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
@@ -100,5 +100,44 @@ export function ViewToggle({
         </button>
       ))}
     </div>
+  );
+}
+
+/**
+ * R24.6. How many of a band are drawn before somebody asks for more.
+ *
+ * A church that has run events for five years has hundreds of them, and a
+ * screen that draws all of them is a screen that takes a second to paint and a
+ * minute to read. Twelve fills the grid three or four rows deep, which is as
+ * far as anybody looks before they search instead.
+ */
+export const AT_FIRST = 12;
+
+export function useShowMore(total: number, step = AT_FIRST) {
+  const [limit, setLimit] = React.useState(step);
+
+  // A search that narrows the list starts it again from the top, so pressing
+  // "show more" four times does not leave a filtered list already expanded.
+  React.useEffect(() => setLimit(step), [total, step]);
+
+  return {
+    limit,
+    hidden: Math.max(0, total - limit),
+    more: React.useCallback(() => setLimit((was) => was + step), [step]),
+  };
+}
+
+/** The way to see the rest of a band. */
+export function ShowMore({ hidden, onClick }: { hidden: number; onClick: () => void }) {
+  if (hidden === 0) return null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+    >
+      <Plus className="size-4" aria-hidden />
+      {t("list.showMore", { count: hidden })}
+    </button>
   );
 }

@@ -2592,6 +2592,8 @@ export const en = {
   "hue.violet": "Violet",
   "common.noMatch": "No match",
   "list.sort": "Sort",
+  "list.showMore": "Show {count} more",
+  "list.sort.draftsFirst": "Drafts first",
   "list.sort.newest": "Newest first",
   "list.sort.oldest": "Oldest first",
   "list.sort.name": "Name A to Z",
