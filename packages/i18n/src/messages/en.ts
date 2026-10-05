@@ -1091,6 +1091,7 @@ export const en = {
   "rich.link": "Link",
   "rich.linkPrompt": "Web address",
   "rich.body": "Description",
+  "rich.clear": "Remove formatting",
   "groups.failed": "That did not save. Try again.",
   "groups.title": "Groups",
   "groups.add": "Create a Group",

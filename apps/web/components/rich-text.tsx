@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Bold, Italic, List, ListOrdered, Link2 } from "lucide-react";
+import { Bold, Italic, List, ListOrdered, Link2, RemoveFormatting } from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input, cn,
 } from "@hearth/ui";
@@ -114,6 +114,19 @@ export function RichText({
         </Mark>
         <Mark label={t("rich.link")} onPress={askForLink}>
           <Link2 />
+        </Mark>
+
+        {/* Undoing a bold otherwise means selecting it and pressing B again,
+            which nobody finds. The links go with it, since a pasted address
+            that should read as words is the other half of the same problem. */}
+        <Mark
+          label={t("rich.clear")}
+          onPress={() => {
+            run("removeFormat");
+            run("unlink");
+          }}
+        >
+          <RemoveFormatting />
         </Mark>
       </div>
 
