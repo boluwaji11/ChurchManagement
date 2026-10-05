@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Paperclip, X } from "lucide-react";
-import { Button, IconButton } from "@hearth/ui";
+import {
+  Button, IconButton, Dialog, DialogContent,
+} from "@hearth/ui";
 import { t, plural } from "@hearth/i18n";
 import {
   FILE_TYPES, UPLOAD_RULES, ONE_MIB, type FileKind, type FormFieldDef,
@@ -44,6 +46,7 @@ export function FileAnswer({
 }) {
   const [held, setHeld] = React.useState<Attached[]>([]);
   const [busy, setBusy] = React.useState(false);
+  const [looking, setLooking] = React.useState<Attached | null>(null);
   const [failed, setFailed] = React.useState<string>();
   const input = React.useRef<HTMLInputElement>(null);
 
@@ -110,27 +113,30 @@ export function FileAnswer({
               className="flex items-center gap-2.5 rounded-lg border border-line bg-surface p-1.5 pr-3"
             >
               {one.image ? (
-                <img
-                  src={one.preview}
-                  alt=""
-                  className="size-10 shrink-0 rounded-md object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={() => setLooking(one)}
+                  aria-label={one.name}
+                  className="shrink-0 cursor-pointer"
+                >
+                  <img src={one.preview} alt="" className="size-10 rounded-md object-cover" />
+                </button>
               ) : (
                 <span className="grid size-10 shrink-0 place-items-center rounded-md bg-sunken">
                   <Paperclip className="size-4 text-fg-subtle" aria-hidden />
                 </span>
               )}
 
-              {/* The name opens it, which is the only preview a document gets
-                  and the larger one a picture deserves. */}
-              <a
-                href={one.preview}
-                target="_blank"
-                rel="noreferrer"
-                className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
+              {/* Opened on the page rather than in a tab of its own. What the
+                  browser hands back for a file it is holding is an address
+                  nobody should be shown. */}
+              <button
+                type="button"
+                onClick={() => setLooking(one)}
+                className="min-w-0 flex-1 cursor-pointer truncate text-left text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
               >
                 {one.name}
-              </a>
+              </button>
               <IconButton
                 label={t("form.files.remove", { name: one.name })}
                 onClick={() => drop(one.key)}
@@ -173,6 +179,24 @@ export function FileAnswer({
       </span>
 
       {failed ? <span className="text-caption text-danger-text">{failed}</span> : null}
+
+      <Dialog open={looking !== null} onOpenChange={(on) => { if (!on) setLooking(null); }}>
+        <DialogContent title={looking?.name ?? ""} closeLabel={t("common.close")}>
+          {looking?.image ? (
+            <img
+              src={looking.preview}
+              alt=""
+              className="max-h-[70vh] w-full rounded-lg object-contain"
+            />
+          ) : looking ? (
+            <iframe
+              src={looking.preview}
+              title={looking.name}
+              className="h-[70vh] w-full rounded-lg border border-line"
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
