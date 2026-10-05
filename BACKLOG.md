@@ -440,7 +440,7 @@ a person record or attaches to one, using the duplicate logic already built in F
 | HRT-151 | A submission matching a person or creating one, writing custom field answers through | R4.4 | Resolved |
 | HRT-152 | The review queue, for a submission that matched more than one person | R4.5 | New |
 | HRT-153 | Notification on submit, and a submission starting a pipeline | R4.6, R4.7 | New |
-| HRT-154 | The prebuilt forms: connection card, prayer request, membership interest, volunteer application, child information, facility use | R4.8 | New |
+| HRT-154 | The prebuilt forms: connection card, prayer request, membership interest, volunteer application, child information, facility use | R4.8 | Resolved |
 
 ### F17. Member and volunteer portal
 

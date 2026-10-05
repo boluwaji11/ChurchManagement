@@ -3,7 +3,7 @@
 import {
   withTenant, createForm, updateForm, setFormStatus, setFormArchived,
   addFormField, updateFormField, removeFormField, moveFormField, reorderFormFields,
-  getForm, placeUnplaced, owner, canManageChurch, setFormCover, setFormHue,
+  getForm, placeUnplaced, owner, canManageChurch, setFormCover, setFormHue, templateFor,
   type FormInput, type FormFieldInput, type FormStatus,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
@@ -28,16 +28,40 @@ export interface FormResult {
  * nearly every form a church writes. Writing over it is quicker than deciding
  * what goes first.
  */
-export async function newForm(input: FormInput, church?: string): Promise<FormResult> {
+export async function newForm(
+  input: FormInput,
+  church?: string,
+  template?: string,
+): Promise<FormResult> {
   const { actor, ctx } = await context(church);
+  const from = template ? templateFor(template) : undefined;
+
   try {
     const made = await withTenant(ctx, async (tx) => {
-      const form = await createForm(tx, actor, input);
-      await addFormField(tx, actor, form.id, {
-        kind: "text",
-        label: t("form.firstQuestion"),
-        required: true,
+      const form = await createForm(tx, actor, {
+        ...input,
+        ...(from ? { name: t(from.name), intro: t(from.intro), hue: from.hue } : {}),
       });
+
+      /*
+       * R4.8. A template arrives written, with every question that can name
+       * part of a person's record already pointed at it. A church's first form
+       * then writes to the directory without anybody opening a picker, which
+       * is the whole of R4.4.
+       */
+      const questions = from
+        ? from.questions.map((one) => ({
+            kind: one.kind,
+            label: t(one.label),
+            required: one.required ?? false,
+            options: one.options ? one.options.map((option) => t(option)) : null,
+            mapsTo: one.mapsTo ?? null,
+          }))
+        : [{ kind: "text" as const, label: t("form.firstQuestion"), required: true }];
+
+      for (const question of questions) {
+        await addFormField(tx, actor, form.id, question);
+      }
       return form;
     });
     return { id: made.id };

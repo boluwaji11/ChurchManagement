@@ -56,6 +56,7 @@ export * from "./repo/public-forms";
 export * from "./repo/form-matching";
 export * from "./repo/public-events";
 export * from "./repo/forms";
+export * from "./repo/form-templates";
 export * from "./repo/events";
 export * from "./repo/services";
 export * from "./repo/attendance";

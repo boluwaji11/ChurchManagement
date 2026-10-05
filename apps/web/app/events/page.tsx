@@ -118,7 +118,7 @@ export default async function EventsPage({
               {/* The action rides the first heading, so the screen opens on
                   its content rather than on a band holding one button. */}
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className="flex-1 text-[13px] font-bold tracking-wide text-fg-subtle uppercase">
+                <h2 className="flex-1 text-[13px] font-bold tracking-wide text-fg uppercase">
                   {section.heading}
                 </h2>
                 {at === 0 ? action : null}
