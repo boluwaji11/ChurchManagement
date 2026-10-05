@@ -76,7 +76,7 @@ export function EventPage({
         </div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
+      <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-5 pt-4 pb-10 sm:px-8 sm:pt-5 sm:pb-14">
         {/* The page is the page. A card inside it drew a second edge around
             content that already had one, and on a phone it was a border two
             thumbs wide around everything. */}

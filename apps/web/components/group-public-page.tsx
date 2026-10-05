@@ -42,7 +42,7 @@ export function GroupPublicPage({
         </div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-5 py-8 sm:px-8 sm:py-10">
+      <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-5 pt-4 pb-10 sm:px-8 sm:pt-5 sm:pb-12">
         {photoUrl ? (
           <img
             src={photoUrl}
