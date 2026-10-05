@@ -100,19 +100,23 @@ export default async function PersonPage({
     const person = await getPerson(tx, id, { role: session.role, userId: session.userId });
     if (!person) return null;
 
+    // Found by their readable address or by their id, so everything after this
+    // works from the record's own id rather than from whatever was in the URL.
+    const personId = person.id;
+
     return {
       person,
-      contact: await getPersonForEdit(tx, id),
-      household: await householdFor(tx, id),
+      contact: await getPersonForEdit(tx, personId),
+      household: await householdFor(tx, personId),
       // R2.4. Theirs, or the household's, which is what a church writes.
-      address: await addressFor(tx, id),
-      groups: await groupsForPerson(tx, id),
-      serving: await servingForPerson(tx, id),
+      address: await addressFor(tx, personId),
+      groups: await groupsForPerson(tx, personId),
+      serving: await servingForPerson(tx, personId),
       // R2.15. Everything that has happened with this person, in one order.
       history: await personTimeline(
         tx,
         { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
-        id,
+        personId,
       ),
     };
   });
@@ -174,7 +178,7 @@ export default async function PersonPage({
               className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
             >
               <Link
-                href={`/people/${person.id}/edit?church=${session.tenantSlug}`}
+                href={`/people/${person.slug}/edit?church=${session.tenantSlug}`}
                 aria-label={t("action.edit")}
                 title={t("action.edit")}
               >

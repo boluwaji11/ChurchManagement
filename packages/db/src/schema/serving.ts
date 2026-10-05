@@ -30,6 +30,8 @@ export const teams = pgTable(
     id: pk(),
     tenantId: tenantId(),
     campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "set null" }),
+    /** R24.6. The readable part of its address, unique within the church. */
+    slug: text("slug").notNull(),
     name: text("name").notNull(),
     /** What the team does, in the church's words. */
     description: text("description"),

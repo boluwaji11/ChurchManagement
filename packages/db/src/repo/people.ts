@@ -1,5 +1,7 @@
 import { and, asc, desc, eq, inArray, isNull, or, sql, count, type SQL } from "drizzle-orm";
 import type { Tx } from "../client";
+import { freeSlug } from "./slugs";
+import { isUuid } from "./form-rules";
 import type { Permission } from "../permissions";
 import { people, households, householdMemberships, contactMethods, addresses, tags, personTags, milestones } from "../schema/people";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
@@ -9,6 +11,8 @@ import { InvalidInputError } from "../errors";
 
 export interface PersonRow {
   id: string;
+  /** R24.6. The readable part of their address. */
+  slug: string;
   firstName: string;
   lastName: string;
   preferredName: string | null;
@@ -241,6 +245,7 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
   const rows = await db
     .select({
       id: people.id,
+      slug: people.slug,
       firstName: people.firstName,
       lastName: people.lastName,
       preferredName: people.preferredName,
@@ -284,12 +289,20 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
 }
 
 export async function getPerson(db: Tx, id: string, viewer?: Viewer) {
+  // R24.6. Found by their readable address or by their id. Read first, then
+  // checked, because what a viewer may see is a question about the record.
+  const [row] = await db
+    .select()
+    .from(people)
+    .where(isUuid(id) ? eq(people.id, id) : eq(people.slug, id))
+    .limit(1);
+  if (!row) return null;
+
   if (viewer) {
     const allowed = await visiblePeople(db, viewer);
-    if (allowed !== null && !allowed.includes(id)) return null;
+    if (allowed !== null && !allowed.includes(row.id)) return null;
   }
-  const [row] = await db.select().from(people).where(eq(people.id, id)).limit(1);
-  return row ?? null;
+  return row;
 }
 
 export async function countPeopleByStatus(db: Tx): Promise<Record<string, number>> {
@@ -413,6 +426,27 @@ const trimmed = (v: string | null | undefined): string | null => {
   return s === "" ? null : s;
 };
 
+
+/** R24.6. The readable part of a person's address, free within this church. */
+async function freePersonSlug(
+  db: Tx,
+  first: string | null | undefined,
+  last: string,
+): Promise<string> {
+  return freeSlug(
+    [first, last].filter(Boolean).join(" "),
+    async (candidate) => {
+      const [clash] = await db
+        .select({ id: people.id })
+        .from(people)
+        .where(eq(people.slug, candidate))
+        .limit(1);
+      return Boolean(clash);
+    },
+    "person",
+  );
+}
+
 /**
  * R2.1 and R2.3. Creates a person, their primary email and phone, and their
  * household membership, in one transaction.
@@ -432,6 +466,7 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
     .insert(people)
     .values({
       tenantId: actor.tenantId,
+      slug: await freePersonSlug(db, input.preferredName || input.firstName, input.lastName),
       firstName: input.firstName.trim(),
       lastName: input.lastName.trim(),
       preferredName: trimmed(input.preferredName),
@@ -720,15 +755,18 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
   const person = await getPerson(db, id);
   if (!person) return null;
 
+  // Found by slug or by id, so the rest reads from the record's own id.
+  const personId = person.id;
+
   const contacts = await db
     .select({ kind: contactMethods.kind, value: contactMethods.value })
     .from(contactMethods)
-    .where(and(eq(contactMethods.personId, id), eq(contactMethods.isPrimary, true)));
+    .where(and(eq(contactMethods.personId, personId), eq(contactMethods.isPrimary, true)));
 
   const [membership] = await db
     .select({ householdId: householdMemberships.householdId, role: householdMemberships.role })
     .from(householdMemberships)
-    .where(and(eq(householdMemberships.personId, id), isNull(householdMemberships.endedOn)))
+    .where(and(eq(householdMemberships.personId, personId), isNull(householdMemberships.endedOn)))
     .limit(1);
 
   return {
@@ -746,7 +784,7 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
     campusId: person.campusId,
     maritalStatus: person.maritalStatus,
     schoolLevel: person.schoolLevel,
-    address: await addressPartsFor(db, id),
+    address: await addressPartsFor(db, personId),
     email: contacts.find((c) => c.kind === "email")?.value ?? null,
     phone: contacts.find((c) => c.kind === "phone")?.value ?? null,
     householdId: membership?.householdId ?? null,

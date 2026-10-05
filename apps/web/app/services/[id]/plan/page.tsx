@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, GripVertical } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
   listTemplates, recentPlans, rosterFor, listOccurrences, getChurch,
@@ -42,17 +42,21 @@ export default async function PlanPage({
   const result = await withTenant(actor, async (tx) => {
     const occurrence = await getOccurrence(tx, id);
     if (!occurrence) return null;
-    await ensurePlan(tx, actor, id);
-    const plan = await getPlan(tx, id);
+
+    // Found by its readable address or by its id, so everything after this
+    // works from the record's own id rather than from whatever was in the URL.
+    const occurrenceId = occurrence.id;
+    await ensurePlan(tx, actor, occurrenceId);
+    const plan = await getPlan(tx, occurrenceId);
     if (!plan) return null;
     return {
       occurrence,
       plan,
       // R11.8. Shapes to start from: what the church has saved, and what it ran.
       templates: await listTemplates(tx),
-      sources: await recentPlans(tx, id),
+      sources: await recentPlans(tx, occurrenceId),
       // R11.9. Who serves, read from the same schedule the serving pages write.
-      roster: await rosterFor(tx, id),
+      roster: await rosterFor(tx, occurrenceId),
       // R11.1. The church's other gatherings, so a leader planning three in a
       // week moves between them without going back to the list.
       others: await listOccurrences(tx, {
@@ -97,6 +101,7 @@ export default async function PlanPage({
               current={id}
               tabs={tabs.map((one) => ({
                 id: one.id,
+                slug: one.slug,
                 when: `${shortDate(one.occursOn)} · ${readableTime(one.startsAt)}`,
                 name: one.name,
               }))}
@@ -110,9 +115,6 @@ export default async function PlanPage({
               </h2>
               {plan.theme ? <p className="mt-1 text-fg-muted">{plan.theme}</p> : null}
             </div>
-            <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
-              <GripVertical className="size-3.5" aria-hidden /> {t("order.dragHint")}
-            </span>
           </div>
 
         </div>

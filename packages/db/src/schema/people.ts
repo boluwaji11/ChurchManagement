@@ -34,6 +34,8 @@ export const people = pgTable(
     id: pk(),
     tenantId: tenantId(),
     campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "set null" }),
+    /** R24.6. The readable part of their address, unique within the church. */
+    slug: text("slug").notNull(),
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull(),
     /** What people actually call them. Shown in preference to the legal first name. */

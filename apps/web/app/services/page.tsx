@@ -93,8 +93,8 @@ export default async function ServicesPage({
     return {
       id: one.id,
       href: canEdit
-        ? `/services/${one.id}/plan?church=${session.tenantSlug}`
-        : `/services/${one.id}?church=${session.tenantSlug}`,
+        ? `/services/${one.slug}/plan?church=${session.tenantSlug}`
+        : `/services/${one.slug}?church=${session.tenantSlug}`,
       when: `${readableDay(one.occursOn)} · ${readableTime(one.startsAt)}`,
       name: plan?.title || one.name,
       theme: plan?.theme ?? null,

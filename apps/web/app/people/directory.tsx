@@ -28,6 +28,7 @@ export interface ListOption {
 
 export interface Row {
   id: string;
+  slug: string;
   displayName: string;
   lifecycleStatus: string;
   householdName: string | null;
@@ -354,7 +355,7 @@ export function Directory({
                    and "copy link address" all still work. */
                 <tr
                   key={p.id}
-                  onClick={() => router.push(`/people/${p.id}?church=${church}`)}
+                  onClick={() => router.push(`/people/${p.slug}?church=${church}`)}
                   // A picked row is tinted, so the selection is visible while
                   // the eye is on the names rather than on the checkboxes.
                   className="cursor-pointer hover:bg-canvas data-[selected]:bg-primary-soft"
@@ -374,7 +375,7 @@ export function Directory({
                   ) : null}
                   <td className="border-b border-sunken px-4 py-2.5">
                     <Link
-                      href={`/people/${p.id}?church=${church}`}
+                      href={`/people/${p.slug}?church=${church}`}
                       className="flex items-center gap-2.5 font-medium text-fg"
                     >
                       <Avatar name={p.displayName} id={p.id} size="sm" className="size-7 text-[11px] font-semibold" />

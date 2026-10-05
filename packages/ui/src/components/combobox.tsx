@@ -16,6 +16,8 @@ export interface ComboboxProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  /** A mark at the head of the field, such as a magnifier on a lookup. */
+  icon?: React.ReactNode;
   /** Shown when nothing matches what was typed. */
   emptyLabel: string;
   /**
@@ -62,6 +64,7 @@ export function Combobox({
   value,
   onChange,
   placeholder,
+  icon,
   emptyLabel,
   footer,
   clearLabel,
@@ -191,7 +194,7 @@ export function Combobox({
           input.current?.focus();
         }}
         className={cn(
-          "flex cursor-pointer items-center gap-1 bg-surface rounded-[var(--d-radius-control)]",
+          "relative flex cursor-pointer items-center gap-1 bg-surface rounded-[var(--d-radius-control)]",
           "border border-line-strong shadow-sm",
           "transition-[border-color,box-shadow] duration-instant ease-out",
           "hover:border-fg-subtle focus-within:border-fg-subtle",
@@ -199,6 +202,15 @@ export function Combobox({
           disabled && "opacity-45 pointer-events-none",
         )}
       >
+        {icon ? (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-[var(--d-pad-control-x)] text-fg-subtle [&_svg]:size-4"
+          >
+            {icon}
+          </span>
+        ) : null}
+
         <input
           ref={input}
           id={id}
@@ -226,7 +238,10 @@ export function Combobox({
           onKeyDown={onKeyDown}
           className={cn(
             "w-full bg-transparent text-fg placeholder:text-fg-subtle outline-none",
-            "min-h-[var(--d-tap)] pl-[var(--d-pad-control-x)] text-[length:var(--d-text-body)]",
+            "min-h-[var(--d-tap)] text-[length:var(--d-text-body)]",
+            icon
+              ? "pl-[calc(var(--d-pad-control-x)+1.5rem)]"
+              : "pl-[var(--d-pad-control-x)]",
           )}
           {...rest}
         />

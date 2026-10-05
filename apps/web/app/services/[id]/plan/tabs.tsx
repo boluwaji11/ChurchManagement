@@ -24,7 +24,7 @@ export function PlanTabs({
 }: {
   church: string;
   current: string;
-  tabs: { id: string; when: string; name: string }[];
+  tabs: { id: string; slug: string; when: string; name: string }[];
 }) {
   const row = React.useRef<HTMLDivElement>(null);
   const [fits, setFits] = React.useState(LEAST);
@@ -65,7 +65,7 @@ export function PlanTabs({
         <Link
           key={one.id}
           data-tab=""
-          href={`/services/${one.id}/plan?church=${church}`}
+          href={`/services/${one.slug}/plan?church=${church}`}
           aria-current={one.id === current ? "page" : undefined}
           // Measured even when it is not shown, so the count is honest.
           hidden={i >= shown}

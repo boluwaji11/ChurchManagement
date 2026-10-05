@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { serviceOccurrences } from "../schema/gatherings";
 import { serviceTimes } from "../schema/tenancy";
@@ -6,6 +6,7 @@ import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./people";
+import { formSlug, isUuid } from "./form-rules";
 
 /**
  * R7.1. The church's calendar of gatherings.
@@ -29,6 +30,8 @@ export type OccurrenceStatus = "scheduled" | "cancelled";
 
 export interface Occurrence {
   id: string;
+  /** R24.6. The readable part of its address: the date, then what it is. */
+  slug: string;
   serviceTimeId: string | null;
   /** The repeat this came from, when it came from one. */
   frequency: string | null;
@@ -54,6 +57,7 @@ const WRITTEN = { id: serviceOccurrences.id };
 
 const COLUMNS = {
   id: serviceOccurrences.id,
+  slug: serviceOccurrences.slug,
   serviceTimeId: serviceOccurrences.serviceTimeId,
   frequency: serviceTimes.frequency,
   name: serviceOccurrences.name,
@@ -157,6 +161,45 @@ export function datesFor(from: string, to: string, repeat: Repeat): string[] {
   return out;
 }
 
+
+/** One occurrence as it goes in, before it has a readable address. */
+interface NewOccurrence {
+  tenantId: string;
+  serviceTimeId: string | null;
+  name: string;
+  occursOn: string;
+  startsAt: string;
+}
+
+/**
+ * R24.6. Readable addresses for a batch of occurrences.
+ *
+ * The date, then what the service is called: 2026-10-07-morning-service. Where
+ * a church runs two services of the same name on one day, the second carries
+ * its own start time, which is the thing that tells them apart. Slugs already
+ * in the table are read first, so generating the calendar twice cannot write a
+ * clash and silently drop a week.
+ */
+async function addressed(db: Tx, rows: NewOccurrence[]): Promise<(NewOccurrence & { slug: string })[]> {
+  if (rows.length === 0) return [];
+
+  const held = await db
+    .select({ slug: serviceOccurrences.slug })
+    .from(serviceOccurrences)
+    .where(inArray(serviceOccurrences.occursOn, [...new Set(rows.map((row) => row.occursOn))]));
+
+  const taken = new Set(held.map((one) => one.slug));
+
+  return rows.map((row) => {
+    const base = `${row.occursOn}-${formSlug(row.name)}`;
+    let slug = base;
+    if (taken.has(slug)) slug = `${base}-${row.startsAt.replace(":", "")}`;
+    for (let n = 2; taken.has(slug); n += 1) slug = `${base}-${row.startsAt.replace(":", "")}-${n}`;
+    taken.add(slug);
+    return { ...row, slug };
+  });
+}
+
 export interface GenerateResult {
   created: number;
   /** Already there, so left exactly as they are. */
@@ -197,7 +240,7 @@ export async function generateOccurrences(
 
   const written = await db
     .insert(serviceOccurrences)
-    .values(rows)
+    .values(await addressed(db, rows))
     .onConflictDoNothing()
     .returning({ id: serviceOccurrences.id });
 
@@ -233,7 +276,7 @@ export async function getOccurrence(db: Tx, id: string): Promise<Occurrence | nu
     .select(COLUMNS)
     .from(serviceOccurrences)
     .leftJoin(serviceTimes, eq(serviceTimes.id, serviceOccurrences.serviceTimeId))
-    .where(eq(serviceOccurrences.id, id))
+    .where(isUuid(id) ? eq(serviceOccurrences.id, id) : eq(serviceOccurrences.slug, id))
     .limit(1);
   return row ? { ...row, status: row.status as OccurrenceStatus } : null;
 }
@@ -266,11 +309,13 @@ export async function addSpecialService(
   const [row] = await db
     .insert(serviceOccurrences)
     .values({
-      tenantId: actor.tenantId,
-      serviceTimeId: null,
-      name,
-      occursOn: input.occursOn,
-      startsAt: input.startsAt,
+      ...(await addressed(db, [{
+        tenantId: actor.tenantId,
+        serviceTimeId: null,
+        name,
+        occursOn: input.occursOn,
+        startsAt: input.startsAt,
+      }]))[0]!,
       note: input.note?.trim() || null,
     })
     .returning(WRITTEN);
@@ -468,7 +513,7 @@ export async function addService(
 
   const written = await db
     .insert(serviceOccurrences)
-    .values(rows)
+    .values(await addressed(db, rows))
     .onConflictDoNothing()
     .returning({ id: serviceOccurrences.id });
 
@@ -503,7 +548,7 @@ export async function topUpCalendar(db: Tx, actor: WriteActor): Promise<number> 
 
   const written = await db
     .insert(serviceOccurrences)
-    .values(rows)
+    .values(await addressed(db, rows))
     .onConflictDoNothing()
     .returning({ id: serviceOccurrences.id });
 

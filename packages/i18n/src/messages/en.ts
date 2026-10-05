@@ -1226,7 +1226,7 @@ export const en = {
   "find.includeShut": "Include closed and full",
   "find.open.one": "{count} open",
   "find.open.other": "{count} open",
-  "find.join": "Ask to join",
+  "find.join": "Request to join",
   "find.asked": "Requested",
   "find.declined": "Not this time",
   "find.member": "You are in this group",

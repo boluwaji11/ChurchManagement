@@ -320,6 +320,7 @@ export default async function ServingPage({
             canManage={canManage}
             teams={data.teams.map((team) => ({
               id: team.id,
+              slug: team.slug,
               name: team.name,
               description: team.description,
               hue: team.hue,

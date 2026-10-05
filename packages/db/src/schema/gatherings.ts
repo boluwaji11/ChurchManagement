@@ -26,6 +26,8 @@ export const serviceOccurrences = pgTable(
     campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "set null" }),
     /** Null for a one-off. Set for anything generated from the weekly pattern. */
     serviceTimeId: uuid("service_time_id").references(() => serviceTimes.id, { onDelete: "set null" }),
+    /** R24.6. The readable part of its address: the date, then its name. */
+    slug: text("slug").notNull(),
     name: text("name").notNull(),
     occursOn: date("occurs_on").notNull(),
     /** Local to the church's timezone, as HH:MM. */

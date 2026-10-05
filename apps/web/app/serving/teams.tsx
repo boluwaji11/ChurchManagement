@@ -9,6 +9,7 @@ import { t, plural } from "@hearth/i18n";
 
 export interface TeamCard {
   id: string;
+  slug: string;
   name: string;
   description: string | null;
   hue: string;
@@ -69,7 +70,7 @@ export function Teams({
                 />
                 <h3 className="min-w-0 flex-1 truncate font-display text-[21px] leading-[26px] text-fg">
                   <Link
-                    href={`/serving/${team.id}?church=${church}`}
+                    href={`/serving/${team.slug}?church=${church}`}
                     className="after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
                   >
                     {team.name}

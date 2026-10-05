@@ -117,6 +117,7 @@ export default async function PeoplePage({
         groups={groups.map((g) => ({ id: g.id, name: g.name, hue: g.typeHue }))}
         rows={people.map((p) => ({
           id: p.id,
+          slug: p.slug,
           displayName: p.displayName,
           lifecycleStatus: p.lifecycleStatus,
           householdName: p.householdName,

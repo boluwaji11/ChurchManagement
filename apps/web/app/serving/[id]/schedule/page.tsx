@@ -49,15 +49,19 @@ export default async function SchedulePlanPage({
       const today = churchNow(profile?.timezone ?? "America/Chicago").date;
       const upcoming = await upcomingServices(tx, { from: today, limit: HOW_MANY });
 
+      // Found by its readable address or by its id, so the rest reads from the
+      // record's own id rather than from whatever was in the URL.
+      const team = await getTeam(tx, id);
+
       // The one being planned: whichever was asked for, or the next one.
       const chosen = upcoming.find((o) => o.id === service)?.id ?? upcoming[0]?.id ?? null;
 
       return {
-        team: await getTeam(tx, id),
-        mine: canManage ? true : await leadsTeam(tx, id, session.userId),
+        team,
+        mine: canManage || !team ? true : await leadsTeam(tx, team.id, session.userId),
         gatherings: upcoming,
         chosen,
-        entries: chosen ? await assignmentsForTeam(tx, id, [chosen]) : [],
+        entries: chosen && team ? await assignmentsForTeam(tx, team.id, [chosen]) : [],
       };
     },
   );
@@ -71,7 +75,7 @@ export default async function SchedulePlanPage({
       title={t("plan.title")}
     >
       <Button variant="ghost" asChild className="mb-4">
-        <Link href={`/serving/${team.id}?church=${session.tenantSlug}`}>
+        <Link href={`/serving/${team.slug}?church=${session.tenantSlug}`}>
           <ChevronLeft aria-hidden /> {team.name}
         </Link>
       </Button>

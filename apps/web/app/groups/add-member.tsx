@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Banner, Combobox } from "@hearth/ui";
 import { t } from "@hearth/i18n";
@@ -54,6 +55,7 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
         value=""
         onChange={add}
         onQueryChange={look}
+        icon={<Search />}
         placeholder={t("groups.addPerson")}
         emptyLabel={t("person.noMatch")}
         clearLabel={t("date.clear")}

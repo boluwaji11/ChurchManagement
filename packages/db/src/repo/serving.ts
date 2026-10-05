@@ -1,5 +1,7 @@
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
+import { freeSlug } from "./slugs";
+import { isUuid } from "./form-rules";
 import { teams, teamPositions, teamMembers, teamMemberPositions } from "../schema/serving";
 import { people } from "../schema/people";
 import { PermissionError, type TenantRole } from "../roles";
@@ -66,6 +68,8 @@ export interface Position {
 
 export interface Team {
   id: string;
+  /** R24.6. The readable part of its address. */
+  slug: string;
   name: string;
   description: string | null;
   hue: TagHue;
@@ -132,6 +136,7 @@ export async function listTeams(
   const rows = await db
     .select({
       id: teams.id,
+      slug: teams.slug,
       name: teams.name,
       description: teams.description,
       hue: teams.hue,
@@ -182,6 +187,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
   const [team] = await db
     .select({
       id: teams.id,
+      slug: teams.slug,
       name: teams.name,
       description: teams.description,
       hue: teams.hue,
@@ -189,11 +195,15 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
       archivedAt: teams.archivedAt,
     })
     .from(teams)
-    .where(eq(teams.id, id))
+    .where(isUuid(id) ? eq(teams.id, id) : eq(teams.slug, id))
     .limit(1);
   if (!team) return null;
 
-  const positions = await positionsFor(db, id);
+  // Found by its readable address or by its id, so everything after this works
+  // from the record's own id rather than from whatever was in the URL.
+  const teamId = team.id;
+
+  const positions = await positionsFor(db, teamId);
 
   const rows = await db
     .select({
@@ -208,7 +218,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
     .from(teamMembers)
     .innerJoin(people, eq(people.id, teamMembers.personId))
     .where(and(
-      eq(teamMembers.teamId, id),
+      eq(teamMembers.teamId, teamId),
       isNull(teamMembers.leftOn),
       isNull(people.archivedAt),
     ))
@@ -322,7 +332,23 @@ export async function createTeam(db: Tx, actor: WriteActor, input: TeamInput): P
 
   const [row] = await db
     .insert(teams)
-    .values({ tenantId: actor.tenantId, ...values, position: input.position ?? 0 })
+    .values({
+      tenantId: actor.tenantId,
+      ...values,
+      slug: await freeSlug(
+        values.name,
+        async (candidate) => {
+          const [clash] = await db
+            .select({ id: teams.id })
+            .from(teams)
+            .where(eq(teams.slug, candidate))
+            .limit(1);
+          return Boolean(clash);
+        },
+        "team",
+      ),
+      position: input.position ?? 0,
+    })
     .returning({ id: teams.id });
 
   return (await getTeam(db, row!.id))!;

@@ -33,10 +33,14 @@ export default async function RosterPage({
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     const occurrence = await getOccurrence(tx, id);
     if (!occurrence) return null;
+
+    // Found by its readable address or by its id, so everything after this
+    // works from the record's own id rather than from whatever was in the URL.
+    const occurrenceId = occurrence.id;
     return {
       occurrence,
-      roster: await listRoster(tx, id),
-      visits: await visitNumbers(tx, id),
+      roster: await listRoster(tx, occurrenceId),
+      visits: await visitNumbers(tx, occurrenceId),
     };
   });
 
@@ -72,7 +76,7 @@ export default async function RosterPage({
               cancelled={occurrence.status === "cancelled"}
             />
             <Button variant="secondary" asChild>
-              <Link href={`/services/${occurrence.id}/plan?church=${session.tenantSlug}`}>
+              <Link href={`/services/${occurrence.slug}/plan?church=${session.tenantSlug}`}>
                 <ListOrdered /> {t("order.open")}
               </Link>
             </Button>

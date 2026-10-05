@@ -41,9 +41,11 @@ export default async function PrintPlanPage({
     async (tx) => {
       const occurrence = await getOccurrence(tx, id);
       if (!occurrence) return null;
+      const occurrenceId = occurrence.id;
+      if (!occurrence) return null;
       return {
         occurrence,
-        plan: await getPlan(tx, id),
+        plan: await getPlan(tx, occurrenceId),
       };
     },
   );

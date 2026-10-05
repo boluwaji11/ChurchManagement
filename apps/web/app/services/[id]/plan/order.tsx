@@ -168,8 +168,32 @@ export function Order({
   };
 
   return (
-    <div className="flex flex-col gap-6" aria-busy={pending}>
+    <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
+
+      {/* R11.8. Above the plan and to the right, where a table's own actions
+          sit. The same shape most weeks, filled in differently: the kinds, the
+          titles and the lengths come over, and last week's notes, files and
+          theme stay with last week. */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* What the handles down the left are for, beside them. */}
+        <span className="flex flex-1 items-center gap-1.5 text-[12px] text-fg-subtle">
+          <GripVertical className="size-3.5" aria-hidden /> {t("order.dragHint")}
+        </span>
+        <StartFrom
+          church={church}
+          planId={planId}
+          templates={templates}
+          sources={sources}
+          disabled={pending}
+        />
+        <TemplateDialog
+          church={church}
+          planId={planId}
+          templates={templates}
+          empty={timed.length === 0}
+        />
+      </div>
 
       <section className="overflow-hidden rounded-lg border border-line bg-surface">
         {timed.length === 0 ? (
@@ -341,24 +365,6 @@ export function Order({
         />
       </section>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {/* R11.8. The same shape most weeks, filled in differently. The kinds,
-            the titles and the lengths come over. Last week's notes, files and
-            theme stay with last week. */}
-        <StartFrom
-          church={church}
-          planId={planId}
-          templates={templates}
-          sources={sources}
-          disabled={pending}
-        />
-        <TemplateDialog
-          church={church}
-          planId={planId}
-          templates={templates}
-          empty={timed.length === 0}
-        />
-      </div>
     </div>
   );
 }

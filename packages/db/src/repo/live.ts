@@ -1,5 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 import type { Tx } from "../client";
+import { isUuid } from "./form-rules";
 import { servicePlans, planItems } from "../schema/plans";
 import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
@@ -31,6 +32,8 @@ export interface LiveItem {
 export interface LiveState {
   planId: string;
   occurrenceId: string;
+  /** R24.6. The occurrence's readable address, for the link back to it. */
+  slug: string;
   serviceName: string;
   occursOn: string;
   /** The planned start, as HH:MM. */
@@ -50,6 +53,7 @@ export async function liveFor(db: Tx, occurrenceId: string): Promise<LiveState |
     .select({
       planId: servicePlans.id,
       occurrenceId: servicePlans.occurrenceId,
+      slug: serviceOccurrences.slug,
       currentId: servicePlans.liveItemId,
       startedAt: servicePlans.liveStartedAt,
       itemAt: servicePlans.liveItemAt,
@@ -59,7 +63,10 @@ export async function liveFor(db: Tx, occurrenceId: string): Promise<LiveState |
     })
     .from(servicePlans)
     .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, servicePlans.occurrenceId))
-    .where(eq(servicePlans.occurrenceId, occurrenceId))
+    // R24.6. Read by the occurrence's readable address or by its id.
+    .where(isUuid(occurrenceId)
+      ? eq(servicePlans.occurrenceId, occurrenceId)
+      : eq(serviceOccurrences.slug, occurrenceId))
     .limit(1);
   if (!plan) return null;
 
@@ -78,6 +85,7 @@ export async function liveFor(db: Tx, occurrenceId: string): Promise<LiveState |
   return {
     planId: plan.planId,
     occurrenceId: plan.occurrenceId,
+    slug: plan.slug,
     serviceName: plan.serviceName,
     occursOn: String(plan.occursOn),
     startsAt: plan.startsAt,

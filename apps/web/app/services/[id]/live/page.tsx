@@ -41,7 +41,7 @@ export default async function LivePage({
       title={t("live.title")}
     >
       <Link
-        href={`/services/${id}?church=${session.tenantSlug}`}
+        href={`/services/${live.slug}?church=${session.tenantSlug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
       >
         <ArrowLeft className="size-4" /> {live.serviceName}

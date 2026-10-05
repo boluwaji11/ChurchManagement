@@ -41,10 +41,17 @@ export default async function TeamPage({
 
   const { team, mine } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    async (tx) => ({
-      team: await getTeam(tx, id),
-      mine: canManage ? true : await leadsTeam(tx, id, session.userId),
-    }),
+    async (tx) => {
+      // Found by its readable address or by its id, so the rest reads from the
+      // record's own id rather than from whatever was in the URL.
+      const found = await getTeam(tx, id);
+      return {
+        team: found,
+        mine: canManage || !found
+          ? true
+          : await leadsTeam(tx, found.id, session.userId),
+      };
+    },
   );
 
   if (!team) notFound();
