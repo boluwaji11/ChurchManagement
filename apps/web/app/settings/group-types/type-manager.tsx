@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Undo2 } from "lucide-react";
+import { Archive, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, DialogTrigger,
-  Field, Input, LIFT,
+  Field, IconButton, Input, LIFT,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
@@ -130,17 +130,58 @@ function TypeDialog({
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [saving, startTransition] = React.useTransition();
+  /*
+   * R24.6. Asked in the panel that is already open rather than a second one
+   * over it. A box on top of a box is one of the things this product refuses.
+   */
+  const [asking, setAsking] = React.useState(false);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setAsking(false);
+      }}
+    >
       <DialogTrigger asChild>
         {trigger ?? <Button><Plus /> {t("groupType.add")}</Button>}
       </DialogTrigger>
 
       <DialogContent
-        title={type ? t("groupType.editTitle", { name: type.name }) : t("groupType.newTitle")}
+        title={
+          asking && type
+            ? t("groupType.archiveTitle", { name: type.name })
+            : type
+              ? t("groupType.editTitle", { name: type.name })
+              : t("groupType.newTitle")
+        }
         closeLabel={t("common.close")}
       >
+        {asking && type && onArchive ? (
+          <>
+            <p className="text-[length:var(--d-text-body)] text-fg">
+              {t("groupType.archiveBody")}
+            </p>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
+                {t("groups.keep")}
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                disabled={pending}
+                onClick={() => {
+                  setAsking(false);
+                  setOpen(false);
+                  onArchive();
+                }}
+              >
+                {t("groupType.archive")}
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
         <form
           noValidate
           action={(data) => {
@@ -166,25 +207,24 @@ function TypeDialog({
             <Input name="name" defaultValue={type?.name ?? ""} autoComplete="off" autoFocus />
           </Field>
 
-          <DialogFooter>
+          <DialogFooter className="justify-between">
             {/* R9.2. Taking a kind off the list lives here rather than on the
-                tile, so the tile stays one thing to press. */}
+                tile, so the tile stays one thing to press. An icon at the far
+                end, away from the press somebody came to make. */}
             {type && onArchive ? (
-              <Button
-                type="button"
+              <IconButton
+                label={t("groupType.archive")}
                 variant="ghost"
                 disabled={pending || saving}
-                onClick={() => {
-                  setOpen(false);
-                  onArchive();
-                }}
+                onClick={() => setAsking(true)}
               >
-                {t("groupType.archive")}
-              </Button>
-            ) : null}
+                <Archive />
+              </IconButton>
+            ) : <span />}
             <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
