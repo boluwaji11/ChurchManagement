@@ -540,6 +540,13 @@
       "when": 1791167697436,
       "tag": "0076_event_information_only",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1791169594065,
+      "tag": "0077_event_waitlist_always",
+      "breakpoints": true
     }
   ]
 }

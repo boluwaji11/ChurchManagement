@@ -2124,7 +2124,6 @@ export const en = {
   "event.location": "Place",
   "event.registration": "Registration",
   "event.capacity": "Places",
-  "event.waitlist": "Take names when it is full",
   "event.closesOn": "Registration closes",
   "event.closesAt": "Closing time",
   "event.listed": "Show it on the public page",

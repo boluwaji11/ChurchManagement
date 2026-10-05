@@ -127,7 +127,6 @@ export function EventEditor({
   // Carried through untouched, so saving the designer never reopens or closes
   // registration behind the church's back.
   const registrationOpen = event?.registrationOpen ?? true;
-  const [waitlist, setWaitlist] = React.useState(event?.waitlist ?? false);
   const [startsOn, setStartsOn] = React.useState(event?.startsOn ?? "");
   const [endsOn, setEndsOn] = React.useState(event?.endsOn ?? "");
   const [closesOn, setClosesOn] = React.useState(event?.registrationClosesOn ?? "");
@@ -494,12 +493,6 @@ export function EventEditor({
                   />
                 </Field>
               </div>
-              <Flag
-                name="waitlist"
-                label={t("event.waitlist")}
-                checked={waitlist}
-                onChange={setWaitlist}
-              />
             </div>
           </Side>
           ) : null}

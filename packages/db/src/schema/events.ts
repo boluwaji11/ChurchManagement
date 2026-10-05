@@ -86,8 +86,15 @@ export const events = pgTable(
     registrationClosesAt: text("registration_closes_at"),
     /** R14.4. How many places. Null means no limit. */
     capacity: integer("capacity"),
-    /** R14.4. Whether a full event takes names for a waiting list. */
-    waitlist: boolean("waitlist").notNull().default(false),
+    /**
+     * R14.4. A full event takes names for a waiting list.
+     *
+     * Not asked any more. A church whose camp fills wants to know who else
+     * wanted a place, and turning people away without a trace is the worse
+     * outcome. The column stays because a church that one day wants to refuse
+     * a full event outright should not need a migration to say so.
+     */
+    waitlist: boolean("waitlist").notNull().default(true),
 
     /**
      * R14.5. The questions somebody answers when they register.

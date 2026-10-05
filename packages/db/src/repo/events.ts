@@ -172,7 +172,7 @@ function check(input: EventInput) {
     registrationClosesOn: closes,
     registrationClosesAt: clock(input.registrationClosesAt),
     capacity,
-    waitlist: input.waitlist ?? false,
+    waitlist: input.waitlist ?? true,
     campusId: trimmed(input.campusId),
     contactPersonId: trimmed(input.contactPersonId),
     // An event nobody signs up for asks nothing, so it holds no form either.
