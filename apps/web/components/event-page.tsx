@@ -145,7 +145,12 @@ export function EventPage({
           </div>
 
           {event.description ? (
-            <Markdown text={event.description} className="max-w-[68ch]" />
+            <section className="flex flex-col gap-3">
+              <h2 className="text-[12px] font-bold tracking-[0.06em] text-fg uppercase">
+                {t("event.about")}
+              </h2>
+              <Markdown text={event.description} className="max-w-[68ch]" />
+            </section>
           ) : null}
 
         </div>
