@@ -1261,6 +1261,7 @@ export const en = {
   "group.tab.attendance": "Attendance",
   "group.banner.add": "Add a banner",
   "image.maxSize": "JPG or PNG, up to {mb} MB",
+  "image.maxSizeWithPixels": "JPG or PNG, {pixels}, up to {mb} MB",
   "group.banner.upload": "Upload banner",
   "group.banner.replace": "Replace banner",
   "group.banner.remove": "Remove banner",

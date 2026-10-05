@@ -46,3 +46,21 @@ export const UPLOAD_RULES = {
 } as const;
 
 export type UploadPurpose = keyof typeof UPLOAD_RULES;
+
+/**
+ * The shape a picture reads best at, by what it is for.
+ *
+ * A suggestion rather than a rule: anything is accepted and scaled, and a church
+ * that only has the photo it has should not be stopped. It is here beside the
+ * limit so the screen says both in one line, and so the numbers cannot drift
+ * apart from the crop the layout actually uses.
+ */
+export const SUGGESTED_PIXELS: Record<UploadPurpose, string | null> = {
+  logo: "512 x 512",
+  person_photo: "600 x 600",
+  // The card and the detail page both crop a banner to 16 by 9.
+  group_photo: "1600 x 900",
+  // A cover is a wide band across the top of a page, cropped 6 to 1.
+  form_cover: "1800 x 300",
+  plan_item: null,
+};
