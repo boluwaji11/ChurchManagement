@@ -25,15 +25,20 @@ export default async function EditPersonPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => ({
-    person: await getPersonForEdit(tx, id),
-    households: await listHouseholds(tx),
-    customFields: await listCustomFields(tx, "person"),
-    campuses: await listCampuses(tx),
-    customValues: await getCustomValues(tx, "person", id),
-    tags: await listTagsWithCounts(tx),
-    assigned: await listTagsForPerson(tx, id),
-  }));
+  const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
+    // Found by their readable address or by their id, so everything after this
+    // works from the record's own id rather than from whatever was in the URL.
+    const person = await getPersonForEdit(tx, id);
+    return {
+      person,
+      households: await listHouseholds(tx),
+      customFields: await listCustomFields(tx, "person"),
+      campuses: await listCampuses(tx),
+      customValues: person ? await getCustomValues(tx, "person", person.id) : {},
+      tags: await listTagsWithCounts(tx),
+      assigned: person ? await listTagsForPerson(tx, person.id) : [],
+    };
+  });
 
   // Another church's person is reported exactly like a person who does not exist.
   if (!result.person) notFound();
@@ -46,7 +51,7 @@ export default async function EditPersonPage({
       max="max-w-[1080px]"
     >
       <Link
-        href={`/people/${id}?church=${session.tenantSlug}`}
+        href={`/people/${person.slug}?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {display}

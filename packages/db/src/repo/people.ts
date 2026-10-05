@@ -756,6 +756,8 @@ async function setHousehold(db: Tx, actor: WriteActor, personId: string, input: 
 
 export interface PersonEditValues extends PersonInput {
   id: string;
+  /** R24.6. The readable part of their address, for a link back. */
+  slug: string;
   archivedAt: Date | null;
 }
 
@@ -780,6 +782,7 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
 
   return {
     id: person.id,
+    slug: person.slug,
     archivedAt: person.archivedAt,
     firstName: person.firstName,
     lastName: person.lastName,
