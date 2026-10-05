@@ -96,7 +96,9 @@ export function EventEditor({
   const [hue, setHue] = React.useState(event?.hue ?? "amber");
   const [listed, setListed] = React.useState(event?.listed ?? true);
   const [takes, setTakes] = React.useState(event?.takesRegistrations ?? true);
-  const [registrationOpen, setRegistrationOpen] = React.useState(event?.registrationOpen ?? true);
+  // Carried through untouched, so saving the designer never reopens or closes
+  // registration behind the church's back.
+  const registrationOpen = event?.registrationOpen ?? true;
   const [waitlist, setWaitlist] = React.useState(event?.waitlist ?? false);
   const [startsOn, setStartsOn] = React.useState(event?.startsOn ?? "");
   const [endsOn, setEndsOn] = React.useState(event?.endsOn ?? "");
@@ -284,19 +286,11 @@ export function EventEditor({
         <span
           className="size-2 shrink-0 rounded-full"
           style={{
-            background: !takes
-              ? "var(--hue-sky-500)"
-              : registrationOpen
-                ? "var(--hue-fern-500)"
-                : "var(--fg-subtle)",
+            background: takes ? "var(--hue-fern-500)" : "var(--hue-sky-500)",
           }}
         />
         <span className="min-w-[140px] flex-1 font-medium text-fg">
-          {!takes
-            ? t("event.informationOnly")
-            : registrationOpen
-              ? t("event.registrationOpen")
-              : t("event.registrationClosed")}
+          {takes ? t("event.peopleRegister") : t("event.informationOnly")}
         </span>
 
         <Flag
@@ -306,14 +300,20 @@ export function EventEditor({
           onChange={setTakes}
         />
 
-        {takes ? (
-          <Flag
-            name="registrationOpen"
-            label={t("event.registrationNow")}
-            checked={registrationOpen}
-            onChange={setRegistrationOpen}
-          />
-        ) : null}
+        {/*
+          * Whether it is open right now is not asked here.
+          *
+          * This screen says what kind of event this is. Opening and closing
+          * registration is something a church does to an event afterwards, and
+          * the event's own page carries the button for it. Asking in both
+          * places left two switches side by side that read as the same
+          * question twice.
+          */}
+        <input
+          type="hidden"
+          name="registrationOpen"
+          value={registrationOpen ? "true" : "false"}
+        />
       </div>
 
       <div className="flex flex-wrap items-start gap-10">
