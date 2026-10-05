@@ -20,46 +20,9 @@ import type { WriteActor } from "./people";
 /** Where the bar turns amber. R1.16 asks for a warning at 80%. */
 export const WARN_AT = 0.8;
 
-export const ONE_MIB = 1024 * 1024;
+export * from "./storage-rules";
+import { UPLOAD_RULES, ONE_MIB, type UploadPurpose } from "./storage-rules";
 
-/** What may be stored, and the largest each is allowed to be. */
-export const UPLOAD_RULES = {
-  logo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 2 * ONE_MIB },
-  person_photo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
-  /**
-   * R9.2. A picture of a group, for the card in the finder.
-   *
-   * The same ceiling as a person's photo. A church with forty groups spends two
-   * hundred megabytes at the limit, which is a tenth of its quota and visible
-   * on the storage bar before it gets there.
-   */
-  group_photo: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
-  /**
-   * R11.7. What hangs off an item on a service plan: chord charts, a running
-   * order as a PDF, a reference track, a slide image, a lyric sheet.
-   *
-   * No video. Sermon video is a non-goal and a church that uploads one fills
-   * its quota in a single file.
-   */
-  /**
-   * R4.1. The picture across the top of a form.
-   *
-   * The same ceiling as a group's, and for the same reason: it is one wide
-   * image per form, and a church with twenty forms is well inside its quota.
-   */
-  form_cover: { types: ["image/png", "image/jpeg", "image/webp"], maxBytes: 5 * ONE_MIB },
-  plan_item: {
-    types: [
-      "application/pdf",
-      "image/png", "image/jpeg", "image/webp",
-      "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav",
-      "text/plain",
-    ],
-    maxBytes: 10 * ONE_MIB,
-  },
-} as const;
-
-export type UploadPurpose = keyof typeof UPLOAD_RULES;
 
 export interface StorageUsage {
   usedBytes: number;

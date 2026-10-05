@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
 import { Button, IconButton, Working, ALL_HUES } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { imageLimit } from "@/components/image-limit";
 import { clearFormCover, recolourForm } from "../actions";
 
 /**
@@ -70,9 +71,12 @@ export function FormCover({
               border: `2px dashed var(--hue-${hue}-500)`,
             }}
           >
-            <span className="flex items-center gap-2 font-semibold">
-              <ImagePlus className="size-5" aria-hidden />
-              {t("form.cover")}
+            <span className="flex flex-col items-center gap-1">
+              <span className="flex items-center gap-2 font-semibold">
+                <ImagePlus className="size-5" aria-hidden />
+                {t("form.cover")}
+              </span>
+              <span className="text-[12px]">{imageLimit("form_cover")}</span>
             </span>
           </div>
         )}

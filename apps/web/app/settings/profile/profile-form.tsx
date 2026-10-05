@@ -8,6 +8,7 @@ import {
   Field, IconButton, Input, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { imageLimit } from "@/components/image-limit";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
 import { longDate } from "@/lib/dates";
@@ -230,6 +231,7 @@ export function ProfileForm({
         <span className="flex min-w-0 flex-1 flex-col leading-5">
           <span className="text-[17px] font-bold text-fg">{display}</span>
           <span className="truncate text-[13px] text-fg-muted">{signedInAs}</span>
+          <span className="text-[12px] text-fg-subtle">{imageLimit("person_photo")}</span>
         </span>
 
         {editing ? (

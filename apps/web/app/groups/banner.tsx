@@ -7,6 +7,7 @@ import {
   Banner, Button, Dialog, DialogContent, DialogFooter, IconButton, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { imageLimit } from "@/components/image-limit";
 import { clearGroupPhoto } from "./actions";
 
 /**
@@ -87,7 +88,7 @@ export function GroupBanner({
               <div className="flex flex-col items-center gap-1.5">
                 <ImagePlus className="size-7" aria-hidden />
                 <span className="font-semibold">{t("group.banner.add")}</span>
-                <span className="text-[12px]">{t("group.banner.size")}</span>
+                <span className="text-[12px]">{imageLimit("group_photo")}</span>
               </div>
             ) : null}
           </div>

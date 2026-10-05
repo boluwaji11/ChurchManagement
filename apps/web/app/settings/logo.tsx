@@ -7,6 +7,7 @@ import {
   Banner, Button, IconButton, Dialog, DialogTrigger, DialogContent, DialogFooter, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { imageLimit } from "@/components/image-limit";
 import { clearLogo } from "./actions";
 
 /**
@@ -147,6 +148,9 @@ export function ChurchLogo({
                 if (file) void upload(file);
               }}
             />
+            <span className="self-center text-[12px] text-fg-subtle">
+              {imageLimit("logo")}
+            </span>
           </>
         ) : null}
       </div>

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { events, eventRegistrations } from "../schema/events";
 import { forms } from "../schema/forms";
@@ -225,10 +225,6 @@ const columns = {
   contactLast: people.lastName,
   going: countFor("going"),
   waiting: countFor("waiting"),
-};
-
-type Row = {
-  [K in keyof typeof columns]: K extends "going" | "waiting" ? number : unknown;
 };
 
 const shape = (row: Record<string, unknown>): ChurchEvent => ({

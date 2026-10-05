@@ -7,6 +7,7 @@ import {
   Banner, Button, Checkbox, Combobox, DatePicker, Field, IconButton, Input,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { imageLimit } from "@/components/image-limit";
 import { TimeField } from "@/components/time-field";
 import { Picker } from "@/components/picker";
 import { RichText } from "@/components/rich-text";
@@ -203,7 +204,7 @@ export function GroupEditor({
               <div className="flex flex-col items-center gap-1.5">
                 <ImagePlus className="size-7" aria-hidden />
                 <span className="font-semibold">{t("group.banner.add")}</span>
-                <span className="text-[12px]">{t("group.banner.size")}</span>
+                <span className="text-[12px]">{imageLimit("group_photo")}</span>
               </div>
             </div>
           )}
