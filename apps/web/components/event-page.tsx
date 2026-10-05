@@ -56,7 +56,9 @@ export function EventPage({
     country: event.country ?? "",
   });
 
-  const left = event.capacity === null ? null : Math.max(0, event.capacity - event.going);
+  const left = event.capacity === null || !event.showCapacity
+    ? null
+    : Math.max(0, event.capacity - event.going);
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">

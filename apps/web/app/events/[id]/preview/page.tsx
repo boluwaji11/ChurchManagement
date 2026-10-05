@@ -94,6 +94,7 @@ export default async function PreviewEventPage({
     postalCode: event.postalCode,
     country: event.country,
     capacity: event.capacity,
+    showCapacity: event.showCapacity,
     going: event.going,
     state: "open",
     questions: form?.fields ?? [],

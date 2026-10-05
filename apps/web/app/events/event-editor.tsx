@@ -40,6 +40,7 @@ export interface EventDraft {
   formId: string | null;
   registrationClosesOn: string | null;
   capacity: number | null;
+  showCapacity: boolean;
   waitlist: boolean;
   registrationClosesAt: string | null;
 }
@@ -89,17 +90,21 @@ export function EventEditor({
   event,
   coverUrl,
   forms,
+  today,
 }: {
   church: string;
   event?: EventDraft;
   coverUrl?: string | null;
   /** R14.5. The forms this church has, to answer at registration. */
   forms: { id: string; name: string }[];
+  /** The church's own date, so a picker's floor is its today rather than ours. */
+  today: string;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [hue, setHue] = React.useState(event?.hue ?? "amber");
   const [listed, setListed] = React.useState(event?.listed ?? true);
+  const [showCapacity, setShowCapacity] = React.useState(event?.showCapacity ?? true);
   const [takes, setTakes] = React.useState(event?.takesRegistrations ?? true);
   const [formId, setFormId] = React.useState(event?.formId ?? "");
   const [asking, setAsking] = React.useState(false);
@@ -190,7 +195,18 @@ export function EventEditor({
       <Working open={busy} label={t("image.uploading")} />
 
       {/* R14.5. Which form people answer when they register. */}
-      <Dialog open={asking} onOpenChange={setAsking}>
+      <Dialog
+        open={asking}
+        onOpenChange={(next) => {
+          /*
+           * Walking away from the panel without choosing leaves the tick off.
+           * Registration required with no form behind it is an event that takes
+           * names and asks nothing, which is not a state anybody meant to pick.
+           */
+          if (!next && !formId) setTakes(false);
+          setAsking(next);
+        }}
+      >
         {/* The lookup's list is placed against its field rather than in a
             portal, so a panel that clips its overflow cuts it in half. This one
             is short enough to let it hang outside. */}
@@ -496,13 +512,23 @@ export function EventEditor({
                   autoComplete="off"
                 />
               </Field>
+
+              <Flag
+                name="showCapacity"
+                label={t("event.showCapacity")}
+                checked={showCapacity}
+                onChange={setShowCapacity}
+              />
               <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(130px,1fr))]">
                 <Field label={t("event.closesOn")}>
+                  {/* No further back than today, because registration cannot
+                      have closed before now. No ceiling: a church taking names
+                      past the event for a waiting list is its own business. */}
                   <DateField
                     name="registrationClosesOn"
                     defaultValue={closesOn}
                     onValueChange={setClosesOn}
-                    max={endsOn || startsOn || undefined}
+                    min={today}
                   />
                 </Field>
                 <Field label={t("event.closesAt")}>

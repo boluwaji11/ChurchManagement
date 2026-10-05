@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, getEvent, listForms, canManageEvents } from "@hearth/db";
+import { withTenant, getChurch, getEvent, listForms, canManageEvents } from "@hearth/db";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { churchNow } from "@/lib/church-now";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EventEditor } from "../../event-editor";
 
@@ -29,7 +30,11 @@ export default async function EditEventPage({
       userId: session.userId,
       permissions: session.permissions,
     },
-    async (tx) => ({ event: await getEvent(tx, id), forms: await listForms(tx) }),
+    async (tx) => ({
+      event: await getEvent(tx, id),
+      forms: await listForms(tx),
+      today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
+    }),
   );
   if (!found.event) notFound();
   const event = found.event;
@@ -55,6 +60,7 @@ export default async function EditEventPage({
         event={event}
         coverUrl={coverUrl}
         forms={found.forms.map((one) => ({ id: one.id, name: one.name }))}
+        today={found.today}
       />
     </AppShell>
   );

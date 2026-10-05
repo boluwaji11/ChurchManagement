@@ -54,6 +54,8 @@ export interface PublicEvent {
   capacity: number | null;
   going: number;
   state: PublicEventState;
+  /** R14.4. Whether this page says how many places are left. */
+  showCapacity: boolean;
   /** R14.5. The questions each registrant answers, empty when there are none. */
   questions: FormFieldDef[];
 }
@@ -85,6 +87,7 @@ interface Row {
   registrationClosesOn: string | null;
   registrationClosesAt: string | null;
   capacity: number | null;
+  showCapacity: boolean;
   waitlist: boolean;
   going: number;
 }
@@ -117,6 +120,7 @@ async function eventRow(churchSlug: string, eventSlug: string): Promise<Row | nu
            to_char(e.registration_closes_on, 'YYYY-MM-DD') as "registrationClosesOn",
            e.registration_closes_at as "registrationClosesAt",
            e.capacity,
+           e.show_capacity as "showCapacity",
            e.waitlist,
            (select count(*) from event_registrations r
              where r.event_id = e.id and r.state = 'going')::int as going
@@ -244,6 +248,7 @@ export async function publicEvent(
     postalCode: row.postalCode,
     country: row.country,
     capacity: row.capacity,
+    showCapacity: row.showCapacity,
     going: row.going,
     state: stateOf(row, today, now),
     questions: await questionRows(row.formId),

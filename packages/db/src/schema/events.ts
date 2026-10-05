@@ -87,6 +87,14 @@ export const events = pgTable(
     /** R14.4. How many places. Null means no limit. */
     capacity: integer("capacity"),
     /**
+     * R14.4. Whether the public page says how many places are left.
+     *
+     * A camp with eighty places reads well and moves people. A membership class
+     * for twenty reads as a room half empty, and a church should get to decide
+     * which of those it is showing.
+     */
+    showCapacity: boolean("show_capacity").notNull().default(true),
+    /**
      * R14.4. A full event takes names for a waiting list.
      *
      * Not asked any more. A church whose camp fills wants to know who else

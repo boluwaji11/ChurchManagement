@@ -59,6 +59,7 @@ function read(data: FormData): EventInput {
     registrationClosesOn: text("registrationClosesOn"),
     registrationClosesAt: text("registrationClosesAt"),
     capacity: number("capacity"),
+    showCapacity: flag("showCapacity"),
     campusId: text("campusId"),
     formId: text("formId"),
   };

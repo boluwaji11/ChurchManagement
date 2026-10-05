@@ -59,6 +59,7 @@ export interface ChurchEvent {
   registrationClosesOn: string | null;
   registrationClosesAt: string | null;
   capacity: number | null;
+  showCapacity: boolean;
   waitlist: boolean;
   formId: string | null;
   campusId: string | null;
@@ -91,6 +92,7 @@ export interface EventInput {
   registrationClosesOn?: string | null;
   registrationClosesAt?: string | null;
   capacity?: number | null;
+  showCapacity?: boolean;
   waitlist?: boolean;
   campusId?: string | null;
   contactPersonId?: string | null;
@@ -135,10 +137,12 @@ function check(input: EventInput) {
   // two would hide it.
   if (endsOn && endsOn < startsOn) throw new InvalidInputError("event.error.order");
 
+  /*
+   * No ceiling on when registration closes. A church taking names for next
+   * year's camp right up to the morning of it, or past it for a waiting list,
+   * is its own business, and a rule that refused it was us guessing.
+   */
   const closes = date(input.registrationClosesOn, "event.error.date");
-  if (closes && closes > (endsOn ?? startsOn)) {
-    throw new InvalidInputError("event.error.closesAfter");
-  }
 
   const capacity = input.capacity ?? null;
   if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1 || capacity > 100_000)) {
@@ -172,6 +176,7 @@ function check(input: EventInput) {
     registrationClosesOn: closes,
     registrationClosesAt: clock(input.registrationClosesAt),
     capacity,
+    showCapacity: input.showCapacity ?? true,
     waitlist: input.waitlist ?? true,
     campusId: trimmed(input.campusId),
     contactPersonId: trimmed(input.contactPersonId),
@@ -229,6 +234,7 @@ const columns = {
   registrationClosesOn: events.registrationClosesOn,
   registrationClosesAt: events.registrationClosesAt,
   capacity: events.capacity,
+  showCapacity: events.showCapacity,
   waitlist: events.waitlist,
   formId: events.formId,
   campusId: events.campusId,
@@ -266,6 +272,7 @@ const shape = (row: Record<string, unknown>): ChurchEvent => ({
   registrationClosesOn: (row["registrationClosesOn"] ?? null) as string | null,
   registrationClosesAt: (row["registrationClosesAt"] ?? null) as string | null,
   capacity: (row["capacity"] ?? null) as number | null,
+  showCapacity: row["showCapacity"] as boolean,
   waitlist: row["waitlist"] as boolean,
   formId: (row["formId"] ?? null) as string | null,
   campusId: (row["campusId"] ?? null) as string | null,
