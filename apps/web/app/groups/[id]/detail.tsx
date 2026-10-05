@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, UserMinus } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
   Tabs, TabsList, TabsTrigger, TabsContent,
@@ -217,6 +217,10 @@ export function GroupDetail({
 
         <TabsContent value="members">
           <div className="flex flex-col gap-4">
+            {/* Adding somebody sits above the list, because that is the one
+                thing this tab is opened to do. */}
+            {canManage ? <AddMember church={church} groupId={groupId} /> : null}
+
             <section className="overflow-hidden rounded-lg border border-line bg-surface">
               {members.map((member) => (
                 <div
@@ -228,25 +232,29 @@ export function GroupDetail({
                     id={member.personId}
                     className="size-[34px] text-[12px] font-semibold"
                   />
-                  <span className="flex-1 font-medium text-fg">{member.name}</span>
-                  <span className="text-[12px] text-fg-muted">
-                    {t(`groups.role.${member.role}` as never)}
+                  <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                    {member.name}
                   </span>
-                  {canManage ? (
-                    <IconButton
-                      label={t("groups.remove")}
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() => setRemoving(member)}
-                    >
-                      <UserMinus />
-                    </IconButton>
-                  ) : null}
+
+                  {/* What they are and the way to take them off, as one pair. */}
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-[12px] text-fg-muted">
+                      {t(`groups.role.${member.role}` as never)}
+                    </span>
+                    {canManage ? (
+                      <IconButton
+                        label={t("groups.remove")}
+                        variant="ghost"
+                        disabled={pending}
+                        onClick={() => setRemoving(member)}
+                      >
+                        <X />
+                      </IconButton>
+                    ) : null}
+                  </span>
                 </div>
               ))}
             </section>
-
-            {canManage ? <AddMember church={church} groupId={groupId} /> : null}
           </div>
         </TabsContent>
 
