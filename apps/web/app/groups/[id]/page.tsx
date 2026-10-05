@@ -81,7 +81,10 @@ export default async function GroupPage({
     let meeting: Meeting | null = null;
     let members: MeetingPerson[] = [];
     let metOn = "";
-    if (manage || (await canRecordFor(tx, actor, group.id))) {
+    // R9.7. Recording who came is the leader's job, so this is the group's own
+    // leader or whoever runs groups. A member reads the dates and nothing else.
+    const canRecord = manage || (await canRecordFor(tx, actor, group.id));
+    if (canRecord) {
       metOn = lastMeetingDay(group.dayOfWeek, today);
       const opened = await openMeeting(tx, actor, { groupId: group.id, metOn });
       meeting = opened.meeting;
@@ -95,6 +98,7 @@ export default async function GroupPage({
       metOn,
       meeting,
       members,
+      canRecord,
       types: manage ? await listGroupTypes(tx) : [],
       roster: await groupRoster(tx, group.id),
       requests: manage
@@ -104,7 +108,7 @@ export default async function GroupPage({
   });
 
   if (!data) notFound();
-  const { group, now, today, metOn, meeting, members, types, roster, requests } = data;
+  const { group, now, today, metOn, meeting, members, types, roster, requests, canRecord } = data;
 
   // R9.2. The bucket is private, so the picture is served through a link signed
   // for an hour. A leaked path is then a leak with an expiry.
@@ -278,6 +282,7 @@ export default async function GroupPage({
         groupId={group.id}
         groupName={group.name}
         canManage={manage}
+        canRecord={canRecord}
         openToJoin={group.openToJoin}
         status={group.status}
         hue={hue}
@@ -307,7 +312,7 @@ export default async function GroupPage({
           today,
           3,
         ).map((iso) => tile(iso, false))}
-        past={group.past.slice(0, 3).map((one) => tile(one.metOn, true))}
+        past={group.past.slice(0, 3).map((one) => tile(one.metOn, canRecord))}
         categories={categories}
         schedule={schedule}
         leaders={group.leaders.map((one) => one.name)}

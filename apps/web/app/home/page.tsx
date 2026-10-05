@@ -56,8 +56,10 @@ export default async function MemberHomePage({
         serving: self
           ? await assignmentsForPerson(tx, self, { from: now.date, limit: 6 })
           : [],
+        // R14.2. Publishing is the gate, not listing. A draft's public page
+        // answers 404 on purpose, so a card for one goes nowhere.
         events: (await listEvents(tx, { from: now.date }))
-          .filter((one) => one.listed && one.status !== "cancelled")
+          .filter((one) => one.listed && one.status === "published")
           .slice(0, 3),
       };
     },

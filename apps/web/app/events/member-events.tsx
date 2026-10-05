@@ -25,8 +25,14 @@ export async function MemberEvents({ session }: { session: Session }) {
       const clock = churchNow(
         (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
       );
+      /*
+       * R14.2. Publishing is the gate, not listing. A draft is an event being
+       * written: its public page answers 404 on purpose, so putting one in
+       * front of a member is a card that goes nowhere. A cancelled event stays,
+       * because somebody who was coming needs to be told.
+       */
       const all = (await listEvents(tx, { from: clock.date }))
-        .filter((one) => one.listed && one.status !== "cancelled");
+        .filter((one) => one.listed && one.status !== "draft");
 
       // The bucket is private, so each cover is served through a link signed
       // for an hour. One pass rather than one round trip a card.
@@ -74,10 +80,17 @@ export async function MemberEvents({ session }: { session: Session }) {
                       : { background: `var(--hue-${one.hue}-tint)` }
                   }
                 >
-                  <span className="rounded-full bg-surface px-2.5 py-0.5 text-caption font-medium text-fg">
-                    {when.toLocaleDateString("en-US", {
-                      weekday: "short", day: "numeric", month: "short",
-                    })}
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-surface px-2.5 py-0.5 text-caption font-medium text-fg">
+                      {when.toLocaleDateString("en-US", {
+                        weekday: "short", day: "numeric", month: "short",
+                      })}
+                    </span>
+                    {one.status === "cancelled" ? (
+                      <span className="rounded-full bg-danger px-2.5 py-0.5 text-caption font-medium text-white">
+                        {t("event.status.cancelled")}
+                      </span>
+                    ) : null}
                   </span>
                 </span>
 

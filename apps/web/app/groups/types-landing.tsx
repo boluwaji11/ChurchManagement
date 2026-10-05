@@ -7,9 +7,7 @@ export interface TypeCard {
   name: string;
   description: string | null;
   hue: string;
-  /** How many groups of this kind are open to somebody new. */
-  open: number;
-  /** And how many there are in all, which is what staff are counting. */
+  /** How many groups the church has of this kind, for deciding to show it. */
   all: number;
 }
 
@@ -27,12 +25,9 @@ export interface TypeCard {
 export function TypesLanding({
   church,
   types,
-  manage,
 }: {
   church: string;
   types: TypeCard[];
-  /** Staff count every group; everybody else counts the open ones. */
-  manage: boolean;
 }) {
   return (
     <div className="flex flex-col divide-y divide-line">
@@ -49,15 +44,8 @@ export function TypesLanding({
           />
 
           <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <span className="flex flex-wrap items-center gap-2.5">
-              <span className="font-display text-[22px] leading-7 text-fg group-hover:text-primary">
-                {one.name}
-              </span>
-              <span className="rounded-full bg-sunken px-2 py-0.5 text-caption font-medium text-fg-muted">
-                {manage
-                  ? t("groupType.count", { count: String(one.all) })
-                  : t("groupType.open", { count: String(one.open) })}
-              </span>
+            <span className="font-display text-[22px] leading-7 text-fg group-hover:text-primary">
+              {one.name}
             </span>
 
             {one.description ? (

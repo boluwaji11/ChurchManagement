@@ -211,6 +211,24 @@ async function main() {
     console.log("  away           one week next month");
   }
 
+  // ---- Something on the calendar to look at -------------------------------
+  // Seeded events are left as drafts, and a draft's public page answers 404 on
+  // purpose, so the portal shows nothing until a church publishes one.
+  const published = await sql<{ slug: string }[]>`
+    update events
+       set status = 'published', updated_at = now()
+     where tenant_id = ${tid}
+       and archived_at is null
+       and listed = true
+       and status = 'draft'
+       and starts_on >= ${today}
+    returning slug`;
+  console.log(
+    published.length > 0
+      ? `  events         published ${published.map((one) => one.slug).join(", ")}`
+      : "  events         already published",
+  );
+
   console.log(`\nSign in as ${account} and open /home.`);
   await closeConnections();
 }

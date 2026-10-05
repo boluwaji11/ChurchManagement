@@ -48,6 +48,7 @@ export function GroupDetail({
   groupId,
   groupName,
   canManage,
+  canRecord,
   openToJoin,
   hue,
   join,
@@ -71,6 +72,8 @@ export function GroupDetail({
   groupId: string;
   groupName: string;
   canManage: boolean;
+  /** R9.7. Whether this reader may record who came. */
+  canRecord: boolean;
   openToJoin: boolean;
   /** The group kind's colour, which its dates wear. */
   hue: string;
@@ -163,7 +166,7 @@ export function GroupDetail({
         <TabsList>
           <TabsTrigger value="overview">{t("group.tab.overview")}</TabsTrigger>
           <TabsTrigger value="members">{t("group.tab.members")}</TabsTrigger>
-          {canManage ? (
+          {canRecord ? (
             <TabsTrigger value="attendance">{t("group.tab.attendance")}</TabsTrigger>
           ) : null}
         </TabsList>

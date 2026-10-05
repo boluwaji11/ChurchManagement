@@ -73,13 +73,12 @@ export default async function GroupsPage({
       name: one.name,
       description: one.description,
       hue: one.hue,
-      open: of.filter((group) => group.openToJoin && !group.full && !group.archived).length,
       all: of.length,
     };
   }).filter((one) => one.all > 0 || manage);
 
   if (!type && kinds.length > 1) {
-    const landing = <TypesLanding church={session.tenantSlug} types={kinds} manage={manage} />;
+    const landing = <TypesLanding church={session.tenantSlug} types={kinds} />;
     return portal ? (
       <PortalShell session={session}>
         <PortalTitle title={t("find.title")} under={t("find.lede")} />
