@@ -436,11 +436,11 @@ export function EventView({
                   {paged.map((one, index) => (
                     <Tr
                       key={one.id}
-                      /* R14.6. A hairline between parties rather than between
-                         rows, so a family reads as the one booking it is. */
+                      /* R14.6. A party booked together reads as one block, so
+                         the rule between bookings is the only one drawn. */
                       className={
-                        index > 0 && paged[index - 1]!.bookingId !== one.bookingId
-                          ? "border-t-2 border-line-strong"
+                        index > 0 && paged[index - 1]!.bookingId === one.bookingId
+                          ? "border-t-0"
                           : undefined
                       }
                     >
