@@ -624,10 +624,13 @@ export async function listRegistrations(
     phone: string | null;
     state: string;
     trial: boolean;
-    registeredAt: Date;
-    arrivedAt: Date | null;
+    // Raw statements come back without the query builder's type parsers, so
+    // these are asked for as text and arrive as text.
+    registeredAt: string;
+    arrivedAt: string | null;
     answers: Record<string, unknown> | null;
-    firstTaken: Date;
+    /** Selected only so the order by can name it. Never read here. */
+    firstTaken: unknown;
   }>(sql`
     select r.id,
            r.booking_id as "bookingId",
@@ -637,8 +640,8 @@ export async function listRegistrations(
            r.phone,
            r.state,
            r.trial,
-           r.created_at as "registeredAt",
-           r.arrived_at as "arrivedAt",
+           to_char(r.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as "registeredAt",
+           to_char(r.arrived_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as "arrivedAt",
            s.answers,
            min(r.created_at) over (partition by r.booking_id) as "firstTaken"
       from event_registrations r
@@ -687,8 +690,8 @@ export async function listRegistrations(
     phone: row.phone,
     state: row.state,
     trial: row.trial,
-    registeredAt: row.registeredAt.toISOString(),
-    arrivedAt: row.arrivedAt ? row.arrivedAt.toISOString() : null,
+    registeredAt: row.registeredAt,
+    arrivedAt: row.arrivedAt,
     answers: (row.answers ?? {}) as Record<string, unknown>,
     emergency: (row.personId ? byPerson.get(row.personId) : undefined) ?? [],
   }));
