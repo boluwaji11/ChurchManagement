@@ -50,10 +50,6 @@ export function LeaveButton({
           title={t("group.leaveAsk", { group: groupName })}
           closeLabel={t("action.cancel")}
         >
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">
-            {t("group.leaveWhat")}
-          </p>
-
           {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
 
           <DialogFooter>

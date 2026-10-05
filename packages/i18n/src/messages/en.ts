@@ -1228,7 +1228,6 @@ export const en = {
   "group.error.notIn": "You are not in this group.",
   "group.leave": "Leave group",
   "group.leaveAsk": "Leave {group}?",
-  "group.leaveWhat": "You come off the roster from today. Your record of having been in it stays.",
   "group.leaveDo": "Leave",
   "group.error.lastLeader": "Name another leader first. A group keeps at least one.",
   "group.error.joined": "Enter the day they joined.",
