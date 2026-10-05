@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Trash2, Upload } from "lucide-react";
-import { Button, IconButton, ALL_HUES } from "@hearth/ui";
+import { Button, IconButton, Working, ALL_HUES } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearFormCover, recolourForm } from "../actions";
 
@@ -51,7 +51,9 @@ export function FormCover({
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" aria-busy={busy}>
+      <Working open={busy} label={t("image.uploading")} />
+
       <div className="relative">
         {shown ? (
           <img

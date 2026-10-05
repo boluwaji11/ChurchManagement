@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Upload, Trash2 } from "lucide-react";
 import {
-  Banner, Button, Dialog, DialogContent, DialogFooter, IconButton,
+  Banner, Button, Dialog, DialogContent, DialogFooter, IconButton, Working,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { clearGroupPhoto } from "./actions";
@@ -64,6 +64,7 @@ export function GroupBanner({
 
   return (
     <div className="flex flex-col gap-2" aria-busy={busy}>
+      <Working open={busy} label={t("image.uploading")} />
       {error ? <Banner tone="danger" title={groupName}>{error}</Banner> : null}
 
       <div className="relative">
