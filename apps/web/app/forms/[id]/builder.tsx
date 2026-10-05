@@ -349,7 +349,7 @@ export function Builder({
           ))}
 
           <div className="flex flex-wrap items-center gap-1.5 pt-1.5">
-            <span className="mr-1 text-label font-medium text-fg-muted">
+            <span className="mr-1 text-label font-bold text-primary">
               {t("form.addLabel")}
             </span>
             {ADDABLE.map((entry) => {

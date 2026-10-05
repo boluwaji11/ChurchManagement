@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { UserCheck } from "lucide-react";
 import { Button, Dialog, DialogTrigger, DialogContent } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
 import type { FormAnswer, FormFieldDef } from "@hearth/db/rules";
 import { Pages } from "@/components/pages";
@@ -86,11 +86,20 @@ export function Responses({
   const pathname = usePathname();
   const params = useSearchParams();
   const [matching, startMatching] = React.useTransition();
+  const [done, setDone] = React.useState<number | null>(null);
 
-  // R4.4. How many on this page landed nowhere. A church that has just pointed
-  // its questions at the record can run those through without waiting for the
-  // next person to fill the form in.
+  /*
+   * R4.4. Whether there is a catch-up to run.
+   *
+   * A response is matched the moment it arrives, so this is only ever for the
+   * answers collected before the questions were pointed at the record. It needs
+   * both halves: rows that landed nowhere, and at least one question that now
+   * says where an answer goes. Without the second half the button would be
+   * offering work that cannot do anything.
+   */
+  const mapped = fields.some((one) => one.mapsTo);
   const unplaced = rows.filter((one) => !one.personId && one.matchState !== "review").length;
+  const canCatchUp = mapped && unplaced > 0;
 
   // Headings are the questions that have answers, and only as many as sit
   // across a screen without the table scrolling sideways on a laptop.
@@ -111,7 +120,7 @@ export function Responses({
 
   return (
     <div className="flex flex-col gap-4">
-      {unplaced > 0 ? (
+      {canCatchUp ? (
         <Button
           type="button"
           variant="secondary"
@@ -119,13 +128,20 @@ export function Responses({
           className="self-start"
           onClick={() =>
             startMatching(async () => {
-              await matchResponses(formId, church);
+              const result = await matchResponses(formId, church);
+              setDone(result.placed ?? 0);
               router.refresh();
             })}
         >
           <UserCheck className="size-4" aria-hidden />
           {t("form.match.run")}
         </Button>
+      ) : null}
+
+      {done !== null ? (
+        <span className="text-[13px] text-fg-muted">
+          {plural("form.match.placed", done)}
+        </span>
       ) : null}
 
       <div className="overflow-hidden rounded-[14px] border border-line bg-surface">

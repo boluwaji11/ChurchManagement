@@ -1,11 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Users, UserPlus, Baby, Calendar, ListMusic, HandHeart, CircleDot,
+  Users, UserPlus, Baby, Calendar, CalendarHeart, ListMusic, HandHeart, CircleDot,
   ClipboardList, Settings, Home,
 } from "lucide-react";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
-  canLeadTeams, canManageChurch, type TenantRole,
+  canLeadTeams, canManageChurch, canManageEvents, type TenantRole,
 } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import type { NavTarget } from "./nav-active";
@@ -17,7 +17,7 @@ import type { NavTarget } from "./nav-active";
  * the two can never drift.
  *
  * The order is the design's: People, Follow-ups, Check-in, Calendar, Services,
- * Serving, Groups, Forms, Settings. Dashboard joins it at the top in HRT-203.
+ * Serving, Groups, Events, Forms, Settings. Dashboard joins it at the top in HRT-203.
  * The design's Giving, Songs, Reports and Churches entries are the deferred
  * ones and are named in docs/redesign/README.md.
  *
@@ -90,6 +90,11 @@ export function navFor(role: TenantRole): NavEntry[] {
 
   // R9.5. Groups are for everybody: finding one is the member's question.
   out.push({ label: t("nav.groups"), href: "/groups", icon: CircleDot });
+
+  // R14.1. What the church is putting on, and who has a place at it.
+  if (canManageEvents(role)) {
+    out.push({ label: t("nav.events"), href: "/events", icon: CalendarHeart });
+  }
 
   // R4.1. A form is a question the church is seen to be asking in public, so
   // Owner and Admin build them.
