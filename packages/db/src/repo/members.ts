@@ -152,7 +152,7 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
 
   if (opts.tagId) {
     where.push(sql`exists (
-      select 1 from person_tags pt where pt.member_id = ${members.id} and pt.tag_id = ${opts.tagId}::uuid
+      select 1 from member_tags pt where pt.member_id = ${members.id} and pt.tag_id = ${opts.tagId}::uuid
     )`);
   }
 
@@ -266,7 +266,7 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
       // R2.14. One aggregate rather than a second round trip per person.
       tagNames: sql<string[]>`(
         select coalesce(array_agg(tg.name order by tg.name), '{}')
-        from person_tags pt
+        from member_tags pt
         join tags tg on tg.id = pt.tag_id
         where pt.member_id = ${members.id}
       )`,

@@ -53,7 +53,7 @@ const VIEWS: ExportView[] = [
              p.first_visit_on as first_visit,
              cam.name as campus,
              (select string_agg(t.name, ', ' order by t.name)
-                from person_tags pt join tags t on t.id = pt.tag_id
+                from member_tags pt join tags t on t.id = pt.tag_id
                where pt.member_id = p.id) as tags,
              (select string_agg(f.label || ': ' || v.value, '; ' order by f.label)
                 from custom_field_values v join custom_fields f on f.id = v.field_id

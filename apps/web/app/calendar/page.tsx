@@ -29,6 +29,9 @@ const shift = (iso: string, days: number): string => {
   return at.toISOString().slice(0, 10);
 };
 
+/** How many days the calendar shows: this week and the one after it. */
+const SPAN = 14;
+
 /** The Monday on or before a date, because a church week is read Monday first. */
 const weekStart = (iso: string): string => {
   const at = new Date(`${iso}T00:00:00Z`);
@@ -83,7 +86,7 @@ export default async function CalendarPage({
       const now = churchNow(profile?.timezone ?? "America/Chicago").date;
       const asked = params.at && ISO.test(params.at) ? params.at : now;
       const start = weekStart(asked);
-      const end = shift(start, 6);
+      const end = shift(start, SPAN - 1);
 
       const occurrences = await listOccurrences(tx, { from: start, to: end });
       const groups = await listGroups(tx);
@@ -95,7 +98,7 @@ export default async function CalendarPage({
       const events = (await listEvents(tx)).filter((one) => one.status === "published");
       const brand = profile?.brandHue ?? "indigo";
 
-      const dates = Array.from({ length: 7 }, (_, i) => shift(start, i));
+      const dates = Array.from({ length: SPAN }, (_, i) => shift(start, i));
 
       return {
         from: start,
@@ -109,6 +112,7 @@ export default async function CalendarPage({
               title: o.name,
               detail: clock(o.startsAt),
               hue: brand,
+              href: `/services/${o.slug}/plan`,
             }));
 
           for (const one of events) {
@@ -167,7 +171,7 @@ export default async function CalendarPage({
             {span(from, to)}
           </span>
           <Link
-            href={link(shift(from, -7))}
+            href={link(shift(from, -SPAN))}
             aria-label={t("calendar.earlier")}
             className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
           >
@@ -186,7 +190,7 @@ export default async function CalendarPage({
             />
           </Link>
           <Link
-            href={link(shift(from, 7))}
+            href={link(shift(from, SPAN))}
             aria-label={t("calendar.later")}
             className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
           >
@@ -196,19 +200,19 @@ export default async function CalendarPage({
       </div>
 
       <div className="grid overflow-auto rounded-lg border border-line [grid-template-columns:repeat(7,minmax(120px,1fr))]">
-        {days.map((day) => (
+        {days.map((day, at) => (
           <section
             key={day.date}
-            className={`border-r border-line p-2 last:border-r-0 ${
-              day.date === today ? "bg-sunken" : "bg-surface"
-            }`}
+            className={`border-line p-2 ${at % 7 === 6 ? "" : "border-r"} ${
+              at < 7 ? "border-b" : ""
+            } ${day.date === today ? "bg-sunken" : "bg-surface"}`}
           >
             <div className="flex items-baseline gap-1.5 border-b border-line px-1 pt-1 pb-2.5">
               <span className="text-[12px] font-medium text-fg-subtle">{dayName(day.date)}</span>
               <span className="font-display text-[20px] text-fg">{dayNumber(day.date)}</span>
             </div>
 
-            <div className="flex min-h-[200px] flex-col gap-1.5 pt-2">
+            <div className="flex min-h-[150px] flex-col gap-1.5 pt-2">
               {day.entries.map((entry) => {
                 const body = (
                   <>

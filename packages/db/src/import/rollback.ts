@@ -107,7 +107,7 @@ async function touchedSince(
   const [{ n } = { n: 0 }] = await db.execute<{ n: number }>(sql`
     select (
       (select count(*) from notes where member_id = ${person.id}) +
-      (select count(*) from person_tags where member_id = ${person.id})
+      (select count(*) from member_tags where member_id = ${person.id})
     )::int as n`);
 
   return Number(n) > 0;

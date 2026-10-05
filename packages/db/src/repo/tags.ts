@@ -48,7 +48,7 @@ export async function listTagsWithCounts(db: Tx): Promise<TagRow[]> {
       id: tags.id,
       name: tags.name,
       hue: tags.hue,
-      members: sql<number>`(select count(*) from person_tags pt where pt.tag_id = ${tags.id})`,
+      members: sql<number>`(select count(*) from member_tags pt where pt.tag_id = ${tags.id})`,
     })
     .from(tags)
     .orderBy(asc(tags.name));
@@ -181,8 +181,8 @@ export async function mergeTags(
   if (found.length !== 2) throw new Error("No such tag.");
 
   const moved = await db.execute(sql`
-    insert into person_tags (tenant_id, member_id, tag_id)
-    select tenant_id, member_id, ${input.intoId}::uuid from person_tags where tag_id = ${input.fromId}::uuid
+    insert into member_tags (tenant_id, member_id, tag_id)
+    select tenant_id, member_id, ${input.intoId}::uuid from member_tags where tag_id = ${input.fromId}::uuid
     on conflict do nothing`);
 
   await db.delete(tags).where(eq(tags.id, input.fromId));
@@ -214,7 +214,7 @@ export async function setPersonTag(
   if (!tag) throw new Error("No such tag.");
 
   await db.execute(sql`
-    insert into person_tags (tenant_id, member_id, tag_id)
+    insert into member_tags (tenant_id, member_id, tag_id)
     values (${actor.tenantId}::uuid, ${memberId}::uuid, ${tagId}::uuid)
     on conflict do nothing`);
 }
@@ -257,7 +257,7 @@ export async function bulkSetPersonTag(
   let applied = 0;
   for (const person of visible) {
     const inserted = await db.execute(sql`
-      insert into person_tags (tenant_id, member_id, tag_id)
+      insert into member_tags (tenant_id, member_id, tag_id)
       values (${actor.tenantId}::uuid, ${person.id}::uuid, ${tagId}::uuid)
       on conflict do nothing
       returning member_id`);
