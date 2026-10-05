@@ -2448,6 +2448,7 @@ export const en = {
   "report.removeTile": "Remove this visual",
   "report.duplicateTile": "Duplicate this visual",
   "report.resizeTile": "Resize this visual",
+  "report.moveTile": "Move this visual",
   "report.aggregation": "How to add it up",
   "report.agg.sum": "Sum",
   "report.agg.average": "Average",

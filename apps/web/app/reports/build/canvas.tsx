@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, GripVertical, Trash2 } from "lucide-react";
 import { IconButton, Spinner } from "@hearth/ui";
 import { GRID_COLUMNS, type ReportTile } from "@hearth/db/rules";
 import { t } from "@hearth/i18n";
@@ -32,6 +32,7 @@ export function Canvas({
   onMove,
   onRemove,
   onDuplicate,
+  onRename,
 }: {
   tiles: ReportTile[];
   results: Record<string, ReportResultish | undefined>;
@@ -41,6 +42,7 @@ export function Canvas({
   onMove: (id: string, place: ReportTile["place"]) => void;
   onRemove: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onRename: (id: string, title: string) => void;
 }) {
   const board = React.useRef<HTMLDivElement>(null);
   const [grab, setGrab] = React.useState<Grab | null>(null);
@@ -107,25 +109,37 @@ export function Canvas({
                 : "relative flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface p-4 hover:border-line-strong"
             }
           >
-            {/* The handle. Dragging the body would fight with reading it. */}
-            <div
-              onPointerDown={(e) => {
-                e.preventDefault();
-                onSelect(tile.id);
-                setGrab({
-                  kind: "move",
-                  id: tile.id,
-                  fromX: tile.place.x,
-                  fromY: tile.place.y,
-                  atX: e.clientX,
-                  atY: e.clientY,
-                });
-              }}
-              className="mb-2 flex cursor-grab items-center gap-2 active:cursor-grabbing"
-            >
-              <h4 className="min-w-0 flex-1 truncate font-display text-[17px] leading-6 text-fg">
-                {tile.title || nameOf(tile)}
-              </h4>
+            <div className="mb-2 flex items-center gap-1.5">
+              {/* The handle. Dragging the body would fight with reading it,
+                  and dragging the title would fight with renaming it. */}
+              <button
+                type="button"
+                aria-label={t("report.moveTile")}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  onSelect(tile.id);
+                  setGrab({
+                    kind: "move",
+                    id: tile.id,
+                    fromX: tile.place.x,
+                    fromY: tile.place.y,
+                    atX: e.clientX,
+                    atY: e.clientY,
+                  });
+                }}
+                className="shrink-0 cursor-grab rounded-sm p-0.5 text-fg-subtle hover:text-fg-muted active:cursor-grabbing"
+              >
+                <GripVertical className="size-4" aria-hidden />
+              </button>
+
+              <input
+                value={tile.title}
+                onChange={(e) => onRename(tile.id, e.target.value)}
+                onPointerDown={(e) => e.stopPropagation()}
+                placeholder={nameOf(tile)}
+                aria-label={t("report.tileTitle")}
+                className="min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent px-1 py-0.5 font-display text-[17px] leading-6 text-fg outline-none placeholder:text-fg hover:border-line focus:border-primary"
+              />
 
               {running ? <Spinner className="size-3.5 shrink-0" /> : null}
 

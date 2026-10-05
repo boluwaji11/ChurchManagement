@@ -419,15 +419,6 @@ export function Builder({
           </>
         )}
 
-        <span className="flex-1" />
-
-        <Input
-          value={tile.title}
-          onChange={(e) => change({ title: e.target.value })}
-          placeholder={t("report.tileTitle")}
-          aria-label={t("report.tileTitle")}
-          className="min-h-8 w-[180px] text-[13px]"
-        />
       </div>
 
       <div className="flex flex-wrap items-start gap-4">
@@ -440,6 +431,10 @@ export function Builder({
             running={running}
             selected={tile.id}
             onSelect={setChosen}
+            onRename={(id, title) =>
+              setPage((was) => ({
+                tiles: was.tiles.map((one) => (one.id === id ? { ...one, title } : one)),
+              }))}
             onMove={(id, place) =>
               setPage((was) => ({
                 tiles: was.tiles.map((one) => (one.id === id ? { ...one, place } : one)),
