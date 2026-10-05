@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, X, Search, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
 import {
-  Banner, Button, IconButton, Card, Separator, Switch,
+  Avatar, Banner, Button, IconButton, Switch,
+  Dialog, DialogContent, DialogFooter,
   Sheet, SheetContent, SheetTrigger, LIFT,
 } from "@hearth/ui";
 import { MultiSelect } from "@/components/multi-select";
@@ -137,6 +138,9 @@ export function Finder({
   const [live, setLive] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
+  const [deciding, setDeciding] = React.useState<(FinderRequest & { approve: boolean }) | null>(
+    null,
+  );
   const [pending, startTransition] = React.useTransition();
 
   const text = query.trim().toLowerCase();
@@ -252,29 +256,48 @@ export function Finder({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
 
-      {/* R9.6. What this person owes an answer to, above what they are browsing. */}
+      {/*
+       * R9.6. What this person owes an answer to, above what they are browsing.
+       *
+       * Its own tint rather than another white card: it is the one thing on
+       * this screen that is waiting on somebody, and a church that has three
+       * people asking should see three people asking before it sees the groups.
+       */}
       {requests.length > 0 ? (
-        <Card className="flex flex-col gap-3">
-          <span className="text-label text-fg-muted">{t("find.requests")}</span>
-          {requests.map((request, i) => (
-            <div key={request.id}>
-              {i > 0 ? <Separator className="my-2" /> : null}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="min-w-0">
-                  <span className="text-[length:var(--d-text-body)] text-fg">
-                    {request.personName}
+        <section className="overflow-hidden rounded-[14px] border border-[var(--hue-amber-500)]/35 bg-[var(--hue-amber-tint)]">
+          <div className="flex items-center gap-2 px-5 pt-4 pb-2.5">
+            <span className="text-[12px] font-bold tracking-[0.06em] text-[var(--hue-amber-key)] uppercase">
+              {t("find.requests")}
+            </span>
+            <span className="text-[12px] font-semibold text-[var(--hue-amber-key)]/70">
+              {requests.length}
+            </span>
+          </div>
+
+          <ul className="flex flex-col">
+            {requests.map((request) => (
+              <li
+                key={request.id}
+                className="flex min-h-[56px] flex-wrap items-center gap-3 border-t border-[var(--hue-amber-500)]/20 px-5 py-2"
+              >
+                <Avatar
+                  name={request.personName}
+                  id={request.id}
+                  className="size-8 text-[11px] font-semibold"
+                />
+                <span className="flex min-w-0 flex-1 flex-col leading-5">
+                  <span className="truncate font-medium text-fg">{request.personName}</span>
+                  <span className="truncate text-[13px] text-fg-muted">
+                    {request.groupName}
+                    {request.message ? ` · ${request.message}` : ""}
                   </span>
-                  <span className="ml-2 text-caption text-fg-muted">{request.groupName}</span>
-                  {request.message ? (
-                    <span className="block text-caption text-fg-muted">{request.message}</span>
-                  ) : null}
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-0.5">
                   <IconButton
                     label={t("find.approve")}
-                    variant="secondary"
+                    variant="ghost"
                     disabled={pending}
-                    onClick={() => run(() => decide(request.id, true, church))}
+                    onClick={() => setDeciding({ ...request, approve: true })}
                   >
                     <Check />
                   </IconButton>
@@ -282,16 +305,45 @@ export function Finder({
                     label={t("find.decline")}
                     variant="ghost"
                     disabled={pending}
-                    onClick={() => run(() => decide(request.id, false, church))}
+                    onClick={() => setDeciding({ ...request, approve: false })}
                   >
                     <X />
                   </IconButton>
                 </span>
-              </div>
-            </div>
-          ))}
-        </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
+
+      {/* R9.6. Both answers reach the person who asked, so both are asked about. */}
+      <Dialog open={deciding !== null} onOpenChange={(open) => (open ? null : setDeciding(null))}>
+        <DialogContent
+          alert={deciding?.approve === false}
+          title={t(
+            deciding?.approve ? "find.approveTitle" : "find.declineTitle",
+            { name: deciding?.personName ?? "" },
+          )}
+          closeLabel={t("common.close")}
+        >
+          <p className="text-[length:var(--d-text-body)] text-fg">
+            {t(deciding?.approve ? "find.approveBody" : "find.declineBody")}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeciding(null)}>{t("action.cancel")}</Button>
+            <Button
+              variant={deciding?.approve ? "primary" : "danger"}
+              onClick={() => {
+                const asked = deciding;
+                setDeciding(null);
+                if (asked) run(() => decide(asked.id, asked.approve, church));
+              }}
+            >
+              {t(deciding?.approve ? "find.approve" : "find.decline")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* The box, the count, and one Filter button on the right. */}
       <div className="flex flex-wrap items-center gap-2">
