@@ -7,6 +7,7 @@ import {
   openMeeting, lastMeetingDay, canRecordFor,
   type Meeting, type MeetingPerson,
 } from "@hearth/db";
+import { Badge } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -256,8 +257,23 @@ export default async function GroupPage({
         canManage={manage}
         openToJoin={group.openToJoin}
         hue={hue}
+        /*
+         * R9.5. Where this reader stands with the group.
+         *
+         * Asking replaces the button with the answer rather than taking it
+         * away: a control that disappears when pressed reads as a bug, and the
+         * one thing somebody wants to know afterwards is whether it went.
+         */
         join={
-          !group.mine && group.openToJoin && !group.full && group.requested !== "pending" ? (
+          group.mine ? (
+            <Badge tone="success">{t("find.member")}</Badge>
+          ) : group.requested === "pending" ? (
+            <Badge tone="neutral">{t("find.asked")}</Badge>
+          ) : group.requested === "declined" ? (
+            <Badge tone="neutral">{t("find.declined")}</Badge>
+          ) : group.full ? (
+            <Badge tone="warning">{t("find.full")}</Badge>
+          ) : group.openToJoin ? (
             <JoinButton church={session.tenantSlug} groupId={group.id} />
           ) : null
         }
