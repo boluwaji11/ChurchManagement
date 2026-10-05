@@ -32,7 +32,16 @@ export function Mark({ className }: { className?: string }) {
  * sizes. 32px with a 10px radius down the side, 28px with an 8px radius in the
  * top bar on a phone.
  */
-export function FlameMark({ size = 32, logoUrl }: { size?: 32 | 28; logoUrl?: string | null }) {
+export function FlameMark({
+  size = 32,
+  logoUrl,
+  churchName,
+}: {
+  size?: 32 | 28;
+  logoUrl?: string | null;
+  /** R1.1. Whose church this is, for the letter shown until there is a logo. */
+  churchName?: string | null;
+}) {
   const box = {
     width: size,
     height: size,
@@ -53,6 +62,25 @@ export function FlameMark({ size = 32, logoUrl }: { size?: 32 | 28; logoUrl?: st
         className="shrink-0 border border-line bg-surface object-contain p-0.5"
         style={box}
       />
+    );
+  }
+
+  /*
+   * R1.1. The church's own first letter until there is a logo, which is what
+   * the settings screen already draws and what a printed label falls back to.
+   * Our flame in the corner of their software says whose product it is, which
+   * is not the question that corner answers.
+   */
+  const letter = churchName?.trim().charAt(0).toUpperCase();
+  if (letter) {
+    return (
+      <span
+        aria-hidden
+        className="grid shrink-0 place-items-center bg-primary font-display text-primary-fg"
+        style={{ ...box, fontSize: size === 32 ? 17 : 15 }}
+      >
+        {letter}
+      </span>
     );
   }
 

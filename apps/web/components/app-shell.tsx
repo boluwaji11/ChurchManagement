@@ -102,6 +102,7 @@ export async function AppShell({
         <TopBar
           title={title}
           logoUrl={logoUrl}
+          churchName={session.tenantName}
           bell={
             <NotificationBell
               church={session.tenantSlug}

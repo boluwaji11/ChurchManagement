@@ -98,7 +98,7 @@ export function Sidebar({
         )}
       >
         <Link href="/choose-church" className="flex min-w-0 items-center gap-2.5" aria-label={churchName}>
-          <FlameMark logoUrl={logoUrl} />
+          <FlameMark logoUrl={logoUrl} churchName={churchName} />
           {collapsed ? null : (
             <span
               className="min-w-0 flex-1 font-display font-semibold text-fg [overflow-wrap:anywhere] line-clamp-2"
