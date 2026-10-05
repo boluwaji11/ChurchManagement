@@ -5,6 +5,7 @@ import { people } from "../schema/people";
 import { personMerges } from "../schema/merges";
 import { canArchivePeople, PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
+import { leadWith } from "./contacts";
 import { getPersonForEdit, type PersonInput } from "./people";
 import { buildMatchIndex, findMatches, type Confidence } from "../import/match";
 
@@ -148,6 +149,17 @@ export async function mergePeople(
 
   const moved: { table: string; id: string }[] = [];
 
+  /*
+   * R2.4. Which contacts the winner was already leading with, read before the
+   * loser's are moved across. Both records bring a primary of their own, and
+   * the one somebody has been using should go on being the one.
+   */
+  const led = (await db.execute<{ id: string; kind: string }>(sql`
+    select id, kind::text as kind from contact_methods
+     where person_id = ${plan.winnerId}::uuid and is_primary`)) as unknown as
+    { id: string; kind: string }[];
+  const leading = new Map(led.map((one) => [one.kind, one.id]));
+
   for (const owned of OWNED) {
     // Only rows that would not collide with something the winner already has.
     // A colliding row stays on the loser, which is archived rather than deleted,
@@ -190,6 +202,11 @@ export async function mergePeople(
   // relationship. Those are removed rather than left as nonsense.
   await db.execute(sql`
     delete from relationships where person_id = related_person_id and person_id = ${plan.winnerId}::uuid`);
+
+  // R2.4. Exactly one of each kind leads, and it is the one the winner was
+  // already leading with. What came across joins the list behind it.
+  await leadWith(db, plan.winnerId, "email", leading.get("email") ?? null);
+  await leadWith(db, plan.winnerId, "phone", leading.get("phone") ?? null);
 
   const survived = applyChoices(winner, loser, plan.take);
   await db

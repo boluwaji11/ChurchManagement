@@ -90,6 +90,10 @@ export function Team({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [message, setMessage] = React.useState<string>();
+  /* R1.8. Said under the button that did it, and gone again on its own. A
+     banner across the top of the screen for a copied link is a banner about
+     something that happened somewhere else. */
+  const [copied, setCopied] = React.useState(false);
   const [changing, setChanging] = React.useState<{ member: Member; role: string } | null>(null);
   const [removing, setRemoving] = React.useState<Member | null>(null);
   const [rotating, setRotating] = React.useState(false);
@@ -336,7 +340,8 @@ export function Team({
                   variant="ghost"
                   onClick={() => {
                     void navigator.clipboard?.writeText(joinLink);
-                    setMessage(t("joining.copied"));
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 2000);
                   }}
                 >
                   <Copy />
@@ -357,6 +362,16 @@ export function Team({
                 >
                   <X />
                 </IconButton>
+
+                {copied ? (
+                  <span
+                    role="status"
+                    className="ml-1 text-caption font-medium"
+                    style={{ color: "var(--hue-fern-key)" }}
+                  >
+                    {t("joining.copied")}
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>

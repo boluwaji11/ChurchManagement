@@ -31,6 +31,11 @@ export {
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
 } from "./repo/people";
 export {
+  listContacts, addContact, removeContact, makeContactPrimary, leadWith, listAddresses,
+  CONTACT_LABELS,
+  type PersonContact, type PersonAddress, type ContactKind, type ContactLabel,
+} from "./repo/contacts";
+export {
   listTagsWithCounts, createTag, renameTag, setTagHue, deleteTag, mergeTags, setPersonTag,
   canManageTags, CAN_MANAGE_TAGS, normaliseTagName, TAG_HUES, bulkSetPersonTag,
   type TagRow, type TagHue,

@@ -1,10 +1,9 @@
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people, contactMethods, addresses } from "../schema/people";
+import { people, contactMethods } from "../schema/people";
 import { appUsers } from "../schema/tenancy";
-import { PermissionError } from "../roles";
+import { canEditPeople, PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import { canEditPeople } from "./permissions-people";
 import type { WriteActor } from "./people";
 import { LOOKS_LIKE_EMAIL } from "./form-rules";
 
@@ -89,7 +88,7 @@ export async function addContact(
   personId: string,
   input: { kind: ContactKind; label?: ContactLabel; value: string },
 ): Promise<{ id: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPeople");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
   const value = checkValue(input.kind, input.value);
 
   const held = await db
@@ -123,7 +122,7 @@ export async function addContact(
  * closing their account and would not, so it is refused and said.
  */
 export async function removeContact(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPeople");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
     .select({
@@ -150,7 +149,7 @@ export async function removeContact(db: Tx, actor: WriteActor, id: string): Prom
 
 /** R2.4. Which one a letter or a call goes to first. */
 export async function makeContactPrimary(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPeople");
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
     .select({ personId: contactMethods.personId, kind: contactMethods.kind })
