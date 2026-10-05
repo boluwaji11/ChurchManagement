@@ -13,7 +13,7 @@ import { checkInFamily, visitsFor } from "../src/repo/checkin";
 import { checkOut } from "../src/repo/checkout";
 import { addRoom } from "../src/repo/rooms";
 import { addSpecialService } from "../src/repo/services";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import type { TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
@@ -73,10 +73,10 @@ describe("the board (R8.19)", () => {
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
       entries: [
-        { personId: children[0]!, roomId: nursery, child: true },
-        { personId: children[1]!, roomId: nursery, child: true },
-        { personId: adults[0]!, roomId: nursery, child: false },
-        { personId: adults[1]!, roomId: nursery, child: false },
+        { memberId: children[0]!, roomId: nursery, child: true },
+        { memberId: children[1]!, roomId: nursery, child: true },
+        { memberId: adults[0]!, roomId: nursery, child: false },
+        { memberId: adults[1]!, roomId: nursery, child: false },
       ],
     }));
 
@@ -91,7 +91,7 @@ describe("the board (R8.19)", () => {
   it("knows a volunteer who is in no room", async () => {
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
-      entries: [{ personId: adults[2]!, roomId: null, child: false }],
+      entries: [{ memberId: adults[2]!, roomId: null, child: false }],
     }));
     const board = await run((tx) => roomBoard(tx, service));
     expect(board.unassignedVolunteers).toBe(1);
@@ -119,7 +119,7 @@ describe("the two-adult rule (R8.17)", () => {
 
     // One of them steps out to find a parent.
     const visits = await run((tx) => visitsFor(tx, service));
-    const stepping = visits.find((v) => v.personId === adults[1])!;
+    const stepping = visits.find((v) => v.memberId === adults[1])!;
     await run((tx) => checkOut(tx, as(), { visitId: stepping.id, code: stepping.code, override: null }));
 
     const after = await run((tx) => roomBoard(tx, service));
@@ -139,8 +139,8 @@ describe("capacity and ratio (R8.15, R8.16)", () => {
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
       entries: [
-        { personId: children[2]!, roomId: nursery, child: true },
-        { personId: children[3]!, roomId: nursery, child: true },
+        { memberId: children[2]!, roomId: nursery, child: true },
+        { memberId: children[3]!, roomId: nursery, child: true },
       ],
     }));
 
@@ -151,7 +151,7 @@ describe("capacity and ratio (R8.15, R8.16)", () => {
 
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
-      entries: [{ personId: children[4]!, roomId: nursery, child: true }],
+      entries: [{ memberId: children[4]!, roomId: nursery, child: true }],
     }));
 
     const past = await run((tx) => roomBoard(tx, service));
@@ -178,7 +178,7 @@ describe("the room roster (R8.18)", () => {
   });
 
   it("carries what the room has to know (R8.10)", async () => {
-    await owner()`update people set allergies = 'Peanuts' where id = ${children[0]!}`;
+    await owner()`update members set allergies = 'Peanuts' where id = ${children[0]!}`;
 
     const roster = await run((tx) => roomRoster(tx, service, nursery));
     expect(roster.find((r) => r.name === "Child0 Super")!.allergies).toBe("Peanuts");

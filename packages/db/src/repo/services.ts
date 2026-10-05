@@ -5,7 +5,7 @@ import { serviceTimes } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { formSlug, isUuid } from "./form-rules";
 
 /**

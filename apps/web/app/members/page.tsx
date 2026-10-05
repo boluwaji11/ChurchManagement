@@ -37,10 +37,10 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { people, tags, groups, counts, duplicates, matching, setup, lists, viewing } = await withTenant(
+  const { members, tags, groups, counts, duplicates, matching, setup, lists, viewing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
-      // R1.14. A saved list is either a set of people or the filters it was
+      // R1.14. A saved list is either a set of members or the filters it was
       // saved with. A rule list is read as though somebody had typed them.
       const opened = params.list ? await resolveList(tx, params.list) : null;
       const query = opened?.kind === "rule"
@@ -53,7 +53,7 @@ export default async function PeoplePage({
         viewing: opened ? { id: params.list!, name: opened.name, kind: opened.kind } : null,
         // R9.3. Who is asking goes to the query layer, which decides what they
         // may see. A group leader gets their own group and nobody else.
-        people: await listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
+        members: await listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
         matching: await countPeople(tx, { ...query, viewer }),
         tags: await listTagsWithCounts(tx),
         groups: await listGroups(tx),
@@ -74,7 +74,7 @@ export default async function PeoplePage({
   return (
     <AppShell
       session={session}
-      title={t("people.title")}
+      title={t("members.title")}
       /* The action rides the directory's own toolbar, beside the search, and
          an empty directory offers it in the middle of the screen instead. */
     >
@@ -99,7 +99,7 @@ export default async function PeoplePage({
       ) : null}
 
       {session.role === "staff" || session.role === "member" ? (
-        <Banner tone="info" title={t("people.restricted.title")} className="mb-8" />
+        <Banner tone="info" title={t("members.restricted.title")} className="mb-8" />
       ) : null}
 
       <Directory
@@ -115,7 +115,7 @@ export default async function PeoplePage({
         viewing={viewing}
         tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
         groups={groups.map((g) => ({ id: g.id, name: g.name, hue: g.typeHue }))}
-        rows={people.map((p) => ({
+        rows={members.map((p) => ({
           id: p.id,
           slug: p.slug,
           displayName: p.displayName,

@@ -11,15 +11,15 @@ async function main() {
   const sql = owner();
 
   const rows = await sql<
-    { person_id: string; tenant_id: string; name: string; account: string; record: string | null }[]
+    { member_id: string; tenant_id: string; name: string; account: string; record: string | null }[]
   >`
-    select p.id as person_id, p.tenant_id,
+    select p.id as member_id, p.tenant_id,
            btrim(coalesce(p.preferred_name, p.first_name) || ' ' || coalesce(p.last_name, '')) as name,
            u.email as account,
            (select value from contact_methods c
-             where c.person_id = p.id and c.kind = 'email'
+             where c.member_id = p.id and c.kind = 'email'
              order by c.is_primary desc limit 1) as record
-      from people p
+      from members p
       join app_users u on u.id = p.app_user_id
      where p.archived_at is null
      order by u.email`;
@@ -30,14 +30,14 @@ async function main() {
 
     const [primary] = await sql<{ id: string }[]>`
       select id from contact_methods
-       where person_id = ${row.person_id} and kind = 'email' and is_primary limit 1`;
+       where member_id = ${row.member_id} and kind = 'email' and is_primary limit 1`;
 
     if (primary) {
       await sql`update contact_methods set value = ${row.account} where id = ${primary.id}`;
     } else {
       await sql`
-        insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
-        values (${row.tenant_id}, ${row.person_id}, 'email', 'home', ${row.account}, true)`;
+        insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
+        values (${row.tenant_id}, ${row.member_id}, 'email', 'home', ${row.account}, true)`;
     }
 
     console.log(`  ${row.name.padEnd(22)} ${row.record ?? "none"} -> ${row.account}`);

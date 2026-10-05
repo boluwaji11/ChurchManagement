@@ -43,7 +43,7 @@ export default function Overview() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile label="Attendance" value="184" hue="indigo" delta={6} caption="vs last week" icon={<Users className="size-4" />} />
           <StatTile label="Giving this month" value="$18,420" hue="fern" delta={12} caption="vs last month" icon={<HandCoins className="size-4" />} />
-          <StatTile label="New people" value="7" hue="amber" delta={-14} caption="vs last month" icon={<HeartHandshake className="size-4" />} />
+          <StatTile label="New members" value="7" hue="amber" delta={-14} caption="vs last month" icon={<HeartHandshake className="size-4" />} />
           <StatTile
             label="Serving gaps"
             value="3"

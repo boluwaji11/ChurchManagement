@@ -3,7 +3,7 @@
  *
  * The acceptance criterion is the whole test: a member who has hidden their
  * address sees it on their own record and no other member sees it anywhere.
- * The defaults matter as much, because a church that imports two hundred people
+ * The defaults matter as much, because a church that imports two hundred members
  * has consent from none of them.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -12,7 +12,7 @@ import {
   memberDirectory, directoryPreferencesFor, setDirectoryPreferences,
 } from "../src/repo/directory";
 import { DEFAULT_VISIBILITY, entryFor } from "../src/repo/directory-rules";
-import { createPerson, listHouseholds } from "../src/repo/people";
+import { createPerson, listHouseholds } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
@@ -29,7 +29,7 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
 
 const TODAY = "2026-10-01";
 const find = (all: Awaited<ReturnType<typeof memberDirectory>>, name: string) =>
-  all.flatMap((h) => h.people).find((p) => p.name === name);
+  all.flatMap((h) => h.members).find((p) => p.name === name);
 
 beforeAll(async () => {
   tenant = await testTenant("dirtest", "Directory Test Church");
@@ -104,19 +104,19 @@ describe("the directory (R3.1)", () => {
   it("groups by household and shows names", async () => {
     const all = await run((tx) => memberDirectory(tx, { asOf: TODAY }), "member");
     const theirs = all.find((h) => h.name === "The Privacys")!;
-    expect(theirs.people.map((p) => p.name).sort()).toEqual(["David Privacy", "Mary Privacy"]);
+    expect(theirs.members.map((p) => p.name).sort()).toEqual(["David Privacy", "Mary Privacy"]);
     expect(find(all, "Lonnie Privacy")).toBeDefined();
   });
 
   it("publishes nothing nobody turned on", async () => {
     const all = await run((tx) => memberDirectory(tx, { asOf: TODAY }), "member");
-    expect(all.flatMap((h) => h.people).every((p) => p.email === null && p.address === null))
+    expect(all.flatMap((h) => h.members).every((p) => p.email === null && p.address === null))
       .toBe(true);
   });
 
   it("shows what a member chose to publish", async () => {
     await run((tx) =>
-      setDirectoryPreferences(tx, { ...as(), personId: dad }, dad, {
+      setDirectoryPreferences(tx, { ...as(), memberId: dad }, dad, {
         showEmail: true, showAddress: true,
       }),
     );
@@ -129,7 +129,7 @@ describe("the directory (R3.1)", () => {
 
   it("takes somebody out when they opt out, and keeps their record", async () => {
     await run((tx) =>
-      setDirectoryPreferences(tx, { ...as(), personId: loner }, loner, { listed: false }),
+      setDirectoryPreferences(tx, { ...as(), memberId: loner }, loner, { listed: false }),
     );
     const all = await run((tx) => memberDirectory(tx, { asOf: TODAY }), "member");
     expect(find(all, "Lonnie Privacy")).toBeUndefined();
@@ -143,7 +143,7 @@ describe("the directory (R3.1)", () => {
     expect(find(before, "Chloe Privacy")).toBeUndefined();
 
     await run((tx) =>
-      setDirectoryPreferences(tx, { ...as(), personId: dad }, dad, { showChildren: true }),
+      setDirectoryPreferences(tx, { ...as(), memberId: dad }, dad, { showChildren: true }),
     );
 
     const after = await run((tx) => memberDirectory(tx, { asOf: TODAY }), "member");
@@ -154,7 +154,7 @@ describe("the directory (R3.1)", () => {
 
   it("finds somebody by their name or their household", async () => {
     const byName = await run((tx) => memberDirectory(tx, { asOf: TODAY, q: "mary" }), "member");
-    expect(byName.flatMap((h) => h.people).map((p) => p.name)).toEqual(["Mary Privacy"]);
+    expect(byName.flatMap((h) => h.members).map((p) => p.name)).toEqual(["Mary Privacy"]);
 
     const byHousehold = await run((tx) => memberDirectory(tx, { asOf: TODAY, q: "privacys" }), "member");
     expect(byHousehold.length).toBe(1);
@@ -164,7 +164,7 @@ describe("the directory (R3.1)", () => {
 describe("whose settings they are (R3.2)", () => {
   it("are the member's own", async () => {
     const theirs = await run((tx) =>
-      setDirectoryPreferences(tx, { tenantId: tenant, role: "member", personId: mum }, mum, {
+      setDirectoryPreferences(tx, { tenantId: tenant, role: "member", memberId: mum }, mum, {
         showPhone: true,
       }), "member");
     expect(theirs.showPhone).toBe(true);
@@ -173,7 +173,7 @@ describe("whose settings they are (R3.2)", () => {
   it("are refused to another member", async () => {
     await expect(
       run((tx) =>
-        setDirectoryPreferences(tx, { tenantId: tenant, role: "member", personId: mum }, dad, {
+        setDirectoryPreferences(tx, { tenantId: tenant, role: "member", memberId: mum }, dad, {
           listed: false,
         }), "member"),
     ).rejects.toBeInstanceOf(PermissionError);

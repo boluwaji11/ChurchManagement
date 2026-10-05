@@ -6,7 +6,7 @@ import type { PlanChange } from "@hearth/db";
 /** The fields worth naming. Anything else is reported as a change without one. */
 const NAMED = new Set([
   "title", "kind", "minutes", "description", "position",
-  "series", "theme", "body", "label", "team_id", "position_id", "person_id",
+  "series", "theme", "body", "label", "team_id", "position_id", "member_id",
 ]);
 
 const named = (fields: string[]): string => {
@@ -28,7 +28,7 @@ const when = (iso: string): string =>
  * R11.12. Who changed what, and when.
  *
  * Worship leaders change plans the night before a service, and the question
- * on a service morning is which of the eight people with the password did it.
+ * on a service morning is which of the eight members with the password did it.
  */
 export function History({ changes }: { changes: PlanChange[] }) {
   return (

@@ -4,7 +4,7 @@ import { tenants, storedFiles } from "../schema/tenancy";
 import { canManageChurch } from "./church";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R1.16. Hard storage quotas, enforced and visible.

@@ -22,13 +22,13 @@ export interface TagOption {
  */
 export function TagEditor({
   church,
-  personId,
+  memberId,
   all,
   assigned,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   all: TagOption[];
   assigned: string[];
   canEdit: boolean;
@@ -61,7 +61,7 @@ export function TagEditor({
 
     const data = new FormData();
     data.set("church", church);
-    data.set("personId", personId);
+    data.set("memberId", memberId);
     data.set("tagId", tagId);
     data.set("on", next ? "0" : "1");
 
@@ -78,7 +78,7 @@ export function TagEditor({
   const create = async (data: FormData) => {
     setError(undefined);
     data.set("church", church);
-    data.set("personId", personId);
+    data.set("memberId", memberId);
     const name = String(data.get("name") ?? "").trim();
     const result = await addTagToPerson(data);
     if (result.error) {

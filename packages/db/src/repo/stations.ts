@@ -5,10 +5,10 @@ import { serviceTimes } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
- * R8.1, R8.2. Stations: the devices a church checks people in on.
+ * R8.1, R8.2. Stations: the devices a church checks members in on.
  *
  * A station is an identity, and it exists for three reasons that a device
  * cannot answer on its own. It says what prints the labels, because the lobby

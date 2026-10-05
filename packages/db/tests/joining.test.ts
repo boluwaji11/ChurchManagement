@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import {
   churchForJoinCode, joinWithCode, rotateJoinCode, closeJoining, normaliseJoinCode,
 } from "../src/repo/joining";
@@ -36,10 +36,10 @@ const account = (n: number, email: string, fullName: string | null = null) => ({
   emailVerified: true,
 });
 
-async function addEmail(personId: string, value: string) {
+async function addEmail(memberId: string, value: string) {
   await owner()`
-    insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
-    values (${tenant}, ${personId}, 'email', 'home', ${value}, true)`;
+    insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
+    values (${tenant}, ${memberId}, 'email', 'home', ${value}, true)`;
 }
 
 async function makePerson(
@@ -132,17 +132,17 @@ describe("an address the church does not hold", () => {
       where tenant_id = ${tenant} and user_id = ${account(2, "").id}`;
     expect(membership?.role).toBe("member");
 
-    const personId = await run((tx) => personForUser(tx, account(2, "").id));
-    expect(personId).toBeTruthy();
+    const memberId = await run((tx) => personForUser(tx, account(2, "").id));
+    expect(memberId).toBeTruthy();
 
     const [person] = await owner()<{ first_name: string; last_name: string; lifecycle_status: string }[]>`
-      select first_name, last_name, lifecycle_status from people where id = ${personId}`;
+      select first_name, last_name, lifecycle_status from members where id = ${memberId}`;
     expect(person?.first_name).toBe("Sam");
     expect(person?.last_name).toBe("Stranger");
     expect(person?.lifecycle_status).toBe("visitor");
 
     const [contact] = await owner()<{ value: string }[]>`
-      select value from contact_methods where person_id = ${personId} and kind = 'email'`;
+      select value from contact_methods where member_id = ${memberId} and kind = 'email'`;
     expect(contact?.value).toBe("stranger@jointest.invalid");
   });
 
@@ -151,7 +151,7 @@ describe("an address the church does not hold", () => {
     expect(outcome.status).toBe("member");
 
     const rows = await owner()`
-      select 1 from people where tenant_id = ${tenant} and app_user_id = ${account(2, "").id}`;
+      select 1 from members where tenant_id = ${tenant} and app_user_id = ${account(2, "").id}`;
     expect(rows.length).toBe(1);
   });
 });
@@ -165,7 +165,7 @@ describe("what a code can never do", () => {
     expect(outcome.status).toBe("joined");
 
     const [row] = await owner()<{ app_user_id: string | null }[]>`
-      select app_user_id from people where id = ${child}`;
+      select app_user_id from members where id = ${child}`;
     expect(row?.app_user_id).toBeNull();
 
     // They are in, on a record of their own rather than the child's.

@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { forms, formFields, formSubmissions } from "../schema/forms";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
@@ -13,14 +13,14 @@ import {
   type FormFieldKind, type FormStatus,
   isUuid,
 } from "./form-rules";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 export * from "./form-rules";
 
 /**
  * R4.1, R4.2, R4.9. Building a form.
  *
- * A church writes the questions once and the answers land on people's records,
+ * A church writes the questions once and the answers land on members's records,
  * which is the whole point of R4.4. This story is the writing: the kinds of
  * question, the headings between them, what is required, and what stops a
  * half-built form being put in front of anybody.
@@ -53,7 +53,7 @@ export interface FormSummary {
   hue: string;
   status: FormStatus;
   questions: number;
-  /** R4.4. How many people have answered it. */
+  /** R4.4. How many members have answered it. */
   responses: number;
   archivedAt: string | null;
 }
@@ -575,7 +575,7 @@ export interface FormSubmission {
   /** Question id to what was given, the shape `FormAnswer` describes. */
   answers: Record<string, FormAnswer>;
   /** R4.4. Who it turned out to be, where anybody is sure. */
-  personId: string | null;
+  memberId: string | null;
   /** R24.6. Their readable address, where the response matched somebody. */
   personSlug: string | null;
   personName: string | null;
@@ -600,15 +600,15 @@ export async function listSubmissions(
       id: formSubmissions.id,
       createdAt: formSubmissions.createdAt,
       answers: formSubmissions.answers,
-      personId: formSubmissions.personId,
-      personSlug: people.slug,
+      memberId: formSubmissions.memberId,
+      personSlug: members.slug,
       matchState: formSubmissions.matchState,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
     .from(formSubmissions)
-    .leftJoin(people, eq(people.id, formSubmissions.personId))
+    .leftJoin(members, eq(members.id, formSubmissions.memberId))
     .where(eq(formSubmissions.formId, formId))
     .orderBy(desc(formSubmissions.createdAt))
     .limit(window.limit)
@@ -618,7 +618,7 @@ export async function listSubmissions(
     id: row.id,
     receivedAt: row.createdAt.toISOString(),
     answers: (row.answers ?? {}) as Record<string, FormAnswer>,
-    personId: row.personId,
+    memberId: row.memberId,
     personSlug: row.personSlug,
     personName: row.firstName
       ? `${row.preferredName ?? row.firstName} ${row.lastName}`.trim()

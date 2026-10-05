@@ -12,7 +12,7 @@ const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, 
 const created = () => timestamp("created_at", { withTimezone: true }).defaultNow().notNull();
 const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
 
-/** R2.2. A household, which is how churches actually think about people. */
+/** R2.2. A household, which is how churches actually think about members. */
 export const households = pgTable(
   "households",
   {
@@ -28,8 +28,8 @@ export const households = pgTable(
   (t) => [index("households_tenant_idx").on(t.tenantId), index("households_name_idx").on(t.tenantId, t.name)],
 );
 
-export const people = pgTable(
-  "people",
+export const members = pgTable(
+  "members",
   {
     id: pk(),
     tenantId: tenantId(),
@@ -38,7 +38,7 @@ export const people = pgTable(
     slug: text("slug").notNull(),
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull(),
-    /** What people actually call them. Shown in preference to the legal first name. */
+    /** What members actually call them. Shown in preference to the legal first name. */
     preferredName: text("preferred_name"),
     gender: text("gender"),
     dateOfBirth: date("date_of_birth"),
@@ -49,7 +49,7 @@ export const people = pgTable(
      * A church asks this to put a child in the right room and a student in the
      * right group, so it is a managed vocabulary rather than free text: a room
      * assignment cannot be made from "6th" and "sixth grade" being two answers.
-     * Null for everybody who is not in school, which is most people.
+     * Null for everybody who is not in school, which is most members.
      */
     schoolLevel: text("school_level"),
     lifecycleStatus: lifecycleStatus("lifecycle_status").notNull().default("visitor"),
@@ -72,7 +72,7 @@ export const people = pgTable(
      * a member does for themselves in the portal.
      */
     appUserId: uuid("app_user_id").references(() => appUsers.id, { onDelete: "set null" }),
-    /** R2.13. Archived people leave lists and counts, history is retained. */
+    /** R2.13. Archived members leave lists and counts, history is retained. */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: created(),
     updatedAt: updated(),
@@ -93,7 +93,7 @@ export const householdMemberships = pgTable(
     id: pk(),
     tenantId: tenantId(),
     householdId: uuid("household_id").notNull().references(() => households.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     role: householdRole("role").notNull().default("other"),
     startedOn: date("started_on"),
     endedOn: date("ended_on"),
@@ -101,7 +101,7 @@ export const householdMemberships = pgTable(
   },
   (t) => [
     index("hm_tenant_idx").on(t.tenantId),
-    index("hm_person_idx").on(t.tenantId, t.personId),
+    index("hm_person_idx").on(t.tenantId, t.memberId),
     index("hm_household_idx").on(t.tenantId, t.householdId),
   ],
 );
@@ -112,7 +112,7 @@ export const contactMethods = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     kind: contactKind("kind").notNull(),
     label: contactLabel("label").notNull().default("mobile"),
     value: text("value").notNull(),
@@ -121,7 +121,7 @@ export const contactMethods = pgTable(
     isValid: boolean("is_valid").notNull().default(true),
     createdAt: created(),
   },
-  (t) => [index("contact_tenant_idx").on(t.tenantId), index("contact_person_idx").on(t.tenantId, t.personId)],
+  (t) => [index("contact_tenant_idx").on(t.tenantId), index("contact_person_idx").on(t.tenantId, t.memberId)],
 );
 
 /**
@@ -134,7 +134,7 @@ export const addresses = pgTable(
     id: pk(),
     tenantId: tenantId(),
     householdId: uuid("household_id").references(() => households.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "cascade" }),
     label: contactLabel("label").notNull().default("home"),
     line1: text("line1").notNull(),
     line2: text("line2"),
@@ -147,7 +147,7 @@ export const addresses = pgTable(
   },
   (t) => [
     index("addresses_tenant_idx").on(t.tenantId),
-    index("addresses_person_idx").on(t.tenantId, t.personId),
+    index("addresses_person_idx").on(t.tenantId, t.memberId),
     index("addresses_household_idx").on(t.tenantId, t.householdId),
   ],
 );
@@ -162,19 +162,19 @@ export const relationships = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
-    relatedPersonId: uuid("related_person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+    relatedMemberId: uuid("related_member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     kind: relationshipKind("kind").notNull(),
     notes: text("notes"),
     createdAt: created(),
   },
   (t) => [
     index("rel_tenant_idx").on(t.tenantId),
-    index("rel_person_idx").on(t.tenantId, t.personId),
+    index("rel_person_idx").on(t.tenantId, t.memberId),
     // Who points at this person. R8.8 reads the relationship both ways,
     // because a guardian recorded once is a guardian in both directions.
-    index("rel_related_idx").on(t.tenantId, t.relatedPersonId),
-    uniqueIndex("rel_unique").on(t.tenantId, t.personId, t.relatedPersonId, t.kind),
+    index("rel_related_idx").on(t.tenantId, t.relatedMemberId),
+    uniqueIndex("rel_unique").on(t.tenantId, t.memberId, t.relatedMemberId, t.kind),
   ],
 );
 
@@ -184,13 +184,13 @@ export const milestones = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     kind: milestoneKind("kind").notNull(),
     occurredOn: date("occurred_on").notNull(),
     notes: text("notes"),
     createdAt: created(),
   },
-  (t) => [index("milestones_tenant_idx").on(t.tenantId), index("milestones_person_idx").on(t.tenantId, t.personId)],
+  (t) => [index("milestones_tenant_idx").on(t.tenantId), index("milestones_person_idx").on(t.tenantId, t.memberId)],
 );
 
 /** R2.10. Status tracking only in v1. Gates children's scheduling in R10.9. */
@@ -199,14 +199,14 @@ export const backgroundChecks = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     provider: text("provider"),
     status: backgroundCheckStatus("status").notNull().default("not_started"),
     completedOn: date("completed_on"),
     expiresOn: date("expires_on"),
     createdAt: created(),
   },
-  (t) => [index("bgc_tenant_idx").on(t.tenantId), index("bgc_person_idx").on(t.tenantId, t.personId)],
+  (t) => [index("bgc_tenant_idx").on(t.tenantId), index("bgc_person_idx").on(t.tenantId, t.memberId)],
 );
 
 /** R1.13. Tags carry a hue, because a tag nobody can scan is a tag nobody uses. */
@@ -222,16 +222,16 @@ export const tags = pgTable(
   (t) => [uniqueIndex("tags_unique").on(t.tenantId, t.name)],
 );
 
-export const personTags = pgTable(
-  "person_tags",
+export const memberTags = pgTable(
+  "member_tags",
   {
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     tagId: uuid("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
     createdAt: created(),
   },
   (t) => [
-    primaryKey({ columns: [t.personId, t.tagId] }),
+    primaryKey({ columns: [t.memberId, t.tagId] }),
     index("person_tags_tenant_idx").on(t.tenantId),
     index("person_tags_tag_idx").on(t.tenantId, t.tagId),
   ],

@@ -18,7 +18,7 @@ import { checkOut } from "../src/repo/checkout";
 import { addRoom } from "../src/repo/rooms";
 import { addStation } from "../src/repo/stations";
 import { addSpecialService } from "../src/repo/services";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
@@ -100,7 +100,7 @@ describe("the codes a station carries (R8.21)", () => {
       checkInFamily(tx, as(), {
         occurrenceId: service,
         stationId: other,
-        entries: [{ personId: children[29]!, roomId: room, child: true }],
+        entries: [{ memberId: children[29]!, roomId: room, child: true }],
       }),
     );
     expect(block.codes).not.toContain(visits[0]!.code);
@@ -126,12 +126,12 @@ describe("a Sunday with the wifi down (R8.21, R8.23)", () => {
     // Twenty-nine, because one child was checked in online above, and that one
     // is the collision case rather than part of the clean run.
     const offline = children.slice(0, 29);
-    const events: OfflineEvent[] = offline.map((personId, i) => ({
+    const events: OfflineEvent[] = offline.map((memberId, i) => ({
       id: randomUUID(),
       kind: "checkin",
       at: at(i),
       occurrenceId: service,
-      personId,
+      memberId,
       roomId: room,
       child: true,
       code: block.codes[i]!,
@@ -148,8 +148,8 @@ describe("a Sunday with the wifi down (R8.21, R8.23)", () => {
     expect(new Set(codes).size, "a code was issued twice").toBe(codes.length);
 
     // Each child wears the code their label was printed with at the station.
-    for (const [i, personId] of offline.entries()) {
-      const visit = visits.find((v) => v.personId === personId)!;
+    for (const [i, memberId] of offline.entries()) {
+      const visit = visits.find((v) => v.memberId === memberId)!;
       expect(visit.code, `child ${i}`).toBe(block.codes[i]);
     }
 
@@ -160,12 +160,12 @@ describe("a Sunday with the wifi down (R8.21, R8.23)", () => {
     expect(labels.map((l) => l.code)).toEqual(block.codes.slice(0, 3));
 
     const collected = offline.slice(0, 15);
-    const checkouts: OfflineEvent[] = collected.map((personId, i) => ({
+    const checkouts: OfflineEvent[] = collected.map((memberId, i) => ({
       id: randomUUID(),
       kind: "checkout",
       at: at(70 + i),
       occurrenceId: service,
-      personId,
+      memberId,
       code: block.codes[i]!,
       collectedBy: null,
       override: null,
@@ -193,7 +193,7 @@ describe("a Sunday with the wifi down (R8.21, R8.23)", () => {
     const events: OfflineEvent[] = [
       {
         id: randomUUID(), kind: "checkin", at: at(5), occurrenceId: service,
-        personId: person, roomId: room, child: true, code: block.codes[0]!,
+        memberId: person, roomId: room, child: true, code: block.codes[0]!,
       },
     ];
 
@@ -207,7 +207,7 @@ describe("a Sunday with the wifi down (R8.21, R8.23)", () => {
     expect(second.applied).toBe(0);
 
     const visits = await run((tx) => visitsFor(tx, service));
-    expect(visits.filter((v) => v.personId === person).length).toBe(1);
+    expect(visits.filter((v) => v.memberId === person).length).toBe(1);
   });
 });
 
@@ -231,7 +231,7 @@ describe("what cannot be merged automatically (R8.23)", () => {
     const events: OfflineEvent[] = [
       {
         id: randomUUID(), kind: "checkin", at: at(10), occurrenceId: soloService,
-        personId: solo, roomId: room, child: true, code: "ZZZZZ",
+        memberId: solo, roomId: room, child: true, code: "ZZZZZ",
       },
     ];
     const result = await run((tx) => reconcile(tx, as(), { stationId: station, events }));
@@ -243,7 +243,7 @@ describe("what cannot be merged automatically (R8.23)", () => {
     await run((tx) =>
       checkInFamily(tx, as(), {
         occurrenceId: soloService, stationId: other,
-        entries: [{ personId: solo, roomId: null, child: true }],
+        entries: [{ memberId: solo, roomId: null, child: true }],
       }),
     );
 
@@ -253,7 +253,7 @@ describe("what cannot be merged automatically (R8.23)", () => {
     const events: OfflineEvent[] = [
       {
         id: randomUUID(), kind: "checkin", at: at(12), occurrenceId: soloService,
-        personId: solo, roomId: room, child: true, code: block.codes[0]!,
+        memberId: solo, roomId: room, child: true, code: block.codes[0]!,
       },
     ];
 
@@ -273,7 +273,7 @@ describe("what cannot be merged automatically (R8.23)", () => {
     const events: OfflineEvent[] = [
       {
         id: randomUUID(), kind: "checkout", at: at(80), occurrenceId: soloService,
-        personId: solo, code: visit!.code!, collectedBy: null, override: null,
+        memberId: solo, code: visit!.code!, collectedBy: null, override: null,
       },
     ];
     const result = await run((tx) => reconcile(tx, as(), { stationId: station, events }));
@@ -290,7 +290,7 @@ describe("what cannot be merged automatically (R8.23)", () => {
     const events: OfflineEvent[] = [
       {
         id: randomUUID(), kind: "checkout", at: at(85), occurrenceId: soloService,
-        personId: stranger, code: "ABCDE", collectedBy: null, override: null,
+        memberId: stranger, code: "ABCDE", collectedBy: null, override: null,
       },
     ];
     const result = await run((tx) => reconcile(tx, as(), { stationId: station, events }));

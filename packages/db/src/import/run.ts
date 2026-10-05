@@ -4,7 +4,7 @@ import type { Tx } from "../client";
 import type { Permission } from "../permissions";
 import { importBatches, importRows } from "../schema/imports";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
-import { createPerson, updatePerson, getPersonForEdit, type PersonInput, type LifecycleStatus, type HouseholdRole } from "../repo/people";
+import { createPerson, updatePerson, getPersonForEdit, type PersonInput, type LifecycleStatus, type HouseholdRole } from "../repo/members";
 import { listCustomFields, setCustomValues, coerceCustomValue, type CustomFieldDef } from "../repo/custom-fields";
 import type { Sheet } from "./csv";
 import { PERSON_FIELDS, parseImportedDate, parseLifecycle, parseHouseholdRole } from "./columns";
@@ -15,7 +15,7 @@ import { buildMatchIndex, findMatches, indexNewPerson, type Match, type MatchInd
  *
  * That is the point. A preview that is produced by different logic from the
  * write is a preview that can be wrong, and a preview nobody can trust is worse
- * than no preview, because people stop reading it. `plan()` decides what every
+ * than no preview, because members stop reading it. `plan()` decides what every
  * row would do, and `commit()` carries out exactly the plan it was given.
  */
 
@@ -179,12 +179,12 @@ function planRow(
   // A match against a row earlier in the same file. There is nothing to update,
   // because the person does not exist yet, so the only honest outcomes are skip
   // or create. The reason names the line so they can go and look at it.
-  if (strongest?.personId.startsWith(PLANNED) && strategy !== "create") {
+  if (strongest?.memberId.startsWith(PLANNED) && strategy !== "create") {
     return {
       lineNumber,
       outcome: "skip",
       reason: "import.skip.duplicateInFile",
-      reasonParams: { line: strongest.personId.slice(PLANNED.length) },
+      reasonParams: { line: strongest.memberId.slice(PLANNED.length) },
       person,
       custom: customValues,
       matches: [],
@@ -192,17 +192,17 @@ function planRow(
     };
   }
 
-  if (strongest && !strongest.personId.startsWith(PLANNED)) {
+  if (strongest && !strongest.memberId.startsWith(PLANNED)) {
     if (strategy === "skip") {
-      return { lineNumber, outcome: "skip", reason: "import.skip.duplicate", person, custom: customValues, matches, targetId: strongest.personId, source };
+      return { lineNumber, outcome: "skip", reason: "import.skip.duplicate", person, custom: customValues, matches, targetId: strongest.memberId, source };
     }
     if (strategy === "update") {
       // Only a match somebody could defend is written over. A shared surname or
       // a household phone is not enough to overwrite a record.
       if (strongest.confidence === "certain") {
-        return { lineNumber, outcome: "update", person, custom: customValues, matches, targetId: strongest.personId, source };
+        return { lineNumber, outcome: "update", person, custom: customValues, matches, targetId: strongest.memberId, source };
       }
-      return { lineNumber, outcome: "skip", reason: "import.skip.unsure", person, custom: customValues, matches, targetId: strongest.personId, source };
+      return { lineNumber, outcome: "skip", reason: "import.skip.unsure", person, custom: customValues, matches, targetId: strongest.memberId, source };
     }
   }
 
@@ -329,11 +329,11 @@ function merged(before: PersonInput, incoming: PersonInput): PersonInput {
 async function writeCustom(
   db: Tx,
   actor: { tenantId: string; role: TenantRole },
-  personId: string,
+  memberId: string,
   values: Record<string, unknown>,
 ): Promise<void> {
   if (Object.keys(values).length === 0) return;
-  await setCustomValues(db, actor, "person", personId, values as never);
+  await setCustomValues(db, actor, "person", memberId, values as never);
 }
 
 async function record(
@@ -341,7 +341,7 @@ async function record(
   actor: { tenantId: string },
   batchId: string,
   row: PlannedRow,
-  personId: string | null,
+  memberId: string | null,
   before: unknown,
 ): Promise<void> {
   await db.insert(importRows).values({
@@ -349,7 +349,7 @@ async function record(
     batchId,
     lineNumber: row.lineNumber,
     outcome: row.outcome,
-    personId,
+    memberId,
     reason: row.reason ?? null,
     before: before ?? null,
     source: row.source,

@@ -2,11 +2,11 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { checkinVisits, checkinRooms, checkinCodes } from "../schema/checkin";
 import { serviceOccurrences, attendanceRecords } from "../schema/gatherings";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { newCode, CODE_ATTEMPTS } from "./codes";
 
 /**
@@ -26,7 +26,7 @@ export const CAN_CHECK_IN: readonly TenantRole[] = rolesWith("checkin.run");
 export const canCheckIn = (role: Who): boolean => can(role, "checkin.run");
 
 export interface CheckinEntry {
-  personId: string;
+  memberId: string;
   /** Null for an adult, or for a child the volunteer sent to no room. */
   roomId: string | null;
   /**
@@ -51,7 +51,7 @@ export interface CheckinEntry {
 
 export interface Visit {
   id: string;
-  personId: string;
+  memberId: string;
   name: string;
   /** "child", who is counted into a room, or "adult", who may be serving in it. */
   kind: string;
@@ -65,7 +65,7 @@ export interface Visit {
 
 const COLUMNS = {
   id: checkinVisits.id,
-  personId: checkinVisits.personId,
+  memberId: checkinVisits.memberId,
   roomId: checkinVisits.roomId,
   code: checkinVisits.code,
   kind: checkinVisits.kind,
@@ -118,14 +118,14 @@ export async function checkInFamily(
       input.entries.map((entry) => ({
         tenantId: actor.tenantId,
         occurrenceId: input.occurrenceId,
-        personId: entry.personId,
+        memberId: entry.memberId,
         source: "checkin",
       })),
     )
     .onConflictDoNothing();
 
-  const ids = input.entries.map((e) => e.personId);
-  return (await visitsFor(db, input.occurrenceId)).filter((v) => ids.includes(v.personId));
+  const ids = input.entries.map((e) => e.memberId);
+  return (await visitsFor(db, input.occurrenceId)).filter((v) => ids.includes(v.memberId));
 }
 
 /**
@@ -148,7 +148,7 @@ async function writeVisit(
   const row = {
     tenantId: actor.tenantId,
     occurrenceId: input.occurrenceId,
-    personId: entry.personId,
+    memberId: entry.memberId,
     roomId: entry.roomId,
     stationId: input.stationId ?? null,
     checkedInBy: input.userId ?? null,
@@ -168,7 +168,7 @@ async function writeVisit(
       bagLabel: child ? entry.bagLabel === true : false,
       ...(entry.at ? { checkedInAt: new Date(entry.at) } : {}),
     })
-    .onConflictDoNothing({ target: [checkinVisits.occurrenceId, checkinVisits.personId] });
+    .onConflictDoNothing({ target: [checkinVisits.occurrenceId, checkinVisits.memberId] });
 }
 
 /**
@@ -203,21 +203,21 @@ export async function visitsFor(db: Tx, occurrenceId: string): Promise<Visit[]> 
   const rows = await db
     .select({
       ...COLUMNS,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
       roomName: checkinRooms.name,
       roomHue: checkinRooms.hue,
     })
     .from(checkinVisits)
-    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .innerJoin(members, eq(members.id, checkinVisits.memberId))
     .leftJoin(checkinRooms, eq(checkinRooms.id, checkinVisits.roomId))
     .where(eq(checkinVisits.occurrenceId, occurrenceId))
     .orderBy(asc(checkinVisits.checkedInAt));
 
   return rows.map((r) => ({
     id: r.id,
-    personId: r.personId,
+    memberId: r.memberId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     kind: r.kind,
     roomId: r.roomId,
@@ -229,7 +229,7 @@ export async function visitsFor(db: Tx, occurrenceId: string): Promise<Visit[]> 
   }));
 }
 
-/** Which of these people are already checked in, so the desk does not ask twice. */
+/** Which of these members are already checked in, so the desk does not ask twice. */
 export async function visitsForPeople(
   db: Tx,
   occurrenceId: string,
@@ -237,7 +237,7 @@ export async function visitsForPeople(
 ): Promise<Visit[]> {
   if (personIds.length === 0) return [];
   const all = await visitsFor(db, occurrenceId);
-  return all.filter((v) => personIds.includes(v.personId));
+  return all.filter((v) => personIds.includes(v.memberId));
 }
 
 /**
@@ -251,7 +251,7 @@ export async function undoCheckIn(
   db: Tx,
   actor: WriteActor,
   occurrenceId: string,
-  personId: string,
+  memberId: string,
 ): Promise<void> {
   if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
 
@@ -260,7 +260,7 @@ export async function undoCheckIn(
     .where(
       and(
         eq(checkinVisits.occurrenceId, occurrenceId),
-        eq(checkinVisits.personId, personId),
+        eq(checkinVisits.memberId, memberId),
         isNull(checkinVisits.checkedOutAt),
       ),
     )
@@ -273,7 +273,7 @@ export async function undoCheckIn(
     .where(
       and(
         eq(attendanceRecords.occurrenceId, occurrenceId),
-        eq(attendanceRecords.personId, personId),
+        eq(attendanceRecords.memberId, memberId),
         eq(attendanceRecords.source, "checkin"),
       ),
     );
@@ -314,7 +314,7 @@ export async function roomCounts(
  * prints the same labels as one printing online.
  */
 export interface LabelPair {
-  personId: string;
+  memberId: string;
   childName: string;
   roomName: string | null;
   roomHue: string | null;
@@ -341,31 +341,31 @@ export async function labelsFor(
 
   const rows = await db
     .select({
-      personId: checkinVisits.personId,
+      memberId: checkinVisits.memberId,
       code: checkinVisits.code,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      allergies: people.allergies,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      allergies: members.allergies,
       roomName: checkinRooms.name,
       roomHue: checkinRooms.hue,
       serviceName: serviceOccurrences.name,
       bagLabel: checkinVisits.bagLabel,
     })
     .from(checkinVisits)
-    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .innerJoin(members, eq(members.id, checkinVisits.memberId))
     .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, checkinVisits.occurrenceId))
     .leftJoin(checkinRooms, eq(checkinRooms.id, checkinVisits.roomId))
     .where(eq(checkinVisits.occurrenceId, occurrenceId))
-    .orderBy(asc(people.firstName));
+    .orderBy(asc(members.firstName));
 
   // Everybody checked in has something to wear. A child gets the pair, matched
   // on a code; an adult gets a name badge, which the sheet prints as one label
   // with no code on it. (R8.5, R8.6)
   return rows
-    .filter((r) => personIds.includes(r.personId))
+    .filter((r) => personIds.includes(r.memberId))
     .map((r) => ({
-      personId: r.personId,
+      memberId: r.memberId,
       childName: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
       roomName: r.roomName,
       roomHue: r.roomHue,

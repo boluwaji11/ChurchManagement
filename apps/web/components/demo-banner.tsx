@@ -7,7 +7,7 @@ import { t } from "@hearth/i18n";
  * R19.7. Says, on every page of a demo, that it is one.
  *
  * In the header rather than on one screen, because somebody who lands three
- * pages deep should never have to wonder whether these people are real. The
+ * pages deep should never have to wonder whether these members are real. The
  * whole reason the demo is a separate church is that nobody can mistake it for
  * their own, and saying so is the cheap half of that.
  */

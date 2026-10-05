@@ -3,7 +3,7 @@ import type { Tx } from "../client";
 import { freeSlug } from "./slugs";
 import { isUuid } from "./form-rules";
 import type { Permission } from "../permissions";
-import { people, households, householdMemberships, contactMethods, addresses, tags, personTags, milestones } from "../schema/people";
+import { members, households, householdMemberships, contactMethods, addresses, tags, memberTags, milestones } from "../schema/members";
 import { canArchivePeople, canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { visiblePeople, type Viewer } from "./scope";
 import { requireRoomForPeople } from "./provisional";
@@ -56,7 +56,7 @@ export interface DirectoryQuery {
   /** Restricts to a set of ids, for acting on a selection. */
   ids?: string[];
   /**
-   * R9.3. Who is asking. A group leader sees the people in the groups they
+   * R9.3. Who is asking. A group leader sees the members in the groups they
    * lead and nobody else, and that is decided here rather than in a page,
    * because a scope enforced by a template is not a scope.
    */
@@ -70,11 +70,11 @@ export interface DirectoryQuery {
 export const PER_PAGE = 50;
 
 const ORDERS = {
-  name: [people.lastName, people.firstName],
-  firstName: [people.firstName, people.lastName],
-  household: [households.name, people.lastName],
-  status: [people.lifecycleStatus, people.lastName],
-  added: [people.createdAt],
+  name: [members.lastName, members.firstName],
+  firstName: [members.firstName, members.lastName],
+  household: [households.name, members.lastName],
+  status: [members.lifecycleStatus, members.lastName],
+  added: [members.createdAt],
 } as const;
 
 /**
@@ -85,7 +85,7 @@ const ORDERS = {
  * returning another church's members.
  *
  * Searching, filtering and ordering happen in Postgres rather than in the page,
- * so the answer is the same whether a church has fifty people or five thousand,
+ * so the answer is the same whether a church has fifty members or five thousand,
  * and so a filtered export exports what the filter says rather than what one
  * page of it said.
  */
@@ -99,7 +99,7 @@ const ORDERS = {
 export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   const where: (SQL | undefined)[] = [];
 
-  if (!opts.includeArchived) where.push(isNull(people.archivedAt));
+  if (!opts.includeArchived) where.push(isNull(members.archivedAt));
 
   const q = (opts.q ?? "").trim();
   if (q) {
@@ -118,29 +118,29 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
       or lower(coalesce(a.city, '')) like ${like}
       or lower(coalesce(a.postal_code, '')) like ${like}`;
     where.push(sql`(
-      lower(${people.firstName}) like ${like}
-      or lower(${people.lastName}) like ${like}
-      or lower(coalesce(${people.preferredName}, '')) like ${like}
-      or lower(${people.firstName} || ' ' || ${people.lastName}) like ${like}
+      lower(${members.firstName}) like ${like}
+      or lower(${members.lastName}) like ${like}
+      or lower(coalesce(${members.preferredName}, '')) like ${like}
+      or lower(${members.firstName} || ' ' || ${members.lastName}) like ${like}
       or exists (
         select 1 from contact_methods cm
-        where cm.person_id = ${people.id}
+        where cm.member_id = ${members.id}
           and (
             lower(cm.value) like ${like}
             ${digits.length >= 3 ? sql`or regexp_replace(cm.value, '[^0-9]', '', 'g') like ${`%${digits}%`}` : sql``}
           )
       )
-      or ${people.id} in (
+      or ${members.id} in (
         -- Their own address, or their household's, because a church writes one
         -- address for the family and looks a person up by it.
         --
         -- Written as a set rather than a correlated exists. As an exists, the
-        -- planner ran it once per person: five thousand people, each scanning
+        -- planner ran it once per person: five thousand members, each scanning
         -- every address, which took 1.9 seconds. This runs once.
-        select a.person_id from addresses a
-         where a.person_id is not null and (${addressMatches})
+        select a.member_id from addresses a
+         where a.member_id is not null and (${addressMatches})
         union
-        select hm.person_id
+        select hm.member_id
           from addresses a
           join household_memberships hm on hm.household_id = a.household_id
          where a.household_id is not null and (${addressMatches})
@@ -148,18 +148,18 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
     )`);
   }
 
-  if (opts.status) where.push(eq(people.lifecycleStatus, opts.status as never));
+  if (opts.status) where.push(eq(members.lifecycleStatus, opts.status as never));
 
   if (opts.tagId) {
     where.push(sql`exists (
-      select 1 from person_tags pt where pt.person_id = ${people.id} and pt.tag_id = ${opts.tagId}::uuid
+      select 1 from person_tags pt where pt.member_id = ${members.id} and pt.tag_id = ${opts.tagId}::uuid
     )`);
   }
 
   if (opts.has) {
     const kind = opts.has === "email" || opts.has === "noEmail" ? "email" : "phone";
     const present = sql`exists (
-      select 1 from contact_methods cm where cm.person_id = ${people.id} and cm.kind = ${kind}
+      select 1 from contact_methods cm where cm.member_id = ${members.id} and cm.kind = ${kind}
     )`;
     where.push(opts.has.startsWith("no") ? sql`not ${present}` : present);
   }
@@ -170,11 +170,11 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
    * the same thing in January as it did in December.
    */
   if (opts.joined === "year") {
-    where.push(sql`${people.membershipDate} >= date_trunc('year', current_date)`);
+    where.push(sql`${members.membershipDate} >= date_trunc('year', current_date)`);
   } else if (opts.joined === "five") {
-    where.push(sql`${people.membershipDate} >= (current_date - interval '5 years')`);
+    where.push(sql`${members.membershipDate} >= (current_date - interval '5 years')`);
   } else if (opts.joined === "earlier") {
-    where.push(sql`${people.membershipDate} < (current_date - interval '5 years')`);
+    where.push(sql`${members.membershipDate} < (current_date - interval '5 years')`);
   }
 
   /*
@@ -183,8 +183,8 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
    */
   if (opts.missing) {
     where.push(sql`(
-      not exists (select 1 from contact_methods cm where cm.person_id = ${people.id} and cm.kind = 'email')
-      or not exists (select 1 from contact_methods cm where cm.person_id = ${people.id} and cm.kind = 'phone')
+      not exists (select 1 from contact_methods cm where cm.member_id = ${members.id} and cm.kind = 'email')
+      or not exists (select 1 from contact_methods cm where cm.member_id = ${members.id} and cm.kind = 'phone')
     )`);
   }
 
@@ -193,7 +193,7 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   if (opts.group) {
     const inAny = sql`exists (
       select 1 from group_memberships gm
-       where gm.person_id = ${people.id} and gm.left_on is null
+       where gm.member_id = ${members.id} and gm.left_on is null
     )`;
     where.push(opts.group === "any" ? inAny : sql`not ${inAny}`);
   }
@@ -203,7 +203,7 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   if (opts.serving) {
     const onAny = sql`exists (
       select 1 from team_members tm
-       where tm.person_id = ${people.id} and tm.left_on is null
+       where tm.member_id = ${members.id} and tm.left_on is null
     )`;
     where.push(opts.serving === "any" ? onAny : sql`not ${onAny}`);
   }
@@ -217,13 +217,13 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
     const lately = sql`exists (
       select 1 from attendance_records ar
         join service_occurrences so on so.id = ar.occurrence_id
-       where ar.person_id = ${people.id}
+       where ar.member_id = ${members.id}
          and so.occurs_on >= (current_date - interval '28 days')
     )`;
     where.push(opts.seen === "recent" ? lately : sql`not ${lately}`);
   }
 
-  if (opts.ids) where.push(opts.ids.length === 0 ? sql`false` : inArray(people.id, opts.ids));
+  if (opts.ids) where.push(opts.ids.length === 0 ? sql`false` : inArray(members.id, opts.ids));
 
   return where;
 }
@@ -244,23 +244,23 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
 
   const rows = await db
     .select({
-      id: people.id,
-      slug: people.slug,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      lifecycleStatus: people.lifecycleStatus,
-      dateOfBirth: people.dateOfBirth,
-      archivedAt: people.archivedAt,
+      id: members.id,
+      slug: members.slug,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      lifecycleStatus: members.lifecycleStatus,
+      dateOfBirth: members.dateOfBirth,
+      archivedAt: members.archivedAt,
       householdName: households.name,
       primaryEmail: sql<string | null>`(
         select cm.value from contact_methods cm
-        where cm.person_id = ${people.id} and cm.kind = 'email' and cm.is_primary
+        where cm.member_id = ${members.id} and cm.kind = 'email' and cm.is_primary
         limit 1
       )`,
       primaryPhone: sql<string | null>`(
         select cm.value from contact_methods cm
-        where cm.person_id = ${people.id} and cm.kind = 'phone' and cm.is_primary
+        where cm.member_id = ${members.id} and cm.kind = 'phone' and cm.is_primary
         limit 1
       )`,
       // R2.14. One aggregate rather than a second round trip per person.
@@ -268,13 +268,13 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
         select coalesce(array_agg(tg.name order by tg.name), '{}')
         from person_tags pt
         join tags tg on tg.id = pt.tag_id
-        where pt.person_id = ${people.id}
+        where pt.member_id = ${members.id}
       )`,
     })
-    .from(people)
+    .from(members)
     .leftJoin(
       householdMemberships,
-      and(eq(householdMemberships.personId, people.id), isNull(householdMemberships.endedOn)),
+      and(eq(householdMemberships.memberId, members.id), isNull(householdMemberships.endedOn)),
     )
     .leftJoin(households, eq(households.id, householdMemberships.householdId))
     .where(where.length > 0 ? and(...where) : undefined)
@@ -293,8 +293,8 @@ export async function getPerson(db: Tx, id: string, viewer?: Viewer) {
   // checked, because what a viewer may see is a question about the record.
   const [row] = await db
     .select()
-    .from(people)
-    .where(isUuid(id) ? eq(people.id, id) : eq(people.slug, id))
+    .from(members)
+    .where(isUuid(id) ? eq(members.id, id) : eq(members.slug, id))
     .limit(1);
   if (!row) return null;
 
@@ -307,10 +307,10 @@ export async function getPerson(db: Tx, id: string, viewer?: Viewer) {
 
 export async function countPeopleByStatus(db: Tx): Promise<Record<string, number>> {
   const rows = await db
-    .select({ status: people.lifecycleStatus, n: count() })
-    .from(people)
-    .where(isNull(people.archivedAt))
-    .groupBy(people.lifecycleStatus);
+    .select({ status: members.lifecycleStatus, n: count() })
+    .from(members)
+    .where(isNull(members.archivedAt))
+    .groupBy(members.lifecycleStatus);
   return Object.fromEntries(rows.map((r) => [r.status, Number(r.n)]));
 }
 
@@ -318,12 +318,12 @@ export async function listTags(db: Tx) {
   return db.select().from(tags).orderBy(asc(tags.name));
 }
 
-export async function listTagsForPerson(db: Tx, personId: string) {
+export async function listTagsForPerson(db: Tx, memberId: string) {
   return db
     .select({ id: tags.id, name: tags.name, hue: tags.hue })
-    .from(personTags)
-    .innerJoin(tags, eq(tags.id, personTags.tagId))
-    .where(eq(personTags.personId, personId));
+    .from(memberTags)
+    .innerJoin(tags, eq(tags.id, memberTags.tagId))
+    .where(eq(memberTags.memberId, memberId));
 }
 
 /**
@@ -437,9 +437,9 @@ async function freePersonSlug(
     [first, last].filter(Boolean).join(" "),
     async (candidate) => {
       const [clash] = await db
-        .select({ id: people.id })
-        .from(people)
-        .where(eq(people.slug, candidate))
+        .select({ id: members.id })
+        .from(members)
+        .where(eq(members.slug, candidate))
         .limit(1);
       return Boolean(clash);
     },
@@ -463,7 +463,7 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
   await requireRoomForPeople(db, actor.tenantId);
 
   const [row] = await db
-    .insert(people)
+    .insert(members)
     .values({
       tenantId: actor.tenantId,
       slug: await freePersonSlug(db, input.preferredName || input.firstName, input.lastName),
@@ -480,7 +480,7 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
       maritalStatus: trimmed(input.maritalStatus),
       schoolLevel: trimmed(input.schoolLevel),
     })
-    .returning({ id: people.id });
+    .returning({ id: members.id });
 
   if (!row) throw new Error("Person insert returned no row.");
 
@@ -509,7 +509,7 @@ export async function updatePerson(
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
 
   const changed = await db
-    .update(people)
+    .update(members)
     .set({
       firstName: input.firstName.trim(),
       lastName: input.lastName.trim(),
@@ -525,8 +525,8 @@ export async function updatePerson(
       schoolLevel: trimmed(input.schoolLevel),
       updatedAt: new Date(),
     })
-    .where(eq(people.id, id))
-    .returning({ id: people.id });
+    .where(eq(members.id, id))
+    .returning({ id: members.id });
 
   if (changed.length === 0) throw new Error("No such person.");
 
@@ -555,10 +555,10 @@ export async function setPersonArchived(
   }
 
   const changed = await db
-    .update(people)
+    .update(members)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
-    .where(eq(people.id, id))
-    .returning({ id: people.id });
+    .where(eq(members.id, id))
+    .returning({ id: members.id });
 
   if (changed.length === 0) throw new Error("No such person.");
 }
@@ -582,7 +582,7 @@ export async function setPersonArchived(
 async function setAddress(
   db: Tx,
   actor: WriteActor,
-  personId: string,
+  memberId: string,
   value: string | AddressInput | null | undefined,
 ): Promise<void> {
   if (value === undefined) return;
@@ -590,7 +590,7 @@ async function setAddress(
   const [existing] = await db
     .select({ id: addresses.id })
     .from(addresses)
-    .where(eq(addresses.personId, personId))
+    .where(eq(addresses.memberId, memberId))
     .limit(1);
 
   // A string is one line from an importer: everything before the first comma is
@@ -628,14 +628,14 @@ async function setAddress(
 
   await db.insert(addresses).values({
     tenantId: actor.tenantId,
-    personId,
+    memberId,
     ...row,
     isPrimary: true,
   });
 }
 
 /** R2.4. The parts of somebody's own address, for a form that edits them. */
-export async function addressPartsFor(db: Tx, personId: string): Promise<AddressInput> {
+export async function addressPartsFor(db: Tx, memberId: string): Promise<AddressInput> {
   const [row] = await db
     .select({
       line1: addresses.line1,
@@ -646,7 +646,7 @@ export async function addressPartsFor(db: Tx, personId: string): Promise<Address
       country: addresses.country,
     })
     .from(addresses)
-    .where(eq(addresses.personId, personId))
+    .where(eq(addresses.memberId, memberId))
     .limit(1);
 
   return row ?? { line1: null };
@@ -655,7 +655,7 @@ export async function addressPartsFor(db: Tx, personId: string): Promise<Address
 async function setContact(
   db: Tx,
   actor: WriteActor,
-  personId: string,
+  memberId: string,
   kind: "email" | "phone",
   value: string | null | undefined,
 ): Promise<void> {
@@ -675,7 +675,7 @@ async function setContact(
     .from(contactMethods)
     .where(
       and(
-        eq(contactMethods.personId, personId),
+        eq(contactMethods.memberId, memberId),
         eq(contactMethods.kind, kind),
         eq(contactMethods.isPrimary, true),
       ),
@@ -694,7 +694,7 @@ async function setContact(
 
   await db.insert(contactMethods).values({
     tenantId: actor.tenantId,
-    personId,
+    memberId,
     kind,
     label: kind === "phone" ? "mobile" : "home",
     value: next,
@@ -709,7 +709,7 @@ async function setContact(
  * the thing that explains a record. A child who moved out still attended with
  * their parents for eleven years.
  */
-async function setHousehold(db: Tx, actor: WriteActor, personId: string, input: PersonInput): Promise<void> {
+async function setHousehold(db: Tx, actor: WriteActor, memberId: string, input: PersonInput): Promise<void> {
   const role = input.householdRole ?? "other";
   const newName = trimmed(input.householdName);
 
@@ -728,7 +728,7 @@ async function setHousehold(db: Tx, actor: WriteActor, personId: string, input: 
   const [current] = await db
     .select({ id: householdMemberships.id, householdId: householdMemberships.householdId })
     .from(householdMemberships)
-    .where(and(eq(householdMemberships.personId, personId), isNull(householdMemberships.endedOn)))
+    .where(and(eq(householdMemberships.memberId, memberId), isNull(householdMemberships.endedOn)))
     .limit(1);
 
   if (current && current.householdId === targetId) {
@@ -747,7 +747,7 @@ async function setHousehold(db: Tx, actor: WriteActor, personId: string, input: 
     await db.insert(householdMemberships).values({
       tenantId: actor.tenantId,
       householdId: targetId,
-      personId,
+      memberId,
       role,
       startedOn: new Date().toISOString().slice(0, 10),
     });
@@ -767,17 +767,17 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
   if (!person) return null;
 
   // Found by slug or by id, so the rest reads from the record's own id.
-  const personId = person.id;
+  const memberId = person.id;
 
   const contacts = await db
     .select({ kind: contactMethods.kind, value: contactMethods.value })
     .from(contactMethods)
-    .where(and(eq(contactMethods.personId, personId), eq(contactMethods.isPrimary, true)));
+    .where(and(eq(contactMethods.memberId, memberId), eq(contactMethods.isPrimary, true)));
 
   const [membership] = await db
     .select({ householdId: householdMemberships.householdId, role: householdMemberships.role })
     .from(householdMemberships)
-    .where(and(eq(householdMemberships.personId, personId), isNull(householdMemberships.endedOn)))
+    .where(and(eq(householdMemberships.memberId, memberId), isNull(householdMemberships.endedOn)))
     .limit(1);
 
   return {
@@ -796,7 +796,7 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
     campusId: person.campusId,
     maritalStatus: person.maritalStatus,
     schoolLevel: person.schoolLevel,
-    address: await addressPartsFor(db, personId),
+    address: await addressPartsFor(db, memberId),
     email: contacts.find((c) => c.kind === "email")?.value ?? null,
     phone: contacts.find((c) => c.kind === "phone")?.value ?? null,
     householdId: membership?.householdId ?? null,
@@ -808,7 +808,7 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
  * R2.1. Every household, and who is in it.
  *
  * A church of 180 has four households called Smith, and a list of four
- * identical words is a list nobody can pick from. The names of the people in
+ * identical words is a list nobody can pick from. The names of the members in
  * each one come back with it, so "Smith" and "Smith" read as "Smith, Mike and
  * Jane" and "Smith, John".
  */
@@ -833,7 +833,7 @@ export async function listHouseholds(db: Tx): Promise<HouseholdOption[]> {
                      coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
                      hm.role::text as role
                 from household_memberships hm
-                join people p on p.id = hm.person_id
+                join members p on p.id = hm.member_id
                where hm.household_id = households.id
                  and p.archived_at is null
             ) m
@@ -872,10 +872,10 @@ export async function bulkSetArchived(
   if (ids.length === 0) return 0;
 
   const changed = await db
-    .update(people)
+    .update(members)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
-    .where(inArray(people.id, ids))
-    .returning({ id: people.id });
+    .where(inArray(members.id, ids))
+    .returning({ id: members.id });
 
   return changed.length;
 }
@@ -890,16 +890,16 @@ export async function bulkSetStatus(
   if (ids.length === 0) return 0;
 
   const changed = await db
-    .update(people)
+    .update(members)
     .set({ lifecycleStatus: status, updatedAt: new Date() })
-    .where(inArray(people.id, ids))
-    .returning({ id: people.id });
+    .where(inArray(members.id, ids))
+    .returning({ id: members.id });
 
   return changed.length;
 }
 
 /**
- * How many people match, ignoring the page.
+ * How many members match, ignoring the page.
  *
  * A separate count rather than a window function on the page query, because the
  * page query joins households to sort by them and a count over that join would
@@ -927,7 +927,7 @@ export async function countPeople(db: Tx, opts: DirectoryQuery = {}): Promise<nu
   const where = directoryWhere(scoped === null ? opts : { ...opts, ids: scoped });
   const rows = await db
     .select({ n: count() })
-    .from(people)
+    .from(members)
     .where(where.length > 0 ? and(...where) : undefined);
   return Number(rows[0]?.n ?? 0);
 }
@@ -945,11 +945,11 @@ export interface HouseholdCard {
  * and wants the family around it: who the spouse is, how many children, who to
  * ring if this one does not answer.
  */
-export async function householdFor(db: Tx, personId: string): Promise<HouseholdCard | null> {
+export async function householdFor(db: Tx, memberId: string): Promise<HouseholdCard | null> {
   const [mine] = await db
     .select({ householdId: householdMemberships.householdId })
     .from(householdMemberships)
-    .where(and(eq(householdMemberships.personId, personId), isNull(householdMemberships.endedOn)))
+    .where(and(eq(householdMemberships.memberId, memberId), isNull(householdMemberships.endedOn)))
     .limit(1);
   if (!mine?.householdId) return null;
 
@@ -960,29 +960,29 @@ export async function householdFor(db: Tx, personId: string): Promise<HouseholdC
     .limit(1);
   if (!household) return null;
 
-  const members = await db
+  const household_members = await db
     .select({
-      id: people.id,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      id: members.id,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
       role: householdMemberships.role,
     })
     .from(householdMemberships)
-    .innerJoin(people, eq(people.id, householdMemberships.personId))
+    .innerJoin(members, eq(members.id, householdMemberships.memberId))
     .where(
       and(
         eq(householdMemberships.householdId, mine.householdId),
         isNull(householdMemberships.endedOn),
-        isNull(people.archivedAt),
+        isNull(members.archivedAt),
       ),
     )
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   return {
     id: household.id,
     name: household.name,
-    members: members.map((m) => ({
+    members: household_members.map((m: typeof household_members[number]) => ({
       id: m.id,
       displayName: `${m.preferredName ?? m.firstName} ${m.lastName}`,
       role: m.role,
@@ -996,11 +996,11 @@ export async function householdFor(db: Tx, personId: string): Promise<HouseholdC
  * Their own if they have one, otherwise the household's, because a church
  * writes one address for the family and the person's page should still show it.
  */
-export async function addressFor(db: Tx, personId: string): Promise<string | null> {
+export async function addressFor(db: Tx, memberId: string): Promise<string | null> {
   const [mine] = await db
     .select({ householdId: householdMemberships.householdId })
     .from(householdMemberships)
-    .where(and(eq(householdMemberships.personId, personId), isNull(householdMemberships.endedOn)))
+    .where(and(eq(householdMemberships.memberId, memberId), isNull(householdMemberships.endedOn)))
     .limit(1);
 
   const rows = await db
@@ -1010,17 +1010,17 @@ export async function addressFor(db: Tx, personId: string): Promise<string | nul
       city: addresses.city,
       region: addresses.region,
       postalCode: addresses.postalCode,
-      personId: addresses.personId,
+      memberId: addresses.memberId,
     })
     .from(addresses)
     .where(
       mine?.householdId
-        ? or(eq(addresses.personId, personId), eq(addresses.householdId, mine.householdId))
-        : eq(addresses.personId, personId),
+        ? or(eq(addresses.memberId, memberId), eq(addresses.householdId, mine.householdId))
+        : eq(addresses.memberId, memberId),
     );
 
   // Their own wins over the household's.
-  const row = rows.find((r) => r.personId === personId) ?? rows[0];
+  const row = rows.find((r) => r.memberId === memberId) ?? rows[0];
   return row ? oneLine(row) : null;
 }
 
@@ -1041,7 +1041,7 @@ function oneLine(row: AddressParts): string {
 }
 
 /**
- * R2.11. The same answer for a list of people, in two queries.
+ * R2.11. The same answer for a list of members, in two queries.
  *
  * The card list prints an address against every name on it, and a month of
  * birthdays is thirty names.
@@ -1055,18 +1055,18 @@ export async function addressesFor(
 
   const memberships = await db
     .select({
-      personId: householdMemberships.personId,
+      memberId: householdMemberships.memberId,
       householdId: householdMemberships.householdId,
     })
     .from(householdMemberships)
     .where(
       and(
-        inArray(householdMemberships.personId, personIds),
+        inArray(householdMemberships.memberId, personIds),
         isNull(householdMemberships.endedOn),
       ),
     );
 
-  const houseOf = new Map(memberships.map((m) => [m.personId, m.householdId]));
+  const houseOf = new Map(memberships.map((m) => [m.memberId, m.householdId]));
   const houses = [...new Set(memberships.map((m) => m.householdId))];
 
   const rows = await db
@@ -1076,21 +1076,21 @@ export async function addressesFor(
       city: addresses.city,
       region: addresses.region,
       postalCode: addresses.postalCode,
-      personId: addresses.personId,
+      memberId: addresses.memberId,
       householdId: addresses.householdId,
     })
     .from(addresses)
     .where(
       houses.length > 0
         ? or(
-            inArray(addresses.personId, personIds),
+            inArray(addresses.memberId, personIds),
             inArray(addresses.householdId, houses),
           )
-        : inArray(addresses.personId, personIds),
+        : inArray(addresses.memberId, personIds),
     );
 
   for (const id of personIds) {
-    const mine = rows.find((r) => r.personId === id);
+    const mine = rows.find((r) => r.memberId === id);
     const theirs = mine ?? rows.find((r) => r.householdId && r.householdId === houseOf.get(id));
     const line = theirs ? oneLine(theirs) : "";
     if (line) out.set(id, line);
@@ -1119,11 +1119,11 @@ export async function peopleToInvite(
     select p.id,
            coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
            lower(c.value) as email
-      from people p
+      from members p
       join lateral (
         select value
           from contact_methods
-         where person_id = p.id and kind = 'email' and is_valid
+         where member_id = p.id and kind = 'email' and is_valid
          order by is_primary desc
          limit 1
       ) c on true
@@ -1185,9 +1185,9 @@ export async function updateOwnProfile(
   },
 ): Promise<string | null> {
   const [mine] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(and(eq(people.appUserId, actor.userId), isNull(people.archivedAt)))
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.appUserId, actor.userId), isNull(members.archivedAt)))
     .limit(1);
   if (!mine) return null;
 
@@ -1196,7 +1196,7 @@ export async function updateOwnProfile(
   if (!firstName || !lastName) throw new InvalidInputError("profile.error.name");
 
   await db
-    .update(people)
+    .update(members)
     .set({
       firstName,
       lastName,
@@ -1206,7 +1206,7 @@ export async function updateOwnProfile(
       schoolLevel: trimmed(input.schoolLevel),
       updatedAt: new Date(),
     })
-    .where(eq(people.id, mine.id));
+    .where(eq(members.id, mine.id));
 
   const who = { tenantId: actor.tenantId, role: "owner" as const, userId: actor.userId };
   // R1.8. The address on the record is the address they sign in with. Changing
@@ -1231,30 +1231,30 @@ export async function updateOwnProfile(
 export async function setAnniversary(
   db: Tx,
   actor: WriteActor,
-  personId: string,
+  memberId: string,
   on: string | null,
 ): Promise<void> {
   await db
     .delete(milestones)
-    .where(and(eq(milestones.personId, personId), eq(milestones.kind, "marriage")));
+    .where(and(eq(milestones.memberId, memberId), eq(milestones.kind, "marriage")));
 
   if (!on) return;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(on)) throw new InvalidInputError("milestone.error.date");
 
   await db.insert(milestones).values({
     tenantId: actor.tenantId,
-    personId,
+    memberId,
     kind: "marriage",
     occurredOn: on,
   });
 }
 
 /** R2.11. The wedding date a person already has, or null. */
-export async function anniversaryOf(db: Tx, personId: string): Promise<string | null> {
+export async function anniversaryOf(db: Tx, memberId: string): Promise<string | null> {
   const [row] = await db
     .select({ on: sql<string>`${milestones.occurredOn}::text` })
     .from(milestones)
-    .where(and(eq(milestones.personId, personId), eq(milestones.kind, "marriage")))
+    .where(and(eq(milestones.memberId, memberId), eq(milestones.kind, "marriage")))
     .orderBy(desc(milestones.occurredOn))
     .limit(1);
   return row?.on ?? null;
@@ -1273,16 +1273,16 @@ export async function setOwnPhoto(
   key: string | null,
 ): Promise<{ removed: string | null }> {
   const [mine] = await db
-    .select({ id: people.id, photoKey: people.photoKey })
-    .from(people)
-    .where(and(eq(people.appUserId, actor.userId), isNull(people.archivedAt)))
+    .select({ id: members.id, photoKey: members.photoKey })
+    .from(members)
+    .where(and(eq(members.appUserId, actor.userId), isNull(members.archivedAt)))
     .limit(1);
   if (!mine) throw new InvalidInputError("settings.profile.noRecord");
 
   await db
-    .update(people)
+    .update(members)
     .set({ photoKey: key, updatedAt: new Date() })
-    .where(eq(people.id, mine.id));
+    .where(eq(members.id, mine.id));
 
   const old = mine.photoKey;
   return { removed: old && old !== key ? old : null };

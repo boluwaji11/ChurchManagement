@@ -11,7 +11,7 @@ import { clearSectionMemory } from "./shell/section-memory";
  * Signing out, with a question first.
  *
  * On a shared church computer this is the press that ends somebody else's
- * afternoon of data entry, and it sits next to the name people aim for. The
+ * afternoon of data entry, and it sits next to the name members aim for. The
  * form posts rather than calling an action, so it still works without
  * JavaScript once the dialog is open.
  */

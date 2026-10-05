@@ -1,12 +1,12 @@
 import { isNull } from "drizzle-orm";
 import type { MessageKey } from "@hearth/i18n";
 import type { Tx } from "../client";
-import { people, contactMethods } from "../schema/people";
+import { members, contactMethods } from "../schema/members";
 
 /**
  * R2.8. Duplicate detection, on create and on import.
  *
- * The acceptance criterion is recall: a file of 500 people containing 40 known
+ * The acceptance criterion is recall: a file of 500 members containing 40 known
  * duplicates must surface at least 38. So the rules lean towards finding a
  * match and letting a person decide, rather than towards being certain and
  * letting forty duplicates through.
@@ -27,7 +27,7 @@ export interface Candidate {
 }
 
 export interface Match {
-  personId: string;
+  memberId: string;
   displayName: string;
   confidence: Confidence;
   /** The catalogue key naming why, so the reason is shown in the reader's language. */
@@ -78,37 +78,37 @@ const nameKey = (first: string, last: string) => `${normaliseName(first)}|${norm
  * Loads the church once.
  *
  * A row-by-row query would be correct and would also mean 500 round trips for a
- * 500 row file. The target is churches of 50 to 500 people and the ceiling is a
+ * 500 row file. The target is churches of 50 to 500 members and the ceiling is a
  * few thousand, so the whole directory fits in memory comfortably. If that ever
  * stops being true, this is the one function to change.
  */
 export async function buildMatchIndex(db: Tx): Promise<MatchIndex> {
   const rows = await db
     .select({
-      id: people.id,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      dateOfBirth: people.dateOfBirth,
+      id: members.id,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      dateOfBirth: members.dateOfBirth,
     })
-    .from(people)
-    .where(isNull(people.archivedAt));
+    .from(members)
+    .where(isNull(members.archivedAt));
 
   // Two plain queries rather than an aggregate subquery. array_agg came back
   // from the driver as the literal string "{a,b}", and a string is iterable, so
   // the index filled up with single characters and matched nothing. Two queries
   // and a join in memory cannot do that.
   const contacts = await db
-    .select({ personId: contactMethods.personId, kind: contactMethods.kind, value: contactMethods.value })
+    .select({ memberId: contactMethods.memberId, kind: contactMethods.kind, value: contactMethods.value })
     .from(contactMethods);
 
   const emails = new Map<string, string[]>();
   const phones = new Map<string, string[]>();
   for (const c of contacts) {
     const into = c.kind === "email" ? emails : phones;
-    const list = into.get(c.personId);
+    const list = into.get(c.memberId);
     if (list) list.push(c.value);
-    else into.set(c.personId, [c.value]);
+    else into.set(c.memberId, [c.value]);
   }
 
   return indexPeople(
@@ -124,7 +124,7 @@ export async function buildMatchIndex(db: Tx): Promise<MatchIndex> {
  * Builds the index from rows already in hand.
  *
  * Separate from the query so the matching rules can be exercised against
- * hundreds of people without hundreds of round trips, which is what the R2.8
+ * hundreds of members without hundreds of round trips, which is what the R2.8
  * acceptance criterion needs.
  */
 export function indexPeople(rows: ExistingPerson[]): MatchIndex {
@@ -154,7 +154,7 @@ const display = (p: ExistingPerson) => `${p.preferredName ?? p.firstName} ${p.la
  * Every existing person this candidate might already be, strongest first.
  *
  * An email address is the closest thing a church directory has to an identifier,
- * so it is certain. A phone can be a household landline shared by five people,
+ * so it is certain. A phone can be a household landline shared by five members,
  * so on its own it is only likely. A name plus a date of birth is certain; a name
  * on its own is possible, and there really are two Mary Smiths.
  */
@@ -164,7 +164,7 @@ export function findMatches(index: MatchIndex, candidate: Candidate): Match[] {
     const existing = found.get(person.id);
     const rank = { certain: 3, likely: 2, possible: 1 };
     if (existing && rank[existing.confidence] >= rank[confidence]) return;
-    found.set(person.id, { personId: person.id, displayName: display(person), confidence, reason });
+    found.set(person.id, { memberId: person.id, displayName: display(person), confidence, reason });
   };
 
   const first = (candidate.firstName ?? "").trim();
@@ -184,7 +184,7 @@ export function findMatches(index: MatchIndex, candidate: Candidate): Match[] {
       } else if (candidate.phone && p.phones.some((x) => normalisePhone(x) === normalisePhone(candidate.phone!))) {
         add(p, "certain", "import.match.nameAndPhone");
       } else if (candidate.dateOfBirth && p.dateOfBirth && p.dateOfBirth !== candidate.dateOfBirth) {
-        // Same name, different birthday. Two people, not one.
+        // Same name, different birthday. Two members, not one.
       } else {
         add(p, "possible", "import.match.name");
       }

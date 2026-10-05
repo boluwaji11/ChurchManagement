@@ -2,13 +2,13 @@
  * HRT-84. A group leader sees their own group and nothing else (R9.3).
  *
  * The acceptance criterion is adversarial on purpose: a group leader querying
- * the people API receives only members of groups they lead, with no giving data
+ * the members API receives only members of groups they lead, with no giving data
  * and no confidential notes. So these tests ask the query layer directly rather
  * than through a page, and they try the ways somebody would get past it.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { listPeople, countPeople, getPerson, createPerson } from "../src/repo/people";
+import { listPeople, countPeople, getPerson, createPerson } from "../src/repo/members";
 import { createGroup, addToGroup, removeFromGroup, seedGroupTypes } from "../src/repo/groups";
 import { visiblePeople, personForUser, linkPersonToUser, canSeePerson } from "../src/repo/scope";
 import { canReadConfidentialNotes } from "../src/roles";
@@ -51,8 +51,8 @@ beforeAll(async () => {
   await run((tx) => linkPersonToUser(tx, leader, leaderUser));
 
   group = (await run((tx) => createGroup(tx, as(), { name: "Tuesday night" }))).id;
-  await run((tx) => addToGroup(tx, as(), { groupId: group, personId: leader, role: "leader" }));
-  await run((tx) => addToGroup(tx, as(), { groupId: group, personId: member }));
+  await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: leader, role: "leader" }));
+  await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: member }));
 });
 
 afterAll(async () => {
@@ -104,11 +104,11 @@ describe("what a group leader may see (R9.3)", () => {
   });
 
   it("follows the roster: somebody who leaves goes out of view", async () => {
-    await run((tx) => removeFromGroup(tx, as(), { groupId: group, personId: member }));
+    await run((tx) => removeFromGroup(tx, as(), { groupId: group, memberId: member }));
     const rows = await run((tx) => listPeople(tx, { viewer }), "group_leader");
     expect(rows.map((r) => r.id)).toEqual([leader]);
 
-    await run((tx) => addToGroup(tx, as(), { groupId: group, personId: member }));
+    await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: member }));
   });
 
   it("shows a leader of nothing only themselves", async () => {

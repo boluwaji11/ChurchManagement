@@ -13,7 +13,7 @@ import {
   primaryCampus, listCampuses, renameCampus,
   listLocations, addLocation, renameLocation, removeLocation,
 } from "../src/repo/campuses";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addSpecialService } from "../src/repo/services";
 import { createGroup } from "../src/repo/groups";
 import { InvalidInputError } from "../src/errors";
@@ -62,7 +62,7 @@ describe("the campus every record belongs to", () => {
 
     const rows = await run((tx) =>
       tx.execute<{ campus_id: string }>(
-        sql`select campus_id from people where id = ${person.id}::uuid`,
+        sql`select campus_id from members where id = ${person.id}::uuid`,
       ),
     );
     expect(rows[0]!.campus_id).toBe(campus);

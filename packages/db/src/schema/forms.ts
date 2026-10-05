@@ -4,7 +4,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
 import { hue } from "./enums";
-import { people } from "./people";
+import { members } from "./members";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -12,14 +12,14 @@ const created = () => timestamp("created_at", { withTimezone: true }).defaultNow
 const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
 
 /**
- * R4.1. A form a church builds and puts in front of people.
+ * R4.1. A form a church builds and puts in front of members.
  *
  * A connection card, a prayer request, a volunteer application. The whole value
  * is R4.4, where a submission becomes a person record or attaches to one, so a
  * form is a way of getting data in without anybody typing it twice.
  *
  * Closed rather than deleted, because a form with answers in it is a record of
- * what people were asked. Deleting one would delete the question that explains
+ * what members were asked. Deleting one would delete the question that explains
  * every answer under it.
  */
 export const forms = pgTable(
@@ -105,7 +105,7 @@ export const formFields = pgTable(
      * R4.2. The earlier question this one waits on, when it waits on one.
      *
      * A church asking "are you new here?" wants the three follow-up questions
-     * to appear for the people who say yes and stay out of everybody else's
+     * to appear for the members who say yes and stay out of everybody else's
      * way. One condition per question is the whole feature: a builder with and
      * and or in it is a builder Maria closes.
      *
@@ -162,7 +162,7 @@ export const formSubmissions = pgTable(
      * Null while it is waiting for somebody to look, and null for a form that
      * asks nothing a person can be found by.
      */
-    personId: uuid("person_id").references(() => people.id, { onDelete: "set null" }),
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
     /** "created", "matched", "review" or "none". */
     matchState: text("match_state").notNull().default("none"),
     createdAt: created(),
@@ -170,7 +170,7 @@ export const formSubmissions = pgTable(
   (t) => [
     index("form_submission_tenant_idx").on(t.tenantId),
     index("form_submission_form_idx").on(t.tenantId, t.formId, t.createdAt),
-    index("form_submission_person_idx").on(t.tenantId, t.personId),
+    index("form_submission_person_idx").on(t.tenantId, t.memberId),
     index("form_submission_review_idx").on(t.tenantId, t.matchState),
   ],
 );

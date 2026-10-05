@@ -22,12 +22,12 @@ import { addPlace, removePlace, leadWithPlace } from "./contact-actions";
  */
 export function Places({
   church,
-  personId,
+  memberId,
   places,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   places: PersonAddress[];
   canEdit: boolean;
 }) {
@@ -63,7 +63,7 @@ export function Places({
                 <IconButton
                   label={t("contact.makePrimary")}
                   disabled={pending}
-                  onClick={() => act(() => leadWithPlace(one.id, personId, church))}
+                  onClick={() => act(() => leadWithPlace(one.id, memberId, church))}
                   className="size-7 min-h-0 [&_svg]:size-3.5"
                 >
                   <Star />
@@ -72,7 +72,7 @@ export function Places({
               <IconButton
                 label={t("contact.remove", { value: one.line1 })}
                 disabled={pending}
-                onClick={() => act(() => removePlace(one.id, personId, church))}
+                onClick={() => act(() => removePlace(one.id, memberId, church))}
                 className="size-7 min-h-0 [&_svg]:size-3.5"
               >
                 <Trash2 />
@@ -105,7 +105,7 @@ export function Places({
                 act(async () => {
                   const result = await addPlace(
                     {
-                      personId,
+                      memberId,
                       label,
                       values: {
                         line1: String(data.get("addressLine1") ?? ""),

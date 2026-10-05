@@ -32,7 +32,7 @@ export async function ProvisionalBanner({
         <span>{t("provisional.body", { limit: String(standing.limit) })}</span>
         <span className="text-caption tabular-nums">
           {t("provisional.room", {
-            people: String(standing.people),
+            members: String(standing.members),
             limit: String(standing.limit),
           })}
         </span>

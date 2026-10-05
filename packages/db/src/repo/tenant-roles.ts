@@ -8,7 +8,7 @@ import {
   type Permission, type TenantRole,
 } from "../permissions";
 import { can } from "../permissions";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R1.6. The roles a church has, and the permissions each one holds.
@@ -29,7 +29,7 @@ export interface ChurchRole {
   builtin: boolean;
   position: number;
   archived: boolean;
-  /** How many people currently hold it. */
+  /** How many members currently hold it. */
   members: number;
 }
 

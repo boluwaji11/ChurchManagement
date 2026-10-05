@@ -7,7 +7,7 @@ import { t, plural } from "@hearth/i18n";
 import { markPresent, markManyPresent } from "./actions";
 
 export interface RosterPerson {
-  personId: string;
+  memberId: string;
   name: string;
   surname: string;
   present: boolean;
@@ -20,7 +20,7 @@ const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
 /**
  * R7.3. Ticking a roster.
  *
- * The criterion is 120 people in under three minutes on a tablet with no page
+ * The criterion is 120 members in under three minutes on a tablet with no page
  * reloads, so the tick is drawn the moment it is pressed and the write goes
  * behind it. A press that fails puts the tick back and says so: showing it
  * saved when it did not is worse than being slow.
@@ -31,42 +31,42 @@ const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
 export function Roster({
   church,
   occurrenceId,
-  people,
+  members,
   canEdit,
 }: {
   church: string;
   occurrenceId: string;
-  people: RosterPerson[];
+  members: RosterPerson[];
   canEdit: boolean;
 }) {
   const [present, setPresentIds] = React.useState<Set<string>>(
-    () => new Set(people.filter((p) => p.present).map((p) => p.personId)),
+    () => new Set(members.filter((p) => p.present).map((p) => p.memberId)),
   );
   const [query, setQuery] = React.useState("");
   const [error, setError] = React.useState<string>();
 
-  // Only the people still marked count, so unticking somebody entered by
+  // Only the members still marked count, so unticking somebody entered by
   // mistake takes them out of the number as well as off the list.
   const newcomers = React.useMemo(
-    () => people.filter((p) => p.visit === 1 && present.has(p.personId)).length,
-    [people, present],
+    () => members.filter((p) => p.visit === 1 && present.has(p.memberId)).length,
+    [members, present],
   );
 
   const shown = React.useMemo(() => {
     const q = fold(query.trim());
-    if (!q) return people;
-    return people.filter((p) => fold(p.name).includes(q) || fold(p.surname).includes(q));
-  }, [people, query]);
+    if (!q) return members;
+    return members.filter((p) => fold(p.name).includes(q) || fold(p.surname).includes(q));
+  }, [members, query]);
 
-  const toggle = (personId: string) => {
-    const next = !present.has(personId);
+  const toggle = (memberId: string) => {
+    const next = !present.has(memberId);
 
     // Drawn first. A tablet that waits for a round trip before showing the tick
     // is a tablet somebody presses twice.
     setPresentIds((prev) => {
       const copy = new Set(prev);
-      if (next) copy.add(personId);
-      else copy.delete(personId);
+      if (next) copy.add(memberId);
+      else copy.delete(memberId);
       return copy;
     });
     setError(undefined);
@@ -74,7 +74,7 @@ export function Roster({
     const data = new FormData();
     data.set("church", church);
     data.set("occurrenceId", occurrenceId);
-    data.set("personId", personId);
+    data.set("memberId", memberId);
     data.set("present", next ? "1" : "0");
 
     void markPresent(data).then((result) => {
@@ -82,15 +82,15 @@ export function Roster({
       setError(result.error);
       setPresentIds((prev) => {
         const copy = new Set(prev);
-        if (next) copy.delete(personId);
-        else copy.add(personId);
+        if (next) copy.delete(memberId);
+        else copy.add(memberId);
         return copy;
       });
     });
   };
 
   const markShown = (next: boolean) => {
-    const ids = shown.map((p) => p.personId);
+    const ids = shown.map((p) => p.memberId);
     const before = new Set(present);
 
     setPresentIds((prev) => {
@@ -107,7 +107,7 @@ export function Roster({
     data.set("church", church);
     data.set("occurrenceId", occurrenceId);
     data.set("present", next ? "1" : "0");
-    for (const id of ids) data.append("personId", id);
+    for (const id of ids) data.append("memberId", id);
 
     void markManyPresent(data).then((result) => {
       if (!result.error) return;
@@ -149,14 +149,14 @@ export function Roster({
       ) : (
         <ul className="grid gap-2 sm:grid-cols-2">
           {shown.map((person) => {
-            const on = present.has(person.personId);
+            const on = present.has(person.memberId);
             return (
-              <li key={person.personId}>
+              <li key={person.memberId}>
                 <button
                   type="button"
                   disabled={!canEdit}
                   aria-pressed={on}
-                  onClick={() => toggle(person.personId)}
+                  onClick={() => toggle(person.memberId)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg border p-3 text-left",
                     "min-h-[var(--d-tap)] text-[length:var(--d-text-body)]",

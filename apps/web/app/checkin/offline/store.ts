@@ -33,7 +33,7 @@ export interface StationSnapshot {
   churchName: string;
   /** R8.7. Who was already in when the station last had a network. */
   visits: {
-    personId: string; visitId: string; roomId: string | null;
+    memberId: string; visitId: string; roomId: string | null;
     code: string | null; kind: string;
   }[];
 }

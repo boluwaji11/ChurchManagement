@@ -20,7 +20,7 @@ async function main() {
       join app_users u on u.id = m.user_id
       join tenants t on t.id = m.tenant_id
      where not exists (
-       select 1 from people p
+       select 1 from members p
         where p.tenant_id = m.tenant_id and p.app_user_id = m.user_id and p.archived_at is null
      )
      order by t.slug, u.email`;
@@ -38,7 +38,7 @@ async function main() {
     }
     const [person] = await sql<{ name: string }[]>`
       select btrim(coalesce(preferred_name, first_name) || ' ' || coalesce(last_name, '')) as name
-        from people where id = ${id}`;
+        from members where id = ${id}`;
     console.log(`  ${row.slug.padEnd(12)} ${row.email.padEnd(32)} ${person!.name}`);
   }
 

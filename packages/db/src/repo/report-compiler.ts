@@ -20,14 +20,14 @@ import {
 
 /** What each subject counts, and what it has to join to count it. */
 const FROM: Record<SubjectKey, SQL> = {
-  people: sql`from people p`,
+  members: sql`from members p`,
   attendance: sql`
     from attendance_records a
     join service_occurrences o on o.id = a.occurrence_id
-    join people p on p.id = a.person_id`,
+    join members p on p.id = a.member_id`,
   followups: sql`
     from follow_ups f
-    join people p on p.id = f.person_id
+    join members p on p.id = f.member_id
     left join app_users u on u.id = f.assignee_user_id
     left join pipeline_entries pe on pe.id = f.entry_id
     left join pipelines pl on pl.id = pe.pipeline_id`,
@@ -35,7 +35,7 @@ const FROM: Record<SubjectKey, SQL> = {
 
 /** What is never in a report, whatever was asked for. */
 const BASE: Record<SubjectKey, SQL> = {
-  people: sql`p.archived_at is null`,
+  members: sql`p.archived_at is null`,
   attendance: sql`p.archived_at is null and o.status <> 'cancelled'`,
   followups: sql`p.archived_at is null`,
 };
@@ -43,13 +43,13 @@ const BASE: Record<SubjectKey, SQL> = {
 const PERSON_NAME = sql`coalesce(nullif(p.preferred_name, ''), p.first_name) || ' ' || p.last_name`;
 const LAST_SEEN = sql`(select max(o2.occurs_on) from attendance_records a2
                         join service_occurrences o2 on o2.id = a2.occurrence_id
-                       where a2.person_id = p.id)`;
+                       where a2.member_id = p.id)`;
 const VISITS = sql`(select count(distinct o2.occurs_on) from attendance_records a2
                      join service_occurrences o2 on o2.id = a2.occurrence_id
-                    where a2.person_id = p.id)`;
+                    where a2.member_id = p.id)`;
 
 const EXPR: Record<SubjectKey, Record<string, SQL>> = {
-  people: {
+  members: {
     name: PERSON_NAME,
     status: sql`p.lifecycle_status`,
     age: sql`date_part('year', age(p.date_of_birth))`,
@@ -60,13 +60,13 @@ const EXPR: Record<SubjectKey, Record<string, SQL>> = {
     visits: VISITS,
     household: sql`(select h.name from household_memberships hm
                      join households h on h.id = hm.household_id
-                    where hm.person_id = p.id and hm.ended_on is null limit 1)`,
-    inGroup: sql`exists (select 1 from group_memberships m where m.person_id = p.id)`,
-    serving: sql`exists (select 1 from team_members tm where tm.person_id = p.id)`,
+                    where hm.member_id = p.id and hm.ended_on is null limit 1)`,
+    inGroup: sql`exists (select 1 from group_memberships m where m.member_id = p.id)`,
+    serving: sql`exists (select 1 from team_members tm where tm.member_id = p.id)`,
     hasEmail: sql`exists (select 1 from contact_methods c
-                           where c.person_id = p.id and c.kind = 'email' and c.is_valid)`,
+                           where c.member_id = p.id and c.kind = 'email' and c.is_valid)`,
     hasPhone: sql`exists (select 1 from contact_methods c
-                           where c.person_id = p.id and c.kind = 'phone')`,
+                           where c.member_id = p.id and c.kind = 'phone')`,
     campus: sql`(select cp.name from campuses cp where cp.id = p.campus_id)`,
   },
   attendance: {
@@ -80,7 +80,7 @@ const EXPR: Record<SubjectKey, Record<string, SQL>> = {
     // Which visit this was for them, counted up to and including this day.
     visitNumber: sql`(select count(distinct o2.occurs_on) from attendance_records a2
                        join service_occurrences o2 on o2.id = a2.occurrence_id
-                      where a2.person_id = a.person_id and o2.occurs_on <= o.occurs_on)`,
+                      where a2.member_id = a.member_id and o2.occurs_on <= o.occurs_on)`,
   },
   followups: {
     name: PERSON_NAME,
@@ -188,7 +188,7 @@ export async function runReport(
     const by = exprOf(subject, spec.groupBy)!;
     const measure = spec.measure ?? { kind: "rows" as const };
     const measureSql =
-      measure.kind === "people"
+      measure.kind === "members"
         ? sql`count(distinct p.id)`
         : measure.kind === "sum" && measure.field
           ? sql`coalesce(sum(${exprOf(subject, measure.field)!}), 0)`

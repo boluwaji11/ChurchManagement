@@ -9,7 +9,7 @@ import { t } from "@hearth/i18n";
  * R2.14, R24.6. Numbered pages, as the design has them.
  *
  * Arrows either side, the first and last page always reachable, an ellipsis
- * where the run is broken. Written once because a church counting people and a
+ * where the run is broken. Written once because a church counting members and a
  * church reading form responses are doing the same thing with the same control.
  */
 export function Pages({

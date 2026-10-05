@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, date, integer, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { tenants, campuses, serviceTimes } from "./tenancy";
-import { people } from "./people";
+import { members } from "./members";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -68,7 +68,7 @@ export const attendanceRecords = pgTable(
     id: pk(),
     tenantId: tenantId(),
     occurrenceId: uuid("occurrence_id").notNull().references(() => serviceOccurrences.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** How it was recorded: "roster", "checkin", "import". */
     source: text("source").notNull().default("roster"),
     createdAt: created(),
@@ -76,7 +76,7 @@ export const attendanceRecords = pgTable(
   (t) => [
     index("att_tenant_idx").on(t.tenantId),
     index("att_occurrence_idx").on(t.tenantId, t.occurrenceId),
-    index("att_person_idx").on(t.tenantId, t.personId),
-    uniqueIndex("att_unique").on(t.occurrenceId, t.personId),
+    index("att_person_idx").on(t.tenantId, t.memberId),
+    uniqueIndex("att_unique").on(t.occurrenceId, t.memberId),
   ],
 );

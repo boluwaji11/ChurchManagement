@@ -1,18 +1,18 @@
 import { eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { personMerges } from "../schema/merges";
 import { canArchivePeople, PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
 import { leadWith } from "./contacts";
-import { getPersonForEdit, type PersonInput } from "./people";
+import { getPersonForEdit, type PersonInput } from "./members";
 import { buildMatchIndex, findMatches, type Confidence } from "../import/match";
 
 /**
  * R2.8. Merging two records that are one person, and undoing it.
  *
- * The undo is not a nice extra. Merging the wrong two people is the fear that
+ * The undo is not a nice extra. Merging the wrong two members is the fear that
  * stops anybody pressing the button, and a merge nobody dares press leaves the
  * duplicates in the directory, which is the problem this was for.
  */
@@ -39,24 +39,24 @@ const OWNED: {
   /** The column naming one row, where the table has no `id` of its own. */
   key?: string;
 }[] = [
-  { table: "contact_methods", column: "person_id" },
-  { table: "addresses", column: "person_id" },
-  { table: "household_memberships", column: "person_id" },
-  { table: "milestones", column: "person_id" },
-  { table: "background_checks", column: "person_id" },
-  { table: "notes", column: "person_id" },
+  { table: "contact_methods", column: "member_id" },
+  { table: "addresses", column: "member_id" },
+  { table: "household_memberships", column: "member_id" },
+  { table: "milestones", column: "member_id" },
+  { table: "background_checks", column: "member_id" },
+  { table: "notes", column: "member_id" },
   // A tag the winner already carries would collide, so those rows stay put.
-  { table: "person_tags", column: "person_id", conflictOn: ["tag_id"], key: "tag_id" },
+  { table: "member_tags", column: "member_id", conflictOn: ["tag_id"], key: "tag_id" },
   // Same for a custom field the winner has already answered.
   { table: "custom_field_values", column: "entity_id", conflictOn: ["field_id"] },
   // R1.14. A list the winner is already on would collide, so those rows stay.
-  { table: "saved_list_members", column: "person_id", conflictOn: ["list_id"] },
+  { table: "saved_list_members", column: "member_id", conflictOn: ["list_id"] },
   // R9.4. Group membership. Only a live row collides with a live row: the index
   // is partial, and the history of somebody who left and came back is two rows
   // on purpose.
   {
     table: "group_memberships",
-    column: "person_id",
+    column: "member_id",
     conflictOn: ["group_id"],
     liveOnly: "w.left_on is null and t.left_on is null",
   },
@@ -64,23 +64,23 @@ const OWNED: {
   // collide. A closed one is history and moves.
   {
     table: "pipeline_entries",
-    column: "person_id",
+    column: "member_id",
     conflictOn: ["pipeline_id"],
     liveOnly: "w.status = 'open' and t.status = 'open'",
   },
   // R5.1. A task about this person. Nothing is unique, so all of it moves.
-  { table: "follow_ups", column: "person_id" },
+  { table: "follow_ups", column: "member_id" },
   // R9.5. A request to join, which belongs to whoever is left standing.
   {
     table: "group_join_requests",
-    column: "person_id",
+    column: "member_id",
     conflictOn: ["group_id"],
     liveOnly: "w.decided_at is null and t.decided_at is null",
   },
   // R10.1. Serving on a team. Partial index again, same reason as a group.
   {
     table: "team_members",
-    column: "person_id",
+    column: "member_id",
     conflictOn: ["team_id"],
     liveOnly: "w.left_on is null and t.left_on is null",
   },
@@ -88,19 +88,19 @@ const OWNED: {
   // same service, which is the same person scheduled twice.
   {
     table: "serving_assignments",
-    column: "person_id",
+    column: "member_id",
     conflictOn: ["occurrence_id", "position_id"],
   },
   // R10.4. Days they said they are away. Nothing is unique, so all of it moves.
-  { table: "blockout_dates", column: "person_id" },
+  { table: "blockout_dates", column: "member_id" },
   // R10.5. One preference a person, so any row the winner already has is the
   // collision. `tenant_id` is the same on every row in the church, which makes
   // it the predicate that asks "does the winner have one".
   {
     table: "serving_preferences",
-    column: "person_id",
+    column: "member_id",
     conflictOn: ["tenant_id"],
-    key: "person_id",
+    key: "member_id",
   },
 ];
 
@@ -156,7 +156,7 @@ export async function mergePeople(
    */
   const led = (await db.execute<{ id: string; kind: string }>(sql`
     select id, kind::text as kind from contact_methods
-     where person_id = ${plan.winnerId}::uuid and is_primary`)) as unknown as
+     where member_id = ${plan.winnerId}::uuid and is_primary`)) as unknown as
     { id: string; kind: string }[];
   const leading = new Map(led.map((one) => [one.kind, one.id]));
 
@@ -188,8 +188,8 @@ export async function mergePeople(
     for (const row of rows) moved.push({ table: owned.table, id: row.id });
   }
 
-  // Relationships point at two people, so both ends are re-pointed.
-  for (const column of ["person_id", "related_person_id"]) {
+  // Relationships point at two members, so both ends are re-pointed.
+  for (const column of ["member_id", "related_member_id"]) {
     const rows = (await db.execute(sql`
       update relationships
          set ${sql.identifier(column)} = ${plan.winnerId}::uuid
@@ -201,7 +201,7 @@ export async function mergePeople(
   // A relationship can now point at the same person on both ends, which is not a
   // relationship. Those are removed rather than left as nonsense.
   await db.execute(sql`
-    delete from relationships where person_id = related_person_id and person_id = ${plan.winnerId}::uuid`);
+    delete from relationships where member_id = related_member_id and member_id = ${plan.winnerId}::uuid`);
 
   // R2.4. Exactly one of each kind leads, and it is the one the winner was
   // already leading with. What came across joins the list behind it.
@@ -210,7 +210,7 @@ export async function mergePeople(
 
   const survived = applyChoices(winner, loser, plan.take);
   await db
-    .update(people)
+    .update(members)
     .set({
       firstName: survived.firstName,
       lastName: survived.lastName,
@@ -221,12 +221,12 @@ export async function mergePeople(
       firstVisitOn: survived.firstVisitOn ?? null,
       updatedAt: new Date(),
     })
-    .where(eq(people.id, plan.winnerId));
+    .where(eq(members.id, plan.winnerId));
 
   await db
-    .update(people)
+    .update(members)
     .set({ archivedAt: new Date(), updatedAt: new Date() })
-    .where(eq(people.id, plan.loserId));
+    .where(eq(members.id, plan.loserId));
 
   const [merge] = await db
     .insert(personMerges)
@@ -284,8 +284,8 @@ export async function listMerges(db: Tx): Promise<MergeSummary[]> {
            w.first_name || ' ' || w.last_name as winner_name,
            l.first_name || ' ' || l.last_name as loser_name
       from person_merges m
-      join people w on w.id = m.winner_id
-      join people l on l.id = m.loser_id
+      join members w on w.id = m.winner_id
+      join members l on l.id = m.loser_id
      order by m.merged_at desc
      limit 50`)) as unknown as {
     id: string;
@@ -339,7 +339,7 @@ export async function undoMerge(
   for (const row of moved) {
     const [table, column] = row.table.includes(".")
       ? row.table.split(".")
-      : [row.table, row.table === "person_tags" ? "person_id" : row.table === "custom_field_values" ? "entity_id" : "person_id"];
+      : [row.table, row.table === "member_tags" ? "member_id" : row.table === "custom_field_values" ? "entity_id" : "member_id"];
 
     const key = KEYS[table!] ?? "id";
     const result = (await db.execute(sql`
@@ -354,7 +354,7 @@ export async function undoMerge(
   const before = merge.winnerBefore as PersonInput | null;
   if (before) {
     await db
-      .update(people)
+      .update(members)
       .set({
         firstName: before.firstName,
         lastName: before.lastName,
@@ -365,13 +365,13 @@ export async function undoMerge(
         firstVisitOn: before.firstVisitOn ?? null,
         updatedAt: new Date(),
       })
-      .where(eq(people.id, merge.winnerId));
+      .where(eq(members.id, merge.winnerId));
   }
 
   await db
-    .update(people)
+    .update(members)
     .set({ archivedAt: null, updatedAt: new Date() })
-    .where(eq(people.id, merge.loserId));
+    .where(eq(members.id, merge.loserId));
 
   await db.update(personMerges).set({ undoneAt: new Date() }).where(eq(personMerges.id, mergeId));
 
@@ -407,15 +407,15 @@ export async function findDuplicatePairs(db: Tx): Promise<DuplicatePair[]> {
     });
 
     for (const match of matches) {
-      if (match.personId === person.id) continue;
+      if (match.memberId === person.id) continue;
       // One row per pair, whichever way round it was found.
-      const key = [person.id, match.personId].sort().join(":");
+      const key = [person.id, match.memberId].sort().join(":");
       if (seen.has(key)) continue;
       seen.add(key);
 
       pairs.push({
         a: { id: person.id, name: `${person.preferredName ?? person.firstName} ${person.lastName}` },
-        b: { id: match.personId, name: match.displayName },
+        b: { id: match.memberId, name: match.displayName },
         confidence: match.confidence,
         reason: match.reason,
       });

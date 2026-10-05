@@ -36,7 +36,7 @@ export async function addNote(data: FormData): Promise<NoteResult> {
     await withTenant(ctx, (tx) =>
       createNote(tx, {
         tenantId: session.tenantId,
-        personId: field(data, "personId"),
+        memberId: field(data, "memberId"),
         classification: confidential ? "confidential" : "general",
         body,
         authorUserId: session.userId,

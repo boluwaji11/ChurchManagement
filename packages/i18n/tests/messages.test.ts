@@ -11,7 +11,7 @@ import { t, plural, en, LOCALES, DEFAULT_LOCALE } from "../src/index";
 
 describe("lookup", () => {
   it("returns the message", () => {
-    expect(t("people.title")).toBe("Members");
+    expect(t("members.title")).toBe("Members");
   });
 
   it("fills in values", () => {

@@ -14,7 +14,7 @@ import {
 } from "../src/repo/plans";
 import { assign, unassign, assignmentsForTeam } from "../src/repo/schedule";
 import { seedTeams, listTeams, getTeam, addToTeam } from "../src/repo/serving";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addSpecialService } from "../src/repo/services";
 import { InvalidInputError } from "../src/errors";
 import type { TenantRole } from "../src/roles";
@@ -51,7 +51,7 @@ beforeAll(async () => {
     ids[name] = (await run((tx) =>
       createPerson(tx, as(), { firstName: name, lastName: "Plannotestest" } as never),
     )).id;
-    await run((tx) => addToTeam(tx, as(), { teamId: worship, personId: ids[name]! }));
+    await run((tx) => addToTeam(tx, as(), { teamId: worship, memberId: ids[name]! }));
   }
 
   service = (await run((tx) =>
@@ -66,12 +66,12 @@ beforeAll(async () => {
   // Ada on drums, Boma on keys.
   await run((tx) =>
     assign(tx, as(), {
-      occurrenceId: service, teamId: worship, positionId: drums, personId: ids.Ada!,
+      occurrenceId: service, teamId: worship, positionId: drums, memberId: ids.Ada!,
     }),
   );
   await run((tx) =>
     assign(tx, as(), {
-      occurrenceId: service, teamId: worship, positionId: keys, personId: ids.Boma!,
+      occurrenceId: service, teamId: worship, positionId: keys, memberId: ids.Boma!,
     }),
   );
 });
@@ -84,11 +84,11 @@ afterAll(async () => {
 describe("the filter, on its own", () => {
   const note = (over: Partial<ItemNote>): ItemNote => ({
     id: "n", itemId: "i", body: "b",
-    teamId: null, positionId: null, personId: null, audience: null,
+    teamId: null, positionId: null, memberId: null, audience: null,
     ...over,
   });
 
-  const reader = { personId: "p1", teamIds: ["t1"], positionIds: ["pos1"] };
+  const reader = { memberId: "p1", teamIds: ["t1"], positionIds: ["pos1"] };
 
   it("gives everybody the notes addressed to nobody in particular", () => {
     expect(notesFor([note({})], reader)).toHaveLength(1);
@@ -105,12 +105,12 @@ describe("the filter, on its own", () => {
   });
 
   it("gives a personal note to one person", () => {
-    expect(notesFor([note({ personId: "p1" })], reader)).toHaveLength(1);
-    expect(notesFor([note({ personId: "p2", teamId: "t1" })], reader)).toHaveLength(0);
+    expect(notesFor([note({ memberId: "p1" })], reader)).toHaveLength(1);
+    expect(notesFor([note({ memberId: "p2", teamId: "t1" })], reader)).toHaveLength(0);
   });
 
   it("reads the narrowest target, so a personal note is not a team note", () => {
-    const mixed = note({ personId: "p2", positionId: "pos1", teamId: "t1" });
+    const mixed = note({ memberId: "p2", positionId: "pos1", teamId: "t1" });
     expect(notesFor([mixed], reader)).toHaveLength(0);
   });
 });
@@ -143,9 +143,9 @@ describe("writing one", () => {
 
   it("names the person a personal note is for", async () => {
     await run((tx) =>
-      addItemNote(tx, as(), { itemId, body: "Start us off", personId: ids.Boma! }),
+      addItemNote(tx, as(), { itemId, body: "Start us off", memberId: ids.Boma! }),
     );
-    const note = (await notesOnItem()).find((n) => n.personId === ids.Boma);
+    const note = (await notesOnItem()).find((n) => n.memberId === ids.Boma);
     expect(note?.audience).toContain("Boma");
   });
 
@@ -159,13 +159,13 @@ describe("who reads what", () => {
   it("gives the drummer the drummer's note and not the keys player's", async () => {
     const notes = await notesOnItem();
 
-    const ada = await run((tx) => readerFor(tx, { occurrenceId: service, personId: ids.Ada! }));
+    const ada = await run((tx) => readerFor(tx, { occurrenceId: service, memberId: ids.Ada! }));
     const hers = notesFor(notes, ada).map((n) => n.body);
     expect(hers).toContain("Come in on the second verse");
     expect(hers).toContain("Lights down");
     expect(hers).not.toContain("Start us off");
 
-    const boma = await run((tx) => readerFor(tx, { occurrenceId: service, personId: ids.Boma! }));
+    const boma = await run((tx) => readerFor(tx, { occurrenceId: service, memberId: ids.Boma! }));
     const his = notesFor(notes, boma).map((n) => n.body);
     expect(his).toContain("Start us off");
     expect(his).not.toContain("Come in on the second verse");
@@ -173,31 +173,31 @@ describe("who reads what", () => {
 
   it("follows the position, so swapping the drummer moves the note", async () => {
     const rows = await run((tx) => assignmentsForTeam(tx, worship, [service]));
-    const hers = rows.find((r) => r.personId === ids.Ada && r.positionId === drums)!;
+    const hers = rows.find((r) => r.memberId === ids.Ada && r.positionId === drums)!;
     await run((tx) => unassign(tx, as(), hers.id));
     await run((tx) =>
       assign(tx, as(), {
-        occurrenceId: service, teamId: worship, positionId: drums, personId: ids.Boma!,
+        occurrenceId: service, teamId: worship, positionId: drums, memberId: ids.Boma!,
         anyway: true,
       }),
     );
 
     const notes = await notesOnItem();
-    const boma = await run((tx) => readerFor(tx, { occurrenceId: service, personId: ids.Boma! }));
+    const boma = await run((tx) => readerFor(tx, { occurrenceId: service, memberId: ids.Boma! }));
     expect(notesFor(notes, boma).map((n) => n.body)).toContain("Come in on the second verse");
 
-    const ada = await run((tx) => readerFor(tx, { occurrenceId: service, personId: ids.Ada! }));
+    const ada = await run((tx) => readerFor(tx, { occurrenceId: service, memberId: ids.Ada! }));
     expect(notesFor(notes, ada).map((n) => n.body)).not.toContain("Come in on the second verse");
   });
 });
 
 describe("who the plan can address", () => {
-  it("is the positions and people the schedule actually holds", async () => {
+  it("is the positions and members the schedule actually holds", async () => {
     const found = await run((tx) => addressableFor(tx, service));
     expect(found.teams.map((t) => t.name)).toContain("Worship");
     expect(found.positions.map((p) => p.name)).toContain("Drums");
-    expect(found.people.map((p) => p.name).some((n) => n.startsWith("Boma"))).toBe(true);
-    expect(found.people.map((p) => p.name).some((n) => n.startsWith("Ada"))).toBe(false);
+    expect(found.members.map((p) => p.name).some((n) => n.startsWith("Boma"))).toBe(true);
+    expect(found.members.map((p) => p.name).some((n) => n.startsWith("Ada"))).toBe(false);
   });
 });
 

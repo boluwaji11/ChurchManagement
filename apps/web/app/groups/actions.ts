@@ -105,13 +105,13 @@ export interface RosterResult {
 
 export async function join(
   groupId: string,
-  personId: string,
+  memberId: string,
   role: GroupRole,
   church?: string,
 ): Promise<RosterResult> {
   const { actor, ctx } = await context(church);
   try {
-    await withTenant(ctx, (tx) => addToGroup(tx, actor, { groupId, personId, role }));
+    await withTenant(ctx, (tx) => addToGroup(tx, actor, { groupId, memberId, role }));
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -120,12 +120,12 @@ export async function join(
 
 export async function leave(
   groupId: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<RosterResult> {
   const { actor, ctx } = await context(church);
   try {
-    await withTenant(ctx, (tx) => removeFromGroup(tx, actor, { groupId, personId }));
+    await withTenant(ctx, (tx) => removeFromGroup(tx, actor, { groupId, memberId }));
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -210,7 +210,7 @@ export async function clearGroupPhoto(
   }
 }
 
-/** R9.5. The one press that opens a group to new people, or shuts it. */
+/** R9.5. The one press that opens a group to new members, or shuts it. */
 export async function setOpenToJoin(
   id: string,
   open: boolean,

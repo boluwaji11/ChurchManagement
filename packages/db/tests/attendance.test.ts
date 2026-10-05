@@ -13,7 +13,7 @@ import {
   visitNumbers, visitorsBetween, absentPeople,
 } from "../src/repo/attendance";
 import { addService, listOccurrences, setOccurrenceCancelled } from "../src/repo/services";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { withAuditTriggersOff } from "../src/maintenance";
@@ -133,9 +133,9 @@ describe("first and second visits (R7.5)", () => {
   beforeAll(async () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
     await owner()`delete from service_occurrences where tenant_id = ${tenant}`;
-    // R7.5 is about people the church has recorded as visitors.
+    // R7.5 is about members the church has recorded as visitors.
     await owner()`
-      update people set lifecycle_status = 'visitor', first_visit_on = null
+      update members set lifecycle_status = 'visitor', first_visit_on = null
       where tenant_id = ${tenant}`;
 
     for (const [name, on, at] of [
@@ -170,8 +170,8 @@ describe("first and second visits (R7.5)", () => {
     // She was at both services on her first Sunday. She turned up once.
     const morning = await run((tx) => visitNumbers(tx, gatheringA));
     const night = await run((tx) => visitNumbers(tx, evening));
-    expect(morning.find((v) => v.personId === ids["Abigail"])!.visit).toBe(1);
-    expect(night.find((v) => v.personId === ids["Abigail"])!.visit).toBe(1);
+    expect(morning.find((v) => v.memberId === ids["Abigail"])!.visit).toBe(1);
+    expect(night.find((v) => v.memberId === ids["Abigail"])!.visit).toBe(1);
   });
 
   it("recounts after a correction rather than keeping a stale flag", async () => {
@@ -201,7 +201,7 @@ describe("absence (R7.6)", () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
     await owner()`delete from service_occurrences where tenant_id = ${tenant}`;
     // R7.6 is about members and regular attenders drifting away.
-    await owner()`update people set lifecycle_status = 'member' where tenant_id = ${tenant}`;
+    await owner()`update members set lifecycle_status = 'member' where tenant_id = ${tenant}`;
 
     for (const [name, on] of [
       ["S1", "2026-03-01"], ["S2", "2026-03-08"], ["S3", "2026-03-15"],
@@ -261,14 +261,14 @@ describe("absence (R7.6)", () => {
   it("leaves out a visitor, who was never a regular", async () => {
     const rows = await run((tx) => listOccurrences(tx));
     await owner()`
-      update people set lifecycle_status = 'visitor'
+      update members set lifecycle_status = 'visitor'
       where id = ${ids["Benjamin"]!}`;
 
     const absent = await run((tx) => absentPeople(tx, { threshold: 3, asOf: "2026-03-29" }));
     expect(absent.map((a) => a.firstName)).not.toContain("Benjamin");
     expect(rows.length).toBeGreaterThan(0);
 
-    await owner()`update people set lifecycle_status = 'member' where id = ${ids["Benjamin"]!}`;
+    await owner()`update members set lifecycle_status = 'member' where id = ${ids["Benjamin"]!}`;
   });
 
   it("leaves out somebody who has never been", async () => {
@@ -278,7 +278,7 @@ describe("absence (R7.6)", () => {
       } as never),
     );
     const absent = await run((tx) => absentPeople(tx, { threshold: 1, asOf: "2026-03-29" }));
-    expect(absent.some((a) => a.personId === never.id)).toBe(false);
+    expect(absent.some((a) => a.memberId === never.id)).toBe(false);
   });
 });
 
@@ -286,10 +286,10 @@ describe("the first visit date", () => {
   it("is filled from the service anybody is marked at", async () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
     await owner()`
-      update people set first_visit_on = null, lifecycle_status = 'visitor'
+      update members set first_visit_on = null, lifecycle_status = 'visitor'
       where id = ${ids["Abigail"]!}`;
     await owner()`
-      update people set first_visit_on = null, lifecycle_status = 'member'
+      update members set first_visit_on = null, lifecycle_status = 'member'
       where id = ${ids["Benjamin"]!}`;
 
     const rows = await run((tx) => listOccurrences(tx));
@@ -298,7 +298,7 @@ describe("the first visit date", () => {
     await run((tx) => setPresentMany(tx, as(), first.id, [ids["Abigail"]!, ids["Benjamin"]!], true));
 
     const after = await owner()<{ id: string; first_visit_on: string | null }[]>`
-      select id, first_visit_on::text from people
+      select id, first_visit_on::text from members
       where id in (${ids["Abigail"]!}, ${ids["Benjamin"]!})`;
 
     const visitor = after.find((r) => r.id === ids["Abigail"]);
@@ -313,7 +313,7 @@ describe("the first visit date", () => {
 
   it("moves back when an earlier service is filled in afterwards", async () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
-    await owner()`update people set first_visit_on = null where id = ${ids["Abigail"]!}`;
+    await owner()`update members set first_visit_on = null where id = ${ids["Abigail"]!}`;
 
     const rows = await run((tx) => listOccurrences(tx));
     const recent = rows[0]!;
@@ -321,20 +321,20 @@ describe("the first visit date", () => {
 
     await run((tx) => setPresent(tx, as(), recent.id, ids["Abigail"]!, true));
     const [afterRecent] = await owner()<{ first_visit_on: string }[]>`
-      select first_visit_on::text from people where id = ${ids["Abigail"]!}`;
+      select first_visit_on::text from members where id = ${ids["Abigail"]!}`;
     expect(afterRecent!.first_visit_on).toBe(recent.occursOn);
 
     // A church back-filling last February gets February, rather than the day
     // it happened to type it in.
     await run((tx) => setPresent(tx, as(), earliest.id, ids["Abigail"]!, true));
     const [afterEarlier] = await owner()<{ first_visit_on: string }[]>`
-      select first_visit_on::text from people where id = ${ids["Abigail"]!}`;
+      select first_visit_on::text from members where id = ${ids["Abigail"]!}`;
     expect(afterEarlier!.first_visit_on).toBe(earliest.occursOn);
   });
 
   it("goes back to blank when the last mark is taken off", async () => {
     await owner()`delete from attendance_records where tenant_id = ${tenant}`;
-    await owner()`update people set first_visit_on = null where id = ${ids["Benjamin"]!}`;
+    await owner()`update members set first_visit_on = null where id = ${ids["Benjamin"]!}`;
 
     const rows = await run((tx) => listOccurrences(tx));
     const one = rows[0]!;
@@ -343,20 +343,20 @@ describe("the first visit date", () => {
     await run((tx) => setPresent(tx, as(), one.id, ids["Benjamin"]!, false));
 
     const [after] = await owner()<{ first_visit_on: string | null }[]>`
-      select first_visit_on::text from people where id = ${ids["Benjamin"]!}`;
+      select first_visit_on::text from members where id = ${ids["Benjamin"]!}`;
     expect(after!.first_visit_on).toBeNull();
   });
 
   it("never overwrites a date the church already recorded", async () => {
     await owner()`
-      update people set first_visit_on = '2019-04-07', lifecycle_status = 'visitor'
+      update members set first_visit_on = '2019-04-07', lifecycle_status = 'visitor'
       where id = ${ids["Caroline"]!}`;
 
     const rows = await run((tx) => listOccurrences(tx));
     await run((tx) => setPresent(tx, as(), rows[0]!.id, ids["Caroline"]!, true));
 
     const [row] = await owner()<{ first_visit_on: string }[]>`
-      select first_visit_on::text from people where id = ${ids["Caroline"]!}`;
+      select first_visit_on::text from members where id = ${ids["Caroline"]!}`;
     expect(row!.first_visit_on).toBe("2019-04-07");
   });
 });

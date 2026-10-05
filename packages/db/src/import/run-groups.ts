@@ -1,17 +1,17 @@
 /**
- * R19.5, R9.5. Bringing a church's groups across with its people.
+ * R19.5, R9.5. Bringing a church's groups across with its members.
  *
  * A group file is one line per person per group, which is how all three of
  * Planning Center, Breeze and ChurchTrac export them. So a row here is a
  * membership: it names a group, names a person, and the import's job is to find
- * that person among the people already imported.
+ * that person among the members already imported.
  *
- * Finding them is the whole difficulty, and it uses the same matcher the people
+ * Finding them is the whole difficulty, and it uses the same matcher the members
  * import uses to spot duplicates. A row whose person cannot be found with
  * certainty fails rather than guessing, because putting the wrong Sarah into a
  * small group is a mistake a church will not notice and cannot see.
  *
- * As with people, `plan()` decides and `commit()` carries out exactly what it
+ * As with members, `plan()` decides and `commit()` carries out exactly what it
  * was given, so the preview cannot disagree with the write.
  */
 import { and, eq, isNull, sql } from "drizzle-orm";
@@ -39,7 +39,7 @@ export interface PlannedGroupRow {
   /** True when this row is the one that brings the group into existence. */
   makesGroup?: boolean;
   typeName?: string;
-  personId?: string;
+  memberId?: string;
   personName: string;
   role: "leader" | "coleader" | "member";
   joinedOn?: string;
@@ -80,10 +80,10 @@ export async function planGroups(
   const byName = new Map(existing.map((row) => [fold(row.name), row.id]));
 
   const members = await db
-    .select({ groupId: groupMemberships.groupId, personId: groupMemberships.personId, role: groupMemberships.role })
+    .select({ groupId: groupMemberships.groupId, memberId: groupMemberships.memberId, role: groupMemberships.role })
     .from(groupMemberships)
     .where(isNull(groupMemberships.leftOn));
-  const already = new Map(members.map((row) => [`${row.groupId}:${row.personId}`, row.role]));
+  const already = new Map(members.map((row) => [`${row.groupId}:${row.memberId}`, row.role]));
 
   const planned = new Set<string>();
   const newGroups: string[] = [];
@@ -130,7 +130,7 @@ export async function planGroups(
     const matches = findMatches(index, { firstName, lastName, email, phone });
     const certain = matches.filter((match) => match.confidence === "certain");
 
-    // Nothing short of certain is acted on. Two people of one name and no
+    // Nothing short of certain is acted on. Two members of one name and no
     // address between them is exactly the row a church cannot check afterwards.
     if (certain.length !== 1) {
       const reason: MessageKey =
@@ -143,7 +143,7 @@ export async function planGroups(
       continue;
     }
 
-    const personId = certain[0]!.personId;
+    const memberId = certain[0]!.memberId;
     const key = fold(groupName);
     const groupId = byName.get(key);
 
@@ -156,11 +156,11 @@ export async function planGroups(
       makesGroup = true;
     }
 
-    if (groupId && already.get(`${groupId}:${personId}`) === role) {
+    if (groupId && already.get(`${groupId}:${memberId}`) === role) {
       rows.push({
         ...base,
         groupId,
-        personId,
+        memberId,
         joinedOn,
         outcome: "skip",
         reason: "import.group.alreadyIn",
@@ -169,7 +169,7 @@ export async function planGroups(
       continue;
     }
 
-    rows.push({ ...base, groupId, personId, joinedOn, makesGroup, outcome: "create" });
+    rows.push({ ...base, groupId, memberId, joinedOn, makesGroup, outcome: "create" });
   }
 
   const totals = { create: 0, skip: 0, fail: 0 };
@@ -190,7 +190,7 @@ export interface GroupCommitResult {
  * Carries out a group plan, in one transaction and recording every row.
  *
  * The record is what makes R19.4 work on a group file too: a rollback takes the
- * people back out of the groups, and takes away the groups the file created if
+ * members back out of the groups, and takes away the groups the file created if
  * nobody else has joined them since.
  */
 export async function commitGroups(
@@ -259,7 +259,7 @@ export async function commitGroups(
 
     await addToGroup(db, { tenantId: actor.tenantId, role: actor.role }, {
       groupId,
-      personId: row.personId!,
+      memberId: row.memberId!,
       role: row.role,
       ...(row.joinedOn ? { joinedOn: row.joinedOn } : {}),
     });
@@ -296,7 +296,7 @@ async function record(
     batchId,
     lineNumber: row.lineNumber,
     outcome: row.outcome,
-    personId: row.personId ?? null,
+    memberId: row.memberId ?? null,
     groupId: groupId ?? row.groupId ?? null,
     groupCreated,
     reason: row.reason ?? null,
@@ -328,14 +328,14 @@ export async function rollbackGroupImport(
   const touched = new Set<string>();
 
   for (const row of rows) {
-    if (!row.groupId || !row.personId) continue;
+    if (!row.groupId || !row.memberId) continue;
     const done = await db
       .update(groupMemberships)
       .set({ leftOn: new Date().toISOString().slice(0, 10), updatedAt: new Date() })
       .where(
         and(
           eq(groupMemberships.groupId, row.groupId),
-          eq(groupMemberships.personId, row.personId),
+          eq(groupMemberships.memberId, row.memberId),
           isNull(groupMemberships.leftOn),
         ),
       )

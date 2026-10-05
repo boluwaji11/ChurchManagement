@@ -1,7 +1,7 @@
 /**
  * HRT-24. Merging two records that are one person, and undoing it (R2.8).
  *
- * The undo is what the tests are mostly about. Merging the wrong two people is
+ * The undo is what the tests are mostly about. Merging the wrong two members is
  * the fear that stops anybody pressing the button, and a merge nobody dares
  * press leaves the duplicates in the directory, which is the problem it was for.
  * So undo has to be exact, not approximate.
@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { mergePeople, undoMerge, listMerges, findDuplicatePairs } from "../src/repo/merge";
-import { createPerson, getPersonForEdit, listPeople, listTagsForPerson } from "../src/repo/people";
+import { createPerson, getPersonForEdit, listPeople, listTagsForPerson } from "../src/repo/members";
 import { createTag, setPersonTag } from "../src/repo/tags";
 import { createGroup, addToGroup, removeFromGroup, groupRoster, seedGroupTypes } from "../src/repo/groups";
 import { enterPipeline, addTask, peopleIn, listPipelines } from "../src/repo/followups";
@@ -34,12 +34,12 @@ beforeEach(async () => {
   const [row] = await owner()<{ id: string }[]>`select id from tenants where slug = 'riverside'`;
   riverside = row!.id;
   await owner()`delete from person_merges where tenant_id = ${riverside}`;
-  await owner()`delete from people where last_name = ${SUR}`;
+  await owner()`delete from members where last_name = ${SUR}`;
 });
 
 afterAll(async () => {
   await owner()`delete from person_merges where tenant_id = ${riverside}`;
-  await owner()`delete from people where last_name = ${SUR}`;
+  await owner()`delete from members where last_name = ${SUR}`;
   await owner()`delete from tags where name like ${"Mergetest%"}`;
   await closeConnections();
 });
@@ -76,7 +76,7 @@ describe("merging", () => {
 
     await run(riverside, "owner", (tx) => setPersonTag(tx, as(riverside), loser.id, tag.id, true));
     await run(riverside, "owner", (tx) =>
-      createNote(tx, { tenantId: riverside, personId: loser.id, classification: "general", body: "came with a friend" }),
+      createNote(tx, { tenantId: riverside, memberId: loser.id, classification: "general", body: "came with a friend" }),
     );
 
     await run(riverside, "owner", (tx) =>
@@ -187,7 +187,7 @@ describe("undoing a merge", () => {
     // Written after the merge. It belongs to the person who survived, and was
     // never part of what moved, so an undo must not drag it back.
     await run(riverside, "owner", (tx) =>
-      createNote(tx, { tenantId: riverside, personId: winner.id, classification: "general", body: "spoke on Sunday" }),
+      createNote(tx, { tenantId: riverside, memberId: winner.id, classification: "general", body: "spoke on Sunday" }),
     );
 
     await run(riverside, "owner", (tx) => undoMerge(tx, as(riverside), merged.mergeId));
@@ -269,7 +269,7 @@ describe("the review queue (R2.8)", () => {
       mergePeople(tx, as(riverside), { winnerId: winner.id, loserId: loser.id }),
     );
 
-    // The loser is archived, and the index only holds people who are not.
+    // The loser is archived, and the index only holds members who are not.
     expect(
       (await run(riverside, "owner", (tx) => findDuplicatePairs(tx))).filter((p) => p.a.name.includes(SUR)),
     ).toHaveLength(0);
@@ -295,7 +295,7 @@ describe("what a merge takes with it (R2.8)", () => {
       createGroup(tx, as(riverside), { name: `Mergetest group ${Date.now()}` }),
     );
     await run(riverside, "owner", (tx) =>
-      addToGroup(tx, as(riverside), { groupId: group.id, personId: loser.id, role: "leader" }),
+      addToGroup(tx, as(riverside), { groupId: group.id, memberId: loser.id, role: "leader" }),
     );
 
     await run(riverside, "owner", (tx) =>
@@ -303,10 +303,10 @@ describe("what a merge takes with it (R2.8)", () => {
     );
 
     const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
-    expect(roster.map((m) => m.personId)).toContain(winner.id);
-    expect(roster.map((m) => m.personId)).not.toContain(loser.id);
+    expect(roster.map((m) => m.memberId)).toContain(winner.id);
+    expect(roster.map((m) => m.memberId)).not.toContain(loser.id);
     // The role they held comes with them.
-    expect(roster.find((m) => m.personId === winner.id)?.role).toBe("leader");
+    expect(roster.find((m) => m.memberId === winner.id)?.role).toBe("leader");
   });
 
   it("leaves a membership where the survivor is already live in that group", async () => {
@@ -317,7 +317,7 @@ describe("what a merge takes with it (R2.8)", () => {
     );
     for (const person of [winner, loser]) {
       await run(riverside, "owner", (tx) =>
-        addToGroup(tx, as(riverside), { groupId: group.id, personId: person.id }),
+        addToGroup(tx, as(riverside), { groupId: group.id, memberId: person.id }),
       );
     }
 
@@ -327,7 +327,7 @@ describe("what a merge takes with it (R2.8)", () => {
 
     // One row, not two, and the group is not holding an archived person twice.
     const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
-    expect(roster.filter((m) => m.personId === winner.id)).toHaveLength(1);
+    expect(roster.filter((m) => m.memberId === winner.id)).toHaveLength(1);
   });
 
   it("still moves a live membership when the survivor once left that group", async () => {
@@ -339,13 +339,13 @@ describe("what a merge takes with it (R2.8)", () => {
       createGroup(tx, as(riverside), { name: `Mergetest rejoin ${Date.now()}` }),
     );
     await run(riverside, "owner", (tx) =>
-      addToGroup(tx, as(riverside), { groupId: group.id, personId: winner.id }),
+      addToGroup(tx, as(riverside), { groupId: group.id, memberId: winner.id }),
     );
     await run(riverside, "owner", (tx) =>
-      removeFromGroup(tx, as(riverside), { groupId: group.id, personId: winner.id }),
+      removeFromGroup(tx, as(riverside), { groupId: group.id, memberId: winner.id }),
     );
     await run(riverside, "owner", (tx) =>
-      addToGroup(tx, as(riverside), { groupId: group.id, personId: loser.id }),
+      addToGroup(tx, as(riverside), { groupId: group.id, memberId: loser.id }),
     );
 
     await run(riverside, "owner", (tx) =>
@@ -353,7 +353,7 @@ describe("what a merge takes with it (R2.8)", () => {
     );
 
     const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
-    expect(roster.map((m) => m.personId)).toContain(winner.id);
+    expect(roster.map((m) => m.memberId)).toContain(winner.id);
   });
 
   it("moves an open pipeline entry and the tasks written about them", async () => {
@@ -362,10 +362,10 @@ describe("what a merge takes with it (R2.8)", () => {
     const [pipeline] = await run(riverside, "owner", (tx) => listPipelines(tx));
 
     await run(riverside, "owner", (tx) =>
-      enterPipeline(tx, as(riverside), { pipelineId: pipeline!.id, personId: loser.id, on: today }),
+      enterPipeline(tx, as(riverside), { pipelineId: pipeline!.id, memberId: loser.id, on: today }),
     );
     await run(riverside, "owner", (tx) =>
-      addTask(tx, as(riverside), { personId: loser.id, title: "Call them back", dueOn: today }),
+      addTask(tx, as(riverside), { memberId: loser.id, title: "Call them back", dueOn: today }),
     );
 
     await run(riverside, "owner", (tx) =>
@@ -373,8 +373,8 @@ describe("what a merge takes with it (R2.8)", () => {
     );
 
     const inPipeline = await run(riverside, "owner", (tx) => peopleIn(tx, pipeline!.id));
-    expect(inPipeline.map((p) => p.personId)).toContain(winner.id);
-    expect(inPipeline.map((p) => p.personId)).not.toContain(loser.id);
+    expect(inPipeline.map((p) => p.memberId)).toContain(winner.id);
+    expect(inPipeline.map((p) => p.memberId)).not.toContain(loser.id);
   });
 
   it("puts every one of them back when the merge is undone", async () => {
@@ -384,7 +384,7 @@ describe("what a merge takes with it (R2.8)", () => {
       createGroup(tx, as(riverside), { name: `Mergetest undo ${Date.now()}` }),
     );
     await run(riverside, "owner", (tx) =>
-      addToGroup(tx, as(riverside), { groupId: group.id, personId: loser.id }),
+      addToGroup(tx, as(riverside), { groupId: group.id, memberId: loser.id }),
     );
 
     const merge = await run(riverside, "owner", (tx) =>
@@ -393,7 +393,7 @@ describe("what a merge takes with it (R2.8)", () => {
     await run(riverside, "owner", (tx) => undoMerge(tx, as(riverside), merge.mergeId));
 
     const roster = await run(riverside, "owner", (tx) => groupRoster(tx, group.id));
-    expect(roster.map((m) => m.personId)).toContain(loser.id);
-    expect(roster.map((m) => m.personId)).not.toContain(winner.id);
+    expect(roster.map((m) => m.memberId)).toContain(loser.id);
+    expect(roster.map((m) => m.memberId)).not.toContain(winner.id);
   });
 });

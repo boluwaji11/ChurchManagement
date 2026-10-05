@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { sql as raw } from "drizzle-orm";
 import { owner, appDb, withTenant, closeConnections } from "../src/client";
-import { listPeople } from "../src/repo/people";
+import { listPeople } from "../src/repo/members";
 import { listNotesForPerson } from "../src/repo/notes";
 
 let riverside: string;
@@ -27,11 +27,11 @@ beforeAll(async () => {
   riverside = tenants.find((t) => t.slug === "riverside")!.id;
   northgate = tenants.find((t) => t.slug === "northgate")!.id;
 
-  const [np] = await sql<{ id: string }[]>`select id from people where tenant_id = ${northgate} limit 1`;
+  const [np] = await sql<{ id: string }[]>`select id from members where tenant_id = ${northgate} limit 1`;
   northgatePersonId = np!.id;
 
   const [rs] = await sql<{ id: string }[]>`
-    select person_id as id from notes where tenant_id = ${riverside} and classification = 'confidential' limit 1`;
+    select member_id as id from notes where tenant_id = ${riverside} and classification = 'confidential' limit 1`;
   riversideSubjectId = rs!.id;
 
   tenantTables = (
@@ -92,7 +92,7 @@ describe("the application role itself", () => {
 });
 
 describe("cross-tenant reads through the ORM", () => {
-  it("returns only the current tenant's people", async () => {
+  it("returns only the current tenant's members", async () => {
     const riversidePeople = await withTenant({ tenantId: riverside, role: "admin" }, (tx) => listPeople(tx));
     const northgatePeople = await withTenant({ tenantId: northgate, role: "admin" }, (tx) => listPeople(tx));
 
@@ -109,7 +109,7 @@ describe("cross-tenant reads through the ORM", () => {
 
   it("cannot fetch another tenant's person by its exact id", async () => {
     const found = await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
-      tx.execute(raw`select id from people where id = ${northgatePersonId}::uuid`),
+      tx.execute(raw`select id from members where id = ${northgatePersonId}::uuid`),
     );
     expect(found.length).toBe(0);
   });
@@ -158,7 +158,7 @@ describe("cross-tenant writes", () => {
     await expect(
       withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
         tx.execute(raw`
-          insert into people (tenant_id, first_name, last_name)
+          insert into members (tenant_id, first_name, last_name)
           values (${northgate}::uuid, ${"Injected"}, ${"Row"})`),
       ),
     ).rejects.toThrow(/row-level security/i);
@@ -167,24 +167,24 @@ describe("cross-tenant writes", () => {
   it("updates nothing when targeting another tenant's row", async () => {
     await withTenant({ tenantId: riverside, role: "owner" }, async (tx) => {
       const result = await tx.execute(raw`
-        update people set last_name = ${"Tampered"} where id = ${northgatePersonId}::uuid returning id`);
+        update members set last_name = ${"Tampered"} where id = ${northgatePersonId}::uuid returning id`);
       expect(result.length).toBe(0);
     });
 
     const [check] = await owner()<{ last_name: string }[]>`
-      select last_name from people where id = ${northgatePersonId}`;
+      select last_name from members where id = ${northgatePersonId}`;
     expect(check!.last_name).not.toBe("Tampered");
   });
 
   it("deletes nothing when targeting another tenant's row", async () => {
     await withTenant({ tenantId: riverside, role: "owner" }, async (tx) => {
       const result = await tx.execute(
-        raw`delete from people where id = ${northgatePersonId}::uuid returning id`,
+        raw`delete from members where id = ${northgatePersonId}::uuid returning id`,
       );
       expect(result.length).toBe(0);
     });
 
-    const [still] = await owner()<{ id: string }[]>`select id from people where id = ${northgatePersonId}`;
+    const [still] = await owner()<{ id: string }[]>`select id from members where id = ${northgatePersonId}`;
     expect(still).toBeDefined();
   });
 
@@ -193,7 +193,7 @@ describe("cross-tenant writes", () => {
     // asserts the blast radius if that check were ever bypassed: the attacker
     // still only reaches the tenant they named, never two at once.
     const rows = await withTenant({ tenantId: northgate, role: "owner" }, (tx) =>
-      tx.execute(raw`select tenant_id from people`),
+      tx.execute(raw`select tenant_id from members`),
     );
     expect(
       (rows as unknown as { tenant_id: string }[]).every((r) => r.tenant_id === northgate),
@@ -282,18 +282,18 @@ describe("the audit log is append only (R1.11)", () => {
   it("writes an entry automatically when a person is created", async () => {
     const created = await withTenant({ tenantId: riverside, role: "admin" }, async (tx) => {
       const rows = await tx.execute(raw`
-        insert into people (tenant_id, first_name, last_name)
+        insert into members (tenant_id, first_name, last_name)
         values (${riverside}::uuid, ${"Audit"}, ${"Probe"}) returning id`);
       return (rows as unknown as { id: string }[])[0]!.id;
     });
 
     const entries = await owner()<{ action: string; actor_role: string }[]>`
-      select action, actor_role from audit_entries where entity = 'people' and entity_id = ${created}`;
+      select action, actor_role from audit_entries where entity = 'members' and entity_id = ${created}`;
     expect(entries.length).toBe(1);
     expect(entries[0]!.action).toBe("insert");
     expect(entries[0]!.actor_role).toBe("admin");
 
-    await owner()`delete from people where id = ${created}`;
+    await owner()`delete from members where id = ${created}`;
   });
 
   it("cannot be updated by the owner role of the tenant", async () => {

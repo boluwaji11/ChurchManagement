@@ -50,8 +50,8 @@ have given you more, and nothing here needs Hearth to read it.
 
 csv/
   One file per table, UTF-8 with a byte order mark so Excel opens it correctly.
-  Ids are kept, so the files join back together: people.csv has an id, and
-  contact_methods.csv has a person_id pointing at it.
+  Ids are kept, so the files join back together: members.csv has an id, and
+  contact_methods.csv has a member_id pointing at it.
 
 hearth-export.json
   The same data, with types and nesting intact. This is the file to use if you

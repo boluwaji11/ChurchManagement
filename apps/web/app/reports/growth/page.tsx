@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
  * told it lost somebody who was on holiday.
  *
  * The number that matters most is at the top and it is not the roll: it is how
- * many of the people who came last window came again in this one. A church can
+ * many of the members who came last window came again in this one. A church can
  * add names all year and still be emptying.
  */
 export default async function GrowthReport({

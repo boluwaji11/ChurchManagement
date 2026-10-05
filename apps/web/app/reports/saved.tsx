@@ -85,9 +85,6 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
 
       <Dialog open={asking !== null} onOpenChange={(open) => { if (!open) setAsking(null); }}>
         <DialogContent title={asking ? t("report.archiveAsk", { name: asking.name }) : ""}>
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">
-            {t("report.archiveSays")}
-          </p>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setAsking(null)}>
               {t("action.cancel")}

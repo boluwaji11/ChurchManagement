@@ -3,12 +3,12 @@ import type { Tx } from "../client";
 import { servicePlans, planItems, planItemNotes, planItemFiles } from "../schema/plans";
 import { storedFiles } from "../schema/tenancy";
 import { teams, teamPositions, servingAssignments } from "../schema/serving";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R11.1 to R11.3. The order of service.
@@ -64,14 +64,14 @@ export interface ItemNote {
   body: string;
   teamId: string | null;
   positionId: string | null;
-  personId: string | null;
+  memberId: string | null;
   /** What to show beside the note: the team, the position, or the name. */
   audience: string | null;
 }
 
 /** Who is reading the plan, for R11.6's filtering. */
 export interface PlanReader {
-  personId: string;
+  memberId: string;
   teamIds: string[];
   positionIds: string[];
 }
@@ -84,7 +84,7 @@ export interface PlanReader {
  */
 export function notesFor(notes: ItemNote[], reader: PlanReader): ItemNote[] {
   return notes.filter((note) => {
-    if (note.personId) return note.personId === reader.personId;
+    if (note.memberId) return note.memberId === reader.memberId;
     if (note.positionId) return reader.positionIds.includes(note.positionId);
     if (note.teamId) return reader.teamIds.includes(note.teamId);
     return true;
@@ -384,18 +384,18 @@ export async function notesForPlan(db: Tx, planId: string): Promise<ItemNote[]> 
       body: planItemNotes.body,
       teamId: planItemNotes.teamId,
       positionId: planItemNotes.positionId,
-      personId: planItemNotes.personId,
+      memberId: planItemNotes.memberId,
       teamName: teams.name,
       positionName: teamPositions.name,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(planItemNotes)
     .innerJoin(planItems, eq(planItems.id, planItemNotes.itemId))
     .leftJoin(teams, eq(teams.id, planItemNotes.teamId))
     .leftJoin(teamPositions, eq(teamPositions.id, planItemNotes.positionId))
-    .leftJoin(people, eq(people.id, planItemNotes.personId))
+    .leftJoin(members, eq(members.id, planItemNotes.memberId))
     .where(eq(planItems.planId, planId))
     .orderBy(asc(planItemNotes.createdAt));
 
@@ -405,8 +405,8 @@ export async function notesForPlan(db: Tx, planId: string): Promise<ItemNote[]> 
     body: r.body,
     teamId: r.teamId,
     positionId: r.positionId,
-    personId: r.personId,
-    audience: r.personId && r.firstName
+    memberId: r.memberId,
+    audience: r.memberId && r.firstName
       ? `${r.preferredName ?? r.firstName} ${r.lastName}`
       : r.positionName ?? r.teamName ?? null,
   }));
@@ -417,7 +417,7 @@ export interface NoteInput {
   body: string;
   teamId?: string | null;
   positionId?: string | null;
-  personId?: string | null;
+  memberId?: string | null;
 }
 
 /**
@@ -455,7 +455,7 @@ export async function addItemNote(
       body,
       teamId,
       positionId: input.positionId ?? null,
-      personId: input.personId ?? null,
+      memberId: input.memberId ?? null,
     })
     .returning({ id: planItemNotes.id });
 
@@ -474,7 +474,7 @@ export async function removeItemNote(db: Tx, actor: WriteActor, id: string): Pro
 
 /**
  * R11.6. Who the plan can address: the positions scheduled on this service,
- * and the people in them.
+ * and the members in them.
  *
  * Read from the schedule rather than from every team, because a note addressed
  * to a position nobody is filling is a note nobody reads.
@@ -482,7 +482,7 @@ export async function removeItemNote(db: Tx, actor: WriteActor, id: string): Pro
 export interface Addressable {
   teams: { id: string; name: string }[];
   positions: { id: string; name: string; teamName: string }[];
-  people: { id: string; name: string; positionName: string }[];
+  members: { id: string; name: string; positionName: string }[];
 }
 
 export async function addressableFor(db: Tx, occurrenceId: string): Promise<Addressable> {
@@ -492,20 +492,20 @@ export async function addressableFor(db: Tx, occurrenceId: string): Promise<Addr
       teamName: teams.name,
       positionId: teamPositions.id,
       positionName: teamPositions.name,
-      personId: people.id,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      memberId: members.id,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(servingAssignments)
     .innerJoin(teams, eq(teams.id, servingAssignments.teamId))
     .innerJoin(teamPositions, eq(teamPositions.id, servingAssignments.positionId))
-    .innerJoin(people, eq(people.id, servingAssignments.personId))
+    .innerJoin(members, eq(members.id, servingAssignments.memberId))
     .where(and(
       eq(servingAssignments.occurrenceId, occurrenceId),
       sql`${servingAssignments.status} <> 'declined'`,
     ))
-    .orderBy(asc(teams.name), asc(teamPositions.position), asc(people.lastName));
+    .orderBy(asc(teams.name), asc(teamPositions.position), asc(members.lastName));
 
   const byTeam = new Map<string, { id: string; name: string }>();
   const byPosition = new Map<string, { id: string; name: string; teamName: string }>();
@@ -516,8 +516,8 @@ export async function addressableFor(db: Tx, occurrenceId: string): Promise<Addr
     byPosition.set(row.positionId, {
       id: row.positionId, name: row.positionName, teamName: row.teamName,
     });
-    byPerson.set(row.personId, {
-      id: row.personId,
+    byPerson.set(row.memberId, {
+      id: row.memberId,
       name: `${row.preferredName ?? row.firstName} ${row.lastName}`,
       positionName: row.positionName,
     });
@@ -526,14 +526,14 @@ export async function addressableFor(db: Tx, occurrenceId: string): Promise<Addr
   return {
     teams: [...byTeam.values()],
     positions: [...byPosition.values()],
-    people: [...byPerson.values()],
+    members: [...byPerson.values()],
   };
 }
 
 /** R11.6. What this person is scheduled as, which is what their notes follow. */
 export async function readerFor(
   db: Tx,
-  input: { occurrenceId: string; personId: string },
+  input: { occurrenceId: string; memberId: string },
 ): Promise<PlanReader> {
   const rows = await db
     .select({
@@ -543,12 +543,12 @@ export async function readerFor(
     .from(servingAssignments)
     .where(and(
       eq(servingAssignments.occurrenceId, input.occurrenceId),
-      eq(servingAssignments.personId, input.personId),
+      eq(servingAssignments.memberId, input.memberId),
       sql`${servingAssignments.status} <> 'declined'`,
     ));
 
   return {
-    personId: input.personId,
+    memberId: input.memberId,
     teamIds: [...new Set(rows.map((r) => r.teamId))],
     positionIds: [...new Set(rows.map((r) => r.positionId))],
   };

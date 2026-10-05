@@ -306,7 +306,7 @@ export function PersonForm({
               <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
               <Contacts
                 church={church}
-                personId={values!.id!}
+                memberId={values!.id!}
                 kind="email"
                 contacts={contacts}
                 canEdit
@@ -316,7 +316,7 @@ export function PersonForm({
               <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
               <Contacts
                 church={church}
-                personId={values!.id!}
+                memberId={values!.id!}
                 kind="phone"
                 contacts={contacts}
                 canEdit
@@ -326,7 +326,7 @@ export function PersonForm({
               <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
               <Places
                 church={church}
-                personId={values!.id!}
+                memberId={values!.id!}
                 places={places ?? []}
                 canEdit
               />

@@ -40,7 +40,7 @@ export interface SubjectDef {
   fields: readonly FieldDef[];
 }
 
-export const SUBJECT_KEYS = ["people", "attendance", "followups"] as const;
+export const SUBJECT_KEYS = ["members", "attendance", "followups"] as const;
 export type SubjectKey = (typeof SUBJECT_KEYS)[number];
 
 export const LIFECYCLE_CHOICES = [
@@ -48,17 +48,17 @@ export const LIFECYCLE_CHOICES = [
 ] as const;
 
 /**
- * The people in the church's records.
+ * The members in the church's records.
  *
  * Nothing sensitive is offered here on purpose. Allergies, medical notes and
- * pastoral notes are readable on the person and at check-in by the people who
+ * pastoral notes are readable on the person and at check-in by the members who
  * need them, and an ad-hoc report that can list every child's medical note is a
  * safeguarding problem waiting to be exported to a laptop.
  */
 const PEOPLE: SubjectDef = {
-  key: "people",
-  label: "report.subject.people",
-  rowLabel: "report.row.people",
+  key: "members",
+  label: "report.subject.members",
+  rowLabel: "report.row.members",
   fields: [
     { key: "name", label: "report.field.name", kind: "text" },
     { key: "status", label: "report.field.status", kind: "choice", choices: LIFECYCLE_CHOICES, groupable: true },
@@ -113,7 +113,7 @@ const FOLLOWUPS: SubjectDef = {
 };
 
 export const SUBJECTS: Record<SubjectKey, SubjectDef> = {
-  people: PEOPLE,
+  members: PEOPLE,
   attendance: ATTENDANCE,
   followups: FOLLOWUPS,
 };
@@ -130,7 +130,7 @@ export const OPERATORS: Record<FieldKind, readonly string[]> = {
 /** The operators that stand on their own, with nothing typed after them. */
 export const BARE_OPERATORS = new Set(["empty", "notEmpty", "yes", "no"]);
 
-export type MeasureKind = "rows" | "people" | "sum" | "average";
+export type MeasureKind = "rows" | "members" | "sum" | "average";
 
 /** How the answer is drawn. */
 export const VIEWS = ["table", "number", "bar", "rows", "donut", "line"] as const;
@@ -184,7 +184,7 @@ export function cleanSpec(raw: unknown): ReportSpec {
   const input = (raw ?? {}) as Partial<ReportSpec>;
   const subject: SubjectKey = SUBJECT_KEYS.includes(input.subject as SubjectKey)
     ? (input.subject as SubjectKey)
-    : "people";
+    : "members";
   const def = SUBJECTS[subject];
 
   const filters: Condition[] = (Array.isArray(input.filters) ? input.filters : [])
@@ -216,7 +216,7 @@ export function cleanSpec(raw: unknown): ReportSpec {
       const field = input.measure?.field ? fieldOf(subject, input.measure.field) : null;
       measure = field?.numeric ? { kind, field: field.key } : { kind: "rows" };
     } else {
-      measure = { kind: kind === "people" ? "people" : "rows" };
+      measure = { kind: kind === "members" ? "members" : "rows" };
     }
   }
 

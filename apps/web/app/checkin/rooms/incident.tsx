@@ -22,14 +22,14 @@ import { report } from "./actions";
  */
 export function IncidentDialog({
   church,
-  personId,
+  memberId,
   personName,
   roomId,
   occurrenceId,
   today,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   personName: string;
   roomId: string;
   occurrenceId: string;
@@ -62,7 +62,7 @@ export function IncidentDialog({
             startTransition(async () => {
               const result = await report(
                 {
-                  personId,
+                  memberId,
                   roomId,
                   occurrenceId,
                   occurredOn: String(data.get("occurredOn") ?? today),

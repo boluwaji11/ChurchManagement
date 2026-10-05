@@ -13,7 +13,7 @@ import {
   pipelineBoard, peopleIn, peopleNotIn, isInPipeline, DEFAULT_PIPELINES,
   createPipeline, updatePipeline, saveSteps, setPipelineArchived, assignableUsers,
 } from "../src/repo/followups";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -89,7 +89,7 @@ describe("the six (R5.2)", () => {
 describe("entering one (R5.1, R5.4)", () => {
   it("writes every step out, dated from the day they came", async () => {
     const entry = await run((tx) =>
-      enterPipeline(tx, as(), { pipelineKey: "first_visit", personId: visitor, on: MONDAY }),
+      enterPipeline(tx, as(), { pipelineKey: "first_visit", memberId: visitor, on: MONDAY }),
     );
     expect(entry!.pipelineName).toBe("First visit");
     expect(entry!.steps.map((s) => s.dueOn)).toEqual(["2026-10-07", "2026-10-12", "2026-10-26"]);
@@ -98,7 +98,7 @@ describe("entering one (R5.1, R5.4)", () => {
 
   it("leaves somebody already in it where they are", async () => {
     const again = await run((tx) =>
-      enterPipeline(tx, as(), { pipelineKey: "first_visit", personId: visitor, on: "2026-10-12" }),
+      enterPipeline(tx, as(), { pipelineKey: "first_visit", memberId: visitor, on: "2026-10-12" }),
     );
     expect(again).toBeNull();
     expect((await run((tx) => entriesFor(tx, visitor))).length).toBe(1);
@@ -107,7 +107,7 @@ describe("entering one (R5.1, R5.4)", () => {
   it("refuses a day it cannot store", async () => {
     await expect(
       run((tx) => enterPipeline(tx, as(), {
-        pipelineKey: "second_visit", personId: visitor, on: "last Sunday",
+        pipelineKey: "second_visit", memberId: visitor, on: "last Sunday",
       })),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
@@ -116,7 +116,7 @@ describe("entering one (R5.1, R5.4)", () => {
     await expect(
       run((tx) => enterPipeline(tx, as(), {
         pipelineKey: "second_visit",
-        personId: "00000000-0000-4000-8000-000000000000",
+        memberId: "00000000-0000-4000-8000-000000000000",
         on: MONDAY,
       })),
     ).rejects.toBeInstanceOf(InvalidInputError);
@@ -126,7 +126,7 @@ describe("entering one (R5.1, R5.4)", () => {
     for (const role of ["group_leader", "checkin_volunteer", "member"] as const) {
       await expect(
         run((tx) => enterPipeline(tx, { tenantId: tenant, role }, {
-          pipelineKey: "baptism", personId: other, on: MONDAY,
+          pipelineKey: "baptism", memberId: other, on: MONDAY,
         }), role),
         role,
       ).rejects.toBeInstanceOf(PermissionError);
@@ -156,7 +156,7 @@ describe("working them (R5.1, R5.5)", () => {
 
   it("puts a step with no day after the dated ones", async () => {
     const undated = await run((tx) =>
-      addTask(tx, as(), { personId: visitor, title: "Whenever", assigneeUserId: pastor }),
+      addTask(tx, as(), { memberId: visitor, title: "Whenever", assigneeUserId: pastor }),
     );
     const mine = await run((tx) => myFollowUps(tx, pastor));
     expect(mine[mine.length - 1]!.id).toBe(undated.id);
@@ -209,7 +209,7 @@ describe("leaving one (R5.4)", () => {
 
   it("refuses a reason that is not given", async () => {
     const entry = await run((tx) =>
-      enterPipeline(tx, as(), { pipelineKey: "serving", personId: other, on: MONDAY }),
+      enterPipeline(tx, as(), { pipelineKey: "serving", memberId: other, on: MONDAY }),
     );
     await expect(
       run((tx) => exitPipeline(tx, as(), { entryId: entry!.id, reason: "  " })),
@@ -229,7 +229,7 @@ describe("a task on its own (R5.6)", () => {
   it("belongs to a person and to no pipeline", async () => {
     const task = await run((tx) =>
       addTask(tx, as(), {
-        personId: other, title: "Drop the book round", assigneeUserId: volunteer,
+        memberId: other, title: "Drop the book round", assigneeUserId: volunteer,
         dueOn: "2026-10-18",
       }),
     );
@@ -242,12 +242,12 @@ describe("a task on its own (R5.6)", () => {
   });
 
   it("refuses an empty one", async () => {
-    await expect(run((tx) => addTask(tx, as(), { personId: other, title: "   " })))
+    await expect(run((tx) => addTask(tx, as(), { memberId: other, title: "   " })))
       .rejects.toBeInstanceOf(InvalidInputError);
   });
 
   it("is listed as nobody's until somebody takes it", async () => {
-    const task = await run((tx) => addTask(tx, as(), { personId: other, title: "Ring the school" }));
+    const task = await run((tx) => addTask(tx, as(), { memberId: other, title: "Ring the school" }));
     const waiting = await run((tx) => unassignedFollowUps(tx));
     expect(waiting.map((f) => f.id)).toContain(task.id);
   });
@@ -256,7 +256,7 @@ describe("a task on its own (R5.6)", () => {
 describe("the board (R5.7)", () => {
   it("counts who is in each one, and how late it is", async () => {
     await run((tx) => enterPipeline(tx, as(), {
-      pipelineKey: "membership", personId: visitor, on: MONDAY,
+      pipelineKey: "membership", memberId: visitor, on: MONDAY,
     }));
 
     const board = await run((tx) => pipelineBoard(tx, TODAY));
@@ -274,7 +274,7 @@ describe("the board (R5.7)", () => {
   it("names who is in one, so the number can be opened", async () => {
     const membership = (await run((tx) => listPipelines(tx))).find((p) => p.key === "membership")!;
     const inside = await run((tx) => peopleIn(tx, membership.id));
-    expect(inside.map((e) => e.personId)).toEqual([visitor]);
+    expect(inside.map((e) => e.memberId)).toEqual([visitor]);
   });
 });
 
@@ -295,7 +295,7 @@ describe("another church's follow-ups", () => {
  *
  * The line this draws is the point of the story: a church rewords its own
  * process and cannot invent a seventh pipeline or branch one. The other half is
- * that editing a template must not touch the people already in it.
+ * that editing a template must not touch the members already in it.
  */
 describe("putting somebody on the board by hand (R5.4)", () => {
   it("leaves out anybody already in it", async () => {
@@ -303,7 +303,7 @@ describe("putting somebody on the board by hand (R5.4)", () => {
     const someone = before[0]!;
 
     const entry = await run((tx) =>
-      enterPipeline(tx, as(), { pipelineId: firstVisit, personId: someone.id, on: "2026-10-01" }),
+      enterPipeline(tx, as(), { pipelineId: firstVisit, memberId: someone.id, on: "2026-10-01" }),
     );
     const during = await run((tx) => peopleNotIn(tx, firstVisit));
     expect(during.some((one) => one.id === someone.id)).toBe(false);
@@ -393,7 +393,7 @@ describe("editing the six (R5.2)", () => {
     ).rejects.toBeInstanceOf(PermissionError);
   });
 
-  it("leaves the people already in it alone", async () => {
+  it("leaves the members already in it alone", async () => {
     const membership = (await run((tx) => listPipelines(tx))).find((p) => p.key === "membership")!;
     const before = (await run((tx) => entriesFor(tx, visitor)))
       .find((e) => e.pipelineKey === "membership")!;
@@ -446,7 +446,7 @@ describe("editing the six (R5.2)", () => {
     expect((await run((tx) => listPipelines(tx))).some((p) => p.key === "serving")).toBe(false);
     await expect(
       run((tx) => enterPipeline(tx, as(), {
-        pipelineKey: "serving", personId: other, on: MONDAY,
+        pipelineKey: "serving", memberId: other, on: MONDAY,
       })),
     ).rejects.toBeInstanceOf(InvalidInputError);
 
@@ -454,7 +454,7 @@ describe("editing the six (R5.2)", () => {
   });
 
   it("names who a follow-up can be given to", async () => {
-    const people = await run((tx) => assignableUsers(tx));
-    expect(people.every((p) => ["owner", "admin", "staff", "pastoral"].includes(p.role))).toBe(true);
+    const members = await run((tx) => assignableUsers(tx));
+    expect(members.every((p) => ["owner", "admin", "staff", "pastoral"].includes(p.role))).toBe(true);
   });
 });

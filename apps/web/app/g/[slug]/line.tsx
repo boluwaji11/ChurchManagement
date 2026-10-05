@@ -25,7 +25,7 @@ export function meetsWhen(group: PublicGroup): string {
   return `${day}, ${span}`;
 }
 
-/** R9.5. When, where, who it is for, and whether it is taking people. */
+/** R9.5. When, where, who it is for, and whether it is taking members. */
 export function GroupLine({ group }: { group: PublicGroup }) {
   return (
     <>

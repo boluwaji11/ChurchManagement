@@ -148,9 +148,9 @@ export async function syncUserAndAcceptInvitations(user: {
     on conflict (id) do update set email = excluded.email, full_name = coalesce(excluded.full_name, app_users.full_name)`;
 
   const pending = await sql<
-    { id: string; tenant_id: string; role: TenantRole; person_id: string | null }[]
+    { id: string; tenant_id: string; role: TenantRole; member_id: string | null }[]
   >`
-    select id, tenant_id, role, person_id from invitations
+    select id, tenant_id, role, member_id from invitations
     where lower(email) = ${email}
       and accepted_at is null
       and revoked_at is null
@@ -174,7 +174,7 @@ export async function syncUserAndAcceptInvitations(user: {
       userId: user.id,
       email,
       fullName: user.fullName ?? null,
-      personId: invite.person_id,
+      memberId: invite.member_id,
     });
 
     const rows = await sql<Membership[]>`
@@ -204,21 +204,21 @@ export async function linkOrCreatePerson(input: {
   email: string;
   fullName: string | null;
   /** The record an invitation named, where it named one. */
-  personId?: string | null;
+  memberId?: string | null;
 }): Promise<string | null> {
   const sql = owner();
   const email = input.email.trim().toLowerCase();
 
   const [already] = await sql<{ id: string }[]>`
-    select id from people
+    select id from members
      where tenant_id = ${input.tenantId} and app_user_id = ${input.userId} and archived_at is null
      limit 1`;
   if (already) return already.id;
 
-  if (input.personId) {
+  if (input.memberId) {
     const [named] = await sql<{ id: string }[]>`
-      update people set app_user_id = ${input.userId}
-       where id = ${input.personId} and tenant_id = ${input.tenantId} and app_user_id is null
+      update members set app_user_id = ${input.userId}
+       where id = ${input.memberId} and tenant_id = ${input.tenantId} and app_user_id is null
       returning id`;
     if (named) return named.id;
   }
@@ -226,12 +226,12 @@ export async function linkOrCreatePerson(input: {
   // An unclaimed adult record carrying this address. A child's record is never
   // claimed this way, the same rule the join code path holds to.
   const [matched] = await sql<{ id: string }[]>`
-    update people set app_user_id = ${input.userId}
+    update members set app_user_id = ${input.userId}
      where id = (
        select p.id
-         from people p
-         join contact_methods c on c.person_id = p.id and c.tenant_id = p.tenant_id
-         left join household_memberships hm on hm.person_id = p.id and hm.tenant_id = p.tenant_id
+         from members p
+         join contact_methods c on c.member_id = p.id and c.tenant_id = p.tenant_id
+         left join household_memberships hm on hm.member_id = p.id and hm.tenant_id = p.tenant_id
         where p.tenant_id = ${input.tenantId}
           and p.archived_at is null
           and p.app_user_id is null
@@ -254,8 +254,8 @@ export async function linkOrCreatePerson(input: {
    */
   const [taken] = await sql<{ id: string }[]>`
     select p.id
-      from people p
-      join contact_methods c on c.person_id = p.id and c.tenant_id = p.tenant_id
+      from members p
+      join contact_methods c on c.member_id = p.id and c.tenant_id = p.tenant_id
      where p.tenant_id = ${input.tenantId}
        and p.archived_at is null
        and p.app_user_id is not null
@@ -269,14 +269,14 @@ export async function linkOrCreatePerson(input: {
   const last = parts.length >= 2 ? parts.slice(1).join(" ") : "";
 
   const [made] = await sql<{ id: string }[]>`
-    insert into people (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
+    insert into members (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
     values (${input.tenantId},
-            hearth_free_person_slug(${input.tenantId}::uuid, ${`${first} ${last}`.trim()}),
+            hearth_free_member_slug(${input.tenantId}::uuid, ${`${first} ${last}`.trim()}),
             ${first}, ${last}, 'member', ${input.userId})
     returning id`;
 
   await sql`
-    insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+    insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
     values (${input.tenantId}, ${made!.id}, 'email', 'home', ${email}, true)`;
 
   return made!.id;
@@ -303,7 +303,7 @@ export async function createInvitation(input: {
   role: TenantRole;
   invitedByUserId?: string;
   /** R1.7. The record this is for, so accepting ties the account to it. */
-  personId?: string | null;
+  memberId?: string | null;
   days?: number;
 }): Promise<{ id: string }> {
   const sql = owner();
@@ -318,15 +318,15 @@ export async function createInvitation(input: {
   if (!standing?.approved) throw new InvalidInputError("provisional.error.locked");
 
   const rows = await sql<{ id: string }[]>`
-    insert into invitations (tenant_id, email, role, invited_by_user_id, person_id, expires_at)
+    insert into invitations (tenant_id, email, role, invited_by_user_id, member_id, expires_at)
     values (
       ${input.tenantId}, ${input.email.trim().toLowerCase()}, ${input.role}::tenant_role,
-      ${input.invitedByUserId ?? null}, ${input.personId ?? null},
+      ${input.invitedByUserId ?? null}, ${input.memberId ?? null},
       now() + make_interval(days => ${input.days ?? 14})
     )
     on conflict (tenant_id, email) do update set
       role = excluded.role,
-      person_id = coalesce(excluded.person_id, invitations.person_id),
+      member_id = coalesce(excluded.member_id, invitations.member_id),
       expires_at = excluded.expires_at,
       revoked_at = null,
       accepted_at = null
@@ -358,7 +358,7 @@ export const RESERVED_SLUGS: readonly string[] = [
   "choose-church", "contact", "create-church", "dashboard", "design", "docs", "download",
   "fields",
   "give", "giving", "help", "home", "hearth", "icon", "images", "index", "invite",
-  "legal", "login", "logout", "new", "people", "portal", "pricing", "privacy",
+  "legal", "login", "logout", "new", "members", "portal", "pricing", "privacy",
   "public", "register", "reset", "root", "security", "settings", "setup", "sign-in",
   "sign-out", "sign-up", "start", "static", "status", "stage", "support", "system", "tags",
   "terms", "test", "user", "users", "www",
@@ -413,7 +413,7 @@ export async function createChurch(input: {
 
   return sql.begin(async (tx) => {
     // Taken slugs and reserved words are resolved in one place, inside the
-    // transaction, so two people naming their church the same thing in the same
+    // transaction, so two members naming their church the same thing in the same
     // second cannot both win. The unique index is the real arbiter.
     let slug = RESERVED_SLUGS.includes(base) ? `${base}-church` : base;
     for (let n = 2; ; n++) {
@@ -608,7 +608,7 @@ export async function listInvitations(tenantId: string): Promise<PendingInvitati
  * R1.4. Changing somebody's role.
  *
  * A church cannot remove its last owner, by this or by any other path. A church
- * with no owner is a church nobody can administer, and the people it belongs to
+ * with no owner is a church nobody can administer, and the members it belongs to
  * cannot fix it themselves.
  */
 export async function setMemberRole(

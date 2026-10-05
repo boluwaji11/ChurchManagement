@@ -14,7 +14,7 @@ import { schedule, unschedule, whoCouldFill } from "../../../serving/actions";
 
 export interface ServingEntry {
   assignmentId: string;
-  personId: string;
+  memberId: string;
   personName: string;
   status: string;
   overridden: boolean;
@@ -156,14 +156,14 @@ export function WhoServes({
                           positionName={position.name}
                           occurrenceId={occurrenceId}
                           already={position.entries.map((e) => e.personName)}
-                          onPick={(personId, anyway) =>
+                          onPick={(memberId, anyway) =>
                             run(() =>
                               schedule(
                                 {
                                   occurrenceId,
                                   teamId: team.id,
                                   positionId: position.id,
-                                  personId,
+                                  memberId,
                                   anyway,
                                 },
                                 church,
@@ -199,10 +199,10 @@ function PickDialog({
   positionName: string;
   occurrenceId: string;
   already: string[];
-  onPick: (personId: string, anyway: boolean) => void;
+  onPick: (memberId: string, anyway: boolean) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [people, setPeople] = React.useState<PlanCandidate[] | null>(null);
+  const [members, setPeople] = React.useState<PlanCandidate[] | null>(null);
 
   React.useEffect(() => {
     if (!open) return;
@@ -234,21 +234,21 @@ function PickDialog({
       </DialogTrigger>
       <DialogContent title={positionName} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-2">
-          {people !== null && people.length === 0 ? (
+          {members !== null && members.length === 0 ? (
             <Empty icon="serving" title={t("plan.nobody")} />
           ) : null}
 
-          {(people ?? [])
+          {(members ?? [])
             .filter((candidate) => !already.includes(candidate.name))
             .map((candidate) => {
               const warning = warningOf(candidate);
               return (
                 <button
-                  key={candidate.personId}
+                  key={candidate.memberId}
                   type="button"
                   onClick={() => {
                     setOpen(false);
-                    onPick(candidate.personId, warning !== null);
+                    onPick(candidate.memberId, warning !== null);
                   }}
                   className="flex w-full flex-col gap-0.5 rounded-[var(--d-radius-control)] px-3 py-2 text-left hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
                 >

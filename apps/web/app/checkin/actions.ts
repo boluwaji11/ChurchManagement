@@ -69,7 +69,7 @@ export interface FoundMatch {
   /** The household they live in, for the second line. Null when they live alone. */
   household: string | null;
   /** Them and everybody they live with, children first. */
-  people: FoundPerson[];
+  members: FoundPerson[];
 }
 
 export interface FindResult {
@@ -80,7 +80,7 @@ export interface FindResult {
 /**
  * R8.3. Finding somebody from what was typed at the station.
  *
- * A directory lookup: the rows are people, best match first. The household
+ * A directory lookup: the rows are members, best match first. The household
  * comes with each row so that opening a person puts their family on screen
  * without a second trip to the server, which is the difference between one
  * press for three children and three.
@@ -109,7 +109,7 @@ export async function find(
       ]);
 
       const found = (person: (typeof matches)[number]["household"][number]): FoundPerson => {
-        const visit = already.find((v) => v.personId === person.id);
+        const visit = already.find((v) => v.memberId === person.id);
         return {
           id: person.id,
           name: person.name,
@@ -132,7 +132,7 @@ export async function find(
           id: match.person.id,
           name: `${match.person.name} ${match.person.lastName}`,
           household: match.householdName,
-          people: match.household.map(found),
+          members: match.household.map(found),
         })),
       };
     });
@@ -166,7 +166,7 @@ export async function checkIn(
       });
 
       const codes: Record<string, string> = {};
-      for (const visit of visits) if (visit.code) codes[visit.personId] = visit.code;
+      for (const visit of visits) if (visit.code) codes[visit.memberId] = visit.code;
 
       return { counts: await roomCounts(tx, occurrenceId), codes };
     });
@@ -177,13 +177,13 @@ export async function checkIn(
 
 export async function undo(
   occurrenceId: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<CheckinResult> {
   const { actor, ctx } = await context(church);
   try {
     return await withTenant(ctx, async (tx) => {
-      await undoCheckIn(tx, actor, occurrenceId, personId);
+      await undoCheckIn(tx, actor, occurrenceId, memberId);
       return { counts: await roomCounts(tx, occurrenceId) };
     });
   } catch (error) {
@@ -192,7 +192,7 @@ export async function undo(
 }
 
 export interface PickupResult {
-  people?: PickupPerson[];
+  members?: PickupPerson[];
   error?: string;
 }
 
@@ -200,7 +200,7 @@ export interface PickupResult {
 export async function pickup(childId: string, church?: string): Promise<PickupResult> {
   const { ctx } = await context(church);
   try {
-    return { people: await withTenant(ctx, (tx) => pickupList(tx, childId)) };
+    return { members: await withTenant(ctx, (tx) => pickupList(tx, childId)) };
   } catch (error) {
     return { error: explain(error) };
   }
@@ -271,7 +271,7 @@ export interface SnapshotResult {
     churchName: string;
     /** R8.7. Who is already checked in, with the code on their label. */
     visits: {
-      personId: string; visitId: string; roomId: string | null;
+      memberId: string; visitId: string; roomId: string | null;
       code: string | null; kind: string;
     }[];
   };
@@ -326,7 +326,7 @@ export async function snapshot(
           visits: already
             .filter((v) => v.checkedOutAt === null)
             .map((v) => ({
-              personId: v.personId, visitId: v.id, roomId: v.roomId,
+              memberId: v.memberId, visitId: v.id, roomId: v.roomId,
               code: v.code, kind: v.kind,
             })),
         },
@@ -422,7 +422,7 @@ export async function place(
  * found a child nobody put through the queue.
  */
 export async function checkInTo(
-  input: { occurrenceId: string; personId: string; roomId: string },
+  input: { occurrenceId: string; memberId: string; roomId: string },
   church?: string,
 ): Promise<{ error?: string }> {
   const { session, actor, ctx } = await context(church);
@@ -432,7 +432,7 @@ export async function checkInTo(
       checkInFamily(tx, actor, {
         occurrenceId: input.occurrenceId,
         userId: session.userId,
-        entries: [{ personId: input.personId, roomId: input.roomId }],
+        entries: [{ memberId: input.memberId, roomId: input.roomId }],
       }),
     );
     return {};

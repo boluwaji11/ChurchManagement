@@ -79,7 +79,7 @@ export async function pruneNotifications(db: Tx): Promise<void> {
     .where(sql`${notifications.createdAt} <= now() - ${sql.raw(`interval '${NOTIFICATION_KEEP_DAYS} days'`)}`);
 }
 
-/** R24.6. Tells specific people. */
+/** R24.6. Tells specific members. */
 export async function notifyUsers(
   db: Tx,
   tenantId: string,
@@ -107,7 +107,7 @@ export async function notifyUsers(
  * R24.6. Tells whoever holds one of these roles.
  *
  * A join request is not addressed to a person, it is addressed to whoever can
- * answer it, and in most churches that is one or two people.
+ * answer it, and in most churches that is one or two members.
  */
 export async function notifyRoles(
   db: Tx,

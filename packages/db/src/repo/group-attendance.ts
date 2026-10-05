@@ -1,10 +1,10 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { groups, groupMeetings, groupAttendance, groupMemberships } from "../schema/groups";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { canManageGroups } from "./groups";
 import { personForUser } from "./scope";
 
@@ -37,7 +37,7 @@ export interface Meeting {
 }
 
 export interface MeetingPerson {
-  personId: string;
+  memberId: string;
   name: string;
   role: string;
   present: boolean;
@@ -67,7 +67,7 @@ export async function canRecordFor(
     .where(
       and(
         eq(groupMemberships.groupId, groupId),
-        eq(groupMemberships.personId, self),
+        eq(groupMemberships.memberId, self),
         isNull(groupMemberships.leftOn),
         inArray(groupMemberships.role, ["leader", "coleader"]),
       ),
@@ -97,7 +97,7 @@ export async function openMeeting(
   db: Tx,
   actor: WriteActor & { userId?: string | null },
   input: { groupId: string; metOn: string },
-): Promise<{ meeting: Meeting; people: MeetingPerson[] }> {
+): Promise<{ meeting: Meeting; members: MeetingPerson[] }> {
   await mustRecord(db, actor, input.groupId);
   if (!DATE.test(input.metOn)) throw new InvalidInputError("meeting.error.date");
 
@@ -130,7 +130,7 @@ export async function openMeeting(
 async function readMeeting(
   db: Tx,
   meetingId: string,
-): Promise<{ meeting: Meeting; people: MeetingPerson[] }> {
+): Promise<{ meeting: Meeting; members: MeetingPerson[] }> {
   const [meeting] = await db
     .select({
       id: groupMeetings.id,
@@ -146,28 +146,28 @@ async function readMeeting(
 
   const roster = await db
     .select({
-      personId: groupMemberships.personId,
+      memberId: groupMemberships.memberId,
       role: groupMemberships.role,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
     .from(groupMemberships)
-    .innerJoin(people, eq(people.id, groupMemberships.personId))
+    .innerJoin(members, eq(members.id, groupMemberships.memberId))
     .where(and(eq(groupMemberships.groupId, meeting.groupId), isNull(groupMemberships.leftOn)))
-    .orderBy(asc(people.firstName), asc(people.lastName));
+    .orderBy(asc(members.firstName), asc(members.lastName));
 
   const marked = await db
-    .select({ personId: groupAttendance.personId })
+    .select({ memberId: groupAttendance.memberId })
     .from(groupAttendance)
     .where(eq(groupAttendance.meetingId, meetingId));
-  const here = new Set(marked.map((m) => m.personId));
+  const here = new Set(marked.map((m) => m.memberId));
 
   const list: MeetingPerson[] = roster.map((r) => ({
-    personId: r.personId,
+    memberId: r.memberId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     role: r.role,
-    present: here.has(r.personId),
+    present: here.has(r.memberId),
   }));
 
   return {
@@ -176,7 +176,7 @@ async function readMeeting(
       present: list.filter((p) => p.present).length,
       roster: list.length,
     },
-    people: list,
+    members: list,
   };
 }
 
@@ -196,7 +196,7 @@ export async function recordMeeting(
     notHeld?: boolean;
     note?: string | null;
   },
-): Promise<{ meeting: Meeting; people: MeetingPerson[] }> {
+): Promise<{ meeting: Meeting; members: MeetingPerson[] }> {
   const [meeting] = await db
     .select({ id: groupMeetings.id, groupId: groupMeetings.groupId })
     .from(groupMeetings)
@@ -225,16 +225,16 @@ export async function recordMeeting(
   await db.delete(groupAttendance).where(eq(groupAttendance.meetingId, input.meetingId));
 
   if (present.length > 0) {
-    // Only people actually on the roster, so a request naming somebody else
+    // Only members actually on the roster, so a request naming somebody else
     // cannot write them into a group they are not in.
     const roster = await db
-      .select({ personId: groupMemberships.personId })
+      .select({ memberId: groupMemberships.memberId })
       .from(groupMemberships)
       .where(
         and(
           eq(groupMemberships.groupId, meeting.groupId),
           isNull(groupMemberships.leftOn),
-          inArray(groupMemberships.personId, present),
+          inArray(groupMemberships.memberId, present),
         ),
       );
 
@@ -243,7 +243,7 @@ export async function recordMeeting(
         roster.map((r) => ({
           tenantId: actor.tenantId,
           meetingId: input.meetingId,
-          personId: r.personId,
+          memberId: r.memberId,
         })),
       );
     }
@@ -289,7 +289,7 @@ export async function meetingsFor(
 /** Every meeting somebody was at, for their record. */
 export async function groupAttendanceFor(
   db: Tx,
-  personId: string,
+  memberId: string,
   opts: { limit?: number } = {},
 ): Promise<{ groupId: string; groupName: string; metOn: string }[]> {
   const rows = await db
@@ -301,7 +301,7 @@ export async function groupAttendanceFor(
     .from(groupAttendance)
     .innerJoin(groupMeetings, eq(groupMeetings.id, groupAttendance.meetingId))
     .innerJoin(groups, eq(groups.id, groupMeetings.groupId))
-    .where(eq(groupAttendance.personId, personId))
+    .where(eq(groupAttendance.memberId, memberId))
     .orderBy(desc(groupMeetings.metOn))
     .limit(opts.limit ?? 24);
 

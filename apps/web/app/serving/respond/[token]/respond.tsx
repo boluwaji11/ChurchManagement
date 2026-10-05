@@ -11,7 +11,7 @@ import { answer } from "./actions";
  * R10.6. Yes or no, in one press.
  *
  * Declining asks why and does not require it. A church would rather know
- * somebody cannot than know why, and a required box is where people stop.
+ * somebody cannot than know why, and a required box is where members stop.
  */
 export function Respond({
   token,

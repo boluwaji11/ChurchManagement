@@ -16,7 +16,7 @@ import {
   createGroup, updateGroup, addToGroup, groupRoster, seedGroupTypes, listGroupTypes,
 } from "../src/repo/groups";
 import { linkPersonToUser } from "../src/repo/scope";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -66,7 +66,7 @@ beforeAll(async () => {
     name: "Tuesday night", typeId: smallType, dayOfWeek: 2, startsAt: "19:30",
     location: "The Hall", capacity: 3,
   }))).id;
-  await run((tx) => addToGroup(tx, as(), { groupId: tuesday, personId: leader, role: "leader" }));
+  await run((tx) => addToGroup(tx, as(), { groupId: tuesday, memberId: leader, role: "leader" }));
 
   closed = (await run((tx) => createGroup(tx, as(), {
     name: "Elders", dayOfWeek: 1, location: "The Vestry", openToJoin: false,
@@ -85,7 +85,7 @@ afterAll(async () => {
 
 describe("browsing (R9.5)", () => {
   it("shows the listed groups and hides the unlisted one", async () => {
-    const found = await run((tx) => findGroups(tx, { personId: seeker }), "member");
+    const found = await run((tx) => findGroups(tx, { memberId: seeker }), "member");
     expect(found.map((g) => g.name).sort()).toEqual(["Elders", "Tuesday night"]);
   });
 
@@ -95,7 +95,7 @@ describe("browsing (R9.5)", () => {
     expect(elders.openToJoin).toBe(false);
   });
 
-  it("filters by the three things people ask about", async () => {
+  it("filters by the three things members ask about", async () => {
     const byType = await run((tx) => findGroups(tx, { typeId: smallType }), "member");
     expect(byType.map((g) => g.name)).toEqual(["Tuesday night"]);
 
@@ -115,7 +115,7 @@ describe("browsing (R9.5)", () => {
   });
 
   it("says where this person already stands", async () => {
-    const found = await run((tx) => findGroups(tx, { personId: leader }), "member");
+    const found = await run((tx) => findGroups(tx, { memberId: leader }), "member");
     expect(found.find((g) => g.name === "Tuesday night")!.mine).toBe(true);
     expect(found.find((g) => g.name === "Elders")!.mine).toBe(false);
   });
@@ -133,7 +133,7 @@ describe("asking (R9.5)", () => {
   });
 
   it("shows them where it got to, on the finder", async () => {
-    const found = await run((tx) => findGroups(tx, { personId: seeker }), "member");
+    const found = await run((tx) => findGroups(tx, { memberId: seeker }), "member");
     expect(found.find((g) => g.name === "Tuesday night")!.requested).toBe("pending");
   });
 
@@ -196,7 +196,7 @@ describe("answering (R9.6)", () => {
 
     expect(decided.status).toBe("approved");
     const roster = await run((tx) => groupRoster(tx, tuesday));
-    expect(roster.map((m) => m.personId)).toContain(seeker);
+    expect(roster.map((m) => m.memberId)).toContain(seeker);
   });
 
   it("refuses to answer the same request twice", async () => {
@@ -210,7 +210,7 @@ describe("answering (R9.6)", () => {
 
   it("keeps a declined answer, rather than letting it disappear", async () => {
     const other = await run((tx) => createGroup(tx, as(), { name: "Thursday men", dayOfWeek: 4 }));
-    await run((tx) => addToGroup(tx, as(), { groupId: other.id, personId: leader, role: "leader" }));
+    await run((tx) => addToGroup(tx, as(), { groupId: other.id, memberId: leader, role: "leader" }));
 
     const asked = await run((tx) => requestToJoin(tx, asSeeker, { groupId: other.id }), "member");
     const declined = await run((tx) =>

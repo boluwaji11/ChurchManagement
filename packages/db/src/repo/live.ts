@@ -7,14 +7,14 @@ import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
 import type { ItemKind } from "./plans";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R11.11. Live mode: what the service is on right now.
  *
  * The state is a row rather than something held in the leader's browser,
  * because the point is that the team is following on their own phones. A tab
- * is not somewhere eight people can read from.
+ * is not somewhere eight members can read from.
  *
  * Nothing here is realtime. The phone asks every few seconds, which is well
  * inside the time it takes a person to notice a song has ended, and it costs a

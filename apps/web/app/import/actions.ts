@@ -37,7 +37,7 @@ export interface Inspection {
   fields?: FieldChoice[];
   /** R19.5. The system this file came out of, where the headers say so. */
   source?: string;
-  /** R19.5. True when the rows are memberships rather than people. */
+  /** R19.5. True when the rows are memberships rather than members. */
   groups?: boolean;
 }
 
@@ -322,7 +322,7 @@ export interface RollbackOutcome {
 export async function undoImport(data: FormData): Promise<RollbackOutcome> {
   const slug = String(data.get("church") ?? "") || undefined;
   const batchId = String(data.get("batchId") ?? "");
-  const kind = String(data.get("kind") ?? "people");
+  const kind = String(data.get("kind") ?? "members");
   if (!batchId) return { error: t("error.notFound.import") };
 
   const session = await requireSession(slug);
@@ -338,7 +338,7 @@ export async function undoImport(data: FormData): Promise<RollbackOutcome> {
         ip: forwarded?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? undefined,
       },
       async (tx) => {
-        // R19.5. A group file put people into groups and created some groups.
+        // R19.5. A group file put members into groups and created some groups.
         // Undoing it takes them back out, which is a different operation from
         // taking a person out of the directory.
         if (kind === "groups") {

@@ -12,7 +12,7 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { readSheet } from "../src/import/csv";
 import { isGroupSheet, guessGroupMapping, parseGroupRole } from "../src/import/group-columns";
 import { planGroups, commitGroups, rollbackGroupImport } from "../src/import/run-groups";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { groupRoster, listGroups, seedGroupTypes, createGroup, addToGroup } from "../src/repo/groups";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -55,7 +55,7 @@ beforeAll(async () => {
   await make("Maria", "Alvarez", "maria@grouptest.invalid");
   await make("Carlos", "Alvarez", "carlos@grouptest.invalid");
   await make("Ruth", "Mensah", "ruth@grouptest.invalid");
-  // Two people with one name and no address between them, which is the case
+  // Two members with one name and no address between them, which is the case
   // that must never be guessed.
   await make("Sam", "Twin");
   await make("Sam", "Twin");
@@ -67,13 +67,13 @@ afterAll(async () => {
 });
 
 describe("recognising a group file", () => {
-  it("knows memberships from people", () => {
+  it("knows memberships from members", () => {
     expect(isGroupSheet(["Group Name", "First Name", "Last Name", "Email"])).toBe(true);
     expect(isGroupSheet(["Team", "Email", "Role"])).toBe(true);
     expect(isGroupSheet(["First Name", "Last Name", "Email", "Household"])).toBe(false);
   });
 
-  it("does not read a people file's Type column as a group", () => {
+  it("does not read a members file's Type column as a group", () => {
     // Reading this as a group file puts the whole church into a group called
     // "Member".
     expect(isGroupSheet(["First Name", "Last Name", "Type", "Status"])).toBe(false);
@@ -147,7 +147,7 @@ describe("importing", () => {
 });
 
 describe("a row it cannot be sure about", () => {
-  it("fails rather than guessing between two people of the same name", async () => {
+  it("fails rather than guessing between two members of the same name", async () => {
     const { plan } = await importGroups(`Prayer,,Sam,Twin,,Member,\n`);
     expect(plan.totals.fail).toBe(1);
     expect(plan.rows[0]?.reason).toBe("import.group.ambiguous");
@@ -181,7 +181,7 @@ describe("a row it cannot be sure about", () => {
 });
 
 describe("undoing it (R19.4)", () => {
-  it("takes the people back out and archives the group it made", async () => {
+  it("takes the members back out and archives the group it made", async () => {
     const { result } = await importGroups(
       `Thursday Prayer,,Maria,Alvarez,maria@grouptest.invalid,Leader,\n` +
       `Thursday Prayer,,Ruth,Mensah,ruth@grouptest.invalid,Member,\n`,
@@ -204,8 +204,8 @@ describe("undoing it (R19.4)", () => {
     const group = await named("Saturday Workday");
 
     const [carlos] = await owner()<{ id: string }[]>`
-      select id from people where tenant_id = ${tenant} and first_name = 'Carlos'`;
-    await run((tx) => addToGroup(tx, as(), { groupId: group!.id, personId: carlos!.id }));
+      select id from members where tenant_id = ${tenant} and first_name = 'Carlos'`;
+    await run((tx) => addToGroup(tx, as(), { groupId: group!.id, memberId: carlos!.id }));
 
     const undone = await run((tx) => rollbackGroupImport(tx, as(), result.batchId));
     expect(undone.groupsArchived).toBe(0);

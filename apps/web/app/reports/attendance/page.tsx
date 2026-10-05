@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
  * R18.2. How many came, service by service.
  *
  * Read in the order the question is asked: what the window came to and whether
- * that is up or down, the shape over time, where the people actually are
+ * that is up or down, the shape over time, where the members actually are
  * between one service and another, which day of the week is carrying the
  * church, and then the two lists.
  */
@@ -111,8 +111,8 @@ export default async function AttendanceReport({
                 }
               />
               <Figure
-                label={t("reports.attendance.people")}
-                value={String(summary.people)}
+                label={t("reports.attendance.members")}
+                value={String(summary.members)}
                 hue="indigo"
                 sub={t("reports.attendance.peopleSub")}
               />
@@ -170,14 +170,14 @@ export default async function AttendanceReport({
                 t("reports.held"),
                 t("reports.average"),
                 t("reports.best"),
-                t("reports.people"),
+                t("reports.members"),
               ]}
               rows={eachService}
             />
 
             <PagedTable
               title={t("reports.attendance.everyService")}
-              columns={[t("reports.service"), t("reports.date"), t("reports.people")]}
+              columns={[t("reports.service"), t("reports.date"), t("reports.members")]}
               rows={everyService}
             />
           </>

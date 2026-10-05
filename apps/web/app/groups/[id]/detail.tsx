@@ -26,7 +26,7 @@ export interface DetailMeeting {
 }
 
 export interface DetailMember {
-  personId: string;
+  memberId: string;
   name: string;
   role: string;
 }
@@ -39,7 +39,7 @@ export interface DetailRequest {
 /**
  * R9.x. A group's own page, under the heading.
  *
- * Built to docs/redesign/design: the line saying whether it is taking people,
+ * Built to docs/redesign/design: the line saying whether it is taking members,
  * three tabs, and under Overview the description, what is coming, what has
  * happened, and a column of facts down the right.
  */
@@ -63,7 +63,7 @@ export function GroupDetail({
   requests,
   members,
   meeting,
-  people,
+  attendees,
   attendanceDate,
   attendanceDays,
 }: {
@@ -90,7 +90,7 @@ export function GroupDetail({
   requests: DetailRequest[];
   members: DetailMember[];
   meeting: Meeting | null;
-  people: MeetingPerson[];
+  attendees: MeetingPerson[];
   attendanceDate: string;
   /** R9.7. The meetings a register can be opened for, newest first. */
   attendanceDays: { on: string; label: string }[];
@@ -118,7 +118,7 @@ export function GroupDetail({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
-      {/* Whether the open web can see it, and whether it is taking people. */}
+      {/* Whether the open web can see it, and whether it is taking members. */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
         <span
           className="size-2 shrink-0 rounded-full"
@@ -277,12 +277,12 @@ export function GroupDetail({
             <section className="overflow-hidden rounded-lg border border-line bg-surface">
               {members.map((member) => (
                 <div
-                  key={member.personId}
+                  key={member.memberId}
                   className="flex min-h-[56px] items-center gap-3 border-b border-sunken px-5 last:border-b-0"
                 >
                   <Avatar
                     name={member.name}
-                    id={member.personId}
+                    id={member.memberId}
                     className="size-[34px] text-[12px] font-semibold"
                   />
                   <span className="min-w-0 flex-1 truncate font-medium text-fg">
@@ -327,7 +327,7 @@ export function GroupDetail({
               church={church}
               groupId={groupId}
               meeting={meeting}
-              people={people}
+              attendees={attendees}
               date={attendanceDate}
               days={attendanceDays}
             />
@@ -376,7 +376,7 @@ export function GroupDetail({
               onClick={() => {
                 const who = removing;
                 setRemoving(null);
-                if (who) run(() => leave(groupId, who.personId, church));
+                if (who) run(() => leave(groupId, who.memberId, church));
               }}
             >
               {t("groups.remove")}
@@ -489,20 +489,20 @@ function Register({
   church,
   groupId,
   meeting: first,
-  people: firstPeople,
+  attendees: firstAttendees,
   date,
   days,
 }: {
   church: string;
   groupId: string;
   meeting: Meeting | null;
-  people: MeetingPerson[];
+  attendees: MeetingPerson[];
   date: string;
   days: { on: string; label: string }[];
 }) {
   const [day, setDay] = React.useState(days[0]?.on ?? "");
   const [meeting, setMeeting] = React.useState(first);
-  const [people, setPeople] = React.useState(firstPeople);
+  const [members, setPeople] = React.useState(firstAttendees);
   const [error, setError] = React.useState<string>();
   const [saved, setSaved] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -510,10 +510,10 @@ function Register({
   /** Everybody present unless the day has been recorded before. */
   const fill = React.useCallback((rows: MeetingPerson[], was: Meeting | null) => {
     const recorded = (was?.present ?? 0) > 0 || (was?.notHeld ?? false);
-    return Object.fromEntries(rows.map((p) => [p.personId, recorded ? p.present : true]));
+    return Object.fromEntries(rows.map((p) => [p.memberId, recorded ? p.present : true]));
   }, []);
 
-  const [here, setHere] = React.useState<Record<string, boolean>>(() => fill(firstPeople, first));
+  const [here, setHere] = React.useState<Record<string, boolean>>(() => fill(firstAttendees, first));
 
   /** R9.7. A leader who missed last week opens the week they missed. */
   const load = (next: string) => {
@@ -525,15 +525,15 @@ function Register({
     startTransition(async () => {
       const result = await openMeeting(groupId, next, church);
       setError(result.error);
-      if (result.meeting && result.people) {
+      if (result.meeting && result.members) {
         setMeeting(result.meeting);
-        setPeople(result.people);
-        setHere(fill(result.people, result.meeting));
+        setPeople(result.members);
+        setHere(fill(result.members, result.meeting));
       }
     });
   };
 
-  const count = people.filter((p) => here[p.personId]).length;
+  const count = members.filter((p) => here[p.memberId]).length;
   const shownDate = days.find((one) => one.on === day)?.label ?? date;
 
   /*
@@ -544,8 +544,8 @@ function Register({
    * and the register silently keeps nothing. The whole list goes with each
    * write, so two quick taps settle on the second rather than racing.
    */
-  const mark = (personId: string) => {
-    const next = { ...here, [personId]: !here[personId] };
+  const mark = (memberId: string) => {
+    const next = { ...here, [memberId]: !here[memberId] };
     setHere(next);
     if (!meeting) return;
 
@@ -553,7 +553,7 @@ function Register({
       const result = await record(
         {
           meetingId: meeting.id,
-          presentIds: people.filter((p) => next[p.personId]).map((p) => p.personId),
+          presentIds: members.filter((p) => next[p.memberId]).map((p) => p.memberId),
           notHeld: false,
           note: null,
         },
@@ -592,19 +592,19 @@ function Register({
         </div>
         <div className="font-display text-[28px] tabular-nums text-fg">
           {count}
-          <span className="font-sans text-[14px] text-fg-subtle"> / {people.length}</span>
+          <span className="font-sans text-[14px] text-fg-subtle"> / {members.length}</span>
         </div>
       </div>
 
       <div className="grid [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
-        {people.map((person) => {
-          const on = Boolean(here[person.personId]);
+        {members.map((person) => {
+          const on = Boolean(here[person.memberId]);
           return (
             <button
-              key={person.personId}
+              key={person.memberId}
               type="button"
               aria-pressed={on}
-              onClick={() => mark(person.personId)}
+              onClick={() => mark(person.memberId)}
               className="flex min-h-[52px] items-center gap-2.5 px-5 text-left hover:bg-canvas"
             >
               <span

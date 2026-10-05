@@ -8,9 +8,9 @@ import type postgres from "postgres";
  * off the church's own records: when the tenant was made, and the moment it
  * first held a directory worth opening.
  *
- * "Worth opening" is a committed import, or twenty-five people entered by hand,
+ * "Worth opening" is a committed import, or twenty-five members entered by hand,
  * whichever came first. Twenty-five because a church of fifty to five hundred
- * with twenty-five people in it has stopped evaluating and started using it,
+ * with twenty-five members in it has stopped evaluating and started using it,
  * and one person typed in while looking around has not.
  *
  * Derived, so it stays true when an import is rolled back and redone, and so
@@ -26,10 +26,10 @@ export interface TimeToValue {
   signedUpAt: Date;
   /** Null while the church has not got there yet. */
   usableAt: Date | null;
-  /** How it got there: an import, or people entered one at a time. */
+  /** How it got there: an import, or members entered one at a time. */
   how: "import" | "by_hand" | null;
   minutes: number | null;
-  people: number;
+  members: number;
 }
 
 /**
@@ -51,7 +51,7 @@ export async function timeToValue(sql: postgres.Sql): Promise<TimeToValue[]> {
       select tenant_id, min(created_at) as at from (
         select tenant_id, created_at,
                row_number() over (partition by tenant_id order by created_at) as n
-          from people
+          from members
       ) ranked
       where n = ${USABLE_PEOPLE}
       group by tenant_id
@@ -59,7 +59,7 @@ export async function timeToValue(sql: postgres.Sql): Promise<TimeToValue[]> {
     select t.id, t.slug, t.name, t.created_at,
            i.at as import_at,
            p.at as hand_at,
-           (select count(*) from people where tenant_id = t.id) as people
+           (select count(*) from members where tenant_id = t.id) as members
       from tenants t
       left join first_import i on i.tenant_id = t.id
       left join nth_person p on p.tenant_id = t.id
@@ -87,7 +87,7 @@ export async function timeToValue(sql: postgres.Sql): Promise<TimeToValue[]> {
         usableAt === null
           ? null
           : Math.round((usableAt.getTime() - signedUpAt.getTime()) / 60_000),
-      people: Number(row["people"] ?? 0),
+      members: Number(row["members"] ?? 0),
     };
   });
 }

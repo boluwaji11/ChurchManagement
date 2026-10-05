@@ -52,7 +52,7 @@ export interface PublicGroup {
   forWhom: string | null;
   online: boolean;
   childrenWelcome: boolean;
-  /** How many are in it, which is a size rather than a list of people. */
+  /** How many are in it, which is a size rather than a list of members. */
   memberCount: number;
   full: boolean;
   openToJoin: boolean;

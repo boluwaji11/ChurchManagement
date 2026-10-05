@@ -49,7 +49,7 @@ export interface TagOption {
   hue: string;
 }
 
-/** R9.4. A group the people on screen can be put into. */
+/** R9.4. A group the members on screen can be put into. */
 export interface GroupOption {
   id: string;
   name: string;
@@ -109,11 +109,11 @@ export function Directory({
   canArchive: boolean;
   page: number;
   perPage: number;
-  /** R2.14. How many people are at each status, for the filter drawer. */
+  /** R2.14. How many members are at each status, for the filter drawer. */
   counts: Record<string, number>;
   /** R2.8. How many pairs are waiting, for the badge on Duplicates. */
   duplicates: number;
-  /** How many people match the filters, across every page. */
+  /** How many members match the filters, across every page. */
   matching: number;
   /** R1.14. The church's saved lists. */
   lists: ListOption[];
@@ -235,7 +235,7 @@ export function Directory({
         </ToolButton>
 
         <ToolButton href={`/members/print?church=${church}`} target="_blank">
-          <Printer /> {t("people.printAll")}
+          <Printer /> {t("members.printAll")}
         </ToolButton>
 
         <ToolButton href={exportHref}>
@@ -255,7 +255,7 @@ export function Directory({
         {canEdit ? (
           <Button asChild>
             <Link href={`/members/new?church=${church}`}>
-              <Plus /> {t("people.add")}
+              <Plus /> {t("members.add")}
             </Link>
           </Button>
         ) : null}
@@ -300,9 +300,9 @@ export function Directory({
 
       {rows.length === 0 ? (
         <Empty
-          icon={filtersOn ? "noResults" : "people"}
-          title={filtersOn ? t("directory.noResults.title") : t("people.empty.title")}
-          body={filtersOn ? t("directory.noResults.body") : t("people.empty.body")}
+          icon={filtersOn ? "noResults" : "members"}
+          title={filtersOn ? t("directory.noResults.title") : t("members.empty.title")}
+          body={filtersOn ? t("directory.noResults.body") : t("members.empty.body")}
           action={
             filtersOn ? (
               <Button variant="secondary" onClick={() => router.replace(pathname, { scroll: false })}>
@@ -312,7 +312,7 @@ export function Directory({
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button asChild>
                   <Link href={`/members/new?church=${church}`}>
-                    <Plus /> {t("people.add")}
+                    <Plus /> {t("members.add")}
                   </Link>
                 </Button>
                 <Button variant="secondary" asChild>
@@ -338,12 +338,12 @@ export function Directory({
                     />
                   </th>
                 ) : null}
-                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.person")}</th>
-                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.household")}</th>
-                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.status")}</th>
-                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.tags")}</th>
-                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.email")}</th>
-                <th className="border-b border-line px-4 py-3 font-medium">{t("people.column.phone")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.person")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.household")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.status")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.tags")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.email")}</th>
+                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.phone")}</th>
               </tr>
             </thead>
             <tbody>
@@ -777,7 +777,7 @@ function SelectionBar({
         </a>
       </Button>
 
-      {/* R2.8. Two people picked is the question "are these the same person",
+      {/* R2.8. Two members picked is the question "are these the same person",
           and the merge screen is where it is answered. */}
       {mergeHref ? (
         <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]" asChild>

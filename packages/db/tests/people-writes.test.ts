@@ -16,7 +16,7 @@ import { owner, withTenant, closeConnections } from "../src/client";
 import {
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listPeople, peopleToInvite,
   type PersonInput,
-} from "../src/repo/people";
+} from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 
 let riverside: string;
@@ -48,7 +48,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // Households created by these tests are named distinctly so the cleanup is exact.
-  await owner()`delete from people where last_name in ('Writeperson', 'Movedperson')`;
+  await owner()`delete from members where last_name in ('Writeperson', 'Movedperson')`;
   await owner()`delete from households where name like ${"HRT21 %"}`;
   await closeConnections();
 });
@@ -95,7 +95,7 @@ describe("adding a person", () => {
 
   it("stamps the row with the tenant in context", async () => {
     const id = await add(riverside, "owner", draft({ firstName: "Nora" }));
-    const [row] = await owner()<{ tenant_id: string }[]>`select tenant_id from people where id = ${id}`;
+    const [row] = await owner()<{ tenant_id: string }[]>`select tenant_id from members where id = ${id}`;
     expect(row!.tenant_id).toBe(riverside);
   });
 });
@@ -109,7 +109,7 @@ describe("editing a person", () => {
     );
 
     const rows = await owner()<{ value: string }[]>`
-      select value from contact_methods where person_id = ${id} and kind = 'phone'`;
+      select value from contact_methods where member_id = ${id} and kind = 'phone'`;
     expect(rows).toHaveLength(1);
     expect(rows[0]!.value).toBe("(512) 555 0199");
   });
@@ -121,7 +121,7 @@ describe("editing a person", () => {
       updatePerson(tx, as(riverside, "owner"), id, draft({ firstName: "Paula", email: null })),
     );
 
-    const rows = await owner()`select id from contact_methods where person_id = ${id} and kind = 'email'`;
+    const rows = await owner()`select id from contact_methods where member_id = ${id} and kind = 'email'`;
     expect(rows).toHaveLength(0);
   });
 
@@ -141,7 +141,7 @@ describe("editing a person", () => {
     );
 
     const rows = await owner()<{ ended_on: string | null }[]>`
-      select ended_on from household_memberships where person_id = ${id} order by created_at`;
+      select ended_on from household_memberships where member_id = ${id} order by created_at`;
     expect(rows).toHaveLength(2);
     expect(rows[0]!.ended_on).not.toBeNull();
     expect(rows[1]!.ended_on).toBeNull();
@@ -177,7 +177,7 @@ describe("archiving", () => {
     await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
       setPersonArchived(tx, as(riverside, "owner"), id, true),
     );
-    const rows = await owner()`select id from people where id = ${id}`;
+    const rows = await owner()`select id from members where id = ${id}`;
     expect(rows).toHaveLength(1);
   });
 });
@@ -212,14 +212,14 @@ describe("who may write", () => {
 
   it("refuses before it writes, so nothing is left behind", async () => {
     const before = await owner()<{ n: string }[]>`
-      select count(*) as n from people where tenant_id = ${riverside}`;
+      select count(*) as n from members where tenant_id = ${riverside}`;
     await expect(
       withTenant({ tenantId: riverside, role: "member" }, (tx) =>
         createPerson(tx, as(riverside, "member"), draft({ firstName: "Nothing" })),
       ),
     ).rejects.toThrow(PermissionError);
     const after = await owner()<{ n: string }[]>`
-      select count(*) as n from people where tenant_id = ${riverside}`;
+      select count(*) as n from members where tenant_id = ${riverside}`;
     expect(after[0]!.n).toBe(before[0]!.n);
   });
 });
@@ -234,7 +234,7 @@ describe("a write cannot cross a church boundary", () => {
       ),
     ).rejects.toThrow(/No such person/);
 
-    const still = await owner()<{ first_name: string }[]>`select first_name from people where id = ${id}`;
+    const still = await owner()<{ first_name: string }[]>`select first_name from members where id = ${id}`;
     expect(still[0]!.first_name).toBe("Isolated");
   });
 
@@ -248,7 +248,7 @@ describe("a write cannot cross a church boundary", () => {
     ).rejects.toThrow(/No such person/);
 
     const [row] = await owner()<{ archived_at: Date | null }[]>`
-      select archived_at from people where id = ${id}`;
+      select archived_at from members where id = ${id}`;
     expect(row!.archived_at).toBeNull();
   });
 });
@@ -269,7 +269,7 @@ describe("the audit log", () => {
     const [entry] = await owner()<
       { action: string; actor_role: string; actor_user_id: string; ip: string; after: { first_name: string } }[]
     >`select action, actor_role, actor_user_id, ip, after
-        from audit_entries where entity = 'people' and entity_id = ${id} and action = 'insert'`;
+        from audit_entries where entity = 'members' and entity_id = ${id} and action = 'insert'`;
 
     expect(entry).toBeDefined();
     expect(entry!.action).toBe("insert");
@@ -290,7 +290,7 @@ describe("the audit log", () => {
       { before: { first_name: string }; after: { first_name: string }; actor_role: string }[]
     >`select before, after, actor_role
         from audit_entries
-       where entity = 'people' and entity_id = ${id} and action = 'update'
+       where entity = 'members' and entity_id = ${id} and action = 'update'
        order by at desc limit 1`;
 
     expect(entry!.before.first_name).toBe("Before");
@@ -300,10 +300,10 @@ describe("the audit log", () => {
 });
 
 /**
- * R1.7. The directory is where the people a church gives an account to come
+ * R1.7. The directory is where the members a church gives an account to come
  * from, so the picker has to offer the right ones and leave out the rest.
  */
-describe("people a church could give an account to (R1.7)", () => {
+describe("members a church could give an account to (R1.7)", () => {
   it("offers somebody with an email and leaves out somebody without one", async () => {
     const withEmail = await add(riverside, "owner", draft({
       firstName: "Marta",

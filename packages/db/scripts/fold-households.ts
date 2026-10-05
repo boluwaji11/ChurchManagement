@@ -30,7 +30,7 @@ async function main() {
       await sql`
         delete from household_memberships
          where household_id = any(${rest}::uuid[])
-           and person_id in (select person_id from household_memberships where household_id = ${keep})`;
+           and member_id in (select member_id from household_memberships where household_id = ${keep})`;
 
       await sql`
         update household_memberships

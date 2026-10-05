@@ -3,7 +3,7 @@
  *
  * The case: a spreadsheet imported at 9pm on a Saturday with the columns shifted
  * by one, noticed on Sunday morning. What matters is that undoing it is one
- * operation, that it puts updated people back exactly, and that it does not
+ * operation, that it puts updated members back exactly, and that it does not
  * throw away work somebody has done since.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -12,7 +12,7 @@ import { plan, commit } from "../src/import/run";
 import { rollbackImport, listImports, ROLLBACK_WINDOW_DAYS } from "../src/import/rollback";
 import { guessMapping } from "../src/import/columns";
 import { readSheet } from "../src/import/csv";
-import { getPersonForEdit, updatePerson, listPeople } from "../src/repo/people";
+import { getPersonForEdit, updatePerson, listPeople } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { InvalidInputError } from "../src/errors";
 
@@ -39,19 +39,19 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await owner()`delete from import_batches where filename = 'rollback.csv'`;
-  await owner()`delete from people where last_name = ${SUR}`;
+  await owner()`delete from members where last_name = ${SUR}`;
   await closeConnections();
 });
 
 describe("undoing an import", () => {
-  it("removes the people it added", async () => {
+  it("removes the members it added", async () => {
     const batch = await importFile(csv(`Ava,${SUR},ava.${SUR}@example.org,,\nBen,${SUR},ben.${SUR}@example.org,,\n`));
     expect(batch.created).toBe(2);
 
     const result = await run(riverside, "owner", (tx) => rollbackImport(tx, as(riverside), batch.batchId));
     expect(result.removed).toBe(2);
 
-    const left = await owner()`select id from people where last_name = ${SUR}`;
+    const left = await owner()`select id from members where last_name = ${SUR}`;
     expect(left).toHaveLength(0);
   });
 
@@ -60,7 +60,7 @@ describe("undoing an import", () => {
     expect(first.created).toBe(1);
 
     const [person] = await owner()<{ id: string }[]>`
-      select id from people where last_name = ${SUR} and first_name = 'Cara'`;
+      select id from members where last_name = ${SUR} and first_name = 'Cara'`;
     const before = await run(riverside, "owner", (tx) => getPersonForEdit(tx, person!.id));
 
     const second = await importFile(
@@ -84,7 +84,7 @@ describe("undoing an import", () => {
   it("archives rather than removes somebody who was edited after the import", async () => {
     const batch = await importFile(csv(`Dana,${SUR},dana.${SUR}@example.org,,\n`));
     const [person] = await owner()<{ id: string }[]>`
-      select id from people where last_name = ${SUR} and first_name = 'Dana'`;
+      select id from members where last_name = ${SUR} and first_name = 'Dana'`;
 
     // Somebody has been working on this record. It is theirs now, not the file's.
     await run(riverside, "owner", (tx) =>
@@ -101,7 +101,7 @@ describe("undoing an import", () => {
     expect(result.removed).toBe(0);
 
     const [still] = await owner()<{ archived_at: Date | null }[]>`
-      select archived_at from people where id = ${person!.id}`;
+      select archived_at from members where id = ${person!.id}`;
     expect(still).toBeDefined();
     expect(still!.archived_at).not.toBeNull();
   });
@@ -134,21 +134,21 @@ describe("what is refused", () => {
       run(riverside, "owner", (tx) => rollbackImport(tx, as(riverside), batch.batchId)),
     ).rejects.toThrow(/30 days/);
 
-    // And the people it added are still there.
-    const left = await owner()`select id from people where last_name = ${SUR} and first_name = 'Hana'`;
+    // And the members it added are still there.
+    const left = await owner()`select id from members where last_name = ${SUR} and first_name = 'Hana'`;
     expect(left).toHaveLength(1);
   });
 
   it("refuses a role that may edit but may not archive", async () => {
     const batch = await importFile(csv(`Ida,${SUR},ida.${SUR}@example.org,,\n`));
 
-    // Staff can import. Undoing one can remove hundreds of people at once, so it
+    // Staff can import. Undoing one can remove hundreds of members at once, so it
     // sits with the roles that may archive.
     await expect(
       run(riverside, "staff", (tx) => rollbackImport(tx, as(riverside, "staff"), batch.batchId)),
     ).rejects.toThrow(PermissionError);
 
-    const left = await owner()`select id from people where last_name = ${SUR} and first_name = 'Ida'`;
+    const left = await owner()`select id from members where last_name = ${SUR} and first_name = 'Ida'`;
     expect(left).toHaveLength(1);
   });
 });

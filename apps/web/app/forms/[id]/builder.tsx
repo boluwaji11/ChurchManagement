@@ -103,7 +103,7 @@ const ONE_LINE: FormFieldKind[] = ["text", "email", "phone", "date", "number"];
  *
  * Built to docs/redesign/design: the questions down the left, each one its own
  * card carrying what it asks and how, and what the congregation will meet down
- * the right. A church writing a form is writing something people read once and
+ * the right. A church writing a form is writing something members read once and
  * never ask about, so seeing it as they will see it beats any description of it.
  */
 export function Builder({

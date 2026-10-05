@@ -338,9 +338,9 @@ export function Funnel({
   steps,
 }: {
   title?: string;
-  steps: { key: string; label: string; people: number; rate: number; note: string }[];
+  steps: { key: string; label: string; members: number; rate: number; note: string }[];
 }) {
-  const most = Math.max(1, steps[0]?.people ?? 1);
+  const most = Math.max(1, steps[0]?.members ?? 1);
   const hues = ["amber", "citron", "teal", "sky", "indigo"];
 
   return (
@@ -351,13 +351,13 @@ export function Funnel({
 
       <ol className="flex flex-col gap-3.5">
         {steps.map((one, i) => {
-          const lost = i > 0 ? steps[i - 1]!.people - one.people : 0;
+          const lost = i > 0 ? steps[i - 1]!.members - one.members : 0;
           return (
             <li key={one.key} className="flex flex-col gap-1.5">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="min-w-[160px] flex-1 font-medium text-fg">{one.label}</span>
                 <span data-numeric className="text-[length:var(--d-text-body)] text-fg">
-                  {one.people}
+                  {one.members}
                 </span>
                 <span className="w-14 text-right text-caption text-fg-muted tabular-nums">
                   {i > 0 ? `${one.rate}%` : ""}
@@ -370,7 +370,7 @@ export function Funnel({
                   aria-hidden
                   className="h-full rounded-full"
                   style={{
-                    width: `${Math.max(1, Math.round((one.people / most) * 100))}%`,
+                    width: `${Math.max(1, Math.round((one.members / most) * 100))}%`,
                     background: `var(--hue-${hues[i % hues.length]}-500)`,
                   }}
                 />

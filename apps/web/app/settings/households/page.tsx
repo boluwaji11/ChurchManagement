@@ -40,7 +40,7 @@ export default async function HouseholdsPage({
 
       {rows.length === 0 ? (
         <Empty
-          icon="people"
+          icon="members"
           title={t("households.empty.title")}
           body={t("households.empty.body")}
           action={<NewHousehold church={session.tenantSlug} />}

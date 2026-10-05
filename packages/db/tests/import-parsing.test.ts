@@ -198,20 +198,20 @@ describe("duplicate detection (R2.8)", () => {
 
   it("is certain about a matching email address", () => {
     const [m] = findMatches(index, { firstName: "S", lastName: "B", email: "SARAH.BENNETT@example.org" });
-    expect(m?.personId).toBe("id-4");
+    expect(m?.memberId).toBe("id-4");
     expect(m?.confidence).toBe("certain");
     expect(m?.reason).toBe("import.match.email");
   });
 
   it("is certain about a name plus a date of birth", () => {
     const [m] = findMatches(index, { firstName: "Mary", lastName: "Smith", dateOfBirth: "1970-02-02" });
-    expect(m?.personId).toBe("id-2");
+    expect(m?.memberId).toBe("id-2");
     expect(m?.confidence).toBe("certain");
   });
 
   it("does not match the other Mary Smith, who has a different birthday", () => {
     const matches = findMatches(index, { firstName: "Mary", lastName: "Smith", dateOfBirth: "1970-02-02" });
-    expect(matches.map((m) => m.personId)).not.toContain("id-3");
+    expect(matches.map((m) => m.memberId)).not.toContain("id-3");
   });
 
   it("is only possible about a name on its own, because there are two Mary Smiths", () => {
@@ -236,7 +236,7 @@ describe("duplicate detection (R2.8)", () => {
     const existing = Array.from({ length: 500 }, (_, i) => person(i));
     const big = indexPeople(existing);
 
-    // Forty rows that are the same people, arriving the way a second export
+    // Forty rows that are the same members, arriving the way a second export
     // does: some with the email, some with only a name and a birthday, some
     // with the name spelled slightly differently, some by phone.
     const incoming = Array.from({ length: 40 }, (_, k) => {
@@ -255,13 +255,13 @@ describe("duplicate detection (R2.8)", () => {
 
     const found = incoming.filter((row, k) => {
       const matches = findMatches(big, row);
-      return matches.some((m) => m.personId === existing[k * 12]!.id);
+      return matches.some((m) => m.memberId === existing[k * 12]!.id);
     });
 
     expect(found.length).toBeGreaterThanOrEqual(38);
   });
 
-  it("does not invent matches for 500 genuinely new people", () => {
+  it("does not invent matches for 500 genuinely new members", () => {
     const existing = Array.from({ length: 500 }, (_, i) => person(i));
     const big = indexPeople(existing);
     const strangers = Array.from({ length: 100 }, (_, k) => ({

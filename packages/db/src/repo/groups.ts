@@ -1,12 +1,12 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { groups, groupTypes, groupMemberships } from "../schema/groups";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { storedFiles } from "../schema/tenancy";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { formSlug, isUuid } from "./form-rules";
 
 /**
@@ -46,7 +46,7 @@ export type GroupFrequency = (typeof GROUP_FREQUENCIES)[number];
  *
  * One field rather than a gender and an age range crossed together. A church
  * says "Young adults" or "Men"; it does not fill in two dropdowns to say it,
- * and a finder that asks somebody to is a finder people give up on.
+ * and a finder that asks somebody to is a finder members give up on.
  */
 export const GROUP_AUDIENCES = [
   "anyone", "men", "women", "young_adults", "students", "parents", "seniors",
@@ -109,7 +109,7 @@ export interface Group {
   /** Live members, including the leaders. */
   memberCount: number;
   /** R9.3. Who leads it, for a list that has to say so without a second query. */
-  leaders: { personId: string; name: string }[];
+  leaders: { memberId: string; name: string }[];
 }
 
 export interface GroupInput {
@@ -138,7 +138,7 @@ export interface GroupInput {
 
 export interface GroupMember {
   id: string;
-  personId: string;
+  memberId: string;
   name: string;
   role: string;
   joinedOn: string;
@@ -323,33 +323,33 @@ function check(input: GroupInput): {
 
 async function hydrate(db: Tx, rows: { id: string }[]): Promise<Map<string, {
   memberCount: number;
-  leaders: { personId: string; name: string }[];
+  leaders: { memberId: string; name: string }[];
 }>> {
-  const out = new Map<string, { memberCount: number; leaders: { personId: string; name: string }[] }>();
+  const out = new Map<string, { memberCount: number; leaders: { memberId: string; name: string }[] }>();
   if (rows.length === 0) return out;
 
   const ids = rows.map((r) => r.id);
-  const members = await db
+  const rostered = await db
     .select({
       groupId: groupMemberships.groupId,
-      personId: groupMemberships.personId,
+      memberId: groupMemberships.memberId,
       role: groupMemberships.role,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
     .from(groupMemberships)
-    .innerJoin(people, eq(people.id, groupMemberships.personId))
+    .innerJoin(members, eq(members.id, groupMemberships.memberId))
     .where(and(inArray(groupMemberships.groupId, ids), isNull(groupMemberships.leftOn)));
 
   for (const id of ids) out.set(id, { memberCount: 0, leaders: [] });
 
-  for (const row of members) {
+  for (const row of rostered) {
     const entry = out.get(row.groupId);
     if (!entry) continue;
     entry.memberCount += 1;
     if (row.role === "leader" || row.role === "coleader") {
-      entry.leaders.push({ personId: row.personId, name: called(row) });
+      entry.leaders.push({ memberId: row.memberId, name: called(row) });
     }
   }
 
@@ -521,7 +521,7 @@ export async function updateGroup(
 }
 
 /**
- * R9.5. Whether the group is taking new people.
+ * R9.5. Whether the group is taking new members.
  *
  * Its own write rather than a trip through updateGroup, because this is one
  * press on the group's page and the rest of the record is not in hand.
@@ -546,7 +546,7 @@ export async function setGroupOpen(
  * Archiving a group.
  *
  * Its roster and its attendance stay where they are. A group that ran for three
- * years and stopped is part of how this church has discipled people, and the
+ * years and stopped is part of how this church has discipled members, and the
  * only honest way to end it is to stop it appearing in the lists.
  */
 export async function setGroupArchived(
@@ -578,29 +578,29 @@ export async function groupRoster(
   const rows = await db
     .select({
       id: groupMemberships.id,
-      personId: groupMemberships.personId,
+      memberId: groupMemberships.memberId,
       role: groupMemberships.role,
       joinedOn: sql<string>`${groupMemberships.joinedOn}::text`,
       leftOn: sql<string | null>`${groupMemberships.leftOn}::text`,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
     .from(groupMemberships)
-    .innerJoin(people, eq(people.id, groupMemberships.personId))
+    .innerJoin(members, eq(members.id, groupMemberships.memberId))
     .where(
       opts.includePast
         ? eq(groupMemberships.groupId, groupId)
         : and(eq(groupMemberships.groupId, groupId), isNull(groupMemberships.leftOn)),
     )
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   const rank = (role: string) => (role === "leader" ? 0 : role === "coleader" ? 1 : 2);
 
   return rows
     .map((r) => ({
       id: r.id,
-      personId: r.personId,
+      memberId: r.memberId,
       name: called(r),
       role: r.role,
       joinedOn: r.joinedOn,
@@ -623,7 +623,7 @@ export async function groupRoster(
 export async function addToGroup(
   db: Tx,
   actor: WriteActor,
-  input: { groupId: string; personId: string; role?: GroupRole; joinedOn?: string },
+  input: { groupId: string; memberId: string; role?: GroupRole; joinedOn?: string },
 ): Promise<GroupMember[]> {
   if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
 
@@ -636,9 +636,9 @@ export async function addToGroup(
   if (!DATE.test(joinedOn)) throw new InvalidInputError("group.error.joined");
 
   const [person] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(and(eq(people.id, input.personId), isNull(people.archivedAt)))
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.id, input.memberId), isNull(members.archivedAt)))
     .limit(1);
   if (!person) throw new InvalidInputError("group.error.person");
 
@@ -648,7 +648,7 @@ export async function addToGroup(
     .where(
       and(
         eq(groupMemberships.groupId, input.groupId),
-        eq(groupMemberships.personId, input.personId),
+        eq(groupMemberships.memberId, input.memberId),
         isNull(groupMemberships.leftOn),
       ),
     )
@@ -663,7 +663,7 @@ export async function addToGroup(
     await db.insert(groupMemberships).values({
       tenantId: actor.tenantId,
       groupId: input.groupId,
-      personId: input.personId,
+      memberId: input.memberId,
       role,
       joinedOn,
     });
@@ -676,7 +676,7 @@ export async function addToGroup(
 export async function removeFromGroup(
   db: Tx,
   actor: WriteActor,
-  input: { groupId: string; personId: string; leftOn?: string },
+  input: { groupId: string; memberId: string; leftOn?: string },
 ): Promise<GroupMember[]> {
   if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
 
@@ -692,7 +692,7 @@ export async function removeFromGroup(
    * control.
    */
   const leaders = await db
-    .select({ personId: groupMemberships.personId })
+    .select({ memberId: groupMemberships.memberId })
     .from(groupMemberships)
     .where(
       and(
@@ -702,7 +702,7 @@ export async function removeFromGroup(
       ),
     );
 
-  if (leaders.length === 1 && leaders[0]!.personId === input.personId) {
+  if (leaders.length === 1 && leaders[0]!.memberId === input.memberId) {
     throw new InvalidInputError("group.error.lastLeader");
   }
 
@@ -712,7 +712,7 @@ export async function removeFromGroup(
     .where(
       and(
         eq(groupMemberships.groupId, input.groupId),
-        eq(groupMemberships.personId, input.personId),
+        eq(groupMemberships.memberId, input.memberId),
         isNull(groupMemberships.leftOn),
       ),
     );
@@ -721,7 +721,7 @@ export async function removeFromGroup(
 }
 
 /** Every group somebody is in now, for their record. */
-export async function groupsForPerson(db: Tx, personId: string): Promise<
+export async function groupsForPerson(db: Tx, memberId: string): Promise<
   { groupId: string; name: string; role: string; typeHue: string | null }[]
 > {
   const rows = await db
@@ -736,7 +736,7 @@ export async function groupsForPerson(db: Tx, personId: string): Promise<
     .leftJoin(groupTypes, eq(groupTypes.id, groups.typeId))
     .where(
       and(
-        eq(groupMemberships.personId, personId),
+        eq(groupMemberships.memberId, memberId),
         isNull(groupMemberships.leftOn),
         isNull(groups.archivedAt),
       ),
@@ -747,13 +747,13 @@ export async function groupsForPerson(db: Tx, personId: string): Promise<
 }
 
 /** R9.3. The groups this person leads, which is what scopes what they may see. */
-export async function groupsLedBy(db: Tx, personId: string): Promise<string[]> {
+export async function groupsLedBy(db: Tx, memberId: string): Promise<string[]> {
   const rows = await db
     .select({ groupId: groupMemberships.groupId })
     .from(groupMemberships)
     .where(
       and(
-        eq(groupMemberships.personId, personId),
+        eq(groupMemberships.memberId, memberId),
         isNull(groupMemberships.leftOn),
         inArray(groupMemberships.role, ["leader", "coleader"]),
       ),

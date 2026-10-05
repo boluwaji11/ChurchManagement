@@ -32,7 +32,7 @@ export default async function ImportPage({
         href={`/members?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
-        <ArrowLeft className="size-4" /> {t("people.title")}
+        <ArrowLeft className="size-4" /> {t("members.title")}
       </Link>
 
       <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("import.heading")}</h2>

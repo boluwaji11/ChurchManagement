@@ -46,14 +46,14 @@ const TONE: Record<string, "success" | "warning" | "danger" | "neutral"> = {
  */
 export function Checks({
   church,
-  personId,
+  memberId,
   standing,
   expiresOn,
   rows,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   standing: string;
   expiresOn: string | null;
   rows: CheckRow[];
@@ -101,7 +101,7 @@ export function Checks({
         <div>
           <AddDialog
             church={church}
-            personId={personId}
+            memberId={memberId}
             pending={pending}
             onDone={() => router.refresh()}
             onError={setError}
@@ -114,13 +114,13 @@ export function Checks({
 
 function AddDialog({
   church,
-  personId,
+  memberId,
   pending,
   onDone,
   onError,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   pending: boolean;
   onDone: () => void;
   onError: (error?: string) => void;
@@ -139,7 +139,7 @@ function AddDialog({
           noValidate
           action={(data) => {
             data.set("church", church);
-            data.set("personId", personId);
+            data.set("memberId", memberId);
             data.set("status", status);
             startTransition(async () => {
               const result = await addCheck(data);

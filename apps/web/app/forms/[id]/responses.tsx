@@ -18,7 +18,7 @@ export interface SubmissionRow {
   /** The date already written the way this church reads dates. */
   when: string;
   /** R4.4. Who this turned out to be, where anybody is sure. */
-  personId: string | null;
+  memberId: string | null;
   personSlug: string | null;
   personName: string | null;
   matchState: string;
@@ -82,7 +82,7 @@ function spoken(answer: FormAnswer): string {
 }
 
 /**
- * R4.4. What people sent in.
+ * R4.4. What members sent in.
  *
  * A row per response and a column per question, which is the shape a church
  * already reads this in: the spreadsheet they were keeping before. The first
@@ -122,7 +122,7 @@ export function Responses({
    * offering work that cannot do anything.
    */
   const mapped = fields.some((one) => one.mapsTo);
-  const unplaced = rows.filter((one) => !one.personId && one.matchState !== "review").length;
+  const unplaced = rows.filter((one) => !one.memberId && one.matchState !== "review").length;
   const canCatchUp = mapped && unplaced > 0;
 
   // Headings are the questions that have answers, and only as many as sit
@@ -262,7 +262,7 @@ export function Responses({
                         {t("form.match.compare")}
                       </Link>
                     ) : null}
-                    {row.personId && row.personName ? (
+                    {row.memberId && row.personName ? (
                       <Link
                         href={`/members/${row.personSlug}?church=${church}`}
                         className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"

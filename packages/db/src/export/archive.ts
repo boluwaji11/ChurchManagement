@@ -69,7 +69,7 @@ const TABLES = [
   "tenant_members",
   "invitations",
   "households",
-  "people",
+  "members",
   "household_memberships",
   "contact_methods",
   "addresses",
@@ -77,7 +77,7 @@ const TABLES = [
   "milestones",
   "background_checks",
   "tags",
-  "person_tags",
+  "member_tags",
   "custom_fields",
   "custom_field_values",
   "notes",
@@ -113,7 +113,7 @@ export const ARCHIVE_FORMAT = 1;
  * Builds the whole archive.
  *
  * Held in memory, deliberately, for now. The target is churches of 50 to 500
- * people, where this is a few megabytes. Streaming it row by row is the right
+ * members, where this is a few megabytes. Streaming it row by row is the right
  * answer at ten thousand and is a different piece of work; doing it now would be
  * complexity bought against a problem nobody has. HRT-39 covers it.
  */

@@ -31,13 +31,13 @@ const NONE = "none";
  */
 export function Availability({
   church,
-  personId,
+  memberId,
   frequency,
   away,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   frequency: ServingFrequency | null;
   away: AwayRange[];
   canEdit: boolean;
@@ -66,7 +66,7 @@ export function Availability({
           disabled={!canEdit}
           onValueChange={(value) =>
             run(() =>
-              saveFrequency(personId, value === NONE ? null : (value as ServingFrequency), church))}
+              saveFrequency(memberId, value === NONE ? null : (value as ServingFrequency), church))}
         >
           <SelectTrigger aria-label={t("availability.frequency")} className="w-56">
             <SelectValue />
@@ -131,7 +131,7 @@ export function Availability({
             noValidate
             action={(data) => {
               data.set("church", church);
-              data.set("personId", personId);
+              data.set("memberId", memberId);
               startTransition(async () => {
                 const result = await saveBlockout(data);
                 setError(result.error);

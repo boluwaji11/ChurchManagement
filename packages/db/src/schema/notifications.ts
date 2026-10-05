@@ -5,7 +5,7 @@ import { tenants } from "./tenancy";
  * R24.6. Something that happened which somebody should know about.
  *
  * One row per recipient. A church of 50 to 500 has nought to two staff, so
- * fanning a join request out to the three people who can approve it is three
+ * fanning a join request out to the three members who can approve it is three
  * rows, and read state is then a column rather than a second table.
  *
  * The words are not stored. A message key and its values are, so a notification

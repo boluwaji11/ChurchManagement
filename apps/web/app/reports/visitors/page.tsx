@@ -28,7 +28,7 @@ const STANDING_HUE = { connected: "fern", returned: "sky", once: "clay" } as con
  *
  * The PRD calls this the single most valuable report a small church can have,
  * and it is: every other number says how the church is doing, this one says
- * where it is losing people.
+ * where it is losing members.
  *
  * So it does not stop at the rate. A church reading "forty per cent came back"
  * asks the same question every time, which is which of them did not and whether
@@ -62,7 +62,7 @@ export default async function VisitorReport({
   const elapsed = (count: number | null) =>
     count === null ? "" : count === 0 ? t("reports.sameDay") : plural("reports.days", count);
 
-  const returned = steps[1]?.people ?? 0;
+  const returned = steps[1]?.members ?? 0;
   const connected = visitors.filter((one) => standing(one) === "connected").length;
   const uncontacted = visitors.filter((one) => !one.contacted && standing(one) === "once").length;
 
@@ -155,7 +155,7 @@ export default async function VisitorReport({
               steps={steps.map((one) => ({
                 key: one.key,
                 label: t(`reports.step.${one.key}` as never),
-                people: one.people,
+                members: one.members,
                 rate: one.rate,
                 note: elapsed(one.medianDays),
               }))}
@@ -166,7 +166,7 @@ export default async function VisitorReport({
                 title={t("reports.visitors.where")}
                 slices={slices}
                 total={visitors.length}
-                totalLabel={t("reports.visitors.people")}
+                totalLabel={t("reports.visitors.members")}
               />
               <Line
                 title={t("reports.visitors.perMonth")}

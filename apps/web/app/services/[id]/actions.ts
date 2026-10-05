@@ -45,7 +45,7 @@ export async function markPresent(data: FormData): Promise<RosterResult> {
         tx,
         { tenantId: session.tenantId, role: session.role },
         String(data.get("occurrenceId") ?? ""),
-        String(data.get("personId") ?? ""),
+        String(data.get("memberId") ?? ""),
         String(data.get("present") ?? "") === "1",
       ),
     );
@@ -67,7 +67,7 @@ export async function markManyPresent(data: FormData): Promise<RosterResult> {
         tx,
         { tenantId: session.tenantId, role: session.role },
         String(data.get("occurrenceId") ?? ""),
-        data.getAll("personId").map(String),
+        data.getAll("memberId").map(String),
         String(data.get("present") ?? "") === "1",
       ),
     );

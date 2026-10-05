@@ -52,7 +52,7 @@ export default async function CardListPage({
       return {
         window: w,
         celebrations: rows,
-        addresses: await addressesFor(tx, [...new Set(rows.map((c) => c.personId))]),
+        addresses: await addressesFor(tx, [...new Set(rows.map((c) => c.memberId))]),
       };
     },
   );
@@ -93,7 +93,7 @@ export default async function CardListPage({
         </thead>
         <tbody>
           {celebrations.map((c) => (
-            <tr key={`${c.kind}-${c.personId}-${c.on}`} className="break-inside-avoid">
+            <tr key={`${c.kind}-${c.memberId}-${c.on}`} className="break-inside-avoid">
               <td className="border-b border-neutral-200 py-3">
                 {/* The box the volunteer ticks when the card is written. */}
                 <span className="block size-[18px] rounded-[3px] border-[1.5px] border-neutral-700" />
@@ -121,7 +121,7 @@ export default async function CardListPage({
                   .join(" · ")}
               </td>
               <td className="border-b border-neutral-200 py-3 text-neutral-600">
-                {addresses.get(c.personId) ?? ""}
+                {addresses.get(c.memberId) ?? ""}
               </td>
             </tr>
           ))}

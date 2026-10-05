@@ -110,22 +110,22 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
     overdue: string;
   }>(sql`
     select
-      (select count(*) from people p
+      (select count(*) from members p
         where p.archived_at is null
           and p.created_at >= date_trunc('month', ${today}::date))::text as "newThisMonth",
 
       -- R7.5. Somebody whose first recorded gathering was in the last month.
-      (select count(*) from people p
+      (select count(*) from members p
         where p.archived_at is null
           and p.first_visit_on >= ${today}::date - interval '30 days'
           and p.first_visit_on <= ${today}::date)::text as visitors,
 
-      (select count(*) from people p
+      (select count(*) from members p
         where p.archived_at is null
           and p.first_visit_on >= ${today}::date - interval '30 days'
           and p.first_visit_on <= ${today}::date
           and not exists (
-            select 1 from pipeline_entries e where e.person_id = p.id
+            select 1 from pipeline_entries e where e.member_id = p.id
           ))::text as uncontacted,
 
       (select count(*) from follow_ups f where f.done_at is null)::text as open,
@@ -176,8 +176,8 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
 export interface FunnelStep {
   /** "visited", "returned", "group", "serving", "member". */
   key: string;
-  people: number;
-  /** Of the people who reached the step before, how many reached this one. */
+  members: number;
+  /** Of the members who reached the step before, how many reached this one. */
   rate: number;
   /** Middle number of days from the first visit to reaching this step. */
   medianDays: number | null;
@@ -186,12 +186,12 @@ export interface FunnelStep {
 /**
  * R18.3. What happens to somebody after they first turn up.
  *
- * Five steps, each one counted among the people who reached the one before it,
+ * Five steps, each one counted among the members who reached the one before it,
  * so the rate answers "of those who came back, how many joined a group" rather
  * than "what fraction of everybody". That is the question a church is actually
  * asking.
  *
- * The cohort is people whose first recorded service falls in the window. A
+ * The cohort is members whose first recorded service falls in the window. A
  * church that started using Hearth in March cannot be asked about February,
  * and a report that quietly counts the import as a hundred first visits is a
  * report that lies on its most important line.
@@ -216,7 +216,7 @@ export async function visitorFunnel(
   }>(sql`
     with cohort as (
       select p.id, p.first_visit_on, p.membership_date, p.lifecycle_status
-        from people p
+        from members p
        where p.archived_at is null
          and p.first_visit_on between ${opts.from} and ${opts.to}
     ),
@@ -227,12 +227,12 @@ export async function visitorFunnel(
              (select min(o.occurs_on)
                 from attendance_records a
                 join service_occurrences o on o.id = a.occurrence_id
-               where a.person_id = c.id
+               where a.member_id = c.id
                  and o.occurs_on > c.first_visit_on) as returned_on,
              (select min(m.joined_on) from group_memberships m
-               where m.person_id = c.id) as grouped_on,
+               where m.member_id = c.id) as grouped_on,
              (select min(tm.joined_on) from team_members tm
-               where tm.person_id = c.id) as serving_on,
+               where tm.member_id = c.id) as serving_on,
              case when c.lifecycle_status = 'member'
                   then coalesce(c.membership_date, c.first_visit_on) end as member_on
         from cohort c
@@ -270,11 +270,11 @@ export async function visitorFunnel(
     before === 0 ? 0 : Math.round((reached / before) * 100);
 
   return [
-    { key: "visited", people: visited, rate: 100, medianDays: 0 },
-    { key: "returned", people: returned, rate: share(returned, visited), medianDays: n(row?.daysReturned) },
-    { key: "group", people: grouped, rate: share(grouped, returned), medianDays: n(row?.daysGroup) },
-    { key: "serving", people: serving, rate: share(serving, grouped), medianDays: n(row?.daysServing) },
-    { key: "member", people: member, rate: share(member, returned), medianDays: n(row?.daysMember) },
+    { key: "visited", members: visited, rate: 100, medianDays: 0 },
+    { key: "returned", members: returned, rate: share(returned, visited), medianDays: n(row?.daysReturned) },
+    { key: "group", members: grouped, rate: share(grouped, returned), medianDays: n(row?.daysGroup) },
+    { key: "serving", members: serving, rate: share(serving, grouped), medianDays: n(row?.daysServing) },
+    { key: "member", members: member, rate: share(member, returned), medianDays: n(row?.daysMember) },
   ];
 }
 
@@ -358,12 +358,12 @@ export async function growthByMonth(
         ) d
     ),
     seen as (
-      select a.person_id,
+      select a.member_id,
              min(o.occurs_on) as first_on,
              max(o.occurs_on) as last_on
         from attendance_records a
         join service_occurrences o on o.id = a.occurrence_id
-       group by a.person_id
+       group by a.member_id
     )
     select m.month,
            (select count(*) from seen s
@@ -384,7 +384,7 @@ export async function growthByMonth(
 
 export interface OpenFollowUp {
   id: string;
-  personId: string;
+  memberId: string;
   personSlug: string;
   personName: string;
   /** What the step is: "First visit", "Asked about baptism". */
@@ -403,7 +403,7 @@ export interface OpenFollowUp {
 export async function openFollowUps(db: Tx, limit = 5): Promise<OpenFollowUp[]> {
   const rows = await db.execute<Record<string, string | null>>(sql`
     select f.id,
-           f.person_id as "personId",
+           f.member_id as "memberId",
            p.slug as "personSlug",
            coalesce(nullif(p.preferred_name, ''), p.first_name) || ' ' || p.last_name as "personName",
            f.title,
@@ -417,7 +417,7 @@ export async function openFollowUps(db: Tx, limit = 5): Promise<OpenFollowUp[]> 
            end as owner,
            to_char(f.due_on, 'YYYY-MM-DD') as "dueOn"
       from follow_ups f
-      join people p on p.id = f.person_id
+      join members p on p.id = f.member_id
       left join app_users u on u.id = f.assignee_user_id
      where f.done_at is null
        and p.archived_at is null
@@ -426,7 +426,7 @@ export async function openFollowUps(db: Tx, limit = 5): Promise<OpenFollowUp[]> 
 
   return rows.map((row) => ({
     id: String(row["id"]),
-    personId: String(row["personId"]),
+    memberId: String(row["memberId"]),
     personSlug: String(row["personSlug"]),
     personName: String(row["personName"]),
     title: String(row["title"]),
@@ -444,8 +444,8 @@ export interface AttendanceSummary {
   before: number;
   /** The best attended one in the window. */
   best: { name: string; occursOn: string; present: number } | null;
-  /** How many different people were at anything at all. */
-  people: number;
+  /** How many different members were at anything at all. */
+  members: number;
 }
 
 /**
@@ -481,9 +481,9 @@ export async function attendanceSummary(
            (select to_char(occurs_on, 'YYYY-MM-DD') from counted
              order by present desc, occurs_on desc limit 1) as "bestOn",
            coalesce((select max(present) from counted), 0)::text as "bestPresent",
-           (select count(distinct a.person_id)
+           (select count(distinct a.member_id)
               from attendance_records a
-              join counted c on c.id = a.occurrence_id)::text as people`);
+              join counted c on c.id = a.occurrence_id)::text as members`);
 
   const best = row?.["bestName"]
     ? {
@@ -498,7 +498,7 @@ export async function attendanceSummary(
     average: Number(row?.["average"] ?? 0),
     before: Number(row?.["before"] ?? 0),
     best,
-    people: Number(row?.["people"] ?? 0),
+    members: Number(row?.["members"] ?? 0),
   };
 }
 
@@ -574,15 +574,15 @@ export async function visitorList(
            (select count(distinct o.occurs_on)
               from attendance_records a
               join service_occurrences o on o.id = a.occurrence_id
-             where a.person_id = p.id)::text as visits,
+             where a.member_id = p.id)::text as visits,
            (select to_char(max(o.occurs_on), 'YYYY-MM-DD')
               from attendance_records a
               join service_occurrences o on o.id = a.occurrence_id
-             where a.person_id = p.id) as "lastSeenOn",
-           (exists (select 1 from group_memberships m where m.person_id = p.id))::text as "inGroup",
-           (exists (select 1 from team_members tm where tm.person_id = p.id))::text as serving,
-           (exists (select 1 from follow_ups f where f.person_id = p.id))::text as contacted
-      from people p
+             where a.member_id = p.id) as "lastSeenOn",
+           (exists (select 1 from group_memberships m where m.member_id = p.id))::text as "inGroup",
+           (exists (select 1 from team_members tm where tm.member_id = p.id))::text as serving,
+           (exists (select 1 from follow_ups f where f.member_id = p.id))::text as contacted
+      from members p
      where p.archived_at is null
        and p.first_visit_on between ${opts.from} and ${opts.to}
      order by p.first_visit_on desc`);
@@ -603,7 +603,7 @@ export async function visitorList(
 
 export interface GrowthSummary {
   /**
-   * R18.4. Of the people who came at all in the window before this one, how
+   * R18.4. Of the members who came at all in the window before this one, how
    * many came again in this one. The honest churn signal, as a percentage.
    */
   retention: number;
@@ -626,21 +626,21 @@ export async function growthSummary(
 
   const [row] = await db.execute<Record<string, string | null>>(sql`
     with seen as (
-      select a.person_id, o.occurs_on
+      select a.member_id, o.occurs_on
         from attendance_records a
         join service_occurrences o on o.id = a.occurrence_id
     ),
     earlier as (
-      select distinct person_id from seen
+      select distinct member_id from seen
        where occurs_on between ${opts.from}::date - ${span} and ${opts.from}::date - 1
     ),
     now_ as (
-      select distinct person_id from seen
+      select distinct member_id from seen
        where occurs_on between ${opts.from} and ${opts.to}
     )
     select (select count(*) from earlier)::text as before,
            (select count(*) from earlier e
-             where exists (select 1 from now_ n where n.person_id = e.person_id))::text as kept`);
+             where exists (select 1 from now_ n where n.member_id = e.member_id))::text as kept`);
 
   const before = Number(row?.["before"] ?? 0);
   const kept = Number(row?.["kept"] ?? 0);

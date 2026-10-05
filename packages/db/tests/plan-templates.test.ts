@@ -66,7 +66,7 @@ beforeAll(async () => {
       body: "Start a cappella",
       teamId: null,
       positionId: null,
-      personId: null,
+      memberId: null,
     }),
   );
 

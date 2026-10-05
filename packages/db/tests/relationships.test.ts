@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import {
   listRelationships, addRelationship, removeRelationship,
   doNotContactIds, isDoNotContact,
@@ -41,17 +41,17 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await owner()`delete from people where last_name = ${SUR}`;
+  await owner()`delete from members where last_name = ${SUR}`;
   await closeConnections();
 });
 
-/** Clears every relationship between the test people, so each test starts level. */
+/** Clears every relationship between the test members, so each test starts level. */
 const reset = () =>
-  owner()`delete from relationships where person_id in (
-    select id from people where last_name = ${SUR})`;
+  owner()`delete from relationships where member_id in (
+    select id from members where last_name = ${SUR})`;
 
-const kindsOn = async (personId: string) =>
-  (await run(riverside, "owner", (tx) => listRelationships(tx, personId))).map(
+const kindsOn = async (memberId: string) =>
+  (await run(riverside, "owner", (tx) => listRelationships(tx, memberId))).map(
     (r) => `${r.kind}:${r.relatedName}`,
   );
 
@@ -60,12 +60,12 @@ describe("both records agree", () => {
     await reset();
     await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Daniel"]!, relatedPersonId: ids["Rachel"]!, kind: "spouse",
+        memberId: ids["Daniel"]!, relatedMemberId: ids["Rachel"]!, kind: "spouse",
       }),
     );
     await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Sophie"]!, relatedPersonId: ids["Daniel"]!, kind: "parent",
+        memberId: ids["Sophie"]!, relatedMemberId: ids["Daniel"]!, kind: "parent",
       }),
     );
 
@@ -78,7 +78,7 @@ describe("both records agree", () => {
     await reset();
     await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Sophie"]!, relatedPersonId: ids["Gregory"]!, kind: "emergency_contact",
+        memberId: ids["Sophie"]!, relatedMemberId: ids["Gregory"]!, kind: "emergency_contact",
       }),
     );
     expect(await kindsOn(ids["Sophie"]!)).toEqual([`emergency_contact:Gregory ${SUR}`]);
@@ -89,7 +89,7 @@ describe("both records agree", () => {
     await reset();
     await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Daniel"]!, relatedPersonId: ids["Rachel"]!, kind: "spouse",
+        memberId: ids["Daniel"]!, relatedMemberId: ids["Rachel"]!, kind: "spouse",
       }),
     );
     const [rel] = await run(riverside, "owner", (tx) => listRelationships(tx, ids["Daniel"]!));
@@ -104,7 +104,7 @@ describe("both records agree", () => {
     await expect(
       run(riverside, "owner", (tx) =>
         addRelationship(tx, as(riverside), {
-          personId: ids["Daniel"]!, relatedPersonId: ids["Daniel"]!, kind: "spouse",
+          memberId: ids["Daniel"]!, relatedMemberId: ids["Daniel"]!, kind: "spouse",
         }),
       ),
     ).rejects.toBeInstanceOf(InvalidInputError);
@@ -112,7 +112,7 @@ describe("both records agree", () => {
     const add = () =>
       run(riverside, "owner", (tx) =>
         addRelationship(tx, as(riverside), {
-          personId: ids["Daniel"]!, relatedPersonId: ids["Rachel"]!, kind: "spouse",
+          memberId: ids["Daniel"]!, relatedMemberId: ids["Rachel"]!, kind: "spouse",
         }),
       );
     await add();
@@ -125,7 +125,7 @@ describe("do not contact", () => {
     await reset();
     await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Sophie"]!, relatedPersonId: ids["Gregory"]!, kind: "do_not_contact",
+        memberId: ids["Sophie"]!, relatedMemberId: ids["Gregory"]!, kind: "do_not_contact",
       }),
     );
 
@@ -133,7 +133,7 @@ describe("do not contact", () => {
       await expect(
         run(riverside, "owner", (tx) =>
           addRelationship(tx, as(riverside), {
-            personId: ids[a!]!, relatedPersonId: ids[b!]!, kind: "emergency_contact",
+            memberId: ids[a!]!, relatedMemberId: ids[b!]!, kind: "emergency_contact",
           }),
         ),
         `${a} to ${b}`,
@@ -145,7 +145,7 @@ describe("do not contact", () => {
     await reset();
     await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Sophie"]!, relatedPersonId: ids["Gregory"]!, kind: "do_not_contact",
+        memberId: ids["Sophie"]!, relatedMemberId: ids["Gregory"]!, kind: "do_not_contact",
       }),
     );
 
@@ -159,13 +159,13 @@ describe("do not contact", () => {
     await reset();
     await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Sophie"]!, relatedPersonId: ids["Gregory"]!, kind: "guardian",
+        memberId: ids["Sophie"]!, relatedMemberId: ids["Gregory"]!, kind: "guardian",
       }),
     );
 
     const result = await run(riverside, "owner", (tx) =>
       addRelationship(tx, as(riverside), {
-        personId: ids["Sophie"]!, relatedPersonId: ids["Gregory"]!, kind: "do_not_contact",
+        memberId: ids["Sophie"]!, relatedMemberId: ids["Gregory"]!, kind: "do_not_contact",
       }),
     );
 
@@ -177,7 +177,7 @@ describe("do not contact", () => {
     await reset();
     await run(riverside, "staff", (tx) =>
       addRelationship(tx, as(riverside, "staff"), {
-        personId: ids["Sophie"]!, relatedPersonId: ids["Gregory"]!, kind: "do_not_contact",
+        memberId: ids["Sophie"]!, relatedMemberId: ids["Gregory"]!, kind: "do_not_contact",
       }),
     );
 
@@ -194,12 +194,12 @@ describe("do not contact", () => {
 });
 
 describe("permissions", () => {
-  it("refuses a role that cannot edit people", async () => {
+  it("refuses a role that cannot edit members", async () => {
     await reset();
     await expect(
       run(riverside, "member", (tx) =>
         addRelationship(tx, as(riverside, "member"), {
-          personId: ids["Daniel"]!, relatedPersonId: ids["Rachel"]!, kind: "spouse",
+          memberId: ids["Daniel"]!, relatedMemberId: ids["Rachel"]!, kind: "spouse",
         }),
       ),
     ).rejects.toBeInstanceOf(PermissionError);

@@ -1,10 +1,10 @@
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people, contactMethods, addresses } from "../schema/people";
+import { members, contactMethods, addresses } from "../schema/members";
 import { appUsers } from "../schema/tenancy";
 import { canEditPeople, PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { LOOKS_LIKE_EMAIL } from "./form-rules";
 import {
   CONTACT_LABELS, type ContactKind, type ContactLabel,
@@ -31,12 +31,12 @@ export type { ContactKind, ContactLabel, PersonContact, PersonAddress };
 const ENOUGH_DIGITS = 7;
 
 /** R2.4. Everything on a person, primary first, the way a card reads it. */
-export async function listContacts(db: Tx, personId: string): Promise<PersonContact[]> {
+export async function listContacts(db: Tx, memberId: string): Promise<PersonContact[]> {
   const [owner] = await db
     .select({ email: appUsers.email })
-    .from(people)
-    .leftJoin(appUsers, eq(appUsers.id, people.appUserId))
-    .where(eq(people.id, personId))
+    .from(members)
+    .leftJoin(appUsers, eq(appUsers.id, members.appUserId))
+    .where(eq(members.id, memberId))
     .limit(1);
 
   const signIn = owner?.email?.trim().toLowerCase() ?? null;
@@ -50,7 +50,7 @@ export async function listContacts(db: Tx, personId: string): Promise<PersonCont
       isPrimary: contactMethods.isPrimary,
     })
     .from(contactMethods)
-    .where(eq(contactMethods.personId, personId))
+    .where(eq(contactMethods.memberId, memberId))
     .orderBy(asc(contactMethods.kind), desc(contactMethods.isPrimary), asc(contactMethods.createdAt));
 
   return rows.map((row) => ({
@@ -79,7 +79,7 @@ function checkValue(kind: ContactKind, value: string): string {
 export async function addContact(
   db: Tx,
   actor: WriteActor,
-  personId: string,
+  memberId: string,
   input: { kind: ContactKind; label?: ContactLabel; value: string },
 ): Promise<{ id: string }> {
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
@@ -88,7 +88,7 @@ export async function addContact(
   const held = await db
     .select({ id: contactMethods.id, value: contactMethods.value })
     .from(contactMethods)
-    .where(and(eq(contactMethods.personId, personId), eq(contactMethods.kind, input.kind)));
+    .where(and(eq(contactMethods.memberId, memberId), eq(contactMethods.kind, input.kind)));
 
   // The same address twice is somebody pressing add on what is already there.
   if (held.some((one) => one.value.trim().toLowerCase() === value.toLowerCase())) {
@@ -99,7 +99,7 @@ export async function addContact(
     .insert(contactMethods)
     .values({
       tenantId: actor.tenantId,
-      personId,
+      memberId,
       kind: input.kind,
       label: input.label ?? (input.kind === "email" ? "home" : "mobile"),
       value,
@@ -120,7 +120,7 @@ export async function removeContact(db: Tx, actor: WriteActor, id: string): Prom
 
   const [row] = await db
     .select({
-      personId: contactMethods.personId,
+      memberId: contactMethods.memberId,
       kind: contactMethods.kind,
       value: contactMethods.value,
       isPrimary: contactMethods.isPrimary,
@@ -130,7 +130,7 @@ export async function removeContact(db: Tx, actor: WriteActor, id: string): Prom
     .limit(1);
   if (!row) throw new InvalidInputError("contact.error.missing");
 
-  const all = await listContacts(db, row.personId);
+  const all = await listContacts(db, row.memberId);
   if (all.find((one) => one.id === id)?.isSignIn) {
     throw new InvalidInputError("contact.error.signIn");
   }
@@ -138,7 +138,7 @@ export async function removeContact(db: Tx, actor: WriteActor, id: string): Prom
   await db.delete(contactMethods).where(eq(contactMethods.id, id));
 
   // Something has to lead, so the oldest of that kind takes over.
-  if (row.isPrimary) await leadWith(db, row.personId, row.kind as ContactKind, null);
+  if (row.isPrimary) await leadWith(db, row.memberId, row.kind as ContactKind, null);
 }
 
 /** R2.4. Which one a letter or a call goes to first. */
@@ -146,13 +146,13 @@ export async function makeContactPrimary(db: Tx, actor: WriteActor, id: string):
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
-    .select({ personId: contactMethods.personId, kind: contactMethods.kind })
+    .select({ memberId: contactMethods.memberId, kind: contactMethods.kind })
     .from(contactMethods)
     .where(eq(contactMethods.id, id))
     .limit(1);
   if (!row) throw new InvalidInputError("contact.error.missing");
 
-  await leadWith(db, row.personId, row.kind as ContactKind, id);
+  await leadWith(db, row.memberId, row.kind as ContactKind, id);
 }
 
 /**
@@ -164,7 +164,7 @@ export async function makeContactPrimary(db: Tx, actor: WriteActor, id: string):
  */
 export async function leadWith(
   db: Tx,
-  personId: string,
+  memberId: string,
   kind: ContactKind,
   id: string | null,
 ): Promise<void> {
@@ -172,7 +172,7 @@ export async function leadWith(
     await db
       .select({ id: contactMethods.id })
       .from(contactMethods)
-      .where(and(eq(contactMethods.personId, personId), eq(contactMethods.kind, kind)))
+      .where(and(eq(contactMethods.memberId, memberId), eq(contactMethods.kind, kind)))
       .orderBy(asc(contactMethods.createdAt))
       .limit(1)
   )[0]?.id ?? null;
@@ -183,7 +183,7 @@ export async function leadWith(
     .update(contactMethods)
     .set({ isPrimary: false })
     .where(and(
-      eq(contactMethods.personId, personId),
+      eq(contactMethods.memberId, memberId),
       eq(contactMethods.kind, kind),
       ne(contactMethods.id, chosen),
     ));
@@ -196,7 +196,7 @@ export async function leadWith(
 
 
 /** R2.4. Where somebody lives: theirs, and the household's. */
-export async function listAddresses(db: Tx, personId: string): Promise<PersonAddress[]> {
+export async function listAddresses(db: Tx, memberId: string): Promise<PersonAddress[]> {
   const rows = await db.execute<{
     id: string;
     label: string;
@@ -211,14 +211,14 @@ export async function listAddresses(db: Tx, personId: string): Promise<PersonAdd
   }>(sql`
     select a.id, a.label::text as label, a.line1, a.line2, a.city, a.region,
            a.postal_code as "postalCode", a.country, a.is_primary as "isPrimary",
-           (a.person_id is null) as "fromHousehold"
+           (a.member_id is null) as "fromHousehold"
       from addresses a
-     where a.person_id = ${personId}
+     where a.member_id = ${memberId}
         or a.household_id in (
           select m.household_id from household_memberships m
-           where m.person_id = ${personId} and m.ended_on is null
+           where m.member_id = ${memberId} and m.ended_on is null
         )
-     order by (a.person_id is null), a.is_primary desc, a.created_at`);
+     order by (a.member_id is null), a.is_primary desc, a.created_at`);
 
   return rows.map((row) => ({ ...row, label: row.label as ContactLabel }));
 }
@@ -237,7 +237,7 @@ export interface AddressInputValues {
 export async function addAddress(
   db: Tx,
   actor: WriteActor,
-  personId: string,
+  memberId: string,
   input: AddressInputValues,
 ): Promise<{ id: string }> {
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
@@ -248,13 +248,13 @@ export async function addAddress(
   const held = await db
     .select({ id: addresses.id })
     .from(addresses)
-    .where(eq(addresses.personId, personId));
+    .where(eq(addresses.memberId, memberId));
 
   const [row] = await db
     .insert(addresses)
     .values({
       tenantId: actor.tenantId,
-      personId,
+      memberId,
       label: input.label ?? "home",
       line1,
       line2: input.line2?.trim() || null,
@@ -278,14 +278,14 @@ export async function removeAddress(db: Tx, actor: WriteActor, id: string): Prom
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
-    .select({ personId: addresses.personId, isPrimary: addresses.isPrimary })
+    .select({ memberId: addresses.memberId, isPrimary: addresses.isPrimary })
     .from(addresses)
     .where(eq(addresses.id, id))
     .limit(1);
-  if (!row?.personId) throw new InvalidInputError("contact.error.household");
+  if (!row?.memberId) throw new InvalidInputError("contact.error.household");
 
   await db.delete(addresses).where(eq(addresses.id, id));
-  if (row.isPrimary) await leadAddressWith(db, row.personId, null);
+  if (row.isPrimary) await leadAddressWith(db, row.memberId, null);
 }
 
 /** R2.4. Which address a letter goes to first. */
@@ -293,26 +293,26 @@ export async function makeAddressPrimary(db: Tx, actor: WriteActor, id: string):
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
-    .select({ personId: addresses.personId })
+    .select({ memberId: addresses.memberId })
     .from(addresses)
     .where(eq(addresses.id, id))
     .limit(1);
-  if (!row?.personId) throw new InvalidInputError("contact.error.household");
+  if (!row?.memberId) throw new InvalidInputError("contact.error.household");
 
-  await leadAddressWith(db, row.personId, id);
+  await leadAddressWith(db, row.memberId, id);
 }
 
 /** R2.4. Exactly one of a person's own addresses leads. */
 async function leadAddressWith(
   db: Tx,
-  personId: string,
+  memberId: string,
   id: string | null,
 ): Promise<void> {
   const chosen = id ?? (
     await db
       .select({ id: addresses.id })
       .from(addresses)
-      .where(eq(addresses.personId, personId))
+      .where(eq(addresses.memberId, memberId))
       .orderBy(asc(addresses.createdAt))
       .limit(1)
   )[0]?.id ?? null;
@@ -322,7 +322,7 @@ async function leadAddressWith(
   await db
     .update(addresses)
     .set({ isPrimary: false })
-    .where(and(eq(addresses.personId, personId), ne(addresses.id, chosen)));
+    .where(and(eq(addresses.memberId, memberId), ne(addresses.id, chosen)));
 
   await db.update(addresses).set({ isPrimary: true }).where(eq(addresses.id, chosen));
 }

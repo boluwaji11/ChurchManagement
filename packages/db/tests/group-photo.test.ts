@@ -1,7 +1,7 @@
 /**
  * HRT-88. A picture on a group, with the quota behind it (R9.2, R1.16).
  *
- * The finder is a wall of cards, and a photograph of eight people round a table
+ * The finder is a wall of cards, and a photograph of eight members round a table
  * says what a paragraph cannot. What is tested is the part that costs a church
  * something: that the picture goes through the one path that checks the quota,
  * and that replacing one forgets the old file rather than charging for both.

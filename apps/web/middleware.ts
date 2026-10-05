@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Refreshes the Supabase session on every request, because a Server Component
- * cannot write cookies and an expired token would otherwise log people out
+ * cannot write cookies and an expired token would otherwise log members out
  * mid-task. It authenticates only. Authorization, meaning which church a user
  * may reach and with what role, is decided in the data layer from the database.
  */

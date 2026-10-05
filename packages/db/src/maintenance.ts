@@ -12,7 +12,7 @@ import { owner } from "./client";
 /**
  * Runs work without writing audit rows, on one connection, for one transaction.
  *
- * Deleting a church cascades to its people, the trigger records each of those
+ * Deleting a church cascades to its members, the trigger records each of those
  * deletions, and the new audit row points at the church being deleted in the
  * same statement. Postgres refuses it, correctly. A reset is not something a
  * person did, so there is nobody to attribute it to either.

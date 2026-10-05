@@ -1,9 +1,9 @@
 import { and, asc, eq, inArray, or } from "drizzle-orm";
 import type { Tx } from "../client";
-import { relationships, people } from "../schema/people";
+import { relationships, members } from "../schema/members";
 import { canEditPeople, canArchivePeople, PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R2.4. Relationships, independent of household.
@@ -45,8 +45,8 @@ const CONTACT_KINDS: RelationshipKind[] = ["guardian", "emergency_contact"];
 export interface RelationshipView {
   id: string;
   kind: RelationshipKind;
-  personId: string;
-  relatedPersonId: string;
+  memberId: string;
+  relatedMemberId: string;
   /** R24.6. Their readable address, so the row links without an id in it. */
   relatedSlug: string;
   relatedName: string;
@@ -60,31 +60,31 @@ const KIND_ORDER: Record<RelationshipKind, number> = {
   spouse: 3, parent: 4, child: 5,
 };
 
-export async function listRelationships(db: Tx, personId: string): Promise<RelationshipView[]> {
+export async function listRelationships(db: Tx, memberId: string): Promise<RelationshipView[]> {
   const rows = await db
     .select({
       id: relationships.id,
       kind: relationships.kind,
-      personId: relationships.personId,
-      relatedPersonId: relationships.relatedPersonId,
-      relatedSlug: people.slug,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
-      archivedAt: people.archivedAt,
+      memberId: relationships.memberId,
+      relatedMemberId: relationships.relatedMemberId,
+      relatedSlug: members.slug,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
+      archivedAt: members.archivedAt,
       notes: relationships.notes,
     })
     .from(relationships)
-    .innerJoin(people, eq(people.id, relationships.relatedPersonId))
-    .where(eq(relationships.personId, personId))
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .innerJoin(members, eq(members.id, relationships.relatedMemberId))
+    .where(eq(relationships.memberId, memberId))
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   return rows
     .map((r): RelationshipView => ({
       id: r.id,
       kind: r.kind as RelationshipKind,
-      personId: r.personId,
-      relatedPersonId: r.relatedPersonId,
+      memberId: r.memberId,
+      relatedMemberId: r.relatedMemberId,
       relatedSlug: r.relatedSlug,
       relatedName: `${r.preferredName ?? r.firstName} ${r.lastName}`,
       relatedArchived: r.archivedAt !== null,
@@ -94,24 +94,24 @@ export async function listRelationships(db: Tx, personId: string): Promise<Relat
 }
 
 /**
- * R2.4 and R8.9. The people this person must not be put in contact with.
+ * R2.4 and R8.9. The members this person must not be put in contact with.
  *
  * Read on its own rather than filtered out of the list above, because the
  * callers that matter most (the directory in R3.x, checkout in R8.9) want the
  * answer to one question and should not have to know the shape of this table.
  */
-export async function doNotContactIds(db: Tx, personId: string): Promise<string[]> {
+export async function doNotContactIds(db: Tx, memberId: string): Promise<string[]> {
   const rows = await db
-    .select({ id: relationships.relatedPersonId })
+    .select({ id: relationships.relatedMemberId })
     .from(relationships)
     .where(and(
-      eq(relationships.personId, personId),
+      eq(relationships.memberId, memberId),
       eq(relationships.kind, "do_not_contact"),
     ));
   return rows.map((r) => r.id);
 }
 
-/** True when a do-not-contact order exists between two people, in either direction. */
+/** True when a do-not-contact order exists between two members, in either direction. */
 export async function isDoNotContact(db: Tx, a: string, b: string): Promise<boolean> {
   const [row] = await db
     .select({ id: relationships.id })
@@ -119,8 +119,8 @@ export async function isDoNotContact(db: Tx, a: string, b: string): Promise<bool
     .where(and(
       eq(relationships.kind, "do_not_contact"),
       or(
-        and(eq(relationships.personId, a), eq(relationships.relatedPersonId, b)),
-        and(eq(relationships.personId, b), eq(relationships.relatedPersonId, a)),
+        and(eq(relationships.memberId, a), eq(relationships.relatedMemberId, b)),
+        and(eq(relationships.memberId, b), eq(relationships.relatedMemberId, a)),
       ),
     ))
     .limit(1);
@@ -128,8 +128,8 @@ export async function isDoNotContact(db: Tx, a: string, b: string): Promise<bool
 }
 
 export interface RelationshipInput {
-  personId: string;
-  relatedPersonId: string;
+  memberId: string;
+  relatedMemberId: string;
   kind: RelationshipKind;
   notes?: string | null;
 }
@@ -145,7 +145,7 @@ export interface RelationshipResult {
  * Records a relationship, and its inverse where one exists.
  *
  * A do-not-contact order cancels any guardian or emergency contact row between
- * the same two people rather than being refused because one exists. The order
+ * the same two members rather than being refused because one exists. The order
  * arrives after the custody hearing, the emergency contact was entered a year
  * earlier, and a safeguarding instruction that a church has to tidy up before
  * it will take effect is an instruction that does not take effect.
@@ -157,13 +157,13 @@ export async function addRelationship(
 ): Promise<RelationshipResult> {
   if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editRelationship");
 
-  const { personId, relatedPersonId, kind } = input;
-  if (personId === relatedPersonId) throw new InvalidInputError("relationship.error.self");
+  const { memberId, relatedMemberId, kind } = input;
+  if (memberId === relatedMemberId) throw new InvalidInputError("relationship.error.self");
 
   const found = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(inArray(people.id, [personId, relatedPersonId]));
+    .select({ id: members.id })
+    .from(members)
+    .where(inArray(members.id, [memberId, relatedMemberId]));
   if (found.length < 2) throw new InvalidInputError("relationship.error.notFound");
 
   let cancelled = 0;
@@ -174,22 +174,22 @@ export async function addRelationship(
       .where(and(
         inArray(relationships.kind, CONTACT_KINDS),
         or(
-          and(eq(relationships.personId, personId), eq(relationships.relatedPersonId, relatedPersonId)),
-          and(eq(relationships.personId, relatedPersonId), eq(relationships.relatedPersonId, personId)),
+          and(eq(relationships.memberId, memberId), eq(relationships.relatedMemberId, relatedMemberId)),
+          and(eq(relationships.memberId, relatedMemberId), eq(relationships.relatedMemberId, memberId)),
         ),
       ))
       .returning({ id: relationships.id });
     cancelled = gone.length;
-  } else if (CONTACT_KINDS.includes(kind) && await isDoNotContact(db, personId, relatedPersonId)) {
+  } else if (CONTACT_KINDS.includes(kind) && await isDoNotContact(db, memberId, relatedMemberId)) {
     throw new InvalidInputError("relationship.error.doNotContact");
   }
 
   const notes = input.notes?.trim() || null;
-  const rows: { personId: string; relatedPersonId: string; kind: RelationshipKind }[] = [
-    { personId, relatedPersonId, kind },
+  const rows: { memberId: string; relatedMemberId: string; kind: RelationshipKind }[] = [
+    { memberId, relatedMemberId, kind },
   ];
   const inverse = INVERSE[kind];
-  if (inverse) rows.push({ personId: relatedPersonId, relatedPersonId: personId, kind: inverse });
+  if (inverse) rows.push({ memberId: relatedMemberId, relatedMemberId: memberId, kind: inverse });
 
   let added = 0;
   for (const row of rows) {
@@ -221,8 +221,8 @@ export async function removeRelationship(
 ): Promise<{ removed: number }> {
   const [row] = await db
     .select({
-      personId: relationships.personId,
-      relatedPersonId: relationships.relatedPersonId,
+      memberId: relationships.memberId,
+      relatedMemberId: relationships.relatedMemberId,
       kind: relationships.kind,
     })
     .from(relationships)
@@ -249,8 +249,8 @@ export async function removeRelationship(
       ? or(
           eq(relationships.id, id),
           and(
-            eq(relationships.personId, row.relatedPersonId),
-            eq(relationships.relatedPersonId, row.personId),
+            eq(relationships.memberId, row.relatedMemberId),
+            eq(relationships.relatedMemberId, row.memberId),
             eq(relationships.kind, inverse),
           ),
         )

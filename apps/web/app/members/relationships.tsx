@@ -14,7 +14,7 @@ import { addRelation, removeRelation } from "./relationship-actions";
 export interface RelationRow {
   id: string;
   kind: string;
-  relatedPersonId: string;
+  relatedMemberId: string;
   relatedSlug: string;
   relatedName: string;
 }
@@ -39,14 +39,14 @@ const label = (kind: string) => t(`relationship.kind.${kind}` as never);
  */
 export function Relationships({
   church,
-  personId,
+  memberId,
   rows,
   candidates,
   canEdit,
   canLift,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   rows: RelationRow[];
   candidates: Candidate[];
   canEdit: boolean;
@@ -64,8 +64,8 @@ export function Relationships({
     if (!related || !kind) return;
     const data = new FormData();
     data.set("church", church);
-    data.set("personId", personId);
-    data.set("relatedPersonId", related);
+    data.set("memberId", memberId);
+    data.set("relatedMemberId", related);
     data.set("kind", kind);
 
     startTransition(async () => {
@@ -86,7 +86,7 @@ export function Relationships({
   const remove = (id: string) => {
     const data = new FormData();
     data.set("church", church);
-    data.set("personId", personId);
+    data.set("memberId", memberId);
     data.set("id", id);
 
     startTransition(async () => {

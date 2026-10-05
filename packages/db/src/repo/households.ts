@@ -1,9 +1,9 @@
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { households, householdMemberships, people } from "../schema/people";
+import { households, householdMemberships, members } from "../schema/members";
 import { PermissionError, canManageHouseholds } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R2.1. The households a church keeps, as things in their own right.
@@ -46,7 +46,7 @@ export async function listHouseholdRows(
                      coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
                      hm.role::text as role
                 from household_memberships hm
-                join people p on p.id = hm.person_id
+                join members p on p.id = hm.member_id
                where hm.household_id = households.id
                  and p.archived_at is null
             ) m
@@ -99,26 +99,26 @@ export async function peopleWithoutHousehold(
 
   const rows = await db
     .select({
-      id: people.id,
-      slug: people.slug,
-      name: sql<string>`coalesce(${people.preferredName}, ${people.firstName}) || ' ' || ${people.lastName}`,
+      id: members.id,
+      slug: members.slug,
+      name: sql<string>`coalesce(${members.preferredName}, ${members.firstName}) || ' ' || ${members.lastName}`,
     })
-    .from(people)
+    .from(members)
     .where(
       and(
-        isNull(people.archivedAt),
+        isNull(members.archivedAt),
         sql`not exists (
-          select 1 from household_memberships hm where hm.person_id = ${people.id}
+          select 1 from household_memberships hm where hm.member_id = ${members.id}
         )`,
         needle
           ? sql`(
-              lower(coalesce(${people.preferredName}, ${people.firstName})) like ${`%${needle.toLowerCase()}%`}
-              or lower(${people.lastName}) like ${`%${needle.toLowerCase()}%`}
+              lower(coalesce(${members.preferredName}, ${members.firstName})) like ${`%${needle.toLowerCase()}%`}
+              or lower(${members.lastName}) like ${`%${needle.toLowerCase()}%`}
             )`
           : undefined,
       ),
     )
-    .orderBy(asc(people.lastName), asc(people.firstName))
+    .orderBy(asc(members.lastName), asc(members.firstName))
     .limit(limit);
 
   return rows;
@@ -129,7 +129,7 @@ export async function addToHousehold(
   db: Tx,
   actor: WriteActor,
   householdId: string,
-  personId: string,
+  memberId: string,
   role = "other",
 ): Promise<void> {
   guard(actor);
@@ -137,14 +137,14 @@ export async function addToHousehold(
   const [already] = await db
     .select({ id: householdMemberships.id })
     .from(householdMemberships)
-    .where(eq(householdMemberships.personId, personId))
+    .where(eq(householdMemberships.memberId, memberId))
     .limit(1);
   if (already) throw new InvalidInputError("households.error.alreadyIn");
 
   await db.insert(householdMemberships).values({
     tenantId: actor.tenantId,
     householdId,
-    personId,
+    memberId,
     role: role as "head" | "spouse" | "child" | "other",
   });
 }
@@ -154,7 +154,7 @@ export async function setHouseholdRole(
   db: Tx,
   actor: WriteActor,
   householdId: string,
-  personId: string,
+  memberId: string,
   role: string,
 ): Promise<void> {
   guard(actor);
@@ -164,7 +164,7 @@ export async function setHouseholdRole(
     .set({ role: role as "head" | "spouse" | "child" | "other" })
     .where(and(
       eq(householdMemberships.householdId, householdId),
-      eq(householdMemberships.personId, personId),
+      eq(householdMemberships.memberId, memberId),
     ))
     .returning({ id: householdMemberships.id });
 
@@ -181,7 +181,7 @@ export async function removeFromHousehold(
   db: Tx,
   actor: WriteActor,
   householdId: string,
-  personId: string,
+  memberId: string,
 ): Promise<void> {
   guard(actor);
 
@@ -189,7 +189,7 @@ export async function removeFromHousehold(
     .delete(householdMemberships)
     .where(and(
       eq(householdMemberships.householdId, householdId),
-      eq(householdMemberships.personId, personId),
+      eq(householdMemberships.memberId, memberId),
     ));
 }
 
@@ -216,7 +216,7 @@ export async function renameHousehold(
 /**
  * R2.1. Puts a household away, or brings it back.
  *
- * Archived rather than deleted, like every other record. The people in it keep
+ * Archived rather than deleted, like every other record. The members in it keep
  * their own records and simply stop being shown as living together.
  */
 export async function setHouseholdArchived(
@@ -260,19 +260,19 @@ export async function mergeHouseholds(
   if (!target) throw new InvalidInputError("households.error.missing");
 
   const already = await db
-    .select({ personId: householdMemberships.personId })
+    .select({ memberId: householdMemberships.memberId })
     .from(householdMemberships)
     .where(eq(householdMemberships.householdId, intoId));
-  const held = new Set(already.map((row) => row.personId));
+  const held = new Set(already.map((row) => row.memberId));
 
   const coming = await db
-    .select({ id: householdMemberships.id, personId: householdMemberships.personId })
+    .select({ id: householdMemberships.id, memberId: householdMemberships.memberId })
     .from(householdMemberships)
     .where(eq(householdMemberships.householdId, fromId));
 
   let moved = 0;
   for (const row of coming) {
-    if (held.has(row.personId)) {
+    if (held.has(row.memberId)) {
       await db.delete(householdMemberships).where(eq(householdMemberships.id, row.id));
       continue;
     }

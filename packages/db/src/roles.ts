@@ -11,13 +11,13 @@ export {
  * rather than in a template. If data is hidden only by the view, it is not
  * hidden, so every repository assumes its consumer is the API.
  */
-export const CAN_READ_CONFIDENTIAL_NOTES: readonly TenantRole[] = rolesWith("people.notes.confidential");
+export const CAN_READ_CONFIDENTIAL_NOTES: readonly TenantRole[] = rolesWith("members.notes.confidential");
 
 /** Giving amounts arrive in 0.3. The rule is recorded now so it is not forgotten. */
 export const CAN_READ_GIVING_AMOUNTS: readonly TenantRole[] = rolesWith("giving.amounts");
 
 export const canReadConfidentialNotes = (role: Who): boolean =>
-  can(role, "people.notes.confidential");
+  can(role, "members.notes.confidential");
 
 export const canReadGivingAmounts = (role: Who): boolean =>
   can(role, "giving.amounts");
@@ -29,15 +29,15 @@ export const canReadGivingAmounts = (role: Who): boolean =>
  * correction through the Owner. Archiving is narrower: it removes someone from
  * every list at once, so it stays with Owner and Admin.
  */
-export const CAN_EDIT_PEOPLE: readonly TenantRole[] = rolesWith("people.edit");
-export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = rolesWith("people.archive");
+export const CAN_EDIT_PEOPLE: readonly TenantRole[] = rolesWith("members.edit");
+export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = rolesWith("members.archive");
 
 /** R2.1. Who may name, merge and put away a household. */
-export const CAN_MANAGE_HOUSEHOLDS: readonly TenantRole[] = rolesWith("people.households");
+export const CAN_MANAGE_HOUSEHOLDS: readonly TenantRole[] = rolesWith("members.households");
 
-export const canEditPeople = (role: Who): boolean => can(role, "people.edit");
-export const canArchivePeople = (role: Who): boolean => can(role, "people.archive");
-export const canManageHouseholds = (role: Who): boolean => can(role, "people.households");
+export const canEditPeople = (role: Who): boolean => can(role, "members.edit");
+export const canArchivePeople = (role: Who): boolean => can(role, "members.archive");
+export const canManageHouseholds = (role: Who): boolean => can(role, "members.households");
 
 /**
  * Thrown when a role is not permitted to perform a write.

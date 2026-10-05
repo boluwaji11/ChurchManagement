@@ -52,8 +52,8 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
 
     const mine: Record<string, { roomId: string | null; code: string | null }> = {};
     for (const event of events) {
-      if (event.kind === "checkin") mine[event.personId] = { roomId: event.roomId, code: event.code };
-      else delete mine[event.personId];
+      if (event.kind === "checkin") mine[event.memberId] = { roomId: event.roomId, code: event.code };
+      else delete mine[event.memberId];
     }
     setLocal(mine);
   }, []);
@@ -131,7 +131,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
   const searchLocal = React.useCallback(
     (query: string): FoundMatch[] => {
       if (!snapshot) return [];
-      const roster = snapshot.roster.people;
+      const roster = snapshot.roster.members;
       const found = search(roster, query, 20);
       const byHousehold = new Map<string, RosterPerson[]>();
       for (const person of roster) {
@@ -145,7 +145,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
         const visit = local[person.id];
         // Somebody checked in before the network went is still checked in, and
         // the station holds their visit so they can still be collected.
-        const before = snapshot.visits.find((v) => v.personId === person.id);
+        const before = snapshot.visits.find((v) => v.memberId === person.id);
         return {
           id: person.id,
           name: person.preferredName?.trim() || person.firstName,
@@ -180,7 +180,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
           id: person.id,
           name: `${person.preferredName?.trim() || person.firstName} ${person.lastName}`,
           household: person.householdName,
-          people: ordered.map(asFound),
+          members: ordered.map(asFound),
         };
       });
     },
@@ -197,7 +197,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
    */
   const checkInLocally = React.useCallback(
     async (
-      entries: { personId: string; roomId: string | null; child: boolean; bagLabel?: boolean }[],
+      entries: { memberId: string; roomId: string | null; child: boolean; bagLabel?: boolean }[],
     ) => {
       const codes: Record<string, string> = {};
       const at = new Date().toISOString();
@@ -205,14 +205,14 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
       for (const entry of entries) {
         const code = entry.child ? await takeCode() : null;
         if (entry.child && !code) throw new Error("codes");
-        if (code) codes[entry.personId] = code;
+        if (code) codes[entry.memberId] = code;
 
         const event: OfflineEvent = {
           id: crypto.randomUUID(),
           kind: "checkin",
           at,
           occurrenceId,
-          personId: entry.personId,
+          memberId: entry.memberId,
           roomId: entry.roomId,
           child: entry.child,
           code,
@@ -235,14 +235,14 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
    */
   const releaseLocally = React.useCallback(
     async (input: {
-      personId: string;
+      memberId: string;
       typed: string;
       collectedBy: string | null;
       override: { kind: OverrideKind; reason: string } | null;
     }): Promise<OverrideKind | null> => {
-      const visit = snapshot?.visits.find((v) => v.personId === input.personId);
-      const expected = local[input.personId]?.code ?? visit?.code ?? null;
-      const pickup = snapshot?.roster.pickup[input.personId] ?? [];
+      const visit = snapshot?.visits.find((v) => v.memberId === input.memberId);
+      const expected = local[input.memberId]?.code ?? visit?.code ?? null;
+      const pickup = snapshot?.roster.pickup[input.memberId] ?? [];
 
       const stopped = releaseBlock({
         kind: visit?.kind === "adult" ? "adult" : "child",
@@ -256,7 +256,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
       if (stopped) return stopped;
 
       await checkOutLocally({
-        personId: input.personId,
+        memberId: input.memberId,
         code: readCode(input.typed),
         collectedBy: input.collectedBy,
         override: input.override,
@@ -269,7 +269,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
 
   const checkOutLocally = React.useCallback(
     async (input: {
-      personId: string;
+      memberId: string;
       code: string;
       collectedBy: string | null;
       override: { kind: OverrideKind; reason: string } | null;
@@ -296,9 +296,9 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
 
   /** R8.21. Taking back a check-in this station has not sent yet. */
   const undoLocally = React.useCallback(
-    async (personId: string) => {
+    async (memberId: string) => {
       const events = await pendingEvents();
-      const mine = events.filter((e) => e.kind === "checkin" && e.personId === personId);
+      const mine = events.filter((e) => e.kind === "checkin" && e.memberId === memberId);
       await forgetEvents(mine.map((e) => e.id));
       await countWaiting();
     },
@@ -313,7 +313,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
     checkOutLocally,
     releaseLocally,
     undoLocally,
-    pickupFor: (personId: string) => snapshot?.roster.pickup[personId] ?? [],
+    pickupFor: (memberId: string) => snapshot?.roster.pickup[memberId] ?? [],
     reconcile,
     dismissConflicts: () => setConflicts([]),
   };

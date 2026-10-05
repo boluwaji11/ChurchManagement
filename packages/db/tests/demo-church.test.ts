@@ -1,7 +1,7 @@
 /**
  * HRT-46. A demo church, belonging to nobody (R19.7, R22.1).
  *
- * The point of building it this way is that invented people can never land in a
+ * The point of building it this way is that invented members can never land in a
  * real church's directory. The tests that matter are the ones proving the demo
  * is a separate church, and that it goes away.
  */
@@ -12,8 +12,8 @@ import {
   createDemoChurch, demoChurchInfo, sweepExpiredDemos, topUpDemoPool,
   demoMembership, DEMO_LIFETIME_HOURS,
 } from "../src/demo/church";
-import { DEMO_PEOPLE } from "../src/demo/people";
-import { listPeople } from "../src/repo/people";
+import { DEMO_PEOPLE } from "../src/demo/members";
+import { listPeople } from "../src/repo/members";
 import { withAuditTriggersOff } from "../src/maintenance";
 
 const made: string[] = [];
@@ -35,11 +35,11 @@ describe("a demo church", () => {
     expect(demo.slug.startsWith("demo-")).toBe(true);
     expect(demo.expiresAt.getTime()).toBeGreaterThan(Date.now());
 
-    const people = await withTenant(
+    const members = await withTenant(
       { tenantId: demo.tenantId, role: "owner", userId },
       (tx) => listPeople(tx),
     );
-    expect(people.length).toBe(DEMO_PEOPLE.length);
+    expect(members.length).toBe(DEMO_PEOPLE.length);
 
     const info = await demoChurchInfo(demo.tenantId);
     expect(info.isDemo).toBe(true);
@@ -221,7 +221,7 @@ describe("the pool", () => {
     expect(await unclaimed()).toBe(1);
 
     const [row] = await owner()<{ n: string }[]>`
-      select count(*)::text as n from people
+      select count(*)::text as n from members
        where tenant_id = (
          select id from tenants
           where demo_expires_at is not null and demo_claimed_at is null

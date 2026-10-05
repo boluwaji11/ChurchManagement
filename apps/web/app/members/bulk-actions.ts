@@ -111,7 +111,7 @@ export async function matchingIds(
   return { ids: rows.map((row) => row.id) };
 }
 
-/** R9.4. Putting the people on screen into a group, in one go. */
+/** R9.4. Putting the members on screen into a group, in one go. */
 export async function bulkAddToGroup(data: FormData): Promise<BulkResult> {
   const { actor, ctx } = await context(field(data, "church") || undefined);
   const ids = selection(data);
@@ -121,8 +121,8 @@ export async function bulkAddToGroup(data: FormData): Promise<BulkResult> {
   try {
     const today = new Date().toISOString().slice(0, 10);
     await withTenant(ctx, async (tx) => {
-      for (const personId of ids) {
-        await addToGroup(tx, actor, { groupId, personId, joinedOn: today });
+      for (const memberId of ids) {
+        await addToGroup(tx, actor, { groupId, memberId, joinedOn: today });
       }
     });
     revalidatePath("/members");

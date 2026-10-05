@@ -2,7 +2,7 @@
  * Creates confirmed Supabase Auth users for the seeded churches.
  *
  * LOCAL DEVELOPMENT ONLY. Writing to auth.users directly is not how accounts get
- * made in production: there, people sign in with an email link and invitations
+ * made in production: there, members sign in with an email link and invitations
  * are matched to their verified address. This exists so the authorization chain
  * can be tested end to end without an inbox, and so there is something to sign in
  * with while reviewing.

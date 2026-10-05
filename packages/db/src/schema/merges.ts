@@ -1,11 +1,11 @@
 import { pgTable, uuid, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { tenants, appUsers } from "./tenancy";
-import { people } from "./people";
+import { members } from "./members";
 
 /**
  * R2.8. A merge, and everything needed to undo it for thirty days.
  *
- * Two people in a directory are one person more often than anybody expects: a
+ * Two members in a directory are one person more often than anybody expects: a
  * visitor card, then a form, then an import. Merging them is easy. Merging the
  * wrong two is the thing that keeps somebody from ever pressing the button, so
  * the undo is not a nice extra, it is what makes the feature usable.
@@ -20,9 +20,9 @@ export const personMerges = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     /** The record that survives. */
-    winnerId: uuid("winner_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    winnerId: uuid("winner_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** The record that is archived. Never deleted, so undo has something to restore. */
-    loserId: uuid("loser_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    loserId: uuid("loser_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** The winner's own fields as they were, so an overwrite can be put back. */
     winnerBefore: jsonb("winner_before"),
     /** Every row re-pointed at the winner, as [{ table, id }], so undo moves back exactly those. */

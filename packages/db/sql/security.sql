@@ -151,7 +151,7 @@ create policy tenant_members_only on public.app_users
 -- ---------------------------------------------------------------------------
 alter table public.addresses drop constraint if exists addresses_one_owner;
 alter table public.addresses add constraint addresses_one_owner
-  check ((household_id is null) <> (person_id is null));
+  check ((household_id is null) <> (member_id is null));
 
 -- ---------------------------------------------------------------------------
 -- 6. Append-only audit log

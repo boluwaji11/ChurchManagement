@@ -15,7 +15,7 @@ import {
   addToTeam, removeFromTeam, setTeamMemberRole, setTeamMemberPositions,
   servingForPerson, leadsTeam, SEED_TEAMS,
 } from "../src/repo/serving";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { linkPersonToUser, visiblePeople } from "../src/repo/scope";
 import { PermissionError } from "../src/roles";
 import { NameTakenError, InvalidInputError } from "../src/errors";
@@ -169,13 +169,13 @@ describe("who is on it", () => {
 
     await run((tx) =>
       addToTeam(tx, as(), {
-        teamId: worship.id, personId: ada, role: "leader",
+        teamId: worship.id, memberId: ada, role: "leader",
         positionIds: [keys.id, vocals.id],
       }),
     );
 
     const after = await run((tx) => getTeam(tx, worship.id));
-    const mine = after!.members.find((m) => m.personId === ada)!;
+    const mine = after!.members.find((m) => m.memberId === ada)!;
     expect(mine.role).toBe("leader");
     expect(mine.positions.map((p) => p.name)).toEqual(["Vocals", "Keys"]);
   });
@@ -186,7 +186,7 @@ describe("who is on it", () => {
 
   it("reads every team one person is on", async () => {
     const production = await named("Production");
-    await run((tx) => addToTeam(tx, as(), { teamId: production.id, personId: ada }));
+    await run((tx) => addToTeam(tx, as(), { teamId: production.id, memberId: ada }));
 
     const serving = await run((tx) => servingForPerson(tx, ada));
     expect(serving.map((s) => s.teamName)).toEqual(["Worship", "Production"]);
@@ -198,7 +198,7 @@ describe("who is on it", () => {
     const production = await named("Production");
     const theirs = (await run((tx) => getTeam(tx, production.id)))!.positions[0]!;
     const member = (await run((tx) => getTeam(tx, worship.id)))!.members
-      .find((m) => m.personId === ada)!;
+      .find((m) => m.memberId === ada)!;
 
     await run((tx) =>
       setTeamMemberPositions(tx, as(), {
@@ -207,12 +207,12 @@ describe("who is on it", () => {
     );
 
     const after = await run((tx) => getTeam(tx, worship.id));
-    expect(after!.members.find((m) => m.personId === ada)?.positions).toEqual([]);
+    expect(after!.members.find((m) => m.memberId === ada)?.positions).toEqual([]);
   });
 
   it("leaves a date behind when somebody steps off", async () => {
     const production = await named("Production");
-    await run((tx) => removeFromTeam(tx, as(), { teamId: production.id, personId: ada }));
+    await run((tx) => removeFromTeam(tx, as(), { teamId: production.id, memberId: ada }));
 
     expect((await run((tx) => servingForPerson(tx, ada))).map((s) => s.teamName))
       .toEqual(["Worship"]);
@@ -221,7 +221,7 @@ describe("who is on it", () => {
 
   it("takes somebody back on without losing the first spell", async () => {
     const production = await named("Production");
-    await run((tx) => addToTeam(tx, as(), { teamId: production.id, personId: ada }));
+    await run((tx) => addToTeam(tx, as(), { teamId: production.id, memberId: ada }));
     expect((await named("Production")).members).toBe(1);
   });
 
@@ -229,7 +229,7 @@ describe("who is on it", () => {
     const worship = await named("Worship");
     const team = await run((tx) => getTeam(tx, worship.id));
     const keys = team!.positions.find((p) => p.name === "Keys")!;
-    const member = team!.members.find((m) => m.personId === ada)!;
+    const member = team!.members.find((m) => m.memberId === ada)!;
 
     await run((tx) =>
       setTeamMemberPositions(tx, as(), {
@@ -240,7 +240,7 @@ describe("who is on it", () => {
 
     const after = await run((tx) => getTeam(tx, worship.id));
     expect(after!.positions.map((p) => p.name)).not.toContain("Keys");
-    expect(after!.members.find((m) => m.personId === ada)?.positions).toEqual([]);
+    expect(after!.members.find((m) => m.memberId === ada)?.positions).toEqual([]);
   });
 });
 
@@ -256,7 +256,7 @@ describe("a team leader", () => {
 
     const ushers = await named("Ushers");
     await run((tx) =>
-      addToTeam(tx, as(), { teamId: ushers.id, personId: boma, role: "leader" }),
+      addToTeam(tx, as(), { teamId: ushers.id, memberId: boma, role: "leader" }),
     );
   });
 
@@ -270,7 +270,7 @@ describe("a team leader", () => {
   it("can change the rota of the team they lead", async () => {
     const ushers = await named("Ushers");
     await run(
-      (tx) => addToTeam(tx, as("team_leader", userId), { teamId: ushers.id, personId: ada }),
+      (tx) => addToTeam(tx, as("team_leader", userId), { teamId: ushers.id, memberId: ada }),
       "team_leader",
     );
     expect((await named("Ushers")).members).toBe(2);
@@ -280,7 +280,7 @@ describe("a team leader", () => {
     const welcome = await named("Welcome");
     await expect(
       run(
-        (tx) => addToTeam(tx, as("team_leader", userId), { teamId: welcome.id, personId: ada }),
+        (tx) => addToTeam(tx, as("team_leader", userId), { teamId: welcome.id, memberId: ada }),
         "team_leader",
       ),
     ).rejects.toThrow(PermissionError);
@@ -309,7 +309,7 @@ describe("a team leader", () => {
     ).rejects.toThrow(PermissionError);
   });
 
-  it("sees the people on their own team in the directory", async () => {
+  it("sees the members on their own team in the directory", async () => {
     const visible = await run(
       (tx) => visiblePeople(tx, { role: "team_leader", userId }),
       "team_leader",

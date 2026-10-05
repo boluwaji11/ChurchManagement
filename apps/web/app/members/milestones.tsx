@@ -36,12 +36,12 @@ const readable = (iso: string) =>
 /** R2.6. The dates a church is asked for and cannot produce. */
 export function Milestones({
   church,
-  personId,
+  memberId,
   rows,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   rows: MilestoneRow[];
   canEdit: boolean;
 }) {
@@ -55,7 +55,7 @@ export function Milestones({
 
   const submit = (data: FormData) => {
     data.set("church", church);
-    data.set("personId", personId);
+    data.set("memberId", memberId);
     data.set("kind", kind);
 
     startTransition(async () => {
@@ -82,7 +82,7 @@ export function Milestones({
   const remove = (id: string) => {
     const data = new FormData();
     data.set("church", church);
-    data.set("personId", personId);
+    data.set("memberId", memberId);
     data.set("id", id);
 
     startTransition(async () => {

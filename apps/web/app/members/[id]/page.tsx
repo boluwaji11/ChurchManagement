@@ -105,21 +105,21 @@ export default async function PersonPage({
 
     // Found by their readable address or by their id, so everything after this
     // works from the record's own id rather than from whatever was in the URL.
-    const personId = person.id;
+    const memberId = person.id;
 
     return {
       person,
       // R2.4. Every way of reaching them, not only the one that leads.
-      contacts: await listContacts(tx, personId),
-      addresses: await listAddresses(tx, personId),
-      household: await householdFor(tx, personId),
-      groups: await groupsForPerson(tx, personId),
-      serving: await servingForPerson(tx, personId),
+      contacts: await listContacts(tx, memberId),
+      addresses: await listAddresses(tx, memberId),
+      household: await householdFor(tx, memberId),
+      groups: await groupsForPerson(tx, memberId),
+      serving: await servingForPerson(tx, memberId),
       // R2.15. Everything that has happened with this person, in one order.
       history: await personTimeline(
         tx,
         { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
-        personId,
+        memberId,
       ),
     };
   });
@@ -145,7 +145,7 @@ export default async function PersonPage({
         href={`/members?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
-        <ArrowLeft className="size-4" /> {t("people.title")}
+        <ArrowLeft className="size-4" /> {t("members.title")}
       </Link>
 
       {/* A 72px face, the name in Fraunces at 32, and under it the one line
@@ -204,7 +204,7 @@ export default async function PersonPage({
               <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
               <Contacts
                 church={session.tenantSlug}
-                personId={person.id}
+                memberId={person.id}
                 kind="email"
                 contacts={contacts}
                 canEdit={false}
@@ -215,7 +215,7 @@ export default async function PersonPage({
               <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
               <Contacts
                 church={session.tenantSlug}
-                personId={person.id}
+                memberId={person.id}
                 kind="phone"
                 contacts={contacts}
                 canEdit={false}
@@ -227,7 +227,7 @@ export default async function PersonPage({
               <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
               <Places
                 church={session.tenantSlug}
-                personId={person.id}
+                memberId={person.id}
                 places={addresses}
                 canEdit={false}
               />
@@ -292,7 +292,7 @@ export default async function PersonPage({
               canEdit ? (
                 <NoteForm
                   church={session.tenantSlug}
-                  personId={person.id}
+                  memberId={person.id}
                   name={display}
                   canConfidential={canReadConfidentialNotes(session.role)}
                   trigger={

@@ -24,7 +24,7 @@ export interface StationItem {
 }
 
 /**
- * R8.1, R8.2. The devices a church checks people in on.
+ * R8.1, R8.2. The devices a church checks members in on.
  *
  * Three questions: what it is called, whether a volunteer runs it or a family
  * does, and what prints the labels. A device is then pointed at it, so the

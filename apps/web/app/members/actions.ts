@@ -88,7 +88,7 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
 
   const { session, ctx } = await writeContext(slug);
 
-  let personId = id;
+  let memberId = id;
   try {
     const failed = await withTenant(ctx, async (tx) => {
       const actor = { tenantId: session.tenantId, role: session.role };
@@ -99,20 +99,20 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
       if (id) {
         await updatePerson(tx, actor, id, input);
       } else {
-        personId = (await createPerson(tx, actor, input)).id;
+        memberId = (await createPerson(tx, actor, input)).id;
       }
 
-      await setCustomValues(tx, actor, "person", personId!, custom.values);
+      await setCustomValues(tx, actor, "person", memberId!, custom.values);
 
       // R2.x. The tag row on the form is the whole set, so whatever is not
       // ticked comes off as well as whatever is ticked going on.
       const wanted = String(data.get("tagIds") ?? "").split(",").filter(Boolean);
-      const held = (await listTagsForPerson(tx, personId!)).map((x) => x.id);
+      const held = (await listTagsForPerson(tx, memberId!)).map((x) => x.id);
       for (const tagId of wanted) {
-        if (!held.includes(tagId)) await setPersonTag(tx, actor, personId!, tagId, true);
+        if (!held.includes(tagId)) await setPersonTag(tx, actor, memberId!, tagId, true);
       }
       for (const tagId of held) {
-        if (!wanted.includes(tagId)) await setPersonTag(tx, actor, personId!, tagId, false);
+        if (!wanted.includes(tagId)) await setPersonTag(tx, actor, memberId!, tagId, false);
       }
       return null;
     });
@@ -123,8 +123,8 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
   }
 
   const where = await withTenant(ctx, async (tx) => {
-    const saved = await getPerson(tx, personId!, { role: session.role, userId: session.userId });
-    return saved?.slug ?? personId!;
+    const saved = await getPerson(tx, memberId!, { role: session.role, userId: session.userId });
+    return saved?.slug ?? memberId!;
   });
 
   revalidatePath("/members");

@@ -4,10 +4,10 @@ import { notifyRoles } from "./notifications";
 import {
   groups, groupTypes, groupMemberships, groupJoinRequests, groupMeetings,
 } from "../schema/groups";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { canManageGroups } from "./groups";
 import { canRecordFor } from "./group-attendance";
 import { personForUser } from "./scope";
@@ -17,7 +17,7 @@ import { personForUser } from "./scope";
  *
  * This is the one screen in groups that a member of the church sees, and the
  * only thing it has to do well is answer "is there something for me on a
- * Tuesday". So it filters by the three things people actually ask about: what
+ * Tuesday". So it filters by the three things members actually ask about: what
  * kind of group, which night, and whereabouts.
  *
  * Asking is a request rather than a join. A group has a leader and a capacity,
@@ -79,7 +79,7 @@ export interface JoinRequest {
   /** R24.6. The group's readable address, so a request links without an id. */
   groupSlug: string;
   groupName: string;
-  personId: string;
+  memberId: string;
   personName: string;
   message: string | null;
   status: string;
@@ -101,10 +101,10 @@ const called = (row: { firstName: string; lastName: string; preferredName: strin
 export async function findGroups(
   db: Tx,
   opts: {
-    personId?: string | null;
+    memberId?: string | null;
     typeId?: string;
     dayOfWeek?: number;
-    /** Matched anywhere in the location, since people type "hall" not "The Hall". */
+    /** Matched anywhere in the location, since members type "hall" not "The Hall". */
     location?: string;
     /** R9.5. Free text over the name and what the group says about itself. */
     q?: string;
@@ -178,7 +178,7 @@ export async function findGroups(
                  order by m.role, p.last_name
                )
           from group_memberships m
-          join people p on p.id = m.person_id
+          join members p on p.id = m.member_id
          where m.group_id = ${groups.id}
            and m.left_on is null
            and m.role in ('leader', 'coleader')
@@ -192,17 +192,17 @@ export async function findGroups(
   const mine = new Set<string>();
   const asked = new Map<string, JoinStatus>();
 
-  if (opts.personId) {
+  if (opts.memberId) {
     const memberships = await db
       .select({ groupId: groupMemberships.groupId })
       .from(groupMemberships)
-      .where(and(eq(groupMemberships.personId, opts.personId), isNull(groupMemberships.leftOn)));
+      .where(and(eq(groupMemberships.memberId, opts.memberId), isNull(groupMemberships.leftOn)));
     for (const row of memberships) mine.add(row.groupId);
 
     const requests = await db
       .select({ groupId: groupJoinRequests.groupId, status: groupJoinRequests.status })
       .from(groupJoinRequests)
-      .where(eq(groupJoinRequests.personId, opts.personId))
+      .where(eq(groupJoinRequests.memberId, opts.memberId))
       .orderBy(desc(groupJoinRequests.createdAt));
     for (const row of requests) {
       if (!asked.has(row.groupId)) asked.set(row.groupId, row.status as JoinStatus);
@@ -272,7 +272,7 @@ export async function requestToJoin(
     .where(
       and(
         eq(groupMemberships.groupId, input.groupId),
-        eq(groupMemberships.personId, self),
+        eq(groupMemberships.memberId, self),
         isNull(groupMemberships.leftOn),
       ),
     )
@@ -284,7 +284,7 @@ export async function requestToJoin(
     .values({
       tenantId: actor.tenantId,
       groupId: input.groupId,
-      personId: self,
+      memberId: self,
       message: input.message?.trim() || null,
     })
     .onConflictDoNothing();
@@ -293,7 +293,7 @@ export async function requestToJoin(
     db,
     and(
       eq(groupJoinRequests.groupId, input.groupId),
-      eq(groupJoinRequests.personId, self),
+      eq(groupJoinRequests.memberId, self),
       eq(groupJoinRequests.status, "pending"),
     )!,
   );
@@ -316,7 +316,7 @@ async function requestsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Join
     .select({
       id: groupJoinRequests.id,
       groupId: groupJoinRequests.groupId,
-      personId: groupJoinRequests.personId,
+      memberId: groupJoinRequests.memberId,
       message: groupJoinRequests.message,
       status: groupJoinRequests.status,
       decidedAt: groupJoinRequests.decidedAt,
@@ -324,13 +324,13 @@ async function requestsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Join
       createdAt: groupJoinRequests.createdAt,
       groupName: groups.name,
       groupSlug: groups.slug,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
     .from(groupJoinRequests)
     .innerJoin(groups, eq(groups.id, groupJoinRequests.groupId))
-    .innerJoin(people, eq(people.id, groupJoinRequests.personId))
+    .innerJoin(members, eq(members.id, groupJoinRequests.memberId))
     .where(where)
     .orderBy(desc(groupJoinRequests.createdAt));
 
@@ -339,7 +339,7 @@ async function requestsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Join
     groupId: r.groupId,
     groupSlug: r.groupSlug,
     groupName: r.groupName,
-    personId: r.personId,
+    memberId: r.memberId,
     personName: called(r),
     message: r.message,
     status: r.status,
@@ -372,7 +372,7 @@ export async function pendingRequests(
     .from(groupMemberships)
     .where(
       and(
-        eq(groupMemberships.personId, self),
+        eq(groupMemberships.memberId, self),
         isNull(groupMemberships.leftOn),
         inArray(groupMemberships.role, ["leader", "coleader"]),
       ),
@@ -389,8 +389,8 @@ export async function pendingRequests(
 }
 
 /** What somebody has asked for, for the finder to show them. */
-export async function requestsFor(db: Tx, personId: string): Promise<JoinRequest[]> {
-  return requestsWhere(db, eq(groupJoinRequests.personId, personId));
+export async function requestsFor(db: Tx, memberId: string): Promise<JoinRequest[]> {
+  return requestsWhere(db, eq(groupJoinRequests.memberId, memberId));
 }
 
 /**
@@ -413,7 +413,7 @@ export async function decideRequest(
     .select({
       id: groupJoinRequests.id,
       groupId: groupJoinRequests.groupId,
-      personId: groupJoinRequests.personId,
+      memberId: groupJoinRequests.memberId,
       status: groupJoinRequests.status,
     })
     .from(groupJoinRequests)
@@ -442,7 +442,7 @@ export async function decideRequest(
       .values({
         tenantId: actor.tenantId,
         groupId: request.groupId,
-        personId: request.personId,
+        memberId: request.memberId,
         role: "member",
         joinedOn: new Date().toISOString().slice(0, 10),
       })
@@ -482,7 +482,7 @@ export interface GroupPage extends FoundGroup {
   /** R9.2. The day it stops meeting, where it has one. */
   endsOn: string | null;
   /** R9.3. Who runs it, which is who a newcomer is really asking about. */
-  leaders: { personId: string; name: string }[];
+  leaders: { memberId: string; name: string }[];
   /** R9.7. Meetings that were held, most recent first. */
   past: { metOn: string; present: number }[];
 }
@@ -491,15 +491,15 @@ export interface GroupPage extends FoundGroup {
  * R9.5. One group's own page.
  *
  * Everything somebody deciding whether to turn up on Tuesday needs: what it is,
- * when and where, who runs it, and whether it is taking people. The leaders are
+ * when and where, who runs it, and whether it is taking members. The leaders are
  * named because "who runs it" is the question behind most of the others.
  */
 export async function groupPage(
   db: Tx,
   id: string,
-  opts: { personId?: string | null; manage?: boolean } = {},
+  opts: { memberId?: string | null; manage?: boolean } = {},
 ): Promise<GroupPage | null> {
-  const [found] = await findGroups(db, { personId: opts.personId, manage: opts.manage }).then((all) =>
+  const [found] = await findGroups(db, { memberId: opts.memberId, manage: opts.manage }).then((all) =>
     all.filter((g) => g.id === id || g.slug === id),
   );
   // Found by slug or by id, so everything after this works from the record's
@@ -525,13 +525,13 @@ export async function groupPage(
 
   const leaders = await db
     .select({
-      personId: groupMemberships.personId,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      memberId: groupMemberships.memberId,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
     .from(groupMemberships)
-    .innerJoin(people, eq(people.id, groupMemberships.personId))
+    .innerJoin(members, eq(members.id, groupMemberships.memberId))
     .where(
       and(
         eq(groupMemberships.groupId, groupId),
@@ -539,7 +539,7 @@ export async function groupPage(
         inArray(groupMemberships.role, ["leader", "coleader"]),
       ),
     )
-    .orderBy(asc(people.firstName));
+    .orderBy(asc(members.firstName));
 
   const past = await db
     .select({
@@ -563,7 +563,7 @@ export async function groupPage(
     country: extra?.country ?? null,
     endsOn: extra?.endsOn ?? null,
     typeDescription: extra?.typeDescription ?? null,
-    leaders: leaders.map((l) => ({ personId: l.personId, name: called(l) })),
+    leaders: leaders.map((l) => ({ memberId: l.memberId, name: called(l) })),
     past: past.map((row) => ({ metOn: row.metOn, present: Number(row.present) })),
   };
 }

@@ -15,7 +15,7 @@ import {
   setServingPreference, getServingPreference, ScheduleConflictError,
 } from "../src/repo/schedule";
 import { seedTeams, listTeams, getTeam, addToTeam, setTeamMemberPositions } from "../src/repo/serving";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addSpecialService } from "../src/repo/services";
 import { InvalidInputError } from "../src/errors";
 import type { TenantRole } from "../src/roles";
@@ -62,13 +62,13 @@ beforeAll(async () => {
   await person("Chi");
 
   for (const id of [ids.Ada!, ids.Boma!, ids.Chi!]) {
-    await run((tx) => addToTeam(tx, as(), { teamId: worship, personId: id }));
-    await run((tx) => addToTeam(tx, as(), { teamId: production, personId: id }));
+    await run((tx) => addToTeam(tx, as(), { teamId: worship, memberId: id }));
+    await run((tx) => addToTeam(tx, as(), { teamId: production, memberId: id }));
   }
 
   // Ada is marked as playing keys, so she sorts first for it.
   const member = (await run((tx) => getTeam(tx, worship)))!.members
-    .find((m) => m.personId === ids.Ada)!;
+    .find((m) => m.memberId === ids.Ada)!;
   await run((tx) =>
     setTeamMemberPositions(tx, as(), { teamId: worship, memberId: member.id, positionIds: [keys] }),
   );
@@ -97,7 +97,7 @@ describe("putting somebody down", () => {
   it("records who is in which position at which gathering", async () => {
     await run((tx) =>
       assign(tx, as(), {
-        occurrenceId: services.first!, teamId: worship, positionId: keys, personId: ids.Ada!,
+        occurrenceId: services.first!, teamId: worship, positionId: keys, memberId: ids.Ada!,
       }),
     );
 
@@ -113,7 +113,7 @@ describe("putting somebody down", () => {
     await expect(
       run((tx) =>
         assign(tx, as(), {
-          occurrenceId: services.first!, teamId: worship, positionId: sound, personId: ids.Boma!,
+          occurrenceId: services.first!, teamId: worship, positionId: sound, memberId: ids.Boma!,
         }),
       ),
     ).rejects.toThrow(InvalidInputError);
@@ -123,7 +123,7 @@ describe("putting somebody down", () => {
     await expect(
       run((tx) =>
         assign(tx, as(), {
-          occurrenceId: services.first!, teamId: worship, positionId: keys, personId: ids.Ada!,
+          occurrenceId: services.first!, teamId: worship, positionId: keys, memberId: ids.Ada!,
           anyway: true,
         }),
       ),
@@ -135,7 +135,7 @@ describe("serving in two places at one hour", () => {
   it("is allowed, because small churches do it", async () => {
     const made = await run((tx) =>
       assign(tx, as(), {
-        occurrenceId: services.first!, teamId: production, positionId: sound, personId: ids.Ada!,
+        occurrenceId: services.first!, teamId: production, positionId: sound, memberId: ids.Ada!,
       }),
     );
     expect(made.overridden).toBe(false);
@@ -143,7 +143,7 @@ describe("serving in two places at one hour", () => {
 
   it("says nothing about it at all", async () => {
     const warning = await run((tx) =>
-      checkFor(tx, { personId: ids.Ada!, occurrenceId: services.second! }),
+      checkFor(tx, { memberId: ids.Ada!, occurrenceId: services.second! }),
     );
     expect(warning.blockedOut).toBeNull();
     expect(warning.tooSoon).toBeNull();
@@ -155,7 +155,7 @@ describe("blockout dates", () => {
     await expect(
       run((tx) =>
         addBlockout(tx, as(), {
-          personId: ids.Boma!, startsOn: "2027-03-10", endsOn: "2027-03-01",
+          memberId: ids.Boma!, startsOn: "2027-03-10", endsOn: "2027-03-01",
         }),
       ),
     ).rejects.toThrow(InvalidInputError);
@@ -164,12 +164,12 @@ describe("blockout dates", () => {
   it("warns when the gathering falls inside one, at either end", async () => {
     await run((tx) =>
       addBlockout(tx, as(), {
-        personId: ids.Boma!, startsOn: "2027-03-07", endsOn: "2027-03-14", reason: "Away",
+        memberId: ids.Boma!, startsOn: "2027-03-07", endsOn: "2027-03-14", reason: "Away",
       }),
     );
 
     for (const occurrenceId of [services.first!, services.later!]) {
-      const warning = await run((tx) => checkFor(tx, { personId: ids.Boma!, occurrenceId }));
+      const warning = await run((tx) => checkFor(tx, { memberId: ids.Boma!, occurrenceId }));
       expect(warning.blockedOut?.reason).toBe("Away");
     }
   });
@@ -179,7 +179,7 @@ describe("blockout dates", () => {
       run((tx) =>
         assign(tx, as(), {
           occurrenceId: services.later!, teamId: worship, positionId: vocals,
-          personId: ids.Boma!,
+          memberId: ids.Boma!,
         }),
       ),
     ).rejects.toThrow(ScheduleConflictError);
@@ -187,7 +187,7 @@ describe("blockout dates", () => {
     const made = await run((tx) =>
       assign(tx, as(), {
         occurrenceId: services.later!, teamId: worship, positionId: vocals,
-        personId: ids.Boma!, anyway: true,
+        memberId: ids.Boma!, anyway: true,
       }),
     );
     expect(made.overridden).toBe(true);
@@ -204,35 +204,35 @@ describe("blockout dates", () => {
 
 describe("how often somebody wants to serve", () => {
   it("is kept, changed and cleared", async () => {
-    await run((tx) => setServingPreference(tx, as(), { personId: ids.Chi!, frequency: "monthly" }));
+    await run((tx) => setServingPreference(tx, as(), { memberId: ids.Chi!, frequency: "monthly" }));
     expect(await run((tx) => getServingPreference(tx, ids.Chi!))).toBe("monthly");
 
-    await run((tx) => setServingPreference(tx, as(), { personId: ids.Chi!, frequency: "weekly" }));
+    await run((tx) => setServingPreference(tx, as(), { memberId: ids.Chi!, frequency: "weekly" }));
     expect(await run((tx) => getServingPreference(tx, ids.Chi!))).toBe("weekly");
 
-    await run((tx) => setServingPreference(tx, as(), { personId: ids.Chi!, frequency: null }));
+    await run((tx) => setServingPreference(tx, as(), { memberId: ids.Chi!, frequency: null }));
     expect(await run((tx) => getServingPreference(tx, ids.Chi!))).toBeNull();
   });
 
   it("warns when they served more recently than they asked to", async () => {
-    await run((tx) => setServingPreference(tx, as(), { personId: ids.Chi!, frequency: "monthly" }));
+    await run((tx) => setServingPreference(tx, as(), { memberId: ids.Chi!, frequency: "monthly" }));
     await run((tx) =>
       assign(tx, as(), {
-        occurrenceId: services.first!, teamId: worship, positionId: vocals, personId: ids.Chi!,
+        occurrenceId: services.first!, teamId: worship, positionId: vocals, memberId: ids.Chi!,
       }),
     );
 
     const warning = await run((tx) =>
-      checkFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
+      checkFor(tx, { memberId: ids.Chi!, occurrenceId: services.later! }),
     );
     expect(warning.tooSoon?.lastServedOn).toBe("2027-03-07");
     expect(warning.tooSoon?.frequency).toBe("monthly");
   });
 
   it("says nothing to somebody who asked for weekly", async () => {
-    await run((tx) => setServingPreference(tx, as(), { personId: ids.Chi!, frequency: "weekly" }));
+    await run((tx) => setServingPreference(tx, as(), { memberId: ids.Chi!, frequency: "weekly" }));
     const warning = await run((tx) =>
-      checkFor(tx, { personId: ids.Chi!, occurrenceId: services.later! }),
+      checkFor(tx, { memberId: ids.Chi!, occurrenceId: services.later! }),
     );
     expect(warning.tooSoon).toBeNull();
   });

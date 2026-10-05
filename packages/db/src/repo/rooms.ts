@@ -5,7 +5,7 @@ import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import type { MessageKey } from "@hearth/i18n";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { ageInMonths, suggestRoom } from "./age";
 
 export { ageInMonths, suggestRoom };

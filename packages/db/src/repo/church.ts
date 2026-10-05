@@ -5,7 +5,7 @@ import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import { LOOKS_LIKE_EMAIL } from "./form-rules";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R1.1. The church's own record.
@@ -19,7 +19,7 @@ import type { WriteActor } from "./people";
 
 /**
  * Settings reshape the church for everyone in it, so they stay with Owner and
- * Admin. Staff edit people; they do not rename the church.
+ * Admin. Staff edit members; they do not rename the church.
  */
 export const CAN_MANAGE_CHURCH: readonly TenantRole[] = rolesWith("church.manage");
 export const canManageChurch = (role: Who): boolean => can(role, "church.manage");

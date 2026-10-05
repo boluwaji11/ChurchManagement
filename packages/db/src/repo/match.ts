@@ -2,7 +2,7 @@
  * R8.20. The lookup rules, with no database behind them.
  *
  * A station with no network searches the copy of the directory it pulled down
- * before the service, and it has to find the same people in the same order as
+ * before the service, and it has to find the same members in the same order as
  * the server would. So the rules are written once, here, in a file that imports
  * nothing: the SQL in `lookup.ts` is this file's shape expressed in a query, and
  * a test holds the two together.
@@ -13,7 +13,7 @@ export interface Matchable {
   firstName: string;
   lastName: string;
   preferredName: string | null;
-  /** The household they live in, which people also search by. */
+  /** The household they live in, which members also search by. */
   householdName: string | null;
   /** Digits only. The last four are what a parent reads off the top of their head. */
   phones: string[];
@@ -55,11 +55,11 @@ export function rank(query: string, person: Matchable): number | null {
   return null;
 }
 
-/** The people a station shows for what was typed, best first. */
-export function search<T extends Matchable>(people: T[], query: string, limit = 20): T[] {
+/** The members a station shows for what was typed, best first. */
+export function search<T extends Matchable>(members: T[], query: string, limit = 20): T[] {
   const scored: { person: T; rank: number }[] = [];
 
-  for (const person of people) {
+  for (const person of members) {
     const score = rank(query, person);
     if (score !== null) scored.push({ person, rank: score });
   }

@@ -11,7 +11,7 @@ import { findPerson, join, type PersonHit } from "./actions";
  * R9.4. Putting somebody in a group.
  *
  * The same directory lookup every other person field uses, so a leader does not
- * have to learn a second way of finding people. The matches float over the page
+ * have to learn a second way of finding members. The matches float over the page
  * rather than opening above the roster, which otherwise pushes the list down
  * while somebody is still typing.
  *
@@ -32,10 +32,10 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
     void findPerson(query, church).then(setHits);
   };
 
-  const add = (personId: string) => {
-    if (!personId) return;
+  const add = (memberId: string) => {
+    if (!memberId) return;
     startTransition(async () => {
-      const result = await join(groupId, personId, "member", church);
+      const result = await join(groupId, memberId, "member", church);
       setError(result.error);
       setHits([]);
       if (!result.error) router.refresh();

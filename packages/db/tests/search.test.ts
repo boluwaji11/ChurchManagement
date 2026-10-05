@@ -2,7 +2,7 @@
  * HRT-119. One search box, over everything a church remembers (R2.14).
  *
  * The acceptance criterion is a number: results in under 300ms at five thousand
- * people. So this builds a church of five thousand and times it, rather than
+ * members. So this builds a church of five thousand and times it, rather than
  * asserting that a query exists.
  *
  * Every clause in the search is a substring match with a leading wildcard, which
@@ -12,8 +12,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { sql, type SQL } from "drizzle-orm";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { listPeople, countPeople, directoryWhere } from "../src/repo/people";
-import { people } from "../src/schema/people";
+import { listPeople, countPeople, directoryWhere } from "../src/repo/members";
+import { members } from "../src/schema/members";
 import { withAuditTriggersOff } from "../src/maintenance";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
@@ -44,7 +44,7 @@ async function queryMs(opts: Parameters<typeof directoryWhere>[0]): Promise<numb
   return run(async (tx) => {
     const rows = (await tx.execute(sql`
       explain (analyze, summary)
-      select ${people.id} from ${people}
+      select ${members.id} from ${members}
       where ${sql.join(where, sql` and `)}
       limit 50`)) as unknown as Record<string, string>[];
 
@@ -58,7 +58,7 @@ async function queryMs(opts: Parameters<typeof directoryWhere>[0]): Promise<numb
 beforeAll(async () => {
   tenant = await testTenant(SLUG, "Search Test Church");
 
-  // Five thousand people, their households, an email, a phone and an address.
+  // Five thousand members, their households, an email, a phone and an address.
   // Written in one statement per table with the audit triggers off, because the
   // point of the file is the read and nobody needs 20,000 audit rows.
   await withAuditTriggersOff(async (sql) => {
@@ -67,7 +67,7 @@ beforeAll(async () => {
       select ${tenant}, 'House ' || g from generate_series(1, ${SIZE / 4}) g`;
 
     await sql`
-      insert into people (tenant_id, first_name, last_name, lifecycle_status)
+      insert into members (tenant_id, first_name, last_name, lifecycle_status)
       select ${tenant},
              (array['Sarah','Michael','Grace','Daniel','Ruth','Tobias','Amara','Noah'])[1 + (g % 8)],
              'Surname' || g,
@@ -75,22 +75,22 @@ beforeAll(async () => {
         from generate_series(1, ${SIZE}) g`;
 
     await sql`
-      insert into household_memberships (tenant_id, household_id, person_id, role)
+      insert into household_memberships (tenant_id, household_id, member_id, role)
       select ${tenant}, h.id, p.id, 'other'
         from (select id, row_number() over (order by name) rn from households where tenant_id = ${tenant}) h
-        join (select id, row_number() over (order by last_name) rn from people where tenant_id = ${tenant}) p
+        join (select id, row_number() over (order by last_name) rn from members where tenant_id = ${tenant}) p
           on ((p.rn - 1) / 4) + 1 = h.rn`;
 
     await sql`
-      insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+      insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
       select ${tenant}, p.id, 'email', 'home', 'person' || p.rn || '@searchtest.invalid', true
-        from (select id, row_number() over (order by last_name) rn from people where tenant_id = ${tenant}) p`;
+        from (select id, row_number() over (order by last_name) rn from members where tenant_id = ${tenant}) p`;
 
     await sql`
-      insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+      insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
       select ${tenant}, p.id, 'phone', 'mobile',
              '(512) 555-' || lpad((p.rn % 10000)::text, 4, '0'), true
-        from (select id, row_number() over (order by last_name) rn from people where tenant_id = ${tenant}) p`;
+        from (select id, row_number() over (order by last_name) rn from members where tenant_id = ${tenant}) p`;
 
     await sql`
       insert into addresses (tenant_id, household_id, line1, city, postal_code)
@@ -100,7 +100,7 @@ beforeAll(async () => {
 
   // The planner will not reach for a trigram index on statistics it has not
   // gathered, and a cold table makes this file measure the wrong thing.
-  await owner().unsafe("analyze people");
+  await owner().unsafe("analyze members");
   await owner().unsafe("analyze contact_methods");
   await owner().unsafe("analyze addresses");
   await owner().unsafe("analyze household_memberships");
@@ -112,7 +112,7 @@ afterAll(async () => {
 });
 
 describe("a church of five thousand", () => {
-  it("has five thousand people in it", async () => {
+  it("has five thousand members in it", async () => {
     expect(await run((tx) => countPeople(tx, {}))).toBe(SIZE);
   });
 

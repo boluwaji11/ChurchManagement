@@ -130,7 +130,7 @@ async function main() {
 
       for (const [first, last, role, dob, status] of h.members) {
         const [person] = await sql<{ id: string }[]>`
-          insert into people (tenant_id, campus_id, first_name, last_name, date_of_birth, lifecycle_status)
+          insert into members (tenant_id, campus_id, first_name, last_name, date_of_birth, lifecycle_status)
           values (${tid}, ${campus!.id}, ${first!}, ${last!}, ${dob!}, ${status!}::lifecycle_status)
           returning id`;
         const pid = person!.id;
@@ -138,21 +138,21 @@ async function main() {
         firstPersonByHousehold[h.name] ??= pid;
 
         await sql`
-          insert into household_memberships (tenant_id, household_id, person_id, role, started_on)
+          insert into household_memberships (tenant_id, household_id, member_id, role, started_on)
           values (${tid}, ${household!.id}, ${pid}, ${role!}::household_role, ${"2023-03-01"})`;
 
         if (role !== "child") {
           await sql`
-            insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+            insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
             values (${tid}, ${pid}, 'email', 'home', ${`${first!.toLowerCase()}.${last!.toLowerCase()}@example.org`}, true)`;
           await sql`
-            insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+            insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
             values (${tid}, ${pid}, 'phone', 'mobile', ${`(512) 555 ${String(1000 + personCount).slice(1)}`}, true)`;
         }
 
         if (tagIds.length && personCount % 2 === 0) {
           await sql`
-            insert into person_tags (tenant_id, person_id, tag_id)
+            insert into person_tags (tenant_id, member_id, tag_id)
             values (${tid}, ${pid}, ${tagIds[personCount % tagIds.length]!})`;
         }
       }
@@ -165,19 +165,19 @@ async function main() {
     // A confidential note, so the permission tests have something real to fail on.
     const subject = firstPersonByHousehold[church.households[0]!.name]!;
     await sql`
-      insert into notes (tenant_id, person_id, classification, body)
+      insert into notes (tenant_id, member_id, classification, body)
       values (${tid}, ${subject}, 'general', ${"Brought a friend on Sunday. Happy to host a group."})`;
     await sql`
-      insert into notes (tenant_id, person_id, classification, body_encrypted)
+      insert into notes (tenant_id, member_id, classification, body_encrypted)
       values (${tid}, ${subject}, 'confidential', ${encryptNote(
         `Confidential pastoral note for ${church.name}. If this string is ever readable by a staff role, the permission boundary is broken.`,
       )})`;
 
-    console.log(`  ${church.name}: ${church.households.length} households, ${personCount} people, ${church.rooms.length} rooms`);
+    console.log(`  ${church.name}: ${church.households.length} households, ${personCount} members, ${church.rooms.length} rooms`);
   }
 
-  const totals = await sql<{ count: string }[]>`select count(*)::text as count from people`;
-  console.log(`\nSeeded 2 churches, ${totals[0]?.count ?? "0"} people total.`);
+  const totals = await sql<{ count: string }[]>`select count(*)::text as count from members`;
+  console.log(`\nSeeded 2 churches, ${totals[0]?.count ?? "0"} members total.`);
   await closeConnections();
 }
 

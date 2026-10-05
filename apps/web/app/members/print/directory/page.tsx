@@ -78,7 +78,7 @@ export default async function PrintDirectoryPage({
           <section key={household.id} className="mb-5 break-inside-avoid">
             <h2 className="text-heading">{household.name}</h2>
 
-            {household.people.map((person) => (
+            {household.members.map((person) => (
               <div key={person.id} className="text-[length:var(--d-text-body)]">
                 <span>{person.name}</span>
                 {person.email ? <span className="ml-2">{person.email}</span> : null}
@@ -89,9 +89,9 @@ export default async function PrintDirectoryPage({
               </div>
             ))}
 
-            {household.people.find((person) => person.address)?.address ? (
+            {household.members.find((person) => person.address)?.address ? (
               <div className="text-[length:var(--d-text-body)]">
-                {household.people.find((person) => person.address)!.address}
+                {household.members.find((person) => person.address)!.address}
               </div>
             ) : null}
           </section>

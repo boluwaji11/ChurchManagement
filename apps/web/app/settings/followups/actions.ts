@@ -51,7 +51,7 @@ export async function savePipeline(data: FormData): Promise<PipelineResult> {
   }
 }
 
-/** R5.2. Off: nobody new enters it, and the people in it stay. */
+/** R5.2. Off: nobody new enters it, and the members in it stay. */
 export async function switchPipeline(
   id: string,
   off: boolean,

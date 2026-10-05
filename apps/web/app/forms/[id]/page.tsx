@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 const PER_PAGE = 20;
 
 /**
- * R4.1, R4.4. One form: its questions, and what people sent in.
+ * R4.1, R4.4. One form: its questions, and what members sent in.
  *
  * Two views behind one switch, the same pair Serving uses, because a form is
  * one thing that is written and then read.

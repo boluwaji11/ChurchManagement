@@ -21,7 +21,7 @@ const day = (iso: string) =>
   });
 
 /**
- * R8.13. What has been written down, for the people who handle it.
+ * R8.13. What has been written down, for the members who handle it.
  *
  * A separate screen from the station on purpose. The volunteer files a report
  * and never sees this: it names other volunteers, and other children's
@@ -43,7 +43,7 @@ export default async function IncidentsPage({
     );
   }
 
-  const { incidents, rooms, people, services, today } = await withTenant(
+  const { incidents, rooms, members, services, today } = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
@@ -62,13 +62,13 @@ export default async function IncidentsPage({
 
       const seen = new Set<string>();
       const checkedIn = present
-        .filter((p) => (seen.has(p.personId) ? false : seen.add(p.personId)))
-        .map((p) => ({ id: p.personId, name: p.name }));
+        .filter((p) => (seen.has(p.memberId) ? false : seen.add(p.memberId)))
+        .map((p) => ({ id: p.memberId, name: p.name }));
 
       return {
         incidents: await listIncidents(tx, { role: session.role }),
         rooms: await listRooms(tx),
-        people:
+        members:
           checkedIn.length > 0
             ? checkedIn
             : (await listPeople(tx, { sort: "name" })).map((p) => ({
@@ -85,7 +85,7 @@ export default async function IncidentsPage({
     <FileReport
       church={session.tenantSlug}
       today={today}
-      people={people}
+      members={members}
       rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
       services={services.map((s) => ({ id: s.id, name: s.name }))}
       trigger={

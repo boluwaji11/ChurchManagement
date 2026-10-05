@@ -4,7 +4,7 @@ import { campuses, locations } from "../schema/tenancy";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R1.2. Campuses and the places inside them.

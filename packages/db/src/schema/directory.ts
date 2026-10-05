@@ -1,6 +1,6 @@
 import { pgTable, uuid, boolean, timestamp, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
-import { people } from "./people";
+import { members } from "./members";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () =>
@@ -10,7 +10,7 @@ const tenantId = () =>
  * R3.2, R3.3. What a member lets other members see of them.
  *
  * Every field is off until the member turns it on, and the row only exists once
- * they have touched it. A church that imports two hundred people has not been
+ * they have touched it. A church that imports two hundred members has not been
  * given consent by any of them to publish their phone numbers, so the absence
  * of a row means the safest answer rather than the most useful one.
  *
@@ -22,7 +22,7 @@ export const directoryPreferences = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** R3.3. Off means absent from the member directory, still in the database. */
     listed: boolean("listed").notNull().default(true),
     showEmail: boolean("show_email").notNull().default(false),
@@ -38,7 +38,7 @@ export const directoryPreferences = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
-    uniqueIndex("directory_prefs_person_key").on(t.tenantId, t.personId),
+    uniqueIndex("directory_prefs_person_key").on(t.tenantId, t.memberId),
     index("directory_prefs_tenant_idx").on(t.tenantId),
   ],
 );

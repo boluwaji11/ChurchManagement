@@ -20,13 +20,13 @@ import { addNote } from "./note-actions";
  */
 export function NoteForm({
   church,
-  personId,
+  memberId,
   name,
   canConfidential,
   trigger,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   /** Whose note it is, for the sheet's title. */
   name: string;
   canConfidential: boolean;
@@ -65,7 +65,7 @@ export function NoteForm({
           noValidate
           action={(data) => {
             data.set("church", church);
-            data.set("personId", personId);
+            data.set("memberId", memberId);
             data.set("classification", confidential ? "confidential" : "general");
             startTransition(async () => {
               const result = await addNote(data);

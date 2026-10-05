@@ -1,11 +1,11 @@
 /**
- * Gives a few seeded Riverside people real accounts.
+ * Gives a few seeded Riverside members real accounts.
  *
  * LOCAL DEVELOPMENT ONLY, like seed-users.ts, and for the same reason: so the
  * screens that assign work to an account have more than three names to assign
  * it to. In production an account is made by signing in with an email link.
  *
- * The people are picked by name, so running this twice changes nothing.
+ * The members are picked by name, so running this twice changes nothing.
  */
 import { owner, closeConnections } from "../src/client";
 import { required } from "../src/env";
@@ -37,9 +37,9 @@ async function main() {
     const [person] = await sql<{ id: string; email: string | null }[]>`
       select p.id,
              (select value from contact_methods
-               where person_id = p.id and kind = 'email'
+               where member_id = p.id and kind = 'email'
                order by is_primary desc limit 1) as email
-        from people p
+        from members p
        where p.tenant_id = ${tenant.id}
          and coalesce(p.preferred_name, p.first_name) = ${first!}
          and p.last_name = ${last}

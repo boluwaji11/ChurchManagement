@@ -2,7 +2,7 @@
  * HRT-149. Conditional logic on a form (R4.2).
  *
  * A church asks "are you new here?" and wants the three follow-up questions to
- * appear for the people who say yes and stay out of everybody else's way. One
+ * appear for the members who say yes and stay out of everybody else's way. One
  * condition per question: an earlier answer, a test, and a value.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";

@@ -2,7 +2,7 @@ import {
   pgTable, uuid, text, integer, boolean, date, timestamp, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants, campuses } from "./tenancy";
-import { people } from "./people";
+import { members } from "./members";
 import { forms } from "./forms";
 import { hue } from "./enums";
 
@@ -16,7 +16,7 @@ const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow
  *
  * A camp, a picnic, a membership class, a men's breakfast. Separate from a
  * service occurrence, which is the weekly rhythm the church already keeps, and
- * separate from a group, which is a set of people who meet on a pattern. An
+ * separate from a group, which is a set of members who meet on a pattern. An
  * event is a date somebody signs up for.
  *
  * The registration questions are a form (R14.5), which is the same builder,
@@ -59,7 +59,7 @@ export const events = pgTable(
      * R14.1. "draft", "published" or "cancelled".
      *
      * A draft has no public page. A cancelled event keeps its page and says so,
-     * because the people who registered will go looking for it.
+     * because the members who registered will go looking for it.
      */
     status: text("status").notNull().default("draft"),
     /** R14.1. Whether anybody without an account can see it. */
@@ -89,7 +89,7 @@ export const events = pgTable(
     /**
      * R14.4. Whether the public page says how many places are left.
      *
-     * A camp with eighty places reads well and moves people. A membership class
+     * A camp with eighty places reads well and moves members. A membership class
      * for twenty reads as a room half empty, and a church should get to decide
      * which of those it is showing.
      */
@@ -98,7 +98,7 @@ export const events = pgTable(
      * R14.4. A full event takes names for a waiting list.
      *
      * Not asked any more. A church whose camp fills wants to know who else
-     * wanted a place, and turning people away without a trace is the worse
+     * wanted a place, and turning members away without a trace is the worse
      * outcome. The column stays because a church that one day wants to refuse
      * a full event outright should not need a migration to say so.
      */
@@ -114,7 +114,7 @@ export const events = pgTable(
     formId: uuid("form_id").references(() => forms.id, { onDelete: "set null" }),
 
     /** R14.1. Who to ask about it. */
-    contactPersonId: uuid("contact_person_id").references(() => people.id, { onDelete: "set null" }),
+    contactMemberId: uuid("contact_member_id").references(() => members.id, { onDelete: "set null" }),
 
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: created(),
@@ -131,11 +131,11 @@ export const events = pgTable(
  * R14.2, R14.6. One person's place at an event.
  *
  * A row per person rather than per booking, because the roster, the capacity
- * count and the emergency contact sheet are all about people. A parent
+ * count and the emergency contact sheet are all about members. A parent
  * registering three children and themselves writes four rows, tied together by
  * `bookingId` so the church can see they arrived as one family (R14.6).
  *
- * `personId` is null while a registration is waiting to be matched to a record,
+ * `memberId` is null while a registration is waiting to be matched to a record,
  * which is the same R4.4 path a form submission takes.
  */
 export const eventRegistrations = pgTable(
@@ -146,7 +146,7 @@ export const eventRegistrations = pgTable(
     eventId: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
     /** R14.6. The others who were registered in the same breath. */
     bookingId: uuid("booking_id").notNull(),
-    personId: uuid("person_id").references(() => people.id, { onDelete: "set null" }),
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
     /** What they typed, kept whether or not a record was found. */
     name: text("name").notNull(),
     email: text("email"),
@@ -170,6 +170,6 @@ export const eventRegistrations = pgTable(
     index("event_reg_tenant_idx").on(t.tenantId),
     index("event_reg_event_idx").on(t.tenantId, t.eventId, t.state),
     index("event_reg_booking_idx").on(t.tenantId, t.bookingId),
-    index("event_reg_person_idx").on(t.tenantId, t.personId),
+    index("event_reg_person_idx").on(t.tenantId, t.memberId),
   ],
 );

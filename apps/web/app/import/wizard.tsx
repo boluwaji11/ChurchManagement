@@ -392,7 +392,7 @@ function MapColumns({
       </section>
 
       {/* What to do about somebody already in the directory is a question about
-          a people file. A membership row joins a group or it does not. */}
+          a members file. A membership row joins a group or it does not. */}
       {inspection.groups ? null : (
         <Card>
           <CardTitle>{t("import.strategy")}</CardTitle>
@@ -523,7 +523,7 @@ function Done({
       const data = new FormData();
       data.set("church", church);
       data.set("batchId", result.batchId);
-      data.set("kind", groups ? "groups" : "people");
+      data.set("kind", groups ? "groups" : "members");
       const outcome = await undoImport(data);
       if (outcome.error) setFailed(outcome.error);
       else setUndone(true);

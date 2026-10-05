@@ -211,7 +211,7 @@ export async function submitPublicForm(input: {
   const answers = prunedAnswers(fields, input.answers);
 
   await owner().begin(async (tx) => {
-    // The form row is locked first and counted second, so two people sending
+    // The form row is locked first and counted second, so two members sending
     // the last place at once are serialised on the form rather than racing.
     const [fresh] = await tx<{ status: string; limit: number | null }[]>`
       select status, submission_limit as limit
@@ -245,7 +245,7 @@ export async function submitPublicForm(input: {
         tenantId: row.tenantId,
         eventSlug: input.eventSlug,
         submissionId: saved!.id,
-        personId: placed.personId,
+        memberId: placed.memberId,
         who: nameFrom(fields, answers),
       });
     }
@@ -279,7 +279,7 @@ function nameFrom(
 /**
  * R14.2, R14.4. Turns a submission into a place at an event.
  *
- * The event row is locked first, so the last place cannot go to two people who
+ * The event row is locked first, so the last place cannot go to two members who
  * sent the form at the same moment. A full event takes the name for its waiting
  * list, which is what every event does now.
  *
@@ -294,7 +294,7 @@ async function takePlace(
     tenantId: string;
     eventSlug: string;
     submissionId: string;
-    personId: string | null;
+    memberId: string | null;
     who: { name: string; email: string | null; phone: string | null };
   },
 ): Promise<void> {
@@ -323,8 +323,8 @@ async function takePlace(
 
   await tx`
     insert into event_registrations
-      (tenant_id, event_id, booking_id, person_id, name, email, phone, state, submission_id)
-    values (${input.tenantId}, ${event.id}, gen_random_uuid(), ${input.personId},
+      (tenant_id, event_id, booking_id, member_id, name, email, phone, state, submission_id)
+    values (${input.tenantId}, ${event.id}, gen_random_uuid(), ${input.memberId},
             ${input.who.name}, ${input.who.email}, ${input.who.phone},
             ${state}, ${input.submissionId})`;
 }

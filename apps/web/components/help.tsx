@@ -13,13 +13,13 @@ import { t } from "@hearth/i18n";
  *
  * Opening it shows the screen you are on first, and everything else under it.
  * It is behind a button because a product that explains itself on the page is a
- * product that shouts at the ninety-nine people who already knew.
+ * product that shouts at the ninety-nine members who already knew.
  *
  * The articles are in the catalogue like every other string, so they are
  * translated with the rest of the product rather than forgotten in a wiki.
  */
 const ARTICLES = [
-  { key: "people", match: ["/members", "/duplicates"] },
+  { key: "members", match: ["/members", "/duplicates"] },
   { key: "import", match: ["/import"] },
   { key: "services", match: ["/services"] },
   { key: "checkin", match: ["/checkin"] },

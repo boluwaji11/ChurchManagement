@@ -51,7 +51,7 @@ export interface ReportResult {
  */
 export async function report(
   input: {
-    personId: string;
+    memberId: string;
     roomId: string | null;
     occurrenceId: string | null;
     occurredOn: string;

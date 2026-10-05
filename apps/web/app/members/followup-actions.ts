@@ -31,7 +31,7 @@ export async function startFollowUp(data: FormData): Promise<FollowUpResult> {
       const today = churchNow(profile?.timezone ?? "America/Chicago").date;
       return enterPipeline(tx, ctx, {
         pipelineId: field(data, "pipelineId"),
-        personId: field(data, "personId"),
+        memberId: field(data, "memberId"),
         on: today,
         assigneeUserId: session.userId,
       });
@@ -103,7 +103,7 @@ export async function addPersonTask(data: FormData): Promise<FollowUpResult> {
   try {
     await withTenant(ctx, (tx) =>
       addTask(tx, ctx, {
-        personId: field(data, "personId"),
+        memberId: field(data, "memberId"),
         title: field(data, "title"),
         dueOn: field(data, "dueOn") || null,
         assigneeUserId: session.userId,

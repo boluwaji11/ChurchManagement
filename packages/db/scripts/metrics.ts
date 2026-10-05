@@ -14,10 +14,10 @@ const hm = (minutes: number) =>
 async function main() {
   const rows = await timeToValue(owner());
 
-  console.log(`\nTime to value. A church is usable at a committed import or ${USABLE_PEOPLE} people.\n`);
+  console.log(`\nTime to value. A church is usable at a committed import or ${USABLE_PEOPLE} members.\n`);
   for (const row of rows) {
     const when = row.minutes === null ? "not yet" : `${hm(row.minutes)} (${row.how})`;
-    console.log(`  ${row.slug.padEnd(22)} ${when.padEnd(22)} ${row.people} people`);
+    console.log(`  ${row.slug.padEnd(22)} ${when.padEnd(22)} ${row.members} members`);
   }
 
   const median = medianMinutes(rows);

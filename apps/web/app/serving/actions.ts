@@ -110,13 +110,13 @@ export interface RosterResult {
 
 export async function addMember(
   teamId: string,
-  personId: string,
+  memberId: string,
   role: TeamRole,
   church?: string,
 ): Promise<RosterResult> {
   const { actor, ctx } = await context(church);
   try {
-    await withTenant(ctx, (tx) => addToTeam(tx, actor, { teamId, personId, role }));
+    await withTenant(ctx, (tx) => addToTeam(tx, actor, { teamId, memberId, role }));
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -125,12 +125,12 @@ export async function addMember(
 
 export async function removeMember(
   teamId: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<RosterResult> {
   const { actor, ctx } = await context(church);
   try {
-    await withTenant(ctx, (tx) => removeFromTeam(tx, actor, { teamId, personId }));
+    await withTenant(ctx, (tx) => removeFromTeam(tx, actor, { teamId, memberId }));
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -216,7 +216,7 @@ export interface ScheduleResult {
 
 export async function schedule(
   input: {
-    occurrenceId: string; teamId: string; positionId: string; personId: string; anyway: boolean;
+    occurrenceId: string; teamId: string; positionId: string; memberId: string; anyway: boolean;
   },
   church?: string,
 ): Promise<ScheduleResult> {
@@ -262,7 +262,7 @@ export async function saveBlockout(data: FormData): Promise<AvailabilityResult> 
   try {
     await withTenant(ctx, (tx) =>
       addBlockout(tx, actor, {
-        personId: field(data, "personId"),
+        memberId: field(data, "memberId"),
         startsOn: field(data, "startsOn"),
         endsOn: field(data, "endsOn"),
         reason: optional(data, "reason"),
@@ -285,13 +285,13 @@ export async function dropBlockout(id: string, church?: string): Promise<Availab
 }
 
 export async function saveFrequency(
-  personId: string,
+  memberId: string,
   frequency: ServingFrequency | null,
   church?: string,
 ): Promise<AvailabilityResult> {
   const { actor, ctx } = await context(church);
   try {
-    await withTenant(ctx, (tx) => setServingPreference(tx, actor, { personId, frequency }));
+    await withTenant(ctx, (tx) => setServingPreference(tx, actor, { memberId, frequency }));
     return {};
   } catch (error) {
     return { error: explain(error) };

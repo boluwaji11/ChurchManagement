@@ -8,8 +8,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { loadDemoData, removeDemoData, demoState } from "../src/demo/load";
-import { DEMO_PEOPLE } from "../src/demo/people";
-import { listPeople, createPerson } from "../src/repo/people";
+import { DEMO_PEOPLE } from "../src/demo/members";
+import { listPeople, createPerson } from "../src/repo/members";
 import { listTagsWithCounts } from "../src/repo/tags";
 import { listRelationships } from "../src/repo/relationships";
 import { listMilestones } from "../src/repo/milestones";
@@ -27,7 +27,7 @@ const run = <T>(tenantId: string, role: TenantRole, work: (tx: Tx) => Promise<T>
 /**
  * A church of this suite's own.
  *
- * Loading and removing twenty-one people is the loudest thing in the suite, and
+ * Loading and removing twenty-one members is the loudest thing in the suite, and
  * the files run side by side. Borrowing a seeded church means another test can
  * read a person in the moment this one deletes them, which is a failure that
  * looks like an isolation bug and is not.
@@ -48,7 +48,7 @@ describe("loading", () => {
     const state = await run(tenant, "owner", (tx) => loadDemoData(tx, as(tenant)));
 
     expect(state.loaded).toBe(true);
-    expect(state.people).toBe(DEMO_PEOPLE.length);
+    expect(state.members).toBe(DEMO_PEOPLE.length);
 
     const rows = await run(tenant, "owner", (tx) => listPeople(tx));
     expect(rows.length).toBe(before + DEMO_PEOPLE.length);
@@ -101,7 +101,7 @@ describe("removing", () => {
     );
 
     const removed = await run(tenant, "owner", (tx) => removeDemoData(tx, as(tenant)));
-    expect(removed.people).toBe(DEMO_PEOPLE.length);
+    expect(removed.members).toBe(DEMO_PEOPLE.length);
     expect(removed.tags).toBe(5);
 
     const rows = await run(tenant, "owner", (tx) => listPeople(tx));
@@ -113,11 +113,11 @@ describe("removing", () => {
 
     expect((await run(tenant, "owner", (tx) => demoState(tx))).loaded).toBe(false);
 
-    await owner()`delete from people where id = ${theirs.id}`;
+    await owner()`delete from members where id = ${theirs.id}`;
   });
 
   it("can be loaded again afterwards", async () => {
     const state = await run(tenant, "owner", (tx) => loadDemoData(tx, as(tenant)));
-    expect(state.people).toBe(DEMO_PEOPLE.length);
+    expect(state.members).toBe(DEMO_PEOPLE.length);
   });
 });

@@ -61,7 +61,7 @@ function Flag({
  * R9.1, R9.2. A group, written down on the page it will be read on.
  *
  * The same shape as the group's own screen: the name across the top with the
- * banner beside it, the line saying whether it is taking people, and under it
+ * banner beside it, the line saying whether it is taking members, and under it
  * what the group is on the left with the facts about it down the right. Every
  * one of those is an input here. Somebody filling this in is looking at the
  * page they are making, rather than at a stack of fields that happens to
@@ -248,7 +248,7 @@ export function GroupEditor({
         </div>
       </div>
 
-      {/* Whether it is taking people, on the line the group's page gives it. */}
+      {/* Whether it is taking members, on the line the group's page gives it. */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
         <span
           className="size-2 shrink-0 rounded-full"

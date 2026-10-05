@@ -110,9 +110,9 @@ export default async function ServingPage({
 
       // R10.4. Who is away across these dates, and how much each of them is
       // already doing, read once for the whole grid.
-      const people = team?.members.map((one) => one.personId) ?? [];
+      const members = team?.members.map((one) => one.memberId) ?? [];
       const away = services.length
-        ? await blockoutsFor(tx, people, {
+        ? await blockoutsFor(tx, members, {
             from: services[0]!.occursOn,
             to: services[services.length - 1]!.occursOn,
           })
@@ -286,7 +286,7 @@ export default async function ServingPage({
                     const blocked = held
                       ? data.away.find(
                           (one) =>
-                            one.personId === held.personId &&
+                            one.memberId === held.memberId &&
                             one.startsOn <= service.occursOn &&
                             one.endsOn >= service.occursOn,
                         )
@@ -303,9 +303,9 @@ export default async function ServingPage({
                   }),
                 ),
                 volunteers: data.team.members.map((one) => {
-                  const off = data.away.find((x) => x.personId === one.personId);
+                  const off = data.away.find((x) => x.memberId === one.memberId);
                   return {
-                    personId: one.personId,
+                    memberId: one.memberId,
                     name: one.name,
                     note: off ? t("serving.away", { date: shortDate(off.startsOn) }) : "",
                     away: Boolean(off),

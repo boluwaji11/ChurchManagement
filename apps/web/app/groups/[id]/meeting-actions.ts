@@ -8,7 +8,7 @@ import { requireSession } from "@/lib/session";
 
 export interface MeetingResult {
   meeting?: Meeting;
-  people?: MeetingPerson[];
+  members?: MeetingPerson[];
   error?: string;
 }
 

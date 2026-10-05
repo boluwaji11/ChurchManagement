@@ -94,16 +94,16 @@ describe("what comes out", () => {
     }
   });
 
-  it("contains the church's actual people", async () => {
+  it("contains the church's actual members", async () => {
     const archive = await archiveFor(riverside);
-    const names = archive.data["people"]!.map((p) => p["last_name"]);
+    const names = archive.data["members"]!.map((p) => p["last_name"]);
     expect(names).toContain("Bennett");
-    expect(archive.meta.counts["people"]).toBe(archive.data["people"]!.length);
+    expect(archive.meta.counts["members"]).toBe(archive.data["members"]!.length);
   });
 
   it("contains no other church's rows", async () => {
     const archive = await archiveFor(riverside);
-    const names = archive.data["people"]!.map((p) => p["last_name"]);
+    const names = archive.data["members"]!.map((p) => p["last_name"]);
     expect(names).not.toContain("Halvorsen");
 
     const tenants = archive.data["tenants"]!;
@@ -172,16 +172,16 @@ describe("the file itself", () => {
 
     expect(names).toContain("hearth-export.json");
     expect(names).toContain("README.txt");
-    expect(names).toContain("csv/people.csv");
+    expect(names).toContain("csv/members.csv");
 
     const json = JSON.parse(await opened.file("hearth-export.json")!.async("string"));
     expect(json.meta.format).toBe(ARCHIVE_FORMAT);
-    expect(json.data.people.length).toBe(archive.data["people"]!.length);
+    expect(json.data.members.length).toBe(archive.data["members"]!.length);
 
     // And the CSV inside the zip is still a CSV a spreadsheet can read.
-    const people = readSheet(await opened.file("csv/people.csv")!.async("string"));
-    expect(people.rows.length).toBe(archive.data["people"]!.length);
-    expect(people.headers).toContain("last_name");
+    const members = readSheet(await opened.file("csv/members.csv")!.async("string"));
+    expect(members.rows.length).toBe(archive.data["members"]!.length);
+    expect(members.headers).toContain("last_name");
   });
 
   it("carries a readme, because the person opening it will not have this repository", async () => {
@@ -191,7 +191,7 @@ describe("the file itself", () => {
 
     expect(readme).toContain(riverside.name);
     expect(readme).toContain("AGPL-3.0");
-    expect(readme).toContain("people:");
+    expect(readme).toContain("members:");
   });
 
   it("names what was withheld in the readme rather than leaving it to be noticed", async () => {
@@ -204,8 +204,8 @@ describe("the file itself", () => {
   it("exports a second church without leaking the first into it", async () => {
     const archive = await archiveFor(northgate);
     const opened = await JSZip.loadAsync(await zipArchive(archive));
-    const people = await opened.file("csv/people.csv")!.async("string");
-    expect(people).toContain("Halvorsen");
-    expect(people).not.toContain("Bennett");
+    const members = await opened.file("csv/members.csv")!.async("string");
+    expect(members).toContain("Halvorsen");
+    expect(members).not.toContain("Bennett");
   });
 });

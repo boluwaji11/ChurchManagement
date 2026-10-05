@@ -25,7 +25,7 @@ export interface TeamCard {
  * R10.1. Every team the church runs.
  *
  * A card each, carrying what somebody opening this screen is asking: what the
- * team is made of, and how many people it has.
+ * team is made of, and how many members it has.
  */
 export function Teams({
   church,

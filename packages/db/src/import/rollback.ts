@@ -2,10 +2,10 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
 import { importBatches, importRows } from "../schema/imports";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { canArchivePeople, PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
-import { updatePerson, type PersonInput } from "../repo/people";
+import { updatePerson, type PersonInput } from "../repo/members";
 
 /**
  * R19.4. Undoing a completed import, as one operation, for thirty days.
@@ -23,7 +23,7 @@ export interface BatchSummary {
   id: string;
   filename: string;
   status: string;
-  /** R19.5. "people" or "groups". A group batch is undone by its own path. */
+  /** R19.5. "members" or "groups". A group batch is undone by its own path. */
   kind: string;
   rowsCreated: number;
   rowsUpdated: number;
@@ -106,8 +106,8 @@ async function touchedSince(
 
   const [{ n } = { n: 0 }] = await db.execute<{ n: number }>(sql`
     select (
-      (select count(*) from notes where person_id = ${person.id}) +
-      (select count(*) from person_tags where person_id = ${person.id})
+      (select count(*) from notes where member_id = ${person.id}) +
+      (select count(*) from person_tags where member_id = ${person.id})
     )::int as n`);
 
   return Number(n) > 0;
@@ -118,7 +118,7 @@ export async function rollbackImport(
   actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   batchId: string,
 ): Promise<RollbackResult> {
-  // Rolling back can remove hundreds of people at once, so it sits with the
+  // Rolling back can remove hundreds of members at once, so it sits with the
   // roles that may archive rather than with the roles that may edit.
   if (!canArchivePeople(actor.role)) throw new PermissionError(actor.role, "rollbackImport");
 
@@ -131,36 +131,36 @@ export async function rollbackImport(
   const rows = await db
     .select()
     .from(importRows)
-    .where(and(eq(importRows.batchId, batchId), sql`${importRows.personId} is not null`));
+    .where(and(eq(importRows.batchId, batchId), sql`${importRows.memberId} is not null`));
 
   const result: RollbackResult = { removed: 0, restored: 0, archived: 0 };
 
   for (const row of rows) {
-    if (!row.personId) continue;
+    if (!row.memberId) continue;
 
     if (row.outcome === "create") {
       const [current] = await db
-        .select({ id: people.id, createdAt: people.createdAt, updatedAt: people.updatedAt })
-        .from(people)
-        .where(eq(people.id, row.personId))
+        .select({ id: members.id, createdAt: members.createdAt, updatedAt: members.updatedAt })
+        .from(members)
+        .where(eq(members.id, row.memberId))
         .limit(1);
       if (!current) continue;
 
       if (await touchedSince(db, current)) {
         await db
-          .update(people)
+          .update(members)
           .set({ archivedAt: new Date(), updatedAt: new Date() })
-          .where(eq(people.id, row.personId));
+          .where(eq(members.id, row.memberId));
         result.archived++;
       } else {
-        await db.delete(people).where(eq(people.id, row.personId));
+        await db.delete(members).where(eq(members.id, row.memberId));
         result.removed++;
       }
       continue;
     }
 
     if (row.outcome === "update" && row.before) {
-      await updatePerson(db, actor, row.personId, row.before as PersonInput);
+      await updatePerson(db, actor, row.memberId, row.before as PersonInput);
       result.restored++;
     }
   }

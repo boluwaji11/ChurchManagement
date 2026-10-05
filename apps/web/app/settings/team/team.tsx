@@ -465,8 +465,8 @@ function hueOf(role: ChurchRoleOption): string {
  * the question being asked is "what does this role get into".
  */
 const AREAS: Array<[string, string[]]> = [
-  ["area.people", ["people.edit", "people.archive"]],
-  ["area.notes", ["people.notes.confidential"]],
+  ["area.members", ["members.edit", "members.archive"]],
+  ["area.notes", ["members.notes.confidential"]],
   ["area.giving", ["giving.amounts"]],
   ["area.settings", ["church.manage", "church.fields", "church.tags"]],
   ["area.checkin", ["checkin.rooms", "checkin.stations", "checkin.run", "checkin.supervise"]],
@@ -555,7 +555,7 @@ function InviteDialog({
   const [saving, startTransition] = React.useTransition();
 
   /*
-   * R1.7. Most people a church gives an account to are already in People, with
+   * R1.7. Most members a church gives an account to are already in People, with
    * an address the church typed once. Picking them fills the box and ties the
    * account to their record, so a volunteer becomes somebody a follow-up can
    * land on without anybody retyping an address.
@@ -615,7 +615,7 @@ function InviteDialog({
               dialog that is still open, which is nothing at all. */}
           {failed ? <Banner tone="danger" title={t("team.failed")}>{failed}</Banner> : null}
 
-          <input type="hidden" name="personId" value={person} />
+          <input type="hidden" name="memberId" value={person} />
 
           <Field label={t("team.fromPeople")}>
             <Combobox

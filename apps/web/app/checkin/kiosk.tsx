@@ -96,7 +96,7 @@ export function Kiosk({
     setOpen(match.id);
     const roomFor: Record<string, string | null> = {};
     const who: Record<string, boolean> = {};
-    for (const person of match.people) {
+    for (const person of match.members) {
       roomFor[person.id] = person.roomId ?? person.suggestedRoomId;
       who[person.id] = !person.checkedIn;
     }
@@ -107,17 +107,17 @@ export function Kiosk({
 
   const send = () => {
     if (!household) return;
-    const entries = household.people
+    const entries = household.members
       .filter((p) => picked[p.id] && !p.checkedIn)
       .map((p) => ({
-        personId: p.id,
+        memberId: p.id,
         roomId: p.isChild ? (chosen[p.id] ?? null) : null,
         child: p.isChild,
       }));
     if (entries.length === 0) return;
 
     startTransition(async () => {
-      const wearing = entries.map((e) => e.personId);
+      const wearing = entries.map((e) => e.memberId);
 
       // R8.21. A family checking themselves in with the wifi down gets the same
       // screen, the same labels and the same codes.
@@ -130,21 +130,21 @@ export function Kiosk({
           return;
         }
         setCodes(given);
-        setFinished(entries.map((e) => e.personId));
+        setFinished(entries.map((e) => e.memberId));
 
         if (wearing.length > 0) {
           await keepLabels(
-            wearing.map((personId) => {
-              const person = household.people.find((p) => p.id === personId);
-              const room = rooms.find((r) => r.id === chosen[personId]);
+            wearing.map((memberId) => {
+              const person = household.members.find((p) => p.id === memberId);
+              const room = rooms.find((r) => r.id === chosen[memberId]);
               return {
-                personId,
+                memberId,
                 childName: `${person?.name ?? ""} ${person?.lastName ?? ""}`.trim(),
                 roomName: room?.name ?? null,
                 roomHue: room?.hue ?? null,
                 serviceName: services.find((s) => s.id === service)?.name ?? "",
                 churchName: station.snapshot?.churchName ?? "",
-                code: given[personId] ?? null,
+                code: given[memberId] ?? null,
                 allergy: person?.allergies ?? null,
                 // R8.12. A parent at a kiosk is not asked about a bag: it is
                 // one more decision in the queue, and the volunteer at the desk
@@ -164,12 +164,12 @@ export function Kiosk({
       setError(result.error);
       if (result.error) return;
       setCodes(result.codes ?? {});
-      setFinished(entries.map((e) => e.personId));
+      setFinished(entries.map((e) => e.memberId));
 
       if (wearing.length > 0) {
         const href =
           `/checkin/labels/print?church=${church}&service=${service}&printer=${printer}` +
-          `&people=${wearing.join(",")}`;
+          `&members=${wearing.join(",")}`;
         if (!openLabels(href)) setBlocked(href);
       }
     });
@@ -193,19 +193,19 @@ export function Kiosk({
           </div>
 
           <ul className="flex flex-col gap-3">
-            {finished.map((personId) => {
-              const person = household.people.find((p) => p.id === personId);
-              const room = rooms.find((r) => r.id === chosen[personId]);
+            {finished.map((memberId) => {
+              const person = household.members.find((p) => p.id === memberId);
+              const room = rooms.find((r) => r.id === chosen[memberId]);
               return (
-                <li key={personId} className="flex flex-wrap items-center justify-between gap-3">
+                <li key={memberId} className="flex flex-wrap items-center justify-between gap-3">
                   <span className="flex items-center gap-3 text-title text-fg">
                     {room ? <HueDot hue={room.hue as Hue} /> : null}
                     {person?.name}
                     {room ? <span className="text-fg-muted">{room.name}</span> : null}
                   </span>
-                  {codes[personId] ? (
+                  {codes[memberId] ? (
                     <span className="font-mono text-display tracking-widest text-fg">
-                      {codes[personId]}
+                      {codes[memberId]}
                     </span>
                   ) : null}
                 </li>
@@ -259,7 +259,7 @@ export function Kiosk({
           <span className="text-display text-fg">{household.household ?? household.name}</span>
 
           <ul className="flex flex-col gap-4">
-            {household.people.map((person) => (
+            {household.members.map((person) => (
               <li key={person.id} className="flex flex-col gap-2">
                 <label className="flex cursor-pointer items-center gap-3">
                   <Checkbox
@@ -300,7 +300,7 @@ export function Kiosk({
           {/* R8.10, R24.14. A parent checking their own child in reads this
               before the labels print, the same as a volunteer does. */}
           <Allergies
-            people={household.people.filter((p) => picked[p.id] && !p.checkedIn)}
+            members={household.members.filter((p) => picked[p.id] && !p.checkedIn)}
             seen={seen}
             onSeen={() => setSeen(true)}
           />
@@ -310,7 +310,7 @@ export function Kiosk({
               onClick={send}
               disabled={
                 pending ||
-                (warnings(household.people.filter((p) => picked[p.id] && !p.checkedIn)).length > 0 &&
+                (warnings(household.members.filter((p) => picked[p.id] && !p.checkedIn)).length > 0 &&
                   !seen)
               }
             >

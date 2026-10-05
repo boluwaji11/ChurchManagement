@@ -1,10 +1,10 @@
 import { and, asc, eq, inArray, sql, count, ne } from "drizzle-orm";
 import type { Tx } from "../client";
-import { tags, personTags, people } from "../schema/people";
+import { tags, memberTags, members } from "../schema/members";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R1.13. Freeform tags, with management and merge.
@@ -27,7 +27,7 @@ export interface TagRow {
   id: string;
   name: string;
   hue: string;
-  people: number;
+  members: number;
 }
 
 /**
@@ -48,12 +48,12 @@ export async function listTagsWithCounts(db: Tx): Promise<TagRow[]> {
       id: tags.id,
       name: tags.name,
       hue: tags.hue,
-      people: sql<number>`(select count(*) from person_tags pt where pt.tag_id = ${tags.id})`,
+      members: sql<number>`(select count(*) from person_tags pt where pt.tag_id = ${tags.id})`,
     })
     .from(tags)
     .orderBy(asc(tags.name));
 
-  return rows.map((r) => ({ ...r, people: Number(r.people) }));
+  return rows.map((r) => ({ ...r, members: Number(r.members) }));
 }
 
 /**
@@ -141,7 +141,7 @@ export async function setTagHue(db: Tx, actor: WriteActor, id: string, hue: TagH
  * This is the one place the archive-never-delete rule does not apply, and it is
  * worth being explicit about why. A tag is a label, not a record of anything that
  * happened. An archived tag would have to be hidden from every picker and still
- * shown on the people who carry it, which is a worse answer than removing a
+ * shown on the members who carry it, which is a worse answer than removing a
  * label the church says it does not want. Nothing about a person is lost.
  */
 export async function deleteTag(db: Tx, actor: WriteActor, id: string): Promise<{ removedFrom: number }> {
@@ -149,8 +149,8 @@ export async function deleteTag(db: Tx, actor: WriteActor, id: string): Promise<
 
   const [{ n } = { n: 0 }] = await db
     .select({ n: count() })
-    .from(personTags)
-    .where(eq(personTags.tagId, id));
+    .from(memberTags)
+    .where(eq(memberTags.tagId, id));
 
   const changed = await db.delete(tags).where(eq(tags.id, id)).returning({ id: tags.id });
   if (changed.length === 0) throw new Error("No such tag.");
@@ -181,8 +181,8 @@ export async function mergeTags(
   if (found.length !== 2) throw new Error("No such tag.");
 
   const moved = await db.execute(sql`
-    insert into person_tags (tenant_id, person_id, tag_id)
-    select tenant_id, person_id, ${input.intoId}::uuid from person_tags where tag_id = ${input.fromId}::uuid
+    insert into person_tags (tenant_id, member_id, tag_id)
+    select tenant_id, member_id, ${input.intoId}::uuid from person_tags where tag_id = ${input.fromId}::uuid
     on conflict do nothing`);
 
   await db.delete(tags).where(eq(tags.id, input.fromId));
@@ -194,7 +194,7 @@ export async function mergeTags(
 export async function setPersonTag(
   db: Tx,
   actor: WriteActor,
-  personId: string,
+  memberId: string,
   tagId: string,
   on: boolean,
 ): Promise<void> {
@@ -202,8 +202,8 @@ export async function setPersonTag(
 
   if (!on) {
     await db
-      .delete(personTags)
-      .where(and(eq(personTags.personId, personId), eq(personTags.tagId, tagId)));
+      .delete(memberTags)
+      .where(and(eq(memberTags.memberId, memberId), eq(memberTags.tagId, tagId)));
     return;
   }
 
@@ -214,8 +214,8 @@ export async function setPersonTag(
   if (!tag) throw new Error("No such tag.");
 
   await db.execute(sql`
-    insert into person_tags (tenant_id, person_id, tag_id)
-    values (${actor.tenantId}::uuid, ${personId}::uuid, ${tagId}::uuid)
+    insert into person_tags (tenant_id, member_id, tag_id)
+    values (${actor.tenantId}::uuid, ${memberId}::uuid, ${tagId}::uuid)
     on conflict do nothing`);
 }
 
@@ -223,7 +223,7 @@ export async function setPersonTag(
  * Applies or removes one tag across a selection.
  *
  * Applying is an insert that skips what is already there, so tagging fifty
- * people where thirty already carry the tag does what a person expects rather
+ * members where thirty already carry the tag does what a person expects rather
  * than failing on the first one.
  */
 export async function bulkSetPersonTag(
@@ -241,26 +241,26 @@ export async function bulkSetPersonTag(
 
   if (!on) {
     const removed = await db
-      .delete(personTags)
-      .where(and(eq(personTags.tagId, tagId), inArray(personTags.personId, personIds)))
-      .returning({ personId: personTags.personId });
+      .delete(memberTags)
+      .where(and(eq(memberTags.tagId, tagId), inArray(memberTags.memberId, personIds)))
+      .returning({ memberId: memberTags.memberId });
     return removed.length;
   }
 
-  // Only people this church can see. An id from elsewhere is filtered out by the
+  // Only members this church can see. An id from elsewhere is filtered out by the
   // policy on the select rather than rejected by a constraint on the insert.
   const visible = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(inArray(people.id, personIds));
+    .select({ id: members.id })
+    .from(members)
+    .where(inArray(members.id, personIds));
 
   let applied = 0;
   for (const person of visible) {
     const inserted = await db.execute(sql`
-      insert into person_tags (tenant_id, person_id, tag_id)
+      insert into person_tags (tenant_id, member_id, tag_id)
       values (${actor.tenantId}::uuid, ${person.id}::uuid, ${tagId}::uuid)
       on conflict do nothing
-      returning person_id`);
+      returning member_id`);
     applied += (inserted as unknown as unknown[]).length;
   }
   return applied;

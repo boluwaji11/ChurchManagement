@@ -10,7 +10,7 @@ import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   listCelebrations, monthWindow, weekWindow,
 } from "../src/repo/celebrations";
-import { createPerson, setPersonArchived } from "../src/repo/people";
+import { createPerson, setPersonArchived } from "../src/repo/members";
 import { addMilestone } from "../src/repo/milestones";
 import { addRelationship } from "../src/repo/relationships";
 import type { TenantRole } from "../src/roles";
@@ -51,19 +51,19 @@ beforeAll(async () => {
   await person("Idris", "1986-07-19");
   await run((tx) =>
     addRelationship(tx, as(), {
-      personId: ids.Hana!, relatedPersonId: ids.Idris!, kind: "spouse",
+      memberId: ids.Hana!, relatedMemberId: ids.Idris!, kind: "spouse",
     }),
   );
   for (const id of [ids.Hana!, ids.Idris!]) {
     await run((tx) =>
-      addMilestone(tx, as(), { personId: id, kind: "marriage", occurredOn: "2012-10-20" }),
+      addMilestone(tx, as(), { memberId: id, kind: "marriage", occurredOn: "2012-10-20" }),
     );
   }
 
   // Somebody married whose spouse is not in the church's records.
   await person("Jide", "1980-06-06");
   await run((tx) =>
-    addMilestone(tx, as(), { personId: ids.Jide!, kind: "marriage", occurredOn: "2005-10-22" }),
+    addMilestone(tx, as(), { memberId: ids.Jide!, kind: "marriage", occurredOn: "2005-10-22" }),
   );
 
   // Archived, so off every list.
@@ -86,7 +86,7 @@ describe("a month", () => {
     expect(found).not.toContain("Femi");
   });
 
-  it("leaves out archived people", async () => {
+  it("leaves out archived members", async () => {
     const found = names(await run((tx) => listCelebrations(tx, monthWindow(2026, 10))));
     expect(found).not.toContain("Kemi");
   });

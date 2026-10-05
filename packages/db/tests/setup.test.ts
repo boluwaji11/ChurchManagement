@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { setupProgress, skipSetupStep, dismissSetup } from "../src/repo/setup";
 import { updateChurch, addServiceTime } from "../src/repo/church";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
@@ -40,7 +40,7 @@ describe("a church on its first day (R22.1)", () => {
     expect(progress.complete).toBe(false);
     expect(progress.settled).toBe(0);
     expect(progress.steps.map((row) => row.step)).toEqual([
-      "church", "services", "people", "team", "rooms",
+      "church", "services", "members", "team", "rooms",
     ]);
   });
 });
@@ -64,7 +64,7 @@ describe("doing the work moves the step (R22.1)", () => {
     await run((tx) => createPerson(tx, as(), {
       firstName: "First", lastName: "Person", lifecycleStatus: "member",
     } as never));
-    expect(step(await run((tx) => setupProgress(tx, tenant)), "people").done).toBe(true);
+    expect(step(await run((tx) => setupProgress(tx, tenant)), "members").done).toBe(true);
   });
 
   it("wants a second account, because one is the person who made the church", async () => {

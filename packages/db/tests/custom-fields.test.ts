@@ -13,7 +13,7 @@ import {
   getCustomValues, setCustomValues, coerceCustomValue, keyFor,
   type CustomFieldType,
 } from "../src/repo/custom-fields";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { InvalidInputError, NameTakenError } from "../src/errors";
 
@@ -52,7 +52,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await owner()`delete from custom_fields where label like ${P + "%"}`;
-  await owner()`delete from people where last_name = 'Fieldperson'`;
+  await owner()`delete from members where last_name = 'Fieldperson'`;
   await closeConnections();
 });
 
@@ -243,7 +243,7 @@ describe("changing a definition", () => {
     const result = await run(riverside, "owner", (tx) => deleteCustomField(tx, as(riverside, "owner"), f.id));
     expect(result.valuesRemoved).toBe(1);
     expect(await owner()`select id from custom_field_values where field_id = ${f.id}`).toHaveLength(0);
-    expect(await owner()`select id from people where id = ${p.id}`).toHaveLength(1);
+    expect(await owner()`select id from members where id = ${p.id}`).toHaveLength(1);
   });
 
   it("cannot touch another church's field", async () => {

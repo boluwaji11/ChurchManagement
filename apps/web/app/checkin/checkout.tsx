@@ -27,7 +27,7 @@ export interface OfflineCheckout {
   pickupFor: (childId: string) => PickupPerson[];
   /** Applies the same rules the server does, against what the station holds. */
   release: (input: {
-    personId: string;
+    memberId: string;
     typed: string;
     collectedBy: string | null;
     override: { kind: OverrideKind; reason: string } | null;
@@ -53,7 +53,7 @@ export function Checkout({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [people, setPeople] = React.useState<PickupPerson[]>([]);
+  const [members, setPeople] = React.useState<PickupPerson[]>([]);
   const [collectedBy, setCollectedBy] = React.useState<string | null>(null);
   const [code, setCode] = React.useState("");
   const [block, setBlock] = React.useState<{ kind: string; message: string } | null>(null);
@@ -76,7 +76,7 @@ export function Checkout({
     startTransition(async () => {
       const result = await pickup(childId, church);
       setError(result.error);
-      setPeople(result.people ?? []);
+      setPeople(result.members ?? []);
     });
   }, [open, childId, church, offline]);
 
@@ -87,7 +87,7 @@ export function Checkout({
       // there cannot wait for the wifi.
       if (offline && !offline.online) {
         const stopped = await offline.release({
-          personId: childId,
+          memberId: childId,
           typed: code,
           collectedBy,
           override: override as { kind: OverrideKind; reason: string } | null,
@@ -183,7 +183,7 @@ export function Checkout({
                   value={collectedBy ?? "other"}
                   onValueChange={(value) => setCollectedBy(value === "other" ? null : value)}
                 >
-                  {people.map((person) => (
+                  {members.map((person) => (
                     <RadioItem key={person.id} value={person.id}>
                       <span className="text-fg">{person.name}</span>
                       {person.restricted ? (

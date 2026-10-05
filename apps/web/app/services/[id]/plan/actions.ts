@@ -120,7 +120,7 @@ export async function saveNote(
     body: string;
     teamId: string | null;
     positionId: string | null;
-    personId: string | null;
+    memberId: string | null;
   },
   church?: string,
 ): Promise<PlanResult> {

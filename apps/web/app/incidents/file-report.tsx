@@ -21,14 +21,14 @@ import { report } from "../checkin/rooms/actions";
 export function FileReport({
   church,
   today,
-  people,
+  members,
   rooms,
   services,
   trigger,
 }: {
   church: string;
   today: string;
-  people: { id: string; name: string }[];
+  members: { id: string; name: string }[];
   rooms: { id: string; name: string }[];
   services: { id: string; name: string }[];
   trigger: React.ReactNode;
@@ -36,7 +36,7 @@ export function FileReport({
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
-  const [personId, setPersonId] = React.useState("");
+  const [memberId, setPersonId] = React.useState("");
   const [roomId, setRoomId] = React.useState("");
   const [serviceId, setServiceId] = React.useState("");
   const [notified, setNotified] = React.useState(false);
@@ -67,7 +67,7 @@ export function FileReport({
             startTransition(async () => {
               const result = await report(
                 {
-                  personId,
+                  memberId,
                   roomId: roomId || null,
                   occurrenceId: serviceId || null,
                   occurredOn: String(data.get("occurredOn") ?? today),
@@ -95,8 +95,8 @@ export function FileReport({
 
           <Field label={t("incident.who")} required>
             <Combobox
-              options={people.map((p) => ({ value: p.id, label: p.name }))}
-              value={personId}
+              options={members.map((p) => ({ value: p.id, label: p.name }))}
+              value={memberId}
               onChange={setPersonId}
               emptyLabel={t("incident.noPerson")}
               clearLabel={t("date.clear")}

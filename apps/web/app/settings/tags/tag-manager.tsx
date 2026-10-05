@@ -16,7 +16,7 @@ export interface TagItem {
   id: string;
   name: string;
   hue: string;
-  people: number;
+  members: number;
 }
 
 
@@ -267,7 +267,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="id" value={tag.id} />
             <p className="text-[length:var(--d-text-body)] text-fg">
-              {plural("tags.deleteBody", tag.people)}
+              {plural("tags.deleteBody", tag.members)}
             </p>
             <div className="flex items-center gap-3">
               <Button type="submit" variant="danger" loading={pending}>

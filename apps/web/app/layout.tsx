@@ -31,7 +31,7 @@ export const viewport: Viewport = {
  *
  * Read from a cookie on the server, so the first paint is already the right one
  * and nobody gets a white flash at 7am in a dark building. Leaving it off means
- * the device decides, which is what most people want and nobody has to choose.
+ * the device decides, which is what most members want and nobody has to choose.
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = (await cookies()).get("hearth-theme")?.value;

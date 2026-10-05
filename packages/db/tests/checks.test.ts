@@ -12,7 +12,7 @@ import {
   checksFor, recordCheck, checkStandings, clearedForChildren, canSeeChecks,
 } from "../src/repo/checks";
 import { standing, mayServeWithChildren, EXPIRY_WARNING_DAYS } from "../src/repo/check-rules";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -89,7 +89,7 @@ describe("recording one (R2.10)", () => {
   it("keeps who did it, when, what it said, and when it runs out", async () => {
     const check = await run((tx) =>
       recordCheck(tx, as(), {
-        personId: ruth, provider: "Checkr", status: "clear",
+        memberId: ruth, provider: "Checkr", status: "clear",
         completedOn: "2026-02-01", expiresOn: "2029-02-01",
       }),
     );
@@ -104,7 +104,7 @@ describe("recording one (R2.10)", () => {
   it("supersedes rather than overwrites", async () => {
     await run((tx) =>
       recordCheck(tx, as(), {
-        personId: ruth, provider: "Checkr", status: "clear",
+        memberId: ruth, provider: "Checkr", status: "clear",
         completedOn: "2026-09-01", expiresOn: "2029-09-01",
       }),
     );
@@ -118,21 +118,21 @@ describe("recording one (R2.10)", () => {
     const [row] = await owner()`
       select * from background_checks where tenant_id = ${tenant} limit 1`;
     expect(Object.keys(row!).sort()).toEqual([
-      "completed_on", "created_at", "expires_on", "id", "person_id", "provider", "status",
+      "completed_on", "created_at", "expires_on", "id", "member_id", "provider", "status",
       "tenant_id",
     ]);
   });
 
   it("refuses a result with no day behind it", async () => {
     await expect(
-      run((tx) => recordCheck(tx, as(), { personId: sam, provider: "Checkr", status: "clear" })),
+      run((tx) => recordCheck(tx, as(), { memberId: sam, provider: "Checkr", status: "clear" })),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
 
   it("refuses an expiry before the day it was done", async () => {
     await expect(
       run((tx) => recordCheck(tx, as(), {
-        personId: sam, provider: "Checkr", status: "clear",
+        memberId: sam, provider: "Checkr", status: "clear",
         completedOn: "2026-02-01", expiresOn: "2025-02-01",
       })),
     ).rejects.toBeInstanceOf(InvalidInputError);
@@ -140,7 +140,7 @@ describe("recording one (R2.10)", () => {
 
   it("takes a pending one with no day, because it has not happened yet", async () => {
     const check = await run((tx) =>
-      recordCheck(tx, as(), { personId: sam, provider: "Checkr", status: "pending" }),
+      recordCheck(tx, as(), { memberId: sam, provider: "Checkr", status: "pending" }),
     );
     expect(check.status).toBe("pending");
     expect(await run((tx) => clearedForChildren(tx, sam, TODAY))).toBe(false);
@@ -163,7 +163,7 @@ describe("who may see one (R21.11)", () => {
         .rejects.toBeInstanceOf(PermissionError);
       await expect(
         run((tx) => recordCheck(tx, as(role), {
-          personId: ruth, provider: "Checkr", status: "clear", completedOn: "2026-02-01",
+          memberId: ruth, provider: "Checkr", status: "clear", completedOn: "2026-02-01",
         }), role),
         role,
       ).rejects.toBeInstanceOf(PermissionError);

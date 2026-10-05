@@ -42,7 +42,7 @@ const shortDay = (iso: string) =>
  * R9.5. A group's own page.
  *
  * Built to docs/redesign/design: the kind and the name on the left with the
- * banner beside them, a line saying whether it is taking people, and three tabs
+ * banner beside them, a line saying whether it is taking members, and three tabs
  * underneath. It answers in the order somebody asks: what is it, when and
  * where, who runs it, and may I come.
  */
@@ -63,7 +63,7 @@ export default async function GroupPage({
   const data = await withTenant(actor, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
     const self = await personForUser(tx, session.userId);
-    const group = await groupPage(tx, id, { personId: self, manage });
+    const group = await groupPage(tx, id, { memberId: self, manage });
     if (!group) return null;
 
     const now = churchNow(profile?.timezone ?? "America/Chicago");
@@ -76,13 +76,13 @@ export default async function GroupPage({
      * them either.
      */
     let meeting: Meeting | null = null;
-    let people: MeetingPerson[] = [];
+    let members: MeetingPerson[] = [];
     let metOn = "";
     if (manage || (await canRecordFor(tx, actor, group.id))) {
       metOn = lastMeetingDay(group.dayOfWeek, today);
       const opened = await openMeeting(tx, actor, { groupId: group.id, metOn });
       meeting = opened.meeting;
-      people = opened.people;
+      members = opened.members;
     }
 
     return {
@@ -91,7 +91,7 @@ export default async function GroupPage({
       today,
       metOn,
       meeting,
-      people,
+      members,
       types: manage ? await listGroupTypes(tx) : [],
       roster: await groupRoster(tx, group.id),
       requests: manage
@@ -101,7 +101,7 @@ export default async function GroupPage({
   });
 
   if (!data) notFound();
-  const { group, now, today, metOn, meeting, people, types, roster, requests } = data;
+  const { group, now, today, metOn, meeting, members, types, roster, requests } = data;
 
   // R9.2. The bucket is private, so the picture is served through a link signed
   // for an hour. A leaked path is then a leak with an expiry.
@@ -331,9 +331,9 @@ export default async function GroupPage({
         requests={requests.map((one) => ({ id: one.id, personName: one.personName }))}
         members={roster
           .filter((one) => !one.leftOn)
-          .map((one) => ({ personId: one.personId, name: one.name, role: one.role }))}
+          .map((one) => ({ memberId: one.memberId, name: one.name, role: one.role }))}
         meeting={meeting}
-        people={people}
+        attendees={members}
         attendanceDate={metOn ? shortDay(metOn) : ""}
         attendanceDays={attendanceDays}
       />

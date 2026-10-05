@@ -10,7 +10,7 @@ import { sql } from "drizzle-orm";
 import { withTenant, closeConnections, type Tx } from "../src/client";
 import { publicChurch, publicGroups, publicGroup } from "../src/repo/public-groups";
 import { createGroup, updateGroup, setGroupArchived, addToGroup } from "../src/repo/groups";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { approveChurch } from "../src/repo/provisional";
 import type { TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -58,7 +58,7 @@ beforeAll(async () => {
       firstName: "Ada", lastName: "Public", lifecycleStatus: "member",
     } as never),
   )).id;
-  await run((tx) => addToGroup(tx, as(), { groupId: open, personId: ada }));
+  await run((tx) => addToGroup(tx, as(), { groupId: open, memberId: ada }));
 
   // The waiting church has a listed group too, and should still publish nothing.
   await withTenant({ tenantId: provisional, role: "owner" }, (tx) =>
@@ -115,7 +115,7 @@ describe("what the church publishes", () => {
     });
   });
 
-  it("publishes a size rather than the people in it", async () => {
+  it("publishes a size rather than the members in it", async () => {
     const found = await publicGroups(SLUG);
     const text = JSON.stringify(found);
     expect(text).not.toContain("Ada");

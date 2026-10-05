@@ -44,7 +44,7 @@ describe("an import (R22.3)", () => {
   it("is the moment the church became usable", async () => {
     await owner()`
       insert into import_batches (tenant_id, filename, status, committed_at, created_at)
-      values (${quick}, 'people.csv', 'committed', now() - interval '85 minutes', now() - interval '90 minutes')`;
+      values (${quick}, 'members.csv', 'committed', now() - interval '85 minutes', now() - interval '90 minutes')`;
 
     const rows = await timeToValue(owner());
     const row = find(rows, "valuetest");
@@ -64,17 +64,17 @@ describe("an import (R22.3)", () => {
   });
 });
 
-describe("people entered one at a time (R22.3)", () => {
+describe("members entered one at a time (R22.3)", () => {
   it("counts the church usable at the twenty-fifth", async () => {
     for (let i = 0; i < USABLE_PEOPLE; i += 1) {
       await owner()`
-        insert into people (tenant_id, first_name, last_name, lifecycle_status, created_at)
+        insert into members (tenant_id, first_name, last_name, lifecycle_status, created_at)
         values (${slow}, ${`Person${i}`}, 'Slow', 'member', now() - interval '20 minutes')`;
     }
 
     const row = find(await timeToValue(owner()), "valuetest2");
     expect(row.how).toBe("by_hand");
-    expect(row.people).toBe(USABLE_PEOPLE);
+    expect(row.members).toBe(USABLE_PEOPLE);
     // Signed up two hours ago, usable a hundred minutes later. Over the target,
     // which is the point of measuring it.
     expect(row.minutes).toBeGreaterThan(60);
@@ -83,7 +83,7 @@ describe("people entered one at a time (R22.3)", () => {
   it("is not reached by one person typed in while looking around", async () => {
     const third = await testTenant("valuetest3", "Browsing Church");
     await owner()`
-      insert into people (tenant_id, first_name, last_name, lifecycle_status)
+      insert into members (tenant_id, first_name, last_name, lifecycle_status)
       values (${third}, 'Only', 'Person', 'member')`;
 
     expect(find(await timeToValue(owner()), "valuetest3").usableAt).toBeNull();

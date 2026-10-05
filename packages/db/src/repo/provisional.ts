@@ -1,7 +1,7 @@
 import { count, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { tenants } from "../schema/tenancy";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { InvalidInputError } from "../errors";
 
 /**
@@ -13,19 +13,19 @@ import { InvalidInputError } from "../errors";
  * up for a door the church had already chosen to open.
  *
  * The answer is a cap. A provisional church works completely for the person who
- * made it, up to a small number of people, with no join link and no
+ * made it, up to a small number of members, with no join link and no
  * invitations. A real church is unblocked within an hour, which is what the
  * sixty-minute time-to-value number needs. An abuser gets nothing worth having:
  * no way to reach anybody, and no congregation to put in it.
  */
 
-/** How many people a church can hold before a human has looked at it. */
+/** How many members a church can hold before a human has looked at it. */
 export const PROVISIONAL_PEOPLE = 25;
 
 export interface ChurchStanding {
   approved: boolean;
-  /** How many people the church holds, counted only while it matters. */
-  people: number;
+  /** How many members the church holds, counted only while it matters. */
+  members: number;
   limit: number;
   /** How many more it can take. Unbounded once approved. */
   remaining: number | null;
@@ -45,18 +45,18 @@ export async function isApproved(db: Tx, tenantId: string): Promise<boolean> {
 export async function churchStanding(db: Tx, tenantId: string): Promise<ChurchStanding> {
   const approved = await isApproved(db, tenantId);
   if (approved) {
-    return { approved: true, people: 0, limit: PROVISIONAL_PEOPLE, remaining: null };
+    return { approved: true, members: 0, limit: PROVISIONAL_PEOPLE, remaining: null };
   }
 
   const [row] = await db
     .select({ n: count() })
-    .from(people)
-    .where(isNull(people.archivedAt));
+    .from(members)
+    .where(isNull(members.archivedAt));
 
   const held = row?.n ?? 0;
   return {
     approved: false,
-    people: held,
+    members: held,
     limit: PROVISIONAL_PEOPLE,
     remaining: Math.max(PROVISIONAL_PEOPLE - held, 0),
   };
@@ -86,7 +86,7 @@ export async function requireRoomForPeople(
 ): Promise<void> {
   const standing = await churchStanding(db, tenantId);
   if (standing.approved) return;
-  if (standing.people + adding <= standing.limit) return;
+  if (standing.members + adding <= standing.limit) return;
   throw new InvalidInputError("provisional.error.people");
 }
 

@@ -37,12 +37,12 @@ const isKind = (value: string): value is MilestoneKind =>
 
 export async function addPersonMilestone(data: FormData): Promise<MilestoneResponse> {
   const slug = String(data.get("church") ?? "") || undefined;
-  const personId = String(data.get("personId") ?? "");
+  const memberId = String(data.get("memberId") ?? "");
   const kind = String(data.get("kind") ?? "");
   const occurredOn = String(data.get("occurredOn") ?? "");
   const notes = String(data.get("notes") ?? "");
 
-  if (!personId) return { error: t("error.notFound.person") };
+  if (!memberId) return { error: t("error.notFound.person") };
   if (!isKind(kind)) return { error: t("milestone.chooseKind") };
 
   const { session, ctx } = await writeContext(slug);
@@ -50,10 +50,10 @@ export async function addPersonMilestone(data: FormData): Promise<MilestoneRespo
   try {
     const result = await withTenant(ctx, (tx) =>
       addMilestone(tx, { tenantId: session.tenantId, role: session.role }, {
-        personId, kind, occurredOn, notes,
+        memberId, kind, occurredOn, notes,
       }),
     );
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     revalidatePath("/members");
     return { updatedPerson: result.updatedPerson, kind };
   } catch (error) {
@@ -64,7 +64,7 @@ export async function addPersonMilestone(data: FormData): Promise<MilestoneRespo
 export async function removePersonMilestone(data: FormData): Promise<MilestoneResponse> {
   const slug = String(data.get("church") ?? "") || undefined;
   const id = String(data.get("id") ?? "");
-  const personId = String(data.get("personId") ?? "");
+  const memberId = String(data.get("memberId") ?? "");
   if (!id) return { error: t("milestone.error.notFound") };
 
   const { session, ctx } = await writeContext(slug);
@@ -73,7 +73,7 @@ export async function removePersonMilestone(data: FormData): Promise<MilestoneRe
     await withTenant(ctx, (tx) =>
       removeMilestone(tx, { tenantId: session.tenantId, role: session.role }, id),
     );
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };

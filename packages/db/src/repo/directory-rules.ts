@@ -6,7 +6,7 @@
  * ends up publishing an address somebody hid.
  *
  * The defaults are the whole argument. Name only. A church that imports two
- * hundred people has consent from none of them, so everything else stays off
+ * hundred members has consent from none of them, so everything else stays off
  * until the member turns it on.
  */
 

@@ -11,10 +11,10 @@ export const dynamic = "force-dynamic";
 /**
  * R19.8. What can be taken, what is in it, and the name the browser saves it
  * under. The file name is not drawn: a church recognises "People", and
- * "people.csv" is a detail of the download rather than a choice to read.
+ * "members.csv" is a detail of the download rather than a choice to read.
  */
 const ROWS: Array<{ name: MessageKey; what: MessageKey; file: string; only?: string }> = [
-  { name: "settings.export.people", what: "settings.export.peopleWhat", file: "people.csv", only: "people" },
+  { name: "settings.export.members", what: "settings.export.membersWhat", file: "members.csv", only: "members" },
   { name: "settings.export.households", what: "settings.export.householdsWhat", file: "households.csv", only: "households" },
   { name: "settings.export.attendance", what: "settings.export.attendanceWhat", file: "attendance.csv", only: "attendance" },
   { name: "settings.export.checkin", what: "settings.export.checkinWhat", file: "checkin.csv", only: "checkin" },

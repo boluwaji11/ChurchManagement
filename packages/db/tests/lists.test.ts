@@ -12,7 +12,7 @@ import {
   listSavedLists, createStaticList, createRuleList, renameList, setListArchived,
   addToList, removeFromList, resolveList, listsForPerson, cleanRule,
 } from "../src/repo/lists";
-import { createPerson, listPeople, updatePerson, getPersonForEdit } from "../src/repo/people";
+import { createPerson, listPeople, updatePerson, getPersonForEdit } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { InvalidInputError, NameTakenError } from "../src/errors";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -94,12 +94,12 @@ describe("a list somebody picked", () => {
     expect(await run((tx) => getPersonForEdit(tx, dave))).toBeTruthy();
   });
 
-  it("shows on the records of the people on it", async () => {
+  it("shows on the records of the members on it", async () => {
     const on = await run((tx) => listsForPerson(tx, maria));
     expect(on.map((list) => list.name)).toContain("Calling this week");
   });
 
-  it("counts the people on it", async () => {
+  it("counts the members on it", async () => {
     const all = await run((tx) => listSavedLists(tx));
     expect(all.find((list) => list.id === id)?.count).toBe(2);
   });
@@ -135,7 +135,7 @@ describe("a list that answers itself", () => {
     expect(all.find((list) => list.id === id)?.count).toBeNull();
   });
 
-  it("refuses people put on it by hand", async () => {
+  it("refuses members put on it by hand", async () => {
     await expect(run((tx) => addToList(tx, as(), { listId: id, personIds: [maria] })))
       .rejects.toBeInstanceOf(InvalidInputError);
   });
@@ -163,9 +163,9 @@ describe("naming", () => {
     const made = await run((tx) =>
       createStaticList(tx, as(), { name: "Temporary", personIds: [maria] }),
     );
-    await run((tx) => renameList(tx, as(), { id: made.id, name: "New people" }));
+    await run((tx) => renameList(tx, as(), { id: made.id, name: "New members" }));
     const all = await run((tx) => listSavedLists(tx));
-    expect(all.find((list) => list.id === made.id)?.name).toBe("New people");
+    expect(all.find((list) => list.id === made.id)?.name).toBe("New members");
 
     await expect(
       run((tx) => renameList(tx, as(), { id: made.id, name: "Visitors" })),
@@ -197,7 +197,7 @@ describe("archiving", () => {
 });
 
 describe("who may keep lists", () => {
-  it("is refused to a role that does not edit people", async () => {
+  it("is refused to a role that does not edit members", async () => {
     await expect(
       run((tx) => createStaticList(tx, as("member"), { name: "Mine", personIds: [] }), "member"),
     ).rejects.toBeInstanceOf(PermissionError);

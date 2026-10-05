@@ -30,19 +30,19 @@ async function context(church?: string) {
 }
 
 export async function addOne(
-  input: { personId: string; kind: ContactKind; label: string; value: string },
+  input: { memberId: string; kind: ContactKind; label: string; value: string },
   church?: string,
 ): Promise<{ error?: string }> {
   const { actor, ctx, slug } = await context(church);
   try {
     await withTenant(ctx, (tx) =>
-      addContact(tx, actor, input.personId, {
+      addContact(tx, actor, input.memberId, {
         kind: input.kind,
         label: input.label as ContactLabel,
         value: input.value,
       }),
     );
-    revalidatePath(`/members/${input.personId}`);
+    revalidatePath(`/members/${input.memberId}`);
     void slug;
     return {};
   } catch (error) {
@@ -52,13 +52,13 @@ export async function addOne(
 
 export async function removeOne(
   id: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<{ error?: string }> {
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => removeContact(tx, actor, id));
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -67,13 +67,13 @@ export async function removeOne(
 
 export async function leadWithOne(
   id: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<{ error?: string }> {
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => makeContactPrimary(tx, actor, id));
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -81,13 +81,13 @@ export async function leadWithOne(
 }
 
 export async function addPlace(
-  input: { personId: string; label: string; values: Record<string, string> },
+  input: { memberId: string; label: string; values: Record<string, string> },
   church?: string,
 ): Promise<{ error?: string }> {
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) =>
-      addAddress(tx, actor, input.personId, {
+      addAddress(tx, actor, input.memberId, {
         label: input.label as ContactLabel,
         line1: input.values.line1 ?? "",
         line2: input.values.line2,
@@ -97,7 +97,7 @@ export async function addPlace(
         country: input.values.country,
       }),
     );
-    revalidatePath(`/members/${input.personId}`);
+    revalidatePath(`/members/${input.memberId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -106,13 +106,13 @@ export async function addPlace(
 
 export async function removePlace(
   id: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<{ error?: string }> {
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => removeAddress(tx, actor, id));
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -121,13 +121,13 @@ export async function removePlace(
 
 export async function leadWithPlace(
   id: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<{ error?: string }> {
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => makeAddressPrimary(tx, actor, id));
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };

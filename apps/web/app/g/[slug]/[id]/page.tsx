@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  * R9.5. One group, for a church that wants to link straight to it.
  *
  * The same rule as the list it came from: what it is, when it meets, roughly
- * how big it is, and nothing about the people in it.
+ * how big it is, and nothing about the members in it.
  */
 export default async function PublicGroupPage({
   params,

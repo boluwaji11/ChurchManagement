@@ -41,7 +41,7 @@ export async function invite(data: FormData): Promise<TeamResult> {
       invitedByUserId: session.userId,
       // R1.7. Where the church picked somebody it already holds, the account
       // ties to that record on first sign-in.
-      personId: field(data, "personId") || null,
+      memberId: field(data, "memberId") || null,
     });
 
     return {};

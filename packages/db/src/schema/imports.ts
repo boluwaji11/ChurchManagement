@@ -18,11 +18,11 @@ export const importBatches = pgTable(
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     filename: text("filename").notNull(),
     /**
-     * R19.5. "people" or "groups". A group file's rows are memberships rather
-     * than people, so the preview, the counts and the rollback all read it
+     * R19.5. "members" or "groups". A group file's rows are memberships rather
+     * than members, so the preview, the counts and the rollback all read it
      * differently.
      */
-    kind: text("kind").notNull().default("people"),
+    kind: text("kind").notNull().default("members"),
     status: importStatus("status").notNull().default("preview"),
     /** The header-to-field mapping used, kept so it can be offered again (R19.1). */
     mapping: jsonb("mapping").$type<Record<string, string>>(),
@@ -55,7 +55,7 @@ export const importRows = pgTable(
     batchId: uuid("batch_id").notNull().references(() => importBatches.id, { onDelete: "cascade" }),
     lineNumber: integer("line_number").notNull(),
     outcome: importOutcome("outcome").notNull(),
-    personId: uuid("person_id"),
+    memberId: uuid("member_id"),
     /** R19.5. The group a membership row put that person into. */
     groupId: uuid("group_id"),
     /** R19.5. True on the row that brought a group into existence. */

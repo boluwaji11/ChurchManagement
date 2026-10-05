@@ -2,12 +2,12 @@ import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { notifyRoles } from "./notifications";
 import { incidentReports, checkinRooms } from "../schema/checkin";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { canCheckIn } from "./checkin";
 
 /**
@@ -40,7 +40,7 @@ export const canFileIncident = (role: Who): boolean =>
   canCheckIn(role) || canReadIncidents(role);
 
 export interface IncidentInput {
-  personId: string;
+  memberId: string;
   roomId?: string | null;
   occurrenceId?: string | null;
   /** The day it happened, which is not always the day it is written. */
@@ -56,7 +56,7 @@ export interface IncidentInput {
 
 export interface Incident {
   id: string;
-  personId: string;
+  memberId: string;
   personName: string;
   roomId: string | null;
   roomName: string | null;
@@ -101,9 +101,9 @@ export async function fileIncident(
   if (!ISO_DATE.test(input.occurredOn)) throw new InvalidInputError("incident.error.date");
 
   const [person] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(and(eq(people.id, input.personId), isNull(people.archivedAt)))
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.id, input.memberId), isNull(members.archivedAt)))
     .limit(1);
   if (!person) throw new InvalidInputError("incident.error.person");
 
@@ -113,7 +113,7 @@ export async function fileIncident(
     .insert(incidentReports)
     .values({
       tenantId: actor.tenantId,
-      personId: input.personId,
+      memberId: input.memberId,
       roomId: input.roomId ?? null,
       occurrenceId: input.occurrenceId ?? null,
       occurredOn: input.occurredOn,
@@ -178,7 +178,7 @@ async function incidentsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Inc
   const rows = await db
     .select({
       id: incidentReports.id,
-      personId: incidentReports.personId,
+      memberId: incidentReports.memberId,
       roomId: incidentReports.roomId,
       occurrenceId: incidentReports.occurrenceId,
       occurredOn: sql<string>`${incidentReports.occurredOn}::text`,
@@ -189,34 +189,34 @@ async function incidentsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Inc
       notifiedAt: incidentReports.notifiedAt,
       reportedBy: incidentReports.reportedBy,
       createdAt: incidentReports.createdAt,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
       roomName: checkinRooms.name,
       roomHue: checkinRooms.hue,
       serviceName: serviceOccurrences.name,
     })
     .from(incidentReports)
-    .innerJoin(people, eq(people.id, incidentReports.personId))
+    .innerJoin(members, eq(members.id, incidentReports.memberId))
     .leftJoin(checkinRooms, eq(checkinRooms.id, incidentReports.roomId))
     .leftJoin(serviceOccurrences, eq(serviceOccurrences.id, incidentReports.occurrenceId))
     .where(where)
     .orderBy(desc(incidentReports.occurredOn), desc(incidentReports.createdAt));
 
-  // R8.13. Who wrote it. Its own lookup rather than a second join on people,
+  // R8.13. Who wrote it. Its own lookup rather than a second join on members,
   // which is one query for a page of reports.
   const userIds = [...new Set(rows.map((r) => r.reportedBy).filter(Boolean))] as string[];
   const reporters = new Map<string, string>();
   if (userIds.length > 0) {
     const names = await db
       .select({
-        appUserId: people.appUserId,
-        firstName: people.firstName,
-        lastName: people.lastName,
-        preferredName: people.preferredName,
+        appUserId: members.appUserId,
+        firstName: members.firstName,
+        lastName: members.lastName,
+        preferredName: members.preferredName,
       })
-      .from(people)
-      .where(inArray(people.appUserId, userIds));
+      .from(members)
+      .where(inArray(members.appUserId, userIds));
     for (const n of names) {
       if (n.appUserId) {
         reporters.set(n.appUserId, `${n.preferredName?.trim() || n.firstName} ${n.lastName}`);
@@ -226,7 +226,7 @@ async function incidentsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Inc
 
   return rows.map((r) => ({
     id: r.id,
-    personId: r.personId,
+    memberId: r.memberId,
     personName: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     roomId: r.roomId,
     roomName: r.roomName,
@@ -249,13 +249,13 @@ async function incidentsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Inc
 export async function listIncidents(
   db: Tx,
   actor: { role: TenantRole },
-  opts: { personId?: string } = {},
+  opts: { memberId?: string } = {},
 ): Promise<Incident[]> {
   if (!canReadIncidents(actor.role)) throw new PermissionError(actor.role, "readIncidents");
   return incidentsWhere(
     db,
-    opts.personId
-      ? eq(incidentReports.personId, opts.personId)
+    opts.memberId
+      ? eq(incidentReports.memberId, opts.memberId)
       : sql`true` as unknown as ReturnType<typeof eq>,
   );
 }

@@ -18,7 +18,7 @@ import { canManageChurch } from "./church";
  * find out.
  */
 
-export const SETUP_STEPS = ["church", "services", "people", "team", "rooms"] as const;
+export const SETUP_STEPS = ["church", "services", "members", "team", "rooms"] as const;
 export type SetupStep = (typeof SETUP_STEPS)[number];
 
 export interface SetupState {
@@ -49,7 +49,7 @@ export async function setupProgress(db: Tx, tenantId: string): Promise<SetupProg
   const [counts] = await db
     .select({
       services: sql<string>`(select count(*) from service_times)`,
-      people: sql<string>`(select count(*) from people where archived_at is null)`,
+      members: sql<string>`(select count(*) from members where archived_at is null)`,
       team: sql<string>`(
         select count(*) from tenant_members where tenant_id = ${tenantId}
       ) + (
@@ -66,7 +66,7 @@ export async function setupProgress(db: Tx, tenantId: string): Promise<SetupProg
   const done: Record<SetupStep, boolean> = {
     church: Boolean(church?.addressLine1),
     services: Number(counts?.services ?? 0) > 0,
-    people: Number(counts?.people ?? 0) > 0,
+    members: Number(counts?.members ?? 0) > 0,
     // One account is the person who made the church. Two is a church.
     team: Number(counts?.team ?? 0) > 1,
     rooms: Number(counts?.rooms ?? 0) > 0,

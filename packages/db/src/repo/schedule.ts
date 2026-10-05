@@ -5,11 +5,11 @@ import {
   servingAssignments, blockoutDates, servingPreferences,
 } from "../schema/serving";
 import { serviceOccurrences } from "../schema/gatherings";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageTeams, leadsTeam } from "./serving";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R10.3 to R10.5. The schedule: who is doing what, at which service.
@@ -46,7 +46,7 @@ export interface Assignment {
   teamId: string;
   positionId: string;
   positionName: string;
-  personId: string;
+  memberId: string;
   personName: string;
   status: AssignmentStatus;
   declineReason: string | null;
@@ -57,7 +57,7 @@ export interface Assignment {
 
 export interface Blockout {
   id: string;
-  personId: string;
+  memberId: string;
   startsOn: string;
   endsOn: string;
   reason: string | null;
@@ -72,7 +72,7 @@ export interface Warning {
 }
 
 export interface PlanCandidate {
-  personId: string;
+  memberId: string;
   name: string;
   /** True when they are marked as playing this position. */
   plays: boolean;
@@ -142,24 +142,24 @@ export async function assignmentsForTeam(
       teamId: servingAssignments.teamId,
       positionId: servingAssignments.positionId,
       positionName: teamPositions.name,
-      personId: servingAssignments.personId,
+      memberId: servingAssignments.memberId,
       status: servingAssignments.status,
       declineReason: servingAssignments.declineReason,
       overridden: servingAssignments.overridden,
       token: servingAssignments.respondToken,
       order: teamPositions.position,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(servingAssignments)
     .innerJoin(teamPositions, eq(teamPositions.id, servingAssignments.positionId))
-    .innerJoin(people, eq(people.id, servingAssignments.personId))
+    .innerJoin(members, eq(members.id, servingAssignments.memberId))
     .where(and(
       eq(servingAssignments.teamId, teamId),
       inArray(servingAssignments.occurrenceId, occurrenceIds),
     ))
-    .orderBy(asc(teamPositions.position), asc(people.lastName));
+    .orderBy(asc(teamPositions.position), asc(members.lastName));
 
   return rows.map((r) => ({
     id: r.id,
@@ -167,7 +167,7 @@ export async function assignmentsForTeam(
     teamId: r.teamId,
     positionId: r.positionId,
     positionName: r.positionName,
-    personId: r.personId,
+    memberId: r.memberId,
     personName: displayName(r),
     status: r.status as AssignmentStatus,
     declineReason: r.declineReason,
@@ -179,7 +179,7 @@ export async function assignmentsForTeam(
 /** R10.3. Everything one person is down for, soonest first. */
 export async function assignmentsForPerson(
   db: Tx,
-  personId: string,
+  memberId: string,
   options: { from?: string; limit?: number } = {},
 ): Promise<(Assignment & { teamName: string; occursOn: string; startsAt: string; serviceName: string })[]> {
   const rows = await db
@@ -190,7 +190,7 @@ export async function assignmentsForPerson(
       teamName: teams.name,
       positionId: servingAssignments.positionId,
       positionName: teamPositions.name,
-      personId: servingAssignments.personId,
+      memberId: servingAssignments.memberId,
       status: servingAssignments.status,
       declineReason: servingAssignments.declineReason,
       overridden: servingAssignments.overridden,
@@ -198,17 +198,17 @@ export async function assignmentsForPerson(
       serviceName: serviceOccurrences.name,
       occursOn: sql<string>`${serviceOccurrences.occursOn}::text`,
       startsAt: serviceOccurrences.startsAt,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(servingAssignments)
     .innerJoin(teams, eq(teams.id, servingAssignments.teamId))
     .innerJoin(teamPositions, eq(teamPositions.id, servingAssignments.positionId))
-    .innerJoin(people, eq(people.id, servingAssignments.personId))
+    .innerJoin(members, eq(members.id, servingAssignments.memberId))
     .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, servingAssignments.occurrenceId))
     .where(and(
-      eq(servingAssignments.personId, personId),
+      eq(servingAssignments.memberId, memberId),
       options.from ? gte(serviceOccurrences.occursOn, options.from) : undefined,
     ))
     .orderBy(asc(serviceOccurrences.occursOn), asc(serviceOccurrences.startsAt))
@@ -221,7 +221,7 @@ export async function assignmentsForPerson(
     teamName: r.teamName,
     positionId: r.positionId,
     positionName: r.positionName,
-    personId: r.personId,
+    memberId: r.memberId,
     personName: displayName(r),
     status: r.status as AssignmentStatus,
     declineReason: r.declineReason,
@@ -241,7 +241,7 @@ export async function assignmentsForPerson(
  */
 export async function checkFor(
   db: Tx,
-  input: { personId: string; occurrenceId: string },
+  input: { memberId: string; occurrenceId: string },
 ): Promise<Warning> {
   const [occurrence] = await db
     .select({
@@ -261,7 +261,7 @@ export async function checkFor(
     })
     .from(blockoutDates)
     .where(and(
-      eq(blockoutDates.personId, input.personId),
+      eq(blockoutDates.memberId, input.memberId),
       lte(blockoutDates.startsOn, occurrence.occursOn),
       gte(blockoutDates.endsOn, occurrence.occursOn),
     ))
@@ -270,7 +270,7 @@ export async function checkFor(
   const [preference] = await db
     .select({ frequency: servingPreferences.frequency })
     .from(servingPreferences)
-    .where(eq(servingPreferences.personId, input.personId))
+    .where(eq(servingPreferences.memberId, input.memberId))
     .limit(1);
 
   let tooSoon: Warning["tooSoon"] = null;
@@ -283,7 +283,7 @@ export async function checkFor(
       .from(servingAssignments)
       .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, servingAssignments.occurrenceId))
       .where(and(
-        eq(servingAssignments.personId, input.personId),
+        eq(servingAssignments.memberId, input.memberId),
         sql`${servingAssignments.status} <> 'declined'`,
         sql`${serviceOccurrences.occursOn}::text < ${occurrence.occursOn}`,
       ))
@@ -312,20 +312,20 @@ export async function candidatesFor(
 ): Promise<PlanCandidate[]> {
   const roster = await db
     .select({
-      memberId: teamMembers.id,
-      personId: teamMembers.personId,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      teamMemberId: teamMembers.id,
+      memberId: teamMembers.memberId,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(teamMembers)
-    .innerJoin(people, eq(people.id, teamMembers.personId))
+    .innerJoin(members, eq(members.id, teamMembers.memberId))
     .where(and(
       eq(teamMembers.teamId, input.teamId),
       isNull(teamMembers.leftOn),
-      isNull(people.archivedAt),
+      isNull(members.archivedAt),
     ))
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   if (roster.length === 0) return [];
 
@@ -339,23 +339,23 @@ export async function candidatesFor(
   const playing = new Set(plays.map((p) => p.memberId));
 
   const preferences = await db
-    .select({ personId: servingPreferences.personId, frequency: servingPreferences.frequency })
+    .select({ memberId: servingPreferences.memberId, frequency: servingPreferences.frequency })
     .from(servingPreferences)
-    .where(inArray(servingPreferences.personId, roster.map((r) => r.personId)));
-  const byPerson = new Map(preferences.map((p) => [p.personId, p.frequency as ServingFrequency]));
+    .where(inArray(servingPreferences.memberId, roster.map((r) => r.memberId)));
+  const byPerson = new Map(preferences.map((p) => [p.memberId, p.frequency as ServingFrequency]));
 
   const out: PlanCandidate[] = [];
   for (const person of roster) {
     const warning = await checkFor(db, {
-      personId: person.personId,
+      memberId: person.memberId,
       occurrenceId: input.occurrenceId,
     });
     out.push({
-      personId: person.personId,
+      memberId: person.memberId,
       name: displayName(person),
       plays: playing.has(person.memberId),
       lastServedOn: warning.tooSoon?.lastServedOn ?? null,
-      frequency: byPerson.get(person.personId) ?? null,
+      frequency: byPerson.get(person.memberId) ?? null,
       warning,
     });
   }
@@ -371,7 +371,7 @@ export interface AssignInput {
   occurrenceId: string;
   teamId: string;
   positionId: string;
-  personId: string;
+  memberId: string;
   /** True when the scheduler has read the warning and gone ahead. */
   anyway?: boolean;
 }
@@ -401,7 +401,7 @@ export async function assign(
   if (!position) throw new InvalidInputError("schedule.error.position");
 
   const warning = await checkFor(db, {
-    personId: input.personId,
+    memberId: input.memberId,
     occurrenceId: input.occurrenceId,
   });
   const warned = !clean(warning);
@@ -414,7 +414,7 @@ export async function assign(
       occurrenceId: input.occurrenceId,
       teamId: input.teamId,
       positionId: input.positionId,
-      personId: input.personId,
+      memberId: input.memberId,
       overridden: warned,
     })
     .onConflictDoNothing()
@@ -443,20 +443,20 @@ export async function unassign(db: Tx, actor: WriteActor, id: string): Promise<v
 
 export async function listBlockouts(
   db: Tx,
-  personId: string,
+  memberId: string,
   options: { from?: string } = {},
 ): Promise<Blockout[]> {
   return db
     .select({
       id: blockoutDates.id,
-      personId: blockoutDates.personId,
+      memberId: blockoutDates.memberId,
       startsOn: sql<string>`${blockoutDates.startsOn}::text`,
       endsOn: sql<string>`${blockoutDates.endsOn}::text`,
       reason: blockoutDates.reason,
     })
     .from(blockoutDates)
     .where(and(
-      eq(blockoutDates.personId, personId),
+      eq(blockoutDates.memberId, memberId),
       options.from ? gte(blockoutDates.endsOn, options.from) : undefined,
     ))
     .orderBy(asc(blockoutDates.startsOn));
@@ -465,7 +465,7 @@ export async function listBlockouts(
 export async function addBlockout(
   db: Tx,
   actor: WriteActor,
-  input: { personId: string; startsOn: string; endsOn: string; reason?: string | null },
+  input: { memberId: string; startsOn: string; endsOn: string; reason?: string | null },
 ): Promise<{ id: string }> {
   if (!ISO.test(input.startsOn) || !ISO.test(input.endsOn)) {
     throw new InvalidInputError("blockout.error.date");
@@ -476,7 +476,7 @@ export async function addBlockout(
     .insert(blockoutDates)
     .values({
       tenantId: actor.tenantId,
-      personId: input.personId,
+      memberId: input.memberId,
       startsOn: input.startsOn,
       endsOn: input.endsOn,
       reason: input.reason?.trim() || null,
@@ -500,12 +500,12 @@ export async function removeBlockout(db: Tx, _actor: WriteActor, id: string): Pr
 
 export async function getServingPreference(
   db: Tx,
-  personId: string,
+  memberId: string,
 ): Promise<ServingFrequency | null> {
   const [row] = await db
     .select({ frequency: servingPreferences.frequency })
     .from(servingPreferences)
-    .where(eq(servingPreferences.personId, personId))
+    .where(eq(servingPreferences.memberId, memberId))
     .limit(1);
   return (row?.frequency as ServingFrequency) ?? null;
 }
@@ -513,10 +513,10 @@ export async function getServingPreference(
 export async function setServingPreference(
   db: Tx,
   actor: WriteActor,
-  input: { personId: string; frequency: ServingFrequency | null },
+  input: { memberId: string; frequency: ServingFrequency | null },
 ): Promise<void> {
   if (input.frequency === null) {
-    await db.delete(servingPreferences).where(eq(servingPreferences.personId, input.personId));
+    await db.delete(servingPreferences).where(eq(servingPreferences.memberId, input.memberId));
     return;
   }
   if (!SERVING_FREQUENCIES.includes(input.frequency)) {
@@ -527,11 +527,11 @@ export async function setServingPreference(
     .insert(servingPreferences)
     .values({
       tenantId: actor.tenantId,
-      personId: input.personId,
+      memberId: input.memberId,
       frequency: input.frequency,
     })
     .onConflictDoUpdate({
-      target: servingPreferences.personId,
+      target: servingPreferences.memberId,
       set: { frequency: input.frequency, updatedAt: new Date() },
     });
 }
@@ -594,7 +594,7 @@ export async function answerCounts(
  */
 export interface PlanRosterEntry {
   assignmentId: string;
-  personId: string;
+  memberId: string;
   personName: string;
   status: AssignmentStatus;
   overridden: boolean;
@@ -648,24 +648,24 @@ export async function rosterFor(db: Tx, occurrenceId: string): Promise<PlanRoste
       id: servingAssignments.id,
       teamId: servingAssignments.teamId,
       positionId: servingAssignments.positionId,
-      personId: servingAssignments.personId,
+      memberId: servingAssignments.memberId,
       status: servingAssignments.status,
       overridden: servingAssignments.overridden,
       token: servingAssignments.respondToken,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(servingAssignments)
-    .innerJoin(people, eq(people.id, servingAssignments.personId))
+    .innerJoin(members, eq(members.id, servingAssignments.memberId))
     .where(eq(servingAssignments.occurrenceId, occurrenceId))
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   const byPosition = new Map<string, PlanRosterEntry[]>();
   for (const row of assignments) {
     const entry: PlanRosterEntry = {
       assignmentId: row.id,
-      personId: row.personId,
+      memberId: row.memberId,
       personName: displayName(row),
       status: row.status as AssignmentStatus,
       overridden: row.overridden,
@@ -716,14 +716,14 @@ export async function blockoutsFor(
   return db
     .select({
       id: blockoutDates.id,
-      personId: blockoutDates.personId,
+      memberId: blockoutDates.memberId,
       startsOn: sql<string>`${blockoutDates.startsOn}::text`,
       endsOn: sql<string>`${blockoutDates.endsOn}::text`,
       reason: blockoutDates.reason,
     })
     .from(blockoutDates)
     .where(and(
-      inArray(blockoutDates.personId, personIds),
+      inArray(blockoutDates.memberId, personIds),
       lte(blockoutDates.startsOn, window.to),
       gte(blockoutDates.endsOn, window.from),
     ))

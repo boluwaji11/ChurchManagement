@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { pgTable, uuid, text, integer, boolean, date, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { tenants, campuses } from "./tenancy";
-import { people } from "./people";
+import { members } from "./members";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -78,7 +78,7 @@ export const groups = pgTable(
     dayOfWeek: integer("day_of_week"),
     /** 24-hour HH:MM, so it sorts and a timezone never gets involved. */
     startsAt: text("starts_at"),
-    /** When it finishes, because "7:15 to 8:45" is what people need to know. */
+    /** When it finishes, because "7:15 to 8:45" is what members need to know. */
     endsAt: text("ends_at"),
     /**
      * "daily", "weekly", "fortnightly", "monthly", or null where it is
@@ -116,8 +116,8 @@ export const groups = pgTable(
      * R9.2. A picture of the group, in the church bucket.
      *
      * The finder is a wall of cards, and a card with a photograph of eight
-     * people round a table says what a paragraph cannot: this is a real group
-     * of real people and you would not be the only new one. Null is a working
+     * members round a table says what a paragraph cannot: this is a real group
+     * of real members and you would not be the only new one. Null is a working
      * state, and most groups will stay that way.
      */
     photoKey: text("photo_key"),
@@ -167,7 +167,7 @@ export const groupMemberships = pgTable(
     id: pk(),
     tenantId: tenantId(),
     groupId: uuid("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** "leader", "coleader" or "member". */
     role: text("role").notNull().default("member"),
     joinedOn: date("joined_on").notNull(),
@@ -178,12 +178,12 @@ export const groupMemberships = pgTable(
   (t) => [
     index("group_member_tenant_idx").on(t.tenantId),
     index("group_member_group_idx").on(t.tenantId, t.groupId),
-    index("group_member_person_idx").on(t.tenantId, t.personId),
+    index("group_member_person_idx").on(t.tenantId, t.memberId),
     // One live membership a person a group. Somebody who leaves and comes back
     // gets a second row, which is the history worth keeping, so the uniqueness
     // only covers the live one.
     uniqueIndex("group_member_live_unique")
-      .on(t.groupId, t.personId)
+      .on(t.groupId, t.memberId)
       .where(sql`${t.leftOn} is null`),
   ],
 );
@@ -230,14 +230,14 @@ export const groupAttendance = pgTable(
     id: pk(),
     tenantId: tenantId(),
     meetingId: uuid("meeting_id").notNull().references(() => groupMeetings.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     createdAt: created(),
   },
   (t) => [
     index("group_attendance_tenant_idx").on(t.tenantId),
     index("group_attendance_meeting_idx").on(t.tenantId, t.meetingId),
-    index("group_attendance_person_idx").on(t.tenantId, t.personId),
-    uniqueIndex("group_attendance_unique").on(t.meetingId, t.personId),
+    index("group_attendance_person_idx").on(t.tenantId, t.memberId),
+    uniqueIndex("group_attendance_unique").on(t.meetingId, t.memberId),
   ],
 );
 
@@ -255,7 +255,7 @@ export const groupJoinRequests = pgTable(
     id: pk(),
     tenantId: tenantId(),
     groupId: uuid("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** What they said when they asked. Optional, and usually empty. */
     message: text("message"),
     /** "pending", "approved" or "declined". */
@@ -270,10 +270,10 @@ export const groupJoinRequests = pgTable(
   (t) => [
     index("join_request_tenant_idx").on(t.tenantId, t.status),
     index("join_request_group_idx").on(t.tenantId, t.groupId),
-    index("join_request_person_idx").on(t.tenantId, t.personId),
+    index("join_request_person_idx").on(t.tenantId, t.memberId),
     // One open request a person a group. Asking twice is the same asking.
     uniqueIndex("join_request_open_unique")
-      .on(t.groupId, t.personId)
+      .on(t.groupId, t.memberId)
       .where(sql`${t.status} = 'pending'`),
   ],
 );

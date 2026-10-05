@@ -24,13 +24,13 @@ import { addOne, removeOne, leadWithOne } from "./contact-actions";
  */
 export function Contacts({
   church,
-  personId,
+  memberId,
   kind,
   contacts,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   kind: ContactKind;
   contacts: PersonContact[];
   canEdit: boolean;
@@ -85,7 +85,7 @@ export function Contacts({
                 <IconButton
                   label={t("contact.makePrimary")}
                   disabled={pending}
-                  onClick={() => act(() => leadWithOne(one.id, personId, church))}
+                  onClick={() => act(() => leadWithOne(one.id, memberId, church))}
                   className="size-7 min-h-0 [&_svg]:size-3.5"
                 >
                   <Star />
@@ -95,7 +95,7 @@ export function Contacts({
                 <IconButton
                   label={t("contact.remove", { value: one.value })}
                   disabled={pending}
-                  onClick={() => act(() => removeOne(one.id, personId, church))}
+                  onClick={() => act(() => removeOne(one.id, memberId, church))}
                   className="size-7 min-h-0 [&_svg]:size-3.5"
                 >
                   <Trash2 />
@@ -140,7 +140,7 @@ export function Contacts({
             className="h-9 min-h-0 px-3 text-[13px]"
             onClick={() =>
               act(async () => {
-                const result = await addOne({ personId, kind, label, value }, church);
+                const result = await addOne({ memberId, kind, label, value }, church);
                 if (!result.error) {
                   setValue("");
                   setAdding(false);

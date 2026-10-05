@@ -38,7 +38,7 @@ export interface GridPosition {
 }
 
 export interface GridVolunteer {
-  personId: string;
+  memberId: string;
   name: string;
   /** How much they are already doing, or the day they are away. */
   note: string;
@@ -105,7 +105,7 @@ function AddPosition({ church, teamId }: { church: string; teamId: string }) {
 /**
  * R10.3. Filling one slot.
  *
- * The list is this team's own people, with the ones who play this position
+ * The list is this team's own members, with the ones who play this position
  * first, because a leader filling Drums is choosing between drummers.
  */
 function FillSlot({
@@ -133,10 +133,10 @@ function FillSlot({
     });
   };
 
-  const pick = (personId: string) => {
+  const pick = (memberId: string) => {
     startTransition(async () => {
       const result = await schedule(
-        { occurrenceId, teamId, positionId, personId, anyway: true },
+        { occurrenceId, teamId, positionId, memberId, anyway: true },
         church,
       );
       setError(result.error);
@@ -164,7 +164,7 @@ function FillSlot({
       <Combobox
         aria-label={t("serving.fill")}
         options={who.map((one) => ({
-          value: one.personId,
+          value: one.memberId,
           label: one.name,
           keywords: one.plays ? t("serving.fill.plays") : undefined,
         }))}
@@ -232,7 +232,7 @@ export function ScheduleGrid({
 
     startTransition(async () => {
       const result = await schedule(
-        { occurrenceId, teamId: team.id, positionId, personId: who.personId, anyway: false },
+        { occurrenceId, teamId: team.id, positionId, memberId: who.memberId, anyway: false },
         church,
       );
       setError(result.error);
@@ -393,7 +393,7 @@ export function ScheduleGrid({
         </section>
 
         {/* R10.3. Who is on this team, with what they are already doing, so a
-            leader spreads the load rather than asking the same four people. */}
+            leader spreads the load rather than asking the same four members. */}
         <aside className="flex flex-[1_1_240px] flex-col gap-2 rounded-lg border border-line bg-surface p-4 lg:sticky lg:top-[84px]">
           <div className="flex items-baseline justify-between gap-2">
             <span className="min-w-0 truncate font-semibold text-fg">
@@ -409,17 +409,17 @@ export function ScheduleGrid({
           ) : (
             volunteers.map((one) => (
               <div
-                key={one.personId}
+                key={one.memberId}
                 draggable
                 onDragStart={(e) => {
                   setDragging(one);
                   e.dataTransfer.effectAllowed = "copy";
-                  e.dataTransfer.setData("text/plain", one.personId);
+                  e.dataTransfer.setData("text/plain", one.memberId);
                 }}
                 onDragEnd={() => setDragging(null)}
                 className="flex cursor-grab items-center gap-2.5 rounded-md border border-line bg-canvas px-2.5 py-2"
               >
-                <Avatar name={one.name} id={one.personId} className="size-7 text-[11px] font-semibold" />
+                <Avatar name={one.name} id={one.memberId} className="size-7 text-[11px] font-semibold" />
                 <span className="min-w-0 flex-1 leading-4">
                   <span className="block truncate text-[13px] font-medium text-fg">
                     {one.name}

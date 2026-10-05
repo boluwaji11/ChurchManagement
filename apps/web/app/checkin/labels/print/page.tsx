@@ -17,11 +17,11 @@ export default async function LabelsPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; service?: string; people?: string;
+    church?: string; service?: string; members?: string;
     local?: string; printer?: string; test?: string;
   }>;
 }) {
-  const { church, service, people, local, printer, test } = await searchParams;
+  const { church, service, members, local, printer, test } = await searchParams;
 
   // R8.24. A station with no network prints what it wrote down itself.
   if (local) return <LocalLabels printer={printer} />;
@@ -31,7 +31,7 @@ export default async function LabelsPage({
   // R8.11. A test label: the layout on the stock, with nobody's name on it.
   const sample: LabelPair[] = [
     {
-      personId: "sample",
+      memberId: "sample",
       childName: t("labels.sample.name"),
       roomName: t("labels.sample.room"),
       roomHue: "teal",
@@ -43,7 +43,7 @@ export default async function LabelsPage({
     },
   ];
 
-  const personIds = (people ?? "").split(",").filter(Boolean);
+  const personIds = (members ?? "").split(",").filter(Boolean);
   const { labels, layout } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({

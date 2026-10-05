@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { tenants, appUsers } from "./tenancy";
-import { people } from "./people";
+import { members } from "./members";
 import { tenantRole } from "./enums";
 
 /**
@@ -29,7 +29,7 @@ export const invitations = pgTable(
      * signed in to a church that has never heard of them. Set when a church
      * invites a person it already holds.
      */
-    personId: uuid("person_id").references(() => people.id, { onDelete: "set null" }),
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
     invitedByUserId: uuid("invited_by_user_id").references(() => appUsers.id, { onDelete: "set null" }),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     acceptedAt: timestamp("accepted_at", { withTimezone: true }),

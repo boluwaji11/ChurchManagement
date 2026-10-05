@@ -52,7 +52,7 @@ export default async function MemberHomePage({
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const self = await personForUser(tx, session.userId);
-      return (await findGroups(tx, { personId: self })).filter((group) => group.mine);
+      return (await findGroups(tx, { memberId: self })).filter((group) => group.mine);
     },
   );
 

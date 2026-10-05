@@ -58,7 +58,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         : [],
     },
     {
-      title: t("settings.group.people"),
+      title: t("settings.group.members"),
       items: [
         ...(canManageHouseholds(session)
           ? [{ href: "/settings/households", label: t("settings.tab.households") }]

@@ -19,15 +19,15 @@ create extension if not exists pg_trgm with schema extensions;
 grant usage on schema extensions to public;
 
 -- Names, including the preferred name somebody actually goes by.
-create index if not exists people_first_name_trgm
-  on people using gin (lower(first_name) extensions.gin_trgm_ops);
-create index if not exists people_last_name_trgm
-  on people using gin (lower(last_name) extensions.gin_trgm_ops);
-create index if not exists people_preferred_name_trgm
-  on people using gin (lower(coalesce(preferred_name, '')) extensions.gin_trgm_ops);
+create index if not exists members_first_name_trgm
+  on members using gin (lower(first_name) extensions.gin_trgm_ops);
+create index if not exists members_last_name_trgm
+  on members using gin (lower(last_name) extensions.gin_trgm_ops);
+create index if not exists members_preferred_name_trgm
+  on members using gin (lower(coalesce(preferred_name, '')) extensions.gin_trgm_ops);
 -- "sarah bennett" typed in full, which is what people do.
-create index if not exists people_full_name_trgm
-  on people using gin (lower(first_name || ' ' || last_name) extensions.gin_trgm_ops);
+create index if not exists members_full_name_trgm
+  on members using gin (lower(first_name || ' ' || last_name) extensions.gin_trgm_ops);
 
 -- Email addresses, and phone numbers with their punctuation taken out, because
 -- a church holds "(512) 555-0148" and somebody types 5550148.
@@ -46,5 +46,5 @@ create index if not exists address_postal_trgm
   on addresses using gin (lower(coalesce(postal_code, '')) extensions.gin_trgm_ops);
 
 -- The joins the search makes, which are by person and by household.
-create index if not exists address_person_idx on addresses (tenant_id, person_id);
+create index if not exists address_member_idx on addresses (tenant_id, member_id);
 create index if not exists address_household_idx on addresses (tenant_id, household_id);

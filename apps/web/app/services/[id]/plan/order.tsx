@@ -500,7 +500,7 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
   const submit = () => {
     startTransition(async () => {
       const result = await saveNote(
-        { itemId, body, teamId: null, positionId: null, personId: null },
+        { itemId, body, teamId: null, positionId: null, memberId: null },
         church,
       );
       setError(result.error);

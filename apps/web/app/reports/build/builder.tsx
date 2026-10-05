@@ -90,7 +90,7 @@ export function Builder({
 }) {
   const router = useRouter();
 
-  const [spec, setSpec] = React.useState<ReportSpec>(saved?.spec ?? blank("people"));
+  const [spec, setSpec] = React.useState<ReportSpec>(saved?.spec ?? blank("members"));
   const [name, setName] = React.useState(saved?.name ?? "");
   const [answer, setAnswer] = React.useState<PreviewResult | null>(null);
   const [running, setRunning] = React.useState(true);
@@ -140,8 +140,8 @@ export function Builder({
   const groupField = spec.groupBy ? fieldOf(spec.subject, spec.groupBy) : null;
   const measureName = !spec.measure
     ? null
-    : spec.measure.kind === "people"
-      ? t("report.measure.people")
+    : spec.measure.kind === "members"
+      ? t("report.measure.members")
       : spec.measure.kind === "sum" && spec.measure.field
         ? t("report.measure.sum", { field: t(fieldOf(spec.subject, spec.measure.field)!.label as never) })
         : spec.measure.kind === "average" && spec.measure.field
@@ -414,7 +414,7 @@ export function Builder({
               <SelectItem value="rows">
                 {t("report.measure.rows", { rows: t(def.rowLabel as never) })}
               </SelectItem>
-              <SelectItem value="people">{t("report.measure.people")}</SelectItem>
+              <SelectItem value="members">{t("report.measure.members")}</SelectItem>
               {def.fields.filter((one) => one.numeric).map((one) => (
                 <SelectItem key={`sum:${one.key}`} value={`sum:${one.key}`}>
                   {t("report.measure.sum", { field: t(one.label as never) })}

@@ -17,7 +17,7 @@ export const savedReports = pgTable(
     name: text("name").notNull(),
     /** R24.6. The readable part of its address, unique within the church. */
     slug: text("slug").notNull(),
-    /** "people", "attendance" or "followups". */
+    /** "members", "attendance" or "followups". */
     subject: text("subject").notNull(),
     spec: jsonb("spec").notNull().default({}),
     createdByUserId: uuid("created_by_user_id").references(() => appUsers.id, { onDelete: "set null" }),

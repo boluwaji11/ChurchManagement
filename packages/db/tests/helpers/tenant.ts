@@ -20,7 +20,7 @@ export async function dropTenants(...slugs: string[]): Promise<void> {
 /**
  * R1.1. Approved, unless a test is about not being.
  *
- * A church created by the product is provisional and capped at a few people,
+ * A church created by the product is provisional and capped at a few members,
  * which is the point of HRT-115. A test church is one somebody has already
  * looked at, because almost every suite is about something else and would
  * otherwise be writing a test of the cap by accident.

@@ -23,7 +23,7 @@ export interface DemoPerson {
   householdRole?: "head" | "spouse" | "child" | "other";
   tags?: string[];
   milestones?: { kind: string; on: string }[];
-  /** Related people, by "FirstName LastName". Inverses are written for us. */
+  /** Related members, by "FirstName LastName". Inverses are written for us. */
   relationships?: { to: string; kind: string }[];
 }
 

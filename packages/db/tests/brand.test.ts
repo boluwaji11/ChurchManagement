@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { withTenant, closeConnections, type Tx } from "../src/client";
 import { getChurch, updateChurch } from "../src/repo/church";
 import { servingRequestFor } from "../src/repo/respond";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addSpecialService } from "../src/repo/services";
 import { seedTeams, listTeams, getTeam, addToTeam } from "../src/repo/serving";
 import { assign, assignmentsForTeam } from "../src/repo/schedule";
@@ -45,7 +45,7 @@ beforeAll(async () => {
       firstName: "Ada", lastName: "Brand", lifecycleStatus: "member",
     } as never),
   )).id;
-  await run((tx) => addToTeam(tx, as(), { teamId: worship, personId: ada }));
+  await run((tx) => addToTeam(tx, as(), { teamId: worship, memberId: ada }));
 
   const service = (await run((tx) =>
     addSpecialService(tx, as(), { name: "Morning", occursOn: "2031-02-02", startsAt: "10:00" }),
@@ -53,7 +53,7 @@ beforeAll(async () => {
 
   await run((tx) =>
     assign(tx, as(), {
-      occurrenceId: service, teamId: worship, positionId: keys, personId: ada,
+      occurrenceId: service, teamId: worship, positionId: keys, memberId: ada,
     }),
   );
   token = (await run((tx) => assignmentsForTeam(tx, worship, [service])))[0]!.token;

@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, gte, isNull, inArray, or, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { pipelines, pipelineSteps, pipelineEntries, followUps } from "../schema/followups";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { tenants } from "../schema/tenancy";
 import { visitorsBetween, absentPeople, DEFAULT_ABSENCE_THRESHOLD } from "./attendance";
 import { PermissionError, type TenantRole } from "../roles";
@@ -132,7 +132,7 @@ export interface Pipeline {
 
 export interface FollowUp {
   id: string;
-  personId: string;
+  memberId: string;
   /** R24.6. Their readable address, so a card links without exposing an id. */
   personSlug: string;
   personName: string;
@@ -153,7 +153,7 @@ export interface PipelineEntry {
   pipelineKey: string;
   pipelineName: string;
   pipelineHue: string;
-  personId: string;
+  memberId: string;
   personSlug: string;
   personName: string;
   status: string;
@@ -269,7 +269,7 @@ export async function enterPipeline(
   input: {
     pipelineKey?: PipelineKey;
     pipelineId?: string;
-    personId: string;
+    memberId: string;
     on: string;
     reason?: EntryReason;
     assigneeUserId?: string | null;
@@ -294,7 +294,7 @@ export async function enterPipelineAuto(
   input: {
     pipelineKey?: PipelineKey;
     pipelineId?: string;
-    personId: string;
+    memberId: string;
     on: string;
     reason?: EntryReason;
     assigneeUserId?: string | null;
@@ -325,9 +325,9 @@ export async function enterPipelineAuto(
   }
 
   const [person] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(eq(people.id, input.personId))
+    .select({ id: members.id })
+    .from(members)
+    .where(eq(members.id, input.memberId))
     .limit(1);
   if (!person) throw new InvalidInputError("followup.error.person");
 
@@ -338,7 +338,7 @@ export async function enterPipelineAuto(
     .where(
       and(
         eq(pipelineEntries.pipelineId, pipeline.id),
-        eq(pipelineEntries.personId, input.personId),
+        eq(pipelineEntries.memberId, input.memberId),
         eq(pipelineEntries.status, "open"),
       ),
     )
@@ -350,7 +350,7 @@ export async function enterPipelineAuto(
     .values({
       tenantId,
       pipelineId: pipeline.id,
-      personId: input.personId,
+      memberId: input.memberId,
       startedOn,
       reason: input.reason ?? "by_hand",
     })
@@ -368,7 +368,7 @@ export async function enterPipelineAuto(
         tenantId,
         entryId: entry!.id,
         stepId: step.id,
-        personId: input.personId,
+        memberId: input.memberId,
         title: step.name,
         assigneeUserId: input.assigneeUserId ?? pipeline.ownerUserId ?? null,
         dueOn: addDays(startedOn, step.dueDays),
@@ -484,7 +484,7 @@ export async function addTask(
   db: Tx,
   actor: { tenantId: string; role: TenantRole },
   input: {
-    personId: string;
+    memberId: string;
     title: string;
     assigneeUserId?: string | null;
     dueOn?: string | null;
@@ -497,9 +497,9 @@ export async function addTask(
   if (input.dueOn) day(input.dueOn);
 
   const [person] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(eq(people.id, input.personId))
+    .select({ id: members.id })
+    .from(members)
+    .where(eq(members.id, input.memberId))
     .limit(1);
   if (!person) throw new InvalidInputError("followup.error.person");
 
@@ -507,7 +507,7 @@ export async function addTask(
     .insert(followUps)
     .values({
       tenantId: actor.tenantId,
-      personId: input.personId,
+      memberId: input.memberId,
       title,
       assigneeUserId: input.assigneeUserId ?? null,
       dueOn: input.dueOn ?? null,
@@ -521,11 +521,11 @@ async function tasksWhere(db: Tx, where: ReturnType<typeof eq>): Promise<FollowU
   const rows = await db
     .select({
       id: followUps.id,
-      personId: followUps.personId,
-      personSlug: people.slug,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      memberId: followUps.memberId,
+      personSlug: members.slug,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
       title: followUps.title,
       entryId: followUps.entryId,
       assigneeUserId: followUps.assigneeUserId,
@@ -537,7 +537,7 @@ async function tasksWhere(db: Tx, where: ReturnType<typeof eq>): Promise<FollowU
       pipelineHue: pipelines.hue,
     })
     .from(followUps)
-    .innerJoin(people, eq(people.id, followUps.personId))
+    .innerJoin(members, eq(members.id, followUps.memberId))
     .leftJoin(pipelineEntries, eq(pipelineEntries.id, followUps.entryId))
     .leftJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
     .where(where)
@@ -545,7 +545,7 @@ async function tasksWhere(db: Tx, where: ReturnType<typeof eq>): Promise<FollowU
 
   return rows.map((row) => ({
     id: row.id,
-    personId: row.personId,
+    memberId: row.memberId,
     personSlug: row.personSlug,
     personName: called(row),
     title: row.title,
@@ -565,7 +565,7 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
     .select({
       id: pipelineEntries.id,
       pipelineId: pipelineEntries.pipelineId,
-      personId: pipelineEntries.personId,
+      memberId: pipelineEntries.memberId,
       status: pipelineEntries.status,
       reason: pipelineEntries.reason,
       startedOn: sql<string>`${pipelineEntries.startedOn}::text`,
@@ -573,14 +573,14 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
       key: pipelines.key,
       name: pipelines.name,
       hue: pipelines.hue,
-      personSlug: people.slug,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      personSlug: members.slug,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
     .from(pipelineEntries)
     .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
-    .innerJoin(people, eq(people.id, pipelineEntries.personId))
+    .innerJoin(members, eq(members.id, pipelineEntries.memberId))
     .where(where)
     .orderBy(desc(pipelineEntries.startedOn));
   if (rows.length === 0) return [];
@@ -596,7 +596,7 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
     pipelineKey: row.key,
     pipelineName: row.name,
     pipelineHue: row.hue,
-    personId: row.personId,
+    memberId: row.memberId,
     personSlug: row.personSlug,
     personName: called(row),
     status: row.status,
@@ -608,13 +608,13 @@ async function entriesWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Pipel
 }
 
 /** R5.1. Where this person is up to, on their own record. */
-export async function entriesFor(db: Tx, personId: string): Promise<PipelineEntry[]> {
-  return entriesWhere(db, eq(pipelineEntries.personId, personId));
+export async function entriesFor(db: Tx, memberId: string): Promise<PipelineEntry[]> {
+  return entriesWhere(db, eq(pipelineEntries.memberId, memberId));
 }
 
 /** R5.6. Their loose tasks, which belong to no pipeline. */
-export async function tasksFor(db: Tx, personId: string): Promise<FollowUp[]> {
-  return tasksWhere(db, and(eq(followUps.personId, personId), isNull(followUps.entryId)) as never);
+export async function tasksFor(db: Tx, memberId: string): Promise<FollowUp[]> {
+  return tasksWhere(db, and(eq(followUps.memberId, memberId), isNull(followUps.entryId)) as never);
 }
 
 /**
@@ -662,7 +662,7 @@ export interface PipelineCount {
   hue: string;
   open: number;
   overdue: number;
-  /** R5.7. How long the people in it have been there, in days. */
+  /** R5.7. How long the members in it have been there, in days. */
   longestDays: number | null;
 }
 
@@ -671,7 +671,7 @@ export interface PipelineCount {
  *
  * How many are in each pipeline, how long the oldest has been waiting, and how
  * much of it is late. Three numbers, because a pastor looking at this wants to
- * know where the church is dropping people.
+ * know where the church is dropping members.
  */
 export async function pipelineBoard(db: Tx, today: string): Promise<PipelineCount[]> {
   const rows = await db
@@ -777,16 +777,16 @@ export async function peopleNotIn(
 
   return db
     .select({
-      id: people.id,
-      name: sql<string>`coalesce(${people.preferredName}, ${people.firstName}) || ' ' || ${people.lastName}`,
+      id: members.id,
+      name: sql<string>`coalesce(${members.preferredName}, ${members.firstName}) || ' ' || ${members.lastName}`,
     })
-    .from(people)
+    .from(members)
     .where(
       and(
-        isNull(people.archivedAt),
+        isNull(members.archivedAt),
         sql`not exists (
           select 1 from pipeline_entries pe
-           where pe.person_id = ${people.id}
+           where pe.member_id = ${members.id}
              and pe.pipeline_id = ${pipelineId}
              and pe.status = 'open'
         )`,
@@ -794,18 +794,18 @@ export async function peopleNotIn(
         // than finding nobody because the space is in neither column.
         needle
           ? sql`lower(
-              coalesce(${people.preferredName}, ${people.firstName}) || ' ' || ${people.lastName}
+              coalesce(${members.preferredName}, ${members.firstName}) || ' ' || ${members.lastName}
             ) like ${`%${needle}%`}`
           : undefined,
       ),
     )
-    .orderBy(asc(people.lastName), asc(people.firstName))
+    .orderBy(asc(members.lastName), asc(members.firstName))
     .limit(limit);
 }
 
 export async function isInPipeline(
   db: Tx,
-  personId: string,
+  memberId: string,
   key: PipelineKey,
 ): Promise<boolean> {
   const [row] = await db
@@ -814,7 +814,7 @@ export async function isInPipeline(
     .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
     .where(
       and(
-        eq(pipelineEntries.personId, personId),
+        eq(pipelineEntries.memberId, memberId),
         eq(pipelines.key, key),
         eq(pipelineEntries.status, "open"),
       ),
@@ -847,7 +847,7 @@ export interface SweepResult {
 /** Whether this person has been in this pipeline since a given day. */
 async function enteredSince(
   db: Tx,
-  personId: string,
+  memberId: string,
   key: PipelineKey,
   since: string,
 ): Promise<boolean> {
@@ -857,7 +857,7 @@ async function enteredSince(
     .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
     .where(
       and(
-        eq(pipelineEntries.personId, personId),
+        eq(pipelineEntries.memberId, memberId),
         eq(pipelines.key, key),
         sql`${pipelineEntries.startedOn} >= ${since}::date`,
       ),
@@ -886,10 +886,10 @@ export async function sweepFollowUps(
     if (!running.has(key)) continue;
     for (const visitor of await visitorsBetween(db, from, today, visit)) {
       // Their own visit day, so a sweep tomorrow sees the entry and stops.
-      if (await enteredSince(db, visitor.personId, key, visitor.occursOn)) continue;
+      if (await enteredSince(db, visitor.memberId, key, visitor.occursOn)) continue;
       const entered = await enterPipelineAuto(db, tenantId, {
         pipelineKey: key,
-        personId: visitor.personId,
+        memberId: visitor.memberId,
         on: visitor.occursOn,
         reason: key,
       });
@@ -910,10 +910,10 @@ export async function sweepFollowUps(
       // Dated from the last service they were at, so one spell raises one
       // follow-up however long it runs, and coming back then drifting again
       // raises another.
-      if (await enteredSince(db, person.personId, "absent", person.lastSeenOn)) continue;
+      if (await enteredSince(db, person.memberId, "absent", person.lastSeenOn)) continue;
       const entered = await enterPipelineAuto(db, tenantId, {
         pipelineKey: "absent",
-        personId: person.personId,
+        memberId: person.memberId,
         on: today,
         reason: "absent",
       });
@@ -939,14 +939,14 @@ export const MILESTONE_PIPELINES: Record<string, PipelineKey> = {
 export async function pipelineForMilestone(
   db: Tx,
   tenantId: string,
-  input: { personId: string; kind: string; on: string },
+  input: { memberId: string; kind: string; on: string },
 ): Promise<void> {
   const key = MILESTONE_PIPELINES[input.kind];
   if (!key) return;
-  if (await isInPipeline(db, input.personId, key)) return;
+  if (await isInPipeline(db, input.memberId, key)) return;
   await enterPipelineAuto(db, tenantId, {
     pipelineKey: key,
-    personId: input.personId,
+    memberId: input.memberId,
     on: input.on,
     reason: "milestone",
   });
@@ -962,7 +962,7 @@ export async function pipelineForMilestone(
  *
  * Editing the template never touches work in flight. Somebody already in the
  * pipeline keeps the steps that were written out for them, because a church
- * that rewords a step should not lose the three people it is already calling.
+ * that rewords a step should not lose the three members it is already calling.
  */
 export interface StepInput {
   id?: string;
@@ -974,7 +974,7 @@ export interface StepInput {
  * R5.2. A seventh stage, in the church's own words.
  *
  * The six that ship carry keys the code triggers on. One a church writes gets a
- * key of its own that nothing triggers, so it holds the people a church puts in
+ * key of its own that nothing triggers, so it holds the members a church puts in
  * it by hand and nothing else.
  */
 export async function createPipeline(
@@ -1137,7 +1137,7 @@ export async function saveSteps(
   }
 }
 
-/** R5.2. Switching one off. Nobody new enters it; the people in it stay. */
+/** R5.2. Switching one off. Nobody new enters it; the members in it stay. */
 export async function setPipelineArchived(
   db: Tx,
   actor: { tenantId: string; role: TenantRole },

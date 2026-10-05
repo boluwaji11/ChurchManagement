@@ -110,10 +110,10 @@ export function EventEditor({
   const [linking, startLinking] = React.useTransition();
 
   /*
-   * R14.5. Turning registration on asks which form people answer.
+   * R14.5. Turning registration on asks which form members answer.
    *
    * Asked here rather than left on a tab of its own, because the question only
-   * exists the moment somebody says people sign up, and a tab nobody opens is
+   * exists the moment somebody says members sign up, and a tab nobody opens is
    * a question nobody answers. A church with no forms yet is sent to write one.
    */
   const wantsRegistrations = (on: boolean) => {
@@ -207,7 +207,7 @@ export function EventEditor({
     >
       <Working open={busy} label={t("image.uploading")} />
 
-      {/* R14.5. Which form people answer when they register. */}
+      {/* R14.5. Which form members answer when they register. */}
       <Dialog
         open={asking}
         onOpenChange={(next) => {

@@ -11,7 +11,7 @@ import { randomUUID } from "node:crypto";
 import { owner, withTenant, closeConnections } from "../src/client";
 import { createChurch, slugify, RESERVED_SLUGS, membershipsForUser } from "../src/repo/membership";
 import { deleteTenants, deleteTenantsLike, withAuditTriggersOff } from "../src/maintenance";
-import { createPerson, listPeople } from "../src/repo/people";
+import { createPerson, listPeople } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 
 const PREFIX = "hrt32";
@@ -161,7 +161,7 @@ describe("a new church is isolated from the first moment", () => {
     expect(mine).toHaveLength(1);
     expect(mine[0]!.lastName).toBe("Newperson");
 
-    // Riverside has ten people and must not gain an eleventh.
+    // Riverside has ten members and must not gain an eleventh.
     const theirs = await withTenant({ tenantId: riverside, role: "owner" }, (tx) => listPeople(tx));
     expect(theirs.map((p) => p.lastName)).not.toContain("Newperson");
   });
@@ -176,7 +176,7 @@ describe("a new church is isolated from the first moment", () => {
     );
 
     const [row] = await owner()<{ tenant_id: string }[]>`
-      select tenant_id from people where id = ${person.id}`;
+      select tenant_id from members where id = ${person.id}`;
     expect(row!.tenant_id).toBe(church.tenantId);
     expect(row!.tenant_id).not.toBe(riverside);
   });

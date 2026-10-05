@@ -1,7 +1,7 @@
 /**
  * HRT-148. The form builder (R4.1, R4.9).
  *
- * A church writes the questions once and the answers land on people's records.
+ * A church writes the questions once and the answers land on members's records.
  * This is the writing: every kind of question, the headings between them, what
  * is required, and what stops a half-built form being put in front of anybody.
  */

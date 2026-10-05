@@ -3,7 +3,7 @@ import type { Tx } from "../client";
 import { checkinCodes, checkinOfflineEvents, checkinVisits } from "../schema/checkin";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { newCode, CODE_ATTEMPTS } from "./codes";
 import { canCheckIn, checkInFamily, undoCheckIn } from "./checkin";
 import { checkOut, type OverrideKind } from "./checkout";
@@ -12,7 +12,7 @@ import { checkOut, type OverrideKind } from "./checkout";
  * R8.20 to R8.23. A station that lost the network, and what happens after.
  *
  * The design case is two minutes before a service with the wifi down, so the station has
- * to be carrying everything it needs before that happens: the people, the
+ * to be carrying everything it needs before that happens: the members, the
  * rooms, the medical notes, the pickup lists, and a block of security codes
  * nobody else can issue.
  *
@@ -114,7 +114,7 @@ export interface OfflineCheckin {
   kind: "checkin";
   at: string;
   occurrenceId: string;
-  personId: string;
+  memberId: string;
   roomId: string | null;
   child: boolean;
   /** From the station's reserved block. Null for an adult taking a badge. */
@@ -128,7 +128,7 @@ export interface OfflineCheckout {
   kind: "checkout";
   at: string;
   occurrenceId: string;
-  personId: string;
+  memberId: string;
   /** What was read off the guardian's label. */
   code: string;
   collectedBy: string | null;
@@ -151,7 +151,7 @@ export type ConflictKind =
 export interface Conflict {
   eventId: string;
   kind: ConflictKind;
-  personId: string;
+  memberId: string;
   occurrenceId: string;
   /** When the station did it, which is what a volunteer will remember. */
   at: string;
@@ -211,7 +211,7 @@ export async function reconcile(
       out.conflicts.push({
         eventId: event.id,
         kind: conflict,
-        personId: event.personId,
+        memberId: event.memberId,
         occurrenceId: event.occurrenceId,
         at: event.at,
       });
@@ -235,7 +235,7 @@ async function replayCheckin(
     .where(
       and(
         eq(checkinVisits.occurrenceId, event.occurrenceId),
-        eq(checkinVisits.personId, event.personId),
+        eq(checkinVisits.memberId, event.memberId),
       ),
     )
     .limit(1);
@@ -269,7 +269,7 @@ async function replayCheckin(
     userId: input.userId ?? null,
     entries: [
       {
-        personId: event.personId,
+        memberId: event.memberId,
         roomId: event.roomId,
         child: event.child,
         code: event.code,
@@ -294,7 +294,7 @@ async function replayCheckout(
     .where(
       and(
         eq(checkinVisits.occurrenceId, event.occurrenceId),
-        eq(checkinVisits.personId, event.personId),
+        eq(checkinVisits.memberId, event.memberId),
       ),
     )
     .limit(1);
@@ -325,9 +325,9 @@ export async function undoReplayed(
   db: Tx,
   actor: WriteActor,
   occurrenceId: string,
-  personId: string,
+  memberId: string,
 ): Promise<void> {
-  await undoCheckIn(db, actor, occurrenceId, personId);
+  await undoCheckIn(db, actor, occurrenceId, memberId);
 }
 
 /** How many offline events a station has sent, for the supervisor view. */

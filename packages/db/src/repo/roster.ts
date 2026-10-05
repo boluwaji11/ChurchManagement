@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people, householdMemberships, households, contactMethods, relationships } from "../schema/people";
+import { members, householdMemberships, households, contactMethods, relationships } from "../schema/members";
 import { ageInMonths } from "./age";
 import type { Matchable } from "./match";
 import { CHILD_UNDER_YEARS } from "./lookup";
@@ -35,7 +35,7 @@ export interface Roster {
   /** When it was pulled, so the station can say how old what it holds is. */
   takenAt: string;
   asOf: string;
-  people: RosterPerson[];
+  members: RosterPerson[];
   /** R8.8. Who may collect each child, by child. */
   pickup: Record<string, RosterPickup[]>;
 }
@@ -43,35 +43,35 @@ export interface Roster {
 export async function stationRoster(db: Tx, opts: { asOf: string }): Promise<Roster> {
   const rows = await db
     .select({
-      id: people.id,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      dateOfBirth: sql<string | null>`${people.dateOfBirth}::text`,
-      allergies: people.allergies,
-      medicalNote: people.medicalNote,
+      id: members.id,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      dateOfBirth: sql<string | null>`${members.dateOfBirth}::text`,
+      allergies: members.allergies,
+      medicalNote: members.medicalNote,
       householdId: householdMemberships.householdId,
       householdName: households.name,
       role: householdMemberships.role,
     })
-    .from(people)
+    .from(members)
     .leftJoin(
       householdMemberships,
-      and(eq(householdMemberships.personId, people.id), isNull(householdMemberships.endedOn)),
+      and(eq(householdMemberships.memberId, members.id), isNull(householdMemberships.endedOn)),
     )
     .leftJoin(households, eq(households.id, householdMemberships.householdId))
-    .where(isNull(people.archivedAt));
+    .where(isNull(members.archivedAt));
 
   const phones = await db
-    .select({ personId: contactMethods.personId, value: contactMethods.value })
+    .select({ memberId: contactMethods.memberId, value: contactMethods.value })
     .from(contactMethods)
     .where(eq(contactMethods.kind, "phone"));
 
   const byPerson = new Map<string, string[]>();
   for (const row of phones) {
-    const list = byPerson.get(row.personId) ?? [];
+    const list = byPerson.get(row.memberId) ?? [];
     list.push(row.value);
-    byPerson.set(row.personId, list);
+    byPerson.set(row.memberId, list);
   }
 
   const roster: RosterPerson[] = rows.map((r) => {
@@ -97,7 +97,7 @@ export async function stationRoster(db: Tx, opts: { asOf: string }): Promise<Ros
   return {
     takenAt: new Date().toISOString(),
     asOf: opts.asOf,
-    people: roster,
+    members: roster,
     pickup: await pickupLists(db, roster),
   };
 }
@@ -119,20 +119,20 @@ async function pickupLists(
   const childIds = children.map((c) => c.id);
   const named = await db
     .select({
-      childId: relationships.personId,
-      personId: relationships.relatedPersonId,
+      childId: relationships.memberId,
+      memberId: relationships.relatedMemberId,
       kind: relationships.kind,
     })
     .from(relationships)
     .where(
       and(
-        inArray(relationships.personId, childIds),
+        inArray(relationships.memberId, childIds),
         inArray(relationships.kind, ["guardian", "emergency_contact"]),
       ),
     );
 
   const restrictions = await db
-    .select({ a: relationships.personId, b: relationships.relatedPersonId })
+    .select({ a: relationships.memberId, b: relationships.relatedMemberId })
     .from(relationships)
     .where(eq(relationships.kind, "do_not_contact"));
 
@@ -153,7 +153,7 @@ async function pickupLists(
       }
     }
     for (const row of named) {
-      if (row.childId === child.id) basis.set(row.personId, row.kind);
+      if (row.childId === child.id) basis.set(row.memberId, row.kind);
     }
     if (basis.size === 0) continue;
 

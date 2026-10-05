@@ -114,7 +114,7 @@ export default async function CelebrationsPage({
         href={`/members?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
-        <ArrowLeft className="size-4" /> {t("people.title")}
+        <ArrowLeft className="size-4" /> {t("members.title")}
       </Link>
 
       {/* The month either side of a 28px heading, and the one thing a church
@@ -219,7 +219,7 @@ export default async function CelebrationsPage({
               celebrations
                 .filter((c) => c.on === day)
                 .map((c, index) => (
-                  <tr key={`${c.kind}-${c.personId}`}>
+                  <tr key={`${c.kind}-${c.memberId}`}>
                     <td className="whitespace-nowrap border-b border-sunken px-4 py-2.5 text-fg-muted">
                       {index === 0 ? shortDate(day) : null}
                     </td>

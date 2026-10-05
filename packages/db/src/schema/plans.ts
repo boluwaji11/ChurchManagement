@@ -4,7 +4,7 @@ import {
 import { tenants, storedFiles } from "./tenancy";
 import { serviceOccurrences } from "./gatherings";
 import { teams, teamPositions } from "./serving";
-import { people } from "./people";
+import { members } from "./members";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -107,7 +107,7 @@ export const planItemNotes = pgTable(
     body: text("body").notNull(),
     teamId: uuid("team_id").references(() => teams.id, { onDelete: "cascade" }),
     positionId: uuid("position_id").references(() => teamPositions.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "cascade" }),
     createdAt: created(),
     updatedAt: updated(),
   },

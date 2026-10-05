@@ -14,7 +14,7 @@ import {
 import { looksLikeCode } from "../src/repo/codes";
 import { addRoom } from "../src/repo/rooms";
 import { addSpecialService, setOccurrenceCancelled } from "../src/repo/services";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { attendanceForPerson } from "../src/repo/attendance";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -68,9 +68,9 @@ describe("one press for the family", () => {
     const visits = await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
       entries: [
-        { personId: mia, roomId: nursery, child: true },
-        { personId: danny, roomId: kids, child: true },
-        { personId: elena, roomId: null, child: false },
+        { memberId: mia, roomId: nursery, child: true },
+        { memberId: danny, roomId: kids, child: true },
+        { memberId: elena, roomId: null, child: false },
       ],
     }));
 
@@ -91,14 +91,14 @@ describe("one press for the family", () => {
 
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
-      entries: [{ personId: mia, roomId: kids }],
+      entries: [{ memberId: mia, roomId: kids }],
     }));
 
     const after = await run((tx) => visitsFor(tx, service));
     expect(after.length).toBe(before.length);
     // The room they were sent to first stands, rather than a second press
     // silently moving a child somebody has already been told where to find.
-    expect(after.find((v) => v.personId === mia)!.roomName).toBe("Nursery");
+    expect(after.find((v) => v.memberId === mia)!.roomName).toBe("Nursery");
   });
 
   it("counts who is in each room", async () => {
@@ -113,7 +113,7 @@ describe("undoing one", () => {
     await run((tx) => undoCheckIn(tx, as(), service, elena));
 
     const visits = await run((tx) => visitsFor(tx, service));
-    expect(visits.some((v) => v.personId === elena)).toBe(false);
+    expect(visits.some((v) => v.memberId === elena)).toBe(false);
 
     const rows = await run((tx) => attendanceForPerson(tx, elena));
     expect(rows.some((r) => r.occurrenceId === service)).toBe(false);
@@ -122,7 +122,7 @@ describe("undoing one", () => {
   it("refuses for a child who has already been collected", async () => {
     await owner()`
       update checkin_visits set checked_out_at = now()
-      where occurrence_id = ${service} and person_id = ${danny}`;
+      where occurrence_id = ${service} and member_id = ${danny}`;
 
     await expect(run((tx) => undoCheckIn(tx, as(), service, danny)))
       .rejects.toBeInstanceOf(InvalidInputError);
@@ -138,7 +138,7 @@ describe("what it refuses", () => {
 
     await expect(
       run((tx) => checkInFamily(tx, as(), {
-        occurrenceId: other.id, entries: [{ personId: mia, roomId: nursery }],
+        occurrenceId: other.id, entries: [{ memberId: mia, roomId: nursery }],
       })),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
@@ -147,7 +147,7 @@ describe("what it refuses", () => {
     await expect(
       run((tx) => checkInFamily(tx, as(), {
         occurrenceId: "00000000-0000-0000-0000-000000000000",
-        entries: [{ personId: mia, roomId: nursery }],
+        entries: [{ memberId: mia, roomId: nursery }],
       })),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
@@ -166,7 +166,7 @@ describe("who may run a station", () => {
     for (const role of ["member", "finance"] as TenantRole[]) {
       await expect(
         run((tx) => checkInFamily(tx, as(role), {
-          occurrenceId: service, entries: [{ personId: mia, roomId: nursery }],
+          occurrenceId: service, entries: [{ memberId: mia, roomId: nursery }],
         }), role),
       ).rejects.toBeInstanceOf(PermissionError);
     }
@@ -221,7 +221,7 @@ describe("the label pair (R8.6, R8.11)", () => {
     // She was taken back out by the undo test above, so she is checked in again.
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
-      entries: [{ personId: elena, roomId: null, child: false }],
+      entries: [{ memberId: elena, roomId: null, child: false }],
     }));
 
     const [label] = await run((tx) => labelsFor(tx, service, [elena], "Check-in Test Church"));
@@ -231,14 +231,14 @@ describe("the label pair (R8.6, R8.11)", () => {
   });
 
   it("keeps the code a child already has when the desk presses again", async () => {
-    const before = (await run((tx) => visitsFor(tx, service))).find((v) => v.personId === mia);
+    const before = (await run((tx) => visitsFor(tx, service))).find((v) => v.memberId === mia);
 
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
-      entries: [{ personId: mia, roomId: nursery, child: true }],
+      entries: [{ memberId: mia, roomId: nursery, child: true }],
     }));
 
-    const after = (await run((tx) => visitsFor(tx, service))).find((v) => v.personId === mia);
+    const after = (await run((tx) => visitsFor(tx, service))).find((v) => v.memberId === mia);
     // Two codes for one child is two labels that do not match each other.
     expect(after!.code).toBe(before!.code);
   });
@@ -247,7 +247,7 @@ describe("the label pair (R8.6, R8.11)", () => {
 describe("allergies (R8.10)", () => {
   it("prints what the room has to know on the child's label", async () => {
     await owner()`
-      update people set allergies = 'Peanuts' where id = ${mia}`;
+      update members set allergies = 'Peanuts' where id = ${mia}`;
 
     const [label] = await run((tx) => labelsFor(tx, service, [mia], "Check-in Test Church"));
     expect(label!.allergy).toBe("Peanuts");
@@ -282,7 +282,7 @@ describe("the bag label (R8.12)", () => {
   it("is printed for the child the desk ticked", async () => {
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
-      entries: [{ personId: bagKid, roomId: kids, child: true, bagLabel: true }],
+      entries: [{ memberId: bagKid, roomId: kids, child: true, bagLabel: true }],
     }));
 
     const [label] = await run((tx) => labelsFor(tx, service, [bagKid], "Check-in Test Church"));
@@ -304,7 +304,7 @@ describe("the bag label (R8.12)", () => {
     // Asked for anyway, which is what a mis-wired client would do.
     await run((tx) => checkInFamily(tx, as(), {
       occurrenceId: service,
-      entries: [{ personId: adult, roomId: null, child: false, bagLabel: true }],
+      entries: [{ memberId: adult, roomId: null, child: false, bagLabel: true }],
     }));
 
     const [label] = await run((tx) => labelsFor(tx, service, [adult], "Check-in Test Church"));

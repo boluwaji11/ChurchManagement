@@ -182,7 +182,7 @@ export async function shiftQuestion(
  * submissions that landed nowhere are touched.
  *
  * Permission is checked here and the pass itself runs on the owner connection,
- * because it writes people records on behalf of a form rather than on behalf of
+ * because it writes members records on behalf of a form rather than on behalf of
  * the person pressing the button, which is the same path a public submission
  * takes.
  */

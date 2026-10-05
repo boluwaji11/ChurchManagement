@@ -1,15 +1,15 @@
 /**
- * HRT-40 and HRT-41. Finding people, and acting on a selection (R2.12).
+ * HRT-40 and HRT-41. Finding members, and acting on a selection (R2.12).
  *
  * Searching and filtering happen in Postgres rather than in the page, so the
- * answer is the same at fifty people and at five thousand, and so a filtered
+ * answer is the same at fifty members and at five thousand, and so a filtered
  * export exports what the filter says rather than what one page of it said.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { listPeople, countPeople, createPerson, bulkSetArchived, bulkSetStatus } from "../src/repo/people";
+import { listPeople, countPeople, createPerson, bulkSetArchived, bulkSetStatus } from "../src/repo/members";
 import { createTag, bulkSetPersonTag, setPersonTag } from "../src/repo/tags";
-import { listTagsForPerson } from "../src/repo/people";
+import { listTagsForPerson } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 
 let riverside: string;
@@ -48,7 +48,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await owner()`delete from people where last_name = ${SUR}`;
+  await owner()`delete from members where last_name = ${SUR}`;
   await owner()`delete from tags where name like ${"Directorytest%"}`;
   await closeConnections();
 });
@@ -196,7 +196,7 @@ describe("acting on a selection (R2.12)", () => {
 
   it("reports the truth when ids belong to another church", async () => {
     const [foreign] = await owner()<{ id: string; lifecycle_status: string; updated_at: Date }[]>`
-      select id, lifecycle_status, updated_at from people where tenant_id = ${northgate} limit 1`;
+      select id, lifecycle_status, updated_at from members where tenant_id = ${northgate} limit 1`;
 
     const changed = await run(riverside, "owner", (tx) =>
       bulkSetStatus(tx, as(riverside), [ids["Amos"]!, foreign!.id], "deceased"),
@@ -205,7 +205,7 @@ describe("acting on a selection (R2.12)", () => {
     expect(changed).toBe(1);
 
     const [after] = await owner()<{ lifecycle_status: string; updated_at: Date }[]>`
-      select lifecycle_status, updated_at from people where id = ${foreign!.id}`;
+      select lifecycle_status, updated_at from members where id = ${foreign!.id}`;
     expect(after!.lifecycle_status).toBe(foreign!.lifecycle_status);
     expect(after!.updated_at.getTime()).toBe(foreign!.updated_at.getTime());
   });

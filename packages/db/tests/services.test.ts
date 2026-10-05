@@ -268,7 +268,7 @@ describe("headcounts", () => {
     expect(zero.total).toBe(0);
   });
 
-  it("refuses a count that is not a whole number of people", async () => {
+  it("refuses a count that is not a whole number of members", async () => {
     const [row] = await run((tx) => listOccurrences(tx));
     for (const adults of [-1, 2.5]) {
       await expect(

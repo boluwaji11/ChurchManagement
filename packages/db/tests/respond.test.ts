@@ -10,7 +10,7 @@ import { withTenant, closeConnections, type Tx } from "../src/client";
 import { servingRequestFor, answerServingRequest } from "../src/repo/respond";
 import { assign, assignmentsForTeam } from "../src/repo/schedule";
 import { seedTeams, listTeams, getTeam, addToTeam } from "../src/repo/serving";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addSpecialService } from "../src/repo/services";
 import { InvalidInputError } from "../src/errors";
 import type { TenantRole } from "../src/roles";
@@ -35,7 +35,7 @@ beforeAll(async () => {
   const person = (await run((tx) =>
     createPerson(tx, as(), { firstName: "Ada", lastName: "Respondtest" } as never),
   )).id;
-  await run((tx) => addToTeam(tx, as(), { teamId: worship, personId: person }));
+  await run((tx) => addToTeam(tx, as(), { teamId: worship, memberId: person }));
 
   const coming = await run((tx) =>
     addSpecialService(tx, as(), { name: "Morning", occursOn: "2030-05-05", startsAt: "10:00" }),
@@ -46,12 +46,12 @@ beforeAll(async () => {
 
   await run((tx) =>
     assign(tx, as(), {
-      occurrenceId: coming.id, teamId: worship, positionId: keys, personId: person,
+      occurrenceId: coming.id, teamId: worship, positionId: keys, memberId: person,
     }),
   );
   await run((tx) =>
     assign(tx, as(), {
-      occurrenceId: gone.id, teamId: worship, positionId: keys, personId: person,
+      occurrenceId: gone.id, teamId: worship, positionId: keys, memberId: person,
     }),
   );
 

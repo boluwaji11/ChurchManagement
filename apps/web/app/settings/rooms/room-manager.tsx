@@ -317,7 +317,7 @@ export function RoomSheet({
             </div>
           </div>
 
-          {/* R8.14. Every room holds a number of people. The age bands and the
+          {/* R8.14. Every room holds a number of members. The age bands and the
               volunteer ratio are what a children's room adds to that. */}
           {forChildren ? (
             <>

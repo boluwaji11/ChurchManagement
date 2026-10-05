@@ -7,7 +7,7 @@ import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R11.8. Templates, and starting from a plan the church has already run.

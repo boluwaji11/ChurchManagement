@@ -11,7 +11,7 @@ import { withTenant, closeConnections, type Tx } from "../src/client";
 import { assign, unassign, rosterFor, assignmentsForPerson } from "../src/repo/schedule";
 import { answerServingRequest } from "../src/repo/respond";
 import { seedTeams, listTeams, getTeam, addToTeam, setTeamArchived } from "../src/repo/serving";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addSpecialService } from "../src/repo/services";
 import type { TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -48,7 +48,7 @@ beforeAll(async () => {
   ada = (await run((tx) => createPerson(tx, as(), { firstName: "Ada", lastName: "Roster" } as never))).id;
   boma = (await run((tx) => createPerson(tx, as(), { firstName: "Boma", lastName: "Roster" } as never))).id;
   for (const id of [ada, boma]) {
-    await run((tx) => addToTeam(tx, as(), { teamId: worship, personId: id }));
+    await run((tx) => addToTeam(tx, as(), { teamId: worship, memberId: id }));
   }
 });
 
@@ -69,7 +69,7 @@ describe("who serves, on the plan", () => {
 
   it("shows somebody put down, pending, and counts them as filling it", async () => {
     await run((tx) =>
-      assign(tx, as(), { occurrenceId: service, teamId: worship, positionId: keys, personId: ada }),
+      assign(tx, as(), { occurrenceId: service, teamId: worship, positionId: keys, memberId: ada }),
     );
 
     const position = await positionOn("Keys");
@@ -111,7 +111,7 @@ describe("who serves, on the plan", () => {
     for (const id of [ada, boma]) {
       await run((tx) =>
         assign(tx, as(), {
-          occurrenceId: service, teamId: worship, positionId: vocals.id, personId: id,
+          occurrenceId: service, teamId: worship, positionId: vocals.id, memberId: id,
         }),
       );
     }

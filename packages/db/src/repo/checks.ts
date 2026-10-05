@@ -1,6 +1,6 @@
 import { desc, eq, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { backgroundChecks, people } from "../schema/people";
+import { backgroundChecks, members } from "../schema/members";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
@@ -28,7 +28,7 @@ export const canSeeChecks = (role: Who): boolean => can(role, "checkin.checks");
 
 export interface BackgroundCheck {
   id: string;
-  personId: string;
+  memberId: string;
   provider: string | null;
   status: string;
   completedOn: string | null;
@@ -49,7 +49,7 @@ const rows = (db: Tx) =>
   db
     .select({
       id: backgroundChecks.id,
-      personId: backgroundChecks.personId,
+      memberId: backgroundChecks.memberId,
       provider: backgroundChecks.provider,
       status: backgroundChecks.status,
       completedOn: sql<string | null>`${backgroundChecks.completedOn}::text`,
@@ -62,12 +62,12 @@ const rows = (db: Tx) =>
 export async function checksFor(
   db: Tx,
   actor: { role: TenantRole },
-  personId: string,
+  memberId: string,
 ): Promise<CheckStandingView> {
   if (!canSeeChecks(actor.role)) throw new PermissionError(actor.role, "seeChecks");
 
   const found = await rows(db)
-    .where(eq(backgroundChecks.personId, personId))
+    .where(eq(backgroundChecks.memberId, memberId))
     .orderBy(desc(backgroundChecks.completedOn), desc(backgroundChecks.createdAt));
 
   const today = new Date().toISOString().slice(0, 10);
@@ -79,7 +79,7 @@ export async function recordCheck(
   db: Tx,
   actor: { tenantId: string; role: TenantRole; userId?: string | null },
   input: {
-    personId: string;
+    memberId: string;
     provider: string;
     status: CheckResult;
     completedOn?: string | null;
@@ -106,9 +106,9 @@ export async function recordCheck(
   }
 
   const [person] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(eq(people.id, input.personId))
+    .select({ id: members.id })
+    .from(members)
+    .where(eq(members.id, input.memberId))
     .limit(1);
   if (!person) throw new InvalidInputError("error.notFound.person");
 
@@ -116,7 +116,7 @@ export async function recordCheck(
     .insert(backgroundChecks)
     .values({
       tenantId: actor.tenantId,
-      personId: input.personId,
+      memberId: input.memberId,
       provider,
       status: input.status,
       completedOn: input.completedOn ?? null,
@@ -129,7 +129,7 @@ export async function recordCheck(
 }
 
 export interface CheckRow {
-  personId: string;
+  memberId: string;
   name: string;
   standing: CheckStanding;
   expiresOn: string | null;
@@ -150,25 +150,25 @@ export async function checkStandings(
   const found = await rows(db).orderBy(desc(backgroundChecks.completedOn));
   const byPerson = new Map<string, BackgroundCheck[]>();
   for (const row of found) {
-    byPerson.set(row.personId, [...(byPerson.get(row.personId) ?? []), row]);
+    byPerson.set(row.memberId, [...(byPerson.get(row.memberId) ?? []), row]);
   }
   if (byPerson.size === 0) return [];
 
   const named = await db
     .select({
-      id: people.id,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      id: members.id,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
-    .from(people)
-    .where(inArray(people.id, [...byPerson.keys()]));
+    .from(members)
+    .where(inArray(members.id, [...byPerson.keys()]));
 
   return named
     .map((person) => {
       const theirs = byPerson.get(person.id) ?? [];
       return {
-        personId: person.id,
+        memberId: person.id,
         name: `${person.preferredName?.trim() || person.firstName} ${person.lastName}`,
         standing: standing(theirs, today),
         expiresOn: expiresOn(theirs),
@@ -180,9 +180,9 @@ export async function checkStandings(
 /** R10.9. The question the serving schedule will ask, in one place. */
 export async function clearedForChildren(
   db: Tx,
-  personId: string,
+  memberId: string,
   today: string,
 ): Promise<boolean> {
-  const found = await rows(db).where(eq(backgroundChecks.personId, personId));
+  const found = await rows(db).where(eq(backgroundChecks.memberId, memberId));
   return mayServeWithChildren(found, today);
 }

@@ -26,10 +26,10 @@ export async function GET(request: NextRequest) {
 
   // A filtered directory exports what the filter says. The same URL that drew
   // the screen draws the file, so the two cannot disagree about what "these
-  // people" meant.
+  // members" meant.
   if (isFiltered(params)) return exportView(session, params);
 
-  // R19.8. One file on its own, for a church that wants the people list in a
+  // R19.8. One file on its own, for a church that wants the members list in a
   // spreadsheet rather than the whole archive. Joined and named rather than a
   // table dump: the archive is the thing written to be read back in.
   const only = request.nextUrl.searchParams.get("only");
@@ -102,7 +102,7 @@ async function exportTable(
 }
 
 /**
- * The people currently on screen, as one CSV.
+ * The members currently on screen, as one CSV.
  *
  * Not a zip and not every table: somebody filtering the directory and pressing
  * export wants a list they can print, mail merge, or hand to a volunteer. The

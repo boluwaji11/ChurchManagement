@@ -74,10 +74,10 @@ export function SchedulePlan({
     });
   };
 
-  const put = (occurrenceId: string, positionId: string, personId: string, anyway: boolean) => {
+  const put = (occurrenceId: string, positionId: string, memberId: string, anyway: boolean) => {
     startTransition(async () => {
       const result = await schedule(
-        { occurrenceId, teamId, positionId, personId, anyway },
+        { occurrenceId, teamId, positionId, memberId, anyway },
         church,
       );
       setError(result.error);
@@ -170,8 +170,8 @@ export function SchedulePlan({
                       positionName={position.name}
                       occurrenceId={chosen}
                       already={filled.map((e) => e.personName)}
-                      onPick={(personId, anyway) =>
-                        put(chosen, position.id, personId, anyway)}
+                      onPick={(memberId, anyway) =>
+                        put(chosen, position.id, memberId, anyway)}
                     />
                   </span>
                 </div>
@@ -200,10 +200,10 @@ function AddDialog({
   positionName: string;
   occurrenceId: string;
   already: string[];
-  onPick: (personId: string, anyway: boolean) => void;
+  onPick: (memberId: string, anyway: boolean) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [people, setPeople] = React.useState<PlanCandidate[] | null>(null);
+  const [members, setPeople] = React.useState<PlanCandidate[] | null>(null);
 
   React.useEffect(() => {
     if (!open) return;
@@ -235,21 +235,21 @@ function AddDialog({
       </DialogTrigger>
       <DialogContent title={positionName} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-2">
-          {people !== null && people.length === 0 ? (
+          {members !== null && members.length === 0 ? (
             <Empty icon="calendar" title={t("plan.nobody")} />
           ) : null}
 
-          {(people ?? [])
+          {(members ?? [])
             .filter((candidate) => !already.includes(candidate.name))
             .map((candidate) => {
               const warning = warningOf(candidate);
               return (
                 <button
-                  key={candidate.personId}
+                  key={candidate.memberId}
                   type="button"
                   onClick={() => {
                     setOpen(false);
-                    onPick(candidate.personId, warning !== null);
+                    onPick(candidate.memberId, warning !== null);
                   }}
                   className="flex w-full flex-col gap-0.5 rounded-[var(--d-radius-control)] px-3 py-2 text-left hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
                 >

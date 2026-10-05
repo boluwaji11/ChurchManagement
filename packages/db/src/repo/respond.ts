@@ -58,7 +58,7 @@ export async function servingRequestFor(token: string): Promise<ServingRequest |
       so.occurs_on < current_date as "past"
     from serving_assignments a
       join tenants ten on ten.id = a.tenant_id
-      join people p on p.id = a.person_id
+      join members p on p.id = a.member_id
       join teams tm on tm.id = a.team_id
       join team_positions tp on tp.id = a.position_id
       join service_occurrences so on so.id = a.occurrence_id

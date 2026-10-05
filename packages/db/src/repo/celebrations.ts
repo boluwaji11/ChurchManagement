@@ -1,6 +1,6 @@
 import { and, eq, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { milestones, people, relationships } from "../schema/people";
+import { milestones, members, relationships } from "../schema/members";
 
 /**
  * R2.11. Birthdays and anniversaries, for a month or for a week.
@@ -28,7 +28,7 @@ export interface CelebrationWindow {
 
 export interface Celebration {
   kind: CelebrationKind;
-  personId: string;
+  memberId: string;
   /** R24.6. Their readable address, so the list links without an id in it. */
   personSlug: string;
   name: string;
@@ -94,7 +94,7 @@ function withinWindow(column: ReturnType<typeof sql>, window: CelebrationWindow)
     : or(sql`${md} >= ${fromMd}`, sql`${md} <= ${toMd}`);
 
   // A window ending on 28 February of a year with no 29th has to reach the
-  // people born on the 29th, or they appear on no list for three years out of
+  // members born on the 29th, or they appear on no list for three years out of
   // four.
   const feb28 = occurrenceIn(window, "02-28");
   const holdsLeapDay =
@@ -110,28 +110,28 @@ const displayName = (r: { firstName: string; preferredName: string | null; lastN
 async function birthdays(db: Tx, window: CelebrationWindow): Promise<Celebration[]> {
   const rows = await db
     .select({
-      id: people.id,
-      slug: people.slug,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
-      born: sql<string>`${people.dateOfBirth}::text`,
+      id: members.id,
+      slug: members.slug,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
+      born: sql<string>`${members.dateOfBirth}::text`,
     })
-    .from(people)
+    .from(members)
     .where(and(
-      isNotNull(people.dateOfBirth),
-      // R2.13. Archived people leave every list.
-      isNull(people.archivedAt),
+      isNotNull(members.dateOfBirth),
+      // R2.13. Archived members leave every list.
+      isNull(members.archivedAt),
       // A church does not send a birthday card to somebody who has died.
-      ne(people.lifecycleStatus, "deceased"),
-      withinWindow(sql`${people.dateOfBirth}`, window),
+      ne(members.lifecycleStatus, "deceased"),
+      withinWindow(sql`${members.dateOfBirth}`, window),
     ));
 
   return rows.map((r) => {
     const on = occurrenceIn(window, r.born.slice(5));
     return {
       kind: "birthday" as const,
-      personId: r.id,
+      memberId: r.id,
       personSlug: r.slug,
       name: displayName(r),
       on,
@@ -146,67 +146,67 @@ async function birthdays(db: Tx, window: CelebrationWindow): Promise<Celebration
  * Wedding anniversaries, from the marriage milestone.
  *
  * Both spouses carry the milestone where the church recorded it twice, and one
- * anniversary belongs to a couple. So where two people are married to each
+ * anniversary belongs to a couple. So where two members are married to each
  * other and hold the same date, they appear once, together.
  */
 async function anniversaries(db: Tx, window: CelebrationWindow): Promise<Celebration[]> {
   const rows = await db
     .select({
-      personId: milestones.personId,
-      slug: people.slug,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      memberId: milestones.memberId,
+      slug: members.slug,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
       occurredOn: sql<string>`${milestones.occurredOn}::text`,
     })
     .from(milestones)
-    .innerJoin(people, eq(people.id, milestones.personId))
+    .innerJoin(members, eq(members.id, milestones.memberId))
     .where(and(
       eq(milestones.kind, "marriage"),
-      isNull(people.archivedAt),
-      ne(people.lifecycleStatus, "deceased"),
+      isNull(members.archivedAt),
+      ne(members.lifecycleStatus, "deceased"),
       withinWindow(sql`${milestones.occurredOn}`, window),
     ));
 
   if (rows.length === 0) return [];
 
   const spouses = await db
-    .select({ personId: relationships.personId, relatedPersonId: relationships.relatedPersonId })
+    .select({ memberId: relationships.memberId, relatedMemberId: relationships.relatedMemberId })
     .from(relationships)
     .where(eq(relationships.kind, "spouse"));
 
   const married = new Map<string, Set<string>>();
   for (const s of spouses) {
-    for (const [a, b] of [[s.personId, s.relatedPersonId], [s.relatedPersonId, s.personId]]) {
+    for (const [a, b] of [[s.memberId, s.relatedMemberId], [s.relatedMemberId, s.memberId]]) {
       const set = married.get(a!) ?? new Set<string>();
       set.add(b!);
       married.set(a!, set);
     }
   }
 
-  const byPerson = new Map(rows.map((r) => [`${r.personId}:${r.occurredOn}`, r]));
+  const byPerson = new Map(rows.map((r) => [`${r.memberId}:${r.occurredOn}`, r]));
   const paired = new Set<string>();
   const out: Celebration[] = [];
 
   for (const r of rows) {
-    const key = `${r.personId}:${r.occurredOn}`;
+    const key = `${r.memberId}:${r.occurredOn}`;
     if (paired.has(key)) continue;
 
-    const spouse = [...(married.get(r.personId) ?? [])]
+    const spouse = [...(married.get(r.memberId) ?? [])]
       .map((id) => byPerson.get(`${id}:${r.occurredOn}`))
       .find((m) => m !== undefined);
 
-    if (spouse) paired.add(`${spouse.personId}:${r.occurredOn}`);
+    if (spouse) paired.add(`${spouse.memberId}:${r.occurredOn}`);
 
     const on = occurrenceIn(window, r.occurredOn.slice(5));
     out.push({
       kind: "anniversary",
-      personId: r.personId,
+      memberId: r.memberId,
       personSlug: r.slug,
       name: displayName(r),
       on,
       years: Number(on.slice(0, 4)) - Number(r.occurredOn.slice(0, 4)),
-      partnerId: spouse?.personId ?? null,
+      partnerId: spouse?.memberId ?? null,
       partnerName: spouse ? displayName(spouse) : null,
     });
   }

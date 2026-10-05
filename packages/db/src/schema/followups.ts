@@ -3,7 +3,7 @@ import {
   pgTable, uuid, text, integer, date, timestamp, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants, appUsers } from "./tenancy";
-import { people } from "./people";
+import { members } from "./members";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () =>
@@ -72,7 +72,7 @@ export const pipelineSteps = pgTable(
  *
  * One open entry per person per pipeline, so a visitor who comes twice in a
  * fortnight is welcomed once rather than twice. Leaving is recorded with a
- * reason, because "where did the eleven people in this stage go" is the
+ * reason, because "where did the eleven members in this stage go" is the
  * question a pastor asks of this screen.
  */
 export const pipelineEntries = pgTable(
@@ -82,7 +82,7 @@ export const pipelineEntries = pgTable(
     tenantId: tenantId(),
     pipelineId: uuid("pipeline_id").notNull()
       .references(() => pipelines.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** open, done, or left. */
     status: text("status").notNull().default("open"),
     /** What put them here: by_hand, first_visit, second_visit, absent, milestone. */
@@ -96,12 +96,12 @@ export const pipelineEntries = pgTable(
   },
   (t) => [
     index("pipeline_entry_tenant_idx").on(t.tenantId),
-    index("pipeline_entry_person_idx").on(t.tenantId, t.personId),
+    index("pipeline_entry_person_idx").on(t.tenantId, t.memberId),
     index("pipeline_entry_pipeline_idx").on(t.tenantId, t.pipelineId, t.status),
     // One open entry per person per pipeline. A visitor who comes twice in a
     // fortnight is welcomed once.
     uniqueIndex("pipeline_entry_open_unique")
-      .on(t.tenantId, t.pipelineId, t.personId)
+      .on(t.tenantId, t.pipelineId, t.memberId)
       .where(sql`status = 'open'`),
   ],
 );
@@ -121,7 +121,7 @@ export const followUps = pgTable(
     tenantId: tenantId(),
     entryId: uuid("entry_id").references(() => pipelineEntries.id, { onDelete: "cascade" }),
     stepId: uuid("step_id").references(() => pipelineSteps.id, { onDelete: "set null" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     assigneeUserId: uuid("assignee_user_id").references(() => appUsers.id, { onDelete: "set null" }),
     dueOn: date("due_on"),
@@ -135,7 +135,7 @@ export const followUps = pgTable(
   },
   (t) => [
     index("follow_up_tenant_idx").on(t.tenantId),
-    index("follow_up_person_idx").on(t.tenantId, t.personId),
+    index("follow_up_person_idx").on(t.tenantId, t.memberId),
     index("follow_up_entry_idx").on(t.tenantId, t.entryId),
     index("follow_up_queue_idx").on(t.tenantId, t.assigneeUserId, t.doneAt),
   ],

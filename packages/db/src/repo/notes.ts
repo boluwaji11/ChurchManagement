@@ -16,7 +16,7 @@ import { decryptNote, encryptNote } from "../crypto";
  */
 export interface NoteView {
   id: string;
-  personId: string;
+  memberId: string;
   classification: "general" | "confidential";
   authorName: string | null;
   createdAt: Date;
@@ -28,14 +28,14 @@ export interface NoteView {
 
 export async function listNotesForPerson(
   db: Tx,
-  personId: string,
+  memberId: string,
   role: TenantRole,
   actor: { userId?: string; tenantId: string },
 ): Promise<NoteView[]> {
   const rows = await db
     .select({
       id: notes.id,
-      personId: notes.personId,
+      memberId: notes.memberId,
       classification: notes.classification,
       body: notes.body,
       bodyEncrypted: notes.bodyEncrypted,
@@ -44,7 +44,7 @@ export async function listNotesForPerson(
     })
     .from(notes)
     .leftJoin(appUsers, eq(appUsers.id, notes.authorUserId))
-    .where(eq(notes.personId, personId))
+    .where(eq(notes.memberId, memberId))
     .orderBy(desc(notes.createdAt));
 
   const permitted = canReadConfidentialNotes(role);
@@ -53,7 +53,7 @@ export async function listNotesForPerson(
   const views = rows.map((r): NoteView => {
     if (r.classification === "general") {
       return {
-        id: r.id, personId: r.personId, classification: "general",
+        id: r.id, memberId: r.memberId, classification: "general",
         authorName: r.authorName, createdAt: r.createdAt,
         body: r.body ?? "", restricted: false,
       };
@@ -61,13 +61,13 @@ export async function listNotesForPerson(
     if (!permitted) {
       // No body key at all. Metadata only.
       return {
-        id: r.id, personId: r.personId, classification: "confidential",
+        id: r.id, memberId: r.memberId, classification: "confidential",
         authorName: r.authorName, createdAt: r.createdAt, restricted: true,
       };
     }
     readConfidential.push(r.id);
     return {
-      id: r.id, personId: r.personId, classification: "confidential",
+      id: r.id, memberId: r.memberId, classification: "confidential",
       authorName: r.authorName, createdAt: r.createdAt,
       body: r.bodyEncrypted ? decryptNote(r.bodyEncrypted) : "", restricted: false,
     };
@@ -94,7 +94,7 @@ export async function createNote(
   db: Tx,
   input: {
     tenantId: string;
-    personId: string;
+    memberId: string;
     classification: "general" | "confidential";
     body: string;
     authorUserId?: string;
@@ -105,7 +105,7 @@ export async function createNote(
     .insert(notes)
     .values({
       tenantId: input.tenantId,
-      personId: input.personId,
+      memberId: input.memberId,
       classification: input.classification,
       body: encrypted ? null : input.body,
       bodyEncrypted: encrypted ? encryptNote(input.body) : null,
@@ -116,10 +116,10 @@ export async function createNote(
   return row;
 }
 
-export async function countNotes(db: Tx, personId: string, classification: "general" | "confidential") {
+export async function countNotes(db: Tx, memberId: string, classification: "general" | "confidential") {
   const rows = await db
     .select({ id: notes.id })
     .from(notes)
-    .where(and(eq(notes.personId, personId), eq(notes.classification, classification)));
+    .where(and(eq(notes.memberId, memberId), eq(notes.classification, classification)));
   return rows.length;
 }

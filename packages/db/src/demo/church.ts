@@ -5,7 +5,7 @@ import { loadDemoData } from "./load";
 /**
  * R19.7 and R22.1. A demo church, belonging to nobody.
  *
- * The sample people used to be loadable into a real church, which put invented
+ * The sample members used to be loadable into a real church, which put invented
  * records one press from a giving statement. They live in a church of their own
  * now: created on the way in, filled, and thrown away a day later. Nobody can
  * mistake it for their own directory because it is not their directory.
@@ -44,7 +44,7 @@ const suffix = () => Math.random().toString(36).slice(2, 8);
  * Runs as the owner connection rather than through createChurch, because the
  * visitor has no verified email address and never will: an anonymous sign-in is
  * the whole point. The Owner role they get is over a church that holds nothing
- * but invented people and disappears tomorrow.
+ * but invented members and disappears tomorrow.
  */
 const DEMO_NAME = "Grace Community Church";
 
@@ -54,7 +54,7 @@ const DEMO_NAME = "Grace Community Church";
  * Runs as the owner connection rather than through createChurch, because a demo
  * visitor has no verified email address and never will: an anonymous sign-in is
  * the whole point. The Owner role they are given is over a church that holds
- * invented people and disappears tomorrow.
+ * invented members and disappears tomorrow.
  */
 async function buildDemoChurch(): Promise<{ tenantId: string; slug: string }> {
   const slug = `demo-${suffix()}`;
@@ -186,7 +186,7 @@ export async function demoChurchInfo(tenantId: string): Promise<DemoInfo> {
  * Swept on the way in rather than on a schedule, because there is no job runner
  * yet and the moment somebody asks for a demo is a moment we are already paying
  * for a round trip. The audit triggers come off first: deleting a tenant
- * cascades to its people, and the trigger would write rows referencing the
+ * cascades to its members, and the trigger would write rows referencing the
  * tenant being deleted.
  */
 export async function sweepExpiredDemos(): Promise<number> {

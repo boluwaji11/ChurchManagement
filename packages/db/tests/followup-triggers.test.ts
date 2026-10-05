@@ -14,7 +14,7 @@ import {
 } from "../src/repo/followups";
 import { addService, listOccurrences } from "../src/repo/services";
 import { setPresent } from "../src/repo/attendance";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addMilestone } from "../src/repo/milestones";
 import type { TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -155,7 +155,7 @@ describe("three missed in a row (R5.3, R7.6)", () => {
 describe("a milestone (R5.3)", () => {
   it("raises the pipeline that leads to it", async () => {
     await run((tx) =>
-      addMilestone(tx, as(), { personId: dana, kind: "baptism", occurredOn: "2026-03-20" } as never),
+      addMilestone(tx, as(), { memberId: dana, kind: "baptism", occurredOn: "2026-03-20" } as never),
     );
     const entries = await run((tx) => entriesFor(tx, dana));
     expect(entries.map((e) => e.pipelineKey)).toContain("baptism");
@@ -164,7 +164,7 @@ describe("a milestone (R5.3)", () => {
   it("raises nothing for a milestone with no pipeline behind it", async () => {
     const before = (await run((tx) => entriesFor(tx, member))).length;
     await run((tx) =>
-      pipelineForMilestone(tx, tenant, { personId: member, kind: "marriage", on: "2026-03-20" }),
+      pipelineForMilestone(tx, tenant, { memberId: member, kind: "marriage", on: "2026-03-20" }),
     );
     expect((await run((tx) => entriesFor(tx, member))).length).toBe(before);
   });

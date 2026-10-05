@@ -109,15 +109,15 @@ export async function foldTag(data: FormData): Promise<TagResult> {
 /** Applies or removes one tag on one person. */
 export async function togglePersonTag(data: FormData): Promise<TagResult> {
   const slug = field(data, "church") || undefined;
-  const personId = field(data, "personId");
+  const memberId = field(data, "memberId");
   const tagId = field(data, "tagId");
   const on = field(data, "on") === "1";
-  if (!personId || !tagId) return { error: t("error.tagNotApplied") };
+  if (!memberId || !tagId) return { error: t("error.tagNotApplied") };
 
   const { actor, ctx } = await context(slug);
   try {
-    await withTenant(ctx, (tx) => setPersonTag(tx, actor, personId, tagId, on));
-    revalidatePath(`/members/${personId}`);
+    await withTenant(ctx, (tx) => setPersonTag(tx, actor, memberId, tagId, on));
+    revalidatePath(`/members/${memberId}`);
     revalidatePath("/members");
     return {};
   } catch (error) {
@@ -128,19 +128,19 @@ export async function togglePersonTag(data: FormData): Promise<TagResult> {
 /** Creates a tag and puts it on a person, which is how most tags get made. */
 export async function addTagToPerson(data: FormData): Promise<TagResult> {
   const slug = field(data, "church") || undefined;
-  const personId = field(data, "personId");
+  const memberId = field(data, "memberId");
   const name = field(data, "name");
-  if (!personId) return { error: t("error.tagNotApplied") };
+  if (!memberId) return { error: t("error.tagNotApplied") };
   if (!name) return { error: t("error.enterName") };
 
   const { actor, ctx } = await context(slug);
   try {
     const id = await withTenant(ctx, async (tx) => {
       const tag = await createTag(tx, actor, { name });
-      await setPersonTag(tx, actor, personId, tag.id, true);
+      await setPersonTag(tx, actor, memberId, tag.id, true);
       return tag.id;
     });
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     revalidatePath("/members");
     revalidatePath("/tags");
     return { id };

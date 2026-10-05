@@ -16,7 +16,7 @@ import { DEFAULT_LABEL_LAYOUT, type LabelLayout } from "@hearth/db/rules";
  * which is what somebody reads back at the door at 10:45.
  *
  * The code is the largest thing on both, because it is the thing being compared
- * across a counter by two people who have never met.
+ * across a counter by two members who have never met.
  *
  * The shape comes from the station's label stock. A Brother roll and a Dymo
  * roll are different sizes and the Dymo is short enough that the code has to
@@ -66,7 +66,7 @@ export function LabelSheet({
           label.code === null ? (
             /* R8.5. A name badge: who this is, and nothing that claims a child. */
             <Label
-              key={label.personId}
+              key={label.memberId}
               stock={stock}
               name={label.childName}
               code={null}
@@ -76,7 +76,7 @@ export function LabelSheet({
               kind={t("labels.badge")}
             />
           ) : (
-            <React.Fragment key={label.personId}>
+            <React.Fragment key={label.memberId}>
               <Label
                 stock={stock}
                 name={label.childName}

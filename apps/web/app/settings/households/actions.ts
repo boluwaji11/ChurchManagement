@@ -76,12 +76,12 @@ export async function freePeople(
 /** R2.1. Putting somebody into a household from the household's own screen. */
 export async function putIn(
   householdId: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<HouseholdResult> {
   const who = await actor(church);
   try {
-    await withTenant(who, (tx) => addToHousehold(tx, who, householdId, personId));
+    await withTenant(who, (tx) => addToHousehold(tx, who, householdId, memberId));
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -91,13 +91,13 @@ export async function putIn(
 /** R2.1. What somebody is in their household. */
 export async function setRole(
   householdId: string,
-  personId: string,
+  memberId: string,
   role: string,
   church?: string,
 ): Promise<HouseholdResult> {
   const who = await actor(church);
   try {
-    await withTenant(who, (tx) => setHouseholdRole(tx, who, householdId, personId, role));
+    await withTenant(who, (tx) => setHouseholdRole(tx, who, householdId, memberId, role));
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -107,12 +107,12 @@ export async function setRole(
 /** R2.1. Taking somebody out. Their own record is untouched. */
 export async function takeOut(
   householdId: string,
-  personId: string,
+  memberId: string,
   church?: string,
 ): Promise<HouseholdResult> {
   const who = await actor(church);
   try {
-    await withTenant(who, (tx) => removeFromHousehold(tx, who, householdId, personId));
+    await withTenant(who, (tx) => removeFromHousehold(tx, who, householdId, memberId));
     return {};
   } catch (error) {
     return { error: explain(error) };

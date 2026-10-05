@@ -13,7 +13,7 @@ import {
   addToGroup, removeFromGroup, groupRoster, groupsForPerson, groupsLedBy,
   canManageGroups, GROUP_ROLES,
 } from "../src/repo/groups";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { InvalidInputError, NameTakenError } from "../src/errors";
 import { PermissionError, TENANT_ROLES, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -35,7 +35,7 @@ beforeAll(async () => {
   const types = await run((tx) => listGroupTypes(tx));
   smallGroup = types.find((t) => t.name === "Small group")!.id;
 
-  const people = await Promise.all(
+  const members = await Promise.all(
     ["Ruth", "Sam", "Joy"].map((firstName) =>
       run((tx) =>
         createPerson(tx, as(), {
@@ -44,7 +44,7 @@ beforeAll(async () => {
       ),
     ),
   );
-  [ruth, sam, joy] = people.map((p) => p.id) as [string, string, string];
+  [ruth, sam, joy] = members.map((p) => p.id) as [string, string, string];
 });
 
 afterAll(async () => {
@@ -159,10 +159,10 @@ describe("the roster (R9.3, R9.4)", () => {
   });
 
   it("puts the leaders at the top", async () => {
-    await run((tx) => addToGroup(tx, as(), { groupId: group, personId: sam }));
-    await run((tx) => addToGroup(tx, as(), { groupId: group, personId: ruth, role: "leader" }));
+    await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: sam }));
+    await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: ruth, role: "leader" }));
     const roster = await run((tx) => addToGroup(tx, as(), {
-      groupId: group, personId: joy, role: "coleader",
+      groupId: group, memberId: joy, role: "coleader",
     }));
 
     expect(roster.map((m) => m.name)).toEqual([
@@ -178,33 +178,33 @@ describe("the roster (R9.3, R9.4)", () => {
 
   it("joining twice is the same join, with the role moved", async () => {
     const roster = await run((tx) => addToGroup(tx, as(), {
-      groupId: group, personId: sam, role: "coleader",
+      groupId: group, memberId: sam, role: "coleader",
     }));
-    expect(roster.filter((m) => m.personId === sam).length).toBe(1);
-    expect(roster.find((m) => m.personId === sam)!.role).toBe("coleader");
+    expect(roster.filter((m) => m.memberId === sam).length).toBe(1);
+    expect(roster.find((m) => m.memberId === sam)!.role).toBe("coleader");
   });
 
   it("leaving keeps the row, with the day they went", async () => {
     const roster = await run((tx) => removeFromGroup(tx, as(), {
-      groupId: group, personId: sam, leftOn: "2026-09-01",
+      groupId: group, memberId: sam, leftOn: "2026-09-01",
     }));
-    expect(roster.map((m) => m.personId)).not.toContain(sam);
+    expect(roster.map((m) => m.memberId)).not.toContain(sam);
 
     const full = await run((tx) => groupRoster(tx, group, { includePast: true }));
-    const gone = full.find((m) => m.personId === sam)!;
+    const gone = full.find((m) => m.memberId === sam)!;
     expect(gone.leftOn).toBe("2026-09-01");
     expect(gone.joinedOn).not.toBeNull();
   });
 
   it("lets somebody come back, as a second row rather than a rewrite", async () => {
-    await run((tx) => addToGroup(tx, as(), { groupId: group, personId: sam, joinedOn: "2026-09-15" }));
+    await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: sam, joinedOn: "2026-09-15" }));
     const full = await run((tx) => groupRoster(tx, group, { includePast: true }));
-    expect(full.filter((m) => m.personId === sam).length).toBe(2);
+    expect(full.filter((m) => m.memberId === sam).length).toBe(2);
   });
 
   it("refuses somebody who is not on the record", async () => {
     await expect(run((tx) => addToGroup(tx, as(), {
-      groupId: group, personId: "00000000-0000-0000-0000-000000000000",
+      groupId: group, memberId: "00000000-0000-0000-0000-000000000000",
     }))).rejects.toBeInstanceOf(InvalidInputError);
   });
 
@@ -227,7 +227,7 @@ describe("the roster (R9.3, R9.4)", () => {
 describe("archiving (R9.2)", () => {
   it("takes the group off the list and keeps its roster", async () => {
     const group = await run((tx) => createGroup(tx, as(), { name: "Finished course" }));
-    await run((tx) => addToGroup(tx, as(), { groupId: group.id, personId: joy }));
+    await run((tx) => addToGroup(tx, as(), { groupId: group.id, memberId: joy }));
 
     await run((tx) => setGroupArchived(tx, as(), group.id, true));
 
@@ -238,7 +238,7 @@ describe("archiving (R9.2)", () => {
     expect(all.map((g) => g.name)).toContain("Finished course");
 
     const roster = await run((tx) => groupRoster(tx, group.id));
-    expect(roster.map((m) => m.personId)).toContain(joy);
+    expect(roster.map((m) => m.memberId)).toContain(joy);
 
     // And it is not one of the groups the person is shown as being in.
     const theirs = await run((tx) => groupsForPerson(tx, joy));

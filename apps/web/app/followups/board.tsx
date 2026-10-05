@@ -11,7 +11,7 @@ import { addToStage, findPeople } from "./actions";
 
 export interface BoardCard {
   entryId: string;
-  personId: string;
+  memberId: string;
   personSlug: string;
   who: string;
   owner: string;
@@ -171,7 +171,7 @@ function AddToStage({
 }) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const [people, setPeople] = React.useState<{ id: string; name: string }[]>([]);
+  const [members, setPeople] = React.useState<{ id: string; name: string }[]>([]);
   const [saving, startSaving] = React.useTransition();
 
   /*
@@ -210,12 +210,12 @@ function AddToStage({
 
   return (
     <Combobox
-      options={people.map((one) => ({ value: one.id, label: one.name }))}
+      options={members.map((one) => ({ value: one.id, label: one.name }))}
       value=""
-      onChange={(personId) => {
-        if (!personId) return;
+      onChange={(memberId) => {
+        if (!memberId) return;
         startSaving(async () => {
-          const result = await addToStage(pipelineId, personId, position, church);
+          const result = await addToStage(pipelineId, memberId, position, church);
           onError(result.error);
           if (!result.error) {
             setOpen(false);

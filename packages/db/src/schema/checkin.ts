@@ -1,7 +1,7 @@
 import { pgTable, uuid, text, integer, timestamp, boolean, date, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { tenants, campuses, serviceTimes } from "./tenancy";
 import { serviceOccurrences } from "./gatherings";
-import { people } from "./people";
+import { members } from "./members";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const tenantId = () => uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" });
@@ -68,7 +68,7 @@ export const checkinRooms = pgTable(
 );
 
 /**
- * R8.1, R8.2. A station: one device set up to check people in.
+ * R8.1, R8.2. A station: one device set up to check members in.
  *
  * The configuration is the station's rather than the device's, so a church that
  * replaces a broken tablet minutes before a service points the new one at the same
@@ -160,7 +160,7 @@ export const checkinVisits = pgTable(
     id: pk(),
     tenantId: tenantId(),
     occurrenceId: uuid("occurrence_id").notNull().references(() => serviceOccurrences.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** Null for an adult taking a name badge rather than a room. (R8.5) */
     roomId: uuid("room_id").references(() => checkinRooms.id, { onDelete: "set null" }),
     stationId: uuid("station_id").references(() => checkinStations.id, { onDelete: "set null" }),
@@ -187,17 +187,17 @@ export const checkinVisits = pgTable(
     checkedInBy: uuid("checked_in_by"),
     checkedOutAt: timestamp("checked_out_at", { withTimezone: true }),
     /** The person who collected them, where the church holds a record of them. */
-    checkedOutTo: uuid("checked_out_to").references(() => people.id, { onDelete: "set null" }),
+    checkedOutTo: uuid("checked_out_to").references(() => members.id, { onDelete: "set null" }),
     createdAt: created(),
   },
   (t) => [
     index("visit_tenant_idx").on(t.tenantId),
     index("visit_occurrence_idx").on(t.tenantId, t.occurrenceId),
-    index("visit_person_idx").on(t.tenantId, t.personId),
+    index("visit_person_idx").on(t.tenantId, t.memberId),
     index("visit_room_idx").on(t.tenantId, t.roomId),
     // One live visit per person per service. Checking a child in twice is the
     // same child, and two rows would be two codes for one label pair.
-    uniqueIndex("visit_unique").on(t.occurrenceId, t.personId),
+    uniqueIndex("visit_unique").on(t.occurrenceId, t.memberId),
     // R8.6. A code is a church's own and is never handed out twice, which is
     // stronger than the twelve months the requirement asks for and simpler to
     // be sure of. The database is what enforces it, rather than a check that
@@ -231,7 +231,7 @@ export const checkinOverrides = pgTable(
     /** The signed-in user who authorised it. */
     authorisedBy: uuid("authorised_by"),
     /** Who collected the child, where the church holds a record of them. */
-    collectedBy: uuid("collected_by").references(() => people.id, { onDelete: "set null" }),
+    collectedBy: uuid("collected_by").references(() => members.id, { onDelete: "set null" }),
     createdAt: created(),
   },
   (t) => [
@@ -330,7 +330,7 @@ export const incidentReports = pgTable(
     id: pk(),
     tenantId: tenantId(),
     /** The child it happened to. */
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** The class they were in, where they were in one. */
     roomId: uuid("room_id").references(() => checkinRooms.id, { onDelete: "set null" }),
     /** The service it happened at, where it was during one. */
@@ -339,7 +339,7 @@ export const incidentReports = pgTable(
     occurredOn: date("occurred_on").notNull(),
     /**
      * Who was in the room. Free text until serving is built (F10), because a
-     * church that cannot name the people present at all writes nothing down.
+     * church that cannot name the members present at all writes nothing down.
      */
     volunteers: text("volunteers").notNull().default(""),
     /** What happened, in the words of whoever saw it. */
@@ -356,7 +356,7 @@ export const incidentReports = pgTable(
   },
   (t) => [
     index("incident_tenant_idx").on(t.tenantId, t.occurredOn),
-    index("incident_person_idx").on(t.tenantId, t.personId),
+    index("incident_person_idx").on(t.tenantId, t.memberId),
     index("incident_room_idx").on(t.tenantId, t.roomId),
   ],
 );

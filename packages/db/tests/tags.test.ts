@@ -13,7 +13,7 @@ import {
   normaliseTagName,
 } from "../src/repo/tags";
 import { NameTakenError } from "../src/errors";
-import { createPerson, listTagsForPerson } from "../src/repo/people";
+import { createPerson, listTagsForPerson } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
 
 let riverside: string;
@@ -49,7 +49,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await owner()`delete from tags where name like ${P + "%"}`;
-  await owner()`delete from people where last_name = 'Tagperson'`;
+  await owner()`delete from members where last_name = 'Tagperson'`;
   await closeConnections();
 });
 
@@ -111,17 +111,17 @@ describe("applying a tag", () => {
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, true));
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, true));
 
-    let rows = await owner()`select * from person_tags where person_id = ${p.id} and tag_id = ${t.id}`;
+    let rows = await owner()`select * from person_tags where member_id = ${p.id} and tag_id = ${t.id}`;
     expect(rows).toHaveLength(1);
 
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, false));
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, false));
 
-    rows = await owner()`select * from person_tags where person_id = ${p.id} and tag_id = ${t.id}`;
+    rows = await owner()`select * from person_tags where member_id = ${p.id} and tag_id = ${t.id}`;
     expect(rows).toHaveLength(0);
   });
 
-  it("counts the people carrying each tag", async () => {
+  it("counts the members carrying each tag", async () => {
     const t = await tag(riverside, "Counted");
     const actor = as(riverside, "owner");
     for (const name of ["Ben", "Clara", "Dean"]) {
@@ -130,7 +130,7 @@ describe("applying a tag", () => {
     }
 
     const all = await run(riverside, "owner", (tx) => listTagsWithCounts(tx));
-    expect(all.find((x) => x.id === t.id)!.people).toBe(3);
+    expect(all.find((x) => x.id === t.id)!.members).toBe(3);
   });
 
   it("cannot put another church's tag on a person", async () => {
@@ -209,9 +209,9 @@ describe("deleting", () => {
     expect(result.removedFrom).toBe(1);
 
     expect(await owner()`select id from tags where id = ${t.id}`).toHaveLength(0);
-    expect(await owner()`select person_id from person_tags where tag_id = ${t.id}`).toHaveLength(0);
+    expect(await owner()`select member_id from person_tags where tag_id = ${t.id}`).toHaveLength(0);
     // The person is untouched. A tag is a label, not a record.
-    expect(await owner()`select id from people where id = ${p.id}`).toHaveLength(1);
+    expect(await owner()`select id from members where id = ${p.id}`).toHaveLength(1);
   });
 
   it("cannot delete another church's tag", async () => {

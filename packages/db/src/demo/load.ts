@@ -4,8 +4,8 @@ import { demoRecords, serviceTimes } from "../schema/tenancy";
 import { serviceOccurrences } from "../schema/gatherings";
 import { checkinRooms, checkinStations } from "../schema/checkin";
 import { groups } from "../schema/groups";
-import { people, households, tags } from "../schema/people";
-import { createPerson, type WriteActor } from "../repo/people";
+import { members, households, tags } from "../schema/members";
+import { createPerson, type WriteActor } from "../repo/members";
 import { createTag, setPersonTag } from "../repo/tags";
 import { addMilestone, type MilestoneKind } from "../repo/milestones";
 import { addRelationship, type RelationshipKind } from "../repo/relationships";
@@ -20,7 +20,7 @@ import { seedPipelines } from "../repo/followups";
 import { seedTeams, listTeams, getTeam, addToTeam } from "../repo/serving";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import { DEMO_PEOPLE, DEMO_TAGS } from "./people";
+import { DEMO_PEOPLE, DEMO_TAGS } from "./members";
 
 /**
  * R19.7. A demo church, loadable and removable.
@@ -38,7 +38,7 @@ import { DEMO_PEOPLE, DEMO_TAGS } from "./people";
 
 export interface DemoState {
   loaded: boolean;
-  people: number;
+  members: number;
 }
 
 export async function demoState(db: Tx): Promise<DemoState> {
@@ -46,7 +46,7 @@ export async function demoState(db: Tx): Promise<DemoState> {
     .select({ n: sql<string>`count(*) filter (where ${demoRecords.entity} = 'person')` })
     .from(demoRecords);
   const count = Number(row?.n ?? 0);
-  return { loaded: count > 0, people: count };
+  return { loaded: count > 0, members: count };
 }
 
 export async function loadDemoData(db: Tx, actor: WriteActor): Promise<DemoState> {
@@ -114,14 +114,14 @@ export async function loadDemoData(db: Tx, actor: WriteActor): Promise<DemoState
 
     for (const milestone of person.milestones ?? []) {
       await addMilestone(db, actor, {
-        personId: created.id,
+        memberId: created.id,
         kind: milestone.kind as MilestoneKind,
         occurredOn: milestone.on,
       });
     }
   }
 
-  // Relationships last, because both people have to exist first.
+  // Relationships last, because both members have to exist first.
   for (const person of DEMO_PEOPLE) {
     const id = personIds.get(`${person.firstName} ${person.lastName}`);
     if (!id) continue;
@@ -130,8 +130,8 @@ export async function loadDemoData(db: Tx, actor: WriteActor): Promise<DemoState
       if (!other) continue;
       try {
         await addRelationship(db, actor, {
-          personId: id,
-          relatedPersonId: other,
+          memberId: id,
+          relatedMemberId: other,
           kind: relation.kind as RelationshipKind,
         });
       } catch (error) {
@@ -167,7 +167,7 @@ async function loadServices(
   db: Tx,
   actor: WriteActor,
   remember: (entity: string, recordId: string) => Promise<void>,
-  people: string[],
+  members: string[],
 ): Promise<void> {
   const pattern = [
     { name: "First service", dayOfWeek: 0, startsAt: "09:00" },
@@ -197,7 +197,7 @@ async function loadServices(
     if (!midweek) {
       // A different two thirds each week, rather than the same list every
       // time.
-      const present = people.filter((_, i) => (i + index) % 3 !== 0);
+      const present = members.filter((_, i) => (i + index) % 3 !== 0);
       if (present.length) await setPresentMany(db, actor, occurrence.id, present, true);
     }
 
@@ -229,9 +229,9 @@ async function loadServices(
   });
   await remember("station", station.id);
 
-  await loadTodaysService(db, actor, remember, station.id, roomIds, people);
-  await loadGroups(db, actor, remember, people);
-  await loadServing(db, actor, people);
+  await loadTodaysService(db, actor, remember, station.id, roomIds, members);
+  await loadGroups(db, actor, remember, members);
+  await loadServing(db, actor, members);
 }
 
 /**
@@ -256,7 +256,7 @@ async function loadServing(db: Tx, actor: WriteActor, everyone: string[]): Promi
     for (let i = 0; i < 3 && at < everyone.length; i += 1, at += 1) {
       await addToTeam(db, actor, {
         teamId: team.id,
-        personId: everyone[at]!,
+        memberId: everyone[at]!,
         role: i === 0 ? "leader" : "member",
         positionIds: team.positions[i] ? [team.positions[i]!.id] : [],
       });
@@ -265,7 +265,7 @@ async function loadServing(db: Tx, actor: WriteActor, everyone: string[]): Promi
 }
 
 /**
- * R9.1 to R9.4. Two groups, with the people who are in them.
+ * R9.1 to R9.4. Two groups, with the members who are in them.
  *
  * Two rather than ten, because a demo full of groups nobody can read teaches a
  * church less than two they can open and understand.
@@ -303,10 +303,10 @@ async function loadGroups(
   });
   await remember("group", welcome.id);
 
-  for (const [index, personId] of everyone.slice(0, 9).entries()) {
+  for (const [index, memberId] of everyone.slice(0, 9).entries()) {
     await addToGroup(db, actor, {
       groupId: index % 2 === 0 ? tuesday.id : welcome.id,
-      personId,
+      memberId,
       role: index < 2 ? "leader" : "member",
     });
   }
@@ -338,9 +338,9 @@ async function loadTodaysService(
   await remember("occurrence", occurrence.id);
 
   const rows = await db
-    .select({ id: people.id, dateOfBirth: sql<string | null>`${people.dateOfBirth}::text` })
-    .from(people)
-    .where(inArray(people.id, everyone));
+    .select({ id: members.id, dateOfBirth: sql<string | null>`${members.dateOfBirth}::text` })
+    .from(members)
+    .where(inArray(members.id, everyone));
 
   const months = (dob: string | null) => (dob ? ageInMonths(dob, today) : null);
   const children = rows.filter((r) => {
@@ -356,13 +356,13 @@ async function loadTodaysService(
 
   const entries = [
     ...children.slice(0, 8).map((child, i) => ({
-      personId: child.id,
+      memberId: child.id,
       roomId: roomFor(i),
       child: true,
     })),
     // Adults on the attendance, wearing a name badge, in no class.
     ...adults.slice(0, 3).map((adult) => ({
-      personId: adult.id,
+      memberId: adult.id,
       roomId: null,
       child: false,
     })),
@@ -374,7 +374,7 @@ async function loadTodaysService(
 }
 
 export interface DemoRemoval {
-  people: number;
+  members: number;
   households: number;
   tags: number;
 }
@@ -409,7 +409,7 @@ export async function removeDemoData(db: Tx, actor: WriteActor): Promise<DemoRem
   // People first. Their contacts, tags, milestones, relationships and notes go
   // with them through the foreign keys.
   const gonePeople = personIds.length
-    ? await db.delete(people).where(inArray(people.id, personIds)).returning({ id: people.id })
+    ? await db.delete(members).where(inArray(members.id, personIds)).returning({ id: members.id })
     : [];
   const goneTags = tagIds.length
     ? await db.delete(tags).where(inArray(tags.id, tagIds)).returning({ id: tags.id })
@@ -442,7 +442,7 @@ export async function removeDemoData(db: Tx, actor: WriteActor): Promise<DemoRem
   await db.delete(demoRecords);
 
   return {
-    people: gonePeople.length,
+    members: gonePeople.length,
     households: goneHouseholds.length,
     tags: goneTags.length,
   };

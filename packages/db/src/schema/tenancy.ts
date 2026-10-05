@@ -41,7 +41,7 @@ export const tenants = pgTable(
      * R19.7. Set only on a demo church, to the moment it stops existing.
      *
      * A demo is a whole church of its own rather than a mode inside a real one,
-     * because the only safe place for invented people is somewhere nobody could
+     * because the only safe place for invented members is somewhere nobody could
      * mistake for their own records.
      */
     demoExpiresAt: timestamp("demo_expires_at", { withTimezone: true }),
@@ -90,7 +90,7 @@ export const tenants = pgTable(
      *
      * Null means provisional, which is where every new church starts. A
      * provisional church works for the person who made it and is capped: a
-     * small number of people, no join link, no invitations. A real church is
+     * small number of members, no join link, no invitations. A real church is
      * unblocked in an hour, which is what the sixty-minute time-to-value
      * number needs. An abuser gets nothing worth having.
      *

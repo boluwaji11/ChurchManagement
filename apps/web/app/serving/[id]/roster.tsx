@@ -11,7 +11,7 @@ import { addMember, removeMember, findPerson, type PersonHit } from "../actions"
 
 export interface RosterMember {
   id: string;
-  personId: string;
+  memberId: string;
   personSlug: string;
   name: string;
   role: string;
@@ -29,7 +29,7 @@ export interface PositionOption {
  *
  * Adding somebody is the same search the station and the group roster use,
  * because a church has one directory and a worship leader should not have to
- * learn a second way of finding people in it.
+ * learn a second way of finding members in it.
  */
 export function Roster({
   church,
@@ -71,7 +71,7 @@ export function Roster({
     });
   };
 
-  const held = new Set(members.map((one) => one.personId));
+  const held = new Set(members.map((one) => one.memberId));
 
   return (
     <div className="flex flex-col gap-3" aria-busy={pending}>
@@ -82,7 +82,7 @@ export function Roster({
           .filter((one) => !held.has(one.id))
           .map((one) => ({ value: one.id, label: one.name, keywords: one.household ?? undefined }))}
         value=""
-        onChange={(personId) => run(() => addMember(teamId, personId, "member", church))}
+        onChange={(memberId) => run(() => addMember(teamId, memberId, "member", church))}
         placeholder={t("serving.addFromPeople")}
         emptyLabel={t("serving.roster.noMatch")}
         clearLabel={t("date.clear")}
@@ -97,7 +97,7 @@ export function Roster({
           >
             <Avatar
               name={member.name}
-              id={member.personId}
+              id={member.memberId}
               className="size-9 text-[12px] font-semibold"
             />
 
@@ -120,7 +120,7 @@ export function Roster({
               body={t("serving.removeBody")}
               confirmLabel={t("serving.removeAction")}
               disabled={pending}
-              onConfirm={() => run(() => removeMember(teamId, member.personId, church))}
+              onConfirm={() => run(() => removeMember(teamId, member.memberId, church))}
               trigger={
                 <IconButton label={t("serving.remove")} variant="ghost" disabled={pending}>
                   <X />

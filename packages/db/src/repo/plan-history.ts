@@ -10,7 +10,7 @@ import type { Tx } from "../client";
  * disagrees with the first one the day somebody forgets to write to it.
  *
  * Worship leaders change plans the night before a service, and the question
- * on a service morning is which of the eight people with the password did it.
+ * on a service morning is which of the eight members with the password did it.
  */
 
 export type PlanChangeAction = "insert" | "update" | "delete";

@@ -136,7 +136,7 @@ export default function StationPage() {
         </div>
       </Section>
 
-      <Section title="Search, at station size" note="Phone last four digits, name, or a barcode. Returns in under a second at five thousand people.">
+      <Section title="Search, at station size" note="Phone last four digits, name, or a barcode. Returns in under a second at five thousand members.">
         <Station>
           <div className="flex flex-col gap-4 p-[var(--d-gutter)]">
             <label htmlFor="st-search" className="text-[length:var(--d-text-body)] font-semibold">

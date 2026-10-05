@@ -16,9 +16,9 @@ import type { FoundPerson } from "./actions";
  * has written anything down, and a screen that said "no allergies" would be
  * claiming something the church has never actually been told.
  */
-export function warnings(people: FoundPerson[]): string[] {
+export function warnings(members: FoundPerson[]): string[] {
   const out: string[] = [];
-  for (const person of people) {
+  for (const person of members) {
     if (person.allergies) out.push(`${person.name}: ${person.allergies}`);
     if (person.medicalNote) out.push(`${person.name}: ${person.medicalNote}`);
   }
@@ -26,15 +26,15 @@ export function warnings(people: FoundPerson[]): string[] {
 }
 
 export function Allergies({
-  people,
+  members,
   seen,
   onSeen,
 }: {
-  people: FoundPerson[];
+  members: FoundPerson[];
   seen: boolean;
   onSeen: () => void;
 }) {
-  const items = warnings(people);
+  const items = warnings(members);
   if (items.length === 0) return null;
 
   return (

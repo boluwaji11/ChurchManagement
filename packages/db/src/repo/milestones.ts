@@ -1,10 +1,10 @@
 import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
 import type { Tx } from "../client";
-import { milestones, people } from "../schema/people";
+import { milestones, members } from "../schema/members";
 import { pipelineForMilestone } from "./followups";
 import { canEditPeople, PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R2.6. Milestones: dated, with notes.
@@ -24,14 +24,14 @@ export type MilestoneKind = (typeof MILESTONE_KINDS)[number];
 
 export interface MilestoneView {
   id: string;
-  personId: string;
+  memberId: string;
   kind: MilestoneKind;
   occurredOn: string;
   notes: string | null;
 }
 
 export interface MilestoneInput {
-  personId: string;
+  memberId: string;
   kind: MilestoneKind;
   occurredOn: string;
   notes?: string | null;
@@ -43,17 +43,17 @@ export interface MilestoneResult extends MilestoneView {
 }
 
 /** Most recent first, which is the order somebody reads a life in. */
-export async function listMilestones(db: Tx, personId: string): Promise<MilestoneView[]> {
+export async function listMilestones(db: Tx, memberId: string): Promise<MilestoneView[]> {
   const rows = await db
     .select({
       id: milestones.id,
-      personId: milestones.personId,
+      memberId: milestones.memberId,
       kind: milestones.kind,
       occurredOn: milestones.occurredOn,
       notes: milestones.notes,
     })
     .from(milestones)
-    .where(eq(milestones.personId, personId))
+    .where(eq(milestones.memberId, memberId))
     .orderBy(desc(milestones.occurredOn), asc(milestones.kind));
 
   return rows.map((r) => ({ ...r, kind: r.kind as MilestoneKind }));
@@ -69,16 +69,16 @@ export async function listMilestonesByKind(
   const rows = await db
     .select({
       id: milestones.id,
-      personId: milestones.personId,
+      memberId: milestones.memberId,
       kind: milestones.kind,
       occurredOn: milestones.occurredOn,
       notes: milestones.notes,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(milestones)
-    .innerJoin(people, eq(people.id, milestones.personId))
+    .innerJoin(members, eq(members.id, milestones.memberId))
     // Inclusive at both ends, which is what a church means by "baptisms in 2026".
     .where(and(
       eq(milestones.kind, kind),
@@ -90,7 +90,7 @@ export async function listMilestonesByKind(
   return rows
     .map((r) => ({
       id: r.id,
-      personId: r.personId,
+      memberId: r.memberId,
       kind: r.kind as MilestoneKind,
       occurredOn: r.occurredOn,
       notes: r.notes,
@@ -124,9 +124,9 @@ export async function addMilestone(
   if (input.occurredOn > today()) throw new InvalidInputError("milestone.error.future");
 
   const [person] = await db
-    .select({ id: people.id, firstVisitOn: people.firstVisitOn, status: people.lifecycleStatus })
-    .from(people)
-    .where(eq(people.id, input.personId))
+    .select({ id: members.id, firstVisitOn: members.firstVisitOn, status: members.lifecycleStatus })
+    .from(members)
+    .where(eq(members.id, input.memberId))
     .limit(1);
   if (!person) throw new InvalidInputError("error.notFound.person");
 
@@ -134,14 +134,14 @@ export async function addMilestone(
     .insert(milestones)
     .values({
       tenantId: actor.tenantId,
-      personId: input.personId,
+      memberId: input.memberId,
       kind: input.kind,
       occurredOn: input.occurredOn,
       notes: input.notes?.trim() || null,
     })
     .returning({
       id: milestones.id,
-      personId: milestones.personId,
+      memberId: milestones.memberId,
       kind: milestones.kind,
       occurredOn: milestones.occurredOn,
       notes: milestones.notes,
@@ -151,9 +151,9 @@ export async function addMilestone(
 
   if (input.kind === "death" && person.status !== "deceased") {
     await db
-      .update(people)
+      .update(members)
       .set({ lifecycleStatus: "deceased", updatedAt: new Date() })
-      .where(eq(people.id, input.personId));
+      .where(eq(members.id, input.memberId));
     updatedPerson = true;
   }
 
@@ -161,16 +161,16 @@ export async function addMilestone(
   // the person, and this must not undo that correction.
   if (input.kind === "first_visit" && person.firstVisitOn === null) {
     await db
-      .update(people)
+      .update(members)
       .set({ firstVisitOn: input.occurredOn, updatedAt: new Date() })
-      .where(eq(people.id, input.personId));
+      .where(eq(members.id, input.memberId));
     updatedPerson = true;
   }
 
   // R5.3. A baptism or a membership class raises the pipeline that leads to
   // it, because recording one is a church saying it is going to happen.
   await pipelineForMilestone(db, actor.tenantId, {
-    personId: input.personId,
+    memberId: input.memberId,
     kind: input.kind,
     on: input.occurredOn,
   });

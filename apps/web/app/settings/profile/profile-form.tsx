@@ -30,7 +30,7 @@ const DATE_LABELS = () => ({
 });
 
 export interface ProfileValues {
-  personId: string;
+  memberId: string;
   firstName: string;
   lastName: string;
   phone: string;
@@ -191,7 +191,7 @@ export function ProfileForm({
               aria-label={t("profile.photo.add")}
               className="group relative cursor-pointer rounded-full"
             >
-              <Avatar name={display} id={values.personId} className="size-14 text-[18px] font-semibold" />
+              <Avatar name={display} id={values.memberId} className="size-14 text-[18px] font-semibold" />
               <span className="absolute inset-0 grid place-items-center rounded-full bg-fg/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                 <Camera className="size-5 text-surface" aria-hidden />
               </span>

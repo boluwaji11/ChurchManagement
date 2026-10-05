@@ -32,7 +32,7 @@ const ICONS = {
   incident: ShieldAlert,
   station: Tablet,
   tag: Tag,
-  people: Users,
+  members: Users,
 } as const;
 
 export type EmptyIcon = keyof typeof ICONS;

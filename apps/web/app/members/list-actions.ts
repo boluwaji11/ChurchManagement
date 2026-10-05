@@ -23,7 +23,7 @@ async function allowed(church?: string) {
   return session;
 }
 
-/** R1.14. The people on screen right now, kept as a list. */
+/** R1.14. The members on screen right now, kept as a list. */
 export async function saveSelection(data: FormData): Promise<ListResult> {
   try {
     const session = await allowed(field(data, "church") || undefined);
@@ -90,7 +90,7 @@ export async function archiveList(id: string, archived: boolean, church?: string
   }
 }
 
-/** R1.14. Taking people off a list. Their records are untouched. */
+/** R1.14. Taking members off a list. Their records are untouched. */
 export async function takeOffList(data: FormData): Promise<ListResult> {
   try {
     const session = await allowed(field(data, "church") || undefined);

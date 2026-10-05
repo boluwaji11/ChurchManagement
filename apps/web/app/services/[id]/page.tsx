@@ -48,7 +48,7 @@ export default async function RosterPage({
   const { occurrence, roster, visits } = result;
   // R7.5. Counted from the record every time it is asked, rather than a flag
   // written once and wrong the moment somebody corrects a mistake.
-  const visitOf = new Map(visits.map((v) => [v.personId, v.visit]));
+  const visitOf = new Map(visits.map((v) => [v.memberId, v.visit]));
 
   return (
     <AppShell
@@ -88,12 +88,12 @@ export default async function RosterPage({
         church={session.tenantSlug}
         occurrenceId={occurrence.id}
         canEdit={canManageServices(session)}
-        people={roster.map((r) => ({
-          personId: r.personId,
+        members={roster.map((r) => ({
+          memberId: r.memberId,
           name: `${r.preferredName ?? r.firstName} ${r.lastName}`,
           surname: r.lastName,
           present: r.present,
-          visit: visitOf.get(r.personId) ?? 0,
+          visit: visitOf.get(r.memberId) ?? 0,
         }))}
       />
     </AppShell>

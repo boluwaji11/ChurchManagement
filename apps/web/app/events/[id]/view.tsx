@@ -401,7 +401,7 @@ export function EventView({
 
       {showing === "registrations" ? (
         registrations.length === 0 ? (
-          <Empty icon="people" title={t("event.registrations.none")} />
+          <Empty icon="members" title={t("event.registrations.none")} />
         ) : (
           <div className="-mt-2 flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-end gap-0.5">
@@ -446,7 +446,7 @@ export function EventView({
                     >
                       <Td>
                         <span className="flex items-center gap-2">
-                          {one.personId ? (
+                          {one.memberId ? (
                             <Link
                               href={`/members/${one.personSlug}?church=${church}`}
                               className="font-medium text-fg underline-offset-4 hover:underline"

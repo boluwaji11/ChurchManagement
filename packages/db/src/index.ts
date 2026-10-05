@@ -29,7 +29,7 @@ export {
   type DirectoryQuery, type HouseholdCard,
   LIFECYCLE_STATUSES, HOUSEHOLD_ROLES,
   type LifecycleStatus, type HouseholdRole, type PersonInput, type PersonEditValues, type WriteActor,
-} from "./repo/people";
+} from "./repo/members";
 export * from "./repo/reports";
 export * from "./repo/report-spec";
 export * from "./repo/report-compiler";
@@ -104,7 +104,7 @@ export * from "./repo/which-service";
 export * from "./repo/storage";
 export * from "./demo/load";
 export * from "./demo/church";
-export { DEMO_PEOPLE, DEMO_TAGS } from "./demo/people";
+export { DEMO_PEOPLE, DEMO_TAGS } from "./demo/members";
 export { listNotesForPerson, createNote, type NoteView } from "./repo/notes";
 export {
   personTimeline, TIMELINE_LIMIT,

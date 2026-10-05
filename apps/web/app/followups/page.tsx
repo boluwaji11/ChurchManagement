@@ -84,7 +84,7 @@ export default async function FollowUpsPage({
       const next = entry.steps.find((step) => step.doneAt === null);
       return {
         entryId: entry.id,
-        personId: entry.personId,
+        memberId: entry.memberId,
         personSlug: entry.personSlug,
         who: entry.personName,
         owner: next
@@ -99,7 +99,7 @@ export default async function FollowUpsPage({
       };
     })
     // Soonest first down every column, so the top card is the one to answer
-    // next. Anybody with no date sits under the people who have one.
+    // next. Anybody with no date sits under the members who have one.
     .sort((a, b) => (a.dueOn ?? "9999-12-31").localeCompare(b.dueOn ?? "9999-12-31"));
 
   return (

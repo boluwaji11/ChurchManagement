@@ -4,7 +4,7 @@
  * Every authorisation decision in the product comes from this table. A role is
  * a named set of permissions and nothing else, so `canEditPeople` is no longer
  * a list of roles somebody remembered to update: it is a lookup of
- * `people.edit` against whatever set this member's role holds.
+ * `members.edit` against whatever set this member's role holds.
  *
  * The nine built-in roles (R1.4) are rows in the table like any other. They are
  * written here rather than in the database so a fresh church has working
@@ -31,11 +31,11 @@ export type TenantRole = (typeof TENANT_ROLES)[number];
  * to grant.
  */
 export const PERMISSIONS = [
-  // R2.x. The people records.
-  "people.edit",
-  "people.archive",
-  "people.households",
-  "people.notes.confidential",
+  // R2.x. The members records.
+  "members.edit",
+  "members.archive",
+  "members.households",
+  "members.notes.confidential",
 
   // R13.x. Money. The permission exists now so the rule is not invented later.
   "giving.amounts",
@@ -74,7 +74,7 @@ export type Permission = (typeof PERMISSIONS)[number];
  */
 const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
   admin: [
-    "people.edit", "people.archive", "people.households",
+    "members.edit", "members.archive", "members.households",
     "church.manage", "church.fields", "church.tags",
     "checkin.rooms", "checkin.stations", "checkin.run", "checkin.supervise",
     "checkin.incidents", "checkin.checks",
@@ -82,14 +82,14 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
     "teams.manage", "teams.lead",
   ],
   staff: [
-    "people.edit", "people.households",
+    "members.edit", "members.households",
     "checkin.run", "checkin.supervise",
     "followups.manage", "groups.manage", "services.manage", "events.manage",
     "teams.manage", "teams.lead",
   ],
   finance: ["giving.amounts"],
   pastoral: [
-    "people.notes.confidential",
+    "members.notes.confidential",
     "checkin.incidents", "checkin.checks",
     "followups.manage", "groups.manage",
   ],

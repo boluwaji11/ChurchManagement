@@ -30,7 +30,7 @@ export default async function GroupsPage({
   const { groups, types, requests } = await withTenant(actor, async (tx) => {
     const self = await personForUser(tx, session.userId);
     return {
-      groups: await findGroups(tx, { personId: self, manage }),
+      groups: await findGroups(tx, { memberId: self, manage }),
       types: await listGroupTypes(tx),
       requests: await pendingRequests(tx, actor),
     };

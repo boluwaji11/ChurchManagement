@@ -3,7 +3,7 @@
  *
  * The rule being tested throughout is that the preview tells the truth. A
  * preview produced by different logic from the write is a preview that can be
- * wrong, and a preview nobody trusts is worse than none, because people stop
+ * wrong, and a preview nobody trusts is worse than none, because members stop
  * reading it and then import 500 rows blind.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -11,7 +11,7 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { plan, commit, type Plan } from "../src/import/run";
 import { guessMapping } from "../src/import/columns";
 import { readSheet } from "../src/import/csv";
-import { listPeople, getPersonForEdit, createPerson } from "../src/repo/people";
+import { listPeople, getPersonForEdit, createPerson } from "../src/repo/members";
 import { createCustomField, getCustomValues } from "../src/repo/custom-fields";
 import { PermissionError, type TenantRole } from "../src/roles";
 
@@ -35,7 +35,7 @@ async function makePlan(
 ): Promise<Plan> {
   const sheet = readSheet(text);
   return run(tenantId, role, (tx) =>
-    plan(tx, { filename: "people.csv", sheet, mapping: guessMapping(sheet.headers), strategy }),
+    plan(tx, { filename: "members.csv", sheet, mapping: guessMapping(sheet.headers), strategy }),
   );
 }
 
@@ -60,8 +60,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await owner()`delete from import_batches where filename in ('people.csv', 'empty.csv')`;
-  await owner()`delete from people where last_name = ${SUR}`;
+  await owner()`delete from import_batches where filename in ('members.csv', 'empty.csv')`;
+  await owner()`delete from members where last_name = ${SUR}`;
   await owner()`delete from households where name like ${"Importtest%"}`;
   await owner()`delete from custom_fields where label like ${"Importtest%"}`;
   await closeConnections();
@@ -134,7 +134,7 @@ describe("duplicate handling (R19.3)", () => {
 
     expect(result.updated).toBe(1);
     const [row] = await owner()<{ id: string }[]>`
-      select id from people where last_name = ${SUR} and first_name = 'Gail'`;
+      select id from members where last_name = ${SUR} and first_name = 'Gail'`;
     const saved = await run(riverside, "owner", (tx) => getPersonForEdit(tx, row!.id));
     expect(saved!.phone).toBe("(512) 555 0199");
     expect(saved!.dateOfBirth).toBe("1988-03-03");
@@ -143,7 +143,7 @@ describe("duplicate handling (R19.3)", () => {
 
   it("will not overwrite on a merely possible match", async () => {
     await importFile(riverside, csv(`Hal,${SUR},,,,\n`));
-    // Same name, no email, no birthday. That is two people as often as one.
+    // Same name, no email, no birthday. That is two members as often as one.
     const p = await makePlan(riverside, csv(`Hal,${SUR},,,,\n`), "update");
     expect(p.rows[0]!.outcome).toBe("skip");
     expect(p.rows[0]!.reason).toBe("import.skip.unsure");
@@ -154,7 +154,7 @@ describe("duplicate handling (R19.3)", () => {
     const { result } = await importFile(riverside, csv(`Ivy,${SUR},ivy.${SUR}@example.org,,,\n`), "create");
     expect(result.created).toBe(1);
 
-    const rows = await owner()`select id from people where last_name = ${SUR} and first_name = 'Ivy'`;
+    const rows = await owner()`select id from members where last_name = ${SUR} and first_name = 'Ivy'`;
     expect(rows).toHaveLength(2);
   });
 
@@ -214,7 +214,7 @@ describe("what the batch records", () => {
     >`select filename, status, duplicate_strategy, rows_total, rows_created, rows_failed, mapping
         from import_batches where id = ${result.batchId}`;
 
-    expect(batch!.filename).toBe("people.csv");
+    expect(batch!.filename).toBe("members.csv");
     expect(batch!.status).toBe("committed");
     expect(batch!.duplicate_strategy).toBe("skip");
     expect(batch!.rows_total).toBe(2);
@@ -245,14 +245,14 @@ describe("households and custom fields come across", () => {
       `First Name,Last Name,Household,Family Role\nNed,${SUR},Importtest household,Head of Household\n`,
     );
     const [person] = await owner()<{ id: string }[]>`
-      select id from people where last_name = ${SUR} and first_name = 'Ned'`;
+      select id from members where last_name = ${SUR} and first_name = 'Ned'`;
     const saved = await run(riverside, "owner", (tx) => getPersonForEdit(tx, person!.id));
     expect(saved!.householdRole).toBe("head");
 
     const [household] = await owner()<{ name: string }[]>`
       select h.name from households h
       join household_memberships m on m.household_id = h.id
-      where m.person_id = ${person!.id}`;
+      where m.member_id = ${person!.id}`;
     expect(household!.name).toBe("Importtest household");
   });
 
@@ -274,25 +274,25 @@ describe("households and custom fields come across", () => {
     expect(mapping["Importtest allergy"]).toBe(`cf:${field.id}`);
 
     const p = await run(riverside, "owner", (tx) =>
-      plan(tx, { filename: "people.csv", sheet: readSheet(text), mapping, strategy: "skip" }),
+      plan(tx, { filename: "members.csv", sheet: readSheet(text), mapping, strategy: "skip" }),
     );
     await run(riverside, "owner", (tx) => commit(tx, as(riverside), p));
 
     const [person] = await owner()<{ id: string }[]>`
-      select id from people where last_name = ${SUR} and first_name = 'Owen'`;
+      select id from members where last_name = ${SUR} and first_name = 'Owen'`;
     const values = await run(riverside, "owner", (tx) => getCustomValues(tx, "person", person!.id));
     expect(values[field.id]).toBe("Peanuts");
   });
 });
 
 describe("who may import, and into what", () => {
-  it("refuses a role that cannot edit people", async () => {
+  it("refuses a role that cannot edit members", async () => {
     const p = await makePlan(riverside, csv(`Pia,${SUR},,,,\n`), "skip", "pastoral");
     await expect(
       run(riverside, "pastoral", (tx) => commit(tx, as(riverside, "pastoral"), p)),
     ).rejects.toThrow(PermissionError);
 
-    const rows = await owner()`select id from people where last_name = ${SUR} and first_name = 'Pia'`;
+    const rows = await owner()`select id from members where last_name = ${SUR} and first_name = 'Pia'`;
     expect(rows).toHaveLength(0);
   });
 
@@ -301,14 +301,14 @@ describe("who may import, and into what", () => {
     expect(result.created).toBe(1);
 
     const [row] = await owner()<{ tenant_id: string }[]>`
-      select tenant_id from people where last_name = ${SUR} and first_name = 'Quinn'`;
+      select tenant_id from members where last_name = ${SUR} and first_name = 'Quinn'`;
     expect(row!.tenant_id).toBe(northgate);
 
     const here = await run(riverside, "owner", (tx) => listPeople(tx));
     expect(here.map((p) => p.firstName)).not.toContain("Quinn");
   });
 
-  it("does not match against another church's people", async () => {
+  it("does not match against another church's members", async () => {
     // Quinn exists in Northgate. Importing the same person into Riverside must
     // create, not skip, because Riverside cannot see Northgate.
     const p = await makePlan(riverside, csv(`Quinn,${SUR},quinn.${SUR}@example.org,,,\n`), "skip");

@@ -19,10 +19,10 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
 import { groupMemberships, groups, groupTypes } from "../schema/groups";
-import { milestones } from "../schema/people";
-import { people } from "../schema/people";
+import { milestones } from "../schema/members";
+import { members } from "../schema/members";
 import { pipelineEntries, pipelines, followUps } from "../schema/followups";
-import { backgroundChecks } from "../schema/people";
+import { backgroundChecks } from "../schema/members";
 import { type TenantRole } from "../roles";
 import { listNotesForPerson } from "./notes";
 import { canSeeChecks } from "./checks";
@@ -79,7 +79,7 @@ export const TIMELINE_LIMIT = 120;
 export async function personTimeline(
   db: Tx,
   viewer: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
-  personId: string,
+  memberId: string,
   opts: { limit?: number } = {},
 ): Promise<TimelineEntry[]> {
   const limit = opts.limit ?? TIMELINE_LIMIT;
@@ -87,21 +87,21 @@ export async function personTimeline(
 
   const [person] = await db
     .select({
-      createdAt: people.createdAt,
-      archivedAt: people.archivedAt,
-      firstVisitOn: people.firstVisitOn,
-      membershipDate: people.membershipDate,
+      createdAt: members.createdAt,
+      archivedAt: members.archivedAt,
+      firstVisitOn: members.firstVisitOn,
+      membershipDate: members.membershipDate,
     })
-    .from(people)
-    .where(eq(people.id, personId))
+    .from(members)
+    .where(eq(members.id, memberId))
     .limit(1);
   if (!person) return [];
 
   // The day the church first wrote them down.
   const added = day(person.createdAt);
-  if (added) out.push({ id: `added:${personId}`, kind: "added", on: added });
+  if (added) out.push({ id: `added:${memberId}`, kind: "added", on: added });
   if (person.archivedAt) {
-    out.push({ id: `archived:${personId}`, kind: "archived", on: day(person.archivedAt)! });
+    out.push({ id: `archived:${memberId}`, kind: "archived", on: day(person.archivedAt)! });
   }
 
   /*
@@ -126,7 +126,7 @@ export async function personTimeline(
     .from(groupMemberships)
     .innerJoin(groups, eq(groups.id, groupMemberships.groupId))
     .leftJoin(groupTypes, eq(groupTypes.id, groups.typeId))
-    .where(eq(groupMemberships.personId, personId))
+    .where(eq(groupMemberships.memberId, memberId))
     .limit(limit);
   for (const row of memberships) {
     if (row.joinedOn) {
@@ -152,7 +152,7 @@ export async function personTimeline(
       note: milestones.notes,
     })
     .from(milestones)
-    .where(eq(milestones.personId, personId))
+    .where(eq(milestones.memberId, memberId))
     .orderBy(desc(milestones.occurredOn))
     .limit(limit);
   for (const row of marks) {
@@ -170,7 +170,7 @@ export async function personTimeline(
   // A note somebody may not read is absent rather than redacted: a redaction
   // still tells the office that a confidential note about this person exists,
   // which is most of what the note says.
-  const written = await listNotesForPerson(db, personId, viewer.role, {
+  const written = await listNotesForPerson(db, memberId, viewer.role, {
     tenantId: viewer.tenantId,
     ...(viewer.userId ? { userId: viewer.userId } : {}),
   });
@@ -196,7 +196,7 @@ export async function personTimeline(
     })
     .from(pipelineEntries)
     .innerJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
-    .where(eq(pipelineEntries.personId, personId))
+    .where(eq(pipelineEntries.memberId, memberId))
     .limit(limit);
   for (const row of entries) {
     out.push({
@@ -221,7 +221,7 @@ export async function personTimeline(
       outcome: followUps.outcome,
     })
     .from(followUps)
-    .where(and(eq(followUps.personId, personId), isNotNull(followUps.doneAt)))
+    .where(and(eq(followUps.memberId, memberId), isNotNull(followUps.doneAt)))
     .orderBy(desc(followUps.doneAt))
     .limit(limit);
   for (const row of done) {
@@ -241,7 +241,7 @@ export async function personTimeline(
         status: backgroundChecks.status,
       })
       .from(backgroundChecks)
-      .where(and(eq(backgroundChecks.personId, personId), isNotNull(backgroundChecks.completedOn)))
+      .where(and(eq(backgroundChecks.memberId, memberId), isNotNull(backgroundChecks.completedOn)))
       .orderBy(desc(backgroundChecks.completedOn))
       .limit(limit);
     for (const row of checks) {

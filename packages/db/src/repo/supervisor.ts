@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { checkinVisits, checkinRooms } from "../schema/checkin";
-import { people, households, householdMemberships } from "../schema/people";
+import { members, households, householdMemberships } from "../schema/members";
 import { InvalidInputError } from "../errors";
 import { canCheckIn } from "./checkin";
 import { PermissionError, type TenantRole } from "../roles";
@@ -128,7 +128,7 @@ export async function roomBoard(db: Tx, occurrenceId: string): Promise<Board> {
 export interface RoomRosterEntry {
   /** R8.7. The visit, so a child can be collected from the class itself. */
   visitId: string;
-  personId: string;
+  memberId: string;
   name: string;
   code: string | null;
   kind: string;
@@ -155,25 +155,25 @@ export async function roomRoster(
   const rows = await db
     .select({
       visitId: checkinVisits.id,
-      personId: checkinVisits.personId,
+      memberId: checkinVisits.memberId,
       code: checkinVisits.code,
       kind: checkinVisits.kind,
       checkedInAt: checkinVisits.checkedInAt,
       checkedOutAt: checkinVisits.checkedOutAt,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      allergies: people.allergies,
-      medicalNote: people.medicalNote,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      allergies: members.allergies,
+      medicalNote: members.medicalNote,
     })
     .from(checkinVisits)
-    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .innerJoin(members, eq(members.id, checkinVisits.memberId))
     .where(and(eq(checkinVisits.occurrenceId, occurrenceId), eq(checkinVisits.roomId, roomId)))
-    .orderBy(asc(people.firstName), asc(people.lastName));
+    .orderBy(asc(members.firstName), asc(members.lastName));
 
   return rows.map((r) => ({
     visitId: r.visitId,
-    personId: r.personId,
+    memberId: r.memberId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     code: r.code,
     kind: r.kind,
@@ -189,20 +189,20 @@ export async function stillHere(db: Tx, occurrenceId: string): Promise<RoomRoste
   const rows = await db
     .select({
       visitId: checkinVisits.id,
-      personId: checkinVisits.personId,
+      memberId: checkinVisits.memberId,
       code: checkinVisits.code,
       kind: checkinVisits.kind,
       checkedInAt: checkinVisits.checkedInAt,
       checkedOutAt: checkinVisits.checkedOutAt,
       roomName: checkinRooms.name,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      allergies: people.allergies,
-      medicalNote: people.medicalNote,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      allergies: members.allergies,
+      medicalNote: members.medicalNote,
     })
     .from(checkinVisits)
-    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .innerJoin(members, eq(members.id, checkinVisits.memberId))
     .leftJoin(checkinRooms, eq(checkinRooms.id, checkinVisits.roomId))
     .where(
       and(
@@ -211,11 +211,11 @@ export async function stillHere(db: Tx, occurrenceId: string): Promise<RoomRoste
         eq(checkinVisits.kind, "child"),
       ),
     )
-    .orderBy(asc(checkinRooms.name), asc(people.firstName));
+    .orderBy(asc(checkinRooms.name), asc(members.firstName));
 
   return rows.map((r) => ({
     visitId: r.visitId,
-    personId: r.personId,
+    memberId: r.memberId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     code: r.code,
     kind: r.kind,
@@ -242,7 +242,7 @@ export async function supervisorBoard(
 
 export interface ArrivingChild {
   visitId: string;
-  personId: string;
+  memberId: string;
   name: string;
   /** Years old, where the church holds a birthday. */
   age: number | null;
@@ -277,21 +277,21 @@ export async function arriving(
   const rows = await db
     .select({
       visitId: checkinVisits.id,
-      personId: checkinVisits.personId,
+      memberId: checkinVisits.memberId,
       code: checkinVisits.code,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      dateOfBirth: people.dateOfBirth,
-      allergies: people.allergies,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      dateOfBirth: members.dateOfBirth,
+      allergies: members.allergies,
       household: households.name,
     })
     .from(checkinVisits)
-    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .innerJoin(members, eq(members.id, checkinVisits.memberId))
     .leftJoin(
       householdMemberships,
       and(
-        eq(householdMemberships.personId, people.id),
+        eq(householdMemberships.memberId, members.id),
         isNull(householdMemberships.endedOn),
       ),
     )
@@ -308,7 +308,7 @@ export async function arriving(
 
   return rows.map((r) => ({
     visitId: r.visitId,
-    personId: r.personId,
+    memberId: r.memberId,
     name: `${r.preferredName?.trim() || r.firstName} ${r.lastName}`,
     age: r.dateOfBirth ? yearsOld(r.dateOfBirth, today) : null,
     household: r.household,
@@ -321,7 +321,7 @@ export async function arriving(
  * R8.14, R8.15. Puts a child in a class, or moves them to another one.
  *
  * The room's capacity is the church's own number and it is enforced here rather
- * than on the screen that asked, because two people walking two children down
+ * than on the screen that asked, because two members walking two children down
  * the corridor are two requests.
  */
 export async function moveToRoom(

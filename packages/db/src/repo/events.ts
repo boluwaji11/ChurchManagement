@@ -2,12 +2,12 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { events, eventRegistrations } from "../schema/events";
 import { forms } from "../schema/forms";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { can, rolesWith, type Who } from "../permissions";
 import type { TenantRole } from "../roles";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 import { formSlug, isUuid } from "./form-rules";
 
 /**
@@ -15,7 +15,7 @@ import { formSlug, isUuid } from "./form-rules";
  *
  * A camp, a picnic, a membership class. An event is a date somebody signs up
  * for, which is what separates it from a service occurrence (the week's rhythm)
- * and from a group (people who meet on a pattern).
+ * and from a group (members who meet on a pattern).
  *
  * The questions asked at registration are an ordinary form, so everything the
  * builder already does, conditions and person matching included, is here with
@@ -65,7 +65,7 @@ export interface ChurchEvent {
   waitlist: boolean;
   formId: string | null;
   campusId: string | null;
-  contactPersonId: string | null;
+  contactMemberId: string | null;
   contactName: string | null;
   archivedAt: string | null;
   /** R14.4. How many have a place, and how many are waiting for one. */
@@ -97,7 +97,7 @@ export interface EventInput {
   showCapacity?: boolean;
   waitlist?: boolean;
   campusId?: string | null;
-  contactPersonId?: string | null;
+  contactMemberId?: string | null;
   /** R14.5. The form answered at registration, chosen when registration is turned on. */
   formId?: string | null;
 }
@@ -181,7 +181,7 @@ function check(input: EventInput) {
     showCapacity: input.showCapacity ?? true,
     waitlist: input.waitlist ?? true,
     campusId: trimmed(input.campusId),
-    contactPersonId: trimmed(input.contactPersonId),
+    contactMemberId: trimmed(input.contactMemberId),
     // An event nobody signs up for asks nothing, so it holds no form either.
     formId: (input.takesRegistrations ?? true) ? trimmed(input.formId) : null,
     ...(hue ? { hue: hue as EventHue } : {}),
@@ -239,11 +239,11 @@ const columns = {
   waitlist: events.waitlist,
   formId: events.formId,
   campusId: events.campusId,
-  contactPersonId: events.contactPersonId,
+  contactMemberId: events.contactMemberId,
   archivedAt: events.archivedAt,
-  contactFirst: people.firstName,
-  contactPreferred: people.preferredName,
-  contactLast: people.lastName,
+  contactFirst: members.firstName,
+  contactPreferred: members.preferredName,
+  contactLast: members.lastName,
   going: countFor("going"),
   waiting: countFor("waiting"),
 };
@@ -278,7 +278,7 @@ const shape = (row: Record<string, unknown>): ChurchEvent => ({
   waitlist: row["waitlist"] as boolean,
   formId: (row["formId"] ?? null) as string | null,
   campusId: (row["campusId"] ?? null) as string | null,
-  contactPersonId: (row["contactPersonId"] ?? null) as string | null,
+  contactMemberId: (row["contactMemberId"] ?? null) as string | null,
   contactName: row["contactFirst"]
     ? `${(row["contactPreferred"] ?? row["contactFirst"]) as string} ${row["contactLast"] as string}`.trim()
     : null,
@@ -321,7 +321,7 @@ export async function listEvents(
   const rows = await db
     .select(columns)
     .from(events)
-    .leftJoin(people, eq(people.id, events.contactPersonId))
+    .leftJoin(members, eq(members.id, events.contactMemberId))
     .where(where.length > 0 ? and(...(where as never[])) : undefined)
     .orderBy(asc(events.startsOn), asc(events.startsAt), asc(events.name));
 
@@ -333,7 +333,7 @@ export async function getEvent(db: Tx, id: string): Promise<ChurchEvent | null> 
   const [row] = await db
     .select(columns)
     .from(events)
-    .leftJoin(people, eq(people.id, events.contactPersonId))
+    .leftJoin(members, eq(members.id, events.contactMemberId))
     .where(isUuid(id) ? eq(events.id, id) : eq(events.slug, id))
     .limit(1);
   return row ? shape(row as Record<string, unknown>) : null;
@@ -384,7 +384,7 @@ export async function updateEvent(
  * R14.1. Publishes an event, or takes it back, or calls it off.
  *
  * A cancelled event keeps its public page and says it is cancelled, because the
- * people who registered will go looking for it and a dead link tells them
+ * members who registered will go looking for it and a dead link tells them
  * nothing.
  */
 export async function setEventStatus(
@@ -586,7 +586,7 @@ export interface EventRegistration {
   trial: boolean;
   /** R14.6. Everybody registered in the same breath shares this. */
   bookingId: string;
-  personId: string | null;
+  memberId: string | null;
   /** R24.6. Their readable address, where the registration matched somebody. */
   personSlug: string | null;
   name: string;
@@ -620,7 +620,7 @@ export async function listRegistrations(
   const rows = await db.execute<{
     id: string;
     bookingId: string;
-    personId: string | null;
+    memberId: string | null;
     personSlug: string | null;
     name: string;
     email: string | null;
@@ -637,7 +637,7 @@ export async function listRegistrations(
   }>(sql`
     select r.id,
            r.booking_id as "bookingId",
-           r.person_id as "personId",
+           r.member_id as "memberId",
            p.slug as "personSlug",
            r.name,
            r.email,
@@ -650,46 +650,46 @@ export async function listRegistrations(
            min(r.created_at) over (partition by r.booking_id) as "firstTaken"
       from event_registrations r
       left join form_submissions s on s.id = r.submission_id
-      left join people p on p.id = r.person_id
+      left join members p on p.id = r.member_id
      where r.event_id = ${eventId}
      order by "firstTaken", r.created_at`);
 
-  const people = rows.map((row) => row.personId).filter((id): id is string => Boolean(id));
+  const members = rows.map((row) => row.memberId).filter((id): id is string => Boolean(id));
 
   // R14.12. Guardians and emergency contacts, which are the two kinds a church
   // reaches for when something has happened.
-  const contacts = people.length === 0
+  const contacts = members.length === 0
     ? []
     : await db.execute<{
-        personId: string;
+        memberId: string;
         name: string;
         phone: string | null;
         relation: string;
       }>(sql`
-        select rel.person_id as "personId",
+        select rel.member_id as "memberId",
                trim(coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name) as name,
                (select c.value from contact_methods c
-                 where c.person_id = p.id and c.kind = 'phone'
+                 where c.member_id = p.id and c.kind = 'phone'
                  order by c.is_primary desc nulls last
                  limit 1) as phone,
                rel.kind::text as relation
           from relationships rel
-          join people p on p.id = rel.related_person_id
-         where rel.person_id in (${sql.join(people.map((id) => sql`${id}::uuid`), sql`, `)})
+          join members p on p.id = rel.related_member_id
+         where rel.member_id in (${sql.join(members.map((id) => sql`${id}::uuid`), sql`, `)})
            and rel.kind in ('guardian', 'emergency_contact')
          order by rel.kind`);
 
   const byPerson = new Map<string, EventRegistration["emergency"]>();
   for (const one of contacts) {
-    const held = byPerson.get(one.personId) ?? [];
+    const held = byPerson.get(one.memberId) ?? [];
     held.push({ name: one.name, phone: one.phone, relation: one.relation });
-    byPerson.set(one.personId, held);
+    byPerson.set(one.memberId, held);
   }
 
   return rows.map((row) => ({
     id: row.id,
     bookingId: row.bookingId,
-    personId: row.personId,
+    memberId: row.memberId,
     personSlug: row.personSlug,
     name: row.name,
     email: row.email,
@@ -699,6 +699,6 @@ export async function listRegistrations(
     registeredAt: row.registeredAt,
     arrivedAt: row.arrivedAt,
     answers: (row.answers ?? {}) as Record<string, unknown>,
-    emergency: (row.personId ? byPerson.get(row.personId) : undefined) ?? [],
+    emergency: (row.memberId ? byPerson.get(row.memberId) : undefined) ?? [],
   }));
 }

@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { personTimeline } from "../src/repo/timeline";
-import { createPerson, setPersonArchived } from "../src/repo/people";
+import { createPerson, setPersonArchived } from "../src/repo/members";
 import { createNote } from "../src/repo/notes";
 import { addMilestone } from "../src/repo/milestones";
 import { createGroup, addToGroup, removeFromGroup, seedGroupTypes } from "../src/repo/groups";
@@ -48,30 +48,30 @@ beforeAll(async () => {
   // A group they joined and later left.
   const group = await run((tx) => createGroup(tx, as(), { name: "Thursday group" }));
   await run((tx) =>
-    addToGroup(tx, as(), { groupId: group.id, personId: person, joinedOn: "2026-02-01" }),
+    addToGroup(tx, as(), { groupId: group.id, memberId: person, joinedOn: "2026-02-01" }),
   );
-  await run((tx) => removeFromGroup(tx, as(), { groupId: group.id, personId: person }));
+  await run((tx) => removeFromGroup(tx, as(), { groupId: group.id, memberId: person }));
 
   // A milestone, a general note and a confidential one.
   await run((tx) =>
-    addMilestone(tx, as(), { personId: person, kind: "baptism", occurredOn: "2026-04-12" }),
+    addMilestone(tx, as(), { memberId: person, kind: "baptism", occurredOn: "2026-04-12" }),
   );
   await run((tx) =>
     createNote(tx, {
-      tenantId: tenant, personId: person,
+      tenantId: tenant, memberId: person,
       body: "Asked about serving.", classification: "general",
     }),
   );
   await run((tx) =>
     createNote(tx, {
-      tenantId: tenant, personId: person,
+      tenantId: tenant, memberId: person,
       body: "Pastoral matter.", classification: "confidential",
     }),
   );
 
   const [pipeline] = await run((tx) => listPipelines(tx));
   await run((tx) =>
-    enterPipeline(tx, as(), { pipelineId: pipeline!.id, personId: person, on: "2026-01-15" }),
+    enterPipeline(tx, as(), { pipelineId: pipeline!.id, memberId: person, on: "2026-01-15" }),
   );
 });
 
@@ -161,7 +161,7 @@ describe("somebody who has left", () => {
       createPerson(tx, as(), { firstName: "Past", lastName: "Timelinetest" } as never),
     )).id;
     await run((tx) =>
-      addMilestone(tx, as(), { personId: gone, kind: "membership_class", occurredOn: "2026-01-02" }),
+      addMilestone(tx, as(), { memberId: gone, kind: "membership_class", occurredOn: "2026-01-02" }),
     );
     await run((tx) => setPersonArchived(tx, as(), gone, true));
 

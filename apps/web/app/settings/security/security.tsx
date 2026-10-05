@@ -11,7 +11,7 @@ import { changeEmail, changePassword, emailMeALink } from "./actions";
  *
  * Both are shut until they are asked for. A screen that opens with a password
  * box and an email box on it reads as a form to fill in, and this is a screen
- * most people open to check something rather than to change it.
+ * most members open to check something rather than to change it.
  *
  * Both ask for the current password. Supabase will take either change on the
  * strength of an open session, and an open session is a laptop somebody walked

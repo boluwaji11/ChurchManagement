@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
  * R2.x. Everybody, on paper.
  *
  * The list a church puts on a clipboard: who they are, whose household, and the
- * two ways to reach them. Archived people are not on it.
+ * two ways to reach them. Archived members are not on it.
  */
 export default async function PrintPeoplePage({
   searchParams,
@@ -37,7 +37,7 @@ export default async function PrintPeoplePage({
       <div className="text-[13px] font-medium text-neutral-500">{session.tenantName}</div>
 
       <header className="mt-1 flex items-baseline justify-between gap-6 border-b-2 border-black pb-3">
-        <h1 className="font-display text-[34px] leading-[42px]">{t("people.title")}</h1>
+        <h1 className="font-display text-[34px] leading-[42px]">{t("members.title")}</h1>
         <span className="shrink-0 text-[15px] text-neutral-600">
           {plural("directory.matching", rows.length)}
         </span>
@@ -47,10 +47,10 @@ export default async function PrintPeoplePage({
         <thead>
           <tr className="text-left">
             {[
-              t("people.column.person"),
-              t("people.column.household"),
-              t("people.column.phone"),
-              t("people.column.email"),
+              t("members.column.person"),
+              t("members.column.household"),
+              t("members.column.phone"),
+              t("members.column.email"),
             ].map((head) => (
               <th key={head} className="border-b border-neutral-300 pb-2.5 pr-4 font-semibold">
                 {head}

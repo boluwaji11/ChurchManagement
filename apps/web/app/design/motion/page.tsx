@@ -16,7 +16,7 @@ const DURATIONS = [
 let nextId = 4;
 
 export default function Motion() {
-  const [people, setPeople] = React.useState([
+  const [members, setPeople] = React.useState([
     { id: 1, name: "Sarah Bennett" },
     { id: 2, name: "Daniel Ramirez" },
     { id: 3, name: "Ruth Whitfield" },
@@ -64,7 +64,7 @@ export default function Motion() {
             </Button>
           </div>
           <ul className="flex flex-col gap-1.5">
-            {people.map((p) => (
+            {members.map((p) => (
               <li
                 key={p.id}
                 className="flex items-center justify-between gap-3 rounded-md border border-line bg-canvas p-2"

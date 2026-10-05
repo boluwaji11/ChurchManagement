@@ -144,7 +144,7 @@ describe("permissions", () => {
     expect(canManageChurch("staff")).toBe(false);
   });
 
-  it("refuses staff, who may edit people but may not rename the church", async () => {
+  it("refuses staff, who may edit members but may not rename the church", async () => {
     await expect(
       run(riverside, "staff", (tx) =>
         updateChurch(tx, as(riverside, "staff"), {

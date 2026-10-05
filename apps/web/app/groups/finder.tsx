@@ -141,7 +141,7 @@ const DISMISSED = "hearth:groupRequestsPutAway";
  * everything else behind one Filter button. A church has tens of groups, so the
  * filtering happens here and a dropdown costs no round trip.
  *
- * The cards carry a banner, the kind, whether it is taking people, the name,
+ * The cards carry a banner, the kind, whether it is taking members, the name,
  * when it meets and who leads it. That is the order somebody reads them in.
  */
 export function Finder({
@@ -328,7 +328,7 @@ export function Finder({
        *
        * Its own tint rather than another white card: it is the one thing on
        * this screen that is waiting on somebody, and a church that has three
-       * people asking should see three people asking before it sees the groups.
+       * members asking should see three members asking before it sees the groups.
        */}
       {waiting.length > 0 ? (
         <section className="overflow-hidden rounded-[14px] border border-[var(--hue-amber-500)]/20 bg-[var(--hue-amber-tint)]/40">

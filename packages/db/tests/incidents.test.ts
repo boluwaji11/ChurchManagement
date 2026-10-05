@@ -14,7 +14,7 @@ import {
 } from "../src/repo/incidents";
 import { addRoom } from "../src/repo/rooms";
 import { addSpecialService } from "../src/repo/services";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, TENANT_ROLES, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -52,7 +52,7 @@ afterAll(async () => {
 
 const file = (role: TenantRole = "owner", over: Partial<Parameters<typeof fileIncident>[2]> = {}) =>
   run((tx) => fileIncident(tx, as(role), {
-    personId: child,
+    memberId: child,
     roomId: room,
     occurrenceId: service,
     occurredOn: today,
@@ -119,7 +119,7 @@ describe("who may read them (R8.13)", () => {
   });
 
   it("lists one child's on their own", async () => {
-    const theirs = await run((tx) => listIncidents(tx, as("admin"), { personId: child }), "admin");
+    const theirs = await run((tx) => listIncidents(tx, as("admin"), { memberId: child }), "admin");
     expect(theirs.length).toBeGreaterThanOrEqual(2);
   });
 });

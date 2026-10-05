@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { groupMemberships } from "../schema/groups";
 import { teamMembers } from "../schema/serving";
 import type { TenantRole } from "../roles";
@@ -8,13 +8,13 @@ import type { TenantRole } from "../roles";
 /**
  * R9.3, R1.5. What a role may see of the directory.
  *
- * Most roles see the whole church. A group leader sees the people in the groups
+ * Most roles see the whole church. A group leader sees the members in the groups
  * they lead, and nobody else, which is the whole point of giving somebody that
  * role: a church can let the leader of the Tuesday group keep their own roster
  * without handing them four hundred phone numbers.
  *
  * It is decided here rather than in a page, because a scope enforced by a
- * template is not a scope. Every repository that returns people asks this
+ * template is not a scope. Every repository that returns members asks this
  * first, and a caller that forgets to pass an actor gets the restricted answer
  * rather than the open one.
  */
@@ -34,7 +34,7 @@ export interface Viewer {
 }
 
 /**
- * The people this viewer may see, or null for all of them.
+ * The members this viewer may see, or null for all of them.
  *
  * Null means no restriction. An empty array means they may see nobody, which is
  * what a group leader who leads nothing gets, and it is deliberately not the
@@ -59,7 +59,7 @@ export async function visiblePeople(db: Tx, viewer: Viewer): Promise<string[] | 
     .from(groupMemberships)
     .where(
       and(
-        eq(groupMemberships.personId, self),
+        eq(groupMemberships.memberId, self),
         isNull(groupMemberships.leftOn),
         inArray(groupMemberships.role, ["leader", "coleader"]),
       ),
@@ -70,7 +70,7 @@ export async function visiblePeople(db: Tx, viewer: Viewer): Promise<string[] | 
   const roster = groupIds.length === 0
     ? []
     : await db
-      .selectDistinct({ personId: groupMemberships.personId })
+      .selectDistinct({ memberId: groupMemberships.memberId })
       .from(groupMemberships)
       .where(and(inArray(groupMemberships.groupId, groupIds), isNull(groupMemberships.leftOn)));
 
@@ -80,7 +80,7 @@ export async function visiblePeople(db: Tx, viewer: Viewer): Promise<string[] | 
     .select({ teamId: teamMembers.teamId })
     .from(teamMembers)
     .where(and(
-      eq(teamMembers.personId, self),
+      eq(teamMembers.memberId, self),
       eq(teamMembers.role, "leader"),
       isNull(teamMembers.leftOn),
     ));
@@ -90,23 +90,23 @@ export async function visiblePeople(db: Tx, viewer: Viewer): Promise<string[] | 
   const servers = teamIds.length === 0
     ? []
     : await db
-      .selectDistinct({ personId: teamMembers.personId })
+      .selectDistinct({ memberId: teamMembers.memberId })
       .from(teamMembers)
       .where(and(inArray(teamMembers.teamId, teamIds), isNull(teamMembers.leftOn)));
 
   return [...new Set([
     self,
-    ...roster.map((row) => row.personId),
-    ...servers.map((row) => row.personId),
+    ...roster.map((row) => row.memberId),
+    ...servers.map((row) => row.memberId),
   ])];
 }
 
 /** R9.3. Which person this account is in this church, where they are one. */
 export async function personForUser(db: Tx, userId: string): Promise<string | null> {
   const [row] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(and(eq(people.appUserId, userId), isNull(people.archivedAt)))
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.appUserId, userId), isNull(members.archivedAt)))
     .limit(1);
   return row?.id ?? null;
 }
@@ -114,14 +114,14 @@ export async function personForUser(db: Tx, userId: string): Promise<string | nu
 /** R9.3. Ties an account to the person record it belongs to. */
 export async function linkPersonToUser(
   db: Tx,
-  personId: string,
+  memberId: string,
   userId: string | null,
 ): Promise<void> {
-  await db.update(people).set({ appUserId: userId }).where(eq(people.id, personId));
+  await db.update(members).set({ appUserId: userId }).where(eq(members.id, memberId));
 }
 
 /** Whether this viewer may see this one person. */
-export async function canSeePerson(db: Tx, viewer: Viewer, personId: string): Promise<boolean> {
+export async function canSeePerson(db: Tx, viewer: Viewer, memberId: string): Promise<boolean> {
   const allowed = await visiblePeople(db, viewer);
-  return allowed === null || allowed.includes(personId);
+  return allowed === null || allowed.includes(memberId);
 }

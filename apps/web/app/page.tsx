@@ -7,7 +7,7 @@ import { StartDemoButton } from "./demo/start";
 
 export const dynamic = "force-dynamic";
 
-const NOW = ["people", "directory", "tags", "merge", "records", "import"] as const;
+const NOW = ["members", "directory", "tags", "merge", "records", "import"] as const;
 const SOON = ["attendance", "groups", "giving", "events", "planning", "portal"] as const;
 const PRICE = ["tiers", "giving", "messaging"] as const;
 

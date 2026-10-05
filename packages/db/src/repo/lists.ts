@@ -12,7 +12,7 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { savedLists, savedListMembers } from "../schema/lists";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { InvalidInputError, NameTakenError } from "../errors";
 import { PermissionError, canEditPeople, type TenantRole } from "../roles";
 
@@ -181,7 +181,7 @@ export async function setListArchived(
     .where(eq(savedLists.id, input.id));
 }
 
-/** Adds people to a static list. Somebody already on it is left where they are. */
+/** Adds members to a static list. Somebody already on it is left where they are. */
 export async function addToList(
   db: Tx,
   actor: WriteActor,
@@ -200,16 +200,16 @@ export async function addToList(
   const ids = [...new Set(input.personIds)].filter(Boolean);
   if (ids.length === 0) return 0;
 
-  // Only people this church actually holds, because the ids arrive from a form.
+  // Only members this church actually holds, because the ids arrive from a form.
   const real = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(and(inArray(people.id, ids), isNull(people.archivedAt)));
+    .select({ id: members.id })
+    .from(members)
+    .where(and(inArray(members.id, ids), isNull(members.archivedAt)));
   if (real.length === 0) return 0;
 
   const written = await db
     .insert(savedListMembers)
-    .values(real.map((row) => ({ tenantId: actor.tenantId, listId: input.listId, personId: row.id })))
+    .values(real.map((row) => ({ tenantId: actor.tenantId, listId: input.listId, memberId: row.id })))
     .onConflictDoNothing()
     .returning({ id: savedListMembers.id });
 
@@ -231,7 +231,7 @@ export async function removeFromList(
   const gone = await db
     .delete(savedListMembers)
     .where(
-      and(eq(savedListMembers.listId, input.listId), inArray(savedListMembers.personId, ids)),
+      and(eq(savedListMembers.listId, input.listId), inArray(savedListMembers.memberId, ids)),
     )
     .returning({ id: savedListMembers.id });
 
@@ -257,23 +257,23 @@ export async function resolveList(
   }
 
   const rows = await db
-    .select({ personId: savedListMembers.personId })
+    .select({ memberId: savedListMembers.memberId })
     .from(savedListMembers)
     .where(eq(savedListMembers.listId, id))
     .orderBy(desc(savedListMembers.addedAt));
 
-  return { name: list.name, kind: "static", ids: rows.map((row) => row.personId) };
+  return { name: list.name, kind: "static", ids: rows.map((row) => row.memberId) };
 }
 
 /** Which lists this person is on, for their record. */
 export async function listsForPerson(
   db: Tx,
-  personId: string,
+  memberId: string,
 ): Promise<{ id: string; name: string }[]> {
   return db
     .select({ id: savedLists.id, name: savedLists.name })
     .from(savedListMembers)
     .innerJoin(savedLists, eq(savedLists.id, savedListMembers.listId))
-    .where(and(eq(savedListMembers.personId, personId), isNull(savedLists.archivedAt)))
+    .where(and(eq(savedListMembers.memberId, memberId), isNull(savedLists.archivedAt)))
     .orderBy(asc(savedLists.name));
 }

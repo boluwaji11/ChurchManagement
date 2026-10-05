@@ -1,9 +1,9 @@
 /**
- * R19.5. A file whose rows are memberships rather than people.
+ * R19.5. A file whose rows are memberships rather than members.
  *
  * Planning Center, Breeze and ChurchTrac all export group membership the same
  * shape: one line per person per group, with the group's name repeated down the
- * column. So this needs no per-system mapping the way people files do. The
+ * column. So this needs no per-system mapping the way members files do. The
  * aliases below cover what all three call these six things.
  */
 import { IGNORE } from "./columns";
@@ -53,10 +53,10 @@ const PERSON_ALIASES = new Set([
 ]);
 
 /**
- * Whether this file is memberships rather than people.
+ * Whether this file is memberships rather than members.
  *
  * It needs a column naming the group and a column naming the person, because a
- * people export with a "Type" column is not a group file and reading it as one
+ * members export with a "Type" column is not a group file and reading it as one
  * would put the whole church into a group called "Member".
  */
 export function isGroupSheet(headers: string[]): boolean {
@@ -68,7 +68,7 @@ export function isGroupSheet(headers: string[]): boolean {
   return has(NAME_ALIASES) && has(PERSON_ALIASES);
 }
 
-/** The same two-pass guess the people importer uses, over the group fields. */
+/** The same two-pass guess the members importer uses, over the group fields. */
 export function guessGroupMapping(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
   const claimed = new Set<string>();

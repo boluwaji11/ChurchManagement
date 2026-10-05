@@ -123,12 +123,12 @@ async function directory(tx: Handle, tenantId: string): Promise<ExistingPerson[]
            last_name as "lastName",
            preferred_name as "preferredName",
            to_char(date_of_birth, 'YYYY-MM-DD') as "dateOfBirth"
-      from people
+      from members
      where tenant_id = ${tenantId}
        and archived_at is null`;
 
-  const contacts = await tx<{ personId: string; kind: string; value: string }[]>`
-    select person_id as "personId", kind::text as kind, value
+  const contacts = await tx<{ memberId: string; kind: string; value: string }[]>`
+    select member_id as "memberId", kind::text as kind, value
       from contact_methods
      where tenant_id = ${tenantId}`;
 
@@ -136,9 +136,9 @@ async function directory(tx: Handle, tenantId: string): Promise<ExistingPerson[]
   const phones = new Map<string, string[]>();
   for (const one of contacts) {
     const into = one.kind === "email" ? emails : phones;
-    const list = into.get(one.personId);
+    const list = into.get(one.memberId);
     if (list) list.push(one.value);
-    else into.set(one.personId, [one.value]);
+    else into.set(one.memberId, [one.value]);
   }
 
   return rows.map((row) => ({
@@ -169,7 +169,7 @@ export async function placeSubmission(
     fields: FormFieldDef[];
     answers: Record<string, FormAnswer>;
   },
-): Promise<{ state: MatchState; personId: string | null }> {
+): Promise<{ state: MatchState; memberId: string | null }> {
   const identity = identityFrom(input.fields, input.answers);
 
   if (!namesSomebody(identity)) {
@@ -188,14 +188,14 @@ export async function placeSubmission(
   const certain = matches.filter((one) => one.confidence === "certain");
 
   if (certain.length === 1) {
-    const personId = certain[0]!.personId;
-    await fillBlanks(tx, input.tenantId, personId, identity);
-    await writeCustom(tx, input.tenantId, personId, identity.custom);
-    return settle(tx, input.submissionId, "matched", personId);
+    const memberId = certain[0]!.memberId;
+    await fillBlanks(tx, input.tenantId, memberId, identity);
+    await writeCustom(tx, input.tenantId, memberId, identity.custom);
+    return settle(tx, input.submissionId, "matched", memberId);
   }
 
-  const personId = await createPerson(tx, input.tenantId, identity);
-  await writeCustom(tx, input.tenantId, personId, identity.custom);
+  const memberId = await createPerson(tx, input.tenantId, identity);
+  await writeCustom(tx, input.tenantId, memberId, identity.custom);
 
   /*
    * Somebody fitted, but not certainly enough to attach this to them. The new
@@ -203,20 +203,20 @@ export async function placeSubmission(
    * and "review" says a person should look: the same signals that made this
    * uncertain make the two records a pair in the duplicate finder.
    */
-  return settle(tx, input.submissionId, matches.length > 0 ? "review" : "created", personId);
+  return settle(tx, input.submissionId, matches.length > 0 ? "review" : "created", memberId);
 }
 
 async function settle(
   tx: Handle,
   submissionId: string,
   state: MatchState,
-  personId: string | null,
-): Promise<{ state: MatchState; personId: string | null }> {
+  memberId: string | null,
+): Promise<{ state: MatchState; memberId: string | null }> {
   await tx`
     update form_submissions
-       set match_state = ${state}, person_id = ${personId}
+       set match_state = ${state}, member_id = ${memberId}
      where id = ${submissionId}`;
-  return { state, personId };
+  return { state, memberId };
 }
 
 /**
@@ -234,18 +234,18 @@ async function createPerson(
   const [first, last] = splitName(identity);
 
   const [person] = await tx<{ id: string }[]>`
-    insert into people (tenant_id, slug, first_name, last_name, preferred_name,
+    insert into members (tenant_id, slug, first_name, last_name, preferred_name,
                         date_of_birth, lifecycle_status, first_visit_on)
     values (${tenantId},
-            hearth_free_person_slug(${tenantId}::uuid, ${`${first} ${last}`.trim()}),
+            hearth_free_member_slug(${tenantId}::uuid, ${`${first} ${last}`.trim()}),
             ${first}, ${last}, ${identity.preferredName},
             ${identity.dateOfBirth}, 'visitor', current_date)
     returning id`;
-  const personId = person!.id;
+  const memberId = person!.id;
 
-  await addContacts(tx, tenantId, personId, identity, { primary: true });
-  await addAddress(tx, tenantId, personId, identity);
-  return personId;
+  await addContacts(tx, tenantId, memberId, identity, { primary: true });
+  await addAddress(tx, tenantId, memberId, identity);
+  return memberId;
 }
 
 /**
@@ -267,35 +267,35 @@ function splitName(identity: Identity): [string, string] {
 async function addContacts(
   tx: Handle,
   tenantId: string,
-  personId: string,
+  memberId: string,
   identity: Identity,
   opts: { primary: boolean },
 ): Promise<void> {
   if (identity.email) {
     await tx`
-      insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
-      values (${tenantId}, ${personId}, 'email', 'home', ${identity.email}, ${opts.primary})`;
+      insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
+      values (${tenantId}, ${memberId}, 'email', 'home', ${identity.email}, ${opts.primary})`;
   }
   if (identity.phone) {
     await tx`
-      insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
-      values (${tenantId}, ${personId}, 'phone', 'mobile', ${identity.phone}, ${opts.primary})`;
+      insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
+      values (${tenantId}, ${memberId}, 'phone', 'mobile', ${identity.phone}, ${opts.primary})`;
   }
 }
 
 async function addAddress(
   tx: Handle,
   tenantId: string,
-  personId: string,
+  memberId: string,
   identity: Identity,
 ): Promise<void> {
   const a = identity.address;
   if (!a.line1) return;
 
   await tx`
-    insert into addresses (tenant_id, person_id, line1, line2, city, region,
+    insert into addresses (tenant_id, member_id, line1, line2, city, region,
                            postal_code, country, is_primary)
-    values (${tenantId}, ${personId}, ${a.line1}, ${a.line2}, ${a.city},
+    values (${tenantId}, ${memberId}, ${a.line1}, ${a.line2}, ${a.city},
             ${a.region}, ${a.postalCode}, ${a.country ?? "US"}, true)`;
 }
 
@@ -309,28 +309,28 @@ async function addAddress(
 async function fillBlanks(
   tx: Handle,
   tenantId: string,
-  personId: string,
+  memberId: string,
   identity: Identity,
 ): Promise<void> {
   await tx`
-    update people
+    update members
        set preferred_name = coalesce(preferred_name, ${identity.preferredName}),
            date_of_birth = coalesce(date_of_birth, ${identity.dateOfBirth}::date),
            updated_at = now()
-     where id = ${personId} and tenant_id = ${tenantId}`;
+     where id = ${memberId} and tenant_id = ${tenantId}`;
 
   // A new address or a new number joins the record rather than replacing one.
   // Anything already there under the same value is left alone.
   if (identity.email) {
     const [had] = await tx<{ id: string }[]>`
       select id from contact_methods
-       where tenant_id = ${tenantId} and person_id = ${personId}
+       where tenant_id = ${tenantId} and member_id = ${memberId}
          and kind = 'email' and lower(value) = ${identity.email}
        limit 1`;
     if (!had) {
       await tx`
-        insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
-        values (${tenantId}, ${personId}, 'email', 'home', ${identity.email}, false)`;
+        insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
+        values (${tenantId}, ${memberId}, 'email', 'home', ${identity.email}, false)`;
     }
   }
 
@@ -338,23 +338,23 @@ async function fillBlanks(
     const digits = identity.phone.replace(/\D/g, "").slice(-10);
     const [had] = await tx<{ id: string }[]>`
       select id from contact_methods
-       where tenant_id = ${tenantId} and person_id = ${personId}
+       where tenant_id = ${tenantId} and member_id = ${memberId}
          and kind = 'phone'
          and right(regexp_replace(value, '\\D', '', 'g'), 10) = ${digits}
        limit 1`;
     if (!had) {
       await tx`
-        insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
-        values (${tenantId}, ${personId}, 'phone', 'mobile', ${identity.phone}, false)`;
+        insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
+        values (${tenantId}, ${memberId}, 'phone', 'mobile', ${identity.phone}, false)`;
     }
   }
 
   if (identity.address.line1) {
     const [had] = await tx<{ id: string }[]>`
       select id from addresses
-       where tenant_id = ${tenantId} and person_id = ${personId}
+       where tenant_id = ${tenantId} and member_id = ${memberId}
        limit 1`;
-    if (!had) await addAddress(tx, tenantId, personId, identity);
+    if (!had) await addAddress(tx, tenantId, memberId, identity);
   }
 }
 
@@ -367,7 +367,7 @@ async function fillBlanks(
 async function writeCustom(
   tx: Handle,
   tenantId: string,
-  personId: string,
+  memberId: string,
   values: Record<string, FormAnswer>,
 ): Promise<void> {
   // Only things shaped like an id reach the query, because the cast to uuid[]
@@ -382,7 +382,7 @@ async function writeCustom(
   for (const field of known) {
     await tx`
       insert into custom_field_values (tenant_id, field_id, entity_id, value)
-      values (${tenantId}, ${field.id}, ${personId}, ${JSON.stringify(values[field.id])}::jsonb)
+      values (${tenantId}, ${field.id}, ${memberId}, ${JSON.stringify(values[field.id])}::jsonb)
       on conflict (field_id, entity_id) do update set value = excluded.value`;
   }
 }
@@ -408,7 +408,7 @@ export async function placeUnplaced(
       from form_submissions
      where tenant_id = ${input.tenantId}
        and form_id = ${input.formId}
-       and person_id is null
+       and member_id is null
        and match_state <> 'review'
      order by created_at`;
 
@@ -425,9 +425,9 @@ export async function placeUnplaced(
         fields: input.fields,
         answers: row.answers ?? {},
       }),
-    ) as { state: MatchState; personId: string | null };
+    ) as { state: MatchState; memberId: string | null };
 
-    if (result.personId) placed += 1;
+    if (result.memberId) placed += 1;
     else if (result.state === "review") waiting += 1;
   }
 

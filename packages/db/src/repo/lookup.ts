@@ -80,12 +80,12 @@ export async function lookupPeople(
   const numeric = digits(text);
   const prefix = `${escapeLike(text.toLowerCase())}%`;
 
-  // Four or more digits is a phone number, and the ending is what people
+  // Four or more digits is a phone number, and the ending is what members
   // remember, so that one is matched from the right.
   const matched =
     numeric.length >= 4
       ? sql`
-          select distinct c.person_id as id, 0 as rank
+          select distinct c.member_id as id, 0 as rank
             from contact_methods c
            where c.kind = 'phone'
              and regexp_replace(c.value, '[^0-9]', '', 'g') like ${"%" + numeric}`
@@ -97,9 +97,9 @@ export async function lookupPeople(
                    when lower(p.first_name || ' ' || p.last_name) like ${prefix} then 2
                    else 3
                  end) as rank
-            from people p
+            from members p
             left join household_memberships hm
-              on hm.person_id = p.id and hm.ended_on is null
+              on hm.member_id = p.id and hm.ended_on is null
             left join households h on h.id = hm.household_id
            where p.archived_at is null
              and (
@@ -111,7 +111,7 @@ export async function lookupPeople(
              )
            group by p.id`;
 
-  // One pass: the people who matched, then everybody who lives with them. The
+  // One pass: the members who matched, then everybody who lives with them. The
   // second half is what makes checking a family in a single press, and it costs
   // nothing extra at the desk.
   const rows = await db.execute(sql`
@@ -121,28 +121,28 @@ export async function lookupPeople(
              hm.household_id as household_id, h.name as household_name,
              p.last_name as last_name, p.first_name as first_name
         from matched m
-        join people p on p.id = m.id and p.archived_at is null
+        join members p on p.id = m.id and p.archived_at is null
         left join household_memberships hm
-          on hm.person_id = m.id and hm.ended_on is null
+          on hm.member_id = m.id and hm.ended_on is null
         left join households h on h.id = hm.household_id
        order by m.rank, p.last_name, p.first_name
        limit ${limit}
     )
     select s.id as seed_id, s.rank as rank,
            s.household_id as household_id, s.household_name as household_name,
-           p.id as person_id, p.first_name, p.last_name, p.preferred_name,
+           p.id as member_id, p.first_name, p.last_name, p.preferred_name,
            p.date_of_birth::text as date_of_birth,
            p.allergies, p.medical_note, coalesce(hm.role, 'other') as role
       from seed s
       join household_memberships hm
         on hm.household_id = s.household_id and hm.ended_on is null
-      join people p on p.id = hm.person_id and p.archived_at is null
+      join members p on p.id = hm.member_id and p.archived_at is null
     union all
     select s.id, s.rank, null::uuid, null::text,
            p.id, p.first_name, p.last_name, p.preferred_name,
            p.date_of_birth::text, p.allergies, p.medical_note, 'other'
       from seed s
-      join people p on p.id = s.id
+      join members p on p.id = s.id
      where s.household_id is null
   `);
 
@@ -157,7 +157,7 @@ function person(row: Record<string, unknown>, asOf: string): LookupPerson {
   const householdRole = String(row["role"] ?? "other");
 
   return {
-    id: String(row["person_id"]),
+    id: String(row["member_id"]),
     firstName,
     lastName: String(row["last_name"]),
     preferredName,
@@ -175,7 +175,7 @@ function person(row: Record<string, unknown>, asOf: string): LookupPerson {
 function assemble(rows: Record<string, unknown>[], asOf: string): PersonMatch[] {
   const bySeed = new Map<
     string,
-    { rank: number; householdId: string | null; householdName: string | null; people: LookupPerson[] }
+    { rank: number; householdId: string | null; householdName: string | null; members: LookupPerson[] }
   >();
 
   for (const row of rows) {
@@ -184,9 +184,9 @@ function assemble(rows: Record<string, unknown>[], asOf: string): PersonMatch[] 
       rank: Number(row["rank"] ?? 0),
       householdId: (row["household_id"] as string | null) ?? null,
       householdName: (row["household_name"] as string | null) ?? null,
-      people: [],
+      members: [],
     };
-    entry.people.push(person(row, asOf));
+    entry.members.push(person(row, asOf));
     bySeed.set(seedId, entry);
   }
 
@@ -194,19 +194,19 @@ function assemble(rows: Record<string, unknown>[], asOf: string): PersonMatch[] 
 
   for (const [seedId, entry] of bySeed) {
     // Children first inside a household, because they are what the queue is for.
-    entry.people.sort(
+    entry.members.sort(
       (a, b) =>
         Number(b.isChild) - Number(a.isChild) ||
         (a.ageMonths ?? Number.MAX_SAFE_INTEGER) - (b.ageMonths ?? Number.MAX_SAFE_INTEGER) ||
         a.name.localeCompare(b.name),
     );
-    const matchedPerson = entry.people.find((p) => p.id === seedId);
+    const matchedPerson = entry.members.find((p) => p.id === seedId);
     if (!matchedPerson) continue;
     out.push({
       person: matchedPerson,
       householdId: entry.householdId,
       householdName: entry.householdName,
-      household: entry.people,
+      household: entry.members,
     });
   }
 

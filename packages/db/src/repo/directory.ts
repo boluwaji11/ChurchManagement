@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { people, households, householdMemberships } from "../schema/people";
+import { members, households, householdMemberships } from "../schema/members";
 import { directoryPreferences } from "../schema/directory";
 import { PermissionError, type TenantRole } from "../roles";
 import { ageInMonths } from "./age";
@@ -24,11 +24,11 @@ export const ADULT_MONTHS = 18 * 12;
 export interface DirectoryHousehold {
   id: string;
   name: string;
-  people: DirectoryEntry[];
+  members: DirectoryEntry[];
 }
 
 export interface MemberPreferences extends Visibility {
-  personId: string;
+  memberId: string;
 }
 
 const own = (row: typeof directoryPreferences.$inferSelect | undefined): Visibility =>
@@ -59,22 +59,22 @@ export async function memberDirectory(
 ): Promise<DirectoryHousehold[]> {
   const rows = await db
     .select({
-      id: people.id,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
-      dateOfBirth: sql<string | null>`${people.dateOfBirth}::text`,
-      photoKey: people.photoKey,
+      id: members.id,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
+      dateOfBirth: sql<string | null>`${members.dateOfBirth}::text`,
+      photoKey: members.photoKey,
       householdId: households.id,
       householdName: households.name,
       email: sql<string | null>`(
         select cm.value from contact_methods cm
-         where cm.person_id = ${people.id} and cm.kind = 'email' and cm.is_primary
+         where cm.member_id = ${members.id} and cm.kind = 'email' and cm.is_primary
          limit 1
       )`,
       phone: sql<string | null>`(
         select cm.value from contact_methods cm
-         where cm.person_id = ${people.id} and cm.kind = 'phone' and cm.is_primary
+         where cm.member_id = ${members.id} and cm.kind = 'phone' and cm.is_primary
          limit 1
       )`,
       address: sql<string | null>`(
@@ -84,22 +84,22 @@ export async function memberDirectory(
          limit 1
       )`,
       headOf: sql<string | null>`(
-        select hm.person_id from household_memberships hm
+        select hm.member_id from household_memberships hm
          where hm.household_id = ${households.id} and hm.role = 'head' and hm.ended_on is null
          limit 1
       )`,
     })
-    .from(people)
+    .from(members)
     .leftJoin(
       householdMemberships,
-      and(eq(householdMemberships.personId, people.id), isNull(householdMemberships.endedOn)),
+      and(eq(householdMemberships.memberId, members.id), isNull(householdMemberships.endedOn)),
     )
     .leftJoin(households, eq(households.id, householdMemberships.householdId))
-    .where(and(isNull(people.archivedAt), sql`${people.lifecycleStatus} <> 'deceased'`))
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .where(and(isNull(members.archivedAt), sql`${members.lifecycleStatus} <> 'deceased'`))
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   const prefs = await db.select().from(directoryPreferences);
-  const byPerson = new Map(prefs.map((row) => [row.personId, row]));
+  const byPerson = new Map(prefs.map((row) => [row.memberId, row]));
 
   const text = opts.q?.trim().toLowerCase() ?? "";
   const grouped = new Map<string, DirectoryHousehold>();
@@ -138,15 +138,15 @@ export async function memberDirectory(
     const household = grouped.get(row.householdId) ?? {
       id: row.householdId,
       name: row.householdName ?? entry.name,
-      people: [],
+      members: [],
     };
-    household.people.push(entry);
+    household.members.push(entry);
     grouped.set(row.householdId, household);
   }
 
   const all = [...grouped.values()];
   for (const entry of loose) {
-    all.push({ id: entry.id, name: entry.name, people: [entry] });
+    all.push({ id: entry.id, name: entry.name, members: [entry] });
   }
   return all.sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -154,14 +154,14 @@ export async function memberDirectory(
 /** R3.2. What this person has chosen, or the defaults they have never touched. */
 export async function directoryPreferencesFor(
   db: Tx,
-  personId: string,
+  memberId: string,
 ): Promise<MemberPreferences> {
   const [row] = await db
     .select()
     .from(directoryPreferences)
-    .where(eq(directoryPreferences.personId, personId))
+    .where(eq(directoryPreferences.memberId, memberId))
     .limit(1);
-  return { personId, ...own(row) };
+  return { memberId, ...own(row) };
 }
 
 /**
@@ -173,15 +173,15 @@ export async function directoryPreferencesFor(
  */
 export async function setDirectoryPreferences(
   db: Tx,
-  actor: { tenantId: string; role: TenantRole; personId?: string | null },
-  personId: string,
+  actor: { tenantId: string; role: TenantRole; memberId?: string | null },
+  memberId: string,
   input: Partial<Visibility>,
 ): Promise<MemberPreferences> {
-  const theirs = actor.personId === personId;
+  const theirs = actor.memberId === memberId;
   const administers = ["owner", "admin", "staff"].includes(actor.role);
   if (!theirs && !administers) throw new PermissionError(actor.role, "editDirectoryPrivacy");
 
-  const current = await directoryPreferencesFor(db, personId);
+  const current = await directoryPreferencesFor(db, memberId);
   const next: Visibility = {
     listed: input.listed ?? current.listed,
     showEmail: input.showEmail ?? current.showEmail,
@@ -194,23 +194,23 @@ export async function setDirectoryPreferences(
 
   await db
     .insert(directoryPreferences)
-    .values({ tenantId: actor.tenantId, personId, ...next })
+    .values({ tenantId: actor.tenantId, memberId, ...next })
     .onConflictDoUpdate({
-      target: [directoryPreferences.tenantId, directoryPreferences.personId],
+      target: [directoryPreferences.tenantId, directoryPreferences.memberId],
       set: { ...next, updatedAt: new Date() },
     });
 
-  return { personId, ...next };
+  return { memberId, ...next };
 }
 
 /** R3.4. Whether this person heads a household, which is who decides for its children. */
-export async function householdHeadIs(db: Tx, personId: string): Promise<boolean> {
+export async function householdHeadIs(db: Tx, memberId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: householdMemberships.id })
     .from(householdMemberships)
     .where(
       and(
-        eq(householdMemberships.personId, personId),
+        eq(householdMemberships.memberId, memberId),
         eq(householdMemberships.role, "head"),
         isNull(householdMemberships.endedOn),
       ),

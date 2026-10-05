@@ -104,7 +104,7 @@ export function RichText({
       <div className="flex flex-wrap items-center gap-0.5 border-b border-line px-1.5 py-1">
         {/* R24.6. Undo and redo first, because the one thing somebody wants
             after a formatting button did the wrong thing is to take it back,
-            and a toolbar with no way back teaches people not to press
+            and a toolbar with no way back teaches members not to press
             anything. The browser keeps the stack; this reaches it without
             asking anybody to remember a keystroke. */}
         <Mark label={t("rich.undo")} onPress={() => run("undo")}>

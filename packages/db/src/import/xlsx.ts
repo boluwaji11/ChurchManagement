@@ -56,7 +56,7 @@ function cellText(cell: ExcelJS.Cell): string {
  * Reads the first worksheet, first row as headers.
  *
  * Only the first sheet. A church exporting from their old system produces one
- * sheet of people, and asking a volunteer which tab they meant, before they have
+ * sheet of members, and asking a volunteer which tab they meant, before they have
  * seen anything work, is a question too early.
  */
 export async function readWorkbook(data: Buffer | ArrayBuffer): Promise<Sheet> {

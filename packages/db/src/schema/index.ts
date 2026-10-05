@@ -1,6 +1,6 @@
 export * from "./enums";
 export * from "./tenancy";
-export * from "./people";
+export * from "./members";
 export * from "./notes";
 export * from "./invitations";
 export * from "./custom-fields";

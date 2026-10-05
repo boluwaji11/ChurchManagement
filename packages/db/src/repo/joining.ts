@@ -1,7 +1,7 @@
 /**
  * R1.7, R22.1. How somebody who is not staff gets an account.
  *
- * The order is church, then people, then accounts. A church exists first. People
+ * The order is church, then members, then accounts. A church exists first. People
  * are records the church made, by import, by a form, at a check-in desk or by
  * hand. An account claims one of those records, and the proof is an address the
  * church already wrote down.
@@ -150,9 +150,9 @@ export async function joinWithCode(input: {
     // adult and whose record nobody has claimed.
     const matched = await tx<{ id: string }[]>`
       select p.id
-      from people p
-      join contact_methods c on c.person_id = p.id and c.tenant_id = p.tenant_id
-      left join household_memberships hm on hm.person_id = p.id and hm.tenant_id = p.tenant_id
+      from members p
+      join contact_methods c on c.member_id = p.id and c.tenant_id = p.tenant_id
+      left join household_memberships hm on hm.member_id = p.id and hm.tenant_id = p.tenant_id
       where p.tenant_id = ${target.tenantId}
         and p.archived_at is null
         and p.app_user_id is null
@@ -164,7 +164,7 @@ export async function joinWithCode(input: {
       limit 1`;
 
     if (matched[0]) {
-      await tx`update people set app_user_id = ${input.user.id} where id = ${matched[0].id}`;
+      await tx`update members set app_user_id = ${input.user.id} where id = ${matched[0].id}`;
       await tx`
         insert into tenant_members (tenant_id, user_id, role)
         values (${target.tenantId}, ${input.user.id}, 'member')
@@ -176,13 +176,13 @@ export async function joinWithCode(input: {
     // what they typed when they made the account.
     const [name] = splitName(fullName, email);
     const [person] = await tx<{ id: string }[]>`
-      insert into people (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
+      insert into members (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
       values (${target.tenantId},
-              hearth_free_person_slug(${target.tenantId}::uuid, ${`${name.first} ${name.last}`.trim()}),
+              hearth_free_member_slug(${target.tenantId}::uuid, ${`${name.first} ${name.last}`.trim()}),
               ${name.first}, ${name.last}, 'visitor', ${input.user.id})
       returning id`;
     await tx`
-      insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+      insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
       values (${target.tenantId}, ${person!.id}, 'email', 'home', ${email}, true)`;
     await tx`
       insert into tenant_members (tenant_id, user_id, role)

@@ -92,7 +92,7 @@ export default function Components() {
 
       <Section title="Form controls" note="The label is always a label. Placeholder text disappears exactly when it is needed.">
         <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
-          <Field label="Preferred name" htmlFor="c-name" hint="What people actually call them.">
+          <Field label="Preferred name" htmlFor="c-name" hint="What members actually call them.">
             <Input placeholder="Sarah" />
           </Field>
           <Field label="Phone" htmlFor="c-phone" error="That number needs an area code." required>
@@ -178,7 +178,7 @@ export default function Components() {
         <ValidationDemo />
       </Section>
 
-      <Section title="Badges, chips, avatars" note="Avatars fall back to initials on a tinted chip, hue derived from the id, so a roster is colourful and people are recognisable before you read a name.">
+      <Section title="Badges, chips, avatars" note="Avatars fall back to initials on a tinted chip, hue derived from the id, so a roster is colourful and members are recognisable before you read a name.">
         <Row>
           <Badge tone="success">Accepted</Badge>
           <Badge tone="warning">Check expires in 30 days</Badge>

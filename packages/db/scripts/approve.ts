@@ -17,7 +17,7 @@ interface Waiting {
   slug: string;
   name: string;
   created_at: Date;
-  people: number;
+  members: number;
   who: string | null;
 }
 
@@ -26,7 +26,7 @@ async function waiting(): Promise<void> {
     select t.slug,
            t.name,
            t.created_at,
-           (select count(*)::int from people p where p.tenant_id = t.id) as people,
+           (select count(*)::int from members p where p.tenant_id = t.id) as members,
            (select u.email
               from tenant_members m
               join app_users u on u.id = m.user_id
@@ -48,7 +48,7 @@ async function waiting(): Promise<void> {
     const age = Math.round((Date.now() - row.created_at.getTime()) / 60000);
     console.log(`  ${row.slug}`);
     console.log(`    ${row.name}`);
-    console.log(`    ${row.who ?? "no account yet"}, ${row.people} people, ${age} minutes old\n`);
+    console.log(`    ${row.who ?? "no account yet"}, ${row.members} members, ${age} minutes old\n`);
   }
   console.log("pnpm --filter @hearth/db approve <slug> <your name>");
 }

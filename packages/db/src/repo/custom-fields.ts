@@ -4,7 +4,7 @@ import { customFields, customFieldValues } from "../schema/custom-fields";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R1.12. Custom fields, so a church never has to ask us for a column.

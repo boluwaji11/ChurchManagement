@@ -36,11 +36,11 @@ const isKind = (value: string): value is RelationshipKind =>
 
 export async function addRelation(data: FormData): Promise<RelationshipResponse> {
   const slug = String(data.get("church") ?? "") || undefined;
-  const personId = String(data.get("personId") ?? "");
-  const relatedPersonId = String(data.get("relatedPersonId") ?? "");
+  const memberId = String(data.get("memberId") ?? "");
+  const relatedMemberId = String(data.get("relatedMemberId") ?? "");
   const kind = String(data.get("kind") ?? "");
 
-  if (!personId || !relatedPersonId) return { error: t("relationship.error.notFound") };
+  if (!memberId || !relatedMemberId) return { error: t("relationship.error.notFound") };
   if (!isKind(kind)) return { error: t("relationship.error.notFound") };
 
   const { session, ctx } = await writeContext(slug);
@@ -48,11 +48,11 @@ export async function addRelation(data: FormData): Promise<RelationshipResponse>
   try {
     const result = await withTenant(ctx, (tx) =>
       addRelationship(tx, { tenantId: session.tenantId, role: session.role }, {
-        personId, relatedPersonId, kind,
+        memberId, relatedMemberId, kind,
       }),
     );
-    revalidatePath(`/members/${personId}`);
-    revalidatePath(`/members/${relatedPersonId}`);
+    revalidatePath(`/members/${memberId}`);
+    revalidatePath(`/members/${relatedMemberId}`);
     return { cancelled: result.cancelled };
   } catch (error) {
     return { error: explain(error) };
@@ -62,7 +62,7 @@ export async function addRelation(data: FormData): Promise<RelationshipResponse>
 export async function removeRelation(data: FormData): Promise<RelationshipResponse> {
   const slug = String(data.get("church") ?? "") || undefined;
   const id = String(data.get("id") ?? "");
-  const personId = String(data.get("personId") ?? "");
+  const memberId = String(data.get("memberId") ?? "");
   if (!id) return { error: t("relationship.error.notFound") };
 
   const { session, ctx } = await writeContext(slug);
@@ -71,7 +71,7 @@ export async function removeRelation(data: FormData): Promise<RelationshipRespon
     await withTenant(ctx, (tx) =>
       removeRelationship(tx, { tenantId: session.tenantId, role: session.role }, id),
     );
-    revalidatePath(`/members/${personId}`);
+    revalidatePath(`/members/${memberId}`);
     return {};
   } catch (error) {
     return { error: explain(error) };

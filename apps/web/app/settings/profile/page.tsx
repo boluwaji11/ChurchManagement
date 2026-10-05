@@ -38,7 +38,7 @@ export default async function ProfilePage({
       const person = await getPerson(tx, self, { role: session.role, userId: session.userId });
       const contact = await getPersonForEdit(tx, self);
       return {
-        personId: self,
+        memberId: self,
         person,
         contact,
         campuses: await listCampuses(tx),
@@ -72,7 +72,7 @@ export default async function ProfilePage({
             photoUrl={photoUrl}
             campuses={result.campuses.map((one) => ({ id: one.id, name: one.name }))}
             values={{
-              personId: result.personId,
+              memberId: result.memberId,
               firstName: result.person.firstName,
               lastName: result.person.lastName,
               phone: result.contact?.phone ?? "",

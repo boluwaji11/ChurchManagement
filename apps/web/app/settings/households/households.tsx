@@ -178,7 +178,7 @@ export function HouseholdList({
  * R2.1. A household: its name, and who is in it.
  *
  * The pencil opens the family rather than a single text box, because renaming
- * is rarely why somebody came here. Adding offers only people in no household,
+ * is rarely why somebody came here. Adding offers only members in no household,
  * since somebody lives in one at a time and offering a name already in another
  * is offering a mistake.
  */
@@ -292,7 +292,7 @@ function Members({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
-        <span className="text-label text-fg">{t("households.people")}</span>
+        <span className="text-label text-fg">{t("households.members")}</span>
 
         {household.members.length === 0 ? (
           <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
@@ -571,7 +571,7 @@ function MergeInto({
 /**
  * R2.1. A new family: its name and who is in it, in one box.
  *
- * The people are held here until the name is saved, so a church answers both
+ * The members are held here until the name is saved, so a church answers both
  * questions in the order it thinks of them rather than creating an empty
  * household and then being sent to the list to find it.
  */
@@ -659,7 +659,7 @@ export function NewHousehold({ church }: { church: string }) {
 
           {chosen.length > 0 ? (
             <div className="flex flex-col gap-2">
-              <span className="text-label text-fg">{t("households.people")}</span>
+              <span className="text-label text-fg">{t("households.members")}</span>
 
               <ul className="flex flex-col">
                 {chosen.map((person) => (

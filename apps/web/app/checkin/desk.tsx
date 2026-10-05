@@ -97,13 +97,13 @@ export function Desk({
     setPrinting([]);
     setCodes({});
     const rooms: Record<string, string | null> = {};
-    const people: Record<string, boolean> = {};
-    for (const person of match.people) {
+    const members: Record<string, boolean> = {};
+    for (const person of match.members) {
       rooms[person.id] = person.roomId ?? person.suggestedRoomId;
-      people[person.id] = !person.checkedIn;
+      members[person.id] = !person.checkedIn;
     }
     setChosen(rooms);
-    setPicked(people);
+    setPicked(members);
     setBags({});
     setSeen(false);
   };
@@ -111,16 +111,16 @@ export function Desk({
   const household = matches.find((m) => m.id === open);
   /** Who this press would check in. Nobody means the press is not offered. */
   const waiting = household
-    ? household.people.filter((p) => picked[p.id] && !p.checkedIn)
+    ? household.members.filter((p) => picked[p.id] && !p.checkedIn)
     : [];
   const needsReading = warnings(waiting).length > 0;
 
   const send = () => {
     if (!household) return;
-    const entries = household.people
+    const entries = household.members
       .filter((p) => picked[p.id] && !p.checkedIn)
       .map((p) => ({
-        personId: p.id,
+        memberId: p.id,
         roomId: p.isChild ? (chosen[p.id] ?? null) : null,
         child: p.isChild,
         bagLabel: p.isChild && bags[p.id] === true,
@@ -128,8 +128,8 @@ export function Desk({
     if (entries.length === 0) return;
 
     startTransition(async () => {
-      const children = entries.filter((e) => e.child).map((e) => e.personId);
-      const wearing = entries.map((e) => e.personId);
+      const children = entries.filter((e) => e.child).map((e) => e.memberId);
+      const wearing = entries.map((e) => e.memberId);
 
       // R8.21. With no network the station does the whole thing itself: it
       // takes codes off the block it was given, writes the check-in to its own
@@ -144,24 +144,24 @@ export function Desk({
         }
 
         setCodes(given);
-        setDone(entries.map((e) => e.personId));
+        setDone(entries.map((e) => e.memberId));
         setPrinting(children);
 
         if (wearing.length > 0) {
           await keepLabels(
-            wearing.map((personId) => {
-              const person = household.people.find((p) => p.id === personId);
-              const room = rooms.find((r) => r.id === chosen[personId]);
+            wearing.map((memberId) => {
+              const person = household.members.find((p) => p.id === memberId);
+              const room = rooms.find((r) => r.id === chosen[memberId]);
               return {
-                personId,
+                memberId,
                 childName: `${person?.name ?? ""} ${person?.lastName ?? ""}`.trim(),
                 roomName: room?.name ?? null,
                 roomHue: room?.hue ?? null,
                 serviceName: services.find((s) => s.id === service)?.name ?? "",
                 churchName: station.snapshot?.churchName ?? "",
-                code: given[personId] ?? null,
+                code: given[memberId] ?? null,
                 allergy: person?.allergies ?? null,
-                bag: bags[personId] === true,
+                bag: bags[memberId] === true,
               };
             }),
           );
@@ -177,7 +177,7 @@ export function Desk({
       if (result.error) return;
       setCounts(result.counts ?? {});
       setCodes(result.codes ?? {});
-      setDone(entries.map((e) => e.personId));
+      setDone(entries.map((e) => e.memberId));
 
       // The children on this press are the ones whose labels have to come out
       // of the printer before anybody walks away.
@@ -185,7 +185,7 @@ export function Desk({
       if (wearing.length > 0) {
         const href =
           `/checkin/labels/print?church=${church}&service=${service}&printer=${printer}` +
-          `&people=${wearing.join(",")}`;
+          `&members=${wearing.join(",")}`;
         if (!openLabels(href)) setBlocked(href);
       }
 
@@ -213,19 +213,19 @@ export function Desk({
     }
 
     startTransition(async () => {
-      for (const personId of unsettled) await undo(service, personId, church);
+      for (const memberId of unsettled) await undo(service, memberId, church);
       await again();
       setDone([]);
     });
   };
 
-  const take = (personId: string) => {
+  const take = (memberId: string) => {
     startTransition(async () => {
       if (!station.state.online) {
-        await station.undoLocally(personId);
+        await station.undoLocally(memberId);
         return;
       }
-      const result = await undo(service, personId, church);
+      const result = await undo(service, memberId, church);
       setError(result.error);
       if (result.error) return;
       setCounts(result.counts ?? {});
@@ -303,12 +303,12 @@ export function Desk({
           </div>
 
           <ul className="flex flex-col gap-2">
-            {printing.map((personId) => {
-              const person = household.people.find((p) => p.id === personId);
-              const room = rooms.find((r) => r.id === chosen[personId]);
-              const code = codes[personId];
+            {printing.map((memberId) => {
+              const person = household.members.find((p) => p.id === memberId);
+              const room = rooms.find((r) => r.id === chosen[memberId]);
+              const code = codes[memberId];
               return (
-                <li key={personId} className="flex flex-wrap items-center justify-between gap-3">
+                <li key={memberId} className="flex flex-wrap items-center justify-between gap-3">
                   <span className="flex items-center gap-2 text-[length:var(--d-text-body)] text-fg">
                     {room ? <HueDot hue={room.hue as Hue} /> : null}
                     {person?.name}
@@ -334,17 +334,17 @@ export function Desk({
             <Button variant="ghost" onClick={() => setOpen(null)}>{t("action.cancel")}</Button>
           </div>
 
-          {/* R8.10, R24.14. Above the people, so a household of four on a
+          {/* R8.10, R24.14. Above the members, so a household of four on a
               tablet cannot push a peanut allergy off the screen. The check-in
               button does not work until it has been read. */}
           <Allergies
-            people={household.people.filter((p) => picked[p.id] && !p.checkedIn)}
+            members={household.members.filter((p) => picked[p.id] && !p.checkedIn)}
             seen={seen}
             onSeen={() => setSeen(true)}
           />
 
           <ul className="flex flex-col">
-            {household.people.map((person, i) => (
+            {household.members.map((person, i) => (
               <li key={person.id}>
                 {i > 0 ? <Separator className="my-3" /> : null}
                 <Member

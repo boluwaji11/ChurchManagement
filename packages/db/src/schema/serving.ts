@@ -4,7 +4,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { tenants, campuses } from "./tenancy";
 import { serviceOccurrences } from "./gatherings";
-import { people } from "./people";
+import { members } from "./members";
 import { hue } from "./enums";
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
@@ -13,9 +13,9 @@ const created = () => timestamp("created_at", { withTimezone: true }).defaultNow
 const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow().notNull();
 
 /**
- * R10.1. A team: people who serve on a schedule.
+ * R10.1. A team: members who serve on a schedule.
  *
- * A team is not a group. A group is people who meet, and what it needs is a
+ * A team is not a group. A group is members who meet, and what it needs is a
  * roster and a record of whether it met. A team needs positions, a schedule
  * against specific services, and somebody checking nobody is in two places at
  * one hour. Building one as the other would give a church a schedule screen
@@ -104,7 +104,7 @@ export const teamMembers = pgTable(
     id: pk(),
     tenantId: tenantId(),
     teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** "leader" or "member". A co-leader is a leader. */
     role: text("role").notNull().default("member"),
     joinedOn: date("joined_on").notNull(),
@@ -115,11 +115,11 @@ export const teamMembers = pgTable(
   (t) => [
     index("team_member_tenant_idx").on(t.tenantId),
     index("team_member_team_idx").on(t.tenantId, t.teamId),
-    index("team_member_person_idx").on(t.tenantId, t.personId),
+    index("team_member_person_idx").on(t.tenantId, t.memberId),
     // One live membership a person a team. Somebody who steps off and comes
     // back gets a second row, which is the history worth keeping.
     uniqueIndex("team_member_live_unique")
-      .on(t.teamId, t.personId)
+      .on(t.teamId, t.memberId)
       .where(sql`${t.leftOn} is null`),
   ],
 );
@@ -172,7 +172,7 @@ export const servingAssignments = pgTable(
     teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
     positionId: uuid("position_id").notNull()
       .references(() => teamPositions.id, { onDelete: "cascade" }),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** "pending", "accepted" or "declined". */
     status: text("status").notNull().default("pending"),
     /**
@@ -199,10 +199,10 @@ export const servingAssignments = pgTable(
   (t) => [
     index("assignment_tenant_idx").on(t.tenantId),
     index("assignment_occurrence_idx").on(t.tenantId, t.occurrenceId),
-    index("assignment_person_idx").on(t.tenantId, t.personId),
+    index("assignment_person_idx").on(t.tenantId, t.memberId),
     index("assignment_team_idx").on(t.tenantId, t.teamId, t.occurrenceId),
     // The same person is not put in the same position twice at one service.
-    uniqueIndex("assignment_unique").on(t.occurrenceId, t.positionId, t.personId),
+    uniqueIndex("assignment_unique").on(t.occurrenceId, t.positionId, t.memberId),
     uniqueIndex("assignment_token_unique").on(t.respondToken),
   ],
 );
@@ -220,7 +220,7 @@ export const blockoutDates = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     startsOn: date("starts_on").notNull(),
     endsOn: date("ends_on").notNull(),
     /** "Away", "Surgery". Theirs, and nobody is required to give one. */
@@ -229,7 +229,7 @@ export const blockoutDates = pgTable(
   },
   (t) => [
     index("blockout_tenant_idx").on(t.tenantId),
-    index("blockout_person_idx").on(t.tenantId, t.personId, t.startsOn),
+    index("blockout_person_idx").on(t.tenantId, t.memberId, t.startsOn),
   ],
 );
 
@@ -244,13 +244,13 @@ export const servingPreferences = pgTable(
   "serving_preferences",
   {
     tenantId: tenantId(),
-    personId: uuid("person_id").notNull().references(() => people.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     /** "weekly", "fortnightly", "monthly", "quarterly". */
     frequency: text("frequency").notNull(),
     updatedAt: updated(),
   },
   (t) => [
-    primaryKey({ columns: [t.personId] }),
+    primaryKey({ columns: [t.memberId] }),
     index("serving_pref_tenant_idx").on(t.tenantId),
   ],
 );

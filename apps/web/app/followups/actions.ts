@@ -40,7 +40,7 @@ export async function findPeople(
  */
 export async function addToStage(
   pipelineId: string,
-  personId: string,
+  memberId: string,
   position: number,
   church?: string,
 ): Promise<{ error?: string }> {
@@ -51,7 +51,7 @@ export async function addToStage(
       const today = churchNow(profile?.timezone ?? "America/Chicago").date;
       const entry = await enterPipeline(tx, ctx, {
         pipelineId,
-        personId,
+        memberId,
         on: today,
         assigneeUserId: session.userId,
       });

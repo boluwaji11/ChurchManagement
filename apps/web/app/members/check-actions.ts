@@ -18,7 +18,7 @@ export async function addCheck(data: FormData): Promise<CheckResultView> {
   try {
     await withTenant(ctx, (tx) =>
       recordCheck(tx, ctx, {
-        personId: field(data, "personId"),
+        memberId: field(data, "memberId"),
         provider: field(data, "provider"),
         status: field(data, "status") as CheckResult,
         completedOn: field(data, "completedOn") || null,

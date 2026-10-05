@@ -17,7 +17,7 @@ async function main() {
            btrim(coalesce(p.preferred_name, p.first_name) || ' ' || coalesce(p.last_name, '')) as now
       from app_users u
       join auth.users au on au.id = u.id
-      join people p on p.app_user_id = u.id and p.archived_at is null`;
+      join members p on p.app_user_id = u.id and p.archived_at is null`;
 
   let changed = 0;
   for (const row of rows) {

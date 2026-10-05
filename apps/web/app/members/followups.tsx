@@ -52,14 +52,14 @@ const readable = (iso: string) =>
  */
 export function FollowUps({
   church,
-  personId,
+  memberId,
   today,
   entries,
   pipelines,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   today: string;
   entries: EntryRow[];
   pipelines: PipelineOption[];
@@ -116,7 +116,7 @@ export function FollowUps({
         <div>
           <StartDialog
             church={church}
-            personId={personId}
+            memberId={memberId}
             pipelines={pipelines}
             pending={pending}
             onDone={() => router.refresh()}
@@ -219,13 +219,13 @@ function Marker({ hue, step, today }: { hue: Hue; step: StepRow; today: string }
  */
 export function PersonTasks({
   church,
-  personId,
+  memberId,
   today,
   tasks,
   canEdit,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   today: string;
   tasks: StepRow[];
   canEdit: boolean;
@@ -270,7 +270,7 @@ export function PersonTasks({
         <div>
           <TaskDialog
             church={church}
-            personId={personId}
+            memberId={memberId}
             pending={pending}
             onDone={() => router.refresh()}
             onError={setError}
@@ -283,14 +283,14 @@ export function PersonTasks({
 
 function StartDialog({
   church,
-  personId,
+  memberId,
   pipelines,
   pending,
   onDone,
   onError,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   pipelines: PipelineOption[];
   pending: boolean;
   onDone: () => void;
@@ -331,7 +331,7 @@ function StartDialog({
               onClick={() => {
                 const data = new FormData();
                 data.set("church", church);
-                data.set("personId", personId);
+                data.set("memberId", memberId);
                 data.set("pipelineId", pipelineId);
                 startTransition(async () => {
                   const result = await startFollowUp(data);
@@ -523,13 +523,13 @@ function LeaveDialog({
 
 function TaskDialog({
   church,
-  personId,
+  memberId,
   pending,
   onDone,
   onError,
 }: {
   church: string;
-  personId: string;
+  memberId: string;
   pending: boolean;
   onDone: () => void;
   onError: (error?: string) => void;
@@ -547,7 +547,7 @@ function TaskDialog({
           noValidate
           action={(data) => {
             data.set("church", church);
-            data.set("personId", personId);
+            data.set("memberId", memberId);
             startTransition(async () => {
               const result = await addPersonTask(data);
               onError(result.error);

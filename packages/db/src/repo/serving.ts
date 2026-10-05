@@ -3,12 +3,12 @@ import type { Tx } from "../client";
 import { freeSlug } from "./slugs";
 import { isUuid } from "./form-rules";
 import { teams, teamPositions, teamMembers, teamMemberPositions } from "../schema/serving";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError, NameTakenError } from "../errors";
 import { TAG_HUES, type TagHue } from "./tags";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R10.1, R10.2. Teams, positions, and who serves on them.
@@ -86,7 +86,7 @@ export interface TeamSummary extends Team {
 
 export interface TeamMemberView {
   id: string;
-  personId: string;
+  memberId: string;
   /** R24.6. Their readable address, so a roster row links without an id. */
   personSlug: string;
   name: string;
@@ -210,22 +210,22 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
   const rows = await db
     .select({
       id: teamMembers.id,
-      personId: teamMembers.personId,
-      personSlug: people.slug,
+      memberId: teamMembers.memberId,
+      personSlug: members.slug,
       role: teamMembers.role,
       joinedOn: sql<string>`${teamMembers.joinedOn}::text`,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
     })
     .from(teamMembers)
-    .innerJoin(people, eq(people.id, teamMembers.personId))
+    .innerJoin(members, eq(members.id, teamMembers.memberId))
     .where(and(
       eq(teamMembers.teamId, teamId),
       isNull(teamMembers.leftOn),
-      isNull(people.archivedAt),
+      isNull(members.archivedAt),
     ))
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   const played = rows.length === 0
     ? []
@@ -246,7 +246,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
     positions,
     members: rows.map((r) => ({
       id: r.id,
-      personId: r.personId,
+      memberId: r.memberId,
       personSlug: r.personSlug,
       name: displayName(r),
       role: r.role as TeamRole,
@@ -260,7 +260,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
 }
 
 /** R10.1, R10.3. Every team one person serves on, for their record. */
-export async function servingForPerson(db: Tx, personId: string): Promise<ServingFor[]> {
+export async function servingForPerson(db: Tx, memberId: string): Promise<ServingFor[]> {
   const rows = await db
     .select({
       memberId: teamMembers.id,
@@ -273,7 +273,7 @@ export async function servingForPerson(db: Tx, personId: string): Promise<Servin
     .from(teamMembers)
     .innerJoin(teams, eq(teams.id, teamMembers.teamId))
     .where(and(
-      eq(teamMembers.personId, personId),
+      eq(teamMembers.memberId, memberId),
       isNull(teamMembers.leftOn),
       isNull(teams.archivedAt),
     ))
@@ -312,12 +312,12 @@ export async function leadsTeam(db: Tx, teamId: string, userId: string): Promise
   const [row] = await db
     .select({ id: teamMembers.id })
     .from(teamMembers)
-    .innerJoin(people, eq(people.id, teamMembers.personId))
+    .innerJoin(members, eq(members.id, teamMembers.memberId))
     .where(and(
       eq(teamMembers.teamId, teamId),
       eq(teamMembers.role, "leader"),
       isNull(teamMembers.leftOn),
-      eq(people.appUserId, userId),
+      eq(members.appUserId, userId),
     ))
     .limit(1);
   return row !== undefined;
@@ -513,7 +513,7 @@ export async function updatePosition(
 /**
  * Archiving a position keeps every schedule it was ever on.
  *
- * It also comes off the people who played it, because "who can do this" is a
+ * It also comes off the members who played it, because "who can do this" is a
  * question about now.
  */
 export async function setPositionArchived(
@@ -555,7 +555,7 @@ export async function reorderPositions(
 
 export interface RosterInput {
   teamId: string;
-  personId: string;
+  memberId: string;
   role?: TeamRole;
   joinedOn?: string;
   /** The positions they play. An empty list is a member the team schedules by name. */
@@ -610,9 +610,9 @@ export async function addToTeam(
   if (!ISO.test(joinedOn)) throw new InvalidInputError("team.error.date");
 
   const [person] = await db
-    .select({ id: people.id })
-    .from(people)
-    .where(and(eq(people.id, input.personId), isNull(people.archivedAt)))
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.id, input.memberId), isNull(members.archivedAt)))
     .limit(1);
   if (!person) throw new InvalidInputError("error.notFound.person");
 
@@ -621,7 +621,7 @@ export async function addToTeam(
     .from(teamMembers)
     .where(and(
       eq(teamMembers.teamId, input.teamId),
-      eq(teamMembers.personId, input.personId),
+      eq(teamMembers.memberId, input.memberId),
       isNull(teamMembers.leftOn),
     ))
     .limit(1);
@@ -633,7 +633,7 @@ export async function addToTeam(
       .values({
         tenantId: actor.tenantId,
         teamId: input.teamId,
-        personId: input.personId,
+        memberId: input.memberId,
         role: input.role ?? "member",
         joinedOn,
       })
@@ -694,7 +694,7 @@ export async function setTeamMemberRole(
 export async function removeFromTeam(
   db: Tx,
   actor: WriteActor,
-  input: { teamId: string; personId: string; on?: string },
+  input: { teamId: string; memberId: string; on?: string },
 ): Promise<void> {
   await requireRoster(db, actor, input.teamId);
 
@@ -706,7 +706,7 @@ export async function removeFromTeam(
     .set({ leftOn: on, updatedAt: new Date() })
     .where(and(
       eq(teamMembers.teamId, input.teamId),
-      eq(teamMembers.personId, input.personId),
+      eq(teamMembers.memberId, input.memberId),
       isNull(teamMembers.leftOn),
     ))
     .returning({ id: teamMembers.id });

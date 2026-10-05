@@ -16,7 +16,7 @@ import { releaseBlock } from "../src/repo/release-rules";
 import { checkInFamily, visitsFor } from "../src/repo/checkin";
 import { addSpecialService } from "../src/repo/services";
 import { addRoom } from "../src/repo/rooms";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { addRelationship } from "../src/repo/relationships";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -44,7 +44,7 @@ const freshVisit = async (): Promise<{ id: string; code: string }> => {
   await owner()`delete from checkin_visits where tenant_id = ${tenant}`;
   await run((tx) => checkInFamily(tx, as(), {
     occurrenceId: service,
-    entries: [{ personId: child, roomId: room, child: true }],
+    entries: [{ memberId: child, roomId: room, child: true }],
   }));
   const [visit] = await run((tx) => visitsFor(tx, service));
   return { id: visit!.id, code: visit!.code! };
@@ -65,7 +65,7 @@ beforeAll(async () => {
   } as never))).id;
 
   const [m] = await owner()<{ household_id: string }[]>`
-    select household_id from household_memberships where person_id = ${mother}`;
+    select household_id from household_memberships where member_id = ${mother}`;
   household = m!.household_id;
 
   child = (await run((tx) => createPerson(tx, as(), {
@@ -92,10 +92,10 @@ beforeAll(async () => {
 
   // Recorded as allowed to collect, and recorded as not allowed near her.
   await run((tx) => addRelationship(tx, as(), {
-    personId: child, relatedPersonId: grandmother, kind: "guardian",
+    memberId: child, relatedMemberId: grandmother, kind: "guardian",
   }));
   await run((tx) => addRelationship(tx, as(), {
-    personId: child, relatedPersonId: restricted, kind: "do_not_contact",
+    memberId: child, relatedMemberId: restricted, kind: "do_not_contact",
   }));
 });
 

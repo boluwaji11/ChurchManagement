@@ -11,7 +11,7 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { lookupPeople } from "../src/repo/lookup";
 import { stationRoster } from "../src/repo/roster";
 import { search } from "../src/repo/match";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { withAuditTriggersOff } from "../src/maintenance";
 import { testTenant, dropTenants } from "./helpers/tenant";
 import type { TenantRole } from "../src/roles";
@@ -36,11 +36,11 @@ beforeAll(async () => {
   // Written the way somebody typed it into the form, punctuation and all, since
   // that is what the lookup has to see through.
   await owner()`
-    insert into contact_methods (tenant_id, person_id, kind, label, value, is_primary)
+    insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
     values (${tenant}, ${mother.id}, 'phone', 'mobile', '(512) 555-0134', true)`;
 
   const [household] = await owner()<{ household_id: string }[]>`
-    select household_id from household_memberships where person_id = ${mother.id}`;
+    select household_id from household_memberships where member_id = ${mother.id}`;
 
   for (const child of [
     { firstName: "Mia", dateOfBirth: "2023-06-11" },
@@ -161,7 +161,7 @@ describe("what comes back", () => {
   });
 });
 
-describe("another church's people", () => {
+describe("another church's members", () => {
   it("are never returned", async () => {
     const otherId = await testTenant("lookuptest2", "Other Lookup Church");
 
@@ -184,7 +184,7 @@ describe("what the station has to know (R8.10)", () => {
     const mia = match!.person;
 
     await owner()`
-      update people set allergies = 'Peanuts', medical_note = 'Inhaler in bag'
+      update members set allergies = 'Peanuts', medical_note = 'Inhaler in bag'
       where id = ${mia.id}`;
 
     const [again] = await run((tx) => lookupPeople(tx, "elena", { asOf: ASOF }));
@@ -204,9 +204,9 @@ describe("what the station has to know (R8.10)", () => {
  * it, so the rules are written once in `match.ts` and the SQL is written to
  * agree with them. This is the test that holds the two together: when one is
  * changed and the other is not, the Sunday a station spends offline is a
- * Sunday where it finds different people.
+ * Sunday where it finds different members.
  */
-describe("the offline station finds the same people", () => {
+describe("the offline station finds the same members", () => {
   it("agrees with the query, for everything somebody types", async () => {
     const roster = await run((tx) => stationRoster(tx, { asOf: ASOF }));
 
@@ -214,14 +214,14 @@ describe("the offline station finds the same people", () => {
       const fromDatabase = (await run((tx) => lookupPeople(tx, typed, { asOf: ASOF }))).map(
         (m) => m.person.id,
       );
-      const fromStation = search(roster.people, typed).map((p) => p.id);
+      const fromStation = search(roster.members, typed).map((p) => p.id);
       expect(fromStation, typed).toEqual(fromDatabase);
     }
   });
 
   it("carries the pickup list for every child (R8.8)", async () => {
     const roster = await run((tx) => stationRoster(tx, { asOf: ASOF }));
-    const mia = roster.people.find((p) => p.firstName === "Mia")!;
+    const mia = roster.members.find((p) => p.firstName === "Mia")!;
     const names = roster.pickup[mia.id]!.map((p) => p.name);
     expect(names).toContain("Elena Ochoa");
   });

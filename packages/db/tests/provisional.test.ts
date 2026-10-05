@@ -4,7 +4,7 @@
  * The cap replaces an approval queue, which was built and taken out on the same
  * day. So what is tested is that the cap is real on the three things worth
  * having: a public join link, invitations, and a congregation's worth of
- * people. And that approving one lifts all three at once.
+ * members. And that approving one lifts all three at once.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { sql } from "drizzle-orm";
@@ -13,7 +13,7 @@ import {
   isApproved, churchStanding, requireApproved, requireRoomForPeople,
   approveChurch, unapproveChurch, PROVISIONAL_PEOPLE,
 } from "../src/repo/provisional";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { createInvitation } from "../src/repo/membership";
 import { rotateJoinCode, churchForJoinCode } from "../src/repo/joining";
 import { InvalidInputError } from "../src/errors";
@@ -46,13 +46,13 @@ afterAll(async () => {
 });
 
 describe("a church nobody has looked at yet", () => {
-  it("starts provisional, with room for a few people", async () => {
+  it("starts provisional, with room for a few members", async () => {
     expect(await run((tx) => isApproved(tx, tenant))).toBe(false);
 
     const standing = await run((tx) => churchStanding(tx, tenant));
     expect(standing).toMatchObject({
       approved: false,
-      people: 0,
+      members: 0,
       limit: PROVISIONAL_PEOPLE,
       remaining: PROVISIONAL_PEOPLE,
     });
@@ -63,7 +63,7 @@ describe("a church nobody has looked at yet", () => {
     await person("Boma");
 
     const standing = await run((tx) => churchStanding(tx, tenant));
-    expect(standing.people).toBe(2);
+    expect(standing.members).toBe(2);
     expect(standing.remaining).toBe(PROVISIONAL_PEOPLE - 2);
   });
 
@@ -83,12 +83,12 @@ describe("a church nobody has looked at yet", () => {
     await run((tx) => requireRoomForPeople(tx, tenant));
 
     await owner()`
-      insert into people (tenant_id, first_name, last_name, lifecycle_status)
+      insert into members (tenant_id, first_name, last_name, lifecycle_status)
       select ${tenant}::uuid, 'Filler' || n, 'Provisional', 'visitor'
         from generate_series(1, ${PROVISIONAL_PEOPLE - 3}) as n`;
 
     const standing = await run((tx) => churchStanding(tx, tenant));
-    expect(standing.people).toBe(PROVISIONAL_PEOPLE - 1);
+    expect(standing.members).toBe(PROVISIONAL_PEOPLE - 1);
 
     // Room for exactly one more.
     await run((tx) => requireRoomForPeople(tx, tenant));
@@ -105,7 +105,7 @@ describe("a church nobody has looked at yet", () => {
 });
 
 describe("once a human has looked at it", () => {
-  it("lifts the cap on people", async () => {
+  it("lifts the cap on members", async () => {
     await run((tx) => approveChurch(tx, tenant, "a person"));
 
     expect(await run((tx) => isApproved(tx, tenant))).toBe(true);

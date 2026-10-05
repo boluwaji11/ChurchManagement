@@ -427,10 +427,10 @@ export async function registerForEvent(input: {
         answers: { ...identity, ...answers },
       });
 
-      if (placed.personId) {
+      if (placed.memberId) {
         await tx`
           update event_registrations
-             set person_id = ${placed.personId}, updated_at = now()
+             set member_id = ${placed.memberId}, updated_at = now()
            where id = ${registration!.id}`;
       }
 

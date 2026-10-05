@@ -11,7 +11,7 @@ import { cleanSpec, SUBJECTS } from "../src/repo/report-spec";
 describe("cleanSpec", () => {
   it("drops a field that is not in the catalogue", () => {
     const spec = cleanSpec({
-      subject: "people",
+      subject: "members",
       filters: [
         { field: "status", op: "is", value: "member" },
         { field: "password_hash", op: "is", value: "x" },
@@ -26,20 +26,20 @@ describe("cleanSpec", () => {
 
   it("drops an operator the field's kind does not have", () => {
     const spec = cleanSpec({
-      subject: "people",
+      subject: "members",
       // "contains" belongs to text, not to a boolean.
       filters: [{ field: "inGroup", op: "contains", value: "yes" }],
     });
     expect(spec.filters).toHaveLength(0);
   });
 
-  it("falls back to people when the subject is unknown", () => {
-    expect(cleanSpec({ subject: "tenants" }).subject).toBe("people");
+  it("falls back to members when the subject is unknown", () => {
+    expect(cleanSpec({ subject: "tenants" }).subject).toBe("members");
   });
 
   it("keeps a condition that needs no value, and drops one that is missing it", () => {
     const spec = cleanSpec({
-      subject: "people",
+      subject: "members",
       filters: [
         { field: "joinedOn", op: "empty", value: "" },
         { field: "name", op: "contains", value: "  " },
@@ -50,13 +50,13 @@ describe("cleanSpec", () => {
   });
 
   it("refuses to count by a field that cannot be grouped", () => {
-    expect(cleanSpec({ subject: "people", groupBy: "name" }).groupBy).toBeNull();
-    expect(cleanSpec({ subject: "people", groupBy: "status" }).groupBy).toBe("status");
+    expect(cleanSpec({ subject: "members", groupBy: "name" }).groupBy).toBeNull();
+    expect(cleanSpec({ subject: "members", groupBy: "status" }).groupBy).toBe("status");
   });
 
   it("refuses to add up a field that is not a number", () => {
     const spec = cleanSpec({
-      subject: "people",
+      subject: "members",
       groupBy: "status",
       measure: { kind: "sum", field: "name" },
     });
@@ -75,7 +75,7 @@ describe("cleanSpec", () => {
     const many = Array.from({ length: 40 }, () => ({
       field: "name", op: "contains", value: "a",
     }));
-    expect(cleanSpec({ subject: "people", filters: many }).filters).toHaveLength(10);
+    expect(cleanSpec({ subject: "members", filters: many }).filters).toHaveLength(10);
   });
 
   it("survives rubbish", () => {
@@ -86,16 +86,16 @@ describe("cleanSpec", () => {
 
 describe("how the answer is drawn", () => {
   it("falls back to a table where a chart needs a count and there is none", () => {
-    expect(cleanSpec({ subject: "people", view: "donut" }).view).toBe("table");
-    expect(cleanSpec({ subject: "people", groupBy: "status", view: "donut" }).view).toBe("donut");
+    expect(cleanSpec({ subject: "members", view: "donut" }).view).toBe("table");
+    expect(cleanSpec({ subject: "members", groupBy: "status", view: "donut" }).view).toBe("donut");
   });
 
   it("keeps the two ways of joining conditions and nothing else", () => {
-    expect(cleanSpec({ subject: "people", join: "or" }).join).toBe("or");
-    expect(cleanSpec({ subject: "people", join: "xor" }).join).toBe("and");
+    expect(cleanSpec({ subject: "members", join: "or" }).join).toBe("or");
+    expect(cleanSpec({ subject: "members", join: "xor" }).join).toBe("and");
   });
 
   it("refuses a view it has never heard of", () => {
-    expect(cleanSpec({ subject: "people", view: "treemap" }).view).toBe("table");
+    expect(cleanSpec({ subject: "members", view: "treemap" }).view).toBe("table");
   });
 });

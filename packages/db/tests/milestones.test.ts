@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { createPerson, getPerson } from "../src/repo/people";
+import { createPerson, getPerson } from "../src/repo/members";
 import { listMilestones, addMilestone, removeMilestone, listMilestonesByKind } from "../src/repo/milestones";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -35,7 +35,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await owner()`delete from people where last_name = ${SUR}`;
+  await owner()`delete from members where last_name = ${SUR}`;
   await closeConnections();
 });
 
@@ -48,7 +48,7 @@ describe("recording", () => {
       ["membership_class", "2020-01-12"],
     ] as const) {
       await run(riverside, "owner", (tx) =>
-        addMilestone(tx, as(riverside), { personId: id, kind, occurredOn: on }),
+        addMilestone(tx, as(riverside), { memberId: id, kind, occurredOn: on }),
       );
     }
 
@@ -63,7 +63,7 @@ describe("recording", () => {
     for (const on of [`${year}-01-01`, "not a date"]) {
       await expect(
         run(riverside, "owner", (tx) =>
-          addMilestone(tx, as(riverside), { personId: id, kind: "baptism", occurredOn: on }),
+          addMilestone(tx, as(riverside), { memberId: id, kind: "baptism", occurredOn: on }),
         ),
         on,
       ).rejects.toBeInstanceOf(InvalidInputError);
@@ -73,10 +73,10 @@ describe("recording", () => {
   it("removes one and leaves the rest", async () => {
     const id = await make("Peter");
     await run(riverside, "owner", (tx) =>
-      addMilestone(tx, as(riverside), { personId: id, kind: "baptism", occurredOn: "2021-03-07" }),
+      addMilestone(tx, as(riverside), { memberId: id, kind: "baptism", occurredOn: "2021-03-07" }),
     );
     await run(riverside, "owner", (tx) =>
-      addMilestone(tx, as(riverside), { personId: id, kind: "salvation", occurredOn: "2021-02-14" }),
+      addMilestone(tx, as(riverside), { memberId: id, kind: "salvation", occurredOn: "2021-02-14" }),
     );
 
     const [first] = await run(riverside, "owner", (tx) => listMilestones(tx, id));
@@ -91,7 +91,7 @@ describe("the person record keeps up", () => {
   it("a death sets the status to deceased", async () => {
     const id = await make("Walter");
     const result = await run(riverside, "owner", (tx) =>
-      addMilestone(tx, as(riverside), { personId: id, kind: "death", occurredOn: "2024-11-02" }),
+      addMilestone(tx, as(riverside), { memberId: id, kind: "death", occurredOn: "2024-11-02" }),
     );
 
     expect(result.updatedPerson).toBe(true);
@@ -102,7 +102,7 @@ describe("the person record keeps up", () => {
   it("removing the death record leaves the status alone", async () => {
     const id = await make("Frances");
     const m = await run(riverside, "owner", (tx) =>
-      addMilestone(tx, as(riverside), { personId: id, kind: "death", occurredOn: "2024-11-02" }),
+      addMilestone(tx, as(riverside), { memberId: id, kind: "death", occurredOn: "2024-11-02" }),
     );
     await run(riverside, "owner", (tx) => removeMilestone(tx, as(riverside), m.id));
 
@@ -114,7 +114,7 @@ describe("the person record keeps up", () => {
     const blank = await make("Louise");
     await run(riverside, "owner", (tx) =>
       addMilestone(tx, as(riverside), {
-        personId: blank, kind: "first_visit", occurredOn: "2023-09-10",
+        memberId: blank, kind: "first_visit", occurredOn: "2023-09-10",
       }),
     );
     expect((await run(riverside, "owner", (tx) => getPerson(tx, blank)))?.firstVisitOn)
@@ -123,7 +123,7 @@ describe("the person record keeps up", () => {
     const corrected = await make("Harold", { firstVisitOn: "2022-01-09" });
     const result = await run(riverside, "owner", (tx) =>
       addMilestone(tx, as(riverside), {
-        personId: corrected, kind: "first_visit", occurredOn: "2023-09-10",
+        memberId: corrected, kind: "first_visit", occurredOn: "2023-09-10",
       }),
     );
 
@@ -140,13 +140,13 @@ describe("reporting", () => {
     const c = await make("Tabitha");
 
     await run(riverside, "owner", (tx) =>
-      addMilestone(tx, as(riverside), { personId: a, kind: "baptism", occurredOn: "2025-01-01" }),
+      addMilestone(tx, as(riverside), { memberId: a, kind: "baptism", occurredOn: "2025-01-01" }),
     );
     await run(riverside, "owner", (tx) =>
-      addMilestone(tx, as(riverside), { personId: b, kind: "baptism", occurredOn: "2025-12-31" }),
+      addMilestone(tx, as(riverside), { memberId: b, kind: "baptism", occurredOn: "2025-12-31" }),
     );
     await run(riverside, "owner", (tx) =>
-      addMilestone(tx, as(riverside), { personId: c, kind: "baptism", occurredOn: "2024-12-31" }),
+      addMilestone(tx, as(riverside), { memberId: c, kind: "baptism", occurredOn: "2024-12-31" }),
     );
 
     const rows = await run(riverside, "owner", (tx) =>
@@ -158,12 +158,12 @@ describe("reporting", () => {
 });
 
 describe("permissions", () => {
-  it("refuses a role that cannot edit people", async () => {
+  it("refuses a role that cannot edit members", async () => {
     const id = await make("Vernon");
     await expect(
       run(riverside, "member", (tx) =>
         addMilestone(tx, as(riverside, "member"), {
-          personId: id, kind: "baptism", occurredOn: "2020-05-05",
+          memberId: id, kind: "baptism", occurredOn: "2020-05-05",
         }),
       ),
     ).rejects.toBeInstanceOf(PermissionError);

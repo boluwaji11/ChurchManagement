@@ -100,7 +100,7 @@ export default async function CheckinPage({
   );
 
   const service = data.services.find((s) => s.id === data.chosen);
-  const present = new Set(data.here.map((visit) => visit.personId));
+  const present = new Set(data.here.map((visit) => visit.memberId));
 
   const action = (
     <CheckInSheet

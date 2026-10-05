@@ -180,7 +180,7 @@ export default async function DashboardPage({
       hue: "violet",
     },
     {
-      id: "new-people",
+      id: "new-members",
       label: t("dashboard.newPeople"),
       value: String(numbers.newThisMonth),
       sub: t("dashboard.thisMonth"),

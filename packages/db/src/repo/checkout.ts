@@ -1,13 +1,13 @@
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import type { Tx } from "../client";
 import { checkinVisits, checkinOverrides } from "../schema/checkin";
-import { people, householdMemberships, relationships } from "../schema/people";
+import { members, householdMemberships, relationships } from "../schema/members";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { readCode } from "./codes";
 import { releaseBlock, type OverrideKind } from "./release-rules";
 import { canCheckIn } from "./checkin";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R8.7 to R8.9. Letting a child go.
@@ -60,10 +60,10 @@ export interface CheckoutRequest {
  */
 export async function pickupList(db: Tx, childId: string): Promise<PickupPerson[]> {
   const named = await db
-    .select({ id: relationships.relatedPersonId, kind: relationships.kind })
+    .select({ id: relationships.relatedMemberId, kind: relationships.kind })
     .from(relationships)
     .where(and(
-      eq(relationships.personId, childId),
+      eq(relationships.memberId, childId),
       inArray(relationships.kind, ["guardian", "emergency_contact"]),
     ));
 
@@ -71,14 +71,14 @@ export async function pickupList(db: Tx, childId: string): Promise<PickupPerson[
     .select({ householdId: householdMemberships.householdId })
     .from(householdMemberships)
     .where(and(
-      eq(householdMemberships.personId, childId),
+      eq(householdMemberships.memberId, childId),
       isNull(householdMemberships.endedOn),
     ))
     .limit(1);
 
   const housemates = membership
     ? await db
-        .select({ id: householdMemberships.personId })
+        .select({ id: householdMemberships.memberId })
         .from(householdMemberships)
         .where(and(
           eq(householdMemberships.householdId, membership.householdId),
@@ -96,13 +96,13 @@ export async function pickupList(db: Tx, childId: string): Promise<PickupPerson[
 
   const rows = await db
     .select({
-      id: people.id,
-      firstName: people.firstName,
-      lastName: people.lastName,
-      preferredName: people.preferredName,
+      id: members.id,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      preferredName: members.preferredName,
     })
-    .from(people)
-    .where(and(inArray(people.id, [...basis.keys()]), isNull(people.archivedAt)));
+    .from(members)
+    .where(and(inArray(members.id, [...basis.keys()]), isNull(members.archivedAt)));
 
   return rows
     .map((r) => ({
@@ -117,11 +117,11 @@ export async function pickupList(db: Tx, childId: string): Promise<PickupPerson[
 /** R8.9, R2.4. Everybody a do-not-contact order names against this child. */
 async function restrictedAgainst(db: Tx, childId: string): Promise<string[]> {
   const rows = await db
-    .select({ a: relationships.personId, b: relationships.relatedPersonId })
+    .select({ a: relationships.memberId, b: relationships.relatedMemberId })
     .from(relationships)
     .where(and(
       eq(relationships.kind, "do_not_contact"),
-      or(eq(relationships.personId, childId), eq(relationships.relatedPersonId, childId)),
+      or(eq(relationships.memberId, childId), eq(relationships.relatedMemberId, childId)),
     ));
 
   return rows.map((r) => (r.a === childId ? r.b : r.a));
@@ -157,7 +157,7 @@ export async function checkOut(
   const [visit] = await db
     .select({
       id: checkinVisits.id,
-      personId: checkinVisits.personId,
+      memberId: checkinVisits.memberId,
       code: checkinVisits.code,
       kind: checkinVisits.kind,
       checkedOutAt: checkinVisits.checkedOutAt,
@@ -172,9 +172,9 @@ export async function checkOut(
 
   const override = request.override ?? null;
 
-  const restricted = request.collectedBy ? await restrictedAgainst(db, visit.personId) : [];
+  const restricted = request.collectedBy ? await restrictedAgainst(db, visit.memberId) : [];
   const allowed = request.collectedBy
-    ? (await pickupList(db, visit.personId)).map((p) => p.id)
+    ? (await pickupList(db, visit.memberId)).map((p) => p.id)
     : [];
 
   const stopped = releaseBlock({
@@ -236,21 +236,21 @@ export async function overridesFor(db: Tx, occurrenceId: string): Promise<Overri
       reason: checkinOverrides.reason,
       createdAt: checkinOverrides.createdAt,
       collectedBy: checkinOverrides.collectedBy,
-      childFirst: people.firstName,
-      childLast: people.lastName,
-      childPreferred: people.preferredName,
+      childFirst: members.firstName,
+      childLast: members.lastName,
+      childPreferred: members.preferredName,
     })
     .from(checkinOverrides)
     .innerJoin(checkinVisits, eq(checkinVisits.id, checkinOverrides.visitId))
-    .innerJoin(people, eq(people.id, checkinVisits.personId))
+    .innerJoin(members, eq(members.id, checkinVisits.memberId))
     .where(eq(checkinVisits.occurrenceId, occurrenceId));
 
   const collectorIds = rows.map((r) => r.collectedBy).filter((id): id is string => id !== null);
   const collectors = collectorIds.length
     ? await db
-        .select({ id: people.id, firstName: people.firstName, lastName: people.lastName })
-        .from(people)
-        .where(inArray(people.id, collectorIds))
+        .select({ id: members.id, firstName: members.firstName, lastName: members.lastName })
+        .from(members)
+        .where(inArray(members.id, collectorIds))
     : [];
 
   return rows.map((r) => {

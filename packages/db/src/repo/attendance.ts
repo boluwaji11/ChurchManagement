@@ -1,11 +1,11 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { attendanceRecords, serviceOccurrences } from "../schema/gatherings";
-import { people } from "../schema/people";
+import { members } from "../schema/members";
 import { canManageServices } from "./services";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
-import type { WriteActor } from "./people";
+import type { WriteActor } from "./members";
 
 /**
  * R7.3 and R7.7. Who was at a service.
@@ -15,13 +15,13 @@ import type { WriteActor } from "./people";
  * also makes correcting a mistake a delete, which the audit trigger records
  * like any other write, so R7.7 comes free rather than needing its own log.
  *
- * The acceptance criterion is 120 people ticked in under three minutes on a
+ * The acceptance criterion is 120 members ticked in under three minutes on a
  * tablet with no page reloads, so every write here is one row and the roster is
  * one query.
  */
 
 export interface RosterEntry {
-  personId: string;
+  memberId: string;
   firstName: string;
   preferredName: string | null;
   lastName: string;
@@ -39,22 +39,22 @@ export interface RosterEntry {
 export async function listRoster(db: Tx, occurrenceId: string): Promise<RosterEntry[]> {
   const rows = await db
     .select({
-      personId: people.id,
-      firstName: people.firstName,
-      preferredName: people.preferredName,
-      lastName: people.lastName,
+      memberId: members.id,
+      firstName: members.firstName,
+      preferredName: members.preferredName,
+      lastName: members.lastName,
       present: sql<boolean>`${attendanceRecords.id} is not null`,
     })
-    .from(people)
+    .from(members)
     .leftJoin(
       attendanceRecords,
       and(
-        eq(attendanceRecords.personId, people.id),
+        eq(attendanceRecords.memberId, members.id),
         eq(attendanceRecords.occurrenceId, occurrenceId),
       ),
     )
-    .where(isNull(people.archivedAt))
-    .orderBy(asc(people.lastName), asc(people.firstName));
+    .where(isNull(members.archivedAt))
+    .orderBy(asc(members.lastName), asc(members.firstName));
 
   return rows.map((r) => ({ ...r, householdName: null, present: Boolean(r.present) }));
 }
@@ -95,24 +95,24 @@ async function syncFirstVisit(db: Tx, personIds: string[]): Promise<void> {
   const ids = sql.raw(`array[${personIds.map((id) => `'${id}'`).join(",")}]::uuid[]`);
 
   await db.execute(sql`
-    update people p
+    update members p
        set first_visit_on = seen.first_on, updated_at = now()
       from (
-        select ar.person_id,
+        select ar.member_id,
                min(o.occurs_on) as first_on
           from attendance_records ar
           join service_occurrences o on o.id = ar.occurrence_id
-         where ar.person_id = any(${ids})
+         where ar.member_id = any(${ids})
            and o.status = 'scheduled'
-         group by ar.person_id
+         group by ar.member_id
       ) seen
-     where p.id = seen.person_id
+     where p.id = seen.member_id
        and (p.first_visit_on is null or p.first_visit_on > seen.first_on)
   `);
 
   // Nobody left at any service, so the date this produced goes with it.
   await db.execute(sql`
-    update people p
+    update members p
        set first_visit_on = null, updated_at = now()
      where p.id = any(${ids})
        and p.first_visit_on is not null
@@ -120,7 +120,7 @@ async function syncFirstVisit(db: Tx, personIds: string[]): Promise<void> {
          select 1
            from attendance_records ar
            join service_occurrences o on o.id = ar.occurrence_id
-          where ar.person_id = p.id and o.status = 'scheduled'
+          where ar.member_id = p.id and o.status = 'scheduled'
        )
   `);
 }
@@ -135,7 +135,7 @@ export async function setPresent(
   db: Tx,
   actor: WriteActor,
   occurrenceId: string,
-  personId: string,
+  memberId: string,
   present: boolean,
 ): Promise<{ present: boolean }> {
   if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
@@ -144,18 +144,18 @@ export async function setPresent(
   if (present) {
     await db
       .insert(attendanceRecords)
-      .values({ tenantId: actor.tenantId, occurrenceId, personId, source: "roster" })
+      .values({ tenantId: actor.tenantId, occurrenceId, memberId, source: "roster" })
       .onConflictDoNothing();
   } else {
     await db
       .delete(attendanceRecords)
       .where(and(
         eq(attendanceRecords.occurrenceId, occurrenceId),
-        eq(attendanceRecords.personId, personId),
+        eq(attendanceRecords.memberId, memberId),
       ));
   }
 
-  await syncFirstVisit(db, [personId]);
+  await syncFirstVisit(db, [memberId]);
   return { present };
 }
 
@@ -174,8 +174,8 @@ export async function setPresentMany(
   if (present) {
     const written = await db
       .insert(attendanceRecords)
-      .values(personIds.map((personId) => ({
-        tenantId: actor.tenantId, occurrenceId, personId, source: "roster",
+      .values(personIds.map((memberId) => ({
+        tenantId: actor.tenantId, occurrenceId, memberId, source: "roster",
       })))
       .onConflictDoNothing()
       .returning({ id: attendanceRecords.id });
@@ -187,7 +187,7 @@ export async function setPresentMany(
     .delete(attendanceRecords)
     .where(and(
       eq(attendanceRecords.occurrenceId, occurrenceId),
-      inArray(attendanceRecords.personId, personIds),
+      inArray(attendanceRecords.memberId, personIds),
     ))
     .returning({ id: attendanceRecords.id });
 
@@ -217,7 +217,7 @@ export interface PersonAttendance {
  */
 export async function attendanceForPerson(
   db: Tx,
-  personId: string,
+  memberId: string,
   limit = 100,
 ): Promise<PersonAttendance[]> {
   return db
@@ -228,7 +228,7 @@ export async function attendanceForPerson(
     })
     .from(attendanceRecords)
     .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, attendanceRecords.occurrenceId))
-    .where(eq(attendanceRecords.personId, personId))
+    .where(eq(attendanceRecords.memberId, memberId))
     .orderBy(desc(serviceOccurrences.occursOn))
     .limit(limit);
 }
@@ -250,19 +250,19 @@ export async function countsFor(
 }
 
 export interface VisitNumber {
-  personId: string;
+  memberId: string;
   /** 1 on their first ever service, 2 on their second. */
   visit: number;
 }
 
 /**
- * R7.5. Which of these people are here for the first or second time.
+ * R7.5. Which of these members are here for the first or second time.
  *
  * Counted from the record rather than stored on the person, because a flag
  * written at the time is wrong the moment somebody corrects a mistake, adds a
  * service that was missed, or imports a year of history.
  *
- * Only people the church has recorded as visitors. A church of two hundred
+ * Only members the church has recorded as visitors. A church of two hundred
  * starts using Hearth at one service and marks two hundred regulars present: the
  * attendance record says every one of them is here for the first time, and it
  * is wrong about all two hundred. The record began that day. They did not.
@@ -272,28 +272,28 @@ export interface VisitNumber {
  * turned up once.
  */
 export async function visitNumbers(db: Tx, occurrenceId: string): Promise<VisitNumber[]> {
-  const rows = await db.execute<{ person_id: string; visit: string }>(sql`
-    select a.person_id,
+  const rows = await db.execute<{ member_id: string; visit: string }>(sql`
+    select a.member_id,
            (select count(distinct o2.occurs_on)
               from attendance_records a2
               join service_occurrences o2 on o2.id = a2.occurrence_id
-             where a2.person_id = a.person_id
+             where a2.member_id = a.member_id
                and o2.occurs_on <= o.occurs_on) as visit
       from attendance_records a
       join service_occurrences o on o.id = a.occurrence_id
-      join people p on p.id = a.person_id
+      join members p on p.id = a.member_id
      where a.occurrence_id = ${occurrenceId}
        and p.lifecycle_status = 'visitor'
   `);
 
-  return (rows as unknown as { person_id: string; visit: string }[]).map((r) => ({
-    personId: r.person_id,
+  return (rows as unknown as { member_id: string; visit: string }[]).map((r) => ({
+    memberId: r.member_id,
     visit: Number(r.visit),
   }));
 }
 
 export interface Visitor {
-  personId: string;
+  memberId: string;
   firstName: string;
   preferredName: string | null;
   lastName: string;
@@ -316,32 +316,32 @@ export async function visitorsBetween(
 ): Promise<Visitor[]> {
   const rows = await db.execute<Record<string, unknown>>(sql`
     with numbered as (
-      select a.person_id,
+      select a.member_id,
              o.occurs_on,
              o.name as service_name,
              (select count(distinct o2.occurs_on)
                 from attendance_records a2
                 join service_occurrences o2 on o2.id = a2.occurrence_id
-               where a2.person_id = a.person_id
+               where a2.member_id = a.member_id
                  and o2.occurs_on <= o.occurs_on) as visit
         from attendance_records a
         join service_occurrences o on o.id = a.occurrence_id
        where o.occurs_on between ${from} and ${to}
     )
-    select distinct on (n.person_id)
-           n.person_id, n.occurs_on, n.service_name, n.visit,
+    select distinct on (n.member_id)
+           n.member_id, n.occurs_on, n.service_name, n.visit,
            p.first_name, p.preferred_name, p.last_name
       from numbered n
-      join people p on p.id = n.person_id
+      join members p on p.id = n.member_id
      where n.visit = ${visit}
        and p.archived_at is null
        and p.lifecycle_status = 'visitor'
-     order by n.person_id, n.occurs_on
+     order by n.member_id, n.occurs_on
   `);
 
   return (rows as unknown as Record<string, string>[])
     .map((r) => ({
-      personId: String(r["person_id"]),
+      memberId: String(r["member_id"]),
       firstName: String(r["first_name"]),
       preferredName: (r["preferred_name"] as string | null) ?? null,
       lastName: String(r["last_name"]),
@@ -349,7 +349,7 @@ export async function visitorsBetween(
       serviceName: String(r["service_name"]),
       visit: Number(r["visit"]),
     }))
-    // Most recent first, then by name. Without the second key, two people whose
+    // Most recent first, then by name. Without the second key, two members whose
     // first visit was at the same service swap places between loads, and a list that
     // reorders itself is a list somebody loses their place in.
     .sort(
@@ -361,7 +361,7 @@ export async function visitorsBetween(
 }
 
 export interface AbsentPerson {
-  personId: string;
+  memberId: string;
   firstName: string;
   preferredName: string | null;
   lastName: string;
@@ -385,7 +385,7 @@ export const DEFAULT_ABSENCE_THRESHOLD = 3;
  * back is a follow-up that did not land, which is the other list. Somebody
  * already marked inactive is somebody the church has already noticed. And
  * anybody who has never attended has not stopped coming: putting them here
- * buries the people who have.
+ * buries the members who have.
  */
 export async function absentPeople(
   db: Tx,
@@ -401,23 +401,23 @@ export async function absentPeople(
        where status = 'scheduled' and occurs_on <= ${asOf}
     ),
     last_seen as (
-      select a.person_id, max(o.occurs_on) as last_on
+      select a.member_id, max(o.occurs_on) as last_on
         from attendance_records a
         join service_occurrences o on o.id = a.occurrence_id
        where o.status = 'scheduled' and o.occurs_on <= ${asOf}
-       group by a.person_id
+       group by a.member_id
     )
     select p.id, p.first_name, p.preferred_name, p.last_name, l.last_on,
            (select count(*) from held h where h.occurs_on > l.last_on) as missed
       from last_seen l
-      join people p on p.id = l.person_id
+      join members p on p.id = l.member_id
      where p.archived_at is null
        and p.lifecycle_status in ('member', 'regular_attender')
   `);
 
   return (rows as unknown as Record<string, string>[])
     .map((r) => ({
-      personId: String(r["id"]),
+      memberId: String(r["id"]),
       firstName: String(r["first_name"]),
       preferredName: (r["preferred_name"] as string | null) ?? null,
       lastName: String(r["last_name"]),

@@ -13,7 +13,7 @@ import {
 } from "../src/repo/group-attendance";
 import { createGroup, addToGroup, removeFromGroup, seedGroupTypes } from "../src/repo/groups";
 import { linkPersonToUser } from "../src/repo/scope";
-import { createPerson } from "../src/repo/people";
+import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -55,7 +55,7 @@ beforeAll(async () => {
     );
     members.push(person.id);
     await run((tx) => addToGroup(tx, as(), {
-      groupId: group, personId: person.id, role: i === 0 ? "leader" : "member",
+      groupId: group, memberId: person.id, role: i === 0 ? "leader" : "member",
     }));
   }
 
@@ -73,8 +73,8 @@ describe("opening a meeting (R9.7)", () => {
   it("creates it the first time and returns the same one after", async () => {
     const first = await run((tx) => openMeeting(tx, as(), { groupId: group, metOn: TUESDAY }));
     expect(first.meeting.metOn).toBe(TUESDAY);
-    expect(first.people.length).toBe(12);
-    expect(first.people.every((p) => p.present === false)).toBe(true);
+    expect(first.members.length).toBe(12);
+    expect(first.members.every((p) => p.present === false)).toBe(true);
 
     const again = await run((tx) => openMeeting(tx, as(), { groupId: group, metOn: TUESDAY }));
     expect(again.meeting.id).toBe(first.meeting.id);
@@ -110,8 +110,8 @@ describe("the submit (R9.7)", () => {
 
     expect(after.meeting.present).toBe(8);
     expect(after.meeting.roster).toBe(12);
-    expect(after.people.filter((p) => p.present).length).toBe(8);
-    expect(after.people.filter((p) => !p.present).map((p) => p.personId).sort())
+    expect(after.members.filter((p) => p.present).length).toBe(8);
+    expect(after.members.filter((p) => !p.present).map((p) => p.memberId).sort())
       .toEqual([...absent].sort());
   });
 
@@ -134,7 +134,7 @@ describe("the submit (R9.7)", () => {
       meetingId: meeting.id, presentIds: [members[1]!, outsider.id],
     }));
     expect(after.meeting.present).toBe(1);
-    expect(after.people.map((p) => p.personId)).not.toContain(outsider.id);
+    expect(after.members.map((p) => p.memberId)).not.toContain(outsider.id);
   });
 
   it("records that the group did not meet, and clears the names with it", async () => {
@@ -201,14 +201,14 @@ describe("who may record it (R9.3, R9.7)", () => {
   });
 
   it("stops leading when they leave the group", async () => {
-    await run((tx) => removeFromGroup(tx, as(), { groupId: group, personId: leader }));
+    await run((tx) => removeFromGroup(tx, as(), { groupId: group, memberId: leader }));
     const allowed = await run(
       (tx) => canRecordFor(tx, { role: "group_leader", userId: leaderUser }, group),
       "group_leader",
     );
     expect(allowed).toBe(false);
 
-    await run((tx) => addToGroup(tx, as(), { groupId: group, personId: leader, role: "leader" }));
+    await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: leader, role: "leader" }));
   });
 });
 

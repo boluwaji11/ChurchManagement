@@ -10,7 +10,7 @@ import { t } from "@hearth/i18n";
 import { place, checkInTo } from "./actions";
 
 export interface Candidate {
-  /** "v:<visitId>" for somebody already here, "p:<personId>" for anybody else. */
+  /** "v:<visitId>" for somebody already here, "p:<memberId>" for anybody else. */
   value: string;
   label: string;
   /** Matched on as well as the name, so a surname or a household finds them. */
@@ -53,7 +53,7 @@ export function CheckInSheet({
       const result =
         kind === "v"
           ? await place(id, roomId, church)
-          : await checkInTo({ occurrenceId, personId: id, roomId }, church);
+          : await checkInTo({ occurrenceId, memberId: id, roomId }, church);
 
       setError(result.error);
       if (!result.error) {

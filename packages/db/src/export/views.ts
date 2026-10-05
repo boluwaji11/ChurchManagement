@@ -25,7 +25,7 @@ export interface ExportView {
 
 const VIEWS: ExportView[] = [
   {
-    key: "people",
+    key: "members",
     columns: [
       "name", "first_name", "last_name", "preferred_name", "status", "household", "household_role",
       "email", "phone", "address", "date_of_birth", "gender", "marital_status",
@@ -38,29 +38,29 @@ const VIEWS: ExportView[] = [
              h.name as household,
              hm.role::text as household_role,
              (select value from contact_methods c
-               where c.person_id = p.id and c.kind = 'email'
+               where c.member_id = p.id and c.kind = 'email'
                order by c.is_primary desc limit 1) as email,
              (select value from contact_methods c
-               where c.person_id = p.id and c.kind = 'phone'
+               where c.member_id = p.id and c.kind = 'phone'
                order by c.is_primary desc limit 1) as phone,
              (select concat_ws(', ', nullif(a.line1, ''), nullif(a.line2, ''), nullif(a.city, ''),
                                      nullif(a.region, ''), nullif(a.postal_code, ''))
                 from addresses a
-               where a.person_id = p.id or a.household_id = hm.household_id
-               order by (a.person_id = p.id) desc, a.is_primary desc limit 1) as address,
+               where a.member_id = p.id or a.household_id = hm.household_id
+               order by (a.member_id = p.id) desc, a.is_primary desc limit 1) as address,
              p.date_of_birth, p.gender, p.marital_status,
              p.membership_date as member_since,
              p.first_visit_on as first_visit,
              cam.name as campus,
              (select string_agg(t.name, ', ' order by t.name)
                 from person_tags pt join tags t on t.id = pt.tag_id
-               where pt.person_id = p.id) as tags,
+               where pt.member_id = p.id) as tags,
              (select string_agg(f.label || ': ' || v.value, '; ' order by f.label)
                 from custom_field_values v join custom_fields f on f.id = v.field_id
                where v.entity_id = p.id and f.entity = 'person') as custom_fields,
              case when p.archived_at is null then 'no' else 'yes' end as archived
-        from people p
-        left join household_memberships hm on hm.person_id = p.id and hm.ended_on is null
+        from members p
+        left join household_memberships hm on hm.member_id = p.id and hm.ended_on is null
         left join households h on h.id = hm.household_id
         left join campuses cam on cam.id = p.campus_id
        order by p.last_name, p.first_name`,
@@ -74,10 +74,10 @@ const VIEWS: ExportView[] = [
              btrim(coalesce(p.preferred_name, p.first_name) || ' ' || coalesce(p.last_name, '')) as person,
              hm.role::text as role,
              (select value from contact_methods c
-               where c.person_id = p.id and c.kind = 'email'
+               where c.member_id = p.id and c.kind = 'email'
                order by c.is_primary desc limit 1) as email,
              (select value from contact_methods c
-               where c.person_id = p.id and c.kind = 'phone'
+               where c.member_id = p.id and c.kind = 'phone'
                order by c.is_primary desc limit 1) as phone,
              (select concat_ws(', ', nullif(a.line1, ''), nullif(a.city, ''),
                                      nullif(a.region, ''), nullif(a.postal_code, ''))
@@ -87,7 +87,7 @@ const VIEWS: ExportView[] = [
              case when h.archived_at is null then 'no' else 'yes' end as archived
         from households h
         left join household_memberships hm on hm.household_id = h.id and hm.ended_on is null
-        left join people p on p.id = hm.person_id
+        left join members p on p.id = hm.member_id
        order by h.name, hm.role, p.last_name`,
   },
 
@@ -102,7 +102,7 @@ const VIEWS: ExportView[] = [
         from attendance_records ar
         join service_occurrences o on o.id = ar.occurrence_id
         left join service_times st on st.id = o.service_time_id
-        join people pe on pe.id = ar.person_id
+        join members pe on pe.id = ar.member_id
       union all
       select m.met_on as date, 'Group' as kind, g.name as what,
              btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
@@ -110,7 +110,7 @@ const VIEWS: ExportView[] = [
         from group_attendance ga
         join group_meetings m on m.id = ga.meeting_id
         join groups g on g.id = m.group_id
-        join people pe on pe.id = ga.person_id
+        join members pe on pe.id = ga.member_id
       union all
       select o.occurs_on as date, 'Check-in' as kind, r.name as what,
              btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
@@ -118,7 +118,7 @@ const VIEWS: ExportView[] = [
         from checkin_visits v
         join service_occurrences o on o.id = v.occurrence_id
         left join checkin_rooms r on r.id = v.room_id
-        join people pe on pe.id = v.person_id
+        join members pe on pe.id = v.member_id
        order by 1 desc, 4`,
   },
 
@@ -134,11 +134,11 @@ const VIEWS: ExportView[] = [
              v.checked_in_at as checked_in,
              v.checked_out_at as checked_out,
              (select btrim(coalesce(g.preferred_name, g.first_name) || ' ' || coalesce(g.last_name, ''))
-                from people g where g.id = v.checked_out_to) as collected_by
+                from members g where g.id = v.checked_out_to) as collected_by
         from checkin_visits v
         join service_occurrences o on o.id = v.occurrence_id
         left join service_times st on st.id = o.service_time_id
-        join people pe on pe.id = v.person_id
+        join members pe on pe.id = v.member_id
         left join checkin_rooms r on r.id = v.room_id
        order by o.occurs_on desc, pe.last_name`,
   },
@@ -157,7 +157,7 @@ const VIEWS: ExportView[] = [
         from groups g
         left join group_types gt on gt.id = g.type_id
         left join group_memberships gm on gm.group_id = g.id and gm.left_on is null
-        left join people pe on pe.id = gm.person_id
+        left join members pe on pe.id = gm.member_id
        order by g.name, gm.role, pe.last_name`,
   },
 
@@ -175,7 +175,7 @@ const VIEWS: ExportView[] = [
              tm.joined_on as joined
         from teams t
         left join team_members tm on tm.team_id = t.id and tm.left_on is null
-        left join people pe on pe.id = tm.person_id
+        left join members pe on pe.id = tm.member_id
        order by t.name, pe.last_name`,
   },
 
@@ -194,7 +194,7 @@ const VIEWS: ExportView[] = [
         left join service_times st on st.id = o.service_time_id
         join teams t on t.id = sa.team_id
         left join team_positions tp on tp.id = sa.position_id
-        join people pe on pe.id = sa.person_id
+        join members pe on pe.id = sa.member_id
        order by o.occurs_on desc, t.name, tp.position`,
   },
 
@@ -213,7 +213,7 @@ const VIEWS: ExportView[] = [
         from follow_ups f
         join pipeline_entries en on en.id = f.entry_id
         join pipelines pl on pl.id = en.pipeline_id
-        join people pe on pe.id = f.person_id
+        join members pe on pe.id = f.member_id
        order by en.started_on desc, pl.name, f.position`,
   },
 
@@ -226,7 +226,7 @@ const VIEWS: ExportView[] = [
              m.occurred_on as date,
              m.notes
         from milestones m
-        join people pe on pe.id = m.person_id
+        join members pe on pe.id = m.member_id
        order by m.occurred_on desc, pe.last_name`,
   },
 
@@ -239,7 +239,7 @@ const VIEWS: ExportView[] = [
              b.completed_on as completed,
              b.expires_on as expires
         from background_checks b
-        join people pe on pe.id = b.person_id
+        join members pe on pe.id = b.member_id
        order by b.expires_on nulls last, pe.last_name`,
   },
 

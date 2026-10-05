@@ -12,7 +12,7 @@ import { undoImport, type RollbackOutcome } from "./actions";
 export interface BatchRow {
   id: string;
   filename: string;
-  /** R19.5. "people" or "groups", which decides how it is undone and described. */
+  /** R19.5. "members" or "groups", which decides how it is undone and described. */
   kind: string;
   status: string;
   rowsCreated: number;
@@ -85,7 +85,7 @@ export function ImportHistory({
 /**
  * Undoing is confirmed, and the confirmation counts.
  *
- * "Are you sure" tells nobody anything. This says how many people are about to
+ * "Are you sure" tells nobody anything. This says how many members are about to
  * be removed, how many put back, and what happens to anyone who has been worked
  * on since, which is the part nobody would guess.
  */

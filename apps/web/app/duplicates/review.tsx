@@ -123,7 +123,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
   };
 
   const rows: { key: FieldKey | "name" | "email" | "phone"; label: string; a: string; b: string }[] = [
-    { key: "name", label: t("people.column.person"), a: pair.a.name, b: pair.b.name },
+    { key: "name", label: t("members.column.person"), a: pair.a.name, b: pair.b.name },
     { key: "email", label: t("person.email"), a: show(pair.a.email), b: show(pair.b.email) },
     { key: "phone", label: t("person.phone"), a: show(pair.a.phone), b: show(pair.b.phone) },
     { key: "dateOfBirth", label: t("person.dateOfBirth"), a: show(pair.a.dateOfBirth), b: show(pair.b.dateOfBirth) },
