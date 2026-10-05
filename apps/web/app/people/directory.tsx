@@ -216,16 +216,6 @@ export function Directory({
           />
         </label>
 
-        {/* R24.6. The one thing this screen is for sits with the search, and
-            the things that act on the list follow after it. */}
-        {canEdit ? (
-          <Button asChild>
-            <Link href={`/people/new?church=${church}`}>
-              <Plus /> {t("people.add")}
-            </Link>
-          </Button>
-        ) : null}
-
         <span className="flex-1" />
 
         <FilterDrawer
@@ -265,6 +255,16 @@ export function Directory({
           <ToolButton href={`/import?church=${church}`}>
             <Upload /> {t("import.title")}
           </ToolButton>
+        ) : null}
+
+        {/* R24.6. The one thing this screen is for, last on the row, where the
+            eye finishes reading it. */}
+        {canEdit ? (
+          <Button asChild>
+            <Link href={`/people/new?church=${church}`}>
+              <Plus /> {t("people.add")}
+            </Link>
+          </Button>
         ) : null}
       </div>
 
