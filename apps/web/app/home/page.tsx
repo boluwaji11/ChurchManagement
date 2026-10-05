@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   withTenant, findGroups, personForUser, householdFor, assignmentsForPerson,
-  listEvents, canEditPeople, canReadIncidents,
+  listEvents, listOccurrences, myChildren, canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import {
@@ -11,6 +11,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./serving/respond";
+import { CheckinCard } from "./checkin-card";
 import { onDay, dayName, readableTime } from "./when";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,23 @@ export default async function MemberHomePage({
     async (tx) => {
       const self = await personForUser(tx, session.userId);
       const now = churchNow("America/Chicago");
+
+      /*
+       * R17.8. The next service today, which is the only one a parent is
+       * checking in to. Nothing to check in to is the common case and the card
+       * stays off the screen.
+       */
+      const today = await listOccurrences(tx, { from: now.date, to: now.date });
+      const next = today.find((one) => one.status !== "cancelled") ?? null;
+      const actor = {
+        tenantId: session.tenantId,
+        role: session.role,
+        userId: session.userId,
+      };
+
       return {
+        service: next,
+        children: next ? await myChildren(tx, actor, next.id) : [],
         today: now.date,
         groups: (await findGroups(tx, { memberId: self })).filter((group) => group.mine),
         household: self ? await householdFor(tx, self) : null,
@@ -80,6 +97,18 @@ export default async function MemberHomePage({
       <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-8">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <PortalSection title={t("home.thisWeek")}>
+            {/* R17.8. The children, before the rota: a parent leaving the house
+                has one of these on their mind and it is not the welcome desk. */}
+            {mine.service && mine.children.length > 0 ? (
+              <CheckinCard
+                church={session.tenantSlug}
+                occurrenceId={mine.service.id}
+                serviceName={mine.service.name}
+              >
+                {mine.children}
+              </CheckinCard>
+            ) : null}
+
             {asked.length === 0 && ahead.length === 0 ? (
               <Panel>
                 <p className="text-[length:var(--d-text-body)] text-fg-muted">

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, personForUser, answerMyAssignment, addBlockout, removeBlockout,
-  setDirectoryPreferences, InvalidInputError,
+  setDirectoryPreferences, checkInMyChildren, InvalidInputError,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
@@ -91,6 +91,33 @@ export async function removeAway(id: string, church?: string): Promise<Done> {
         id,
       ));
     revalidatePath("/home/serving");
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R17.8. Checking your own children in, before you arrive.
+ *
+ * The ids go to the repository, which checks every one of them against this
+ * person's own household before it writes anything, so a request naming
+ * somebody else's child checks nobody in.
+ */
+export async function checkInMine(
+  occurrenceId: string,
+  memberIds: string[],
+  church?: string,
+): Promise<Done> {
+  try {
+    const { session, scope } = await asMember(church);
+    await withTenant(scope, (tx) =>
+      checkInMyChildren(
+        tx,
+        { tenantId: session.tenantId, role: session.role, userId: session.userId },
+        { occurrenceId, memberIds },
+      ));
+    revalidatePath("/home");
     return {};
   } catch (error) {
     return { error: explain(error) };

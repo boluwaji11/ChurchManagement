@@ -78,6 +78,7 @@ export * from "./repo/offline";
 export * from "./repo/roster";
 export * from "./repo/supervisor";
 export * from "./repo/incidents";
+export * from "./repo/checkin-mine";
 export * from "./repo/groups";
 export * from "./repo/followups";
 export * from "./repo/checks";

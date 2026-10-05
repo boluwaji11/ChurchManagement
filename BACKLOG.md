@@ -469,7 +469,7 @@ no business in.
 | HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Resolved |
 | HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |
 | HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |
-| HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | New |
+| HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | Resolved |
 | HRT-161 | Submit a form or a prayer request, and the prayer wall for the ones marked public | R17.9, R17.10 | New |
 | HRT-162 | The announcement feed | R16.11 | New |
 | HRT-163 | Give, see my giving, manage a recurring gift, download a statement | R17.4 | Held to 0.3 with money |

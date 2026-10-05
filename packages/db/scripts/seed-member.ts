@@ -211,6 +211,30 @@ async function main() {
     console.log("  away           one week next month");
   }
 
+  // ---- A service today, so checking the children in has somewhere to go ----
+  // The generated occurrences land on the church's own service days, which is
+  // rarely the day somebody is reading this.
+  const todayService = await sql<{ id: string }[]>`
+    select id from service_occurrences
+     where tenant_id = ${tid} and occurs_on = ${today}::date`;
+  if (todayService.length > 0) {
+    console.log("  service today  already there");
+  } else {
+    const [pattern] = await sql<{ id: string; name: string; startsAt: string; campusId: string | null }[]>`
+      select id, name, starts_at as "startsAt", campus_id as "campusId"
+        from service_times where tenant_id = ${tid}
+       order by sort_order, day_of_week, starts_at limit 1`;
+    await sql`
+      insert into service_occurrences
+        (tenant_id, campus_id, service_time_id, slug, name, occurs_on, starts_at, status)
+      values (
+        ${tid}, ${pattern?.campusId ?? null}, ${pattern?.id ?? null},
+        ${`${today}-today`}, ${pattern?.name ?? "Service"}, ${today}::date,
+        ${pattern?.startsAt ?? "10:00"}, 'scheduled'
+      )`;
+    console.log("  service today  added");
+  }
+
   // ---- Something on the calendar to look at -------------------------------
   // Seeded events are left as drafts, and a draft's public page answers 404 on
   // purpose, so the portal shows nothing until a church publishes one.
