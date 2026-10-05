@@ -155,7 +155,7 @@ describe("a Sunday with the wifi down (R8.21, R8.23)", () => {
 
     // R8.24. The labels the station printed offline say what the server says.
     const labels = await run((tx) =>
-      labelsFor(tx, service, offline.slice(0, 3), "Offline Test Church"),
+      labelsFor(tx, { role: "admin" }, service, offline.slice(0, 3), "Offline Test Church"),
     );
     expect(labels.map((l) => l.code)).toEqual(block.codes.slice(0, 3));
 

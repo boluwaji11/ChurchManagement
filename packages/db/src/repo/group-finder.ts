@@ -121,6 +121,12 @@ export async function findGroups(
   const wheres = [
     opts.manage ? undefined : isNull(groups.archivedAt),
     opts.manage ? undefined : eq(groups.listed, true),
+    /*
+     * R9.5. A draft is a group being written, so it is not a group the church
+     * has said exists yet. Listed and draft is the state a leader leaves a
+     * group in while they fill it in, and the finder was showing it.
+     */
+    opts.manage ? undefined : eq(groups.status, "published"),
     opts.typeId ? eq(groups.typeId, opts.typeId) : undefined,
     opts.dayOfWeek !== undefined ? eq(groups.dayOfWeek, opts.dayOfWeek) : undefined,
     opts.location

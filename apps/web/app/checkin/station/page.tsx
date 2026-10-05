@@ -1,6 +1,8 @@
 import {
   withTenant, listStations, listRooms, listOccurrences, getChurch, canManageStations,
+  canCheckIn,
 } from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -31,6 +33,15 @@ export default async function StationPage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
+
+  // R8.14. The desk belongs to whoever is running check-in.
+  if (!canCheckIn(session)) {
+    return (
+      <AppShell session={session} title={t("checkin.check")}>
+        <Banner tone="info" title={t("checkin.check")}>{t("forbidden.askAdmin")}</Banner>
+      </AppShell>
+    );
+  }
 
   const { stations, rooms, services, now } = await withTenant(
     { tenantId: session.tenantId, role: session.role },

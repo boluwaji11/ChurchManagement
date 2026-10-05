@@ -78,6 +78,14 @@ export function PortalAccount({
   userId: string;
   church: string;
 }) {
+  /*
+   * The form sits outside the menu and is submitted by the item.
+   * A form inside a DropdownMenuItem never posts: Radix handles the press on
+   * the item itself and closes the menu, so the submit button underneath is
+   * never the thing that was clicked.
+   */
+  const out = React.useRef<HTMLFormElement>(null);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -97,14 +105,12 @@ export function PortalAccount({
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <form action="/auth/sign-out" method="post" className="contents">
-            <button type="submit" className="flex w-full cursor-pointer items-center gap-2 text-left">
-              <LogOut /> {t("action.signOut")}
-            </button>
-          </form>
+        <DropdownMenuItem onSelect={() => out.current?.requestSubmit()}>
+          <LogOut /> {t("action.signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
+
+      <form ref={out} action="/auth/sign-out" method="post" hidden />
     </DropdownMenu>
   );
 }

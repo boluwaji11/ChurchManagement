@@ -331,12 +331,24 @@ export interface LabelPair {
   bag: boolean;
 }
 
+/**
+ * R8.6, R8.10. The label pair for these children, for the printer.
+ *
+ * Gated here rather than on the screen that prints it. A pair carries the
+ * child's name, their room, what they are allergic to and the code the pair is
+ * matched on at pickup, and the code is the whole of what stops the wrong adult
+ * collecting a child. Anybody signed in to the church could ask for it while
+ * this was a read with no check on it, so the check is on the query, where
+ * every caller gets it.
+ */
 export async function labelsFor(
   db: Tx,
+  actor: { role: TenantRole },
   occurrenceId: string,
   personIds: string[],
   churchName: string,
 ): Promise<LabelPair[]> {
+  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
   if (personIds.length === 0) return [];
 
   const rows = await db

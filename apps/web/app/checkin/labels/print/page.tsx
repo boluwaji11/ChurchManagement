@@ -1,4 +1,7 @@
-import { withTenant, labelsFor, getLabelLayout, type LabelPair } from "@connectapp/db";
+import {
+  withTenant, labelsFor, getLabelLayout, canCheckIn, type LabelPair,
+} from "@connectapp/db";
+import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { LabelSheet } from "../sheet";
@@ -28,6 +31,19 @@ export default async function LabelsPage({
 
   const session = await requireSession(church);
 
+  /*
+   * R8.6. A pair carries a child's name, their room, what they are allergic to
+   * and the code the pair is matched on at pickup. Whoever is running check-in
+   * prints it; nobody else asks for it.
+   */
+  if (!canCheckIn(session)) {
+    return (
+      <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
+        <Banner tone="info" title={t("labels.title")}>{t("forbidden.askAdmin")}</Banner>
+      </main>
+    );
+  }
+
   // R8.11. A test label: the layout on the stock, with nobody's name on it.
   const sample: LabelPair[] = [
     {
@@ -50,7 +66,7 @@ export default async function LabelsPage({
       labels: test
         ? sample
         : service
-          ? await labelsFor(tx, service, personIds, session.tenantName)
+          ? await labelsFor(tx, { role: session.role }, service, personIds, session.tenantName)
           : [],
       layout: await getLabelLayout(tx, session.tenantId),
     }),

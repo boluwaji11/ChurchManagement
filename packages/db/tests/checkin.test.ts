@@ -203,7 +203,7 @@ describe("the label pair (R8.6, R8.11)", () => {
   });
 
   it("puts on the label what the room and the desk both need", async () => {
-    const [label] = await run((tx) => labelsFor(tx, service, [mia], "Check-in Test Church"));
+    const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [mia], "Check-in Test Church"));
 
     expect(label!.childName).toBe("Mia Ochoa");
     expect(label!.roomName).toBe("Nursery");
@@ -213,7 +213,7 @@ describe("the label pair (R8.6, R8.11)", () => {
   });
 
   it("asks for no third label unless the desk did (R8.12)", async () => {
-    const [label] = await run((tx) => labelsFor(tx, service, [mia], "Check-in Test Church"));
+    const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [mia], "Check-in Test Church"));
     expect(label!.bag).toBe(false);
   });
 
@@ -224,7 +224,7 @@ describe("the label pair (R8.6, R8.11)", () => {
       entries: [{ memberId: elena, roomId: null, child: false }],
     }));
 
-    const [label] = await run((tx) => labelsFor(tx, service, [elena], "Check-in Test Church"));
+    const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [elena], "Check-in Test Church"));
     expect(label!.childName).toBe("Elena Ochoa");
     // A badge says who somebody is. A code would be a claim on a child.
     expect(label!.code).toBeNull();
@@ -249,14 +249,14 @@ describe("allergies (R8.10)", () => {
     await owner()`
       update members set allergies = 'Peanuts' where id = ${mia}`;
 
-    const [label] = await run((tx) => labelsFor(tx, service, [mia], "Check-in Test Church"));
+    const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [mia], "Check-in Test Church"));
     expect(label!.allergy).toBe("Peanuts");
   });
 
   it("says nothing for a child with nothing recorded", async () => {
     // Silence means nobody has written anything down. A label claiming a child
     // is clear would be claiming something the church was never told.
-    const [label] = await run((tx) => labelsFor(tx, service, [danny], "Check-in Test Church"));
+    const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [danny], "Check-in Test Church"));
     expect(label!.allergy).toBeNull();
   });
 });
@@ -285,14 +285,14 @@ describe("the bag label (R8.12)", () => {
       entries: [{ memberId: bagKid, roomId: kids, child: true, bagLabel: true }],
     }));
 
-    const [label] = await run((tx) => labelsFor(tx, service, [bagKid], "Check-in Test Church"));
+    const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [bagKid], "Check-in Test Church"));
     expect(label!.bag).toBe(true);
     // It carries the same code as the pair, which is the whole point of it.
     expect(looksLikeCode(label!.code ?? "")).toBe(true);
   });
 
   it("stays on the visit, so a reprint prints the same thing", async () => {
-    const again = await run((tx) => labelsFor(tx, service, [bagKid], "Check-in Test Church"));
+    const again = await run((tx) => labelsFor(tx, { role: "admin" }, service, [bagKid], "Check-in Test Church"));
     expect(again[0]!.bag).toBe(true);
   });
 
@@ -307,7 +307,7 @@ describe("the bag label (R8.12)", () => {
       entries: [{ memberId: adult, roomId: null, child: false, bagLabel: true }],
     }));
 
-    const [label] = await run((tx) => labelsFor(tx, service, [adult], "Check-in Test Church"));
+    const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [adult], "Check-in Test Church"));
     expect(label!.bag).toBe(false);
     expect(label!.code).toBeNull();
   });
