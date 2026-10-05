@@ -62,20 +62,24 @@ export function EventPage({
     <div className="flex min-h-dvh flex-col bg-canvas">
       {banner}
 
-      {/* The church's own mark and name, to the right, where a letterhead puts
-          it. No coloured rule over the top: the page already carries the
-          event's colour, and two bands of colour above the fold is one more
+      {/* The church's own mark and name, first thing, left, the way its own
+          website opens. No coloured rule over the top: the page already carries
+          the event's colour, and two bands of colour above the fold is one more
           than the page needs. */}
-      <header className="flex items-center justify-end gap-2.5 border-b border-line px-5 py-3.5">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt=""
-            aria-hidden
-            className="size-7 rounded-lg border border-line bg-surface object-contain p-0.5"
-          />
-        ) : null}
-        <span className="text-label font-semibold text-fg">{event.church.name}</span>
+      <header className="border-b border-line px-5 py-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              aria-hidden
+              className="size-11 rounded-xl border border-line bg-surface object-contain p-1"
+            />
+          ) : null}
+          <span className="font-display text-[22px] leading-7 text-fg">
+            {event.church.name}
+          </span>
+        </div>
       </header>
 
       <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
