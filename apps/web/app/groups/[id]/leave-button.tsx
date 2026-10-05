@@ -33,7 +33,14 @@ export function LeaveButton({
 
   return (
     <>
-      <Button variant="secondary" disabled={pending} onClick={() => setAsking(true)}>
+      {/* Sized to the badge it sits beside, so the pair reads as one line
+          rather than a badge with a page control next to it. */}
+      <Button
+        variant="secondary"
+        disabled={pending}
+        onClick={() => setAsking(true)}
+        className="min-h-8 px-3 text-caption [&_svg]:size-3.5"
+      >
         <LogOut /> {t("group.leave")}
       </Button>
 
