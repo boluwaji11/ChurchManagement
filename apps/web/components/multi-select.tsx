@@ -32,7 +32,26 @@ export function MultiSelect({
   summary?: (chosen: MultiOption[]) => string;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [above, setAbove] = React.useState(false);
   const root = React.useRef<HTMLDivElement>(null);
+
+  /* A list that would run off the bottom of the window opens upwards. */
+  React.useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const box = root.current?.getBoundingClientRect();
+      if (!box) return;
+      const below = window.innerHeight - box.bottom;
+      setAbove(below < 264 && box.top > below);
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -80,7 +99,13 @@ export function MultiSelect({
       </button>
 
       {open ? (
-        <div className="absolute top-[calc(100%+4px)] left-0 z-50 max-h-64 w-full overflow-auto rounded-[var(--d-radius-control)] border border-line bg-surface py-1 shadow-lg">
+        <div
+          className={cn(
+            "absolute left-0 z-50 max-h-64 w-full overflow-auto rounded-[var(--d-radius-control)]",
+            "border border-line bg-surface py-1 shadow-lg",
+            above ? "bottom-[calc(100%+4px)]" : "top-[calc(100%+4px)]",
+          )}
+        >
           {options.map((one) => {
             const on = value.includes(one.value);
             return (

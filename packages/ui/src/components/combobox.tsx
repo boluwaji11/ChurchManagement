@@ -68,6 +68,31 @@ export function Combobox({
   const root = React.useRef<HTMLDivElement>(null);
   const input = React.useRef<HTMLInputElement>(null);
   const listId = React.useId();
+  const [above, setAbove] = React.useState(false);
+
+  /*
+   * A list that would run off the bottom of the window opens upwards instead.
+   * Measured each time it opens rather than once, because the field moves as
+   * the page scrolls and as the form above it grows.
+   */
+  React.useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const box = root.current?.getBoundingClientRect();
+      if (!box) return;
+      const below = window.innerHeight - box.bottom;
+      // 264px is the list's own cap plus its margin. Only flip where there is
+      // more room the other way, so a short window does not flip onto nothing.
+      setAbove(below < 264 && box.top > below);
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open]);
 
   const chosen = options.find((o) => o.value === value);
 
@@ -231,7 +256,8 @@ export function Combobox({
           id={listId}
           role="listbox"
           className={cn(
-            "absolute z-50 mt-1 max-h-64 w-full overflow-y-auto p-1",
+            "absolute z-50 max-h-64 w-full overflow-y-auto p-1",
+            above ? "bottom-full mb-1" : "top-full mt-1",
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
         >
