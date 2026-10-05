@@ -59,8 +59,14 @@ export default async function EventsPage({
 
   const action = putAway ? undefined : <NewEventButton church={session.tenantSlug} />;
 
+  // R24.17. An empty screen offers the action in the middle, where the eye
+  // already is, so the band above it does not say the same thing twice.
   return (
-    <AppShell session={session} title={t("event.title")} action={action}>
+    <AppShell
+      session={session}
+      title={t("event.title")}
+      action={events.length === 0 ? undefined : action}
+    >
       {putAway ? (
         <Link
           href={`/events?church=${session.tenantSlug}`}

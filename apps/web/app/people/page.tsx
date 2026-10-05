@@ -1,12 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
   listSavedLists, resolveList, countPeopleByStatus, listGroups, PER_PAGE,
 } from "@hearth/db";
-import { Button, Banner } from "@hearth/ui";
+import { Banner } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -77,17 +75,8 @@ export default async function PeoplePage({
     <AppShell
       session={session}
       title={t("people.title")}
-      action={
-        // R24.17. An empty directory offers Add person in the middle of the
-        // screen, so the corner does not say the same thing twice.
-        canEdit && people.length > 0 ? (
-          <Button asChild>
-            <Link href={`/people/new?church=${session.tenantSlug}`}>
-              <Plus /> {t("people.add")}
-            </Link>
-          </Button>
-        ) : undefined
-      }
+      /* The action rides the directory's own toolbar, beside the search, and
+         an empty directory offers it in the middle of the screen instead. */
     >
       {/* R22.1. Above everything, because it is about the church rather than
           about this screen. */}

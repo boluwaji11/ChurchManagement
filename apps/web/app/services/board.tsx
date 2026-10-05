@@ -32,11 +32,14 @@ export function ServiceBoard({
   title,
   upcoming,
   past,
+  action,
 }: {
   /** The screen's heading, which shares a row with the view switch. */
   title: string;
   upcoming: ServiceCard[];
   past: ServiceCard[];
+  /** The screen's one action, after the view switch on the same row. */
+  action?: React.ReactNode;
 }) {
   const [shown, setShown] = React.useState(PAGE);
   const [view, setView] = React.useState<View>("tiles");
@@ -46,6 +49,7 @@ export function ServiceBoard({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-[22px] leading-[28px] text-fg">{title}</h2>
 
+        <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
           {([
             ["tiles", LayoutGrid],
@@ -65,6 +69,8 @@ export function ServiceBoard({
               {t(`services.view.${value}` as never)}
             </button>
           ))}
+        </div>
+        {action}
         </div>
       </div>
 

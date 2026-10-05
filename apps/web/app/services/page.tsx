@@ -107,11 +107,8 @@ export default async function ServicesPage({
     <AppShell
       session={session}
       title={t("services.title")}
-      action={
-        canEdit && (upcoming.length > 0 || past.length > 0) ? (
-          <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
-        ) : undefined
-      }
+      /* The action rides the board's own header row, beside the view switch,
+         rather than taking a band of its own above it. */
     >
       {upcoming.length === 0 && past.length === 0 ? (
         <>
@@ -134,6 +131,11 @@ export default async function ServicesPage({
           title={t("services.upcoming")}
           upcoming={upcoming.map(card)}
           past={past.map(card)}
+          action={
+            canEdit ? (
+              <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+            ) : undefined
+          }
         />
       )}
     </AppShell>

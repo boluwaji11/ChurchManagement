@@ -39,6 +39,7 @@ export function FormSearch({
           things this screen offers and stacking them wastes a band of the
           page on nothing. */}
       <div className="flex flex-wrap items-center gap-3">
+        {action}
         {count > 1 ? (
           <label className="relative flex max-w-[360px] min-w-[200px] flex-1 items-center">
             <Search
@@ -54,10 +55,7 @@ export function FormSearch({
               className="pl-9"
             />
           </label>
-        ) : (
-          <span className="flex-1" />
-        )}
-        {action}
+        ) : null}
       </div>
 
       {shown.length === 0 ? (

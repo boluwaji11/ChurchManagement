@@ -138,7 +138,9 @@ export default async function CheckinPage({
   }
 
   return (
-    <AppShell session={session} title={t("checkin.title")} action={action}>
+    /* The action rides the service's own header row, with the other things
+       this screen can do, rather than taking a band of its own above it. */
+    <AppShell session={session} title={t("checkin.title")}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-[22px] leading-[28px] text-fg">
@@ -178,6 +180,8 @@ export default async function CheckinPage({
           >
             <Printer /> {t("checkin.rosters")}
           </ToolLink>
+
+          {action}
         </div>
       </div>
 
