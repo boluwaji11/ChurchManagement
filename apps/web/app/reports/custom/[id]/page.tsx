@@ -8,13 +8,9 @@ import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { PagedTable, type Row } from "../../paged-table";
-import { Columns, RowBars } from "../../charts";
+import { Answer, read } from "../../build/builder";
 
 export const dynamic = "force-dynamic";
-
-/** Booleans come back from Postgres as words nobody wants to read. */
-const read = (value: string): string =>
-  value === "true" ? t("report.yes") : value === "false" ? t("report.no") : value;
 
 /**
  * R18.x. A report the church built, run.
@@ -57,12 +53,6 @@ export default async function CustomReportPage({
     })),
   }));
 
-  const chart = (result.chart ?? []).slice(0, 12).map((one, i) => ({
-    key: `${one.label}-${i}`,
-    label: one.label === "" ? t("report.blank") : read(one.label),
-    value: one.value,
-  }));
-
   return (
     <AppShell session={session} title={t("reports.title")} wide>
       <Link
@@ -100,18 +90,13 @@ export default async function CustomReportPage({
         </p>
       ) : (
         <>
-          {chart.length > 0 ? (
-            chart.length > 6 ? (
-              <Columns
-                title={t("report.answer")}
-                series={[{ label: t("report.measure.value"), hue: "indigo" }]}
-                groups={chart.map((one) => ({
-                  key: one.key, label: one.label, values: [one.value],
-                }))}
-              />
-            ) : (
-              <RowBars title={t("report.answer")} rows={chart} hue="indigo" />
-            )
+          {/* Drawn by the same renderer the builder previewed it with, so
+              what was built is what is read. */}
+          {saved.spec.view !== "table" ? (
+            <section className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
+              <h3 className="font-display text-[22px] leading-7 text-fg">{t("report.answer")}</h3>
+              <Answer spec={saved.spec} result={result} />
+            </section>
           ) : null}
 
           <PagedTable

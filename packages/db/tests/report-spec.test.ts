@@ -83,3 +83,19 @@ describe("cleanSpec", () => {
     expect(() => cleanSpec({ filters: "not an array", columns: 7 })).not.toThrow();
   });
 });
+
+describe("how the answer is drawn", () => {
+  it("falls back to a table where a chart needs a count and there is none", () => {
+    expect(cleanSpec({ subject: "people", view: "donut" }).view).toBe("table");
+    expect(cleanSpec({ subject: "people", groupBy: "status", view: "donut" }).view).toBe("donut");
+  });
+
+  it("keeps the two ways of joining conditions and nothing else", () => {
+    expect(cleanSpec({ subject: "people", join: "or" }).join).toBe("or");
+    expect(cleanSpec({ subject: "people", join: "xor" }).join).toBe("and");
+  });
+
+  it("refuses a view it has never heard of", () => {
+    expect(cleanSpec({ subject: "people", view: "treemap" }).view).toBe("table");
+  });
+});

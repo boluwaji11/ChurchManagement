@@ -13,6 +13,10 @@ import { t } from "@hearth/i18n";
  * nobody can read aloud is a chart half the church cannot read.
  */
 
+/** Standing on its own on a report, or bare inside a panel that frames it. */
+const CARD = "flex flex-col rounded-[14px] border border-line bg-surface p-5";
+const BARE = "flex flex-col";
+
 export interface Slice {
   key: string;
   label: string;
@@ -27,7 +31,7 @@ export function Donut({
   total,
   totalLabel,
 }: {
-  title: string;
+  title?: string;
   slices: Slice[];
   total: number;
   totalLabel: string;
@@ -41,8 +45,10 @@ export function Donut({
   let turned = 0;
 
   return (
-    <section className="flex flex-col rounded-[14px] border border-line bg-surface p-5">
-      <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
+    <section className={title ? CARD : BARE}>
+      {title ? (
+        <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-6">
         <div className="relative size-[140px] shrink-0">
@@ -114,7 +120,7 @@ export function Line({
   hue = "indigo",
   aside,
 }: {
-  title: string;
+  title?: string;
   points: Point[];
   hue?: string;
   aside?: string;
@@ -139,9 +145,11 @@ export function Line({
   const zero = H - ((0 - floor) / range) * H;
 
   return (
-    <section className="flex flex-col rounded-[14px] border border-line bg-surface p-5">
+    <section className={title ? CARD : BARE}>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+        {title ? (
+          <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+        ) : <span />}
         {aside ? <span className="text-caption text-fg-subtle">{aside}</span> : null}
       </div>
 
@@ -215,16 +223,18 @@ export function Columns({
   groups,
   series,
 }: {
-  title: string;
+  title?: string;
   groups: { key: string; label: string; values: number[] }[];
   series: { label: string; hue: string }[];
 }) {
   const most = Math.max(1, ...groups.flatMap((one) => one.values));
 
   return (
-    <section className="flex flex-col rounded-[14px] border border-line bg-surface p-5">
+    <section className={title ? CARD : BARE}>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-        <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+        {title ? (
+          <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
+        ) : <span />}
         <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {series.map((one) => (
             <li key={one.label} className="flex items-center gap-1.5 text-[12px] text-fg-muted">
@@ -275,15 +285,17 @@ export function RowBars({
   rows,
   hue = "teal",
 }: {
-  title: string;
+  title?: string;
   rows: { key: string; label: string; value: number; note?: string }[];
   hue?: string;
 }) {
   const most = Math.max(1, ...rows.map((one) => one.value));
 
   return (
-    <section className="flex flex-col rounded-[14px] border border-line bg-surface p-5">
-      <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
+    <section className={title ? CARD : BARE}>
+      {title ? (
+        <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
+      ) : null}
 
       <ol className="flex flex-col gap-2.5">
         {rows.map((one) => (
@@ -325,15 +337,17 @@ export function Funnel({
   title,
   steps,
 }: {
-  title: string;
+  title?: string;
   steps: { key: string; label: string; people: number; rate: number; note: string }[];
 }) {
   const most = Math.max(1, steps[0]?.people ?? 1);
   const hues = ["amber", "citron", "teal", "sky", "indigo"];
 
   return (
-    <section className="flex flex-col rounded-[14px] border border-line bg-surface p-5">
-      <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
+    <section className={title ? CARD : BARE}>
+      {title ? (
+        <h3 className="mb-4 font-display text-[22px] leading-7 text-fg">{title}</h3>
+      ) : null}
 
       <ol className="flex flex-col gap-3.5">
         {steps.map((one, i) => {

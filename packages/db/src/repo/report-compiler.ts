@@ -167,12 +167,22 @@ export async function runReport(
   const limit = Math.min(opts.limit ?? SCREEN_LIMIT, 5000);
   const subject = spec.subject;
 
-  const where: SQL[] = [BASE[subject]];
+  // The conditions join one way for the whole set. Mixing and with or needs
+  // brackets, and brackets need a church to think about precedence, which is
+  // the point where a builder stops being usable. Two questions make two
+  // reports.
+  const conditions: SQL[] = [];
   for (const one of spec.filters) {
     const piece = conditionSql(subject, one.field, one.op, one.value);
-    if (piece) where.push(piece);
+    if (piece) conditions.push(piece);
   }
-  const whereSql = sql.join(where, sql` and `);
+
+  const narrowed =
+    conditions.length === 0
+      ? null
+      : sql`(${sql.join(conditions, spec.join === "or" ? sql` or ` : sql` and `)})`;
+
+  const whereSql = narrowed ? sql`${BASE[subject]} and ${narrowed}` : BASE[subject];
 
   if (spec.groupBy) {
     const by = exprOf(subject, spec.groupBy)!;

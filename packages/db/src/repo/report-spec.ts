@@ -132,6 +132,13 @@ export const BARE_OPERATORS = new Set(["empty", "notEmpty", "yes", "no"]);
 
 export type MeasureKind = "rows" | "people" | "sum" | "average";
 
+/** How the answer is drawn. */
+export const VIEWS = ["table", "number", "bar", "rows", "donut", "line"] as const;
+export type View = (typeof VIEWS)[number];
+
+/** The ones that need the report to be counted by a field to mean anything. */
+export const GROUPED_VIEWS = new Set<View>(["bar", "rows", "donut", "line"]);
+
 export interface Condition {
   field: string;
   op: string;
@@ -147,12 +154,16 @@ export interface Measure {
 export interface ReportSpec {
   subject: SubjectKey;
   filters: Condition[];
+  /** Whether every condition has to hold, or any one of them. */
+  join: "and" | "or";
   /** What the list shows, in this order. Ignored once it is counted by a field. */
   columns: string[];
   /** Counted by this field, which turns the list into a chart and a summary. */
   groupBy: string | null;
   measure: Measure | null;
   sort: { field: string; dir: "asc" | "desc" } | null;
+  /** How it is drawn. */
+  view: View;
 }
 
 /** How many rows a built report ever puts on screen. */
@@ -209,6 +220,11 @@ export function cleanSpec(raw: unknown): ReportSpec {
     }
   }
 
+  // A chart of a list is a chart of nothing, so a view that needs a count
+  // falls back to the table rather than drawing an empty frame.
+  let view: View = VIEWS.includes(input.view as View) ? (input.view as View) : "table";
+  if (!groupBy && GROUPED_VIEWS.has(view)) view = "table";
+
   const sortField = input.sort?.field ? fieldOf(subject, input.sort.field) : null;
   const sort = sortField
     ? { field: sortField.key, dir: input.sort?.dir === "asc" ? ("asc" as const) : ("desc" as const) }
@@ -217,10 +233,12 @@ export function cleanSpec(raw: unknown): ReportSpec {
   return {
     subject,
     filters,
+    join: input.join === "or" ? "or" : "and",
     // A list with no columns is a blank screen, so it falls back to the first few.
     columns: columns.length > 0 ? columns : def.fields.slice(0, 4).map((one) => one.key),
     groupBy,
     measure,
     sort,
+    view,
   };
 }
