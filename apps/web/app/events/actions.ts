@@ -53,7 +53,6 @@ function read(data: FormData): EventInput {
     region: text("addressRegion"),
     postalCode: text("addressPostalCode"),
     country: text("addressCountry"),
-    listed: flag("listed"),
     takesRegistrations: flag("takesRegistrations"),
     registrationOpen: flag("registrationOpen"),
     registrationClosesOn: text("registrationClosesOn"),

@@ -603,6 +603,13 @@
       "when": 1791186000000,
       "tag": "0085_person_slug_helper",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1791187000000,
+      "tag": "0086_event_published_is_the_gate",
+      "breakpoints": true
     }
   ]
 }

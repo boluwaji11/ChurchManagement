@@ -141,7 +141,8 @@ async function eventRow(
        and t.demo_expires_at is null
        and e.slug = ${eventSlug}
        and e.archived_at is null
-       and e.listed
+       -- R14.2. Publishing is the only gate. There were two, and an event a
+       -- church had published could still answer 404 with nothing saying why.
        and (${includeDrafts} or e.status <> 'draft')
      limit 1`;
   return rows[0] ?? null;

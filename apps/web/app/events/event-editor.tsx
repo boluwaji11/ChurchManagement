@@ -34,7 +34,6 @@ export interface EventDraft {
   region: string | null;
   postalCode: string | null;
   country: string | null;
-  listed: boolean;
   takesRegistrations: boolean;
   registrationOpen: boolean;
   formId: string | null;
@@ -103,7 +102,6 @@ export function EventEditor({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [hue, setHue] = React.useState(event?.hue ?? "amber");
-  const [listed, setListed] = React.useState(event?.listed ?? true);
   const [showCapacity, setShowCapacity] = React.useState(event?.showCapacity ?? true);
   const [takes, setTakes] = React.useState(event?.takesRegistrations ?? true);
   const [formId, setFormId] = React.useState(event?.formId ?? "");
@@ -576,15 +574,6 @@ export function EventEditor({
             </div>
           </Side>
           ) : null}
-
-          <Side label={t("event.page")}>
-            <Flag
-              name="listed"
-              label={t("event.listed")}
-              checked={listed}
-              onChange={setListed}
-            />
-          </Side>
 
         </aside>
       </div>
