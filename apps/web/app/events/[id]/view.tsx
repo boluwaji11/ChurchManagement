@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Archive, ArchiveRestore, ArrowLeft, Check, Download, Eye, Link2, Pencil,
+  Archive, ArchiveRestore, ArrowLeft, Check, Download, Eye, Link2, Paperclip, Pencil,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
@@ -24,6 +24,34 @@ import { Pages } from "@/components/pages";
 const PER_PAGE = 10;
 
 type Tab = "overview" | "registrations";
+
+/**
+ * R4.1. The files on one answer, as links that sign themselves when pressed.
+ *
+ * The bucket is private, so nothing here is an address: each one goes through
+ * a route that checks who is asking and signs a link that lives five minutes.
+ */
+function AnswerFiles({ answer, church }: { answer: unknown; church: string }) {
+  const keys = Array.isArray(answer) ? (answer as string[]) : [];
+  if (keys.length === 0) return null;
+
+  return (
+    <span className="flex flex-col gap-1">
+      {keys.map((key, at) => (
+        <a
+          key={key}
+          href={`/api/forms/file?church=${church}&key=${encodeURIComponent(key)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
+        >
+          <Paperclip className="size-3.5 shrink-0" aria-hidden />
+          {t("form.files.nth", { number: at + 1 })}
+        </a>
+      ))}
+    </span>
+  );
+}
 
 /** An answer as one cell. A list of choices reads as a list. */
 function answerText(value: unknown): string {
@@ -55,7 +83,7 @@ export function EventView({
   /** R14.12. Everybody with a place, bookings kept together. */
   registrations: EventRegistration[];
   /** R14.5. The event's questions, which name the roster's extra columns. */
-  questions: { id: string; label: string }[];
+  questions: { id: string; label: string; kind: string }[];
   tab: Tab;
 }) {
   const router = useRouter();
@@ -459,7 +487,11 @@ export function EventView({
                       </Td>
                       {questions.map((q) => (
                         <Td key={q.id} className="text-fg-muted">
-                          {answerText(one.answers[q.id])}
+                          {q.kind === "file" ? (
+                            <AnswerFiles answer={one.answers[q.id]} church={church} />
+                          ) : (
+                            answerText(one.answers[q.id])
+                          )}
                         </Td>
                       ))}
                     </Tr>

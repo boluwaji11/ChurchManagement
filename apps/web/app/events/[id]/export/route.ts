@@ -6,8 +6,17 @@ import { requireSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-/** An answer as one cell. A list of choices reads as a list. */
-function cell(value: unknown): string {
+/**
+ * An answer as one cell. A list of choices reads as a list.
+ *
+ * A file question reads as a count: the key behind it is a path into a private
+ * bucket and means nothing in a spreadsheet. The files themselves are opened
+ * from the roster on screen.
+ */
+function cell(value: unknown, kind?: string): string {
+  if (kind === "file") {
+    return Array.isArray(value) && value.length > 0 ? String(value.length) : "";
+  }
   if (value === true) return "yes";
   if (value === false || value === null || value === undefined) return "";
   if (Array.isArray(value)) return value.join(", ");
@@ -62,7 +71,7 @@ export async function GET(
       "Emergency contact": one.emergency
         .map((c) => [c.name, c.phone].filter(Boolean).join(" "))
         .join("; "),
-      ...Object.fromEntries(questions.map((q) => [q.label, cell(one.answers[q.id])])),
+      ...Object.fromEntries(questions.map((q) => [q.label, cell(one.answers[q.id], q.kind)])),
     })),
     [
       "Name", "Email", "Phone", "Status", "Registered", "Booking", "Emergency contact",

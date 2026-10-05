@@ -64,7 +64,7 @@ export default async function EventPage({
         event={result.event}
         coverUrl={coverUrl}
         registrations={result.registrations}
-        questions={result.questions.map((one) => ({ id: one.id, label: one.label }))}
+        questions={result.questions.map((one) => ({ id: one.id, label: one.label, kind: one.kind }))}
         tab={tab === "registrations" ? "registrations" : "overview"}
       />
     </AppShell>

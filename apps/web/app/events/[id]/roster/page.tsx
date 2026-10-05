@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import {
   withTenant, getEvent, getForm, listRegistrations, canManageEvents,
 } from "@hearth/db";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { longDate, readableTime } from "@/lib/dates";
 import { oneLineAddress } from "@/lib/address";
@@ -10,8 +10,16 @@ import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 
 export const dynamic = "force-dynamic";
 
-/** An answer as one cell. A list of choices reads as a list. */
-function answerText(value: unknown): string {
+/**
+ * An answer as one cell. A list of choices reads as a list.
+ *
+ * A file question reads as a count. A key is a path into a private bucket and
+ * is no use on a sheet of paper.
+ */
+function answerText(value: unknown, kind?: string): string {
+  if (kind === "file") {
+    return Array.isArray(value) && value.length > 0 ? plural("form.files.count", value.length) : "";
+  }
   if (value === true) return t("common.yes");
   if (value === false || value === null || value === undefined) return "";
   if (Array.isArray(value)) return value.join(", ");
@@ -148,7 +156,7 @@ export default async function EventRosterPage({
                 </td>
               ) : null}
               {shownQuestions.map((q) => (
-                <td key={q.id} className="py-2 pr-3">{answerText(one.answers[q.id])}</td>
+                <td key={q.id} className="py-2 pr-3">{answerText(one.answers[q.id], q.kind)}</td>
               ))}
               <td className="py-2">
                 <span className="inline-block size-4 border border-black" />

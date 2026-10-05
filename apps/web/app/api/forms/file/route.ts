@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { canManageChurch } from "@hearth/db";
+import { canManageChurch, canManageEvents } from "@hearth/db";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -18,7 +18,14 @@ export async function GET(request: NextRequest) {
   const key = request.nextUrl.searchParams.get("key") ?? "";
   const session = await requireSession(church);
 
-  if (!canManageChurch(session)) return new NextResponse(null, { status: 403 });
+  /*
+   * Whoever may read what came in. A form's responses are the church's, and an
+   * event's roster carries the same answers, so the person running the camp
+   * can open what was attached to it without being given the whole church.
+   */
+  if (!canManageChurch(session) && !canManageEvents(session)) {
+    return new NextResponse(null, { status: 403 });
+  }
   if (!key.startsWith(`${session.tenantSlug}/form_answer/`)) {
     return new NextResponse(null, { status: 404 });
   }
