@@ -8,6 +8,7 @@ import {
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { LABELS_FOR, type ContactLabel, type PersonContact, type ContactKind } from "@hearth/db/rules";
+import { formatPhone } from "@/components/phone-input";
 import { addOne, removeOne, leadWithOne } from "./contact-actions";
 
 /**
@@ -65,10 +66,12 @@ export function Contacts({
               : `tel:${one.value.replace(/[^+\d]/g, "")}`}
             className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
           >
-            {one.value}
+            {kind === "phone" ? formatPhone(one.value) : one.value}
           </a>
 
-          <span className="shrink-0 text-caption text-fg-subtle">
+          {/* A column of its own, so Main and Mobile line up down the card
+              rather than sitting wherever the value above them ended. */}
+          <span className="w-20 shrink-0 text-right text-caption text-fg-subtle">
             {one.isSignIn
               ? t("contact.signIn")
               : one.isPrimary
@@ -111,7 +114,8 @@ export function Contacts({
         <div className="flex flex-wrap items-center gap-2">
           <Input
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) =>
+              setValue(kind === "phone" ? formatPhone(e.target.value) : e.target.value)}
             type={kind === "email" ? "email" : "tel"}
             autoFocus
             className="h-9 min-h-0 min-w-[160px] flex-1 text-[13px]"

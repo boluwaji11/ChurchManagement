@@ -49,7 +49,7 @@ export function Places({
             {oneLineAddress(toAddress(one))}
           </span>
 
-          <span className="shrink-0 text-caption text-fg-subtle">
+          <span className="w-20 shrink-0 text-right text-caption text-fg-subtle">
             {one.fromHousehold
               ? t("contact.fromHousehold")
               : one.isPrimary
