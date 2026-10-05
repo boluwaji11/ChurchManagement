@@ -19,6 +19,9 @@ import { longDate, readableTime, shortDate } from "@/lib/dates";
 import { oneLineAddress, directionsLink } from "@/lib/address";
 import { publishEvent, openEventRegistration, archiveEvent } from "../actions";
 import { PrintRoster } from "./print-roster";
+import { Pages } from "@/components/pages";
+
+const PER_PAGE = 10;
 
 type Tab = "overview" | "registrations";
 
@@ -59,6 +62,7 @@ export function EventView({
   const [error, setError] = React.useState<string>();
   const [copied, setCopied] = React.useState(false);
   const [origin, setOrigin] = React.useState("");
+  const [page, setPage] = React.useState(1);
   const [pending, startTransition] = React.useTransition();
 
   React.useEffect(() => setOrigin(window.location.origin), []);
@@ -71,6 +75,15 @@ export function EventView({
     });
 
   const publicLink = origin ? `${origin}/e/${church}/${event.slug}` : "";
+
+  /*
+   * R14.12. Ten at a time. A camp with two hundred registered is a table
+   * nobody scrolls, and the export and the printed sheet are what a church
+   * reaches for when it wants all of them at once.
+   */
+  const lastPage = Math.max(1, Math.ceil(registrations.length / PER_PAGE));
+  const at = Math.min(page, lastPage);
+  const paged = registrations.slice((at - 1) * PER_PAGE, at * PER_PAGE);
   const left = event.capacity === null ? null : Math.max(0, event.capacity - event.going);
 
   const when = [
@@ -363,7 +376,7 @@ export function EventView({
           <Empty icon="people" title={t("event.registrations.none")} />
         ) : (
           <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-0.5">
               {/* A link rather than a button, because it fetches a file.
                   Shaped from the same tokens the IconButton beside it uses, so
                   the pair reads as one. */}
@@ -392,13 +405,13 @@ export function EventView({
                   </Tr>
                 </Thead>
                 <tbody>
-                  {registrations.map((one, index) => (
+                  {paged.map((one, index) => (
                     <Tr
                       key={one.id}
                       /* R14.6. A hairline between parties rather than between
                          rows, so a family reads as the one booking it is. */
                       className={
-                        index > 0 && registrations[index - 1]!.bookingId !== one.bookingId
+                        index > 0 && paged[index - 1]!.bookingId !== one.bookingId
                           ? "border-t-2 border-line-strong"
                           : undefined
                       }
@@ -454,6 +467,8 @@ export function EventView({
                 </tbody>
               </Table>
             </div>
+
+            <Pages page={at} last={lastPage} onPage={setPage} />
           </div>
         )
       ) : null}
