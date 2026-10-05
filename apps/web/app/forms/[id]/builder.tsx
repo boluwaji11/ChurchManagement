@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Type, AlignLeft, Mail, Phone, CircleDot, SquareCheck, Calendar,
   GripVertical, Trash2, Check, Link2, Hash, ToggleLeft, Paperclip, Heading, Plus, X,
-  Archive, ArchiveRestore,
+  Archive, ArchiveRestore, Code,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
@@ -84,7 +84,12 @@ export function Builder({
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
   const [name, setName] = React.useState(form.name);
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = React.useState<"link" | "embed" | null>(null);
+
+  // The origin is read after mount, because the server does not have one and a
+  // link rendered from nothing would not match on hydration.
+  const [origin, setOrigin] = React.useState("");
+  React.useEffect(() => setOrigin(window.location.origin), []);
 
   // Dragged and dropped-on, by question id, so the list can show where a
   // question will land before the drop happens.
@@ -111,11 +116,25 @@ export function Builder({
     run(() => orderQuestions(form.id, ids, church));
   };
 
-  const copyLink = async () => {
-    const link = `${window.location.origin}/f/${form.slug}`;
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2500);
+  /*
+   * R4.3. The public link, and the snippet that puts the same form inside the
+   * church's own page.
+   *
+   * Built from the window rather than from a configured base URL, so the link
+   * a church copies is the one they are looking at: a church on a preview
+   * deployment gets the preview link rather than a production link that does
+   * not hold their form yet.
+   */
+  const publicLink = origin ? `${origin}/f/${church}/${form.slug}` : "";
+  const snippet = publicLink
+    ? `<iframe src="${publicLink}/embed" title="${form.name}" width="100%" height="720" `
+      + `style="border:0" loading="lazy"></iframe>`
+    : "";
+
+  const copy = async (text: string, what: "link" | "embed") => {
+    await navigator.clipboard.writeText(text);
+    setCopied(what);
+    window.setTimeout(() => setCopied(null), 2500);
   };
 
   return (
@@ -146,14 +165,42 @@ export function Builder({
           onPick={(next) => run(() => openOrClose(form.id, next, church))}
         />
 
-        <button
-          type="button"
-          onClick={copyLink}
-          className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3.5 text-label font-medium text-fg hover:bg-sunken"
-        >
-          <Link2 className="size-4" aria-hidden />
-          {copied ? t("form.linkCopied") : t("form.copyLink")}
-        </button>
+        {/* R4.3. A draft has no public link, so neither action is offered
+            until the form has been opened at least once. */}
+        {form.status === "draft" || form.archivedAt ? null : (
+          <>
+            <button
+              type="button"
+              onClick={() => copy(publicLink, "link")}
+              className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3.5 text-label font-medium text-fg hover:bg-sunken"
+            >
+              <Link2 className="size-4" aria-hidden />
+              {copied === "link" ? t("form.linkCopied") : t("form.copyLink")}
+            </button>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  type="button"
+                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-line-strong bg-surface px-3.5 text-label font-medium text-fg hover:bg-sunken"
+                >
+                  <Code className="size-4" aria-hidden />
+                  {t("form.embed")}
+                </button>
+              </DialogTrigger>
+              <DialogContent title={t("form.embedTitle")} closeLabel={t("common.close")}>
+                <pre className="overflow-x-auto rounded-lg border border-line bg-sunken p-3.5 text-[12px] leading-5 text-fg">
+                  <code>{snippet}</code>
+                </pre>
+                <DialogFooter>
+                  <Button type="button" onClick={() => copy(snippet, "embed")}>
+                    {copied === "embed" ? t("form.linkCopied") : t("form.copySnippet")}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
 
         {/* R4.1. Archiving is the third state, for a form a church is done
             with. Bringing one back needs no asking, so only the putting away

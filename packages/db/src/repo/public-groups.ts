@@ -88,7 +88,7 @@ export async function publicGroups(slug: string): Promise<PublicGroup[]> {
            g.ends_at as "endsAt",
            g.frequency,
            g.location,
-           g.address,
+           nullif(concat_ws(', ', g.address_line1, g.city, g.region, g.postal_code), '') as address,
            g.for_whom as "forWhom",
            g.online,
            g.children_welcome as "childrenWelcome",

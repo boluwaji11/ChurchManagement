@@ -436,7 +436,7 @@ a person record or attaches to one, using the duplicate logic already built in F
 | HRT-148 | The builder: every field type, section headers, required fields and validation | R4.1, R4.9 | Resolved |
 | HRT-209 | The builder rebuilt to the redesign: tiles, inline questions, the preview beside them | R4.1, R24.6 | Resolved |
 | HRT-149 | Conditional logic, showing and hiding fields on earlier answers | R4.2 | Resolved |
-| HRT-150 | The public link and the snippet a church pastes into its own site | R4.3 | New |
+| HRT-150 | The public link and the snippet a church pastes into its own site | R4.3 | Resolved |
 | HRT-151 | A submission matching a person or creating one, writing custom field answers through | R4.4 | New |
 | HRT-152 | The review queue, for a submission that matched more than one person | R4.5 | New |
 | HRT-153 | Notification on submit, and a submission starting a pipeline | R4.6, R4.7 | New |

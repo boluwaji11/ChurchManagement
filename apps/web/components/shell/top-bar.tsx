@@ -54,13 +54,16 @@ export function TopBar({
         <span className="min-w-0 flex-1" />
       )}
       {children}
-      {bell}
       {/* The design's top-bar action is 36px rather than the 40px a button is
           everywhere else, so the one place it appears sets it here instead of
-          thirty pages passing a height. */}
+          thirty pages passing a height.
+
+          The action comes before the bell: it is what this screen is for, and
+          the bell is the same on every screen. */}
       {action ? (
         <div className="flex items-center gap-3 [&_a]:min-h-9 [&_button]:min-h-9">{action}</div>
       ) : null}
+      {bell}
     </header>
   );
 }

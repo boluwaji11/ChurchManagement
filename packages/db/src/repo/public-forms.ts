@@ -1,0 +1,215 @@
+import { owner } from "../client";
+import { InvalidInputError } from "../errors";
+import {
+  checkSubmission, prunedAnswers,
+  type ConditionOp, type FormAnswer, type FormFieldDef, type FormFieldKind,
+} from "./form-rules";
+import { publicChurch, type PublicChurch } from "./public-groups";
+
+/**
+ * R4.3. A form as somebody with no account meets it.
+ *
+ * A church pastes the link into its own website, or drops the snippet into a
+ * page, and whoever follows it answers the questions without signing in. That
+ * is the whole point of a connection card: the person filling it in is the one
+ * the church does not have a record of yet.
+ *
+ * Runs on the owner connection for the same reason `public-groups` does: there
+ * is no session to set a tenant from, so every query here carries its own
+ * tenant predicate and names its columns by hand. Nothing is read or written
+ * beyond the one form the link names.
+ */
+
+export type PublicFormState = "open" | "closed" | "full";
+
+export interface PublicForm {
+  church: PublicChurch;
+  id: string;
+  name: string;
+  intro: string | null;
+  thanks: string | null;
+  state: PublicFormState;
+  fields: FormFieldDef[];
+}
+
+const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
+
+interface FormRow {
+  id: string;
+  tenantId: string;
+  name: string;
+  intro: string | null;
+  thanks: string | null;
+  status: string;
+  submissionLimit: number | null;
+  received: number;
+}
+
+/**
+ * The form a public link names, or null.
+ *
+ * A draft has no public link at all, which is the difference between a draft
+ * and a closed form: a closed one was open once and its link still answers,
+ * saying it has closed.
+ */
+async function formRow(churchSlug: string, formSlug: string): Promise<FormRow | null> {
+  if (!SLUG.test(churchSlug) || !SLUG.test(formSlug)) return null;
+
+  const rows = await owner()<FormRow[]>`
+    select f.id,
+           f.tenant_id as "tenantId",
+           f.name,
+           f.intro,
+           f.thanks,
+           f.status,
+           f.submission_limit as "submissionLimit",
+           (select count(*) from form_submissions s where s.form_id = f.id)::int as received
+      from forms f
+      join tenants t on t.id = f.tenant_id
+     where t.slug = ${churchSlug}
+       and t.approved_at is not null
+       and t.demo_expires_at is null
+       and f.slug = ${formSlug}
+       and f.archived_at is null
+       and f.status <> 'draft'
+     limit 1`;
+  return rows[0] ?? null;
+}
+
+/** R4.9. Open, closed by the church, or closed because it filled up. */
+function stateOf(row: FormRow): PublicFormState {
+  if (row.status !== "open") return "closed";
+  if (row.submissionLimit !== null && row.received >= row.submissionLimit) return "full";
+  return "open";
+}
+
+interface FieldRow {
+  id: string;
+  kind: string;
+  label: string;
+  help: string | null;
+  required: boolean;
+  options: string[] | null;
+  position: number;
+  showWhenFieldId: string | null;
+  showWhenOp: string | null;
+  showWhenValue: string | null;
+}
+
+const asField = (row: FieldRow): FormFieldDef => ({
+  id: row.id,
+  kind: row.kind as FormFieldKind,
+  label: row.label,
+  help: row.help,
+  required: row.required,
+  options: row.options,
+  position: row.position,
+  showWhen: row.showWhenFieldId && row.showWhenOp
+    ? {
+        fieldId: row.showWhenFieldId,
+        op: row.showWhenOp as ConditionOp,
+        value: row.showWhenValue,
+      }
+    : null,
+});
+
+async function fieldRows(formId: string): Promise<FormFieldDef[]> {
+  const rows = await owner()<FieldRow[]>`
+    select id,
+           kind,
+           label,
+           help,
+           required,
+           options,
+           position,
+           show_when_field_id as "showWhenFieldId",
+           show_when_op as "showWhenOp",
+           show_when_value as "showWhenValue"
+      from form_fields
+     where form_id = ${formId}
+     order by position, created_at`;
+  return rows.map(asField);
+}
+
+/** R4.3. The form behind a public link, with the church it belongs to. */
+export async function publicForm(
+  churchSlug: string,
+  formSlug: string,
+): Promise<PublicForm | null> {
+  const church = await publicChurch(churchSlug);
+  if (!church) return null;
+
+  const row = await formRow(churchSlug, formSlug);
+  if (!row) return null;
+
+  return {
+    church,
+    id: row.id,
+    name: row.name,
+    intro: row.intro,
+    thanks: row.thanks,
+    state: stateOf(row),
+    fields: await fieldRows(row.id),
+  };
+}
+
+export type SubmitResult =
+  | { ok: true; thanks: string | null }
+  /** R4.9. Which questions came back wrong, keyed by question. */
+  | { ok: false; errors: Record<string, string> };
+
+/**
+ * R4.3, R4.9. Takes an answered form from somebody with no account.
+ *
+ * Everything the browser sent is checked again here. The screen runs the same
+ * rules while somebody types so the mistakes are caught early, and this runs
+ * them because the screen is not where the decision can be made.
+ *
+ * Whether the form is still taking answers is read inside the transaction, so
+ * the last place on a form of twelve goes to one person rather than to whoever
+ * loaded the page first.
+ */
+export async function submitPublicForm(input: {
+  churchSlug: string;
+  formSlug: string;
+  answers: Record<string, FormAnswer>;
+}): Promise<SubmitResult> {
+  const row = await formRow(input.churchSlug, input.formSlug);
+  if (!row) throw new InvalidInputError("form.error.missing");
+
+  const fields = await fieldRows(row.id);
+  const problems = checkSubmission(fields, input.answers);
+  if (problems.length > 0) {
+    return {
+      ok: false,
+      errors: Object.fromEntries(problems.map((one) => [one.fieldId, one.message])),
+    };
+  }
+
+  // R4.2. What they were last shown is what is recorded. An answer to a
+  // question that disappeared under them is not an answer they gave.
+  const answers = prunedAnswers(fields, input.answers);
+
+  await owner().begin(async (tx) => {
+    // The form row is locked first and counted second, so two people sending
+    // the last place at once are serialised on the form rather than racing.
+    const [fresh] = await tx<{ status: string; limit: number | null }[]>`
+      select status, submission_limit as limit
+        from forms
+       where id = ${row.id}
+         for update`;
+    if (!fresh || fresh.status !== "open") throw new InvalidInputError("form.error.closed");
+
+    if (fresh.limit !== null) {
+      const [count] = await tx<{ n: number }[]>`
+        select count(*)::int as n from form_submissions where form_id = ${row.id}`;
+      if ((count?.n ?? 0) >= fresh.limit) throw new InvalidInputError("form.error.closed");
+    }
+
+    await tx`
+      insert into form_submissions (tenant_id, form_id, answers)
+      values (${row.tenantId}, ${row.id}, ${JSON.stringify(answers)}::jsonb)`;
+  });
+
+  return { ok: true, thanks: row.thanks };
+}
