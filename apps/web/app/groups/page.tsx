@@ -77,6 +77,7 @@ export default async function GroupsPage({
         groups={groups.map((group) => ({
           id: group.id,
           slug: group.slug,
+          status: group.status,
           name: group.name,
           description: group.description,
           typeId: group.typeId,

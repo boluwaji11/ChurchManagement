@@ -16,6 +16,8 @@ import { archive } from "./actions";
 export interface FinderGroup {
   id: string;
   slug: string;
+  /** R9.5. "draft" while the open web cannot see it yet. */
+  status: "draft" | "published";
   /** R9.2. Signed for an hour by the page, because the bucket is private. */
   photoUrl?: string | null;
   name: string;
@@ -487,11 +489,36 @@ export function Finder({
           />
         )
       ) : (
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
-          {shown.map((group) => (
-            <GroupCard key={group.id} church={church} group={group} />
-          ))}
-        </div>
+        /* R9.5. Published leads, because that is what the congregation can
+           see. Drafts sit under it with a hairline between, which is the shape
+           the events list carries. A reader who has learned one has learned
+           both. */
+        [
+          { key: "published", heading: t("event.published"), rows: shown.filter((g) => g.status === "published") },
+          { key: "draft", heading: t("event.draft"), rows: shown.filter((g) => g.status === "draft") },
+        ]
+          .filter((section) => section.rows.length > 0)
+          .map((section, at, sections) => (
+            <section
+              key={section.key}
+              className={
+                at === 0 || sections.length === 1
+                  ? "flex flex-col gap-3.5"
+                  : "flex flex-col gap-3.5 border-t border-line pt-6"
+              }
+            >
+              {sections.length > 1 ? (
+                <h2 className="text-[13px] font-bold tracking-wide text-fg uppercase">
+                  {section.heading}
+                </h2>
+              ) : null}
+              <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+                {section.rows.map((group) => (
+                  <GroupCard key={group.id} church={church} group={group} />
+                ))}
+              </div>
+            </section>
+          ))
       )}
 
       {/* R9.2. Archived groups, for whoever runs them. */}
@@ -543,6 +570,14 @@ function GroupCard({ church, group }: { church: string; group: FinderGroup }) {
 
       <div className="flex flex-col gap-2 px-[18px] pt-4 pb-[18px]">
         <div className="flex items-center gap-2">
+          {group.status === "draft" ? (
+            <span
+              className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+              style={{ background: "var(--hue-amber-tint)", color: "var(--hue-amber-key)" }}
+            >
+              {t("event.status.draft")}
+            </span>
+          ) : null}
           {group.typeName ? (
             <span
               className="rounded-full px-2 py-0.5 text-[12px] font-medium"
