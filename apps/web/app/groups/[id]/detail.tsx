@@ -7,7 +7,7 @@ import {
   Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
   Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@hearth/ui";
-import { t } from "@hearth/i18n";
+import { t, plural } from "@hearth/i18n";
 import type { Meeting, MeetingPerson } from "@hearth/db";
 import { decide, setOpenToJoin, leave } from "../actions";
 import { AddMember } from "../add-member";
@@ -46,6 +46,7 @@ export function GroupDetail({
   groupId,
   canManage,
   openToJoin,
+  hue,
   join,
   about,
   upcoming,
@@ -64,6 +65,8 @@ export function GroupDetail({
   groupId: string;
   canManage: boolean;
   openToJoin: boolean;
+  /** The group kind's colour, which its dates wear. */
+  hue: string;
   /** R9.5. Asking to come, where this reader may. */
   join?: React.ReactNode;
   about: string | null;
@@ -145,8 +148,18 @@ export function GroupDetail({
                 </section>
               ) : null}
 
-              <MeetingList title={t("group.upcoming")} rows={upcoming} onTake={() => setTab("attendance")} />
-              <MeetingList title={t("group.past")} rows={past} onTake={() => setTab("attendance")} />
+              <MeetingList
+                title={plural("group.upcoming", upcoming.length)}
+                rows={upcoming}
+                hue={hue}
+                onTake={() => setTab("attendance")}
+              />
+              <MeetingList
+                title={plural("group.past", past.length)}
+                rows={past}
+                hue={hue}
+                onTake={() => setTab("attendance")}
+              />
             </div>
 
             <aside className="flex flex-[1_1_260px] flex-col gap-6">
@@ -283,14 +296,22 @@ function Facts({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/** A date tile, the name, and the register where the meeting has happened. */
+/**
+ * A date tile, the day it falls on, and the register where it has happened.
+ *
+ * The tiles wear the group's own colour and are joined by a thread down their
+ * centres, so three dates read as one series rather than three cards that
+ * happen to be stacked.
+ */
 function MeetingList({
   title,
   rows,
+  hue,
   onTake,
 }: {
   title: string;
   rows: DetailMeeting[];
+  hue: string;
   onTake: () => void;
 }) {
   if (rows.length === 0) return null;
@@ -298,28 +319,43 @@ function MeetingList({
   return (
     <section className="flex flex-col gap-1">
       <h2 className="mb-1.5 font-display text-[22px] font-normal text-fg">{title}</h2>
-      {rows.map((row) => (
-        <div key={row.on} className="flex items-center gap-4 py-2.5">
-          <div className="flex h-16 w-[72px] shrink-0 flex-col items-center justify-center rounded-[10px] bg-sunken">
-            <span className="text-[11px] font-semibold tracking-[0.06em] text-fg-subtle uppercase">
-              {row.mon}
-            </span>
-            <span className="font-display text-[24px] leading-[26px] text-fg">{row.day}</span>
-          </div>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <span className="font-semibold text-fg">{row.when}</span>
-          </div>
-          {row.canTake ? (
-            <Button
-              variant="secondary"
-              onClick={onTake}
-              className="h-8 min-h-0 px-3 text-[13px] whitespace-nowrap"
+
+      <div className="relative flex flex-col">
+        {/* Behind the tiles, from the first centre to the last. */}
+        {rows.length > 1 ? (
+          <span
+            aria-hidden
+            className="absolute top-[42px] bottom-[42px] left-[35px] w-px"
+            style={{ background: `var(--hue-${hue}-500)`, opacity: 0.35 }}
+          />
+        ) : null}
+
+        {rows.map((row) => (
+          <div key={row.on} className="relative flex items-center gap-4 py-2.5">
+            <div
+              className="flex h-16 w-[72px] shrink-0 flex-col items-center justify-center rounded-[10px]"
+              style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
             >
-              {t("group.takeAttendance")}
-            </Button>
-          ) : null}
-        </div>
-      ))}
+              <span className="text-[11px] font-semibold tracking-[0.06em] uppercase opacity-80">
+                {row.mon}
+              </span>
+              <span className="font-display text-[24px] leading-[26px]">{row.day}</span>
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="font-semibold text-fg">{row.when}</span>
+            </div>
+            {row.canTake ? (
+              <Button
+                variant="secondary"
+                onClick={onTake}
+                className="h-8 min-h-0 px-3 text-[13px] whitespace-nowrap"
+              >
+                {t("group.takeAttendance")}
+              </Button>
+            ) : null}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

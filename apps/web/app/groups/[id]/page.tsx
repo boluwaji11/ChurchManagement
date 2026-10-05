@@ -227,6 +227,7 @@ export default async function GroupPage({
         groupId={group.id}
         canManage={manage}
         openToJoin={group.openToJoin}
+        hue={hue}
         join={
           !group.mine && group.openToJoin && !group.full && group.requested !== "pending" ? (
             <JoinButton church={session.tenantSlug} groupId={group.id} />
