@@ -93,3 +93,32 @@ export function useSectionMemory(entries: NavTarget[]) {
     [entries], // eslint-disable-line react-hooks/exhaustive-deps
   );
 }
+
+/**
+ * Forgets where one section was left.
+ *
+ * Pressing the section you are already in means "take me to the top of this",
+ * so the memory has to go with it. Without this the press would navigate to the
+ * root and the next press would bounce straight back to the record you were
+ * trying to leave.
+ */
+export function forgetSection(href: string): void {
+  const all = read();
+  delete all[href];
+  write(all);
+}
+
+/**
+ * Forgets every section.
+ *
+ * Signing out ends the session, and the next person at this keyboard should
+ * open People on the directory rather than on a stranger's record. The tab
+ * closing clears it on its own, because this is sessionStorage.
+ */
+export function clearSectionMemory(): void {
+  try {
+    sessionStorage.removeItem(KEY);
+  } catch {
+    // Nothing stored is nothing to clear.
+  }
+}

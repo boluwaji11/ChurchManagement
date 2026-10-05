@@ -8,7 +8,7 @@ import { Avatar, Tooltip, cn } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { FlameMark } from "../brand";
 import { activeHref, type NavTarget } from "./nav-active";
-import { useSectionMemory } from "./section-memory";
+import { useSectionMemory, forgetSection, clearSectionMemory } from "./section-memory";
 import { setSidebarCollapsed } from "./sidebar-actions";
 
 /** A nav entry with its icon already drawn, so this file holds no database. */
@@ -67,6 +67,7 @@ export function Sidebar({
   const router = useRouter();
   const [collapsed, setCollapsed] = React.useState(initial);
   const reopen = useSectionMemory(entries);
+  const forget = forgetSection;
 
   const active = activeHref(entries, pathname);
 
@@ -138,6 +139,16 @@ export function Sidebar({
               // R24.6. Back to the screen this section was left on, decided on
               // the press so the rendered href is the same on both sides.
               onClick={(event) => {
+                /*
+                 * Pressing the section you are already in takes you to the top
+                 * of it, which is the one way back out of a record without
+                 * reaching for the back link. Pressing it from somewhere else
+                 * returns you to where you left off.
+                 */
+                if (on) {
+                  forget(entry.href);
+                  return;
+                }
                 const back = reopen(entry.href);
                 if (!back) return;
                 event.preventDefault();
@@ -191,7 +202,15 @@ export function Sidebar({
           )}
         </Link>
 
-        <form action="/auth/sign-out" method="post" className="contents">
+        {/* R24.6. Signing out forgets where every section was left, so the
+            next person at this keyboard opens People on the directory rather
+            than on a stranger's record. */}
+        <form
+          action="/auth/sign-out"
+          method="post"
+          className="contents"
+          onSubmit={() => clearSectionMemory()}
+        >
           <Tooltip content={t("action.signOut")} side="right">
             <button
               type="submit"
@@ -221,6 +240,7 @@ export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church:
   const pathname = usePathname();
   const router = useRouter();
   const reopen = useSectionMemory(entries);
+  const forget = forgetSection;
   const active = activeHref(entries, pathname);
 
   return (
@@ -235,6 +255,11 @@ export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church:
             key={entry.href}
             href={`${entry.href}?church=${church}`}
             onClick={(event) => {
+              // The same rule on a phone: the tab you are on goes to the top.
+              if (on) {
+                forget(entry.href);
+                return;
+              }
               const back = reopen(entry.href);
               if (!back) return;
               event.preventDefault();

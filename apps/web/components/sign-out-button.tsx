@@ -5,6 +5,7 @@ import {
   Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
+import { clearSectionMemory } from "./shell/section-memory";
 
 /**
  * Signing out, with a question first.
@@ -40,7 +41,7 @@ export function SignOutButton({ label, compact }: { label?: string; compact?: bo
           <DialogClose asChild>
             <Button variant="ghost" data-dismiss>{t("signOut.stay")}</Button>
           </DialogClose>
-          <form action="/auth/sign-out" method="post">
+          <form action="/auth/sign-out" method="post" onSubmit={() => clearSectionMemory()}>
             <Button type="submit" variant="danger">
               <LogOut /> {text}
             </Button>
