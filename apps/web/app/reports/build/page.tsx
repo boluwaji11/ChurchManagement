@@ -39,17 +39,15 @@ export default async function BuildReportPage({
   if (id && !saved) notFound();
 
   return (
-    <AppShell session={session} title={t("reports.title")} wide>
+    /* The bar says which report this is, so the page does not say it again
+       underneath. */
+    <AppShell session={session} title={saved?.name ?? t("report.build")} wide>
       <Link
         href={`/reports?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-mb-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
       </Link>
-
-      <h2 className="font-display text-[22px] leading-[28px] text-fg">
-        {saved ? saved.name : t("report.build")}
-      </h2>
 
       <Builder
         church={session.tenantSlug}

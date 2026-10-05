@@ -82,39 +82,45 @@ export function Format({
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-2.5">
-        <h4 className="text-caption font-semibold uppercase tracking-wide text-fg-subtle">
-          {t("report.format.onThePlot")}
-        </h4>
+      {/* Only what this visual can be told. A pane that lists what does not
+          apply and says so is a pane nobody reads twice. */}
+      {charted ? (
+        <section className="flex flex-col gap-2.5">
+          <h4 className="text-caption font-semibold uppercase tracking-wide text-fg-subtle">
+            {t("report.format.onThePlot")}
+          </h4>
 
-        {charted ? (
-          <>
-            <Toggle
-              label={t("report.format.labels")}
-              on={look.labels}
-              onChange={(on) => set({ labels: on })}
-            />
-            <Toggle
-              label={t("report.format.grid")}
-              on={look.grid}
-              onChange={(on) => set({ grid: on })}
-            />
-            <Toggle
-              label={t("report.format.legend")}
-              on={look.legend}
-              onChange={(on) => set({ legend: on })}
-            />
-          </>
-        ) : (
-          <p className="text-[12px] text-fg-muted">{t("report.format.nothingToDraw")}</p>
-        )}
+          <Toggle
+            label={t("report.format.labels")}
+            on={look.labels}
+            onChange={(on) => set({ labels: on })}
+          />
+          <Toggle
+            label={t("report.format.grid")}
+            on={look.grid}
+            onChange={(on) => set({ grid: on })}
+          />
+          <Toggle
+            label={t("report.format.legend")}
+            on={look.legend}
+            onChange={(on) => set({ legend: on })}
+          />
+        </section>
+      ) : null}
 
-        <Toggle
-          label={t("report.totals")}
-          on={tile.totals}
-          onChange={(on) => onChange({ totals: on })}
-        />
-      </section>
+      {/* A table and a single value have a total too. */}
+      {tile.groupBy || tile.view === "table" ? (
+        <section className="flex flex-col gap-2.5">
+          <h4 className="text-caption font-semibold uppercase tracking-wide text-fg-subtle">
+            {t("report.format.summary")}
+          </h4>
+          <Toggle
+            label={t("report.totals")}
+            on={tile.totals}
+            onChange={(on) => onChange({ totals: on })}
+          />
+        </section>
+      ) : null}
 
       {charted ? (
         <section className="flex flex-col gap-2">

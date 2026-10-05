@@ -165,7 +165,7 @@ export function Builder({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-end gap-3">
         {/* It saves itself, so it says when it last did rather than asking
             anybody to remember. */}
