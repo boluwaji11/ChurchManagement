@@ -38,9 +38,7 @@ export default async function PublicEventPage({
       event={found}
       coverUrl={await sign(found.coverKey)}
       logoUrl={await sign(found.church.logoKey)}
-      churchSlug={slug}
-      eventSlug={event}
-      today={clock.date}
+      registerHref={`/e/${slug}/${event}/register`}
     />
   );
 }

@@ -6,7 +6,6 @@ import {
 import { t } from "@hearth/i18n";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
-import { churchNow } from "@/lib/church-now";
 import { EventPage } from "@/components/event-page";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +52,6 @@ export default async function PreviewEventPage({
   if (!result) notFound();
 
   const { event, form, profile } = result;
-  const today = churchNow(profile?.timezone ?? "America/Chicago").date;
 
   const supabase = await supabaseServer();
   const sign = async (key: string | null) => {
@@ -105,10 +103,7 @@ export default async function PreviewEventPage({
       event={shown}
       coverUrl={await sign(event.coverKey)}
       logoUrl={await sign(profile?.logoKey ?? null)}
-      churchSlug={session.tenantSlug}
-      eventSlug={event.slug}
-      today={today}
-      preview
+      registerHref={`/events/${event.id}/preview/register?church=${session.tenantSlug}`}
       banner={
         <div
           className="px-4 py-2 text-center text-caption font-medium"

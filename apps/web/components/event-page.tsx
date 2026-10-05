@@ -1,9 +1,10 @@
 import { t, plural } from "@hearth/i18n";
 import type { PublicEvent } from "@hearth/db";
+import Link from "next/link";
+import { Button } from "@hearth/ui";
 import { Markdown } from "@/components/markdown";
 import { longDate, readableTime } from "@/lib/dates";
 import { oneLineAddress } from "@/lib/address";
-import { Register } from "@/app/e/[slug]/[event]/register";
 
 /**
  * R14.2. An event as the open web sees it.
@@ -16,27 +17,16 @@ export function EventPage({
   event,
   coverUrl,
   logoUrl,
-  churchSlug,
-  eventSlug,
-  today,
   banner,
-  preview = false,
+  registerHref,
 }: {
   event: PublicEvent;
   coverUrl: string | null;
   logoUrl: string | null;
-  churchSlug: string;
-  eventSlug: string;
-  today: string;
   /** Shown above everything on the preview, to say this is not the live page. */
   banner?: React.ReactNode;
-  /**
-   * R14.2. A preview draws the form and refuses to send it.
-   *
-   * Somebody checking their own page should not end up on their own roster,
-   * and a draft has no business taking registrations at all.
-   */
-  preview?: boolean;
+  /** Where Register goes. The public route, or the preview's own. */
+  registerHref: string;
 }) {
   const when = [
     longDate(event.startsOn),
@@ -127,22 +117,38 @@ export function EventPage({
             <Markdown text={event.description} className="max-w-[68ch]" />
           ) : null}
 
-          {/* R14.2. A preview draws the whole page, registration included, so
-              a church sees what it is about to publish. It refuses to send,
-              because somebody checking their own page should not end up on
-              their own roster. */}
+          {/*
+            * R14.2. The page says what the event is and offers a way in.
+            *
+            * The questions fill a page of their own rather than sitting under
+            * the description, because somebody reading about a camp and
+            * somebody filling in four children's medical details are doing two
+            * different things, and one long page makes the reading feel like
+            * paperwork.
+            */}
           {event.state === "none" ? null : (
-            <section className="flex flex-col gap-4 border-t border-line pt-7">
-              <h2 className="font-display text-heading text-fg">{t("publicEvent.who")}</h2>
-              <Register
-                churchSlug={churchSlug}
-                eventSlug={eventSlug}
-                today={today}
-                state={event.state}
-                questions={event.questions}
-                preview={preview}
-              />
-            </section>
+            <div className="flex flex-col items-start gap-3 border-t border-line pt-7">
+              {event.state === "open" || event.state === "waitlist" ? (
+                <>
+                  {event.state === "waitlist" ? (
+                    <p className="text-[length:var(--d-text-body)] text-fg-muted">
+                      {t("publicEvent.waitlistOpen")}
+                    </p>
+                  ) : null}
+                  <Button asChild className="w-full sm:w-auto sm:min-w-[200px]">
+                    <Link href={registerHref}>{t("publicEvent.registerNow")}</Link>
+                  </Button>
+                </>
+              ) : (
+                <p className="text-[length:var(--d-text-body)] text-fg-muted">
+                  {event.state === "cancelled"
+                    ? t("publicEvent.cancelled")
+                    : event.state === "full"
+                      ? t("publicEvent.full")
+                      : t("publicEvent.closed")}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </main>

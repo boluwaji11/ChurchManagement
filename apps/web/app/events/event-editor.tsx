@@ -421,11 +421,9 @@ export function EventEditor({
           <button
             type="button"
             onClick={() => setAsking(true)}
-            className="cursor-pointer text-label font-bold text-primary underline-offset-4 hover:underline"
+            className="cursor-pointer text-label font-bold text-primary underline underline-offset-4"
           >
-            {t("event.questions.named", {
-              name: forms.find((one) => one.id === formId)?.name ?? "",
-            })}
+            {forms.find((one) => one.id === formId)?.name ?? t("event.questions.choose")}
           </button>
         ) : null}
 
