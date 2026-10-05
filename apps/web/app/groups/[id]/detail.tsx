@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, X, Save } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
   Tabs, TabsList, TabsTrigger, TabsContent,
@@ -91,6 +91,9 @@ export function GroupDetail({
   const [tab, setTab] = React.useState("overview");
   const [error, setError] = React.useState<string>();
   const [removing, setRemoving] = React.useState<DetailMember | null>(null);
+  const [deciding, setDeciding] = React.useState<(DetailRequest & { approve: boolean }) | null>(
+    null,
+  );
   const [pending, startTransition] = React.useTransition();
 
   /** R9.3. Who runs it, which decides what the chips say and who may come off. */
@@ -200,16 +203,26 @@ export function GroupDetail({
                     <span className="text-[13px] text-fg-muted">{t("group.noRequests")}</span>
                   ) : (
                     requests.map((request) => (
-                      <div key={request.id} className="flex items-center justify-between gap-3">
-                        <span className="font-medium text-fg">{request.personName}</span>
-                        <Button
-                          variant="secondary"
+                      <div key={request.id} className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                          {request.personName}
+                        </span>
+                        <IconButton
+                          label={t("find.approve")}
+                          variant="ghost"
                           disabled={pending}
-                          onClick={() => run(() => decide(request.id, true, church))}
-                          className="h-7 min-h-0 px-2.5 text-[12px]"
+                          onClick={() => setDeciding({ ...request, approve: true })}
                         >
-                          {t("find.approve")}
-                        </Button>
+                          <Check />
+                        </IconButton>
+                        <IconButton
+                          label={t("find.decline")}
+                          variant="ghost"
+                          disabled={pending}
+                          onClick={() => setDeciding({ ...request, approve: false })}
+                        >
+                          <X />
+                        </IconButton>
                       </div>
                     ))
                   )}
@@ -285,6 +298,36 @@ export function GroupDetail({
           </TabsContent>
         ) : null}
       </Tabs>
+
+      {/* R9.6. Letting somebody in, or turning them down. Both are answers the
+          person on the other side will see, so both are asked about first. */}
+      <Dialog open={deciding !== null} onOpenChange={(open) => (open ? null : setDeciding(null))}>
+        <DialogContent
+          alert={deciding?.approve === false}
+          title={t(
+            deciding?.approve ? "find.approveTitle" : "find.declineTitle",
+            { name: deciding?.personName ?? "" },
+          )}
+          closeLabel={t("common.close")}
+        >
+          <p className="text-[length:var(--d-text-body)] text-fg">
+            {t(deciding?.approve ? "find.approveBody" : "find.declineBody")}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeciding(null)}>{t("action.cancel")}</Button>
+            <Button
+              variant={deciding?.approve ? "primary" : "danger"}
+              onClick={() => {
+                const asked = deciding;
+                setDeciding(null);
+                if (asked) run(() => decide(asked.id, asked.approve, church));
+              }}
+            >
+              {t(deciding?.approve ? "find.approve" : "find.decline")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Taking somebody off a roster asks first, the same as every other x. */}
       <Dialog open={removing !== null} onOpenChange={(open) => (open ? null : setRemoving(null))}>
@@ -459,6 +502,34 @@ function Register({
   const count = people.filter((p) => here[p.personId]).length;
   const shownDate = days.find((one) => one.on === day)?.label ?? date;
 
+  /*
+   * R9.7. Every tap is written.
+   *
+   * A leader standing in a doorway with their coat on taps four names and
+   * walks off. A save button at the bottom of that is a button nobody presses,
+   * and the register silently keeps nothing. The whole list goes with each
+   * write, so two quick taps settle on the second rather than racing.
+   */
+  const mark = (personId: string) => {
+    const next = { ...here, [personId]: !here[personId] };
+    setHere(next);
+    if (!meeting) return;
+
+    startTransition(async () => {
+      const result = await record(
+        {
+          meetingId: meeting.id,
+          presentIds: people.filter((p) => next[p.personId]).map((p) => p.personId),
+          notHeld: false,
+          note: null,
+        },
+        church,
+      );
+      setError(result.error);
+      setSaved(!result.error);
+    });
+  };
+
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-line bg-surface">
       {error ? <Banner tone="danger" title={t("meeting.title")}>{error}</Banner> : null}
@@ -499,10 +570,7 @@ function Register({
               key={person.personId}
               type="button"
               aria-pressed={on}
-              onClick={() => {
-                setSaved(false);
-                setHere((was) => ({ ...was, [person.personId]: !was[person.personId] }));
-              }}
+              onClick={() => mark(person.personId)}
               className="flex min-h-[52px] items-center gap-2.5 px-5 text-left hover:bg-canvas"
             >
               <span
@@ -521,35 +589,11 @@ function Register({
         })}
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-line bg-canvas px-4 py-3">
-        {saved ? (
-          <span className="mr-auto text-[13px] text-fg-muted">
-            {t("meeting.of", { present: count, roster: people.length })}
-          </span>
-        ) : null}
-        <IconButton
-          label={t("group.saveAttendance")}
-          variant="secondary"
-          disabled={pending || !meeting}
-          onClick={() => {
-            if (!meeting) return;
-            startTransition(async () => {
-              const result = await record(
-                {
-                  meetingId: meeting.id,
-                  presentIds: people.filter((p) => here[p.personId]).map((p) => p.personId),
-                  notHeld: false,
-                  note: null,
-                },
-                church,
-              );
-              setError(result.error);
-              if (!result.error) setSaved(true);
-            });
-          }}
-        >
-          <Save />
-        </IconButton>
+      {/* Nothing to press. The line underneath says the register is written. */}
+      <div className="flex items-center justify-end gap-2 border-t border-line bg-canvas px-5 py-2.5">
+        <span className="text-[13px] text-fg-muted">
+          {pending ? t("meeting.saving") : saved ? t("meeting.kept") : ""}
+        </span>
       </div>
     </section>
   );

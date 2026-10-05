@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import {
   withTenant, groupPage, personForUser, getChurch, upcomingMeetings,
   listGroupTypes, groupRoster, canManageGroups, pendingRequests,
@@ -268,7 +268,7 @@ export default async function GroupPage({
           group.mine ? (
             <Badge tone="success">{t("find.member")}</Badge>
           ) : group.requested === "pending" ? (
-            <Badge tone="neutral">{t("find.asked")}</Badge>
+            <Badge tone="neutral"><Check aria-hidden /> {t("find.asked")}</Badge>
           ) : group.requested === "declined" ? (
             <Badge tone="neutral">{t("find.declined")}</Badge>
           ) : group.full ? (
