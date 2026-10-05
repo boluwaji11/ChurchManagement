@@ -97,17 +97,13 @@ export function FileAnswer({
   };
 
   /*
-   * Every object URL handed out is handed back when the question leaves the
-   * screen, so a form filled in on a phone does not hold onto the pictures.
-   * Held in a ref rather than read from state, because an effect that depends
-   * on the list would release a preview the moment another file joined it.
+   * The object URLs are left for the browser to release when the page goes.
+   *
+   * Releasing them when this question leaves the screen looked tidier and was
+   * wrong: the summary step draws the same files, and by the time it did the
+   * pictures had already been thrown away. A handful of blobs for the life of
+   * one form is the cheaper mistake.
    */
-  const handed = React.useRef<string[]>([]);
-  handed.current = held.map((one) => one.preview);
-  React.useEffect(
-    () => () => { for (const url of handed.current) URL.revokeObjectURL(url); },
-    [],
-  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -215,7 +211,7 @@ export function FileList({
       </ul>
 
       <Dialog open={looking !== null} onOpenChange={(on) => { if (!on) setLooking(null); }}>
-        <DialogContent title={looking?.name ?? ""} closeLabel={t("common.close")}>
+        <DialogContent title={looking?.name ?? ""} hideTitle closeLabel={t("common.close")}>
           {looking?.image ? (
             <img
               src={looking.preview}
