@@ -50,6 +50,7 @@ export interface FinderType {
 
 export interface FinderRequest {
   id: string;
+  groupId: string;
   groupName: string;
   personName: string;
   message: string | null;
@@ -141,7 +142,13 @@ export function Finder({
   const [deciding, setDeciding] = React.useState<(FinderRequest & { approve: boolean }) | null>(
     null,
   );
+  const [dismissed, setDismissed] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
+
+  // Dismissing is for the requests on screen now. Somebody new asking is a new
+  // thing to answer, so the block comes back.
+  const waiting = requests.map((one) => one.id).join(",");
+  React.useEffect(() => setDismissed(false), [waiting]);
 
   const text = query.trim().toLowerCase();
   const archivedGroups = groups.filter((group) => group.archived);
@@ -263,8 +270,8 @@ export function Finder({
        * this screen that is waiting on somebody, and a church that has three
        * people asking should see three people asking before it sees the groups.
        */}
-      {requests.length > 0 ? (
-        <section className="overflow-hidden rounded-[14px] border border-[var(--hue-amber-500)]/35 bg-[var(--hue-amber-tint)]">
+      {requests.length > 0 && !dismissed ? (
+        <section className="overflow-hidden rounded-[14px] border border-[var(--hue-amber-500)]/20 bg-[var(--hue-amber-tint)]/40">
           <div className="flex items-center gap-2 px-5 pt-4 pb-2.5">
             <span className="text-[12px] font-bold tracking-[0.06em] text-[var(--hue-amber-key)] uppercase">
               {t("find.requests")}
@@ -272,13 +279,24 @@ export function Finder({
             <span className="text-[12px] font-semibold text-[var(--hue-amber-key)]/70">
               {requests.length}
             </span>
+            <span className="flex-1" />
+            {/* Put away for now. It comes back on the next visit, and the
+                moment somebody new asks. */}
+            <IconButton
+              label={t("find.dismiss")}
+              variant="ghost"
+              className="size-7"
+              onClick={() => setDismissed(true)}
+            >
+              <X />
+            </IconButton>
           </div>
 
           <ul className="flex flex-col">
             {requests.map((request) => (
               <li
                 key={request.id}
-                className="flex min-h-[56px] flex-wrap items-center gap-3 border-t border-[var(--hue-amber-500)]/20 px-5 py-2"
+                className="relative flex min-h-[56px] flex-wrap items-center gap-3 border-t border-[var(--hue-amber-500)]/20 px-5 py-2"
               >
                 <Avatar
                   name={request.personName}
@@ -286,13 +304,20 @@ export function Finder({
                   className="size-8 text-[11px] font-semibold"
                 />
                 <span className="flex min-w-0 flex-1 flex-col leading-5">
-                  <span className="truncate font-medium text-fg">{request.personName}</span>
+                  {/* The whole row opens the group, where the request sits
+                      beside everything else about it. */}
+                  <Link
+                    href={`/groups/${request.groupId}?church=${church}`}
+                    className="truncate font-medium text-fg after:absolute after:inset-0 focus-visible:outline-none"
+                  >
+                    {request.personName}
+                  </Link>
                   <span className="truncate text-[13px] text-fg-muted">
                     {request.groupName}
                     {request.message ? ` · ${request.message}` : ""}
                   </span>
                 </span>
-                <span className="flex items-center gap-0.5">
+                <span className="relative flex items-center gap-0.5">
                   <IconButton
                     label={t("find.approve")}
                     variant="ghost"

@@ -1230,6 +1230,7 @@ export const en = {
   "find.closed": "Closed",
   "find.none.title": "No groups to show",
   "find.requests": "Requests",
+  "find.dismiss": "Put away",
   "find.approve": "Approve",
   "find.decline": "Decline",
   "find.approved": "Approved",
