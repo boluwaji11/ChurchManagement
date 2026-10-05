@@ -68,20 +68,17 @@ export function GroupPublicPage({
             {group.address ? (
               <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
                 {group.address}
-                {group.mappable ? (
-                  <>
-                    {" "}
-                    <a
-                      href={mapsHref(group.address)}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="font-medium text-primary underline-offset-4 hover:underline"
-                    >
-                      {t("common.directions")}
-                    </a>
-                  </>
-                ) : null}
               </p>
+            ) : null}
+            {group.address && group.mappable ? (
+              <a
+                href={mapsHref(group.address)}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="self-start font-medium text-primary underline-offset-4 hover:underline"
+              >
+                {t("common.directions")}
+              </a>
             ) : null}
           </div>
 

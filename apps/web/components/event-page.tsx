@@ -122,20 +122,19 @@ export function EventPage({
               {address ? (
                 <p className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
                   {address}
-                  {directions ? (
-                    <>
-                      {" "}
-                      <a
-                        href={directions}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="font-medium text-primary underline-offset-4 hover:underline"
-                      >
-                        {t("common.directions")}
-                      </a>
-                    </>
-                  ) : null}
                 </p>
+              ) : null}
+              {/* On its own line under the address, because it is a thing to
+                  press rather than the end of a sentence. */}
+              {directions ? (
+                <a
+                  href={directions}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="self-start font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  {t("common.directions")}
+                </a>
               ) : null}
               {left !== null && event.state === "open" ? (
                 <p className="text-caption text-fg-subtle tabular-nums">
