@@ -375,7 +375,7 @@ export function EventView({
         registrations.length === 0 ? (
           <Empty icon="people" title={t("event.registrations.none")} />
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="-mt-2 flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-end gap-0.5">
               {/* A link rather than a button, because it fetches a file.
                   Shaped from the same tokens the IconButton beside it uses, so
