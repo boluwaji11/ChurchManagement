@@ -327,3 +327,18 @@ Every RLS policy on every table calls into that schema, and the role carries a p
 connection string and the deploy environment both hold. Renaming them is a migration that rewrites
 every policy plus a credential rotation, which is a different job from renaming a product, and it
 buys a church nothing. They are internal names no user ever reads.
+
+## Sitting inside a church's own website
+
+The redesign draws the member's screens as a panel on the church's site, at `gracefellowship.org/my-account`.
+Two of the three pieces are built as the design draws them and one cannot be.
+
+- **The group finder frames.** `/g/<church>/embed` is the finder with no chrome, and Settings, Church
+  hands a church the `<iframe>` snippet. It carries no session, so it works in anybody's page.
+- **The member's door is a link.** Settings, Church gives a church the My account address, which is
+  the join link: it signs somebody in or signs them up and puts them in the church.
+- **A signed-in panel cannot be framed.** A session inside somebody else's page is a third-party
+  cookie, and Safari blocks those outright while Chrome is removing them. A framed sign-in works
+  until it quietly does not, which is worse than a link. The way to put the signed-in screens on a
+  church's own address is a custom domain pointed at the app, so the cookie is first-party. That is
+  infrastructure rather than a feature and has no story yet.
