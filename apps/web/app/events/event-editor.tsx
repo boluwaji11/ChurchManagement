@@ -444,8 +444,8 @@ export function EventEditor({
         />
       </div>
 
-      <div className="flex flex-wrap items-start gap-10">
-        <div className="flex min-w-0 flex-[999_1_420px] flex-col gap-7">
+      <div className="flex flex-wrap items-start gap-7">
+        <div className="flex min-w-0 flex-[6_1_420px] flex-col gap-7">
           <Side label={t("event.about")}>
             <RichText
               name="description"
@@ -498,7 +498,7 @@ export function EventEditor({
         </div>
 
         {/* The rule separates what the event is from the facts about it. */}
-        <aside className="flex min-w-0 flex-[1_1_300px] flex-col gap-7 border-line md:border-l md:pl-8">
+        <aside className="flex min-w-0 flex-[2_1_300px] flex-col gap-7 border-line md:border-l md:pl-6">
           {takes ? (
           <Side label={t("event.registration")}>
             <div className="flex flex-col gap-4">
