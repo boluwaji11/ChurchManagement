@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { withTenant, getEvent, canManageEvents } from "@hearth/db";
+import { withTenant, getEvent, listForms, canManageEvents } from "@hearth/db";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -29,27 +29,33 @@ export default async function EditEventPage({
       userId: session.userId,
       permissions: session.permissions,
     },
-    (tx) => getEvent(tx, id),
+    async (tx) => ({ event: await getEvent(tx, id), forms: await listForms(tx) }),
   );
-  if (!found) notFound();
+  if (!found.event) notFound();
+  const event = found.event;
 
   let coverUrl: string | null = null;
-  if (found.coverKey) {
+  if (event.coverKey) {
     const supabase = await supabaseServer();
-    const signed = await supabase.storage.from("church").createSignedUrl(found.coverKey, 3600);
+    const signed = await supabase.storage.from("church").createSignedUrl(event.coverKey, 3600);
     coverUrl = signed.data?.signedUrl ?? null;
   }
 
   return (
     <AppShell session={session}>
       <Link
-        href={`/events/${found.id}?church=${session.tenantSlug}`}
+        href={`/events/${event.id}?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
-        <ArrowLeft className="size-4" /> {found.name}
+        <ArrowLeft className="size-4" /> {event.name}
       </Link>
 
-      <EventEditor church={session.tenantSlug} event={found} coverUrl={coverUrl} />
+      <EventEditor
+        church={session.tenantSlug}
+        event={event}
+        coverUrl={coverUrl}
+        forms={found.forms.map((one) => ({ id: one.id, name: one.name }))}
+      />
     </AppShell>
   );
 }

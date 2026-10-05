@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
 import {
   ALL_HUES, Banner, Button, Checkbox, Field, IconButton, Input, Working,
+  Dialog, DialogContent, DialogFooter, RadioGroup, RadioItem,
 } from "@hearth/ui";
 import { t } from "@hearth/i18n";
 import { imageLimit } from "@/components/image-limit";
@@ -36,6 +37,7 @@ export interface EventDraft {
   listed: boolean;
   takesRegistrations: boolean;
   registrationOpen: boolean;
+  formId: string | null;
   registrationClosesOn: string | null;
   capacity: number | null;
   waitlist: boolean;
@@ -86,16 +88,42 @@ export function EventEditor({
   church,
   event,
   coverUrl,
+  forms,
 }: {
   church: string;
   event?: EventDraft;
   coverUrl?: string | null;
+  /** R14.5. The forms this church has, to answer at registration. */
+  forms: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [hue, setHue] = React.useState(event?.hue ?? "amber");
   const [listed, setListed] = React.useState(event?.listed ?? true);
   const [takes, setTakes] = React.useState(event?.takesRegistrations ?? true);
+  const [formId, setFormId] = React.useState(event?.formId ?? "");
+  const [asking, setAsking] = React.useState(false);
+
+  /*
+   * R14.5. Turning registration on asks which form people answer.
+   *
+   * Asked here rather than left on a tab of its own, because the question only
+   * exists the moment somebody says people sign up, and a tab nobody opens is
+   * a question nobody answers. A church with no forms yet is sent to write one.
+   */
+  const wantsRegistrations = (on: boolean) => {
+    setTakes(on);
+    if (!on) {
+      setFormId("");
+      return;
+    }
+    if (formId) return;
+    if (forms.length === 0) {
+      router.push(`/forms?church=${church}`);
+      return;
+    }
+    setAsking(true);
+  };
   // Carried through untouched, so saving the designer never reopens or closes
   // registration behind the church's back.
   const registrationOpen = event?.registrationOpen ?? true;
@@ -160,6 +188,32 @@ export function EventEditor({
       className="flex flex-col gap-5"
     >
       <Working open={busy} label={t("image.uploading")} />
+
+      {/* R14.5. Which form people answer when they register. */}
+      <Dialog open={asking} onOpenChange={setAsking}>
+        <DialogContent title={t("event.questions.choose")} closeLabel={t("common.close")}>
+          <RadioGroup value={formId} onValueChange={setFormId}>
+            {forms.map((one) => (
+              <RadioItem key={one.id} value={one.id}>
+                {one.name}
+              </RadioItem>
+            ))}
+          </RadioGroup>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => router.push(`/forms?church=${church}`)}
+            >
+              {t("form.new")}
+            </Button>
+            <Button type="button" onClick={() => setAsking(false)} disabled={!formId}>
+              {t("action.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/*
         * The colour and the chosen picture ride hidden fields.
@@ -297,8 +351,20 @@ export function EventEditor({
           name="takesRegistrations"
           label={t("event.takesRegistrations")}
           checked={takes}
-          onChange={setTakes}
+          onChange={wantsRegistrations}
         />
+
+        {takes && formId ? (
+          <button
+            type="button"
+            onClick={() => setAsking(true)}
+            className="cursor-pointer text-label font-medium text-primary underline-offset-4 hover:underline"
+          >
+            {forms.find((one) => one.id === formId)?.name ?? t("event.questions.choose")}
+          </button>
+        ) : null}
+
+        <input type="hidden" name="formId" value={takes ? formId : ""} />
 
         {/*
           * Whether it is open right now is not asked here.

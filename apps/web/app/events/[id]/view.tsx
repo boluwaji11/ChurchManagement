@@ -4,12 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Archive, ArchiveRestore, ArrowLeft, Check, Eye, Link2, Pencil, Plus,
+  Archive, ArchiveRestore, ArrowLeft, Check, Eye, Link2, Pencil,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@hearth/ui";
 import type { ChurchEvent } from "@hearth/db";
 import { t, plural } from "@hearth/i18n";
@@ -17,14 +16,10 @@ import { Markdown } from "@/components/markdown";
 import { Empty } from "@/components/empty";
 import { longDate, readableTime } from "@/lib/dates";
 import { oneLineAddress } from "@/lib/address";
-import {
-  publishEvent, openEventRegistration, archiveEvent, startEventForm, useFormForEvent,
-} from "../actions";
+import { publishEvent, openEventRegistration, archiveEvent } from "../actions";
 
-type Tab = "overview" | "registrations" | "questions";
+type Tab = "overview" | "registrations";
 
-/** Radix cannot hold an empty value, so "no form" needs a name of its own. */
-const NO_FORM = "none";
 
 /**
  * R14.1, R14.4. An event as the church reads it.
@@ -37,18 +32,11 @@ export function EventView({
   church,
   event,
   coverUrl,
-  questions,
-  formId,
-  forms,
   tab,
 }: {
   church: string;
   event: ChurchEvent;
   coverUrl: string | null;
-  questions: number;
-  formId: string | null;
-  /** R14.5. The church's standalone forms, any of which can serve this event. */
-  forms: { id: string; name: string }[];
   tab: Tab;
 }) {
   const router = useRouter();
@@ -280,7 +268,7 @@ export function EventView({
         {/* An announcement has one tab. Places, a roster and questions are all
             about signing up, and nobody signs up for this one. */}
         {(event.takesRegistrations
-          ? (["overview", "registrations", "questions"] as const)
+          ? (["overview", "registrations"] as const)
           : (["overview"] as const)
         ).map((one) => (
           <button
@@ -334,80 +322,6 @@ export function EventView({
         <Empty icon="people" title={t("event.registrations.none")} />
       ) : null}
 
-      {showing === "questions" ? (
-        <div className="flex flex-col items-start gap-5">
-          {formId ? (
-            <>
-              <p className="text-[length:var(--d-text-body)] text-fg">
-                {plural("form.questions", questions)}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button asChild variant="secondary">
-                  <Link href={`/forms/${formId}?church=${church}`}>
-                    <Pencil className="size-4" aria-hidden /> {t("event.questions.edit")}
-                  </Link>
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() => run(() => useFormForEvent(event.id, null, church))}
-                >
-                  {t("event.questions.unlink")}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <Empty
-              icon="form"
-              title={t("event.questions.empty")}
-              action={
-                <Button
-                  type="button"
-                  disabled={pending}
-                  onClick={() =>
-                    startTransition(async () => {
-                      const result = await startEventForm(event.id, church);
-                      if (result.error) setError(result.error);
-                      else if (result.id) router.push(`/forms/${result.id}?church=${church}`);
-                    })}
-                >
-                  <Plus className="size-4" aria-hidden /> {t("event.questions.add")}
-                </Button>
-              }
-            />
-          )}
-
-          {/* R14.5. A church that already wrote a form can point this event at
-              it. The form keeps its own link and stays in the Forms list, so
-              one connection card can serve a term of events. */}
-          {forms.length > 0 ? (
-            <div className="flex flex-col gap-2">
-              <span className="text-[12px] font-bold tracking-[0.06em] text-fg uppercase">
-                {t("event.questions.useExisting")}
-              </span>
-              <Select
-                value={formId ?? NO_FORM}
-                onValueChange={(next) =>
-                  run(() => useFormForEvent(event.id, next === NO_FORM ? null : next, church))}
-                disabled={pending}
-              >
-                <SelectTrigger className="min-w-[220px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_FORM}>{t("common.none")}</SelectItem>
-                  {forms.map((one) => (
-                    <SelectItem key={one.id} value={one.id}>
-                      {one.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }

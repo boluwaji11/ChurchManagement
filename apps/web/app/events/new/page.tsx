@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { canManageEvents } from "@hearth/db";
+import { withTenant, listForms, canManageEvents } from "@hearth/db";
 import { t } from "@hearth/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -19,6 +19,16 @@ export default async function NewEventPage({
   const session = await requireSession(church);
   if (!canManageEvents(session)) redirect(`/?church=${session.tenantSlug}`);
 
+  const forms = await withTenant(
+    {
+      tenantId: session.tenantId,
+      role: session.role,
+      userId: session.userId,
+      permissions: session.permissions,
+    },
+    (tx) => listForms(tx),
+  );
+
   return (
     <AppShell session={session}>
       <Link
@@ -28,7 +38,10 @@ export default async function NewEventPage({
         <ArrowLeft className="size-4" /> {t("event.title")}
       </Link>
 
-      <EventEditor church={session.tenantSlug} />
+      <EventEditor
+        church={session.tenantSlug}
+        forms={forms.map((one) => ({ id: one.id, name: one.name }))}
+      />
     </AppShell>
   );
 }

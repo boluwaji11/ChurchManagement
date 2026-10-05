@@ -2,7 +2,7 @@
 
 import {
   withTenant, createEvent, updateEvent, setEventStatus, setEventArchived,
-  setEventRegistrationOpen, setEventHue, setEventCover, ensureEventForm, setEventForm,
+  setEventRegistrationOpen, setEventHue, setEventCover,
   getChurch, lookupPeople,
   type EventInput, type EventStatus,
 } from "@hearth/db";
@@ -61,6 +61,7 @@ function read(data: FormData): EventInput {
     capacity: number("capacity"),
     waitlist: flag("waitlist"),
     campusId: text("campusId"),
+    formId: text("formId"),
   };
 }
 
@@ -153,16 +154,6 @@ export async function archiveEvent(
   }
 }
 
-/** R14.5. Makes this event's question set, the first time a church adds one. */
-export async function startEventForm(id: string, church?: string): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
-  try {
-    const form = await withTenant(ctx, (tx) => ensureEventForm(tx, actor, id));
-    return { id: form.id };
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
 
 export interface PersonHit {
   id: string;
@@ -196,17 +187,3 @@ export async function findEventContact(
   }
 }
 
-/** R14.5. Points an event at a form the church already wrote, or unlinks it. */
-export async function useFormForEvent(
-  eventId: string,
-  formId: string | null,
-  church?: string,
-): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
-  try {
-    await withTenant(ctx, (tx) => setEventForm(tx, actor, eventId, formId));
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}

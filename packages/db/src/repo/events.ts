@@ -94,6 +94,8 @@ export interface EventInput {
   waitlist?: boolean;
   campusId?: string | null;
   contactPersonId?: string | null;
+  /** R14.5. The form answered at registration, chosen when registration is turned on. */
+  formId?: string | null;
 }
 
 const NAME_LIMIT = 160;
@@ -173,6 +175,8 @@ function check(input: EventInput) {
     waitlist: input.waitlist ?? false,
     campusId: trimmed(input.campusId),
     contactPersonId: trimmed(input.contactPersonId),
+    // An event nobody signs up for asks nothing, so it holds no form either.
+    formId: (input.takesRegistrations ?? true) ? trimmed(input.formId) : null,
     ...(hue ? { hue: hue as EventHue } : {}),
   };
 }
