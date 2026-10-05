@@ -407,7 +407,7 @@ export function EventEditor({
         * bee. Those want a page and nothing else, and every place, limit and
         * question below is noise on them.
         */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
+      <div className="flex flex-col gap-2 rounded-xl bg-sunken px-[18px] py-3.5">
         <Flag
           name="takesRegistrations"
           label={t("event.takesRegistrations")}
@@ -415,16 +415,19 @@ export function EventEditor({
           onChange={wantsRegistrations}
         />
 
-        <span className="flex-1" />
-
+        {/* Under the question it answers, named, so it reads as a sentence
+            rather than as a word floating at the other end of the line. */}
         {takes && formId ? (
-          <button
-            type="button"
-            onClick={() => setAsking(true)}
-            className="cursor-pointer text-label font-bold text-primary underline underline-offset-4"
-          >
-            {forms.find((one) => one.id === formId)?.name ?? t("event.questions.choose")}
-          </button>
+          <span className="text-label text-fg-muted">
+            {t("event.formNamed")}{" "}
+            <button
+              type="button"
+              onClick={() => setAsking(true)}
+              className="cursor-pointer font-bold text-primary underline underline-offset-4"
+            >
+              {forms.find((one) => one.id === formId)?.name ?? t("event.questions.choose")}
+            </button>
+          </span>
         ) : null}
 
         <input type="hidden" name="formId" value={takes ? formId : ""} />

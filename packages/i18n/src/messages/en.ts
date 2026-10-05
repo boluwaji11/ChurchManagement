@@ -2149,6 +2149,7 @@ export const en = {
   "event.emergency": "Emergency contact",
   "event.arrived": "Here",
   "event.noContacts": "No contact held",
+  "event.formNamed": "Form:",
   "event.where": "Where",
   "common.directions": "Directions",
   "event.location": "Place",
