@@ -24,6 +24,12 @@ import { formSlug, isUuid } from "./form-rules";
  */
 
 /** Groups are pastoral structure, so creating and editing one is staff and up. */
+/** R24.3. The spectrum, in the order a church's kinds take them. */
+const NEXT_HUE = [
+  "sky", "fern", "violet", "amber", "teal", "rose",
+  "citron", "indigo", "coral", "jade", "orchid", "clay",
+] as const;
+
 export const CAN_MANAGE_GROUPS: readonly TenantRole[] = rolesWith("groups.manage");
 export const canManageGroups = (role: Who): boolean => can(role, "groups.manage");
 
@@ -195,14 +201,24 @@ export async function addGroupType(
     .orderBy(desc(groupTypes.position))
     .limit(1);
 
+  const position = (last?.position ?? -1) + 1;
+
   const [row] = await db
     .insert(groupTypes)
     .values({
       tenantId: actor.tenantId,
       name,
       description: input.description?.trim() || null,
-      hue: input.hue ?? "sky",
-      position: (last?.position ?? -1) + 1,
+      /*
+       * R9.1, R24.3. Assigned rather than asked for.
+       *
+       * The colour is what tells a life group from a ministry team across the
+       * finder, the calendar and a person's record. A church setting up has
+       * better questions to answer than which of twelve, so the next one in
+       * the spectrum is taken and the hues stay spread apart.
+       */
+      hue: input.hue ?? NEXT_HUE[position % NEXT_HUE.length]!,
+      position,
     })
     .returning({
       id: groupTypes.id,
@@ -757,7 +773,7 @@ export async function updateGroupType(
   db: Tx,
   actor: WriteActor,
   id: string,
-  input: { name: string; hue: string; description?: string | null },
+  input: { name: string; hue?: string; description?: string | null },
 ): Promise<void> {
   if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
 
@@ -777,7 +793,8 @@ export async function updateGroupType(
     .update(groupTypes)
     .set({
       name,
-      hue: input.hue,
+      // R9.1. Left as it is where the screen did not ask for one.
+      ...(input.hue ? { hue: input.hue } : {}),
       description: input.description?.trim() || null,
       updatedAt: new Date(),
     })

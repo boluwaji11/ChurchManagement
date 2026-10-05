@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus, Archive, Undo2, ChevronUp, ChevronDown, Check } from "lucide-react";
+import { Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, DialogTrigger,
-  Field, HueDot, IconButton, Input, Textarea, ALL_HUES, type Hue,
+  Field, Input, LIFT,
 } from "@hearth/ui";
-import { t, plural } from "@hearth/i18n";
+import { t } from "@hearth/i18n";
 import { Empty } from "@/components/empty";
-import { saveType, archiveType, reorderTypes } from "./actions";
+import { saveType, archiveType } from "./actions";
 
 export interface TypeRow {
   id: string;
@@ -24,9 +24,10 @@ export interface TypeRow {
 /**
  * R9.1. The kinds of group a church runs.
  *
- * A list rather than a grid, because the order matters: it is the order every
- * picker and every filter offers them in, so it is set here with the two arrows
- * rather than left to whatever the names sort to.
+ * A tile each, the way the rooms are drawn, and the whole tile opens it. The
+ * colour a kind wears is assigned rather than asked for: it is the thing that
+ * tells a life group from a ministry team across four screens, and a church
+ * setting up has better questions to answer than which of twelve.
  */
 export function TypeManager({ church, types }: { church: string; types: TypeRow[] }) {
   const router = useRouter();
@@ -42,15 +43,6 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
       setError(result.error);
       if (!result.error) router.refresh();
     });
-
-  const move = (id: string, by: -1 | 1) => {
-    const order = live.map((one) => one.id);
-    const at = order.indexOf(id);
-    const to = at + by;
-    if (at < 0 || to < 0 || to >= order.length) return;
-    [order[at], order[to]] = [order[to]!, order[at]!];
-    run(() => reorderTypes(order, church));
-  };
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
@@ -68,53 +60,32 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
             <TypeDialog church={church} pending={pending} />
           </div>
 
-          <section className="overflow-hidden rounded-[14px] border border-line bg-surface">
-            {live.map((one, i) => (
-              <div
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
+            {live.map((one) => (
+              <TypeDialog
                 key={one.id}
-                className="flex min-h-[60px] flex-wrap items-center gap-3 border-b border-sunken px-5 py-2.5 last:border-b-0"
-              >
-                <HueDot hue={one.hue as Hue} />
-                <span className="flex min-w-0 flex-[1_1_200px] flex-col leading-5">
-                  <span className="truncate font-semibold text-fg">{one.name}</span>
-                  {one.description ? (
-                    <span className="truncate text-[13px] text-fg-muted">{one.description}</span>
-                  ) : null}
-                </span>
-
-                <span className="text-[13px] text-fg-muted">
-                  {plural("groupType.count", one.groups)}
-                </span>
-
-                <span className="flex items-center gap-0.5">
-                  <IconButton
-                    label={t("groupType.moveUp")}
-                    variant="ghost"
-                    disabled={pending || i === 0}
-                    onClick={() => move(one.id, -1)}
+                church={church}
+                pending={pending}
+                type={one}
+                onArchive={() => run(() => archiveType(one.id, true, church))}
+                trigger={
+                  <button
+                    type="button"
+                    className={`flex cursor-pointer items-center gap-2.5 rounded-[14px] border border-line bg-surface p-4 text-left ${LIFT}`}
                   >
-                    <ChevronUp />
-                  </IconButton>
-                  <IconButton
-                    label={t("groupType.moveDown")}
-                    variant="ghost"
-                    disabled={pending || i === live.length - 1}
-                    onClick={() => move(one.id, 1)}
-                  >
-                    <ChevronDown />
-                  </IconButton>
-
-                  <TypeDialog church={church} pending={pending} type={one} />
-
-                  <ArchiveDialog
-                    name={one.name}
-                    pending={pending}
-                    onConfirm={() => run(() => archiveType(one.id, true, church))}
-                  />
-                </span>
-              </div>
+                    <span
+                      aria-hidden
+                      className="size-3 shrink-0 rounded-[4px]"
+                      style={{ background: `var(--hue-${one.hue}-500)` }}
+                    />
+                    <span className="min-w-0 flex-1 truncate font-semibold text-fg">
+                      {one.name}
+                    </span>
+                  </button>
+                }
+              />
             ))}
-          </section>
+          </div>
         </>
       )}
 
@@ -123,18 +94,15 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
           <h2 className="text-label text-fg-muted">{t("groupType.archived")}</h2>
           {archived.map((one) => (
             <div key={one.id} className="flex flex-wrap items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-[length:var(--d-text-body)] text-fg-muted">
-                <HueDot hue={one.hue as Hue} />
-                {one.name}
-              </span>
-              <IconButton
-                label={t("groupType.restore")}
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">{one.name}</span>
+              <Button
                 variant="ghost"
                 disabled={pending}
+                className="h-8 min-h-0 px-2.5 text-[13px]"
                 onClick={() => run(() => archiveType(one.id, false, church))}
               >
-                <Undo2 />
-              </IconButton>
+                <Undo2 className="size-4" aria-hidden /> {t("groupType.restore")}
+              </Button>
             </div>
           ))}
         </div>
@@ -148,28 +116,25 @@ function TypeDialog({
   church,
   pending,
   type,
+  trigger,
+  onArchive,
 }: {
   church: string;
   pending: boolean;
   /** Given when an existing kind is being changed. */
   type?: TypeRow;
+  trigger?: React.ReactNode;
+  onArchive?: () => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
-  const [hue, setHue] = React.useState(type?.hue ?? "sky");
   const [saving, startTransition] = React.useTransition();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {type ? (
-          <IconButton label={t("groups.edit")} variant="ghost">
-            <Pencil />
-          </IconButton>
-        ) : (
-          <Button><Plus /> {t("groupType.add")}</Button>
-        )}
+        {trigger ?? <Button><Plus /> {t("groupType.add")}</Button>}
       </DialogTrigger>
 
       <DialogContent
@@ -180,8 +145,10 @@ function TypeDialog({
           noValidate
           action={(data) => {
             data.set("church", church);
-            data.set("hue", hue);
-            if (type) data.set("id", type.id);
+            if (type) {
+              data.set("id", type.id);
+              data.set("hue", type.hue);
+            }
             startTransition(async () => {
               const result = await saveType(data);
               setError(result.error);
@@ -199,81 +166,25 @@ function TypeDialog({
             <Input name="name" defaultValue={type?.name ?? ""} autoComplete="off" autoFocus />
           </Field>
 
-          <Field label={t("groupType.description")}>
-            <Textarea name="description" rows={2} defaultValue={type?.description ?? ""} />
-          </Field>
-
-          {/* The colour its groups wear on every card, filter and date tile. */}
-          <div className="flex flex-col gap-2">
-            <span className="text-label text-fg">{t("groupType.colour")}</span>
-            <div className="flex flex-wrap gap-1.5">
-              {ALL_HUES.map((one) => (
-                <button
-                  key={one}
-                  type="button"
-                  aria-label={one}
-                  aria-pressed={hue === one}
-                  onClick={() => setHue(one)}
-                  className={
-                    "grid size-9 place-items-center rounded-full border-2 transition-colors " +
-                    (hue === one ? "border-fg" : "border-transparent hover:border-line-strong")
-                  }
-                  style={{ background: `var(--hue-${one}-500)` }}
-                >
-                  {hue === one ? (
-                    <Check className="size-4 text-white" strokeWidth={3} aria-hidden />
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
+            {/* R9.2. Taking a kind off the list lives here rather than on the
+                tile, so the tile stays one thing to press. */}
+            {type && onArchive ? (
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={pending || saving}
+                onClick={() => {
+                  setOpen(false);
+                  onArchive();
+                }}
+              >
+                {t("groupType.archive")}
+              </Button>
+            ) : null}
             <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/** R9.1. Taking a kind off the list asks first, the same as every other x. */
-function ArchiveDialog({
-  name,
-  pending,
-  onConfirm,
-}: {
-  name: string;
-  pending: boolean;
-  onConfirm: () => void;
-}) {
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <IconButton label={t("groupType.archive")} variant="ghost">
-          <Archive />
-        </IconButton>
-      </DialogTrigger>
-      <DialogContent alert title={t("groupType.archiveTitle", { name })} closeLabel={t("common.close")}>
-        <p className="text-[length:var(--d-text-body)] text-fg">{t("groupType.archiveBody")}</p>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>{t("groups.keep")}</Button>
-          <Button
-            variant="danger"
-            disabled={pending}
-            onClick={() => {
-              setOpen(false);
-              onConfirm();
-            }}
-          >
-            {t("groupType.archive")}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

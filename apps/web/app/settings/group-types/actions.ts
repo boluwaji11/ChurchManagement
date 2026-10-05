@@ -32,7 +32,9 @@ export async function saveType(data: FormData): Promise<TypeResult> {
   const id = field(data, "id");
   const input = {
     name: field(data, "name"),
-    hue: field(data, "hue") || "sky",
+    // R9.1. Only an edit carries one; a new kind is given the next in the
+    // spectrum by the query layer.
+    hue: field(data, "hue") || undefined,
     description: field(data, "description") || null,
   };
 

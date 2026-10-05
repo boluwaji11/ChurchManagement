@@ -1,4 +1,5 @@
 import "server-only";
+import { readsAs } from "./spelling";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import {
@@ -16,6 +17,8 @@ export interface Session {
   tenantId: string;
   tenantName: string;
   tenantSlug: string;
+  /** R22.8. Which spelling this church reads. */
+  tenantCountry: string;
   role: TenantRole;
   /**
    * R1.6. The permissions this session holds, for somebody on a role their
@@ -75,6 +78,7 @@ const demoVisitorSession = cache(async (): Promise<Session | null> => {
     tenantId: demo.tenantId,
     tenantName: demo.name,
     tenantSlug: demo.slug,
+    tenantCountry: "US",
     role: "owner",
     permissions: null,
     memberships: [],
@@ -106,6 +110,16 @@ export const requireSession = cache(async (slug?: string): Promise<Session> => {
   }
 
   const m = chosen!;
+
+  /*
+   * R22.8. Settled here, before any screen reads a word.
+   *
+   * It used to be set in the shell, and a shell is handed its page already
+   * rendered, so every string on the page had been resolved before the shell
+   * said which spelling to resolve them in. Every screen awaits this first.
+   */
+  readsAs(m.tenantCountry);
+
   return {
     userId: user.id,
     email: user.email,
@@ -113,6 +127,7 @@ export const requireSession = cache(async (slug?: string): Promise<Session> => {
     tenantId: m.tenantId,
     tenantName: m.tenantName,
     tenantSlug: m.tenantSlug,
+    tenantCountry: m.tenantCountry,
     role: m.role,
     permissions: m.permissions,
     memberships,

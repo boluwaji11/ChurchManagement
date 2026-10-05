@@ -11,6 +11,8 @@ export interface Membership {
   tenantId: string;
   tenantSlug: string;
   tenantName: string;
+  /** R22.8. Which spelling this church reads, settled before a word is drawn. */
+  tenantCountry: string;
   role: TenantRole;
   /**
    * R1.6. The permissions this member actually holds.
@@ -42,6 +44,7 @@ export async function membershipsForUser(userId: string): Promise<Membership[]> 
       t.id   as "tenantId",
       t.slug as "tenantSlug",
       t.name as "tenantName",
+      t.country as "tenantCountry",
       m.role as "role",
       r.permissions as "permissions",
       r.builtin as "builtin",
@@ -71,6 +74,7 @@ export async function verifyMembership(userId: string, tenantId: string): Promis
       t.id   as "tenantId",
       t.slug as "tenantSlug",
       t.name as "tenantName",
+      t.country as "tenantCountry",
       m.role as "role",
       r.permissions as "permissions",
       r.builtin as "builtin",
