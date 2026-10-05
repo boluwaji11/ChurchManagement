@@ -5,6 +5,11 @@ node_modules/
 # Build output
 dist/
 build/
+# A route called build is source, not output. Git cannot re-include a file
+# whose parent directory is excluded, so the directory itself is un-excluded
+# here. Without this the whole of apps/web/app/reports/build was silently
+# never committed.
+!apps/web/app/**/build/
 .next/
 .next-verify/
 .next-dev-verify/
