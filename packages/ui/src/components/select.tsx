@@ -72,7 +72,11 @@ const fold = (value: string) =>
 export const SelectContent = React.forwardRef<
   React.ComponentRef<typeof P.Content>,
   React.ComponentPropsWithoutRef<typeof P.Content> & {
-    /** What the box to type in says. Defaults to nothing. */
+    /**
+     * What the box to type in says, as its placeholder and its accessible
+     * name. A long menu gets the box whether or not this is passed, so leaving
+     * it out draws a magnifier with nothing beside it.
+     */
     searchLabel?: string;
   }
 >(({ className, children, position = "popper", searchLabel, ...props }, ref) => {
@@ -126,6 +130,7 @@ export const SelectContent = React.forwardRef<
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label={searchLabel}
+              placeholder={searchLabel}
               // Radix listens for typing to jump between items, which would
               // swallow every letter before it reached this box.
               onKeyDown={(e) => {
