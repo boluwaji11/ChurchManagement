@@ -1089,6 +1089,8 @@ export const en = {
   "rich.bullets": "Bullet list",
   "rich.numbers": "Numbered list",
   "rich.link": "Link",
+  "rich.linkPrompt": "Web address",
+  "rich.body": "Description",
   "groups.failed": "That did not save. Try again.",
   "groups.title": "Groups",
   "groups.add": "Create a Group",

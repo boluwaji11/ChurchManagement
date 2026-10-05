@@ -1,0 +1,120 @@
+/**
+ * R9.2. Between what somebody types and what we keep.
+ *
+ * The editor is a contenteditable box, so the browser hands back HTML. We do
+ * not store that: it is turned into the small markdown the renderer already
+ * understands, and read back the same way. Keeping markdown means nothing a
+ * volunteer pastes can ever become a tag on a page a member reads, and the one
+ * renderer stays the only thing that decides what an element may be.
+ */
+
+/** The HTML the editor produces, as markdown. */
+export function htmlToMarkdown(root: Node): string {
+  const out: string[] = [];
+
+  const walk = (node: Node, inList: null | "ul" | "ol", index = 0): string => {
+    if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? "";
+    if (node.nodeType !== Node.ELEMENT_NODE) return "";
+
+    const el = node as HTMLElement;
+    const kids = (list: null | "ul" | "ol" = inList) =>
+      Array.from(el.childNodes)
+        .map((child, i) => walk(child, list, i))
+        .join("");
+
+    switch (el.tagName) {
+      case "BR":
+        return "\n";
+      case "STRONG":
+      case "B":
+        return `**${kids()}**`;
+      case "EM":
+      case "I":
+        return `_${kids()}_`;
+      case "A": {
+        const href = el.getAttribute("href") ?? "";
+        return /^https?:\/\//i.test(href) ? `[${kids()}](${href})` : kids();
+      }
+      case "UL":
+        return `\n${Array.from(el.children)
+          .map((li) => `- ${walk(li, "ul")}`)
+          .join("\n")}\n`;
+      case "OL":
+        return `\n${Array.from(el.children)
+          .map((li, i) => `${i + 1}. ${walk(li, "ol")}`)
+          .join("\n")}\n`;
+      case "LI":
+        return kids(null);
+      case "DIV":
+      case "P":
+        return `${kids()}\n`;
+      default:
+        return kids();
+    }
+  };
+
+  for (const child of Array.from(root.childNodes)) out.push(walk(child, null));
+
+  return out
+    .join("")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+const escape = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** Inline marks, as the few tags the editor works with. */
+function inlineHtml(text: string): string {
+  let out = escape(text);
+  out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
+  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  out = out.replace(/_([^_]+)_/g, "<em>$1</em>");
+  return out;
+}
+
+/**
+ * Markdown as the HTML the editor opens with.
+ *
+ * Every angle bracket in the stored text is escaped before a tag is added, so
+ * the only elements here are the ones this function writes.
+ */
+export function markdownToHtml(markdown: string): string {
+  const lines = markdown.split("\n");
+  const out: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i]!;
+
+    if (/^\s*[-*]\s+/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i]!)) {
+        items.push(inlineHtml(lines[i]!.replace(/^\s*[-*]\s+/, "")));
+        i += 1;
+      }
+      out.push(`<ul>${items.map((one) => `<li>${one}</li>`).join("")}</ul>`);
+      continue;
+    }
+
+    if (/^\s*\d+\.\s+/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i]!)) {
+        items.push(inlineHtml(lines[i]!.replace(/^\s*\d+\.\s+/, "")));
+        i += 1;
+      }
+      out.push(`<ol>${items.map((one) => `<li>${one}</li>`).join("")}</ol>`);
+      continue;
+    }
+
+    if (line.trim() === "") {
+      i += 1;
+      continue;
+    }
+
+    out.push(`<div>${inlineHtml(line)}</div>`);
+    i += 1;
+  }
+
+  return out.join("");
+}
