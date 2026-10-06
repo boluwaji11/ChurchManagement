@@ -117,7 +117,7 @@ export const en = {
   "site.why.cite": "1 Peter 4:10",
   "site.features.title": "Everything in one place.",
   "site.features.sub": "One platform, one set of records.",
-  "site.features.people": "People",
+  "site.features.people": "Congregants",
   "site.features.people.body": "The record of everyone the church knows, from a first visit onward.",
   "site.features.groups": "Groups",
   "site.features.groups.body": "Where people meet through the week, and how a newcomer finds a way in.",
