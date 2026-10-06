@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Power } from "lucide-react";
+import { ArrowLeft, Plus, X, Power } from "lucide-react";
 import {
   Badge, Banner, Button, Combobox, IconButton, Field, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -11,6 +11,8 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
+import { LibraryPicker } from "@/components/library-picker";
+import { followupLibrary, type FlowPreset } from "./library";
 import { addPipeline, savePipeline, switchPipeline } from "./actions";
 
 export interface StepRow {
@@ -92,7 +94,7 @@ export function Pipelines({
         icon="order"
         title={t("pipelines.none.title")}
         body={t("pipelines.none.body")}
-        action={<NewPipeline church={church} team={team} />}
+        action={<NewPipeline church={church} team={team} taken={rows.map((one) => one.name)} />}
       />
     );
   }
@@ -361,18 +363,62 @@ function AddStep({
 }
 
 /** R5.2. A stage of this church's own, filled in where it is made. */
-export function NewPipeline({ church, team }: { church: string; team: TeamMember[] }) {
+export function NewPipeline({
+  church,
+  team,
+  taken = [],
+}: {
+  church: string;
+  team: TeamMember[];
+  /** R5.2. The stages this church already keeps, so the library leaves them out. */
+  taken?: string[];
+}) {
   const [open, setOpen] = React.useState(false);
+  const library = React.useMemo(() => followupLibrary(taken), [taken.join("|")]);
+  /** The journey being started from, or null for a blank one. */
+  const [preset, setPreset] = React.useState<FlowPreset | null>(null);
+  const [picking, setPicking] = React.useState(library.length > 0);
+
+  const reset = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setPreset(null);
+      setPicking(library.length > 0);
+    }
+  };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={reset}>
       <SheetTrigger asChild>
         <Button><Plus /> {t("pipelines.add")}</Button>
       </SheetTrigger>
-      <SheetContent title={t("pipelines.addTitle")} closeLabel={t("common.close")} width="560px">
-        {open ? (
-          <StageForm church={church} team={team} onDone={() => setOpen(false)} />
-        ) : null}
+      <SheetContent
+        title={picking ? t("pipelines.start") : t("pipelines.addTitle")}
+        closeLabel={t("common.close")}
+        width="560px"
+      >
+        {!open ? null : picking ? (
+          <LibraryPicker
+            ownLabel={t("pipelines.ownStage")}
+            items={library}
+            onOwn={() => {
+              setPreset(null);
+              setPicking(false);
+            }}
+            onPick={(item) => {
+              setPreset(library.find((one) => one.key === item.key) ?? null);
+              setPicking(false);
+            }}
+          />
+        ) : (
+          <StageForm
+            church={church}
+            team={team}
+            preset={preset}
+            onBack={library.length > 0 ? () => setPicking(true) : undefined}
+            onDone={() => reset(false)}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
@@ -424,23 +470,33 @@ function StageForm({
   church,
   row,
   team,
+  preset,
   pending,
+  onBack,
   onDone,
 }: {
   church: string;
   /** The stage being changed, where there is one. */
   row?: PipelineRow;
   team: TeamMember[];
+  /** R5.2. A journey from the library, filling the form a church would type. */
+  preset?: FlowPreset | null;
   pending?: boolean;
+  /** The way back to the library, when one was offered. */
+  onBack?: () => void;
   onDone: () => void;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [owner, setOwner] = React.useState(row?.ownerUserId ?? NOBODY);
   const [steps, setSteps] = React.useState<{ key: string; id: string; name: string; days: string }[]>(
-    (row?.steps ?? []).map((step) => ({
-      key: step.id, id: step.id, name: step.name, days: String(step.dueDays),
-    })),
+    row
+      ? row.steps.map((step) => ({
+          key: step.id, id: step.id, name: step.name, days: String(step.dueDays),
+        }))
+      : (preset?.steps ?? []).map((step, i) => ({
+          key: `preset-${i}`, id: "", name: step.name, days: step.days,
+        })),
   );
   const [saving, startTransition] = React.useTransition();
 
@@ -467,12 +523,31 @@ function StageForm({
     >
       {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
 
+      {onBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}
+        </button>
+      ) : null}
+
       <Field label={t("pipelines.name")} required>
-        <Input name="name" defaultValue={row?.name ?? ""} autoComplete="off" autoFocus={!row} />
+        <Input
+          name="name"
+          defaultValue={row?.name ?? preset?.label ?? ""}
+          autoComplete="off"
+          autoFocus={!row}
+        />
       </Field>
 
       <Field label={t("pipelines.description")}>
-        <Textarea name="description" rows={2} defaultValue={row?.description ?? ""} />
+        <Textarea
+          name="description"
+          rows={2}
+          defaultValue={row?.description ?? preset?.body ?? ""}
+        />
       </Field>
 
       {/* A church of five hundred has more accounts than a list is worth

@@ -38,6 +38,7 @@ export default async function PipelineSettingsPage({
             <NewPipeline
               church={session.tenantSlug}
               team={team.map((member) => ({ userId: member.userId, name: member.name }))}
+              taken={rows.map((one) => one.name)}
             />
           ) : undefined
         }
