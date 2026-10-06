@@ -1340,6 +1340,7 @@ export const en = {
   "rich.numbers": "Numbered list",
   "rich.link": "Link",
   "rich.linkPrompt": "Web address",
+  "rich.linkAdd": "Add link",
   "rich.body": "Description",
   "rich.clear": "Remove formatting",
   "groups.failed": "That did not save. Try again.",

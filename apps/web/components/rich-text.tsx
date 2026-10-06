@@ -5,7 +5,7 @@ import {
   Bold, Italic, Link2, List, ListOrdered, Redo2, RemoveFormatting, Undo2,
 } from "lucide-react";
 import {
-  Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input, cn,
+  Button, Field, IconButton, Input, cn,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/rich-text";
@@ -178,22 +178,36 @@ export function RichText({
         style={{ minHeight, maxHeight }}
       />
 
-      <Dialog open={asking} onOpenChange={setAsking}>
-        <DialogContent title={t("rich.link")} closeLabel={t("common.close")}>
-          <Field label={t("rich.linkPrompt")}>
+      {/* R24.6. The address is asked for on a row of this editor rather than in
+          a box over the panel. A dialog inside a panel is modal stacking, and
+          closing it took the panel with it. */}
+      {asking ? (
+        <div className="flex flex-wrap items-end gap-2 border-t border-line bg-sunken/50 px-[var(--d-pad-control-x)] py-2.5">
+          <Field label={t("rich.linkPrompt")} className="min-w-[200px] flex-1">
             <Input
               value={href}
               onChange={(event) => setHref(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  makeLink();
+                }
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  setAsking(false);
+                }
+              }}
               autoFocus
               inputMode="url"
             />
           </Field>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setAsking(false)}>{t("action.cancel")}</Button>
-            <Button onClick={makeLink}>{t("action.save")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
+            {t("action.cancel")}
+          </Button>
+          <Button type="button" onClick={makeLink}>{t("rich.linkAdd")}</Button>
+        </div>
+      ) : null}
+
     </div>
   );
 }
