@@ -1482,7 +1482,7 @@ export const en = {
   "group.error.person": "That member could not be found.",
   "find.failed": "That did not save. Try again.",
   "groupType.everything": "All groups",
-  "groupType.back": "All group types",
+  "groupType.back": "Groups",
   "find.title": "Find a group",
   "find.lede": "Search for a group to join.",
   "find.type": "Type",
