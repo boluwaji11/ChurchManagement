@@ -4,8 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Archive, Plus, Undo2 } from "lucide-react";
 import {
-  Banner, Button, Dialog, DialogContent, DialogFooter, DialogTrigger,
-  Field, IconButton, Input, LIFT,
+  Banner, Button, Field, IconButton, Input, LIFT,
+  Sheet, SheetContent, SheetTrigger,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
@@ -133,19 +133,21 @@ function TypeDialog({
    */
   const [asking, setAsking] = React.useState(false);
 
+  const formId = React.useId();
+
   return (
-    <Dialog
+    <Sheet
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
         if (!next) setAsking(false);
       }}
     >
-      <DialogTrigger asChild>
+      <SheetTrigger asChild>
         {trigger ?? <Button><Plus /> {t("groupType.add")}</Button>}
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent
+      <SheetContent
         title={
           asking && type
             ? t("groupType.archiveTitle", { name: type.name })
@@ -154,13 +156,9 @@ function TypeDialog({
               : t("groupType.newTitle")
         }
         closeLabel={t("common.close")}
-      >
-        {asking && type && onArchive ? (
-          <>
-            <p className="text-[length:var(--d-text-body)] text-fg">
-              {t("groupType.archiveBody")}
-            </p>
-            <DialogFooter>
+        footer={
+          asking && type && onArchive ? (
+            <>
               <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
                 {t("groups.keep")}
               </Button>
@@ -176,62 +174,71 @@ function TypeDialog({
               >
                 {t("groupType.archive")}
               </Button>
-            </DialogFooter>
-          </>
+            </>
+          ) : (
+            <>
+              {/* R9.2. Taking a kind off the list lives here rather than on the
+                  tile, so the tile stays one thing to press. */}
+              {type && onArchive ? (
+                <IconButton
+                  label={t("groupType.archive")}
+                  variant="ghost"
+                  className="mr-auto"
+                  disabled={pending || saving}
+                  onClick={() => setAsking(true)}
+                >
+                  <Archive />
+                </IconButton>
+              ) : null}
+              <Button type="submit" form={formId} disabled={pending || saving}>
+                {t("action.save")}
+              </Button>
+            </>
+          )
+        }
+      >
+        {asking && type && onArchive ? (
+          <p className="text-[length:var(--d-text-body)] text-fg">
+            {t("groupType.archiveBody")}
+          </p>
         ) : (
-        <form
-          noValidate
-          action={(data) => {
-            data.set("church", church);
-            if (type) {
-              data.set("id", type.id);
-              data.set("hue", type.hue);
-            }
-            startTransition(async () => {
-              const result = await saveType(data);
-              setError(result.error);
-              if (!result.error) {
-                setOpen(false);
-                router.refresh();
+          <form
+            id={formId}
+            noValidate
+            action={(data) => {
+              data.set("church", church);
+              if (type) {
+                data.set("id", type.id);
+                data.set("hue", type.hue);
               }
-            });
-          }}
-          className="flex flex-col gap-4"
-        >
-          {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+              startTransition(async () => {
+                const result = await saveType(data);
+                setError(result.error);
+                if (!result.error) {
+                  setOpen(false);
+                  router.refresh();
+                }
+              });
+            }}
+            className="flex flex-col gap-4"
+          >
+            {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
-          <Field label={t("groupType.name")} required>
-            <Input name="name" defaultValue={type?.name ?? ""} autoComplete="off" autoFocus />
-          </Field>
+            <Field label={t("groupType.name")} required>
+              <Input name="name" defaultValue={type?.name ?? ""} autoComplete="off" autoFocus />
+            </Field>
 
-          <Field label={t("groupType.description")}>
-            <RichText
-              name="description"
-              defaultValue={type?.description ?? ""}
-              minHeight={110}
-              maxHeight={180}
-            />
-          </Field>
-
-          <DialogFooter className="justify-between">
-            {/* R9.2. Taking a kind off the list lives here rather than on the
-                tile, so the tile stays one thing to press. An icon at the far
-                end, away from the press somebody came to make. */}
-            {type && onArchive ? (
-              <IconButton
-                label={t("groupType.archive")}
-                variant="ghost"
-                disabled={pending || saving}
-                onClick={() => setAsking(true)}
-              >
-                <Archive />
-              </IconButton>
-            ) : <span />}
-            <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
-          </DialogFooter>
-        </form>
+            <Field label={t("groupType.description")}>
+              <RichText
+                name="description"
+                defaultValue={type?.description ?? ""}
+                minHeight={160}
+              />
+            </Field>
+          </form>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
+

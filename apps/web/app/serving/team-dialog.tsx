@@ -177,14 +177,14 @@ export function TeamDialog({
             <div>
               <ol className="m-0 flex list-none flex-col p-0">
                 {positions.map((one, i) => (
-                  <li key={one.id ?? `new-${i}`} className="flex items-start gap-2.5">
+                  <li key={one.id ?? `new-${i}`} className="flex gap-2.5">
                     <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                      <span className="grid size-5 shrink-0 place-items-center rounded-full border border-line-strong bg-surface text-[10px] font-semibold text-fg-subtle">
+                      <span className="grid size-5 shrink-0 place-items-center rounded-full border border-primary/40 bg-surface text-[10px] font-semibold text-primary">
                         {i + 1}
                       </span>
                       {i === positions.length - 1 ? null : (
-                        <span className="relative my-1 w-px flex-1 bg-line-strong">
-                          <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-line-strong" />
+                        <span className="relative my-1 w-px flex-1 bg-primary/40">
+                          <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary" />
                         </span>
                       )}
                     </span>
