@@ -41,10 +41,7 @@ export const dynamic = "force-dynamic";
  * leaves either through "Get started free" or through the demo. Everything on
  * the page points at one of those two.
  *
- * While the platform is pre-release the pilot band shows above the last call to
- * action, which is the one thing on the page that changes at launch.
  */
-const PRE_RELEASE = true;
 
 const FEATURES = [
   { icon: <Users />, key: "people" },
@@ -348,23 +345,6 @@ export default function Site() {
           </div>
         </section>
 
-        {PRE_RELEASE ? (
-          <section className="border-t border-line">
-            <div className="mx-auto w-full max-w-[1200px] px-6 py-12">
-              <div className="flex flex-wrap items-center gap-5 rounded-[18px] bg-primary-soft px-7 py-6">
-                <span className="flex-[1_1_300px] text-[18px] font-semibold text-ink-800">
-                  {t("site.pilot.title")}
-                </span>
-                <Button className="min-h-11 flex-none gap-2 rounded-xl px-[18px] text-[14px] font-semibold shadow-none active:scale-100" asChild>
-                  <Link href={START}>
-                    {t("site.pilot.apply")}
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </section>
-        ) : null}
 
         <section className="relative border-t border-line bg-surface">
           <Art pieces={END_ART} />

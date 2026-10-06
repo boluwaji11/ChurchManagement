@@ -178,8 +178,6 @@ export const en = {
   "site.trust.ai.body": "We do not train on your data.",
   "site.trust.private": "Kept private",
   "site.trust.private.body": "Each church is sealed off.",
-  "site.pilot.title": "Want early access? Become a pilot church.",
-  "site.pilot.apply": "Apply",
   "site.end.title": "Bring your church together.",
   "site.end.sub": "Set up in minutes. No card needed.",
   "site.foot.data": "Your data",
