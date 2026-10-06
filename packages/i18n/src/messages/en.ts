@@ -850,7 +850,7 @@ export const en = {
   "area.teams": "teams",
   "settings.tab.website": "Website",
   "settings.tab.roles": "Roles",
-  "settings.lede.website": "What this church puts on its own website",
+  "settings.lede.website": "Manage what your church sees on your own website",
   "settings.lede.roles": "Manage your roles and permissions",
   "roles.permission": "Permission",
   "roles.cell.on": "{role} can {permission}",
