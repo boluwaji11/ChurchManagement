@@ -119,7 +119,6 @@ export function Team({
               : ""
           }
         >
-          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("team.roleBody")}</p>
           <DialogFooter>
             <Button variant="ghost" data-dismiss onClick={() => setChanging(null)}>
               {t("team.roleKeep")}

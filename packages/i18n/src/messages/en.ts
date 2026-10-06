@@ -1966,7 +1966,6 @@ export const en = {
   "team.role": "Role",
   "team.remove": "Put them back to Member",
   "team.roleTitle": "Make {name} {role}?",
-  "team.roleBody": "They see it within the minute, wherever they are in the product.",
   "team.roleKeep": "Leave as-is",
   "team.roleChanged": "Changed",
   "team.removeTitle": "Put {name} back to Member?",

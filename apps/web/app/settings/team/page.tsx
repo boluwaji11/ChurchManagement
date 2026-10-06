@@ -5,6 +5,7 @@ import {
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { shellData } from "@/lib/shell-data";
 import { SettingsHeading } from "../heading";
 import { Team } from "./team";
 import { longDate } from "@/lib/dates";
@@ -24,14 +25,19 @@ export default async function TeamPage({
     return <Banner tone="info" title={t("team.title")}>{t("forbidden.askAdmin")}</Banner>;
   }
 
-  const members = await listTeam(session.tenantId, session.userId);
-  const invitations = await listInvitations(session.tenantId);
-
-  // R1.6. The built-ins and whatever this church wrote beside them.
-  const roles = await withTenant(session, (tx) => listRoles(tx, session.tenantId));
-
-  // R1.1. Invitations open once somebody has looked at the church.
-  const standing = await withTenant(session, (tx) => churchStanding(tx, session.tenantId));
+  const [members, invitations, roles, shell] = await Promise.all([
+    listTeam(session.tenantId, session.userId),
+    listInvitations(session.tenantId),
+    // R1.6. The built-ins and whatever this church wrote beside them.
+    withTenant(session, (tx) => listRoles(tx, session.tenantId)),
+    /*
+     * R1.1. Invitations open once somebody has looked at the church. The frame
+     * around this screen has already read where the church stands, so this is
+     * the answer it already has rather than a second transaction for it.
+     */
+    shellData(session),
+  ]);
+  const standing = shell.standing;
 
   return (
     <>
