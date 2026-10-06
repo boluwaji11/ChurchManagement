@@ -273,6 +273,10 @@ function check(input: GroupInput): {
   if (!name) throw new InvalidInputError("group.error.name");
   if (name.length > 120) throw new InvalidInputError("group.error.nameLong");
 
+  // R9.1. Every group is one of the kinds the church writes down, because the
+  // kinds are how the finder, the filters and the public page are organised.
+  if (!input.typeId) throw new InvalidInputError("group.error.type");
+
   const day = input.dayOfWeek ?? null;
   if (day !== null && (!Number.isInteger(day) || day < 0 || day > 6)) {
     throw new InvalidInputError("group.error.day");

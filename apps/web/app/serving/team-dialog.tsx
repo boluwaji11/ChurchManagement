@@ -6,6 +6,7 @@ import { Archive, Plus, Trash2 } from "lucide-react";
 import {
   Banner, Button, IconButton, Field, HueDot, Input, Switch, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   HUES, type Hue,
 } from "@connectapp/ui";
@@ -78,6 +79,9 @@ export function TeamDialog({
   /** The ones taken off the list, archived when the form is saved. */
   const [dropped, setDropped] = React.useState<string[]>([]);
   const [saving, startTransition] = React.useTransition();
+  // The actions sit in the panel's own footer, outside the form, so they reach
+  // it by name.
+  const formId = React.useId();
 
   const change = (at: number, fields: Partial<PositionDraft>) =>
     setPositions((was) => was.map((one, i) => (i === at ? { ...one, ...fields } : one)));
@@ -93,10 +97,28 @@ export function TeamDialog({
   }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent title={title} closeLabel={t("common.close")}>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      {/* R24.6. From the right rather than over the middle: the team being
+          written down belongs beside the list of teams it joins, and the panel
+          has room for the positions without the page moving. */}
+      <SheetContent
+        title={title}
+        closeLabel={t("common.close")}
+        width="520px"
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" form={formId} disabled={saving}>
+              {t("action.save")}
+            </Button>
+          </>
+        }
+      >
         <form
+          id={formId}
           noValidate
           action={(data) => {
             data.set("church", church);
@@ -159,10 +181,7 @@ export function TeamDialog({
                 line between them carrying its own dot. A position is one line
                 of a list, and a boxed card each made six of them read as six
                 separate things. */}
-            {/* R10.2. Six positions is an ordinary worship team, so the list
-                keeps its height and scrolls rather than pushing Save off the
-                bottom of the panel. */}
-            <div className="max-h-[260px] overflow-y-auto pr-1">
+            <div>
               <ol className="m-0 flex list-none flex-col p-0">
                 {positions.map((one, i) => (
                   <li key={one.id ?? `new-${i}`} className="flex items-start gap-2.5">
@@ -270,15 +289,9 @@ export function TeamDialog({
             </Select>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button type="submit" disabled={saving}>{t("action.save")}</Button>
-          </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 

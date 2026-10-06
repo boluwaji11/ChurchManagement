@@ -163,7 +163,12 @@ export function GroupEditor({
             upload.set("file", picture);
             await fetch("/api/upload", { method: "POST", body: upload });
           }
-          router.push(id ? `/groups/${slug}?church=${church}` : `/groups?church=${church}`);
+          /*
+           * R24.6. Replace rather than push: the form is finished with, and
+           * leaving it in the history put the reader back on a blank New group
+           * the moment they pressed Back from the group they had just written.
+           */
+          router.replace(id ? `/groups/${slug}?church=${church}` : `/groups?church=${church}`);
         });
       }}
       className="flex flex-col gap-5"
@@ -354,7 +359,7 @@ export function GroupEditor({
         <aside className="flex flex-[1_1_260px] flex-col gap-6">
           <Side label={t("group.categories")}>
             <div className="flex flex-col gap-3">
-              <Field label={t("groups.type")}>
+              <Field label={t("groups.type")} required>
                 <Picker
                   name="typeId"
                   defaultValue={group?.typeId ?? null}
