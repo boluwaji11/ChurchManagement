@@ -293,11 +293,15 @@ function TypeDialog({
             </Field>
 
             <Field label={t("groupType.description")}>
+              {/* R24.6. The box grows a little and then scrolls inside itself.
+                  A panel whose footer is pushed off the bottom by a long
+                  description is a panel with no way to save it. */}
               <RichText
                 key={filled}
                 name="description"
                 defaultValue={body}
                 minHeight={160}
+                maxHeight={260}
               />
             </Field>
           </form>
