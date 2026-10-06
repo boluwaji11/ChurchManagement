@@ -17,9 +17,7 @@ import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { SiteFooter, SiteHeader, START } from "@/components/site/chrome";
 import { CheckinLabels, GiveCard } from "@/components/site/mocks";
-import {
-  Book, Bread, Candle, Cross, Cup, Doodles, Dove, Fish, Olive, Water, Wheat,
-} from "@/components/site/doodles";
+import { Art, type Piece } from "@/components/site/art";
 import {
   BrowserFrame,
   Eyebrow,
@@ -67,30 +65,37 @@ const TRUST = [
 
 const PRICE = ["everything", "fee", "source", "donations"] as const;
 
-/* The marks behind the four sections with room for them. Nothing sits behind a
-   screen of the product or a grid of cards: those sections are already full. */
-const HERO_MARKS = [
-  { mark: Dove, x: 9, y: 26, size: 150, turn: -8 },
-  { mark: Wheat, x: 91, y: 22, size: 120, turn: 10 },
-  { mark: Olive, x: 16, y: 80, size: 118, turn: 6 },
-  { mark: Cross, x: 86, y: 78, size: 96, turn: -10 },
-] as const;
 
-const PURPOSE_MARKS = [
-  { mark: Book, x: 11, y: 34, size: 132, turn: -6 },
-  { mark: Candle, x: 89, y: 66, size: 118, turn: 8 },
-] as const;
+/* The drawings in the margins of the four centred sections. Nothing sits beside
+   a screen of the product or a grid of cards: those sections are already full. */
+const HERO_ART: Piece[] = [
+  { name: "family", side: "left", y: 56, size: 230, inset: 16 },
+  { name: "sanctuary", side: "right", y: 54, size: 260, inset: 8 },
+];
 
-const PRICE_MARKS = [
-  { mark: Bread, x: 12, y: 40, size: 130, turn: -5 },
-  { mark: Cup, x: 88, y: 58, size: 126, turn: 7 },
-] as const;
+const PURPOSE_ART: Piece[] = [
+  { name: "gathering", side: "right", y: 55, size: 280, inset: 12 },
+];
 
-const END_MARKS = [
-  { mark: Fish, x: 10, y: 30, size: 138, turn: -9 },
-  { mark: Water, x: 90, y: 68, size: 136, turn: 5 },
-  { mark: Dove, x: 78, y: 20, size: 100, turn: 14 },
-] as const;
+const WHY_ART: Piece[] = [
+  { name: "records", side: "right", y: 28, size: 230, inset: 24 },
+];
+
+const PRICE_ART: Piece[] = [
+  { name: "giving", side: "left", y: 56, size: 230, inset: 24 },
+];
+
+const TRUST_ART: Piece[] = [
+  { name: "safe", side: "right", y: 52, size: 210, inset: 20 },
+];
+
+const END_ART: Piece[] = [
+  { name: "congregation", side: "left", y: 52, size: 240, inset: 20 },
+  { name: "fellowship", side: "right", y: 54, size: 250, inset: 16 },
+];
+
+
+
 
 /** "Get started free", at whatever size the section calls for. */
 function Start({ className = SITE_CTA, arrow = true }: { className?: string; arrow?: boolean }) {
@@ -111,8 +116,8 @@ export default function Site() {
 
       <main id="top" className="flex-1">
         {/* The first screen. One claim, one line under it, two ways on. */}
-        <section className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 pb-14 pt-24 text-center">
-          <Doodles spots={[...HERO_MARKS]} />
+        <section className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 pb-10 pt-20 text-center">
+          <Art pieces={HERO_ART} />
           <h1 className="m-0 max-w-[14ch] text-balance font-display text-[clamp(44px,6.4vw,76px)] font-normal leading-[1.04] tracking-[-0.015em]">
             {t("site.hero.title")}
           </h1>
@@ -127,8 +132,8 @@ export default function Site() {
 
         {/* Why a church would want this at all, before any feature is named. */}
         <section className="relative border-t border-line bg-primary-soft">
-          <Doodles spots={[...PURPOSE_MARKS]} />
-          <div className="relative mx-auto flex w-full max-w-[880px] flex-col items-center gap-5 px-6 py-24 text-center">
+          <Art pieces={PURPOSE_ART} />
+          <div className="relative mx-auto flex w-full max-w-[880px] flex-col items-center gap-5 px-6 py-16 text-center">
             <h2 className="m-0 text-balance font-display text-[clamp(36px,5vw,56px)] font-normal leading-[1.08] text-fg">
               {t("site.purpose.title")}
             </h2>
@@ -138,8 +143,40 @@ export default function Site() {
           </div>
         </section>
 
+
+        {/* R22.x. The argument, where somebody weighing this up can read it,
+            and before the product rather than after: a church is deciding who
+            to trust with its records, and the reason a thing is free is the
+            first question anybody sensible asks. */}
+        <section id="why" className="relative border-t border-line">
+          <Art pieces={WHY_ART} />
+          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-6 py-16">
+            <div className="flex max-w-[640px] flex-col gap-3">
+              <Eyebrow>{t("site.why.eyebrow")}</Eyebrow>
+              <SectionTitle>{t("site.why.title")}</SectionTitle>
+            </div>
+
+            <div className="flex flex-wrap items-start gap-x-16 gap-y-6">
+              <p className="m-0 min-w-0 flex-[1_1_380px] text-[17px] leading-[28px] text-fg-muted">
+                {t("site.why.hours")}
+              </p>
+              <p className="m-0 min-w-0 flex-[1_1_380px] text-[17px] leading-[28px] text-fg-muted">
+                {t("site.why.ours")}
+              </p>
+            </div>
+
+            <blockquote className="m-0 flex flex-col items-center gap-2 text-center">
+              <p className="m-0 max-w-[760px] text-balance font-display text-[24px] leading-[36px] text-fg">
+                {t("site.why.quote")}
+              </p>
+              <cite className="text-[15px] not-italic text-fg-subtle">{t("site.why.cite")}</cite>
+              <span aria-hidden className="mt-4 h-0.5 w-24 rounded-full bg-primary" />
+            </blockquote>
+          </div>
+        </section>
+
         {/* The product, full width, opening the demo. */}
-        <section id="product" className="mx-auto w-full max-w-[1280px] px-6 pb-[104px] pt-24">
+        <section id="product" className="mx-auto w-full max-w-[1280px] px-6 py-14">
           <StartDemoButton className="block h-auto min-h-0 w-full rounded-2xl border-0 bg-transparent p-0 shadow-none hover:bg-transparent active:scale-100">
             <BrowserFrame>
               <Shot src="/marketing/office.png" />
@@ -147,9 +184,10 @@ export default function Site() {
           </StartDemoButton>
         </section>
 
+
         {/* Everything it holds, named once each. */}
         <section id="features" className="border-t border-line bg-surface">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-12 px-6 py-[104px]">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-6 py-16">
             <div className="flex max-w-[640px] flex-col gap-3">
               <SectionTitle>{t("site.features.title")}</SectionTitle>
               <p className="m-0 text-[18px] text-fg-muted">{t("site.features.sub")}</p>
@@ -169,7 +207,7 @@ export default function Site() {
 
         {/* People, on the left, with the office screen beside it. */}
         <section id="members" className="border-t border-line">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-14 px-6 py-[104px]">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-12 px-6 py-16">
             <div className="flex flex-[1_1_360px] flex-col gap-5">
               <Eyebrow>{t("site.people.eyebrow")}</Eyebrow>
               <SectionTitle>{t("site.people.title")}</SectionTitle>
@@ -192,7 +230,7 @@ export default function Site() {
 
         {/* The member app, on the left, the claims on the right. */}
         <section className="border-t border-line bg-surface">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-14 px-6 py-[104px]">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-12 px-6 py-16">
             <div className="flex flex-[1_1_360px] flex-col gap-5">
               <Eyebrow>{t("site.app.eyebrow")}</Eyebrow>
               <SectionTitle>{t("site.app.title")}</SectionTitle>
@@ -215,7 +253,7 @@ export default function Site() {
 
         {/* Giving, with the form a member actually sees. */}
         <section id="giving" className="border-t border-line">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-14 px-6 py-[104px]">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-12 px-6 py-16">
             <div className="flex min-w-0 flex-[1.4_1_440px] justify-center rounded-[20px] bg-sunken px-6 py-12">
               <GiveCard />
             </div>
@@ -236,7 +274,7 @@ export default function Site() {
 
         {/* Check-in, with the label pair. */}
         <section id="checkin" className="border-t border-line bg-surface">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-14 px-6 py-[104px]">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-12 px-6 py-16">
             <div className="flex flex-[1_1_360px] flex-col gap-5">
               <Eyebrow>{t("site.checkin.eyebrow")}</Eyebrow>
               <SectionTitle>{t("site.checkin.title")}</SectionTitle>
@@ -257,8 +295,8 @@ export default function Site() {
 
         {/* The entire pricing table. */}
         <section id="pricing" className="relative border-t border-line">
-          <Doodles spots={[...PRICE_MARKS]} />
-          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-10 px-6 py-[104px]">
+          <Art pieces={PRICE_ART} />
+          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-10 px-6 py-16">
             <SectionTitle className="text-center">{t("site.price.title")}</SectionTitle>
             <div className="flex w-[min(480px,100%)] flex-col gap-7 rounded-[20px] border border-stone-300 bg-canvas p-10">
               <div className="flex flex-wrap items-baseline gap-3">
@@ -274,8 +312,9 @@ export default function Site() {
         </section>
 
         {/* R21.12. What we will and will not do with a congregation's records. */}
-        <section id="trust" className="border-t border-line bg-surface">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-12 px-6 py-[104px]">
+        <section id="trust" className="relative border-t border-line bg-surface">
+          <Art pieces={TRUST_ART} />
+          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-6 py-16">
             <SectionTitle className="text-center">{t("site.trust.title")}</SectionTitle>
             <div className="mx-auto grid w-full max-w-[960px] grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-4">
               {TRUST.map((item) => (
@@ -292,7 +331,7 @@ export default function Site() {
 
         {PRE_RELEASE ? (
           <section className="border-t border-line">
-            <div className="mx-auto w-full max-w-[1200px] px-6 py-[72px]">
+            <div className="mx-auto w-full max-w-[1200px] px-6 py-12">
               <div className="flex flex-wrap items-center gap-5 rounded-[18px] bg-primary-soft px-7 py-6">
                 <span className="flex-[1_1_300px] text-[18px] font-semibold text-ink-800">
                   {t("site.pilot.title")}
@@ -309,8 +348,8 @@ export default function Site() {
         ) : null}
 
         <section className="relative border-t border-line bg-surface">
-          <Doodles spots={[...END_MARKS]} />
-          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 py-[120px] text-center">
+          <Art pieces={END_ART} />
+          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 py-20 text-center">
             <h2 className="m-0 font-display text-[clamp(40px,5.4vw,64px)] font-normal leading-[1.05] text-fg">
               {t("site.end.title")}
             </h2>

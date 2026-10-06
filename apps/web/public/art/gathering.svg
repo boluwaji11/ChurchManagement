@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440" width="520" height="440" role="img">
+  <!-- A gathering, seen from the back of the room: the platform, the light over
+       it, and three rows of people. Same flat language and palette as the rest
+       of the set. -->
+  <ellipse cx="260" cy="418" rx="210" ry="12" fill="#f2f2f2"/>
+
+  <!-- The window behind the platform -->
+  <path d="M260 32c34 0 58 24 58 60v64h-116V92c0-36 24-60 58-60Z" fill="#f2f2f2"/>
+  <path d="M260 32v124M202 112h116" stroke="#e6e6e6" stroke-width="6"/>
+
+  <!-- The platform -->
+  <path d="M120 156h280v8H120z" fill="#e6e6e6"/>
+  <path d="M140 164h240v34H140z" fill="#514a95"/>
+  <path d="M140 198h240v8H140z" fill="#2f2e41"/>
+
+  <!-- Somebody leading, on the platform -->
+  <circle cx="260" cy="120" r="14" fill="#ffb6b6"/>
+  <path d="M260 105c9 0 15 5 15 13h-30c0-8 6-13 15-13Z" fill="#2f2e41"/>
+  <path d="M246 140h28v24h-28z" fill="#514a95"/>
+  <path d="M246 144l-14-16M274 144l14-16" stroke="#ffb6b6" stroke-width="9" stroke-linecap="round"/>
+
+  <path d="M40 270v-24c0-14 7-10 16-10s16 4 16 10v24z" fill="#514a95"/><circle cx="56" cy="242" r="11" fill="#2f2e41"/><path d="M102 270v-24c0-14 7-10 16-10s16 4 16 10v24z" fill="#2f2e41"/><circle cx="118" cy="242" r="11" fill="#2d2a3f"/><path d="M164 270v-24c0-14 7-10 16-10s16 4 16 10v24z" fill="#514a95"/><circle cx="180" cy="242" r="11" fill="#2f2e41"/><path d="M226 270v-24c0-14 7-10 16-10s16 4 16 10v24z" fill="#514a95"/><circle cx="242" cy="242" r="11" fill="#2d2a3f"/><path d="M288 270v-24c0-14 7-10 16-10s16 4 16 10v24z" fill="#2f2e41"/><circle cx="304" cy="242" r="11" fill="#2f2e41"/><path d="M350 270v-24c0-14 7-10 16-10s16 4 16 10v24z" fill="#514a95"/><circle cx="366" cy="242" r="11" fill="#2d2a3f"/><path d="M412 270v-24c0-14 7-10 16-10s16 4 16 10v24z" fill="#514a95"/><circle cx="428" cy="242" r="11" fill="#2f2e41"/>
+  <path d="M55 328v-30c0-17 9-12 19-12s19 5 19 12v30z" fill="#e6e6e6"/><circle cx="74" cy="295" r="13" fill="#2d2a3f"/><path d="M127 328v-30c0-17 9-12 19-12s19 5 19 12v30z" fill="#f2f2f2"/><circle cx="146" cy="295" r="13" fill="#2f2e41"/><path d="M199 328v-30c0-17 9-12 19-12s19 5 19 12v30z" fill="#e6e6e6"/><circle cx="218" cy="295" r="13" fill="#2d2a3f"/><path d="M271 328v-30c0-17 9-12 19-12s19 5 19 12v30z" fill="#e6e6e6"/><circle cx="290" cy="295" r="13" fill="#2f2e41"/><path d="M343 328v-30c0-17 9-12 19-12s19 5 19 12v30z" fill="#f2f2f2"/><circle cx="362" cy="295" r="13" fill="#2d2a3f"/><path d="M415 328v-30c0-17 9-12 19-12s19 5 19 12v30z" fill="#e6e6e6"/><circle cx="434" cy="295" r="13" fill="#2f2e41"/>
+  
+  <path d="M70 394v-36c0-19 10-14 22-14s22 6 22 14v36z" fill="#2f2e41"/><circle cx="92" cy="356" r="15" fill="#2f2e41"/><path d="M154 394v-36c0-19 10-14 22-14s22 6 22 14v36z" fill="#514a95"/><circle cx="176" cy="356" r="15" fill="#2d2a3f"/><path d="M238 394v-36c0-19 10-14 22-14s22 6 22 14v36z" fill="#514a95"/><circle cx="260" cy="356" r="15" fill="#2f2e41"/><path d="M322 394v-36c0-19 10-14 22-14s22 6 22 14v36z" fill="#2f2e41"/><circle cx="344" cy="356" r="15" fill="#2d2a3f"/><path d="M406 394v-36c0-19 10-14 22-14s22 6 22 14v36z" fill="#514a95"/><circle cx="428" cy="356" r="15" fill="#2f2e41"/>
+</svg>

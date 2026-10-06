@@ -6,6 +6,7 @@ import { Mark } from "@/components/brand";
 import { SITE_BAR_CTA } from "./kit";
 
 const NAV = [
+  { href: "#why", key: "site.nav.why" },
   { href: "#features", key: "site.nav.features" },
   { href: "#members", key: "site.nav.members" },
   { href: "#giving", key: "site.nav.giving" },
