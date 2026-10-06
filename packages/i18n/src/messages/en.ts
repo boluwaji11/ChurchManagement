@@ -107,7 +107,7 @@ export const en = {
   "site.why.hours": "Administration takes a church about a working day a week: membership records, attendance, groups, volunteer scheduling and children's check-in.",
   "site.why.money": "The software that carries it costs {cost} a year, and the free alternatives all need a developer, which is the one thing a church does not have.",
   "site.why.cost": "$600 to $1,800",
-  "site.why.gave": "That time and that money come out of what a congregation gives for ministry.",
+  "site.why.gave": "That time and money come out of what a congregation gives for ministry.",
   "site.why.ours": "I build technological products, so I built the third option: every feature, free, and designed so the volunteer who gives four hours a week can run all of it without help. The hours and the money go back where they came from.",
   "site.why.quote": "Each of you should use whatever gift you have received to serve others, as faithful stewards of God's grace in its various forms.",
   "site.why.cite": "1 Peter 4:10",
