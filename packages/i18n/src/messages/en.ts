@@ -282,7 +282,7 @@ export const en = {
   "createChurch.name": "Church name",
   "createChurch.timezone": "Timezone",
   "createChurch.submit": "Create it",
-  "createChurch.working": "Building your church",
+  "createChurch.working": "Building your church account",
   "createChurch.failed": "Not created",
   "createChurch.welcome.title": "{church} is ready",
   "createChurch.welcome.body": "You are the owner. Five things set it up, and you can do them in any order.",
