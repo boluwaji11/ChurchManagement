@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
-  withTenant, listTeams, positionsForTeams, canManageTeams,
+  withTenant, listTeams, positionsForTeams, getTeam, canManageTeams,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -30,13 +30,19 @@ export default async function TeamsSettingsPage({
     return <Banner tone="info" title={t("settings.tab.teams")}>{t("forbidden.askAdmin")}</Banner>;
   }
 
-  const { teams, positions } = await withTenant(
+  const { teams, positions, rosters } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const found = await listTeams(tx, { includeArchived: true });
+      // R10.1. Each team's roster, because the panel writes a team and its
+      // people in one press and cannot go back for them once it is open.
+      const held = await Promise.all(found.map((one) => getTeam(tx, one.id)));
       return {
         teams: found,
         positions: await positionsForTeams(tx, found.map((one) => one.id)),
+        rosters: Object.fromEntries(
+          held.filter((one) => one !== null).map((one) => [one.id, one.members]),
+        ),
       };
     },
   );
@@ -55,10 +61,13 @@ export default async function TeamsSettingsPage({
           const of = positions[team.id] ?? [];
           return {
             id: team.id,
-            slug: team.slug,
             name: team.name,
             description: team.description,
-            members: team.members,
+            members: (rosters[team.id] ?? []).map((one) => ({
+              memberId: one.memberId,
+              name: one.name,
+              membershipId: one.id,
+            })),
             positions: of.map((one) => ({
               id: one.id,
               name: one.name,

@@ -1956,6 +1956,8 @@ export const en = {
   "serving.position.empty": "No positions yet",
   "serving.position.confirm": "Archiving {name} takes it off everybody who plays it. Every schedule it was on keeps it.",
   "serving.roster": "Who serves",
+  "serving.backToTeam": "Back to the team",
+  "serving.addMembers": "Add members",
   "serving.roster.add": "Add somebody",
   "serving.roster.empty": "Nobody on this team yet",
   "serving.role": "Role",

@@ -75,7 +75,7 @@ export default async function SchedulePlanPage({
       title={t("plan.title")}
     >
       <Button variant="ghost" asChild className="mb-4">
-        <Link href={`/serving/${team.slug}?church=${session.tenantSlug}`}>
+        <Link href={`/serving?church=${session.tenantSlug}&team=${team.id}`}>
           <ChevronLeft aria-hidden /> {team.name}
         </Link>
       </Button>

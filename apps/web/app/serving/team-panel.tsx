@@ -2,14 +2,16 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Plus, Trash2 } from "lucide-react";
+import { Archive, ArrowLeft, Plus, Trash2, UserPlus, X } from "lucide-react";
 import {
-  Banner, Button, IconButton, Field, Input, Switch, Textarea,
-  Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Avatar, Banner, Button, Combobox, IconButton, Field, Input, Switch, Textarea,
   Sheet, SheetTrigger, SheetContent,
 } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
-import { saveTeam, savePosition, archivePosition } from "./actions";
+import { t, plural } from "@connectapp/i18n";
+import {
+  saveTeam, savePosition, archivePosition, archiveTeam, addMember, removeMember, findPerson,
+  type PersonHit,
+} from "./actions";
 import { useFormError } from "@/lib/form-error";
 import { Confirm } from "@/components/confirm";
 
@@ -30,6 +32,14 @@ export interface PositionDraft {
   requiresCheck: boolean;
 }
 
+/** R10.1. Somebody on the team, as the panel holds them. */
+export interface MemberDraft {
+  memberId: string;
+  name: string;
+  /** Null for somebody being put on the team now. */
+  membershipId: string | null;
+}
+
 const EMPTY_POSITION: PositionDraft = {
   id: null,
   name: "",
@@ -45,10 +55,11 @@ const EMPTY_POSITION: PositionDraft = {
  * when it is opened again teaches the reader that the first screen was the real
  * one and this is a lesser version of it.
  */
-export function TeamDialog({
+export function TeamPanel({
   church,
   team,
   positions: existing,
+  members: roster,
   title,
   trigger,
 }: {
@@ -56,6 +67,8 @@ export function TeamDialog({
   team?: TeamDraft;
   /** R10.2. What the team schedules today, when one is being edited. */
   positions?: PositionDraft[];
+  /** R10.1. Who is on it today. */
+  members?: MemberDraft[];
   title: string;
   trigger: React.ReactNode;
 }) {
@@ -72,10 +85,30 @@ export function TeamDialog({
   );
   /** The ones taken off the list, archived when the form is saved. */
   const [dropped, setDropped] = React.useState<string[]>([]);
+  /*
+   * R10.1. Who serves on the team, held here until the form is saved, so a new
+   * team is written down with its people in the same press as its positions.
+   */
+  const [people, setPeople] = React.useState<MemberDraft[]>(roster ?? []);
+  const [left, setLeft] = React.useState<string[]>([]);
+  /** Which of the panel's two steps is showing. */
+  const [step, setStep] = React.useState<"team" | "members">("team");
+  const [hits, setHits] = React.useState<PersonHit[]>([]);
   const [saving, startTransition] = React.useTransition();
   // The actions sit in the panel's own footer, outside the form, so they reach
   // it by name.
   const formId = React.useId();
+
+  const look = React.useCallback(
+    (query: string) => {
+      void findPerson(query, church).then(setHits);
+    },
+    [church],
+  );
+
+  React.useEffect(() => {
+    if (step === "members") look("");
+  }, [step, look]);
 
   const change = (at: number, fields: Partial<PositionDraft>) =>
     setPositions((was) => was.map((one, i) => (i === at ? { ...one, ...fields } : one)));
@@ -86,6 +119,9 @@ export function TeamDialog({
     if (!open) return;
     setPositions(blank.length > 0 ? blank : [EMPTY_POSITION]);
     setDropped([]);
+    setPeople(roster ?? []);
+    setLeft([]);
+    setStep("team");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -96,20 +132,134 @@ export function TeamDialog({
           written down belongs beside the list of teams it joins, and the panel
           has room for the positions without the page moving. */}
       <SheetContent
-        title={title}
+        title={step === "members" ? t("serving.roster") : title}
         closeLabel={t("common.close")}
         width="520px"
         footer={
-          <>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
+          step === "members" ? (
+            <Button type="button" onClick={() => setStep("team")}>
+              {t("action.done")}
             </Button>
-            <Button type="submit" form={formId} disabled={saving}>
-              {t("action.save")}
-            </Button>
-          </>
+          ) : (
+            <>
+              {/* R10.1. Putting the team away lives with the form that writes
+                  it, at the far end from the press somebody came to make. */}
+              {team ? (
+                <Confirm
+                  title={t("serving.archiveTitle", { name: team.name })}
+                  body={t("serving.archiveBody")}
+                  confirmLabel={t("serving.archive")}
+                  keepLabel={t("serving.keep")}
+                  disabled={saving}
+                  onConfirm={() => {
+                    const data = new FormData();
+                    data.set("church", church);
+                    data.set("id", team.id);
+                    data.set("archived", "true");
+                    startTransition(async () => {
+                      const result = await archiveTeam(data);
+                      setError(result.error);
+                      if (!result.error) {
+                        setOpen(false);
+                        router.refresh();
+                      }
+                    });
+                  }}
+                  trigger={
+                    <IconButton
+                      label={t("serving.archive")}
+                      variant="ghost"
+                      className="mr-auto"
+                    >
+                      <Archive />
+                    </IconButton>
+                  }
+                />
+              ) : null}
+
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                {t("action.cancel")}
+              </Button>
+              <Button type="submit" form={formId} disabled={saving}>
+                {t("action.save")}
+              </Button>
+            </>
+          )
         }
       >
+        {step === "members" ? (
+          <div className="flex flex-col gap-4">
+            <button
+              type="button"
+              onClick={() => setStep("team")}
+              className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+            >
+              <ArrowLeft className="size-4" aria-hidden /> {t("serving.backToTeam")}
+            </button>
+
+            {/* R10.1. The directory is searched as the name is typed: a church
+                of five hundred is not a dropdown. Each choice goes straight on
+                the list below, so several people are added in one visit. */}
+            <Combobox
+              options={hits
+                .filter((one) => !people.some((x) => x.memberId === one.id))
+                .map((one) => ({
+                  value: one.id,
+                  label: one.name,
+                  keywords: one.household ?? undefined,
+                }))}
+              value=""
+              onChange={(memberId) => {
+                const hit = hits.find((one) => one.id === memberId);
+                if (!hit) return;
+                setPeople((was) => [...was, { memberId, name: hit.name, membershipId: null }]);
+                setLeft((was) => was.filter((id) => id !== memberId));
+              }}
+              placeholder={t("serving.addFromPeople")}
+              emptyLabel={t("serving.roster.noMatch")}
+              clearLabel={t("date.clear")}
+              onQueryChange={look}
+            />
+
+            {people.length === 0 ? (
+              <p className="flex items-center gap-2 text-[length:var(--d-text-body)] text-fg-muted">
+                <UserPlus className="size-4" aria-hidden /> {t("serving.roster.empty")}
+              </p>
+            ) : (
+              <ol className="m-0 flex list-none flex-col p-0">
+                {people.map((one, i) => (
+                  <li key={one.memberId} className="flex gap-2.5">
+                    <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                      <span className="mt-2 size-2 shrink-0 rounded-full bg-primary" />
+                      {i === people.length - 1 ? null : (
+                        <span className="relative my-1 w-px flex-1 bg-primary/40" />
+                      )}
+                    </span>
+
+                    <span className="flex min-w-0 flex-1 items-center gap-3 pb-3">
+                      <Avatar
+                        name={one.name}
+                        id={one.memberId}
+                        className="size-8 text-[12px] font-semibold"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-fg">{one.name}</span>
+                      <IconButton
+                        label={t("serving.remove")}
+                        variant="ghost"
+                        onClick={() => {
+                          if (one.membershipId) setLeft((was) => [...was, one.memberId]);
+                          setPeople((was) => was.filter((x) => x.memberId !== one.memberId));
+                        }}
+                      >
+                        <X />
+                      </IconButton>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        ) : (
         <form
           id={formId}
           noValidate
@@ -149,6 +299,14 @@ export function TeamDialog({
                     },
                     church,
                   );
+                }
+              }
+
+              if (teamId) {
+                for (const memberId of left) await removeMember(teamId, memberId, church);
+                for (const one of people) {
+                  if (one.membershipId) continue;
+                  await addMember(teamId, one.memberId, "member", church);
                 }
               }
 
@@ -258,53 +416,26 @@ export function TeamDialog({
             </Button>
           </div>
 
+          {/* R10.1. Who serves on it, on a step of its own, because a worship
+              team of fifteen would otherwise bury the positions above it. */}
+          <div className="flex flex-col gap-2">
+            <span className="text-label text-fg">{t("serving.roster")}</span>
+            <span className="text-[13px] text-fg-muted">
+              {plural("serving.volunteerCount", people.length)}
+            </span>
+            <Button
+              type="button"
+              variant="secondary"
+              className="self-start"
+              onClick={() => setStep("members")}
+            >
+              <UserPlus /> {t("serving.addMembers")}
+            </Button>
+          </div>
+
         </form>
+        )}
       </SheetContent>
     </Sheet>
-  );
-}
-
-export function ArchiveTeamDialog({
-  name,
-  pending,
-  onConfirm,
-}: {
-  name: string;
-  pending: boolean;
-  onConfirm: () => void;
-}) {
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <IconButton
-          label={t("serving.archive")}
-          variant="ghost"
-        >
-          <Archive />
-        </IconButton>
-      </DialogTrigger>
-      <DialogContent alert title={t("serving.archiveTitle", { name })}>
-        <div className="flex flex-col gap-4">
-          <p className="text-[length:var(--d-text-body)] text-fg">{t("serving.archiveBody")}</p>
-          <DialogFooter>
-            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
-              {t("serving.keep")}
-            </Button>
-            <Button
-              variant="danger"
-              disabled={pending}
-              onClick={() => {
-                setOpen(false);
-                onConfirm();
-              }}
-            >
-              <Archive /> {t("serving.archive")}
-            </Button>
-          </DialogFooter>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
