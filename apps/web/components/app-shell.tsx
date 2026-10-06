@@ -120,7 +120,11 @@ export async function AppShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <DemoBanner tenantId={session.tenantId} />
-        <ProvisionalBanner tenantId={session.tenantId} role={session.role} />
+        <ProvisionalBanner
+          tenantId={session.tenantId}
+          role={session.role}
+          church={session.tenantSlug}
+        />
 
         <TopBar
           title={title}

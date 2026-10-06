@@ -374,6 +374,8 @@ export function NewPipeline({
   taken?: string[];
 }) {
   const [open, setOpen] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const formId = React.useId();
   const library = React.useMemo(() => followupLibrary(taken), [taken.join("|")]);
   /** The journey being started from, or null for a blank one. */
   const [preset, setPreset] = React.useState<FlowPreset | null>(null);
@@ -396,6 +398,13 @@ export function NewPipeline({
         title={picking ? t("pipelines.start") : t("pipelines.addTitle")}
         closeLabel={t("common.close")}
         width="560px"
+        footer={
+          picking ? null : (
+            <Button type="submit" form={formId} loading={busy}>
+              {t("action.add")}
+            </Button>
+          )
+        }
       >
         {!open ? null : picking ? (
           <LibraryPicker
@@ -415,6 +424,8 @@ export function NewPipeline({
             church={church}
             team={team}
             preset={preset}
+            formId={formId}
+            onBusy={setBusy}
             onBack={library.length > 0 ? () => setPicking(true) : undefined}
             onDone={() => reset(false)}
           />
@@ -438,11 +449,22 @@ function EditDialog({
   trigger: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const formId = React.useId();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
-      <SheetContent title={row.name} closeLabel={t("common.close")} width="560px">
+      <SheetContent
+        title={row.name}
+        closeLabel={t("common.close")}
+        width="560px"
+        footer={
+          <Button type="submit" form={formId} loading={busy} disabled={pending}>
+            {t("action.save")}
+          </Button>
+        }
+      >
         {/* Mounted with the box, so a stage edited, closed and opened again
             starts from what was saved rather than from what was typed. */}
         {open ? (
@@ -451,6 +473,8 @@ function EditDialog({
             row={row}
             team={team}
             pending={pending}
+            formId={formId}
+            onBusy={setBusy}
             onDone={() => setOpen(false)}
           />
         ) : null}
@@ -473,6 +497,8 @@ function StageForm({
   preset,
   pending,
   onBack,
+  formId,
+  onBusy,
   onDone,
 }: {
   church: string;
@@ -484,6 +510,10 @@ function StageForm({
   pending?: boolean;
   /** The way back to the library, when one was offered. */
   onBack?: () => void;
+  /** R24.6. The id the panel's footer presses. */
+  formId: string;
+  /** Told while the save is running, so the footer can go busy. */
+  onBusy?: (busy: boolean) => void;
   onDone: () => void;
 }) {
   const router = useRouter();
@@ -499,12 +529,14 @@ function StageForm({
         })),
   );
   const [saving, startTransition] = React.useTransition();
+  React.useEffect(() => onBusy?.(saving), [saving, onBusy]);
 
   const change = (key: string, patch: { name?: string; days?: string }) =>
     setSteps((all) => all.map((step) => (step.key === key ? { ...step, ...patch } : step)));
 
   return (
     <form
+      id={formId}
       noValidate
       action={(data) => {
         data.set("church", church);
@@ -640,14 +672,6 @@ function StageForm({
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <Button type="button" variant="ghost" onClick={onDone}>
-          {t("action.cancel")}
-        </Button>
-        <Button type="submit" disabled={pending || saving}>
-          {row ? t("action.save") : t("action.add")}
-        </Button>
-      </div>
     </form>
   );
 }
