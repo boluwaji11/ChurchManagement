@@ -151,8 +151,9 @@ export default async function GroupsPage({
     />
   );
 
-  // The way back to the kinds, where a kind is what was opened.
-  const back = kinds.length > 1 ? (
+  // The way back to the kinds. Offered wherever the kinds screen exists, which
+  // is the same test that decided to show it.
+  const back = kinds.length > 0 ? (
     <Link
       href={`/groups?church=${session.tenantSlug}`}
       className="-mb-2 inline-flex items-center gap-1.5 self-start font-medium text-primary"
