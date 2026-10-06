@@ -52,8 +52,8 @@ select:-webkit-autofill {
       transparent 70%
     );
   background-repeat: no-repeat;
-  background-position: right -5rem bottom -3rem;
-  background-size: 42rem auto;
+  background-position: center;
+  background-size: 34rem auto;
   background-attachment: fixed;
 }
 
