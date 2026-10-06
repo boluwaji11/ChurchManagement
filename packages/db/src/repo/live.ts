@@ -127,7 +127,7 @@ export async function startLive(
   actor: WriteActor,
   occurrenceId: string,
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const plan = await planFor(db, occurrenceId);
 
   const ids = await itemIds(db, plan.id);
@@ -152,7 +152,7 @@ export async function moveLive(
   occurrenceId: string,
   direction: "next" | "back",
 ): Promise<{ currentId: string | null }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const plan = await planFor(db, occurrenceId);
 
   const ids = await itemIds(db, plan.id);
@@ -181,7 +181,7 @@ export async function goLiveTo(
   occurrenceId: string,
   itemId: string,
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const plan = await planFor(db, occurrenceId);
 
   const [item] = await db
@@ -204,7 +204,7 @@ export async function stopLive(
   actor: WriteActor,
   occurrenceId: string,
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const plan = await planFor(db, occurrenceId);
 
   await db

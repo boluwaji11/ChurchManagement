@@ -236,7 +236,7 @@ export async function supervisorBoard(
   actor: { role: TenantRole },
   occurrenceId: string,
 ): Promise<Board> {
-  if (!canSupervise(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canSupervise(actor)) throw new PermissionError(actor.role, "checkIn");
   return roomBoard(db, occurrenceId);
 }
 
@@ -330,7 +330,7 @@ export async function moveToRoom(
   visitId: string,
   roomId: string | null,
 ): Promise<void> {
-  if (!canSupervise(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canSupervise(actor)) throw new PermissionError(actor.role, "checkIn");
 
   const [visit] = await db
     .select({

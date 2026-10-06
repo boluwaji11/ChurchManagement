@@ -46,7 +46,7 @@ export async function setLabelLayout(
   actor: { tenantId: string; role: TenantRole },
   input: LabelLayout,
 ): Promise<void> {
-  if (!canManageStations(actor.role)) throw new PermissionError(actor.role, "manageStations");
+  if (!canManageStations(actor)) throw new PermissionError(actor.role, "manageStations");
   if (!(input.size in LABEL_SIZES)) throw new InvalidInputError("labels.error.size");
 
   await db

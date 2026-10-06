@@ -331,7 +331,7 @@ export async function createForm(
   actor: WriteActor,
   input: FormInput,
 ): Promise<{ id: string; slug: string }> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
   const values = checkForm(input);
 
   const [row] = await db
@@ -347,7 +347,7 @@ export async function updateForm(
   id: string,
   input: FormInput,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
   const values = checkForm(input);
 
   const changed = await db
@@ -371,7 +371,7 @@ export async function setFormStatus(
   id: string,
   status: FormStatus,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
 
   const form = await getForm(db, id);
   if (!form) throw new InvalidInputError("form.error.missing");
@@ -397,7 +397,7 @@ export async function setFormArchived(
   id: string,
   archived: boolean,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
 
   const changed = await db
     .update(forms)
@@ -418,7 +418,7 @@ export async function addFormField(
   formId: string,
   input: FormFieldInput,
 ): Promise<{ id: string }> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
   const values = checkField(input);
 
   const existing = await fieldsFor(db, formId);
@@ -455,7 +455,7 @@ export async function updateFormField(
   id: string,
   input: FormFieldInput,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
   const values = checkField(input);
 
   const [found] = await db
@@ -487,7 +487,7 @@ export async function updateFormField(
 }
 
 export async function removeFormField(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
 
   const removed = await db
     .delete(formFields)
@@ -510,7 +510,7 @@ export async function moveFormField(
   actor: WriteActor,
   input: { formId: string; id: string; direction: "up" | "down" },
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
 
   const fields = await fieldsFor(db, input.formId);
   const at = fields.findIndex((field) => field.id === input.id);
@@ -545,7 +545,7 @@ export async function reorderFormFields(
   formId: string,
   ids: string[],
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
 
   const fields = await fieldsFor(db, formId);
   const known = new Set(fields.map((field) => field.id));
@@ -648,7 +648,7 @@ export async function setFormCover(
   id: string,
   key: string | null,
 ): Promise<{ removed: string | null }> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
 
   const [row] = await db
     .select({ coverKey: forms.coverKey })
@@ -678,7 +678,7 @@ export async function setFormHue(
   id: string,
   value: string,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageForms");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageForms");
   if (!FORM_HUES.includes(value as FormHue)) throw new InvalidInputError("form.error.hue");
 
   const changed = await db

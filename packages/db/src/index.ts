@@ -2,7 +2,7 @@ export * as schema from "./schema/index";
 export { owner, appDb, withTenant, closeConnections, sql, type Db, type Tx, type TenantContext } from "./client";
 export {
   TENANT_ROLES, type TenantRole, PERMISSIONS, PERMISSION_GROUPS, ROLE_PERMISSIONS,
-  type Permission, type PermissionGroup,
+  type Permission, type PermissionGroup, type Who,
   can, rolesWith, canReadConfidentialNotes, canReadGivingAmounts,
   canManageHouseholds, CAN_MANAGE_HOUSEHOLDS,
   CAN_READ_CONFIDENTIAL_NOTES, CAN_READ_GIVING_AMOUNTS,

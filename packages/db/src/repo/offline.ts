@@ -47,7 +47,7 @@ export async function reserveCodes(
   actor: WriteActor,
   input: { occurrenceId: string; stationId: string; size?: number },
 ): Promise<CodeBlock> {
-  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canCheckIn(actor)) throw new PermissionError(actor.role, "checkIn");
 
   const size = input.size ?? BLOCK_SIZE;
   const mine = and(
@@ -177,7 +177,7 @@ export async function reconcile(
   actor: WriteActor,
   input: { stationId: string; userId?: string | null; events: OfflineEvent[] },
 ): Promise<Reconciliation> {
-  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canCheckIn(actor)) throw new PermissionError(actor.role, "checkIn");
 
   const out: Reconciliation = { applied: 0, duplicates: 0, conflicts: [] };
   const ordered = [...input.events].sort((a, b) => a.at.localeCompare(b.at));

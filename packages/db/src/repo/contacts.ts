@@ -82,7 +82,7 @@ export async function addContact(
   memberId: string,
   input: { kind: ContactKind; label?: ContactLabel; value: string },
 ): Promise<{ id: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
   const value = checkValue(input.kind, input.value);
 
   const held = await db
@@ -116,7 +116,7 @@ export async function addContact(
  * closing their account and would not, so it is refused and said.
  */
 export async function removeContact(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
     .select({
@@ -143,7 +143,7 @@ export async function removeContact(db: Tx, actor: WriteActor, id: string): Prom
 
 /** R2.4. Which one a letter or a call goes to first. */
 export async function makeContactPrimary(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
     .select({ memberId: contactMethods.memberId, kind: contactMethods.kind })
@@ -240,7 +240,7 @@ export async function addAddress(
   memberId: string,
   input: AddressInputValues,
 ): Promise<{ id: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const line1 = input.line1?.trim();
   if (!line1) throw new InvalidInputError("contact.error.empty");
@@ -275,7 +275,7 @@ export async function addAddress(
  * changed there, so a volunteer cannot take a family's address off one member.
  */
 export async function removeAddress(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
     .select({ memberId: addresses.memberId, isPrimary: addresses.isPrimary })
@@ -290,7 +290,7 @@ export async function removeAddress(db: Tx, actor: WriteActor, id: string): Prom
 
 /** R2.4. Which address a letter goes to first. */
 export async function makeAddressPrimary(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const [row] = await db
     .select({ memberId: addresses.memberId })

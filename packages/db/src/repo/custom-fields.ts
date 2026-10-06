@@ -89,7 +89,7 @@ export async function createCustomField(
   actor: WriteActor,
   input: { entity: CustomFieldEntity; label: string; type: CustomFieldType; options?: string[] },
 ): Promise<CustomFieldDef> {
-  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "addField");
+  if (!canManageCustomFields(actor)) throw new PermissionError(actor.role, "addField");
 
   const label = input.label.trim().replace(/\s+/g, " ");
   if (!label) throw new InvalidInputError("error.fieldNameBlank");
@@ -150,7 +150,7 @@ export async function updateCustomField(
   id: string,
   input: { label: string; options?: string[]; type?: CustomFieldType },
 ): Promise<void> {
-  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "editField");
+  if (!canManageCustomFields(actor)) throw new PermissionError(actor.role, "editField");
 
   const label = input.label.trim().replace(/\s+/g, " ");
   if (!label) throw new InvalidInputError("error.fieldNameBlank");
@@ -204,7 +204,7 @@ export async function deleteCustomField(
   actor: WriteActor,
   id: string,
 ): Promise<{ valuesRemoved: number }> {
-  if (!canManageCustomFields(actor.role)) throw new PermissionError(actor.role, "deleteField");
+  if (!canManageCustomFields(actor)) throw new PermissionError(actor.role, "deleteField");
 
   const values = await db
     .select({ id: customFieldValues.id })
@@ -302,7 +302,7 @@ export async function setCustomValues(
   entityId: string,
   values: Record<string, CustomValue>,
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "setFieldValue");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "setFieldValue");
 
   const ids = Object.keys(values);
   if (ids.length === 0) return;

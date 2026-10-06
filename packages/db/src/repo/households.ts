@@ -21,7 +21,7 @@ export interface HouseholdRow {
 }
 
 function guard(actor: WriteActor): void {
-  if (!canManageHouseholds(actor.role)) {
+  if (!canManageHouseholds(actor)) {
     throw new PermissionError(actor.role, "manageHouseholds");
   }
 }

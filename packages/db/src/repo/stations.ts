@@ -186,7 +186,7 @@ export async function getStation(db: Tx, id: string): Promise<Station | null> {
 }
 
 export async function addStation(db: Tx, actor: WriteActor, input: StationInput): Promise<Station> {
-  if (!canManageStations(actor.role)) throw new PermissionError(actor.role, "manageStations");
+  if (!canManageStations(actor)) throw new PermissionError(actor.role, "manageStations");
   const values = check(input);
   const clash = await nameTaken(db, values.name);
   if (clash) throw new NameTakenError("station.error.taken", values.name, clash);
@@ -206,7 +206,7 @@ export async function updateStation(
   id: string,
   input: StationInput,
 ): Promise<Station> {
-  if (!canManageStations(actor.role)) throw new PermissionError(actor.role, "manageStations");
+  if (!canManageStations(actor)) throw new PermissionError(actor.role, "manageStations");
   const values = check(input);
   const clash = await nameTaken(db, values.name, id);
   if (clash) throw new NameTakenError("station.error.taken", values.name, clash);
@@ -228,7 +228,7 @@ export async function setStationArchived(
   id: string,
   archived: boolean,
 ): Promise<Station> {
-  if (!canManageStations(actor.role)) throw new PermissionError(actor.role, "manageStations");
+  if (!canManageStations(actor)) throw new PermissionError(actor.role, "manageStations");
   const [row] = await db
     .update(checkinStations)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })

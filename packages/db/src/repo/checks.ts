@@ -64,7 +64,7 @@ export async function checksFor(
   actor: { role: TenantRole },
   memberId: string,
 ): Promise<CheckStandingView> {
-  if (!canSeeChecks(actor.role)) throw new PermissionError(actor.role, "seeChecks");
+  if (!canSeeChecks(actor)) throw new PermissionError(actor.role, "seeChecks");
 
   const found = await rows(db)
     .where(eq(backgroundChecks.memberId, memberId))
@@ -86,7 +86,7 @@ export async function recordCheck(
     expiresOn?: string | null;
   },
 ): Promise<BackgroundCheck> {
-  if (!canSeeChecks(actor.role)) throw new PermissionError(actor.role, "seeChecks");
+  if (!canSeeChecks(actor)) throw new PermissionError(actor.role, "seeChecks");
 
   const provider = trim(input.provider);
   if (!provider) throw new InvalidInputError("check.error.provider");
@@ -144,7 +144,7 @@ export async function checkStandings(
   actor: { role: TenantRole },
   opts: { today?: string } = {},
 ): Promise<CheckRow[]> {
-  if (!canSeeChecks(actor.role)) throw new PermissionError(actor.role, "seeChecks");
+  if (!canSeeChecks(actor)) throw new PermissionError(actor.role, "seeChecks");
   const today = opts.today ?? new Date().toISOString().slice(0, 10);
 
   const found = await rows(db).orderBy(desc(backgroundChecks.completedOn));

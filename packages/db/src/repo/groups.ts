@@ -184,7 +184,7 @@ export async function addGroupType(
   actor: WriteActor,
   input: { name: string; hue?: string; description?: string | null },
 ): Promise<GroupType> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const name = clean(input.name);
   if (!name) throw new InvalidInputError("groupType.error.name");
@@ -460,7 +460,7 @@ export async function getGroup(db: Tx, id: string): Promise<Group | null> {
 }
 
 export async function createGroup(db: Tx, actor: WriteActor, input: GroupInput): Promise<Group> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
   const values = check(input);
 
   const [taken] = await db
@@ -495,7 +495,7 @@ export async function updateGroup(
   id: string,
   input: GroupInput,
 ): Promise<Group> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
   const values = check(input);
 
   const [taken] = await db
@@ -537,7 +537,7 @@ export async function setGroupOpen(
   id: string,
   openToJoin: boolean,
 ): Promise<void> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const changed = await db
     .update(groups)
@@ -560,7 +560,7 @@ export async function setGroupArchived(
   id: string,
   archived: boolean,
 ): Promise<Group> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const updated = await db
     .update(groups)
@@ -630,7 +630,7 @@ export async function addToGroup(
   actor: WriteActor,
   input: { groupId: string; memberId: string; role?: GroupRole; joinedOn?: string },
 ): Promise<GroupMember[]> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const role = input.role ?? "member";
   if (!(GROUP_ROLES as readonly string[]).includes(role)) {
@@ -746,7 +746,7 @@ export async function removeFromGroup(
   actor: WriteActor,
   input: { groupId: string; memberId: string; leftOn?: string },
 ): Promise<GroupMember[]> {
-  if (!canManageGroups(actor.role) && !(await leadsGroup(db, actor, input.groupId))) {
+  if (!canManageGroups(actor) && !(await leadsGroup(db, actor, input.groupId))) {
     throw new PermissionError(actor.role, "manageGroups");
   }
 
@@ -864,7 +864,7 @@ export async function updateGroupType(
   id: string,
   input: { name: string; hue?: string; description?: string | null },
 ): Promise<void> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const name = clean(input.name);
   if (!name) throw new InvalidInputError("groupType.error.name");
@@ -905,7 +905,7 @@ export async function setGroupTypeArchived(
   id: string,
   archived: boolean,
 ): Promise<void> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const changed = await db
     .update(groupTypes)
@@ -921,7 +921,7 @@ export async function reorderGroupTypes(
   actor: WriteActor,
   ids: string[],
 ): Promise<void> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   for (const [position, id] of ids.entries()) {
     await db
@@ -950,7 +950,7 @@ export async function describeGroupType(
   id: string,
   description: string | null,
 ): Promise<void> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
   await db
     .update(groupTypes)
     .set({ description: description?.trim() || null, updatedAt: new Date() })
@@ -971,7 +971,7 @@ export async function setGroupPhoto(
   groupId: string,
   key: string | null,
 ): Promise<{ removed: string | null }> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const [before] = await db
     .select({ photoKey: groups.photoKey })
@@ -1015,7 +1015,7 @@ export async function setGroupStatus(
   id: string,
   status: GroupStatus,
 ): Promise<void> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const changed = await db
     .update(groups)

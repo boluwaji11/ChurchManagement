@@ -152,7 +152,7 @@ export async function checkOut(
   actor: WriteActor,
   request: CheckoutRequest,
 ): Promise<CheckoutResult> {
-  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canCheckIn(actor)) throw new PermissionError(actor.role, "checkIn");
 
   const [visit] = await db
     .select({

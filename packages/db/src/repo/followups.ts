@@ -188,7 +188,7 @@ export async function seedPipelines(
   db: Tx,
   actor: { tenantId: string; role: TenantRole },
 ): Promise<void> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
 
   const existing = await db
     .select({ key: pipelines.key })
@@ -275,7 +275,7 @@ export async function enterPipeline(
     assigneeUserId?: string | null;
   },
 ): Promise<PipelineEntry | null> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
   // Somebody asked for this, so a pipeline that is not there is an error they
   // need to see. A trigger firing on its own is the quiet case, below.
   return enterPipelineAuto(db, actor.tenantId, { ...input, quiet: false });
@@ -386,7 +386,7 @@ export async function exitPipeline(
   actor: { tenantId: string; role: TenantRole },
   input: { entryId: string; reason: string; done?: boolean },
 ): Promise<void> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
 
   const reason = trim(input.reason);
   if (!reason) throw new InvalidInputError("followup.error.exitReason");
@@ -416,7 +416,7 @@ export async function completeFollowUp(
   actor: { tenantId: string; role: TenantRole; userId?: string | null },
   input: { id: string; outcome?: string | null },
 ): Promise<void> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
 
   const [task] = await db
     .select({ id: followUps.id, entryId: followUps.entryId, doneAt: followUps.doneAt })
@@ -457,7 +457,7 @@ export async function reopenFollowUp(
   actor: { tenantId: string; role: TenantRole },
   id: string,
 ): Promise<void> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
 
   const [task] = await db
     .select({ entryId: followUps.entryId })
@@ -490,7 +490,7 @@ export async function addTask(
     dueOn?: string | null;
   },
 ): Promise<FollowUp> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
 
   const title = trim(input.title);
   if (!title) throw new InvalidInputError("followup.error.title");
@@ -648,7 +648,7 @@ export async function assignFollowUp(
   actor: { tenantId: string; role: TenantRole },
   input: { id: string; assigneeUserId: string | null },
 ): Promise<void> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
   await db
     .update(followUps)
     .set({ assigneeUserId: input.assigneeUserId, updatedAt: new Date() })
@@ -988,7 +988,7 @@ export async function createPipeline(
     steps?: StepInput[];
   },
 ): Promise<Pipeline> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editPipelines");
 
   const name = trim(input.name);
   if (!name) throw new InvalidInputError("followup.error.name");
@@ -1051,7 +1051,7 @@ export async function updatePipeline(
     steps?: StepInput[];
   },
 ): Promise<Pipeline> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editPipelines");
 
   const name = trim(input.name);
   if (!name) throw new InvalidInputError("followup.error.name");
@@ -1087,7 +1087,7 @@ export async function saveSteps(
   pipelineId: string,
   steps: StepInput[],
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editPipelines");
   if (steps.length === 0) throw new InvalidInputError("followup.error.steps");
 
   const clean = steps.map((step) => {
@@ -1144,7 +1144,7 @@ export async function setPipelineArchived(
   id: string,
   archived: boolean,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editPipelines");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editPipelines");
   await db
     .update(pipelines)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
@@ -1198,7 +1198,7 @@ export async function setEntryStage(
   entryId: string,
   position: number,
 ): Promise<void> {
-  if (!canFollowUp(actor.role)) throw new PermissionError(actor.role, "manageFollowUps");
+  if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
 
   const steps = await db
     .select({

@@ -50,7 +50,7 @@ export async function demoState(db: Tx): Promise<DemoState> {
 }
 
 export async function loadDemoData(db: Tx, actor: WriteActor): Promise<DemoState> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageDemoData");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageDemoData");
 
   if ((await demoState(db)).loaded) throw new InvalidInputError("demo.error.alreadyLoaded");
 
@@ -388,7 +388,7 @@ export interface DemoRemoval {
  * fixable, rather than the person disappearing with it.
  */
 export async function removeDemoData(db: Tx, actor: WriteActor): Promise<DemoRemoval> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "manageDemoData");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "manageDemoData");
 
   const rows = await db
     .select({ entity: demoRecords.entity, recordId: demoRecords.recordId })

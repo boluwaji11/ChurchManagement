@@ -299,7 +299,7 @@ export async function commit(
   actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   plan: Plan,
 ): Promise<CommitResult> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "addPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "addPerson");
 
   const [batch] = await db
     .insert(importBatches)

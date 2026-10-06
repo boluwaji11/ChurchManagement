@@ -198,7 +198,7 @@ export async function commitGroups(
   actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   plan: GroupPlan,
 ): Promise<GroupCommitResult> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const [batch] = await db
     .insert(importBatches)
@@ -317,7 +317,7 @@ export async function rollbackGroupImport(
   actor: { tenantId: string; role: TenantRole },
   batchId: string,
 ): Promise<{ left: number; groupsArchived: number; groupsKept: number }> {
-  if (!canManageGroups(actor.role)) throw new PermissionError(actor.role, "manageGroups");
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
 
   const rows = await db
     .select()

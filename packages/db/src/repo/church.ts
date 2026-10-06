@@ -97,7 +97,7 @@ export async function updateChurch(
   actor: WriteActor,
   input: ChurchInput,
 ): Promise<ChurchProfile> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const name = input.name.trim();
   if (!name) throw new InvalidInputError("church.error.name");
@@ -173,7 +173,7 @@ export async function addServiceTime(
   actor: WriteActor,
   input: ServiceTimeInput,
 ): Promise<ServiceTime> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const name = input.name.trim();
   if (!name) throw new InvalidInputError("church.error.serviceName");
@@ -205,7 +205,7 @@ export async function removeServiceTime(
   actor: WriteActor,
   id: string,
 ): Promise<{ removed: number }> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const gone = await db
     .delete(serviceTimes)

@@ -35,7 +35,7 @@ export interface ChurchRole {
 
 /** Only somebody who can change the church can change who may do what in it. */
 function guard(actor: WriteActor, action: "editRoles"): void {
-  if (!can(actor.role, "church.manage")) throw new PermissionError(actor.role, action);
+  if (!can(actor, "church.manage")) throw new PermissionError(actor.role, action);
 }
 
 const clean = (raw: string): string => raw.trim().replace(/\s+/g, " ");

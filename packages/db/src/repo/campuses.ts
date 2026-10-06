@@ -72,7 +72,7 @@ export async function renameCampus(
   id: string,
   name: string,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const changed = await db
     .update(campuses)
@@ -96,7 +96,7 @@ export async function addLocation(
   name: string,
   campusId?: string | null,
 ): Promise<{ id: string }> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
   const clean = checkName(name);
 
   const campus = campusId ?? (await primaryCampus(db))?.id;
@@ -122,7 +122,7 @@ export async function renameLocation(
   id: string,
   name: string,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
   const clean = checkName(name);
 
   const [current] = await db
@@ -154,7 +154,7 @@ export async function renameLocation(
  * meeting there keeps the words it was written with.
  */
 export async function removeLocation(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const removed = await db
     .delete(locations)

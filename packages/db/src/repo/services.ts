@@ -218,7 +218,7 @@ export async function generateOccurrences(
   actor: WriteActor,
   range: { from: string; to: string },
 ): Promise<GenerateResult> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "manageServices");
   if (!isDate(range.from) || !isDate(range.to)) throw new InvalidInputError("service.error.range");
   if (range.to < range.from) throw new InvalidInputError("service.error.range");
 
@@ -299,7 +299,7 @@ export async function addSpecialService(
   actor: WriteActor,
   input: SpecialServiceInput,
 ): Promise<Occurrence> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "manageServices");
 
   const name = input.name.trim();
   if (!name) throw new InvalidInputError("service.error.name");
@@ -338,7 +338,7 @@ export async function updateOccurrence(
   id: string,
   edit: OccurrenceEdit,
 ): Promise<Occurrence> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "manageServices");
 
   if (edit.name !== undefined && !edit.name.trim()) throw new InvalidInputError("service.error.name");
   if (edit.startsAt !== undefined && !isTime(edit.startsAt)) throw new InvalidInputError("service.error.time");
@@ -374,7 +374,7 @@ export async function setOccurrenceCancelled(
   cancelled: boolean,
   note?: string,
 ): Promise<Occurrence> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "manageServices");
 
   const [row] = await db
     .update(serviceOccurrences)
@@ -396,7 +396,7 @@ export async function removeSpecialService(
   actor: WriteActor,
   id: string,
 ): Promise<{ removed: number }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "manageServices");
 
   const gone = await db
     .delete(serviceOccurrences)
@@ -464,7 +464,7 @@ export async function addService(
   actor: WriteActor,
   input: AddServiceInput,
 ): Promise<{ created: number; serviceTimeId: string | null }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "manageServices");
 
   const name = input.name.trim();
   if (!name) throw new InvalidInputError("service.error.name");
@@ -567,7 +567,7 @@ export async function stopRepeating(
   actor: WriteActor,
   serviceTimeId: string,
 ): Promise<{ removed: number }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "manageServices");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "manageServices");
 
   const gone = await db
     .delete(serviceOccurrences)
@@ -621,7 +621,7 @@ export async function setHeadcount(
   occurrenceId: string,
   input: HeadcountInput,
 ): Promise<Headcount> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "recordAttendance");
 
   const [row] = await db
     .update(serviceOccurrences)

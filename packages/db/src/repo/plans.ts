@@ -218,7 +218,7 @@ export async function ensurePlan(
   actor: WriteActor,
   occurrenceId: string,
 ): Promise<ServicePlan> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const existing = await getPlan(db, occurrenceId);
   if (existing) return existing;
@@ -244,7 +244,7 @@ export async function updatePlan(
   id: string,
   input: PlanInput,
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const changed = await db
     .update(servicePlans)
@@ -276,7 +276,7 @@ export async function addItem(
   planId: string,
   input: ItemInput,
 ): Promise<{ id: string }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const values = checkItem(input);
 
   const [last] = await db
@@ -304,7 +304,7 @@ export async function updateItem(
   id: string,
   input: ItemInput,
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const values = checkItem(input);
 
   const changed = await db
@@ -320,7 +320,7 @@ export async function updateItem(
 }
 
 export async function removeItem(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const gone = await db
     .delete(planItems)
@@ -336,7 +336,7 @@ export async function reorderItems(
   planId: string,
   ids: string[],
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   for (const [index, id] of ids.entries()) {
     await db
@@ -352,7 +352,7 @@ export async function moveItem(
   actor: WriteActor,
   input: { planId: string; id: string; direction: "up" | "down" },
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const rows = await db
     .select({ id: planItems.id })
@@ -431,7 +431,7 @@ export async function addItemNote(
   actor: WriteActor,
   input: NoteInput,
 ): Promise<{ id: string }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const body = input.body?.trim();
   if (!body) throw new InvalidInputError("order.error.note");
@@ -463,7 +463,7 @@ export async function addItemNote(
 }
 
 export async function removeItemNote(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const gone = await db
     .delete(planItemNotes)
@@ -587,7 +587,7 @@ export async function attachToItem(
   actor: WriteActor,
   input: { itemId: string; fileId: string; label?: string | null },
 ): Promise<{ id: string }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const [last] = await db
     .select({ at: sql<number>`coalesce(max(${planItemFiles.position}), -1)::int` })
@@ -621,7 +621,7 @@ export async function detachFromItem(
   actor: WriteActor,
   id: string,
 ): Promise<{ key: string } | null> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const [row] = await db
     .select({ fileId: planItemFiles.fileId, key: storedFiles.key })

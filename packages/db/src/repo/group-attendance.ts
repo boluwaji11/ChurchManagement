@@ -54,7 +54,7 @@ export async function canRecordFor(
   actor: { role: TenantRole; userId?: string | null },
   groupId: string,
 ): Promise<boolean> {
-  if (canManageGroups(actor.role)) return true;
+  if (canManageGroups(actor)) return true;
   if (actor.role !== "group_leader" && actor.role !== "team_leader") return false;
   if (!actor.userId) return false;
 

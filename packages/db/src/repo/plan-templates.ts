@@ -68,7 +68,7 @@ export async function saveAsTemplate(
   actor: WriteActor,
   input: { planId: string; name: string },
 ): Promise<{ id: string }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const name = checkName(input.name);
 
   const rows = await db
@@ -124,7 +124,7 @@ export async function renameTemplate(
   id: string,
   name: string,
 ): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const clean = checkName(name);
 
   const [clash] = await db
@@ -149,7 +149,7 @@ export async function renameTemplate(
  * The plans built from it are untouched.
  */
 export async function removeTemplate(db: Tx, actor: WriteActor, id: string): Promise<void> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const removed = await db
     .delete(planTemplates)
     .where(eq(planTemplates.id, id))
@@ -172,7 +172,7 @@ export async function applyTemplate(
   actor: WriteActor,
   input: { planId: string; templateId: string },
 ): Promise<{ added: number }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const rows = await db
     .select({
@@ -251,7 +251,7 @@ export async function copyPlan(
   actor: WriteActor,
   input: { planId: string; fromOccurrenceId: string },
 ): Promise<{ added: number }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "managePlans");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
 
   const [source] = await db
     .select({ id: servicePlans.id })

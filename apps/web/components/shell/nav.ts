@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
-  canLeadTeams, canManageChurch, canManageEvents, type TenantRole,
+  canLeadTeams, canManageChurch, canManageEvents, type Who,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import type { NavTarget } from "./nav-active";
@@ -29,7 +29,11 @@ export interface NavEntry extends NavTarget {
   icon: LucideIcon;
 }
 
-export function navFor(role: TenantRole): NavEntry[] {
+/**
+ * R1.6. Takes whoever is asking rather than their role's name, so somebody on a
+ * role their church wrote gets the screens that role was given.
+ */
+export function navFor(role: Who): NavEntry[] {
   const staff = canEditPeople(role) || canReadIncidents(role);
   const out: NavEntry[] = [];
 

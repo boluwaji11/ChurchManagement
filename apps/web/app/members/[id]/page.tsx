@@ -302,7 +302,7 @@ export default async function PersonPage({
                   church={session.tenantSlug}
                   memberId={person.id}
                   name={display}
-                  canConfidential={canReadConfidentialNotes(session.role)}
+                  canConfidential={canReadConfidentialNotes(session)}
                   trigger={
                     <Button variant="secondary" className="min-h-[30px] px-2.5 text-[13px]">
                       {t("person.addNote")}

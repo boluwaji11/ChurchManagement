@@ -366,7 +366,7 @@ export async function pendingRequests(
   db: Tx,
   actor: { role: TenantRole; userId?: string | null },
 ): Promise<JoinRequest[]> {
-  if (canManageGroups(actor.role)) {
+  if (canManageGroups(actor)) {
     return requestsWhere(db, eq(groupJoinRequests.status, "pending"));
   }
 

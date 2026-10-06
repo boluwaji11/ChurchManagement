@@ -155,7 +155,7 @@ export async function addRelationship(
   actor: WriteActor,
   input: RelationshipInput,
 ): Promise<RelationshipResult> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editRelationship");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editRelationship");
 
   const { memberId, relatedMemberId, kind } = input;
   if (memberId === relatedMemberId) throw new InvalidInputError("relationship.error.self");
@@ -233,8 +233,8 @@ export async function removeRelationship(
 
   const kind = row.kind as RelationshipKind;
   const permitted = kind === "do_not_contact"
-    ? canArchivePeople(actor.role)
-    : canEditPeople(actor.role);
+    ? canArchivePeople(actor)
+    : canEditPeople(actor);
   if (!permitted) {
     throw new PermissionError(
       actor.role,

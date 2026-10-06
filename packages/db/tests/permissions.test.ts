@@ -102,3 +102,28 @@ describe("the groups the screens read", () => {
     expect(new Set(listed).size).toBe(listed.length);
   });
 });
+
+describe("a role a church wrote itself", () => {
+  /*
+   * R1.6. Somebody on a custom role carries role "member" in the enum column
+   * and their real set beside it, so every guard has to read the whole actor.
+   * These assert the shape the repositories rely on.
+   */
+  const custom = { role: "member" as const, permissions: ["members.edit", "checkin.run"] as const };
+
+  it("grants what the church gave it", () => {
+    expect(can(custom, "members.edit")).toBe(true);
+    expect(can(custom, "checkin.run")).toBe(true);
+  });
+
+  it("grants nothing else", () => {
+    expect(can(custom, "members.archive")).toBe(false);
+    expect(can(custom, "church.manage")).toBe(false);
+    expect(can(custom, "giving.amounts")).toBe(false);
+  });
+
+  it("falls back to the matrix when the role carries no set of its own", () => {
+    expect(can({ role: "staff", permissions: null }, "members.edit")).toBe(true);
+    expect(can({ role: "member", permissions: null }, "members.edit")).toBe(false);
+  });
+});

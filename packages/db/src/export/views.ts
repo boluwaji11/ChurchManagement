@@ -272,7 +272,7 @@ export async function buildView(
   actor: { tenantId: string; role: TenantRole },
   key: string,
 ): Promise<string | null> {
-  if (!canArchivePeople(actor.role)) throw new PermissionError(actor.role, "exportEverything");
+  if (!canArchivePeople(actor)) throw new PermissionError(actor.role, "exportEverything");
 
   const view = VIEWS.find((one) => one.key === key);
   if (!view) return null;

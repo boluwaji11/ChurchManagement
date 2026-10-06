@@ -93,7 +93,7 @@ export async function createTag(
   actor: WriteActor,
   input: { name: string; hue?: TagHue },
 ): Promise<{ id: string; name: string; hue: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "createTag");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "createTag");
 
   const name = normaliseTagName(input.name);
   if (!name) throw new InvalidInputError("error.tagNameBlank");
@@ -123,7 +123,7 @@ export async function ensureTag(
   actor: WriteActor,
   rawName: string,
 ): Promise<{ id: string } | null> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "createTag");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "createTag");
 
   const name = normaliseTagName(rawName);
   if (!name) return null;
@@ -139,7 +139,7 @@ export async function ensureTag(
 }
 
 export async function renameTag(db: Tx, actor: WriteActor, id: string, rawName: string): Promise<void> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "renameTag");
+  if (!canManageTags(actor)) throw new PermissionError(actor.role, "renameTag");
 
   const name = normaliseTagName(rawName);
   if (!name) throw new InvalidInputError("error.tagNameBlank");
@@ -156,7 +156,7 @@ export async function renameTag(db: Tx, actor: WriteActor, id: string, rawName: 
 }
 
 export async function setTagHue(db: Tx, actor: WriteActor, id: string, hue: TagHue): Promise<void> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "recolourTag");
+  if (!canManageTags(actor)) throw new PermissionError(actor.role, "recolourTag");
 
   const changed = await db.update(tags).set({ hue }).where(eq(tags.id, id)).returning({ id: tags.id });
   if (changed.length === 0) throw new Error("No such tag.");
@@ -172,7 +172,7 @@ export async function setTagHue(db: Tx, actor: WriteActor, id: string, hue: TagH
  * label the church says it does not want. Nothing about a person is lost.
  */
 export async function deleteTag(db: Tx, actor: WriteActor, id: string): Promise<{ removedFrom: number }> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "deleteTag");
+  if (!canManageTags(actor)) throw new PermissionError(actor.role, "deleteTag");
 
   const [{ n } = { n: 0 }] = await db
     .select({ n: count() })
@@ -198,7 +198,7 @@ export async function mergeTags(
   actor: WriteActor,
   input: { fromId: string; intoId: string },
 ): Promise<{ moved: number }> {
-  if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "mergeTags");
+  if (!canManageTags(actor)) throw new PermissionError(actor.role, "mergeTags");
   if (input.fromId === input.intoId) throw new InvalidInputError("error.tagMergeSelf");
 
   const found = await db
@@ -225,7 +225,7 @@ export async function setPersonTag(
   tagId: string,
   on: boolean,
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "tagPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "tagPerson");
 
   if (!on) {
     await db
@@ -260,7 +260,7 @@ export async function bulkSetPersonTag(
   tagId: string,
   on: boolean,
 ): Promise<number> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "tagPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "tagPerson");
   if (personIds.length === 0) return 0;
 
   const [tag] = await db.select({ id: tags.id }).from(tags).where(eq(tags.id, tagId)).limit(1);

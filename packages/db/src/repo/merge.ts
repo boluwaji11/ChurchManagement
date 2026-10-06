@@ -139,7 +139,7 @@ export async function mergePeople(
 ): Promise<MergeResult> {
   // A merge can move every note and every giving record off one person and onto
   // another. That is archive-shaped work, not edit-shaped work.
-  if (!canArchivePeople(actor.role)) throw new PermissionError(actor.role, "mergePeople");
+  if (!canArchivePeople(actor)) throw new PermissionError(actor.role, "mergePeople");
   if (plan.winnerId === plan.loserId) throw new InvalidInputError("merge.error.samePerson");
 
   const winner = await getPersonForEdit(db, plan.winnerId);
@@ -326,7 +326,7 @@ export async function undoMerge(
   actor: { tenantId: string; role: TenantRole },
   mergeId: string,
 ): Promise<{ restoredRows: number }> {
-  if (!canArchivePeople(actor.role)) throw new PermissionError(actor.role, "mergePeople");
+  if (!canArchivePeople(actor)) throw new PermissionError(actor.role, "mergePeople");
 
   const [merge] = await db.select().from(personMerges).where(eq(personMerges.id, mergeId)).limit(1);
   if (!merge) throw new InvalidInputError("merge.error.notFound");

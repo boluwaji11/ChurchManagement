@@ -3,7 +3,7 @@ import { can, rolesWith, type TenantRole, type Who } from "./permissions";
 
 export {
   TENANT_ROLES, PERMISSIONS, PERMISSION_GROUPS, ROLE_PERMISSIONS, can, rolesWith,
-  type TenantRole, type Permission, type PermissionGroup,
+  type TenantRole, type Permission, type PermissionGroup, type Who,
 } from "./permissions";
 
 /**

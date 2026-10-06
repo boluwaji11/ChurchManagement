@@ -99,7 +99,7 @@ export class ScheduleConflictError extends Error {
 }
 
 async function mayScheduleFor(db: Tx, actor: WriteActor, teamId: string): Promise<void> {
-  if (canManageTeams(actor.role)) return;
+  if (canManageTeams(actor)) return;
   if (actor.role === "team_leader" && actor.userId && await leadsTeam(db, teamId, actor.userId)) {
     return;
   }

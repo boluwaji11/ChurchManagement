@@ -92,7 +92,7 @@ export async function fileIncident(
   actor: WriteActor,
   input: IncidentInput,
 ): Promise<Incident> {
-  if (!canFileIncident(actor.role)) throw new PermissionError(actor.role, "fileIncident");
+  if (!canFileIncident(actor)) throw new PermissionError(actor.role, "fileIncident");
 
   const description = clean(input.description);
   const action = clean(input.action);
@@ -156,7 +156,7 @@ export async function markGuardianNotified(
   id: string,
   userId?: string | null,
 ): Promise<Incident> {
-  if (!canReadIncidents(actor.role)) throw new PermissionError(actor.role, "readIncidents");
+  if (!canReadIncidents(actor)) throw new PermissionError(actor.role, "readIncidents");
 
   const updated = await db
     .update(incidentReports)
@@ -251,7 +251,7 @@ export async function listIncidents(
   actor: { role: TenantRole },
   opts: { memberId?: string } = {},
 ): Promise<Incident[]> {
-  if (!canReadIncidents(actor.role)) throw new PermissionError(actor.role, "readIncidents");
+  if (!canReadIncidents(actor)) throw new PermissionError(actor.role, "readIncidents");
   return incidentsWhere(
     db,
     opts.memberId
@@ -265,7 +265,7 @@ export async function unnotifiedCount(
   db: Tx,
   actor: { role: TenantRole },
 ): Promise<number> {
-  if (!canReadIncidents(actor.role)) throw new PermissionError(actor.role, "readIncidents");
+  if (!canReadIncidents(actor)) throw new PermissionError(actor.role, "readIncidents");
   const [row] = await db
     .select({ n: sql<string>`count(*)` })
     .from(incidentReports)

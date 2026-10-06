@@ -94,7 +94,7 @@ export async function checkInFamily(
     entries: CheckinEntry[];
   },
 ): Promise<Visit[]> {
-  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canCheckIn(actor)) throw new PermissionError(actor.role, "checkIn");
   if (input.entries.length === 0) return [];
 
   const [occurrence] = await db
@@ -253,7 +253,7 @@ export async function undoCheckIn(
   occurrenceId: string,
   memberId: string,
 ): Promise<void> {
-  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canCheckIn(actor)) throw new PermissionError(actor.role, "checkIn");
 
   const removed = await db
     .delete(checkinVisits)
@@ -348,7 +348,7 @@ export async function labelsFor(
   personIds: string[],
   churchName: string,
 ): Promise<LabelPair[]> {
-  if (!canCheckIn(actor.role)) throw new PermissionError(actor.role, "checkIn");
+  if (!canCheckIn(actor)) throw new PermissionError(actor.role, "checkIn");
   if (personIds.length === 0) return [];
 
   const rows = await db

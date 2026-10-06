@@ -159,7 +159,7 @@ export async function forgetFile(
   actor: WriteActor,
   key: string,
 ): Promise<{ key: string } | null> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const [row] = await db
     .delete(storedFiles)
@@ -174,7 +174,7 @@ export async function setChurchLogo(
   actor: WriteActor,
   key: string | null,
 ): Promise<{ removed: string | null }> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const [before] = await db
     .select({ logoKey: tenants.logoKey })

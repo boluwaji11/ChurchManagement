@@ -62,7 +62,7 @@ export async function setCustomDomain(
   actor: WriteActor,
   input: { domain: string | null },
 ): Promise<string | null> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const bare = input.domain?.trim() ? cleanDomain(input.domain) : null;
   if (input.domain?.trim() && !bare) throw new InvalidInputError("domain.error.shape");

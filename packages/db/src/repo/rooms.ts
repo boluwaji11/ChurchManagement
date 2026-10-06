@@ -145,7 +145,7 @@ async function nameTaken(db: Tx, name: string, exceptId?: string): Promise<strin
 }
 
 export async function addRoom(db: Tx, actor: WriteActor, input: RoomInput): Promise<Room> {
-  if (!canManageRooms(actor.role)) throw new PermissionError(actor.role, "manageRooms");
+  if (!canManageRooms(actor)) throw new PermissionError(actor.role, "manageRooms");
   const values = check(input);
   const clash = await nameTaken(db, values.name);
   if (clash) throw new NameTakenError("room.error.taken", values.name, clash);
@@ -167,7 +167,7 @@ export async function updateRoom(
   id: string,
   input: RoomInput,
 ): Promise<Room> {
-  if (!canManageRooms(actor.role)) throw new PermissionError(actor.role, "manageRooms");
+  if (!canManageRooms(actor)) throw new PermissionError(actor.role, "manageRooms");
   const values = check(input);
   const clash = await nameTaken(db, values.name, id);
   if (clash) throw new NameTakenError("room.error.taken", values.name, clash);
@@ -192,7 +192,7 @@ export async function setRoomArchived(
   id: string,
   archived: boolean,
 ): Promise<Room> {
-  if (!canManageRooms(actor.role)) throw new PermissionError(actor.role, "manageRooms");
+  if (!canManageRooms(actor)) throw new PermissionError(actor.role, "manageRooms");
   const [row] = await db
     .update(checkinRooms)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
@@ -204,7 +204,7 @@ export async function setRoomArchived(
 
 /** Drag order, applied in one statement so a half-applied order cannot happen. */
 export async function orderRooms(db: Tx, actor: WriteActor, ids: string[]): Promise<void> {
-  if (!canManageRooms(actor.role)) throw new PermissionError(actor.role, "manageRooms");
+  if (!canManageRooms(actor)) throw new PermissionError(actor.role, "manageRooms");
   if (ids.length === 0) return;
   for (const [position, id] of ids.entries()) {
     await db

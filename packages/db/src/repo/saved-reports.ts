@@ -1,5 +1,6 @@
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
+import type { Permission } from "../permissions";
 import { savedReports } from "../schema/reports";
 import { InvalidInputError, NameTakenError } from "../errors";
 import { PermissionError, canEditPeople, type TenantRole } from "../roles";
@@ -29,10 +30,10 @@ interface Actor {
   tenantId: string;
   role: TenantRole;
   userId?: string | null;
-  permissions?: unknown;
+  permissions?: readonly Permission[] | null;
 }
 
-const mayRead = (actor: Actor) => canEditPeople(actor.role) || canReadIncidents(actor.role);
+const mayRead = (actor: Actor) => canEditPeople(actor) || canReadIncidents(actor);
 
 const clean = (name: string): string => name.trim().replace(/\s+/g, " ");
 

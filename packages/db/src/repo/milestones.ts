@@ -114,7 +114,7 @@ export async function addMilestone(
   actor: WriteActor,
   input: MilestoneInput,
 ): Promise<MilestoneResult> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "addMilestone");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "addMilestone");
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.occurredOn)) {
     throw new InvalidInputError("milestone.error.date");
@@ -190,7 +190,7 @@ export async function removeMilestone(
   actor: WriteActor,
   id: string,
 ): Promise<{ removed: number }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "removeMilestone");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "removeMilestone");
 
   const gone = await db
     .delete(milestones)

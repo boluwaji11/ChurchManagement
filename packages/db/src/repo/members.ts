@@ -460,7 +460,7 @@ async function freePersonSlug(
  * how the row gets one at all.
  */
 export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput): Promise<{ id: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "addPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "addPerson");
   // R1.1. A church nobody has looked at yet holds a congregation's worth of
   // nothing. Checked here rather than on a screen, because an import adds four
   // hundred at once and a screen is not where that happens.
@@ -510,7 +510,7 @@ export async function updatePerson(
   id: string,
   input: PersonInput,
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const changed = await db
     .update(members)
@@ -554,7 +554,7 @@ export async function setPersonArchived(
   id: string,
   archived: boolean,
 ): Promise<void> {
-  if (!canArchivePeople(actor.role)) {
+  if (!canArchivePeople(actor)) {
     throw new PermissionError(actor.role, archived ? "archivePerson" : "restorePerson");
   }
 
@@ -870,7 +870,7 @@ export async function bulkSetArchived(
   ids: string[],
   archived: boolean,
 ): Promise<number> {
-  if (!canArchivePeople(actor.role)) {
+  if (!canArchivePeople(actor)) {
     throw new PermissionError(actor.role, archived ? "archivePerson" : "restorePerson");
   }
   if (ids.length === 0) return 0;
@@ -890,7 +890,7 @@ export async function bulkSetStatus(
   ids: string[],
   status: LifecycleStatus,
 ): Promise<number> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
   if (ids.length === 0) return 0;
 
   const changed = await db

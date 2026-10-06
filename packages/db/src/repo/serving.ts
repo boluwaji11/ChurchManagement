@@ -328,7 +328,7 @@ export async function leadsTeam(db: Tx, teamId: string, userId: string): Promise
 }
 
 export async function createTeam(db: Tx, actor: WriteActor, input: TeamInput): Promise<TeamDetail> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
   const values = checkTeam(input);
 
   const [taken] = await db
@@ -368,7 +368,7 @@ export async function updateTeam(
   id: string,
   input: TeamInput,
 ): Promise<TeamDetail> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
   const values = checkTeam(input);
 
   const [taken] = await db
@@ -402,7 +402,7 @@ export async function setTeamArchived(
   id: string,
   archived: boolean,
 ): Promise<void> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
 
   const changed = await db
     .update(teams)
@@ -427,7 +427,7 @@ export async function addPosition(
   actor: WriteActor,
   input: PositionInput,
 ): Promise<Position> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
   const { name, needed } = checkPosition(input);
 
   const [taken] = await db
@@ -485,7 +485,7 @@ export async function updatePosition(
   id: string,
   input: PositionInput,
 ): Promise<void> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
   const { name, needed } = checkPosition(input);
 
   const [taken] = await db
@@ -526,7 +526,7 @@ export async function setPositionArchived(
   id: string,
   archived: boolean,
 ): Promise<void> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
 
   const changed = await db
     .update(teamPositions)
@@ -547,7 +547,7 @@ export async function reorderPositions(
   teamId: string,
   ids: string[],
 ): Promise<void> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
 
   for (const [index, id] of ids.entries()) {
     await db
@@ -567,7 +567,7 @@ export interface RosterInput {
 }
 
 async function requireRoster(db: Tx, actor: WriteActor, teamId: string): Promise<void> {
-  if (canManageTeams(actor.role)) return;
+  if (canManageTeams(actor)) return;
   if (actor.role === "team_leader" && actor.userId && await leadsTeam(db, teamId, actor.userId)) {
     return;
   }
@@ -784,7 +784,7 @@ export const SEED_TEAMS: readonly {
 ];
 
 export async function seedTeams(db: Tx, actor: WriteActor): Promise<number> {
-  if (!canManageTeams(actor.role)) throw new PermissionError(actor.role, "manageTeams");
+  if (!canManageTeams(actor)) throw new PermissionError(actor.role, "manageTeams");
 
   const existing = await db.select({ id: teams.id }).from(teams).limit(1);
   if (existing.length > 0) return 0;

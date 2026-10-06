@@ -98,7 +98,7 @@ async function insert(
   actor: WriteActor,
   input: { name: string; kind: "static" | "rule"; rule?: ListRule | null },
 ): Promise<{ id: string }> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const name = clean(input.name);
   if (!name) throw new InvalidInputError("lists.error.name");
@@ -150,7 +150,7 @@ export async function renameList(
   actor: WriteActor,
   input: { id: string; name: string },
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const name = clean(input.name);
   if (!name) throw new InvalidInputError("lists.error.name");
@@ -174,7 +174,7 @@ export async function setListArchived(
   actor: WriteActor,
   input: { id: string; archived: boolean },
 ): Promise<void> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
   await db
     .update(savedLists)
     .set({ archivedAt: input.archived ? new Date() : null, updatedAt: new Date() })
@@ -187,7 +187,7 @@ export async function addToList(
   actor: WriteActor,
   input: { listId: string; personIds: string[] },
 ): Promise<number> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const [list] = await db
     .select({ id: savedLists.id, kind: savedLists.kind })
@@ -223,7 +223,7 @@ export async function removeFromList(
   actor: WriteActor,
   input: { listId: string; personIds: string[] },
 ): Promise<number> {
-  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "editPerson");
+  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const ids = [...new Set(input.personIds)].filter(Boolean);
   if (ids.length === 0) return 0;

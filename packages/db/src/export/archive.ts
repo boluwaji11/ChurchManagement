@@ -124,7 +124,7 @@ export async function buildArchive(
 ): Promise<Archive> {
   // Exporting hands over every record the church holds in one file. That is the
   // point, and it is also why it is not something any role can do unprompted.
-  if (!canArchivePeople(actor.role)) throw new PermissionError(actor.role, "exportEverything");
+  if (!canArchivePeople(actor)) throw new PermissionError(actor.role, "exportEverything");
 
   const data: Record<string, Record<string, unknown>[]> = {};
   const counts: Record<string, number> = {};

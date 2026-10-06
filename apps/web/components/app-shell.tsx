@@ -99,7 +99,7 @@ export async function AppShell({
     logoUrl = signed.data?.signedUrl ?? null;
   }
 
-  const entries: ShellEntry[] = navFor(session.role).map(({ icon: Icon, ...rest }) => ({
+  const entries: ShellEntry[] = navFor(session).map(({ icon: Icon, ...rest }) => ({
     ...rest,
     icon: <Icon aria-hidden />,
   }));

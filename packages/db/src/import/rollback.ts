@@ -120,7 +120,7 @@ export async function rollbackImport(
 ): Promise<RollbackResult> {
   // Rolling back can remove hundreds of members at once, so it sits with the
   // roles that may archive rather than with the roles that may edit.
-  if (!canArchivePeople(actor.role)) throw new PermissionError(actor.role, "rollbackImport");
+  if (!canArchivePeople(actor)) throw new PermissionError(actor.role, "rollbackImport");
 
   const [batch] = await db.select().from(importBatches).where(eq(importBatches.id, batchId)).limit(1);
   if (!batch) throw new InvalidInputError("error.notFound.import");

@@ -344,7 +344,7 @@ export async function createEvent(
   actor: WriteActor,
   input: EventInput,
 ): Promise<{ id: string; slug: string }> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
   const values = check(input);
 
   const [row] = await db
@@ -364,7 +364,7 @@ export async function updateEvent(
   id: string,
   input: EventInput,
 ): Promise<void> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
   const values = check(input);
 
   const changed = await db
@@ -393,7 +393,7 @@ export async function setEventStatus(
   id: string,
   status: EventStatus,
 ): Promise<void> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
 
   /*
    * R14.2. Publishing clears whatever the church took while trying its own
@@ -428,7 +428,7 @@ export async function setEventRegistrationOpen(
   id: string,
   open: boolean,
 ): Promise<void> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
 
   const changed = await db
     .update(events)
@@ -444,7 +444,7 @@ export async function setEventHue(
   id: string,
   value: string,
 ): Promise<void> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
   if (!EVENT_HUES.includes(value as EventHue)) throw new InvalidInputError("event.error.hue");
 
   await db
@@ -460,7 +460,7 @@ export async function setEventCover(
   id: string,
   key: string | null,
 ): Promise<{ removed: string | null }> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
 
   const [row] = await db
     .select({ coverKey: events.coverKey })
@@ -485,7 +485,7 @@ export async function setEventArchived(
   id: string,
   archived: boolean,
 ): Promise<void> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
 
   const changed = await db
     .update(events)
@@ -519,7 +519,7 @@ export async function ensureEventForm(
   actor: WriteActor,
   eventId: string,
 ): Promise<{ id: string }> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
 
   const found = await getEvent(db, eventId);
   if (!found) throw new InvalidInputError("event.error.missing");
@@ -560,7 +560,7 @@ export async function setEventForm(
   eventId: string,
   formId: string | null,
 ): Promise<void> {
-  if (!canManageEvents(actor.role)) throw new PermissionError(actor.role, "manageEvents");
+  if (!canManageEvents(actor)) throw new PermissionError(actor.role, "manageEvents");
 
   if (formId) {
     const [found] = await db

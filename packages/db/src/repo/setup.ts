@@ -106,7 +106,7 @@ export async function skipSetupStep(
   step: SetupStep,
   skip = true,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   const [church] = await db
     .select({ skipped: tenants.setupSkipped })
@@ -130,7 +130,7 @@ export async function dismissSetup(
   actor: { tenantId: string; role: TenantRole },
   dismissed = true,
 ): Promise<void> {
-  if (!canManageChurch(actor.role)) throw new PermissionError(actor.role, "editChurch");
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
   await db
     .update(tenants)
     .set({ setupDismissedAt: dismissed ? new Date() : null, updatedAt: new Date() })

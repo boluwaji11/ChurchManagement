@@ -138,7 +138,7 @@ export async function setPresent(
   memberId: string,
   present: boolean,
 ): Promise<{ present: boolean }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "recordAttendance");
   await assertRecordable(db, occurrenceId);
 
   if (present) {
@@ -167,7 +167,7 @@ export async function setPresentMany(
   personIds: string[],
   present: boolean,
 ): Promise<{ changed: number }> {
-  if (!canManageServices(actor.role)) throw new PermissionError(actor.role, "recordAttendance");
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "recordAttendance");
   if (personIds.length === 0) return { changed: 0 };
   await assertRecordable(db, occurrenceId);
 
