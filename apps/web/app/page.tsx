@@ -77,9 +77,6 @@ const PURPOSE_ART: Piece[] = [
   { name: "gathering", side: "right", y: 55, size: 250, inset: 4 },
 ];
 
-const WHY_ART: Piece[] = [
-  { name: "records", side: "right", y: 52, size: 240, inset: 32 },
-];
 
 const PRICE_ART: Piece[] = [
   { name: "giving", side: "left", y: 56, size: 230, inset: 24 },
@@ -148,20 +145,24 @@ export default function Site() {
             and before the product rather than after: a church is deciding who
             to trust with its records, and the reason a thing is free is the
             first question anybody sensible asks. */}
-        <section id="why" className="relative border-t border-line">
-          <Art pieces={WHY_ART} />
-          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-6 py-16">
+        <section id="why" className="border-t border-line">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-6 py-16">
             <div className="flex max-w-[640px] flex-col gap-3">
               <Eyebrow>{t("site.why.eyebrow")}</Eyebrow>
               <SectionTitle>{t("site.why.title")}</SectionTitle>
             </div>
 
-            <div className="flex max-w-[840px] flex-wrap items-start gap-x-14 gap-y-6">
-              <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-5 text-[17px] leading-[28px] text-fg-muted">
-                <p className="m-0">{t("site.why.hours")}</p>
-                <p className="m-0">{t("site.why.cost")}</p>
-              </div>
-              <p className="m-0 min-w-0 flex-[1_1_360px] text-[17px] leading-[28px] text-fg-muted">
+            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-8">
+              <p className="m-0 min-w-0 flex-[1_1_300px] text-[17px] leading-[28px] text-fg-muted">
+                {t("site.why.hours")}
+              </p>
+              <img
+                src="/art/connecting.svg"
+                alt=""
+                aria-hidden
+                className="hidden w-[280px] shrink-0 lg:block"
+              />
+              <p className="m-0 min-w-0 flex-[1_1_300px] text-[17px] leading-[28px] text-fg-muted">
                 {t("site.why.ours")}
               </p>
             </div>
