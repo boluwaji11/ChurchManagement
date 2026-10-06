@@ -138,6 +138,18 @@ export function markdownToHtml(markdown: string): string {
 
     // An empty line, or one holding nothing but marks that lost their pair.
     if (line.trim() === "" || /^[*_\s]+$/.test(line)) {
+      /*
+       * A blank line somebody typed between two paragraphs is a blank line they
+       * want to see again. The blank lines around a list are the writer's own
+       * punctuation, so they are left out: a list that gained a gap above it
+       * every time the panel opened would walk down the page.
+       */
+      const listish = (one?: string) =>
+        !!one && (/^\s*[-*]\s+/.test(one) || /^\s*\d+\.\s+/.test(one));
+      const next = lines.slice(i + 1).find((one) => one.trim() !== "");
+      if (out[out.length - 1]?.startsWith("<div") && next && !listish(next)) {
+        out.push("<div><br></div>");
+      }
       i += 1;
       continue;
     }
