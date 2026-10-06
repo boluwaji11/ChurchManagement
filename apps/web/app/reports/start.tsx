@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
-  Button, Dialog, DialogContent, DialogFooter, Field, Input,
+  Button, Sheet, SheetContent, Field, Input,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { startReport } from "./build/actions";
@@ -44,8 +44,21 @@ export function StartReport({ church }: { church: string }) {
         <Plus /> {t("report.build")}
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent title={t("report.build")} closeLabel={t("action.cancel")}>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          title={t("report.build")}
+          closeLabel={t("action.cancel")}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                {t("action.cancel")}
+              </Button>
+              <Button loading={working} disabled={!name.trim()} onClick={go}>
+                {t("report.start")}
+              </Button>
+            </>
+          }
+        >
           <Field label={t("report.name")} required error={error ?? undefined}>
             <Input
               value={name}
@@ -56,16 +69,8 @@ export function StartReport({ church }: { church: string }) {
             />
           </Field>
 
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button loading={working} disabled={!name.trim()} onClick={go}>
-              {t("report.start")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { FilePlus2, Plus } from "lucide-react";
 import {
-  Button, Dialog, DialogTrigger, DialogContent, LIFT,
+  Button, Sheet, SheetTrigger, SheetContent, LIFT,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { FORM_TEMPLATES } from "@connectapp/db/rules";
@@ -33,14 +33,14 @@ export function NewFormButton({ church }: { church: string }) {
     });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button type="button">
           <Plus /> {t("form.new")}
         </Button>
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent title={t("form.start")} closeLabel={t("common.close")}>
+      <SheetContent title={t("form.start")} closeLabel={t("common.close")} width="560px">
         <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
           <button
             type="button"
@@ -72,7 +72,7 @@ export function NewFormButton({ church }: { church: string }) {
             </button>
           ))}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

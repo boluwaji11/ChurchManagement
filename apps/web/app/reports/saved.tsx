@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { EllipsisVertical, Table2 } from "lucide-react";
 import {
   Button, Field, IconButton, Input, Dialog, DialogContent, DialogFooter,
+  Sheet, SheetContent,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@connectapp/ui";
@@ -101,16 +102,12 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
         ))}
       </div>
 
-      <Dialog open={naming !== null} onOpenChange={(open) => { if (!open) setNaming(null); }}>
-        <DialogContent title={t("report.rename")} closeLabel={t("action.cancel")}>
-          <Field label={t("report.name")} required>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
-          </Field>
-          <DialogFooter>
+      <Sheet open={naming !== null} onOpenChange={(open) => { if (!open) setNaming(null); }}>
+        <SheetContent
+          title={t("report.rename")}
+          closeLabel={t("action.cancel")}
+          footer={
+            <>
             <Button variant="secondary" onClick={() => setNaming(null)}>
               {t("action.cancel")}
             </Button>
@@ -133,9 +130,18 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
             >
               {t("action.save")}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </>
+          }
+        >
+          <Field label={t("report.name")} required>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </Field>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={asking !== null} onOpenChange={(open) => { if (!open) setAsking(null); }}>
         <DialogContent title={asking ? t("report.archiveAsk", { name: asking.name }) : ""}>

@@ -9,6 +9,7 @@ import {
 import {
   Banner, Button, Field, IconButton, Input, Separator, Textarea, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -417,9 +418,9 @@ function ItemDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent title={item ? item.title : t("order.add")} closeLabel={t("common.close")}>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent title={item ? item.title : t("order.add")} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
           {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
 
@@ -473,8 +474,8 @@ function ItemDialog({
               <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -857,13 +858,13 @@ function TemplateDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button variant="ghost" disabled={empty}>
           <LayoutList /> {t("order.template.save")}
         </Button>
-      </DialogTrigger>
-      <DialogContent title={t("order.template.save")} closeLabel={t("common.close")}>
+      </SheetTrigger>
+      <SheetContent title={t("order.template.save")} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4" aria-busy={pending}>
           {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
 
@@ -962,7 +963,7 @@ function TemplateDialog({
             </>
           ) : null}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

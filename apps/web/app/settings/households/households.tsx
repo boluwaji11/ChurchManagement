@@ -7,6 +7,7 @@ import { Archive, Merge, Plus, Undo2, X } from "lucide-react";
 import {
   Avatar, Banner, Button, Field, IconButton, Input,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   LIFT,
 } from "@connectapp/ui";
@@ -205,10 +206,10 @@ function EditHousehold({
 
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
 
-      <DialogContent title={household.name} closeLabel={t("common.close")} className="max-w-xl">
+      <SheetContent title={household.name} closeLabel={t("common.close")} width="560px">
         <div className="flex flex-col gap-5">
           <Field label={t("households.name")} required>
             <Input
@@ -230,8 +231,8 @@ function EditHousehold({
             run={run}
           />
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
