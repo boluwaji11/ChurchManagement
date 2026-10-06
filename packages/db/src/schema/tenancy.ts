@@ -63,14 +63,16 @@ export const tenants = pgTable(
     setupDismissedAt: timestamp("setup_dismissed_at", { withTimezone: true }),
     setupSkipped: text("setup_skipped").array(),
     /**
-     * R1.7. The code a church hands its congregation so they can get an account.
+     * R1.7, R22.1. Whether somebody can make an account from the church's own
+     * address.
      *
-     * A code rather than the slug, because a slug is a guess and this is the
-     * only thing standing between a stranger and the church's waiting list.
-     * Null means joining is switched off. It can be rotated, which makes every
-     * printed card stop working, which is the point of rotating it.
+     * This replaced a join code. A code was a shared password: it never
+     * expired, it was used any number of times, and anybody who had ever seen
+     * it had a way in forever. The church is named by the URL now, so there is
+     * nothing to leak and nothing to rotate. Off means the door is shut and
+     * invitations are the only way in.
      */
-    joinCode: text("join_code"),
+    selfSignup: boolean("self_signup").notNull().default(true),
     /**
      * R1.1, R17.1. The church's own address for its members' screens.
      *
@@ -113,7 +115,7 @@ export const tenants = pgTable(
     createdAt: created(),
     updatedAt: updated(),
   },
-  (t) => [uniqueIndex("tenants_slug_key").on(t.slug), uniqueIndex("tenants_join_code_key").on(t.joinCode)],
+  (t) => [uniqueIndex("tenants_slug_key").on(t.slug)],
 );
 
 /**

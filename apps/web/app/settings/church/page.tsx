@@ -4,7 +4,6 @@ import {
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { headers } from "next/headers";
-import { formatJoinCode } from "@connectapp/db";
 import { ChurchSections } from "./sections";
 import { OnYourSite } from "./on-your-site";
 import { ChurchLogo } from "../logo";
@@ -69,7 +68,7 @@ export default async function SettingsPage({
           <OnYourSite
             origin={origin}
             slug={session.tenantSlug}
-            joinCode={profile?.joinCode ? formatJoinCode(profile.joinCode) : null}
+            selfSignup={profile?.selfSignup ?? false}
             domain={profile?.customDomain ?? null}
             appHost={host}
           />

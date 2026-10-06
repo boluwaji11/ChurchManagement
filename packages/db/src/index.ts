@@ -128,8 +128,7 @@ export {
   type Membership, type TeamMember, type PendingInvitation,
 } from "./repo/membership";
 export {
-  churchForJoinCode, joinWithCode, rotateJoinCode, closeJoining,
-  normaliseJoinCode, formatJoinCode,
+  churchForSelfSignup, joinChurch, setSelfSignup,
   type JoinTarget, type JoinOutcome,
 } from "./repo/joining";
 export { readSheet, readImportFile, parseDelimited, detectDelimiter, type Sheet } from "./import/csv";

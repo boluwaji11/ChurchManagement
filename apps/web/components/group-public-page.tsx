@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { PublicChurch, PublicGroup } from "@connectapp/db";
@@ -100,11 +99,13 @@ export function GroupPublicPage({
               account presses this and ends up in it: the address behind it
               creates the account, puts them in the church and asks the leader. */}
           {group.openToJoin && !group.full ? (
-            <Button asChild className="min-h-12 self-start px-6 text-[16px]">
-              <Link href={`/g/${church.slug}/${group.slug}/join`}>
+            // A form, because joining writes. A link would make opening the
+            // address the whole transaction.
+            <form method="post" action={`/g/${church.slug}/${group.slug}/join`} className="self-start">
+              <Button type="submit" className="min-h-12 px-6 text-[16px]">
                 {t("publicGroups.join")}
-              </Link>
-            </Button>
+              </Button>
+            </form>
           ) : group.full ? (
             <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("find.full")}</p>
           ) : null}

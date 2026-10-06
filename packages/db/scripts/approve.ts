@@ -66,7 +66,7 @@ async function approve(slug: string, by: string): Promise<void> {
 async function revoke(slug: string): Promise<void> {
   const rows = await withAuditTriggersOff((sql) => sql<{ name: string }[]>`
     update tenants
-       set approved_at = null, approved_by = null, join_code = null
+       set approved_at = null, approved_by = null, self_signup = false
      where slug = ${slug}
     returning name`);
 

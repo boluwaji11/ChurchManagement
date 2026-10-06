@@ -1,15 +1,18 @@
 /**
  * R1.7, R22.1. How somebody who is not staff gets an account.
  *
- * The order is church, then members, then accounts. A church exists first. People
- * are records the church made, by import, by a form, at a check-in desk or by
- * hand. An account claims one of those records, and the proof is an address the
- * church already wrote down.
+ * The order is church, then members, then accounts. A church exists first.
+ * People are records the church made, by import, by a form, at a check-in desk
+ * or by hand. An account claims one of those records, and the proof is an
+ * address the church already wrote down.
  *
- * The code is the gate. Somebody holding it was given it by the church, so they
- * come straight in and nobody is asked to approve anything. The only question
- * left is which record they get: the one the church already has under that
- * address, or a new one written the moment they arrive.
+ * The church is named by the address they arrived at, so there is nothing to
+ * type and nothing to leak. A church that has its door open lets somebody in
+ * and nobody is asked to approve anything; the control is the switch and the
+ * cap on a provisional church, which is the argument that was settled once
+ * already in provisional.ts. The only question left is which record they get:
+ * the one the church already has under that address, or a new one written the
+ * moment they arrive.
  *
  * Everything here before the membership exists runs on the owner connection, as
  * the rest of membership.ts does. There is no tenant context to set for somebody
@@ -20,85 +23,55 @@ import { InvalidInputError } from "../errors";
 import { PermissionError, type TenantRole } from "../roles";
 import { canManageChurch } from "./church";
 
-/**
- * No O, I, L, 0 or 1. The code is read off a printed card by somebody who left
- * their glasses at home, and those five are where that goes wrong.
- */
-const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-const CODE_LENGTH = 8;
-
-/** Uppercase, letters and digits only, so "river-4x2k" and "RIVER 4X2K" both work. */
-export function normaliseJoinCode(input: string): string {
-  return input.toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-/** Written as two groups of four, which is how a person reads a code aloud. */
-export function formatJoinCode(code: string): string {
-  return `${code.slice(0, 4)}-${code.slice(4)}`;
-}
-
-function newCode(): string {
-  const bytes = new Uint8Array(CODE_LENGTH);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join("");
-}
-
 export interface JoinTarget {
   tenantId: string;
   slug: string;
   name: string;
 }
 
-/** The church a code belongs to, or null. Runs before anybody is anybody. */
-export async function churchForJoinCode(code: string): Promise<JoinTarget | null> {
-  const value = normaliseJoinCode(code);
-  if (value.length !== CODE_LENGTH) return null;
+/**
+ * The church behind a public address, where that church is open to it.
+ *
+ * Runs before anybody is anybody. A church nobody has looked at yet has no
+ * public door, and a demo church is nobody's.
+ */
+export async function churchForSelfSignup(slug: string): Promise<JoinTarget | null> {
+  const value = slug.trim().toLowerCase();
+  if (!value) return null;
 
   const sql = owner();
   const rows = await sql<JoinTarget[]>`
     select id as "tenantId", slug, name from tenants
-    where join_code = ${value}
+    where slug = ${value}
+      and self_signup
       and demo_expires_at is null
-      -- R1.1. A church nobody has looked at yet has no public door.
       and approved_at is not null
     limit 1`;
   return rows[0] ?? null;
 }
 
-/** R1.7. The code a church hands out. Rotating it stops every card already printed. */
-export async function rotateJoinCode(
+/** R1.7. Opening or shutting the church's own door. */
+export async function setSelfSignup(
   tenantId: string,
   role: TenantRole,
-): Promise<string> {
+  open: boolean,
+): Promise<void> {
   if (!canManageChurch(role)) throw new PermissionError(role, "editChurch");
 
   const sql = owner();
 
   /*
    * R1.1. A church nobody has looked at yet does not get a door to the public.
-   * Handing out a link is the one thing a church cannot undo, and it is the one
-   * thing worth having for somebody who is not a church.
+   * Opening one is the thing a church cannot undo, and it is the thing worth
+   * having for somebody who is not a church.
    */
-  const [standing] = await sql<{ approved: boolean }[]>`
-    select approved_at is not null as approved from tenants where id = ${tenantId}`;
-  if (!standing?.approved) throw new InvalidInputError("provisional.error.locked");
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const code = newCode();
-    const rows = await sql<{ join_code: string }[]>`
-      update tenants set join_code = ${code}
-      where id = ${tenantId}
-        and not exists (select 1 from tenants where join_code = ${code})
-      returning join_code`;
-    if (rows[0]) return rows[0].join_code;
+  if (open) {
+    const [standing] = await sql<{ approved: boolean }[]>`
+      select approved_at is not null as approved from tenants where id = ${tenantId}`;
+    if (!standing?.approved) throw new InvalidInputError("provisional.error.locked");
   }
-  throw new Error("Could not find an unused join code.");
-}
 
-/** Switching joining off. Every card stops working and nothing else changes. */
-export async function closeJoining(tenantId: string, role: TenantRole): Promise<void> {
-  if (!canManageChurch(role)) throw new PermissionError(role, "editChurch");
-  const sql = owner();
-  await sql`update tenants set join_code = null where id = ${tenantId}`;
+  await sql`update tenants set self_signup = ${open} where id = ${tenantId}`;
 }
 
 export type JoinOutcome =
@@ -118,14 +91,21 @@ export type JoinOutcome =
  * mailbox or a mistake. Both cases get their own new record instead, which the
  * church merges (R2.8) if it turns out to be the same person.
  */
-export async function joinWithCode(input: {
-  code: string;
-  user: { id: string; email: string; fullName?: string | null; emailVerified: boolean };
+export async function joinChurch(input: {
+  slug: string;
+  user: {
+    id: string;
+    email: string;
+    fullName?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    emailVerified: boolean;
+  };
 }): Promise<JoinOutcome> {
   if (!input.user.emailVerified) throw new InvalidInputError("error.emailUnverified");
 
-  const target = await churchForJoinCode(input.code);
-  if (!target) throw new InvalidInputError("join.error.code");
+  const target = await churchForSelfSignup(input.slug);
+  if (!target) throw new InvalidInputError("join.error.shut");
 
   const email = input.user.email.trim().toLowerCase();
   const fullName = input.user.fullName?.trim() || null;
@@ -174,7 +154,7 @@ export async function joinWithCode(input: {
 
     // Nothing under that address, so the church has a new visitor, written from
     // what they typed when they made the account.
-    const [name] = splitName(fullName, email);
+    const name = nameFor(input.user, email);
     const [person] = await tx<{ id: string }[]>`
       insert into members (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
       values (${target.tenantId},
@@ -193,10 +173,20 @@ export async function joinWithCode(input: {
   }) as Promise<JoinOutcome>;
 }
 
-/** A name to put on a record, from whatever they typed when they signed up. */
-function splitName(fullName: string | null, email: string): [{ first: string; last: string }] {
-  const parts = (fullName ?? "").split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return [{ first: parts[0]!, last: parts.slice(1).join(" ") }];
-  if (parts.length === 1) return [{ first: parts[0]!, last: "" }];
-  return [{ first: email.split("@")[0] ?? email, last: "" }];
+/**
+ * A name to put on a record. Sign-up asks for the two separately, so the split
+ * is only there for an account made before it did.
+ */
+function nameFor(
+  user: { fullName?: string | null; firstName?: string | null; lastName?: string | null },
+  email: string,
+): { first: string; last: string } {
+  const first = user.firstName?.trim();
+  const last = user.lastName?.trim();
+  if (first) return { first, last: last ?? "" };
+
+  const parts = (user.fullName ?? "").split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return { first: parts[0]!, last: parts.slice(1).join(" ") };
+  if (parts.length === 1) return { first: parts[0]!, last: "" };
+  return { first: email.split("@")[0] ?? email, last: "" };
 }

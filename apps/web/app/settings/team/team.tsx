@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, RefreshCw, Copy, DoorOpen, HelpCircle } from "lucide-react";
+import { Plus, X, HelpCircle } from "lucide-react";
 import {
-  Avatar, Badge, Banner, Button, Combobox, IconButton, Card, CardTitle, CodeDisplay, Field, Input,
+  Avatar, Badge, Banner, Button, Combobox, IconButton, Card, CardTitle, Field, Input,
   Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
@@ -12,7 +12,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import {
-  invite, invitees, withdraw, changeRole, removeAccess, newJoinCode, stopJoining,
+  invite, invitees, withdraw, changeRole, removeAccess,
 } from "./actions";
 
 export interface ChurchRoleOption {
@@ -76,28 +76,18 @@ export function Team({
   roles,
   members,
   invitations,
-  joinCode,
-  joinLink,
 }: {
   church: string;
   /** R1.6. Every role this church has, built-in and its own. */
   roles: ChurchRoleOption[];
   members: Member[];
   invitations: Invitation[];
-  joinCode: string | null;
-  joinLink: string | null;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [message, setMessage] = React.useState<string>();
-  /* R1.8. Said under the button that did it, and gone again on its own. A
-     banner across the top of the screen for a copied link is a banner about
-     something that happened somewhere else. */
-  const [copied, setCopied] = React.useState(false);
   const [changing, setChanging] = React.useState<{ member: Member; role: string } | null>(null);
   const [removing, setRemoving] = React.useState<Member | null>(null);
-  const [rotating, setRotating] = React.useState(false);
-  const [closing, setClosing] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
   const run = (work: () => Promise<{ error?: string }>, said?: string) =>
@@ -182,48 +172,6 @@ export function Team({
               }}
             >
               <X /> {t("team.remove")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={rotating} onOpenChange={setRotating}>
-        <DialogContent alert title={t("joining.newTitle")}>
-          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("joining.newBody")}</p>
-          <DialogFooter>
-            <Button variant="ghost" data-dismiss onClick={() => setRotating(false)}>
-              {t("joining.newKeep")}
-            </Button>
-            <Button
-              variant="danger"
-              disabled={pending}
-              onClick={() => {
-                setRotating(false);
-                run(() => newJoinCode(church));
-              }}
-            >
-              <RefreshCw /> {t("joining.new")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={closing} onOpenChange={setClosing}>
-        <DialogContent alert title={t("joining.offTitle")}>
-          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("joining.offBody")}</p>
-          <DialogFooter>
-            <Button variant="ghost" data-dismiss onClick={() => setClosing(false)}>
-              {t("joining.offKeep")}
-            </Button>
-            <Button
-              variant="danger"
-              disabled={pending}
-              onClick={() => {
-                setClosing(false);
-                run(() => stopJoining(church));
-              }}
-            >
-              <X /> {t("joining.off")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -320,70 +268,6 @@ export function Team({
           </tbody>
         </table>
       </div>
-
-      <Card>
-        <CardTitle>{t("joining.title")}</CardTitle>
-        <Separator className="my-4" />
-
-        {joinCode && joinLink ? (
-          <div className="flex flex-wrap items-center justify-between gap-5">
-            <CodeDisplay code={joinCode} label={t("joining.code")} className="items-start" />
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <Field label={t("joining.link")}>
-                <Input readOnly value={joinLink} onFocus={(e) => e.currentTarget.select()} />
-              </Field>
-              {/* Three actions on one line under the link, so each is its icon
-                  with its words on the tooltip. */}
-              <div className="flex flex-wrap items-center gap-1">
-                <IconButton
-                  label={t("joining.copy")}
-                  variant="ghost"
-                  onClick={() => {
-                    void navigator.clipboard?.writeText(joinLink);
-                    setCopied(true);
-                    window.setTimeout(() => setCopied(false), 2000);
-                  }}
-                >
-                  <Copy />
-                </IconButton>
-                <IconButton
-                  label={t("joining.new")}
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() => setRotating(true)}
-                >
-                  <RefreshCw />
-                </IconButton>
-                <IconButton
-                  label={t("joining.off")}
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() => setClosing(true)}
-                >
-                  <X />
-                </IconButton>
-
-                {copied ? (
-                  <span
-                    role="status"
-                    className="ml-1 text-caption font-medium"
-                    style={{ color: "var(--hue-fern-key)" }}
-                  >
-                    {t("joining.copied")}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Badge tone="neutral">{t("joining.isOff")}</Badge>
-            <Button disabled={pending} onClick={() => run(() => newJoinCode(church))}>
-              <DoorOpen /> {t("joining.on")}
-            </Button>
-          </div>
-        )}
-      </Card>
 
       {invitations.length > 0 ? (
         <Card>

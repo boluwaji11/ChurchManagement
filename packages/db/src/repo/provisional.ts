@@ -1,4 +1,4 @@
-import { count, eq, isNull, sql } from "drizzle-orm";
+import { count, eq, isNull } from "drizzle-orm";
 import type { Tx } from "../client";
 import { tenants } from "../schema/tenancy";
 import { members } from "../schema/members";
@@ -111,6 +111,6 @@ export async function approveChurch(
 export async function unapproveChurch(db: Tx, tenantId: string): Promise<void> {
   await db
     .update(tenants)
-    .set({ approvedAt: null, approvedBy: null, joinCode: sql`null` })
+    .set({ approvedAt: null, approvedBy: null, selfSignup: false })
     .where(eq(tenants.id, tenantId));
 }

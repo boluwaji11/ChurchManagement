@@ -3,10 +3,10 @@
 import * as React from "react";
 import { Copy, ExternalLink } from "lucide-react";
 import {
-  Banner, Button, Card, CardTitle, Field, IconButton, Input, Separator, Textarea,
+  Banner, Button, Card, CardTitle, Field, IconButton, Input, Separator, Switch, Textarea,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { saveDomain } from "./domain-actions";
+import { saveDomain, setSignup } from "./domain-actions";
 
 /** One thing to copy, with the button that copies it. */
 function Copyable({
@@ -74,20 +74,23 @@ function Copyable({
  * both refuse those, so a framed sign-in is a sign-in that works until it
  * quietly does not. The finder has no session and frames fine.
  */
-export function OnYourSite({ origin, slug, joinCode, domain, appHost }: {
+export function OnYourSite({ origin, slug, selfSignup, domain, appHost }: {
   origin: string;
   slug: string;
-  joinCode: string | null;
+  /** R1.7. Whether somebody can make an account from the church's own address. */
+  selfSignup: boolean;
   /** R1.1. The church's own address, where it has pointed one here. */
   domain: string | null;
   /** What a church points its CNAME at. */
   appHost: string;
 }) {
+  const [open, setOpen] = React.useState(selfSignup);
   const [draft, setDraft] = React.useState(domain ?? "");
   const [saved, setSaved] = React.useState(domain);
   const [error, setError] = React.useState<string>();
   const [pending, start] = React.useTransition();
 
+  const accountLink = `${origin}/join/${slug}`;
   const groupsLink = `${origin}/g/${slug}`;
   // The title is read by whoever lands on the church's page with a screen
   // reader, so it is the church's word for groups rather than ours.
@@ -101,13 +104,29 @@ export function OnYourSite({ origin, slug, joinCode, domain, appHost }: {
       <Separator className="my-4" />
 
       <div className="flex flex-col gap-5">
-        {joinCode ? (
-          <Copyable
-            label={t("site.account")}
-            value={`${origin}/join/${joinCode}`}
-            open={`${origin}/join/${joinCode}`}
-          />
-        ) : null}
+        {/* R1.7. The address a church puts behind "My account" on its own
+            website. There is no code to hand out: the address names the church,
+            and the switch below decides whether it is open. */}
+        <div className="flex flex-col gap-3">
+          <Copyable label={t("site.account")} value={accountLink} open={accountLink} />
+          <label className="flex cursor-pointer items-center gap-3 text-[length:var(--d-text-body)] text-fg">
+            <Switch
+              checked={open}
+              disabled={pending}
+              onCheckedChange={(on) => {
+                setOpen(on);
+                start(async () => {
+                  const answer = await setSignup(on);
+                  if (answer?.error) {
+                    setOpen(!on);
+                    setError(answer.error);
+                  }
+                });
+              }}
+            />
+            {t("site.account.open")}
+          </label>
+        </div>
 
         <Copyable label={t("site.groups")} value={groupsLink} open={groupsLink} />
         <Copyable label={t("site.snippet")} value={snippet} rows={3} />

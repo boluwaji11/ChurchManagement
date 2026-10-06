@@ -1,8 +1,7 @@
 import {
-  listTeam, listInvitations, canManageChurch, getChurch, withTenant, formatJoinCode,
+  listTeam, listInvitations, canManageChurch, withTenant,
   listRoles,
 } from "@connectapp/db";
-import { headers } from "next/headers";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -28,16 +27,8 @@ export default async function TeamPage({
   const members = await listTeam(session.tenantId, session.userId);
   const invitations = await listInvitations(session.tenantId);
 
-  const { profile, roles } = await withTenant(session, async (tx) => ({
-    profile: await getChurch(tx, session.tenantId),
-    // R1.6. The built-ins and whatever this church wrote beside them.
-    roles: await listRoles(tx, session.tenantId),
-  }));
-
-  const code = profile?.joinCode ?? null;
-  const head = await headers();
-  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
-  const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  // R1.6. The built-ins and whatever this church wrote beside them.
+  const roles = await withTenant(session, (tx) => listRoles(tx, session.tenantId));
 
   return (
     <>
@@ -65,8 +56,6 @@ export default async function TeamPage({
             day: "numeric", month: "long",
           }),
         }))}
-        joinCode={code ? formatJoinCode(code) : null}
-        joinLink={code ? `${proto}://${host}/join/${code}` : null}
       />
     </>
   );

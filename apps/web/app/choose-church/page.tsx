@@ -6,7 +6,6 @@ import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
 import { AuthShell, AUTH_BUTTON } from "../auth-shell";
-import { JoinWithCode } from "./join-with-code";
 import type { Piece } from "@/components/site/art";
 import { t } from "@connectapp/i18n";
 
@@ -75,36 +74,19 @@ export default async function ChooseChurch({
         </ul>
       ) : null}
 
-      {/* Somebody who has just verified an address and belongs to nothing is
-          here to start a church. The code is the other way in, under a rule,
-          for the member who was handed one. */}
-      {memberships.length === 0 ? (
-        <>
-          <Button asChild full className={AUTH_BUTTON}>
-            <Link href="/create-church">
-              <Plus /> {t("createChurch.title")}
-            </Link>
-          </Button>
-
-          <div className="flex items-center gap-3 text-[13px] text-fg-subtle">
-            <span className="h-px flex-1 bg-line" />
-            {t("chooseChurch.orCode")}
-            <span className="h-px flex-1 bg-line" />
-          </div>
-
-          <JoinWithCode secondary />
-        </>
-      ) : (
-        <>
-          <JoinWithCode secondary />
-
-          <Button asChild variant="ghost" full className={AUTH_BUTTON}>
-            <Link href="/create-church">
-              <Plus /> {t("createChurch.title")}
-            </Link>
-          </Button>
-        </>
-      )}
+      {/* R1.7. Two things only: a church they are already in, or a new one.
+          A member arrives through their own church's address rather than
+          through here, so there is nothing to type. */}
+      <Button
+        asChild
+        full
+        variant={memberships.length > 0 ? "ghost" : "primary"}
+        className={AUTH_BUTTON}
+      >
+        <Link href="/create-church">
+          <Plus /> {t("createChurch.title")}
+        </Link>
+      </Button>
     </AuthShell>
   );
 }

@@ -144,29 +144,18 @@ export async function publicChurchTimezone(slug: string): Promise<string> {
 }
 
 /**
- * R9.5, R9.6. The code that lets somebody following a published group in.
+ * R9.5, R9.6. The group somebody can follow all the way in.
  *
- * A church that publishes a group has already decided that whoever reads it
- * may come. This hands back that church's own join code so the group's Join
- * button can use the one door the church already has, rather than a second one
- * with its own rules. Never sent to a browser: it is read on the server, used,
- * and dropped.
+ * A stranger reading a published group may not be in the church yet, and this
+ * says whether that group is one they can ask to join. The church's own door
+ * decides whether they can make an account, which is checked where the join
+ * actually happens.
  */
-export async function joinCodeForPublicGroup(
+export async function groupForPublicJoin(
   slug: string,
   groupId: string,
-): Promise<{ code: string; groupId: string } | null> {
+): Promise<{ groupId: string } | null> {
   const group = await publicGroup(slug, groupId);
   if (!group || !group.openToJoin || group.full) return null;
-
-  const rows = await owner()<{ code: string }[]>`
-    select join_code as code
-      from tenants
-     where slug = ${slug}
-       and approved_at is not null
-       and demo_expires_at is null
-       and join_code is not null
-     limit 1`;
-  const code = rows[0]?.code;
-  return code ? { code, groupId: group.id } : null;
+  return { groupId: group.id };
 }

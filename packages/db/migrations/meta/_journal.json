@@ -659,6 +659,13 @@
       "when": 1791245362345,
       "tag": "0093_custom_domain",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1791255483856,
+      "tag": "0094_self_signup",
+      "breakpoints": true
     }
   ]
 }

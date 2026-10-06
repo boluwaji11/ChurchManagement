@@ -2,7 +2,7 @@
 
 import {
   createInvitation, revokeInvitation, setMemberRole, removeMember, canManageChurch,
-  rotateJoinCode, closeJoining, withTenant, peopleToInvite,
+  withTenant, peopleToInvite,
   type TenantRole,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -88,27 +88,6 @@ export async function removeAccess(userId: string, church?: string): Promise<Tea
   }
 }
 
-/** R1.7. A new code. Every card already handed out stops working. */
-export async function newJoinCode(church?: string): Promise<TeamResult> {
-  try {
-    const session = await allowed(church);
-    await rotateJoinCode(session.tenantId, session.role);
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-/** R1.7. Shutting the door. Nobody waiting loses their place. */
-export async function stopJoining(church?: string): Promise<TeamResult> {
-  try {
-    const session = await allowed(church);
-    await closeJoining(session.tenantId, session.role);
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
 
 /** R1.7. People in the directory who could be given an account. */
 export async function invitees(

@@ -15,7 +15,7 @@ import {
 } from "../src/repo/provisional";
 import { createPerson } from "../src/repo/members";
 import { createInvitation } from "../src/repo/membership";
-import { rotateJoinCode, churchForJoinCode } from "../src/repo/joining";
+import { setSelfSignup, churchForSelfSignup } from "../src/repo/joining";
 import { InvalidInputError } from "../src/errors";
 import type { TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
@@ -69,7 +69,7 @@ describe("a church nobody has looked at yet", () => {
 
   it("has no public door", async () => {
     await expect(
-      rotateJoinCode(tenant, "owner"),
+      setSelfSignup(tenant, "owner", true),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
 
@@ -118,9 +118,9 @@ describe("once a human has looked at it", () => {
     await run((tx) => requireApproved(tx, tenant));
   });
 
-  it("opens the join link, and the link finds the church", async () => {
-    const code = await rotateJoinCode(tenant, "owner");
-    expect(await churchForJoinCode(code)).toMatchObject({ tenantId: tenant });
+  it("opens its own door, and the address finds the church", async () => {
+    await setSelfSignup(tenant, "owner", true);
+    expect(await churchForSelfSignup(SLUG)).toMatchObject({ tenantId: tenant });
   });
 
   it("opens invitations", async () => {
@@ -141,12 +141,12 @@ describe("once a human has looked at it", () => {
 });
 
 describe("taking it back", () => {
-  it("shuts the door again and stops the code already handed out", async () => {
-    const code = await rotateJoinCode(tenant, "owner");
+  it("shuts the door again", async () => {
+    await setSelfSignup(tenant, "owner", true);
     await run((tx) => unapproveChurch(tx, tenant));
 
     expect(await run((tx) => isApproved(tx, tenant))).toBe(false);
-    expect(await churchForJoinCode(code)).toBeNull();
+    expect(await churchForSelfSignup(SLUG)).toBeNull();
     await expect(
       run((tx) => requireApproved(tx, tenant)),
     ).rejects.toBeInstanceOf(InvalidInputError);
