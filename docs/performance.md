@@ -54,6 +54,18 @@ milliseconds plus the data, so roughly nine tenths of what the owner was
 sitting through was the development compiler. The product is not that slow in
 front of a church. It was that slow in front of us.
 
+The one page that can be loaded without credentials, measured against a
+production build on both sides:
+
+```
+/g/living-waters   before: 146  149  146 ms
+                    after:  93   99  101 ms
+```
+
+Everything behind sign-in got the same treatment and more of it, since the
+frame around a staff screen was the heaviest part, but it cannot be measured
+here without materialising somebody's credentials.
+
 ### Setting the tenant context
 
 `withTenant` opened a transaction and then sent four separate statements naming
@@ -99,6 +111,39 @@ Counted per page: the dashboard seven, the directory six, a person's page six,
 their edit panel eight, the check-in board five plus one roster per room in a
 loop.
 
+### Supabase Auth, once per request
+
+`currentUser()` calls `supabase.auth.getUser()`, which is a live HTTPS request
+to Supabase Auth on every page render and every server action. Measured from
+the same machine:
+
+```
+auth endpoint: 37  40  46  58  79 ms
+```
+
+It is cached for the request, so it happens once per render rather than once
+per component. It was not changed. Verifying the token locally against the
+project's JWKS would remove the call, and whether to trust a locally verified
+token instead of asking the issuer is a decision about the authentication
+boundary, not a performance decision.
+
+### The connection pools did not fit inside the pooler
+
+The dev log carries this:
+
+```
+PostgresError: (EMAXCONNSESSION) max clients reached in session mode
+                               - max clients are limited to pool_size: 15
+```
+
+`DATABASE_URL` and `APP_DATABASE_URL` both point at port 5432, which is
+Supabase's pooler in **session mode**: a client connection pins a server
+connection for as long as it is open, idle or not, and the ceiling is fifteen
+clients per role. The client asked for `max: 8` on each of two pools, so one web
+process could reach sixteen and the next request failed rather than waiting its
+turn. The operator portal is a second process doing the same. At the time of
+measuring, 26 connections were open against the project and 25 of them idle.
+
 ### A write on a read path
 
 Every read of a church's roles opened with an upsert of the nine built-in roles.
@@ -132,6 +177,14 @@ the roles screen being opened, not roles being changed.
    page by 57kB.
 7. **A leaked listener.** The watch on a church's approval added a
    `visibilitychange` listener on every mount and took none of them off again.
+8. **The pools fit inside the pooler.** Six connections for the application and
+   two for the owner, against a ceiling of fifteen, which leaves room for the
+   operator portal and the job worker. A render holds a connection for about
+   90ms, so six serve a church many times over and a seventh caller queues
+   instead of failing. An idle connection is given back after ten seconds.
+9. **The public groups page signs its pictures in one call.** A church with
+   twelve groups meant twelve round trips to storage, in turn, on the page a
+   stranger follows from the church's own website.
 
 ## Found and left alone
 
@@ -188,6 +241,27 @@ keys on the argument list, so the two are different entries. Every verification
 it makes is now held for the request, so the second resolution costs nothing,
 but it is still two resolutions. Collapsing them properly means the layout
 knowing the church, and a layout is not given search parameters.
+
+## Two things noticed on the way past
+
+**The dev server does not need an 8GB heap any more.** `--max-old-space-size=8192`
+was there because webpack's dev compiler needed it to hold 3,100 modules across
+110 routes. Under Turbopack the module graph lives in Rust, and the Node process
+measured **61MB resident** while serving. The flag is harmless and was left
+alone, since nothing is gained by removing a safety margin in the same pass that
+changes the compiler.
+
+**`tests/request-path.test.ts` is failing, and not because of anything here.**
+The owner connection is not subject to the isolation policies, so the test
+refuses to let it be imported into the web app at all. Two files import it:
+
+```
+apps/web/app/forms/actions.ts
+apps/web/app/settings/team/actions.ts
+```
+
+Both are server actions, which are request paths. This is the tenancy guardrail
+doing its job and it wants fixing before it ships.
 
 ## What to watch
 
