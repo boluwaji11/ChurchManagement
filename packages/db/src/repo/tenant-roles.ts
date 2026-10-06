@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { tenantRoles, tenantMembers } from "../schema/tenancy";
 import { PermissionError } from "../roles";
