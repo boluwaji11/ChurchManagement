@@ -400,7 +400,7 @@ function MapColumns({
         </table>
       </section>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={onBack}>
           {t("import.back")}
         </Button>
@@ -559,7 +559,7 @@ function PreviewStep({
         </SheetContent>
       </Sheet>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={onBack}>
           {t("import.back")}
         </Button>
