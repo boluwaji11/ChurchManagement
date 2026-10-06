@@ -11,8 +11,21 @@ import { SignOutButton } from "./sign-out-button";
 export function SignedInAs({ email }: { email: string }) {
   return (
     <div className="ml-auto flex flex-none items-center gap-3">
-      <span className="hidden max-w-[260px] truncate text-[14px] text-fg-muted sm:inline">
-        {t("chooseChurch.signedInAs", { email })}
+      {/* The address carries the colour, because it is the part somebody checks
+          before they go any further. */}
+      <span className="hidden max-w-[320px] truncate text-[14px] text-fg-muted sm:inline">
+        {t("chooseChurch.signedInAs")
+          .split("{email}")
+          .flatMap((part, i) =>
+            i === 0
+              ? [part]
+              : [
+                  <span key="email" className="font-medium text-primary">
+                    {email}
+                  </span>,
+                  part,
+                ],
+          )}
       </span>
       <SignOutButton className="min-h-8 gap-1.5 rounded-lg px-3 text-[13px]" />
     </div>
