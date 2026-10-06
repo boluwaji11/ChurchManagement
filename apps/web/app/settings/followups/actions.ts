@@ -20,7 +20,9 @@ function stepsFrom(data: FormData) {
     .map((name, i) => ({
       id: ids[i] || undefined,
       name: name.trim(),
-      dueDays: Number(days[i] ?? ""),
+      // A blank box is a step with nothing waiting on it, due the day the
+      // stage starts rather than a week later.
+      dueDays: Number(days[i] || 0),
     }))
     .filter((step) => step.name !== "");
 }

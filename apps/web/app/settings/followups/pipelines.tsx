@@ -295,9 +295,9 @@ function AddStep({
 }) {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
-  const [days, setDays] = React.useState("7");
+  const [days, setDays] = React.useState("");
 
-  const ready = name.trim() !== "" && Number.isInteger(Number(days)) && Number(days) >= 0;
+  const ready = name.trim() !== "" && Number.isInteger(Number(days || 0)) && Number(days || 0) >= 0;
 
   return (
     <Dialog
@@ -306,7 +306,7 @@ function AddStep({
         setOpen(next);
         if (!next) {
           setName("");
-          setDays("7");
+          setDays("");
         }
       }}
     >
@@ -347,7 +347,7 @@ function AddStep({
               type="button"
               disabled={!ready}
               onClick={() => {
-                onAdd(name.trim(), Number(days));
+                onAdd(name.trim(), Number(days || 0));
                 setOpen(false);
               }}
             >
@@ -557,7 +557,7 @@ function StageForm({
           onClick={() =>
             setSteps((all) => [
               ...all,
-              { key: `new-${all.length}-${Date.now()}`, id: "", name: "", days: "7" },
+              { key: `new-${all.length}-${Date.now()}`, id: "", name: "", days: "" },
             ])
           }
         >
