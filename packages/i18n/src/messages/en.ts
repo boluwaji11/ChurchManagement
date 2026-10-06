@@ -1697,7 +1697,7 @@ export const en = {
   "setup.title": "Set up your church",
   "setup.welcome": "Welcome to ConnectApp, {name}",
   "setup.lede": "Your church account is ready to be set up. Follow these steps to get started with ConnectApp.",
-  "setup.step.members": "Bring your people in",
+  "setup.step.members": "Bring your members in",
   "setup.why.members": "Everything else works off your directory. Import a spreadsheet, or one from the software you are leaving.",
   "setup.step.services": "When you meet",
   "setup.why.services": "Service times are what attendance and check-in attach to.",
