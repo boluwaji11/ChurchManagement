@@ -22,6 +22,7 @@ import { owner } from "../client";
 import { InvalidInputError } from "../errors";
 import { PermissionError, type TenantRole } from "../roles";
 import { canManageChurch } from "./church";
+import { claimRecord, claimableRecord, nameForRecord, writeRecordFor } from "./claim";
 
 export interface JoinTarget {
   tenantId: string;
@@ -112,6 +113,18 @@ export async function joinChurch(input: {
   const sql = owner();
 
   return sql.begin(async (tx) => {
+    /*
+     * R1.11, R21.5. Who did this, for the append-only log.
+     *
+     * The audit trigger reads the actor off the session, and this connection is
+     * the owner one, which never sets it. Without these two lines every record
+     * written by somebody joining lands in the log with a null actor, which is
+     * the one question the log exists to answer. Transaction-local, so a pooled
+     * connection cannot leak them into the next request.
+     */
+    await tx`select set_config('app.user_id', ${input.user.id}, true)`;
+    await tx`select set_config('app.role', 'member', true)`;
+
     await tx`
       insert into app_users (id, email, full_name)
       values (${input.user.id}, ${email}, ${fullName})
@@ -126,67 +139,38 @@ export async function joinChurch(input: {
       return { status: "member", slug: target.slug, name: target.name } as JoinOutcome;
     }
 
-    // The match. An address on a record the church holds, on somebody who is an
-    // adult and whose record nobody has claimed.
-    const matched = await tx<{ id: string }[]>`
-      select p.id
-      from members p
-      join contact_methods c on c.member_id = p.id and c.tenant_id = p.tenant_id
-      left join household_memberships hm on hm.member_id = p.id and hm.tenant_id = p.tenant_id
-      where p.tenant_id = ${target.tenantId}
-        and p.archived_at is null
-        and p.app_user_id is null
-        and p.lifecycle_status <> 'deceased'
-        and c.kind = 'email'
-        and lower(c.value) = ${email}
-        and coalesce(hm.role, 'other') <> 'child'
-        and (p.date_of_birth is null or p.date_of_birth <= current_date - interval '18 years')
-      limit 1`;
-
-    if (matched[0]) {
-      await tx`update members set app_user_id = ${input.user.id} where id = ${matched[0].id}`;
+    const member = async () => {
       await tx`
         insert into tenant_members (tenant_id, user_id, role)
         values (${target.tenantId}, ${input.user.id}, 'member')
         on conflict (tenant_id, user_id) do nothing`;
       return { status: "joined", slug: target.slug, name: target.name } as JoinOutcome;
+    };
+
+    const matched = await claimableRecord(tx, target.tenantId, email);
+    if (matched && (await claimRecord(tx, target.tenantId, matched, input.user.id))) {
+      return member();
     }
 
-    // Nothing under that address, so the church has a new visitor, written from
-    // what they typed when they made the account.
-    const name = nameFor(input.user, email);
-    const [person] = await tx<{ id: string }[]>`
-      insert into members (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
-      values (${target.tenantId},
-              hearth_free_member_slug(${target.tenantId}::uuid, ${`${name.first} ${name.last}`.trim()}),
-              ${name.first}, ${name.last}, 'visitor', ${input.user.id})
-      returning id`;
-    await tx`
-      insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
-      values (${target.tenantId}, ${person!.id}, 'email', 'home', ${email}, true)`;
-    await tx`
-      insert into tenant_members (tenant_id, user_id, role)
-      values (${target.tenantId}, ${input.user.id}, 'member')
-      on conflict (tenant_id, user_id) do nothing`;
+    /*
+     * Nothing to claim, so the church has a new visitor. This is where the two
+     * paths part: an invitation stops when the address is already somebody
+     * else's, because an administrator sent it and can sort it out. Here there
+     * is nobody to ask, and a household sharing one mailbox is ordinary, so
+     * refusing would lock a real person out of their own church. A second
+     * record is written and the church merges it (R2.8) if it turns out to be
+     * the same person.
+     */
+    const name = nameForRecord(input.user, email);
+    await writeRecordFor(tx, {
+      tenantId: target.tenantId,
+      userId: input.user.id,
+      email,
+      first: name.first,
+      last: name.last,
+      lifecycle: "visitor",
+    });
 
-    return { status: "joined", slug: target.slug, name: target.name } as JoinOutcome;
+    return member();
   }) as Promise<JoinOutcome>;
-}
-
-/**
- * A name to put on a record. Sign-up asks for the two separately, so the split
- * is only there for an account made before it did.
- */
-function nameFor(
-  user: { fullName?: string | null; firstName?: string | null; lastName?: string | null },
-  email: string,
-): { first: string; last: string } {
-  const first = user.firstName?.trim();
-  const last = user.lastName?.trim();
-  if (first) return { first, last: last ?? "" };
-
-  const parts = (user.fullName ?? "").split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return { first: parts[0]!, last: parts.slice(1).join(" ") };
-  if (parts.length === 1) return { first: parts[0]!, last: "" };
-  return { first: email.split("@")[0] ?? email, last: "" };
 }

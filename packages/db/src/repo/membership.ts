@@ -6,6 +6,10 @@ import { InvalidInputError } from "../errors";
 import { DEFAULT_GROUP_TYPES } from "./groups";
 import { DEFAULT_PIPELINES } from "./followups";
 import { SEED_TEAMS } from "./serving";
+import {
+  addressAlreadyClaimed, claimRecord, claimableRecord, nameForRecord, recordForAccount,
+  writeRecordFor,
+} from "./claim";
 
 export interface Membership {
   tenantId: string;
@@ -209,77 +213,40 @@ export async function linkOrCreatePerson(input: {
   const sql = owner();
   const email = input.email.trim().toLowerCase();
 
-  const [already] = await sql<{ id: string }[]>`
-    select id from members
-     where tenant_id = ${input.tenantId} and app_user_id = ${input.userId} and archived_at is null
-     limit 1`;
-  if (already) return already.id;
+  const already = await recordForAccount(sql, input.tenantId, input.userId);
+  if (already) return already;
 
   if (input.memberId) {
-    const [named] = await sql<{ id: string }[]>`
-      update members set app_user_id = ${input.userId}
-       where id = ${input.memberId} and tenant_id = ${input.tenantId} and app_user_id is null
-      returning id`;
-    if (named) return named.id;
+    const named = await claimRecord(sql, input.tenantId, input.memberId, input.userId);
+    if (named) return named;
   }
 
-  // An unclaimed adult record carrying this address. A child's record is never
-  // claimed this way, the same rule the join code path holds to.
-  const [matched] = await sql<{ id: string }[]>`
-    update members set app_user_id = ${input.userId}
-     where id = (
-       select p.id
-         from members p
-         join contact_methods c on c.member_id = p.id and c.tenant_id = p.tenant_id
-         left join household_memberships hm on hm.member_id = p.id and hm.tenant_id = p.tenant_id
-        where p.tenant_id = ${input.tenantId}
-          and p.archived_at is null
-          and p.app_user_id is null
-          and p.lifecycle_status <> 'deceased'
-          and c.kind = 'email'
-          and lower(c.value) = ${email}
-          and coalesce(hm.role::text, 'other') <> 'child'
-          and (p.date_of_birth is null or p.date_of_birth <= current_date - interval '18 years')
-        limit 1
-     )
-    returning id`;
-  if (matched) return matched.id;
+  const matched = await claimableRecord(sql, input.tenantId, email);
+  if (matched) {
+    const claimed = await claimRecord(sql, input.tenantId, matched, input.userId);
+    if (claimed) return claimed;
+  }
 
   /*
    * A record carrying this address that somebody else's account already holds.
    * Writing a second one would hand the church two Sarah Bennetts to merge, so
-   * this stops instead and leaves the two for a person to look at. Everything
-   * that asks "who is this account" handles null, and a duplicate created
-   * quietly would be found weeks later.
+   * this stops instead and leaves the two for a person to look at. An
+   * administrator sent this invitation and can sort it out; nobody is locked
+   * out of anything while they do. Everything that asks "who is this account"
+   * handles null, and a duplicate created quietly would be found weeks later.
    */
-  const [taken] = await sql<{ id: string }[]>`
-    select p.id
-      from members p
-      join contact_methods c on c.member_id = p.id and c.tenant_id = p.tenant_id
-     where p.tenant_id = ${input.tenantId}
-       and p.archived_at is null
-       and p.app_user_id is not null
-       and c.kind = 'email'
-       and lower(c.value) = ${email}
-     limit 1`;
-  if (taken) return null;
+  if (await addressAlreadyClaimed(sql, input.tenantId, email)) return null;
 
-  const parts = (input.fullName ?? "").split(/\s+/).filter(Boolean);
-  const first = parts[0] ?? email.split("@")[0] ?? email;
-  const last = parts.length >= 2 ? parts.slice(1).join(" ") : "";
-
-  const [made] = await sql<{ id: string }[]>`
-    insert into members (tenant_id, slug, first_name, last_name, lifecycle_status, app_user_id)
-    values (${input.tenantId},
-            hearth_free_member_slug(${input.tenantId}::uuid, ${`${first} ${last}`.trim()}),
-            ${first}, ${last}, 'member', ${input.userId})
-    returning id`;
-
-  await sql`
-    insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
-    values (${input.tenantId}, ${made!.id}, 'email', 'home', ${email}, true)`;
-
-  return made!.id;
+  const name = nameForRecord({ fullName: input.fullName }, email);
+  return writeRecordFor(sql, {
+    tenantId: input.tenantId,
+    userId: input.userId,
+    email,
+    first: name.first,
+    last: name.last,
+    // Somebody an administrator invited is a member of the church.
+    lifecycle: "member",
+  });
 }
 
 /**
