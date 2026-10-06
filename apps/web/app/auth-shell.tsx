@@ -1,7 +1,9 @@
 import * as React from "react";
 import { t } from "@connectapp/i18n";
 import { cn } from "@connectapp/ui";
+import Link from "next/link";
 import { Mark } from "@/components/brand";
+import { SiteFooter } from "@/components/site/chrome";
 import { Art, type Piece } from "@/components/site/art";
 
 /**
@@ -42,42 +44,51 @@ export function AuthShell({
   width?: string;
 }) {
   return (
-    <main
-      id="main"
-      data-theme="light"
-      className="site-wash relative grid min-h-dvh justify-items-center px-6 pb-16 pt-20 sm:pt-24"
-    >
-      {art ? <Art pieces={art} /> : null}
-
-      <div className={cn("relative flex w-full flex-col gap-7", width)}>
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="flex items-center gap-2.5">
-            <Mark className="text-[1.6rem]" />
-            <span className="font-display text-[24px] leading-[30px] text-fg">{t("app.name")}</span>
-          </span>
-
-          <h1 className="font-display text-[26px] leading-8 text-fg sm:text-[30px] sm:leading-9">
-            {title}
-          </h1>
-          {under ? <p className="text-[16px] leading-6 text-fg-muted">{under}</p> : null}
+    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
+      {/* The mark sits where it sits on the website, so somebody who arrived
+          from there finds it in the same place and it still goes home. */}
+      <header className="border-b border-line">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center px-6 py-3">
+          <Link href="/" className="flex items-center gap-2.5 rounded-md text-fg no-underline">
+            <Mark className="text-[1.5rem]" />
+            <span className="font-display text-[22px] leading-7">{t("app.name")}</span>
+          </Link>
         </div>
+      </header>
 
-        {step ? <AuthSteps at={step} /> : null}
+      <main
+        id="main"
+        className="relative grid flex-1 justify-items-center px-6 pb-16 pt-20 sm:pt-24"
+      >
+        {art ? <Art pieces={art} /> : null}
 
-        <div
-          data-density="portal"
-          className="flex flex-col gap-5 rounded-[20px] border border-line bg-surface p-7 sm:p-9"
-        >
-          {children}
-        </div>
-
-        {footer ? (
-          <div className="text-center text-[length:var(--d-text-body)] text-fg-muted">
-            {footer}
+        <div className={cn("relative flex w-full flex-col gap-7", width)}>
+          <div className="flex flex-col items-center gap-3 text-center">
+            <h1 className="font-display text-[26px] leading-8 text-fg sm:text-[30px] sm:leading-9">
+              {title}
+            </h1>
+            {under ? <p className="text-[16px] leading-6 text-fg-muted">{under}</p> : null}
           </div>
-        ) : null}
-      </div>
-    </main>
+
+          {step ? <AuthSteps at={step} /> : null}
+
+          <div
+            data-density="portal"
+            className="flex flex-col gap-5 rounded-[20px] border border-line bg-surface p-7 sm:p-9"
+          >
+            {children}
+          </div>
+
+          {footer ? (
+            <div className="text-center text-[length:var(--d-text-body)] text-fg-muted">
+              {footer}
+            </div>
+          ) : null}
+        </div>
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }
 

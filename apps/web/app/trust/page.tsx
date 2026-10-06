@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Card, Separator } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Logo } from "@/components/brand";
+import { SiteFooter } from "@/components/site/chrome";
 
 export const dynamic = "force-static";
 
@@ -26,7 +27,7 @@ export default function TrustPage() {
   return (
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-6">
-        <Logo />
+        <Logo href="/" />
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
@@ -68,6 +69,8 @@ export default function TrustPage() {
 
         <p className="mt-10 text-caption text-fg-muted">{t("trust.ask")}</p>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

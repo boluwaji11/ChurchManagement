@@ -63,21 +63,18 @@ const FOOT = [
   { href: "https://github.com/boluwaji11/ChurchManagement", key: "site.foot.source" },
   { href: "https://github.com/boluwaji11/ChurchManagement/discussions", key: "site.foot.forum" },
   { href: "https://github.com/sponsors/boluwaji11", key: "site.foot.donate" },
-  { href: "/sign-in", key: "home.signIn" },
 ] as const;
 
 /** R21.12. The promises and the source, where somebody deciding can reach them. */
 export function SiteFooter() {
   return (
     <footer className="border-t border-line">
-      <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-start gap-x-12 gap-y-6 px-6 py-10">
-        <div className="flex flex-[1_1_280px] flex-col gap-2.5">
-          <span className="flex items-center gap-2.5">
-            <Mark className="text-[1.25rem]" />
-            <span className="font-display text-[19px] text-fg">{t("app.name")}</span>
-          </span>
-        </div>
-        <nav aria-label={t("site.foot.label")} className="flex flex-wrap gap-x-7 gap-y-2 text-[14px]">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-x-10 gap-y-3 px-6 py-5">
+        <Link href="/" className="flex items-center gap-2.5 rounded-md no-underline">
+          <Mark className="text-[1.15rem]" />
+          <span className="font-display text-[18px] leading-6 text-fg">{t("app.name")}</span>
+        </Link>
+        <nav aria-label={t("site.foot.label")} className="flex flex-wrap gap-x-6 gap-y-1.5 text-[14px]">
           {FOOT.map((item) => (
             <Link key={item.key} href={item.href} className="text-fg-muted no-underline hover:text-fg">
               {t(item.key)}
