@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { cn } from "@connectapp/ui";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { Button, cn } from "@connectapp/ui";
+import { Empty } from "@/components/empty";
 import { t } from "@connectapp/i18n";
 import { ScheduleGrid, type GridService, type GridTeam, type GridSlot, type GridPosition, type GridVolunteer } from "./grid";
 
@@ -86,7 +89,20 @@ export function ServingViews({
           onTeam={(id) => go({ team: id })}
         />
       ) : (
-        <p className="text-fg-muted">{t("serving.noServices")}</p>
+        <Empty
+          icon="calendar"
+          title={t("serving.noServices")}
+          body={t("serving.noServices.body")}
+          action={
+            canManage ? (
+              <Button asChild>
+                <Link href={`/services?church=${church}`}>
+                  <Plus /> {t("services.add")}
+                </Link>
+              </Button>
+            ) : undefined
+          }
+        />
       )}
     </>
   );
