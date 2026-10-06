@@ -1,20 +1,35 @@
+import { redirect } from "next/navigation";
 import { withTenant, setupProgress, canManageChurch } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { SiteBar, SiteFooter } from "@/components/site/chrome";
+import { AuthSteps } from "../auth-shell";
+import { Art, type Piece } from "@/components/site/art";
+import { SignedInAs } from "@/components/signed-in-as";
+import { requireSession, currentUser } from "@/lib/session";
 import { Steps } from "./steps";
 import { SETUP_LINKS } from "@/lib/setup-links";
 
 export const dynamic = "force-dynamic";
 
 /**
- * R22.1, R22.3. The first hour.
+ * One drawing, large and faint, behind the column rather than beside it. The
+ * church this page is setting up is the people in it, and the oldest of them
+ * are the ones a directory is really for.
+ */
+const ART: Piece[] = [
+  { name: "elders", side: "right", y: 56, size: 560, inset: -80, faint: true },
+];
+
+/**
+ * R22.1, R22.3. The first hour, and the last step of getting in.
  *
- * Five things a church does once, each linking to the screen that does it. The
- * target is under sixty minutes from signing up to a directory somebody can
- * use, and the way to miss that target is to build a parallel set of forms
- * nobody can find again in March.
+ * It sits outside the product's own frame rather than inside it. Somebody here
+ * has had an account for ninety seconds: the sidebar is a map of a building
+ * they have not walked around yet, and the rail at the top of this page is the
+ * one they have been following since the website. They land in the product when
+ * they are done, which is the moment the sidebar starts meaning something.
  */
 export default async function SetupPage({
   searchParams,
@@ -23,13 +38,12 @@ export default async function SetupPage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
+  const user = await currentUser();
 
+  // R1.3. Nobody else's business, and it is not their screen to put away.
   if (!canManageChurch(session)) {
     return (
-      <AppShell
-        session={session}
-        title={t("setup.title")}
-      >
+      <AppShell session={session} title={t("setup.title")}>
         <Banner tone="info" title={t("setup.title")}>{t("forbidden.askAdmin")}</Banner>
       </AppShell>
     );
@@ -40,25 +54,35 @@ export default async function SetupPage({
     (tx) => setupProgress(tx, session.tenantId),
   );
 
-  return (
-    <AppShell
-      session={session}
-      title={t("setup.title")}
-    >
+  // Somebody who has already put this away is looking at nothing.
+  if (progress.dismissed) redirect(`/dashboard?church=${session.tenantSlug}`);
 
-      <Steps
-        church={session.tenantSlug}
-        churchName={session.tenantName}
-        person={session.displayName.split(" ")[0] || undefined}
-        settled={progress.settled}
-        left={progress.left}
-        steps={progress.steps.map((step) => ({
-          step: step.step,
-          done: step.done,
-          skipped: step.skipped,
-          href: SETUP_LINKS[step.step],
-        }))}
-      />
-    </AppShell>
+  return (
+    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
+      <SiteBar>{user ? <SignedInAs email={user.email} /> : null}</SiteBar>
+
+      <main id="main" className="relative flex flex-1 justify-center px-6 pb-14 pt-10">
+        <Art pieces={ART} />
+
+        <div className="relative flex w-full max-w-[860px] flex-col gap-8">
+          <AuthSteps at={3} />
+
+          <Steps
+            church={session.tenantSlug}
+            person={session.displayName.split(" ")[0] || undefined}
+            settled={progress.settled}
+            left={progress.left}
+            steps={progress.steps.map((step) => ({
+              step: step.step,
+              done: step.done,
+              skipped: step.skipped,
+              href: SETUP_LINKS[step.step],
+            }))}
+          />
+        </div>
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }

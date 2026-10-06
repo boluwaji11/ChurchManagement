@@ -75,7 +75,9 @@ export async function setupProgress(db: Tx, tenantId: string): Promise<SetupProg
   const done: Record<SetupStep, boolean> = {
     church: Boolean(church?.addressLine1),
     services: Number(counts?.services ?? 0) > 0,
-    members: Number(counts?.members ?? 0) > 0,
+    // One record is the founder, written when the church was made. Two is a
+    // church that has brought its people in.
+    members: Number(counts?.members ?? 0) > 1,
     // One account is the person who made the church. Two is a church.
     team: Number(counts?.team ?? 0) > 1,
     rooms: Number(counts?.rooms ?? 0) > 0,

@@ -4,7 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
-import { Badge, Banner, Button, Card, cn } from "@connectapp/ui";
+import {
+  Badge, Banner, Button, Dialog, DialogContent, DialogClose, DialogFooter, Working, cn,
+} from "@connectapp/ui";
 import { plural, t } from "@connectapp/i18n";
 import { skip, putAway } from "./actions";
 
@@ -21,24 +23,21 @@ export interface StepView {
  * Five things a church does once, in the order one unblocks the next, each
  * linking to the screen that does it rather than wrapping that screen in a
  * wizard. A church that adds a service time here and another one next March
- * should be in the same place both times, and learning where things are is
- * most of what the first hour is for.
+ * should be in the same place both times, and learning where things are is most
+ * of what the first hour is for.
  *
- * Every step says what it unlocks, because "when you meet" does not tell
- * anybody that attendance and check-in have nothing to attach to without it.
- * The next one to do leads: it is numbered in ink, carries the only filled
- * button on the screen, and the ones behind it go quiet.
+ * Drawn as a path rather than a table: a marker per step with a line running
+ * between them, and each step standing on its own. A church is being told how
+ * far along it is, and a list of rows in one box says nothing about order.
  */
 export function Steps({
   church,
-  churchName,
   person,
   steps,
   settled,
   left,
 }: {
   church: string;
-  churchName: string;
   /** Whoever made the church, so the welcome is addressed to somebody. */
   person?: string;
   steps: StepView[];
@@ -47,6 +46,8 @@ export function Steps({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
+  const [asking, setAsking] = React.useState(false);
+  const [leaving, setLeaving] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
   const run = (work: () => Promise<{ error?: string }>) =>
@@ -56,69 +57,89 @@ export function Steps({
       if (!result.error) router.refresh();
     });
 
+  /** R22.1. Done with setup, one way or the other: into the product. */
+  const finish = () =>
+    startTransition(async () => {
+      const result = await putAway(church);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setLeaving(true);
+      router.push(`/dashboard?church=${church}`);
+    });
+
   const next = steps.find((step) => !step.done && !step.skipped);
   const skippedCount = steps.filter((step) => step.skipped && !step.done).length;
 
   return (
-    <div className="flex max-w-[840px] flex-col gap-8" aria-busy={pending}>
+    <div className="flex flex-col gap-9" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("setup.failed")}>{error}</Banner> : null}
 
-      <div className="flex flex-col gap-2">
-        <h2 className="m-0 font-display text-[clamp(28px,3.4vw,36px)] font-normal leading-[1.15] text-fg">
-          {person ? t("setup.welcome", { name: person }) : t("setup.title")}
-        </h2>
-        <p className="m-0 max-w-[62ch] text-[17px] leading-7 text-fg-muted">
-          {t("setup.lede", { church: churchName })}
-        </p>
-      </div>
-
-      {/* How far along, said as a number somebody would say out loud. A
-          fraction read "5 of 5" beside a step still marked Skipped. */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="h-2 w-48 overflow-hidden rounded-full bg-sunken">
-          <div
-            className="h-full rounded-full bg-primary transition-[width] duration-slow"
-            style={{ width: `${(settled / steps.length) * 100}%` }}
-          />
+      <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <h1 className="m-0 font-display text-[clamp(26px,3vw,32px)] font-normal leading-[1.15] text-fg">
+            {person ? t("setup.welcome", { name: person }) : t("setup.title")}
+          </h1>
+          <p className="m-0 max-w-[58ch] text-[16px] leading-6 text-fg-muted">{t("setup.lede")}</p>
         </div>
-        <span className="text-[length:var(--d-text-label)] font-medium text-fg-muted">
-          {left === 0 ? t("setup.left.none") : plural("setup.left", left)}
-        </span>
-        {skippedCount > 0 ? (
-          <span className="text-[length:var(--d-text-label)] text-fg-subtle">
-            {plural("setup.alsoSkipped", skippedCount)}
+
+        {/* How far along, in the corner, out of the way of the words. */}
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <span className="text-[length:var(--d-text-label)] font-semibold text-fg">
+            {left === 0 ? t("setup.left.none") : plural("setup.left", left)}
           </span>
-        ) : null}
+          <div className="h-1.5 w-40 overflow-hidden rounded-full bg-stone-300">
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-slow"
+              style={{ width: `${(settled / steps.length) * 100}%` }}
+            />
+          </div>
+          {skippedCount > 0 ? (
+            <span className="text-[length:var(--d-text-caption)] text-fg-subtle">
+              {plural("setup.alsoSkipped", skippedCount)}
+            </span>
+          ) : null}
+        </div>
       </div>
 
-      <Card className="flex flex-col divide-y divide-line p-0">
+      <ol className="m-0 flex list-none flex-col p-0">
         {steps.map((step, i) => {
           const here = next?.step === step.step;
+          const last = i === steps.length - 1;
+
           return (
-            <div
-              key={step.step}
-              className={cn(
-                "flex flex-wrap items-start justify-between gap-x-6 gap-y-4 p-5",
-                here && "bg-primary-soft/50",
-              )}
-            >
-              <span className="flex min-w-0 flex-1 items-start gap-4">
-                {/* Done is a tick, the one to do next is its number in ink, and
-                    the ones after it are the number in a quiet ring. */}
+            <li key={step.step} className={cn("flex gap-5", last ? "pb-0" : "pb-4")}>
+              {/* The path: a marker per step, the line between them running
+                  through the gap to the next one. */}
+              <span className="flex w-9 shrink-0 flex-col items-center" aria-hidden>
                 <span
-                  aria-hidden
                   className={cn(
-                    "grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-semibold",
-                    step.done
+                    "grid size-9 shrink-0 place-items-center rounded-full text-[14px] font-semibold",
+                    step.done || here
                       ? "bg-primary text-primary-fg"
-                      : here
-                        ? "bg-primary text-primary-fg"
-                        : "border-2 border-line-strong text-fg-subtle",
+                      : "border-2 border-stone-300 bg-surface text-fg-subtle",
                   )}
                 >
-                  {step.done ? <Check className="size-4" /> : i + 1}
+                  {step.done ? <Check className="size-[18px]" /> : i + 1}
                 </span>
+                {last ? null : (
+                  <span
+                    className={cn("w-0.5 flex-1 rounded-full", step.done ? "bg-primary" : "bg-stone-300")}
+                  />
+                )}
+              </span>
 
+              <div
+                className={cn(
+                  "flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-6 gap-y-4",
+                  "rounded-2xl border bg-surface p-5",
+                  "transition-[border-color,box-shadow,transform] duration-200 ease-out",
+                  here
+                    ? "border-primary/40 shadow-[0_8px_24px_oklch(0.3_0.04_75/0.10)] hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_14px_34px_oklch(0.3_0.04_75/0.14)]"
+                    : "border-line",
+                )}
+              >
                 <span className="flex min-w-0 flex-col gap-1">
                   <span className="flex flex-wrap items-center gap-2">
                     <span
@@ -134,40 +155,74 @@ export function Steps({
                     ) : null}
                   </span>
                   {step.done ? null : (
-                    <span className="max-w-[58ch] text-[15px] leading-[22px] text-fg-muted">
+                    <span className="max-w-[54ch] text-[15px] leading-[22px] text-fg-muted">
                       {t(`setup.why.${step.step}` as never)}
                     </span>
                   )}
                 </span>
-              </span>
 
-              <span className="flex shrink-0 flex-wrap items-center gap-2">
-                {step.done ? null : (
-                  <Button
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => run(() => skip(step.step as never, !step.skipped, church))}
-                  >
-                    {step.skipped ? t("setup.unskip") : t("setup.skip")}
+                <span className="flex shrink-0 flex-wrap items-center gap-2">
+                  {step.done ? null : (
+                    <Button
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => run(() => skip(step.step as never, !step.skipped, church))}
+                    >
+                      {step.skipped ? t("setup.unskip") : t("setup.skip")}
+                    </Button>
+                  )}
+                  <Button asChild variant={here ? "primary" : "secondary"}>
+                    <Link href={`${step.href}?church=${church}`}>
+                      {step.done ? t("setup.change") : t("setup.do")}
+                      {here ? <ArrowRight /> : null}
+                    </Link>
                   </Button>
-                )}
-                <Button asChild variant={here ? "primary" : "secondary"}>
-                  <Link href={`${step.href}?church=${church}`}>
-                    {step.done ? t("setup.change") : t("setup.do")}
-                    {here ? <ArrowRight /> : null}
-                  </Link>
-                </Button>
-              </span>
-            </div>
+                </span>
+              </div>
+            </li>
           );
         })}
-      </Card>
+      </ol>
 
-      <div>
-        <Button variant="ghost" disabled={pending} onClick={() => run(() => putAway(church))}>
-          {t("setup.putAway")}
-        </Button>
+      <div className="flex flex-wrap items-center justify-end gap-4">
+        {left === 0 ? (
+          <Button disabled={pending} onClick={finish}>
+            {t("setup.finish")} <ArrowRight />
+          </Button>
+        ) : (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => setAsking(true)}
+            className="cursor-pointer text-[length:var(--d-text-body)] font-medium text-primary underline underline-offset-4 disabled:opacity-45"
+          >
+            {t("setup.putAway")}
+          </button>
+        )}
       </div>
+
+      <Dialog open={asking} onOpenChange={setAsking}>
+        <DialogContent alert title={t("setup.skipAll.title")}>
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("setup.skipAll.body")}</p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="ghost" data-dismiss>{t("setup.skipAll.keep")}</Button>
+            </DialogClose>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                setAsking(false);
+                finish();
+              }}
+            >
+              {t("setup.skipAll.go")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Working open={leaving} label={t("setup.finishing")} />
     </div>
   );
 }

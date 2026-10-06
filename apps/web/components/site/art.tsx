@@ -27,6 +27,8 @@ export interface Piece {
   /** How far the drawing sits in from the edge, in pixels. */
   inset?: number;
   turn?: number;
+  /** Faint, for a drawing that sits behind the words rather than beside them. */
+  faint?: boolean;
 }
 
 export function Art({ pieces, className }: { pieces: readonly Piece[]; className?: string }) {
@@ -40,7 +42,7 @@ export function Art({ pieces, className }: { pieces: readonly Piece[]; className
           key={piece.name + piece.side}
           src={`/art/${piece.name}.svg`}
           alt=""
-          className="absolute block opacity-90"
+          className={piece.faint ? "absolute block opacity-[0.14]" : "absolute block opacity-90"}
           style={{
             [piece.side]: piece.inset ?? 24,
             top: `${piece.y}%`,
