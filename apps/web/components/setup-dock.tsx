@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogClose, DialogFooter, IconButton, cn,
 } from "@connectapp/ui";
@@ -120,10 +120,11 @@ export function SetupDock({
           const here = next.step === step.step;
           const last = i === steps.length - 1;
           return (
-            <li key={step.step} className={cn("flex gap-2.5", last ? "pb-0" : "pb-3")}>
-              {/* The marker column stretches the whole row, so the line runs
-                  from under one marker to the top of the next whatever the row
-                  turns out to be, with a dot sitting on it. */}
+            <li key={step.step} className="flex gap-2.5">
+              {/* The line is drawn at its own height rather than stretched to
+                  the row. A stretched child fills the parent's content box,
+                  which the row's padding is not part of, so it collapsed to a
+                  few pixels and the dot covered what was left of it. */}
               <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
                 <span
                   className={cn(
@@ -138,7 +139,7 @@ export function SetupDock({
                 {last ? null : (
                   <span
                     className={cn(
-                      "relative mt-1 w-px flex-1",
+                      "relative my-1 h-4 w-px",
                       step.done ? "bg-primary" : "bg-line-strong",
                     )}
                   >
@@ -167,19 +168,13 @@ export function SetupDock({
         })}
       </ol>
 
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          href={`/setup?church=${church}`}
-          className="text-[13px] font-medium text-primary underline underline-offset-4"
-        >
-          {t("setup.dock.all")}
-        </Link>
-        <Button asChild className="min-h-8 rounded-lg px-3 text-[13px]">
-          <Link href={`${next.href}?church=${church}&setup=1`}>
-            {t("setup.do")} <ArrowRight className="size-3.5" />
-          </Link>
-        </Button>
-      </div>
+      {/* No button for the next step: every step is its own press. */}
+      <Link
+        href={`/setup?church=${church}`}
+        className="text-[13px] font-medium text-primary underline underline-offset-4"
+      >
+        {t("setup.dock.all")}
+      </Link>
 
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent title={t("setup.dock.hide.title")}>
