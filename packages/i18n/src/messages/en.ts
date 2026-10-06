@@ -744,7 +744,7 @@ export const en = {
   "personForm.status": "Status",
   "personForm.firstName": "First name",
   "personForm.lastName": "Last name",
-  "personForm.preferredName": "Goes by",
+  "personForm.preferredName": "Preferred name",
   "personForm.email": "Email",
   "personForm.emailPlaceholder": "name@example.org",
   "personForm.phone": "Phone",
