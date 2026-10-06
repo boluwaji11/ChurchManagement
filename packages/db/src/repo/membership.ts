@@ -56,7 +56,8 @@ export async function membershipsForUser(userId: string): Promise<Membership[]> 
            on r.tenant_id = m.tenant_id
           and (r.id = m.role_id
                or (m.role_id is null and r.builtin and r.key = m.role::text))
-    where m.user_id = ${userId}
+    -- R21.x. A church taken out of service is not one anybody signs in to.
+    where m.user_id = ${userId} and t.archived_at is null
     order by t.name`;
   return rows.map(held);
 }
@@ -86,7 +87,7 @@ export async function verifyMembership(userId: string, tenantId: string): Promis
            on r.tenant_id = m.tenant_id
           and (r.id = m.role_id
                or (m.role_id is null and r.builtin and r.key = m.role::text))
-    where m.user_id = ${userId} and m.tenant_id = ${tenantId}
+    where m.user_id = ${userId} and m.tenant_id = ${tenantId} and t.archived_at is null
     limit 1`;
   return rows[0] ? held(rows[0]) : null;
 }

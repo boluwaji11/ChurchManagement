@@ -341,13 +341,14 @@ export async function listTagsForPerson(db: Tx, memberId: string) {
 export async function resolveTenantBySlug(slug: string): Promise<{ id: string; name: string } | null> {
   const { owner } = await import("../client");
   const rows = await owner()<{ id: string; name: string }[]>`
-    select id, name from tenants where slug = ${slug} limit 1`;
+    select id, name from tenants where slug = ${slug} and archived_at is null limit 1`;
   return rows[0] ?? null;
 }
 
 export async function listChurches(): Promise<{ slug: string; name: string }[]> {
   const { owner } = await import("../client");
-  return owner()<{ slug: string; name: string }[]>`select slug, name from tenants order by name`;
+  return owner()<{ slug: string; name: string }[]>`
+    select slug, name from tenants where archived_at is null order by name`;
 }
 
 // ---------------------------------------------------------------------------

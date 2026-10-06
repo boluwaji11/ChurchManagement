@@ -49,6 +49,7 @@ export async function churchForSelfSignup(slug: string): Promise<JoinTarget | nu
       and self_signup
       and demo_expires_at is null
       and approved_at is not null
+      and archived_at is null
     limit 1`;
   return rows[0] ?? null;
 }
