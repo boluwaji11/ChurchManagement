@@ -431,9 +431,10 @@ export async function createChurch(input: {
 
     // R1.2. A primary campus from the first moment, even though the UI is
     // single-campus. Every later feature can assume one exists.
-    await tx`
+    const [campus] = await tx<{ id: string }[]>`
       insert into campuses (tenant_id, name, is_primary)
-      values (${tenant.id}, ${name}, true)`;
+      values (${tenant.id}, ${name}, true)
+      returning id`;
 
     await tx`
       insert into app_users (id, email, full_name)
@@ -445,6 +446,43 @@ export async function createChurch(input: {
     await tx`
       insert into tenant_members (tenant_id, user_id, role)
       values (${tenant.id}, ${input.user.id}, 'owner')`;
+
+    /*
+     * R2.1, R1.7. The founder is a member of their own church.
+     *
+     * Without this they hold an account and a role and nothing else: absent
+     * from their own directory, impossible to put on a team or in a group, and
+     * met by "no record" on their own profile screen. The church is empty at
+     * this point, so the slug cannot clash and no quota applies.
+     *
+     * The name arrived as one line, because asking a founder to fill two boxes
+     * on the first screen buys nothing. It splits on the last space, which is
+     * right for most names and wrong for some, and the profile screen corrects
+     * it in two keystrokes.
+     */
+    const whole = (input.user.fullName ?? "").trim().replace(/\s+/g, " ");
+    const cut = whole.lastIndexOf(" ");
+    const first = cut > 0 ? whole.slice(0, cut) : whole;
+    const last = cut > 0 ? whole.slice(cut + 1) : "";
+    const personSlug = slugify(whole) || slugify(input.user.email.split("@")[0] ?? "") || "owner";
+
+    const [person] = await tx<{ id: string }[]>`
+      insert into members (
+        tenant_id, campus_id, app_user_id, slug,
+        first_name, last_name, lifecycle_status, membership_date
+      )
+      values (
+        ${tenant.id}, ${campus?.id ?? null}, ${input.user.id}, ${personSlug},
+        ${first || "Owner"}, ${last}, 'member', current_date
+      )
+      returning id`;
+
+    if (person) {
+      await tx`
+        insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
+        values (${tenant.id}, ${person.id}, 'email', 'home',
+                ${input.user.email.trim().toLowerCase()}, true)`;
+    }
 
     // R9.1. The group types a church starts with. Written here rather than on
     // first use, so the form that creates a group has something to choose from
