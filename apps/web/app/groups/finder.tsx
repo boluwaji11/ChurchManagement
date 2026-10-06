@@ -511,9 +511,9 @@ export function Finder({
           <Empty
             icon="group"
             title={t("groups.none.title")}
-            /* R9.5. Two readers. Whoever writes the groups down is told to
-               write one; whoever came looking for one is told there is none. */
-            body={canManage ? t("groups.none.body") : t("groups.none.member")}
+            /* R9.5. The line tells whoever can make one to make one. A member
+               reading an empty screen has already been told by the screen. */
+            body={canManage ? t("groups.none.body") : undefined}
             action={
               canManage ? (
                 <Button asChild>

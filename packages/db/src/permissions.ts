@@ -56,6 +56,14 @@ export const PERMISSIONS = [
   // R5.x, R9.x, R7.x, R10.x. The week's work.
   "followups.manage",
   "groups.manage",
+  /**
+   * R9.3. The leader of a group, for their own group and nobody else's.
+   *
+   * Narrow on purpose: it opens the roster and the attendance of a group this
+   * person actually leads, which is read from the group rather than from here.
+   * Without it a church writing its own leader role had nothing to tick.
+   */
+  "groups.lead",
   "services.manage",
   // R14.x. What the church is putting on, and who has a place at it.
   "events.manage",
@@ -92,7 +100,7 @@ export const PERMISSION_GROUPS = [
     key: "week",
     permissions: [
       "services.manage", "teams.manage", "teams.lead",
-      "groups.manage", "events.manage", "followups.manage",
+      "groups.manage", "groups.lead", "events.manage", "followups.manage",
     ],
   },
   { key: "church", permissions: ["church.manage", "church.fields", "church.tags"] },
@@ -129,8 +137,8 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
     "checkin.incidents", "checkin.checks",
     "followups.manage", "groups.manage",
   ],
-  group_leader: [],
-  team_leader: ["teams.lead"],
+  group_leader: ["groups.lead"],
+  team_leader: ["teams.lead", "groups.lead"],
   checkin_volunteer: ["checkin.run", "checkin.supervise"],
   member: [],
 };

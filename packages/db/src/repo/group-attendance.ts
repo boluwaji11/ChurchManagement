@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { groups, groupMeetings, groupAttendance, groupMemberships } from "../schema/groups";
 import { members } from "../schema/members";
 import { PermissionError, type TenantRole } from "../roles";
+import { can } from "../permissions";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./members";
 import { canManageGroups } from "./groups";
@@ -55,7 +56,7 @@ export async function canRecordFor(
   groupId: string,
 ): Promise<boolean> {
   if (canManageGroups(actor)) return true;
-  if (actor.role !== "group_leader" && actor.role !== "team_leader") return false;
+  if (!can(actor, "groups.lead")) return false;
   if (!actor.userId) return false;
 
   const self = await personForUser(db, actor.userId);
