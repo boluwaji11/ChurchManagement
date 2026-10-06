@@ -5,8 +5,9 @@ import { membershipsForUser, canEditPeople, canReadIncidents } from "@connectapp
 import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignOutButton } from "@/components/sign-out-button";
-import { BrandBar } from "@/components/brand";
+import { AuthShell, AUTH_BUTTON } from "../auth-shell";
 import { JoinWithCode } from "./join-with-code";
+import type { Piece } from "@/components/site/art";
 import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,12 @@ export const dynamic = "force-dynamic";
 const REASONS = ["none", "denied"] as const;
 const isReason = (value: string | undefined): value is (typeof REASONS)[number] =>
   REASONS.includes(value as (typeof REASONS)[number]);
+
+/** The margins, drawn the way the first step of the flow draws them. */
+const ART: Piece[] = [
+  { name: "gathering", side: "left", y: 52, size: 250, inset: 16 },
+  { name: "sanctuary", side: "right", y: 52, size: 250, inset: 16 },
+];
 
 export default async function ChooseChurch({
   searchParams,
@@ -28,19 +35,14 @@ export default async function ChooseChurch({
   const notice = isReason(reason) ? reason : undefined;
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <BrandBar right={<SignOutButton />} />
-
-      <main id="main" className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display text-display text-fg">
-          {memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
-        </h1>
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">
-          {t("chooseChurch.signedInAs", { email: user.email })}
-        </p>
-      </div>
-
+    <AuthShell
+      title={memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
+      under={t("chooseChurch.signedInAs", { email: user.email })}
+      step={2}
+      art={ART}
+      width="max-w-[520px]"
+      footer={<SignOutButton />}
+    >
       {notice ? (
         <Banner tone={notice === "denied" ? "warning" : "info"} title={t(`chooseChurch.${notice}.title`)}>
           {t(`chooseChurch.${notice}.body`)}
@@ -48,7 +50,7 @@ export default async function ChooseChurch({
       ) : null}
 
       {memberships.length > 0 ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex list-none flex-col gap-2 p-0">
           {memberships.map((m) => (
             <li key={m.tenantId}>
               <Link
@@ -57,7 +59,7 @@ export default async function ChooseChurch({
                     ? "/members"
                     : "/home"
                 }?church=${m.tenantSlug}`}
-                className={`group flex items-center justify-between gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm ${LIFT}`}
+                className={`group flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 no-underline shadow-sm ${LIFT}`}
               >
                 <span className="flex items-center gap-3">
                   <Church className="size-5 text-fg-muted" aria-hidden />
@@ -75,13 +77,11 @@ export default async function ChooseChurch({
 
       <JoinWithCode />
 
-      <Button asChild variant="ghost" full>
+      <Button asChild variant="ghost" full className={AUTH_BUTTON}>
         <Link href="/create-church">
           <Plus /> {t("createChurch.title")}
         </Link>
       </Button>
-
-      </main>
-    </div>
+    </AuthShell>
   );
 }

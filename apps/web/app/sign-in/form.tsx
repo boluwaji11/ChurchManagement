@@ -44,7 +44,7 @@ export function SignInForm({ next, email }: { next?: string; email?: string }) {
             href={`/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`}
             className="font-medium text-primary"
           >
-            {t("signUp.title")}
+            {t("signIn.noAccount")}
           </Link>
         </span>
       </div>
