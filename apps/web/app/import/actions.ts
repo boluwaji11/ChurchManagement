@@ -125,6 +125,23 @@ export interface PreviewRow {
   detail?: string;
 }
 
+/**
+ * R19.2. One kind of problem, however many rows have it.
+ *
+ * Two hundred rows that all say the same sentence is one problem, and reading
+ * it two hundred times tells nobody anything. The group carries what to do
+ * about it, because four of the six reasons are fixed in the spreadsheet rather
+ * than on this screen.
+ */
+export interface ProblemGroup {
+  key: string;
+  title: string;
+  advice: string;
+  count: number;
+  /** A few of the rows, so the person can see which ones are meant. */
+  sample: { lineNumber: number; name: string; detail?: string }[];
+}
+
 export interface Preview {
   error?: string;
   totals?: { create: number; update: number; skip: number; fail: number };
@@ -135,6 +152,56 @@ export interface Preview {
   newGroups?: string[];
   /** R1.1. Set while the church is still being reviewed. */
   cap?: { limit: number; room: number; held: number };
+  /** R19.2. The rows that will not simply come in, by reason. */
+  problems?: ProblemGroup[];
+}
+
+
+/** How many rows of a group are named before it says "and 140 more". */
+const SAMPLE_ROWS = 4;
+
+/** The short name of each reason, and the thing to do about it. */
+const WHY: Record<string, string> = {
+  "import.skip.capped": "capped",
+  "import.skip.duplicate": "duplicate",
+  "import.skip.unsure": "unsure",
+  "import.skip.duplicateInFile": "duplicateInFile",
+  "import.skip.vanished": "vanished",
+  "import.error.noName": "noName",
+  "import.error.badDate": "badDate",
+  "import.error.badValue": "badValue",
+};
+
+/** R19.2. The problem rows, gathered by what is wrong with them. */
+function problemGroups(
+  rows: { lineNumber: number; outcome: string; reason?: string; name: string; detail?: string }[],
+): ProblemGroup[] {
+  const groups = new Map<string, ProblemGroup>();
+
+  for (const row of rows) {
+    if (row.outcome !== "skip" && row.outcome !== "fail") continue;
+    const key = (row.reason && WHY[row.reason]) || "other";
+
+    let group = groups.get(key);
+    if (!group) {
+      group = {
+        key,
+        title: t(`import.why.${key}` as never),
+        advice: t(`import.why.${key}.do` as never),
+        count: 0,
+        sample: [],
+      };
+      groups.set(key, group);
+    }
+
+    group.count += 1;
+    if (group.sample.length < SAMPLE_ROWS) {
+      group.sample.push({ lineNumber: row.lineNumber, name: row.name, detail: row.detail });
+    }
+  }
+
+  // The biggest pile first: it is the one the person has to decide about.
+  return [...groups.values()].sort((a, b) => b.count - a.count);
 }
 
 /** How many rows of the preview are shown. Enough to judge, not enough to scroll forever. */
@@ -170,6 +237,16 @@ export async function previewImport(input: {
   return {
     totals: result.totals,
     cap: result.cap,
+    // Counted over every row, rather than over the ones the list shows.
+    problems: problemGroups(
+      result.rows.map((row) => ({
+        lineNumber: row.lineNumber,
+        outcome: row.outcome,
+        reason: row.reason,
+        name: `${row.person.firstName} ${row.person.lastName}`.trim() || "?",
+        detail: describe(row),
+      })),
+    ),
     truncated: ordered.length > PREVIEW_ROWS,
     rows: ordered.slice(0, PREVIEW_ROWS).map((row) => ({
       lineNumber: row.lineNumber,
@@ -203,6 +280,15 @@ async function previewGroups(
   return {
     totals: { ...result.totals, update: 0 },
     newGroups: result.newGroups,
+    problems: problemGroups(
+      result.rows.map((row) => ({
+        lineNumber: row.lineNumber,
+        outcome: row.outcome,
+        reason: row.reason,
+        name: row.personName || "?",
+        detail: describeGroupRow(row),
+      })),
+    ),
     truncated: ordered.length > PREVIEW_ROWS,
     rows: ordered.slice(0, PREVIEW_ROWS).map((row) => ({
       lineNumber: row.lineNumber,

@@ -477,9 +477,7 @@ function PreviewStep({
 }) {
   const totals = preview.totals ?? { create: 0, update: 0, skip: 0, fail: 0 };
   const willWrite = totals.create + totals.update;
-  const problems = (preview.rows ?? []).filter(
-    (row) => row.outcome === "skip" || row.outcome === "fail",
-  );
+  const problems = preview.problems ?? [];
 
   const cap = preview.cap;
   const [looking, setLooking] = React.useState(false);
@@ -533,28 +531,39 @@ function PreviewStep({
               </Card>
             )}
 
-            {problems.length > 0 ? (
-              <section className="rounded-lg border border-line bg-surface px-5 py-2">
-                {problems.map((row) => (
-                  <div
-                    key={row.lineNumber}
-                    className="flex items-start gap-3 border-b border-sunken py-2.5 last:border-0"
-                  >
-                    <AlertTriangle
-                      className="mt-0.5 size-4 shrink-0"
-                      style={{ color: "var(--hue-amber-key)" }}
-                      aria-hidden
-                    />
-                    <span data-numeric className="w-16 shrink-0 font-mono text-[12px] text-fg-muted">
-                      {t("import.row", { line: row.lineNumber })}
-                    </span>
-                    <span className="min-w-0 flex-1 text-[13px] text-fg">
-                      {[row.name, row.detail].filter(Boolean).join(" · ")}
-                    </span>
-                  </div>
-                ))}
+            {problems.map((group) => (
+              <section key={group.key} className="flex flex-col gap-2">
+                <h3 className="flex items-center gap-2 text-[15px] font-semibold text-fg">
+                  <AlertTriangle
+                    className="size-4 shrink-0"
+                    style={{ color: "var(--hue-amber-key)" }}
+                    aria-hidden
+                  />
+                  {group.title}
+                  <Badge tone="neutral">{group.count}</Badge>
+                </h3>
+                <p className="text-[13px] text-fg-muted">{group.advice}</p>
+
+                <ol className="m-0 flex list-none flex-col rounded-lg border border-line bg-surface px-5 py-2">
+                  {group.sample.map((row) => (
+                    <li
+                      key={row.lineNumber}
+                      className="flex items-start gap-3 border-b border-sunken py-2.5 last:border-0"
+                    >
+                      <span data-numeric className="w-16 shrink-0 font-mono text-[12px] text-fg-muted">
+                        {t("import.row", { line: row.lineNumber })}
+                      </span>
+                      <span className="min-w-0 flex-1 text-[13px] text-fg">{row.name}</span>
+                    </li>
+                  ))}
+                  {group.count > group.sample.length ? (
+                    <li className="py-2.5 text-[13px] text-fg-subtle">
+                      {plural("import.andMore", group.count - group.sample.length)}
+                    </li>
+                  ) : null}
+                </ol>
               </section>
-            ) : null}
+            ))}
           </div>
         </SheetContent>
       </Sheet>
