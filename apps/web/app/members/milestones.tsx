@@ -4,7 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Input, Dialog, DialogTrigger, DialogContent,
+  Badge, Banner, Button, IconButton, Input,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { DateField } from "@/components/date-field";
@@ -132,15 +133,15 @@ export function Milestones({
       </ul>
 
       {canEdit ? (
-        <Dialog open={adding} onOpenChange={(next) => { setAdding(next); if (next) setFollowed(undefined); }}>
-          <DialogTrigger asChild>
+        <Sheet open={adding} onOpenChange={(next) => { setAdding(next); if (next) setFollowed(undefined); }}>
+          <SheetTrigger asChild>
             <Button variant="ghost" className="self-start">
               <Plus /> {t("milestone.add")}
             </Button>
-          </DialogTrigger>
+          </SheetTrigger>
           {/* In a dialog rather than inline on the card, so the date field's own
               calendar has room to open without landing on the rows below it. */}
-          <DialogContent title={t("milestone.add")} closeLabel={t("common.close")}>
+          <SheetContent title={t("milestone.add")} closeLabel={t("common.close")}>
             <form noValidate ref={form} action={submit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-label text-fg">{t("milestone.kind")}</span>
@@ -177,8 +178,8 @@ export function Milestones({
               <Button type="submit" disabled={!kind || pending}>{t("action.add")}</Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       ) : null}
     </div>
   );

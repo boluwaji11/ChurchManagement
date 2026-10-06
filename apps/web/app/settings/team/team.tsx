@@ -6,7 +6,7 @@ import { Plus, X, HelpCircle } from "lucide-react";
 import {
   Avatar, Badge, Banner, Button, Combobox, IconButton, Card, CardTitle, Field, Input,
   Separator,
-  Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Dialog, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
@@ -462,8 +462,10 @@ function InviteDialog({
     [church],
   );
 
+  const formId = React.useId();
+
   return (
-    <Dialog
+    <Sheet
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
@@ -476,11 +478,25 @@ function InviteDialog({
         }
       }}
     >
-      <DialogTrigger asChild>
+      <SheetTrigger asChild>
         <Button><Plus /> {t("team.invite")}</Button>
-      </DialogTrigger>
-      <DialogContent title={t("team.invite")} closeLabel={t("common.close")}>
+      </SheetTrigger>
+      <SheetContent
+        title={t("team.invite")}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" form={formId} disabled={pending || saving}>
+              {t("team.invite")}
+            </Button>
+          </>
+        }
+      >
         <form
+          id={formId}
           noValidate
           action={(data) => {
             data.set("church", church);
@@ -547,14 +563,8 @@ function InviteDialog({
             </Select>
           </Field>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-              <Button type="submit" disabled={pending || saving}>{t("team.invite")}</Button>
-          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

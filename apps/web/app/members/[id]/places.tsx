@@ -4,7 +4,7 @@ import * as React from "react";
 import { Plus, Star, Trash2 } from "lucide-react";
 import {
   Banner, Button, Field, IconButton,
-  Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -87,8 +87,8 @@ export function Places({
       ) : null}
 
       {canEdit ? (
-        <Dialog open={adding} onOpenChange={setAdding}>
-          <DialogTrigger asChild>
+        <Sheet open={adding} onOpenChange={setAdding}>
+          <SheetTrigger asChild>
             <button
               type="button"
               className="flex cursor-pointer items-center gap-1.5 self-start text-caption font-medium text-primary"
@@ -96,9 +96,17 @@ export function Places({
               <Plus className="size-3.5" aria-hidden />
               {t("contact.addAddress")}
             </button>
-          </DialogTrigger>
+          </SheetTrigger>
 
-          <DialogContent title={t("contact.addAddress")} closeLabel={t("common.close")}>
+          <SheetContent
+            title={t("contact.addAddress")}
+            closeLabel={t("common.close")}
+            footer={
+              <Button type="submit" form="add-address" disabled={pending}>
+                {t("contact.add")}
+              </Button>
+            }
+          >
             <form
               id="add-address"
               action={(data) => {
@@ -141,14 +149,9 @@ export function Places({
 
               <AddressFields values={emptyAddress()} />
 
-              <DialogFooter>
-                <Button type="submit" form="add-address" disabled={pending}>
-                  {t("contact.add")}
-                </Button>
-              </DialogFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       ) : null}
     </div>
   );

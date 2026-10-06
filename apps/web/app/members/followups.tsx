@@ -6,6 +6,7 @@ import { Plus, Check, Undo2, LogOut } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Field, HueDot, HueTag, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@connectapp/ui";
@@ -301,11 +302,11 @@ function StartDialog({
   const [saving, startTransition] = React.useTransition();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button><Plus /> {t("followups.startAction")}</Button>
-      </DialogTrigger>
-      <DialogContent title={t("followups.startAction")} closeLabel={t("common.close")}>
+      </SheetTrigger>
+      <SheetContent title={t("followups.startAction")} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <span className="text-label text-fg">{t("followups.start")}</span>
@@ -348,8 +349,8 @@ function StartDialog({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -438,16 +439,16 @@ function DoneDialog({
   const [outcome, setOutcome] = React.useState("");
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <IconButton
           label={t("followups.doneAction")}
           variant="secondary"
         >
           <Check />
         </IconButton>
-      </DialogTrigger>
-      <DialogContent title={title} closeLabel={t("common.close")}>
+      </SheetTrigger>
+      <SheetContent title={title} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
           <Field label={t("followups.outcome")}>
             <Input value={outcome} onChange={(e) => setOutcome(e.target.value)} autoFocus />
@@ -466,8 +467,8 @@ function DoneDialog({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -538,11 +539,11 @@ function TaskDialog({
   const [saving, startTransition] = React.useTransition();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button variant="secondary"><Plus /> {t("followups.task")}</Button>
-      </DialogTrigger>
-      <DialogContent title={t("followups.task")} closeLabel={t("common.close")}>
+      </SheetTrigger>
+      <SheetContent title={t("followups.task")} closeLabel={t("common.close")}>
         <form
           noValidate
           action={(data) => {
@@ -572,7 +573,7 @@ function TaskDialog({
               <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

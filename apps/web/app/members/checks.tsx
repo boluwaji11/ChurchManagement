@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   Badge, Banner, Button, Field, Input, Separator,
-  Dialog, DialogTrigger, DialogContent,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -130,11 +130,11 @@ function AddDialog({
   const [saving, startTransition] = React.useTransition();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button variant="secondary"><Plus /> {t("checks.add")}</Button>
-      </DialogTrigger>
-      <DialogContent title={t("checks.add")} closeLabel={t("common.close")}>
+      </SheetTrigger>
+      <SheetContent title={t("checks.add")} closeLabel={t("common.close")}>
         <form
           noValidate
           action={(data) => {
@@ -185,7 +185,7 @@ function AddDialog({
               <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

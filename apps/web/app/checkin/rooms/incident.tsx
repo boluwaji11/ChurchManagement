@@ -4,7 +4,7 @@ import * as React from "react";
 import {ClipboardPen } from "lucide-react";
 import {
   Banner,
-  Button, IconButton, Dialog, DialogTrigger, DialogContent, Field, Input, Textarea, Checkbox,
+  Button, IconButton, Sheet, SheetTrigger, SheetContent, Field, Input, Textarea, Checkbox,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
@@ -43,17 +43,17 @@ export function IncidentDialog({
   const [pending, startTransition] = React.useTransition();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <IconButton
           label={t("incident.add")}
           variant="ghost"
         >
           <ClipboardPen />
         </IconButton>
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent
+      <SheetContent
         title={t("incident.heading", { name: personName })}
         closeLabel={t("common.close")}
       >
@@ -118,7 +118,7 @@ export function IncidentDialog({
               <Button type="submit" disabled={pending}>{t("action.save")}</Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -6,6 +6,7 @@ import { Plus, Archive, Undo2, Tablet } from "lucide-react";
 import {
   Banner, Button, IconButton, Field, Input, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -208,11 +209,25 @@ function StationDialog({
   const [mode, setMode] = React.useState(station?.mode ?? "desk");
   const [printer, setPrinter] = React.useState(station?.printer ?? "paper");
 
+  const formId = React.useId();
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent title={title} closeLabel={t("common.close")}>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent
+        title={title}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" form={formId} disabled={pending}>{t("action.save")}</Button>
+          </>
+        }
+      >
         <form
+          id={formId}
           action={(data) => {
             onSave({
               name: String(data.get("name") ?? ""),
@@ -258,15 +273,9 @@ function StationDialog({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
-          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 

@@ -11,6 +11,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { saveTeam, savePosition, archivePosition } from "./actions";
 import { useFormError } from "@/lib/form-error";
+import { Confirm } from "@/components/confirm";
 
 export interface TeamDraft {
   id: string;
@@ -198,17 +199,27 @@ export function TeamDialog({
                           className="-mt-1 min-w-0 flex-1 rounded-sm border-b border-line bg-transparent px-1 py-1 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
                           onChange={(e) => change(i, { name: e.target.value })}
                         />
-                        <IconButton
-                          label={t("serving.position.remove")}
-                          variant="ghost"
-                          className="-mt-2.5"
-                          onClick={() => {
+                        {/* R24.x. A row never leaves a list on one press. */}
+                        <Confirm
+                          title={t("serving.position.removeTitle", {
+                            name: one.name || t("serving.position"),
+                          })}
+                          body={t("serving.position.removeBody")}
+                          confirmLabel={t("serving.position.removeAction")}
+                          onConfirm={() => {
                             if (one.id) setDropped((was) => [...was, one.id!]);
                             setPositions((was) => was.filter((_, at) => at !== i));
                           }}
-                        >
-                          <Trash2 />
-                        </IconButton>
+                          trigger={
+                            <IconButton
+                              label={t("serving.position.remove")}
+                              variant="ghost"
+                              className="-mt-2.5"
+                            >
+                              <Trash2 />
+                            </IconButton>
+                          }
+                        />
                       </div>
 
                       <div className="flex flex-col gap-1">

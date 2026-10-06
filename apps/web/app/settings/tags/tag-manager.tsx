@@ -6,7 +6,7 @@ import { Trash2, Merge, Check, Plus } from "lucide-react";
 import {
   HUES,
   Button, IconButton, Input, Field, Separator, Banner, HueDot,
-  Dialog, DialogTrigger, DialogContent, DialogClose,
+  Sheet, SheetTrigger, SheetContent, SheetClose,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -108,17 +108,17 @@ export function NewTag({ church }: { church: string }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <button
           type="button"
           className={`${CHIP} cursor-pointer gap-1.5 border border-dashed border-line-strong text-fg-muted hover:bg-sunken hover:text-fg`}
         >
           <Plus className="size-4" aria-hidden /> {t("tags.add")}
         </button>
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent title={t("tags.add")} closeLabel={t("common.close")}>
+      <SheetContent title={t("tags.add")} closeLabel={t("common.close")}>
         {error ? <Banner tone="danger" title={t("tags.failed")}>{error}</Banner> : null}
 
         <Field label={t("tags.name")} required>
@@ -138,8 +138,8 @@ export function NewTag({ church }: { church: string }) {
             {t("action.add")}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -182,8 +182,8 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
   };
 
   return (
-    <Dialog open={open} onOpenChange={reset}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={reset}>
+      <SheetTrigger asChild>
         <button
           type="button"
           aria-label={t("tags.editOne", { name: tag.name })}
@@ -191,9 +191,9 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
         >
           {tag.name}
         </button>
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent title={tag.name} closeLabel={t("common.close")}>
+      <SheetContent title={tag.name} closeLabel={t("common.close")}>
         {error ? <Banner tone="danger" title={t("tags.failed")} className="mb-4">{error}</Banner> : null}
 
         <form action={(d) => run(saveTag, d)} className="flex flex-col gap-4">
@@ -230,9 +230,9 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
 
           <div className="flex items-center gap-3">
             <Button type="submit" loading={pending}>{t("action.save")}</Button>
-            <DialogClose asChild>
+            <SheetClose asChild>
               <Button type="button" variant="ghost">{t("action.cancel")}</Button>
-            </DialogClose>
+            </SheetClose>
           </div>
         </form>
 
@@ -290,7 +290,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
             </IconButton>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -6,6 +6,7 @@ import { Plus, X, Power } from "lucide-react";
 import {
   Badge, Banner, Button, Combobox, IconButton, Field, Input, Separator, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
   LIFT,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -364,16 +365,16 @@ export function NewPipeline({ church, team }: { church: string; team: TeamMember
   const [open, setOpen] = React.useState(false);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button><Plus /> {t("pipelines.add")}</Button>
-      </DialogTrigger>
-      <DialogContent title={t("pipelines.addTitle")} closeLabel={t("common.close")} className="max-w-xl">
+      </SheetTrigger>
+      <SheetContent title={t("pipelines.addTitle")} closeLabel={t("common.close")} width="560px">
         {open ? (
           <StageForm church={church} team={team} onDone={() => setOpen(false)} />
         ) : null}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -393,9 +394,9 @@ function EditDialog({
   const [open, setOpen] = React.useState(false);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent title={row.name} closeLabel={t("common.close")} className="max-w-xl">
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent title={row.name} closeLabel={t("common.close")} width="560px">
         {/* Mounted with the box, so a stage edited, closed and opened again
             starts from what was saved rather than from what was typed. */}
         {open ? (
@@ -407,8 +408,8 @@ function EditDialog({
             onDone={() => setOpen(false)}
           />
         ) : null}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
