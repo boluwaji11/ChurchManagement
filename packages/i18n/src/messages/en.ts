@@ -112,7 +112,7 @@ export const en = {
   "site.why.money": "The software that carries it costs {cost} a year, and the free alternatives all need a developer, which is the one thing a church does not have.",
   "site.why.cost": "$600 to $1,800",
   "site.why.gave": "That day and that money came out of what a congregation gave for ministry.",
-  "site.why.ours": "I write software, so I built the third option: every feature, free, funded by donations, plain enough for one volunteer to run. The hours and the money go back where they came from.",
+  "site.why.ours": "I build technological products, so I built the third option: every feature, free, and designed so the volunteer who gives four hours a week can run all of it without help. The hours and the money go back where they came from.",
   "site.why.quote": "Each of you should use whatever gift you have received to serve others, as faithful stewards of God's grace in its various forms.",
   "site.why.cite": "1 Peter 4:10",
   "site.features.title": "Everything in one place.",
