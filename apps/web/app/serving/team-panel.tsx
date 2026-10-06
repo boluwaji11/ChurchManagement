@@ -229,12 +229,16 @@ export function TeamPanel({
               <ol className="m-0 flex list-none flex-col p-0">
                 {people.map((one, i) => (
                   <li key={one.memberId} className="flex gap-2.5">
-                    <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                      <span className="mt-2 size-2 shrink-0 rounded-full bg-primary" />
-                      {i === people.length - 1 ? null : (
-                        <span className="relative my-1 w-px flex-1 bg-primary/40" />
-                      )}
-                    </span>
+                    {/* One person is not a path, so the marker column only
+                        draws once there is something to connect. */}
+                    {people.length > 1 ? (
+                      <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                        <span className="mt-2 size-2 shrink-0 rounded-full bg-primary" />
+                        {i === people.length - 1 ? null : (
+                          <span className="relative my-1 w-px flex-1 bg-primary/40" />
+                        )}
+                      </span>
+                    ) : null}
 
                     <span className="flex min-w-0 flex-1 items-center gap-3 pb-3">
                       <Avatar
