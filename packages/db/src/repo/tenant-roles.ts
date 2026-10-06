@@ -97,8 +97,74 @@ export async function listRoles(
   tenantId: string,
   opts: { includeArchived?: boolean } = {},
 ): Promise<ChurchRole[]> {
-  await ensureBuiltIns(db, tenantId);
+  /*
+   * Read every role, archived ones included, and drop the archived in memory.
+   *
+   * Eight of the nine built-ins go in already archived, so a read that filtered
+   * them out in SQL could not tell a church that has them from a church that
+   * has never had them, and the check below would write on every call. A church
+   * has a dozen roles.
+   */
+  let rows = await readRoles(db, tenantId);
 
+  /*
+   * The built-ins are written only when they are actually missing or out of
+   * date. This read used to open with an upsert of nine rows, every time, which
+   * is nine row locks and a write-ahead log entry on the way into a screen that
+   * changes nothing. The rows that come back answer the question the upsert was
+   * asking, so the write happens on the first read after a church is created or
+   * after a permission is added to the product, and not again.
+   */
+  if (needsBuiltIns(rows)) {
+    await ensureBuiltIns(db, tenantId);
+    rows = await readRoles(db, tenantId);
+  }
+
+  return shape(opts.includeArchived ? rows : rows.filter((row) => row.archivedAt === null));
+}
+
+/**
+ * Whether the stored built-ins still say what the product says.
+ *
+ * A church that has edited one owns it from then on, so a customised row is
+ * never counted as out of date.
+ */
+function needsBuiltIns(rows: readonly RoleRow[]): boolean {
+  const builtins = new Map(rows.filter((row) => row.builtin).map((row) => [row.key, row]));
+  return TENANT_ROLES.some((key) => {
+    const row = builtins.get(key);
+    if (!row) return true;
+    if (row.customised) return false;
+    const want = ROLE_PERMISSIONS[key];
+    return (
+      row.permissions.length !== want.length ||
+      want.some((permission) => !row.permissions.includes(permission))
+    );
+  });
+}
+
+function shape(rows: readonly RoleRow[]): ChurchRole[] {
+  return rows.map(({ archivedAt, customised: _customised, ...row }) => ({
+    ...row,
+    permissions: known(row.permissions),
+    archived: archivedAt !== null,
+    members: Number(row.members),
+  }));
+}
+
+interface RoleRow {
+  id: string;
+  key: string;
+  name: string;
+  permissions: string[];
+  builtin: boolean;
+  customised: boolean;
+  position: number;
+  archivedAt: Date | null;
+  members: number;
+}
+
+async function readRoles(db: Tx, tenantId: string): Promise<RoleRow[]> {
   const rows = await db
     .select({
       id: tenantRoles.id,
@@ -106,6 +172,7 @@ export async function listRoles(
       name: tenantRoles.name,
       permissions: tenantRoles.permissions,
       builtin: tenantRoles.builtin,
+      customised: tenantRoles.customised,
       position: tenantRoles.position,
       archivedAt: tenantRoles.archivedAt,
       members: sql<number>`(
@@ -116,19 +183,10 @@ export async function listRoles(
       )`,
     })
     .from(tenantRoles)
-    .where(
-      opts.includeArchived
-        ? eq(tenantRoles.tenantId, tenantId)
-        : and(eq(tenantRoles.tenantId, tenantId), isNull(tenantRoles.archivedAt)),
-    )
+    .where(eq(tenantRoles.tenantId, tenantId))
     .orderBy(asc(tenantRoles.position), asc(tenantRoles.name));
 
-  return rows.map(({ archivedAt, ...row }) => ({
-    ...row,
-    permissions: known(row.permissions),
-    archived: archivedAt !== null,
-    members: Number(row.members),
-  }));
+  return rows as RoleRow[];
 }
 
 /** The permissions one member holds, whichever kind of role they are on. */
