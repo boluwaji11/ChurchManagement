@@ -139,7 +139,7 @@ export function ImportWizard({
   return (
     /* R19.1. One centred column for the whole flow, so the steps, the table and
        the check all sit under one another rather than sliding about. */
-    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-[860px] flex-col gap-6">
       <Steps current={step} />
 
       {/* R19.2. Reading a file, building the preview and writing the rows all
@@ -350,7 +350,7 @@ function MapColumns({
         ) : null}
       </div>
 
-      <section className="mx-auto w-full max-w-[860px] overflow-auto rounded-lg border border-line bg-surface">
+      <section className="w-full overflow-auto rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[600px] border-collapse text-left">
           <thead>
             <tr className="text-[12px] font-semibold text-fg">
@@ -400,7 +400,7 @@ function MapColumns({
         </table>
       </section>
 
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={onBack}>
           {t("import.back")}
         </Button>
@@ -559,7 +559,7 @@ function PreviewStep({
         </SheetContent>
       </Sheet>
 
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={onBack}>
           {t("import.back")}
         </Button>
