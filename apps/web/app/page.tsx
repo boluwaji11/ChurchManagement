@@ -69,16 +69,16 @@ const PRICE = ["everything", "fee", "source", "donations"] as const;
 /* The drawings in the margins of the four centred sections. Nothing sits beside
    a screen of the product or a grid of cards: those sections are already full. */
 const HERO_ART: Piece[] = [
-  { name: "family", side: "left", y: 56, size: 230, inset: 16 },
-  { name: "sanctuary", side: "right", y: 54, size: 260, inset: 8 },
+  { name: "family", side: "left", y: 56, size: 220, inset: 0 },
+  { name: "sanctuary", side: "right", y: 54, size: 250, inset: 0 },
 ];
 
 const PURPOSE_ART: Piece[] = [
-  { name: "gathering", side: "right", y: 55, size: 280, inset: 12 },
+  { name: "gathering", side: "right", y: 55, size: 250, inset: 4 },
 ];
 
 const WHY_ART: Piece[] = [
-  { name: "records", side: "right", y: 28, size: 230, inset: 24 },
+  { name: "records", side: "right", y: 52, size: 240, inset: 32 },
 ];
 
 const PRICE_ART: Piece[] = [
@@ -86,12 +86,12 @@ const PRICE_ART: Piece[] = [
 ];
 
 const TRUST_ART: Piece[] = [
-  { name: "safe", side: "right", y: 52, size: 210, inset: 20 },
+  { name: "safe", side: "right", y: 26, size: 150, inset: 0 },
 ];
 
 const END_ART: Piece[] = [
-  { name: "congregation", side: "left", y: 52, size: 240, inset: 20 },
-  { name: "fellowship", side: "right", y: 54, size: 250, inset: 16 },
+  { name: "congregation", side: "left", y: 52, size: 210, inset: 0 },
+  { name: "fellowship", side: "right", y: 54, size: 210, inset: 0 },
 ];
 
 
@@ -156,11 +156,12 @@ export default function Site() {
               <SectionTitle>{t("site.why.title")}</SectionTitle>
             </div>
 
-            <div className="flex flex-wrap items-start gap-x-16 gap-y-6">
-              <p className="m-0 min-w-0 flex-[1_1_380px] text-[17px] leading-[28px] text-fg-muted">
-                {t("site.why.hours")}
-              </p>
-              <p className="m-0 min-w-0 flex-[1_1_380px] text-[17px] leading-[28px] text-fg-muted">
+            <div className="flex max-w-[840px] flex-wrap items-start gap-x-14 gap-y-6">
+              <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-5 text-[17px] leading-[28px] text-fg-muted">
+                <p className="m-0">{t("site.why.hours")}</p>
+                <p className="m-0">{t("site.why.cost")}</p>
+              </div>
+              <p className="m-0 min-w-0 flex-[1_1_360px] text-[17px] leading-[28px] text-fg-muted">
                 {t("site.why.ours")}
               </p>
             </div>

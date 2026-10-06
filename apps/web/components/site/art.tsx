@@ -11,8 +11,8 @@ import { cn } from "@connectapp/ui";
  *
  * They sit in the margins of the centred sections, which is the room the design
  * leaves and the only room on the page that is not already carrying something.
- * Below 1024px there are no margins, so they come off: a drawing squeezed
- * beside a paragraph on a phone is clutter.
+ * Below 1280px those margins close up, so they come off rather than landing on
+ * the words: a drawing over a paragraph is worse than no drawing.
  */
 
 /** Where a drawing sits, how wide, and which way it leans. */
@@ -33,7 +33,7 @@ export function Art({ pieces, className }: { pieces: readonly Piece[]; className
   return (
     <div
       aria-hidden
-      className={cn("pointer-events-none absolute inset-0 hidden overflow-hidden lg:block", className)}
+      className={cn("pointer-events-none absolute inset-0 hidden overflow-hidden xl:block", className)}
     >
       {pieces.map((piece) => (
         <img
