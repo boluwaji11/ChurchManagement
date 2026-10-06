@@ -61,7 +61,7 @@ export function EventPage({
           website opens. No coloured rule over the top: the page already carries
           the event's colour, and two bands of colour above the fold is one more
           than the page needs. */}
-      <header className="px-5 pt-3 pb-1 sm:px-8 sm:pt-4">
+      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px] px-5 py-3 sm:px-8">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
           {logoUrl ? (
             <img

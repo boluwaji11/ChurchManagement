@@ -47,7 +47,7 @@ export default async function PublicFormPage({
 
       {/* The church's name across the top, so somebody who followed a link off
           a bulletin can see whose form this is before they read a word of it. */}
-      <header className="flex items-center justify-center gap-2.5 border-b border-line bg-surface px-4 py-3.5">
+      <header className="sticky top-0 z-20 flex items-center justify-center gap-2.5 border-b border-line bg-[color-mix(in_oklch,var(--surface)_92%,transparent)] px-4 py-3.5 backdrop-blur-[10px]">
         {logoUrl ? (
           <img
             src={logoUrl}
