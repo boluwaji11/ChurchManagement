@@ -152,14 +152,26 @@ function TypeDialog({
   /** Remounts the editor when a ready-made kind fills it. */
   const [filled, setFilled] = React.useState(0);
 
+  /*
+   * R24.6. The panel is filled from the record each time it opens.
+   *
+   * It was filled once when the screen rendered and reset from whatever the
+   * props held when it closed, so a saved edit was still showing the words it
+   * had before the save until the whole page was reloaded.
+   */
+  React.useEffect(() => {
+    if (!open) return;
+    setName(type?.name ?? "");
+    setBody(type?.description ?? "");
+    setFilled((n) => n + 1);
+  }, [open, type?.name, type?.description]);
+
   const close = (next: boolean) => {
     setOpen(next);
     if (!next) {
       setAsking(false);
       setDirty(false);
       setPicking(!type && library.length > 0);
-      setName(type?.name ?? "");
-      setBody(type?.description ?? "");
     }
   };
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });

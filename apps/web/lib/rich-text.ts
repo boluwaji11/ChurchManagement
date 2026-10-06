@@ -107,7 +107,9 @@ function inlineHtml(text: string): string {
  * the only elements here are the ones this function writes.
  */
 export function markdownToHtml(markdown: string): string {
-  const lines = markdown.split("\n");
+  // A form posts its fields with CRLF line endings, so what comes back out of
+  // storage carries them. Everything below counts in newlines.
+  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
   const out: string[] = [];
   let i = 0;
 
