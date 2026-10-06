@@ -229,7 +229,7 @@ function FieldSheet({
   const offered = FIELD_LIBRARY
     .filter((one) => !held.has(presetValues(one).label.toLowerCase()))
     .sort((a, b) => presetValues(a).label.localeCompare(presetValues(b).label));
-  const shown = all ? offered : offered.slice(0, 5);
+  const shown = all ? offered : offered.slice(0, 8);
 
   const run = async (fn: (d: FormData) => Promise<{ error?: string }>, data: FormData) => {
     setError(undefined);
@@ -378,13 +378,15 @@ function FieldSheet({
               })}
             </ol>
 
-            {offered.length > shown.length ? (
+            {offered.length > 8 ? (
               <button
                 type="button"
-                onClick={() => setAll(true)}
+                onClick={() => setAll((was) => !was)}
                 className="cursor-pointer self-start rounded-md px-2 py-2 font-medium text-primary"
               >
-                {t("list.showMore", { count: offered.length - shown.length })}
+                {all
+                  ? t("list.showLess")
+                  : t("list.showMore", { count: offered.length - shown.length })}
               </button>
             ) : null}
           </div>

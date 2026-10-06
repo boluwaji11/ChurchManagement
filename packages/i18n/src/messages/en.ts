@@ -3243,6 +3243,7 @@ export const en = {
   "common.noMatch": "No match",
   "list.sort": "Sort",
   "list.showMore": "Show {count} more",
+  "list.showLess": "Show less",
   "list.sort.draftsFirst": "Drafts first",
   "list.sort.newest": "Newest first",
   "list.sort.oldest": "Oldest first",
