@@ -104,7 +104,13 @@ export default async function TeamPage({
                   description: team.description,
                   hue: team.hue,
                 }}
-                positions={team.positions.map((one) => ({ id: one.id, name: one.name }))}
+                positions={team.positions.map((one) => ({
+                  id: one.id,
+                  name: one.name,
+                  needed: one.needed,
+                  withChildren: one.withChildren,
+                  requiresCheck: one.requiresCheck,
+                }))}
                 title={t("serving.editTeam")}
                 trigger={
                   <IconButton label={t("action.edit")} variant="ghost">

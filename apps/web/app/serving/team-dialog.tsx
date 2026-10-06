@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Archive, Plus, Trash2 } from "lucide-react";
 import {
-  Banner, Button, IconButton, Field, HueDot, Input, Textarea,
+  Banner, Button, IconButton, Field, HueDot, Input, Switch, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   HUES, type Hue,
@@ -21,11 +21,25 @@ export interface TeamDraft {
 }
 
 /** R10.2. A position as the dialog holds it while it is being edited. */
-interface PositionDraft {
+export interface PositionDraft {
   /** Null on a position being written for the first time. */
   id: string | null;
   name: string;
+  /** R10.3. How many of this position a service needs filled. */
+  needed: number;
+  /** R10.10. Whether it puts somebody in a room with children. */
+  withChildren: boolean;
+  /** R10.11. Whether a valid background check gates being scheduled to it. */
+  requiresCheck: boolean;
 }
+
+const EMPTY_POSITION: PositionDraft = {
+  id: null,
+  name: "",
+  needed: 1,
+  withChildren: false,
+  requiresCheck: false,
+};
 
 /**
  * R10.1. Writing a team down.
@@ -45,7 +59,7 @@ export function TeamDialog({
   church: string;
   team?: TeamDraft;
   /** R10.2. What the team schedules today, when one is being edited. */
-  positions?: { id: string; name: string }[];
+  positions?: PositionDraft[];
   title: string;
   trigger: React.ReactNode;
 }) {
@@ -57,19 +71,22 @@ export function TeamDialog({
    * R10.2. A team is the positions it schedules, so they are written here
    * rather than on a second screen somebody has to find afterwards.
    */
-  const blank: PositionDraft[] = (existing ?? []).map((one) => ({ id: one.id, name: one.name }));
+  const blank: PositionDraft[] = existing ?? [];
   const [positions, setPositions] = React.useState<PositionDraft[]>(
-    blank.length > 0 ? blank : [{ id: null, name: "" }],
+    blank.length > 0 ? blank : [EMPTY_POSITION],
   );
   /** The ones taken off the list, archived when the form is saved. */
   const [dropped, setDropped] = React.useState<string[]>([]);
   const [saving, startTransition] = React.useTransition();
 
+  const change = (at: number, fields: Partial<PositionDraft>) =>
+    setPositions((was) => was.map((one, i) => (i === at ? { ...one, ...fields } : one)));
+
   // The panel is filled from the team each time it opens, so a close without
   // saving does not leave half an edit behind for the next reader.
   React.useEffect(() => {
     if (!open) return;
-    setPositions(blank.length > 0 ? blank : [{ id: null, name: "" }]);
+    setPositions(blank.length > 0 ? blank : [EMPTY_POSITION]);
     setDropped([]);
     setHue(team?.hue ?? "teal");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,10 +115,22 @@ export function TeamDialog({
                   const name = one.name.trim();
                   if (!name) continue;
                   const was = (existing ?? []).find((row) => row.id === one.id);
-                  if (one.id && was?.name === name) continue;
+                  if (
+                    one.id
+                    && was?.name === name
+                    && was.needed === one.needed
+                    && was.withChildren === one.withChildren
+                    && was.requiresCheck === one.requiresCheck
+                  ) continue;
                   await savePosition(
                     one.id,
-                    { teamId, name, needed: 1, withChildren: false, requiresCheck: false },
+                    {
+                      teamId,
+                      name,
+                      needed: one.needed,
+                      withChildren: one.withChildren,
+                      requiresCheck: one.requiresCheck,
+                    },
                     church,
                   );
                 }
@@ -130,52 +159,93 @@ export function TeamDialog({
                 line between them carrying its own dot. A position is one line
                 of a list, and a boxed card each made six of them read as six
                 separate things. */}
-            <ol className="m-0 flex list-none flex-col p-0">
-              {positions.map((one, i) => (
-                <li key={one.id ?? `new-${i}`} className="flex items-start gap-2.5">
-                  <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                    <span className="grid size-5 shrink-0 place-items-center rounded-full border border-line-strong bg-surface text-[10px] font-semibold text-fg-subtle">
-                      {i + 1}
-                    </span>
-                    {i === positions.length - 1 ? null : (
-                      <span className="relative my-1 h-4 w-px bg-line-strong">
-                        <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-line-strong" />
+            {/* R10.2. Six positions is an ordinary worship team, so the list
+                keeps its height and scrolls rather than pushing Save off the
+                bottom of the panel. */}
+            <div className="max-h-[260px] overflow-y-auto pr-1">
+              <ol className="m-0 flex list-none flex-col p-0">
+                {positions.map((one, i) => (
+                  <li key={one.id ?? `new-${i}`} className="flex items-start gap-2.5">
+                    <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                      <span className="grid size-5 shrink-0 place-items-center rounded-full border border-line-strong bg-surface text-[10px] font-semibold text-fg-subtle">
+                        {i + 1}
                       </span>
-                    )}
-                  </span>
+                      {i === positions.length - 1 ? null : (
+                        <span className="relative my-1 w-px flex-1 bg-line-strong">
+                          <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-line-strong" />
+                        </span>
+                      )}
+                    </span>
 
-                  <input
-                    value={one.name}
-                    aria-label={t("serving.team.positionName")}
-                    autoComplete="off"
-                    className="-mt-1 min-w-0 flex-1 rounded-sm border-b border-line bg-transparent px-1 py-1 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
-                    onChange={(e) =>
-                      setPositions((was) =>
-                        was.map((x, at) => (at === i ? { ...x, name: e.target.value } : x)),
-                      )
-                    }
-                  />
+                    <div className="flex min-w-0 flex-1 flex-col gap-1.5 pb-3">
+                      <div className="flex items-start gap-2">
+                        <input
+                          value={one.name}
+                          aria-label={t("serving.position.name")}
+                          autoComplete="off"
+                          className="-mt-1 min-w-0 flex-1 rounded-sm border-b border-line bg-transparent px-1 py-1 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                          onChange={(e) => change(i, { name: e.target.value })}
+                        />
+                        <IconButton
+                          label={t("serving.position.remove")}
+                          variant="ghost"
+                          className="-mt-2.5"
+                          onClick={() => {
+                            if (one.id) setDropped((was) => [...was, one.id!]);
+                            setPositions((was) => was.filter((_, at) => at !== i));
+                          }}
+                        >
+                          <Trash2 />
+                        </IconButton>
+                      </div>
 
-                  <IconButton
-                    label={t("serving.position.remove")}
-                    variant="ghost"
-                    className="-mt-1.5"
-                    onClick={() => {
-                      if (one.id) setDropped((was) => [...was, one.id!]);
-                      setPositions((was) => was.filter((_, at) => at !== i));
-                    }}
-                  >
-                    <Trash2 />
-                  </IconButton>
-                </li>
-              ))}
-            </ol>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-fg-muted">
+                        <label className="flex items-center gap-1.5">
+                          {t("serving.position.needed")}
+                          <input
+                            type="number"
+                            min={1}
+                            value={one.needed}
+                            className="w-14 rounded-sm border-b border-line bg-transparent px-1 py-0.5 text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                            onChange={(e) =>
+                              change(i, { needed: Math.max(1, Number(e.target.value) || 1) })
+                            }
+                          />
+                        </label>
+
+                        {/* R10.10, R10.11. A position in a children's room is
+                            the one that gates scheduling on a valid check, so
+                            both facts are set where the position is written. */}
+                        <label className="flex items-center gap-1.5">
+                          <Switch
+                            checked={one.withChildren}
+                            onCheckedChange={(on) =>
+                              change(i, { withChildren: on, requiresCheck: on || one.requiresCheck })
+                            }
+                          />
+                          {t("serving.position.withChildren")}
+                        </label>
+
+                        <label className="flex items-center gap-1.5">
+                          <Switch
+                            checked={one.requiresCheck}
+                            disabled={one.withChildren}
+                            onCheckedChange={(on) => change(i, { requiresCheck: on })}
+                          />
+                          {t("serving.position.requiresCheck")}
+                        </label>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
 
             <Button
               type="button"
               variant="ghost"
               className="self-start"
-              onClick={() => setPositions((was) => [...was, { id: null, name: "" }])}
+              onClick={() => setPositions((was) => [...was, EMPTY_POSITION])}
             >
               <Plus /> {t("serving.position.add")}
             </Button>

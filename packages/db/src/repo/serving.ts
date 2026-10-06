@@ -806,11 +806,20 @@ export async function seedTeams(db: Tx, actor: WriteActor): Promise<number> {
 }
 
 /** R10.2. The live positions on each of these teams, in the team's own order. */
+/** R10.2. A position as a list of teams carries it. */
+export interface TeamPositionSummary {
+  id: string;
+  name: string;
+  needed: number;
+  withChildren: boolean;
+  requiresCheck: boolean;
+}
+
 export async function positionsForTeams(
   db: Tx,
   teamIds: string[],
-): Promise<Record<string, { id: string; name: string; needed: number }[]>> {
-  const out: Record<string, { id: string; name: string; needed: number }[]> = {};
+): Promise<Record<string, TeamPositionSummary[]>> {
+  const out: Record<string, TeamPositionSummary[]> = {};
   if (teamIds.length === 0) return out;
 
   const rows = await db
@@ -819,13 +828,21 @@ export async function positionsForTeams(
       id: teamPositions.id,
       name: teamPositions.name,
       needed: teamPositions.needed,
+      withChildren: teamPositions.withChildren,
+      requiresCheck: teamPositions.requiresCheck,
     })
     .from(teamPositions)
     .where(and(inArray(teamPositions.teamId, teamIds), isNull(teamPositions.archivedAt)))
     .orderBy(asc(teamPositions.position), asc(teamPositions.name));
 
   for (const row of rows) {
-    (out[row.teamId] ??= []).push({ id: row.id, name: row.name, needed: row.needed });
+    (out[row.teamId] ??= []).push({
+      id: row.id,
+      name: row.name,
+      needed: row.needed,
+      withChildren: row.withChildren,
+      requiresCheck: row.requiresCheck,
+    });
   }
   return out;
 }

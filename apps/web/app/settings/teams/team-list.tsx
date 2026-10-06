@@ -6,7 +6,7 @@ import { Plus, ShieldCheck, Undo2 } from "lucide-react";
 import { Badge, Banner, Button, LIFT } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import { TeamDialog } from "../../serving/team-dialog";
+import { TeamDialog, type PositionDraft } from "../../serving/team-dialog";
 import { archiveTeam } from "../../serving/actions";
 
 export interface TeamItem {
@@ -15,7 +15,7 @@ export interface TeamItem {
   description: string | null;
   hue: string;
   members: number;
-  positions: { id: string; name: string }[];
+  positions: PositionDraft[];
   needsChecks: boolean;
   archived: boolean;
 }
