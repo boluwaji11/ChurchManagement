@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { Archive, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, DialogTrigger,
-  Field, IconButton, Input, LIFT, Textarea,
+  Field, IconButton, Input, LIFT,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
+import { RichText } from "@/components/rich-text";
 import { saveType, archiveType } from "./actions";
 
 export interface TypeRow {
@@ -203,11 +204,7 @@ function TypeDialog({
           </Field>
 
           <Field label={t("groupType.description")}>
-            <Textarea
-              name="description"
-              rows={2}
-              defaultValue={type?.description ?? ""}
-            />
+            <RichText name="description" defaultValue={type?.description ?? ""} minHeight={120} />
           </Field>
 
           <DialogFooter className="justify-between">

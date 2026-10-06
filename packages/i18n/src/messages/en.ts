@@ -1295,7 +1295,7 @@ export const en = {
   "settings.lede.grouptypes": "The kinds of group your church runs.",
   "groupType.add": "Create a new group type",
   "groupType.name": "Name",
-  "groupType.description": "What it is for",
+  "groupType.description": "Description",
   "groupType.colour": "Colour",
   "groupType.count.one": "{count} group",
   "groupType.count.other": "{count} groups",

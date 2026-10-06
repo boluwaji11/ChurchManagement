@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { t } from "@connectapp/i18n";
+import { plainFromMarkdown } from "@/lib/rich-text";
 
 export interface TypeCard {
   id: string;
@@ -50,7 +51,7 @@ export function TypesLanding({
 
             {one.description ? (
               <span className="line-clamp-3 text-[length:var(--d-text-body)] text-fg-muted">
-                {one.description}
+                {plainFromMarkdown(one.description)}
               </span>
             ) : null}
           </span>

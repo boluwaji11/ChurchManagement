@@ -118,3 +118,19 @@ export function markdownToHtml(markdown: string): string {
 
   return out.join("");
 }
+
+/**
+ * R9.5. The same description as one line of text.
+ *
+ * A card that is itself a link cannot carry the markdown rendering, because the
+ * links inside it would nest. This takes the marks off and leaves the words.
+ */
+export function plainFromMarkdown(markdown: string): string {
+  return markdown
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, "$1")
+    .replace(/^\s{0,3}(#{1,6}\s+|[-*+]\s+|\d+\.\s+|>\s?)/gm, "")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+}
