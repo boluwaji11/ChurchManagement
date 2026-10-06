@@ -191,6 +191,9 @@ export const en = {
   "site.foot.donate": "Donate",
 
   // Sign in
+  "auth.step.account": "Your account",
+  "auth.step.church": "Your church",
+  "auth.step.setup": "Set up",
   "signIn.forgot": "I have forgotten my password",
   "signIn.noAccount": "Start a church",
   "signIn.set": "Your password is set. Sign in with it.",
@@ -202,7 +205,7 @@ export const en = {
   "auth.error.expiredLink": "That link has run out. Ask for a new one.",
   "auth.error.closed": "This church is not taking new accounts.",
   "auth.error.unknown": "That did not work. Try again, and tell us if it keeps happening.",
-  "signUp.title": "Create your account",
+  "signUp.title": "Getting started",
   "signUp.name": "Your name",
   "signUp.password": "Password",
   "signUp.submit": "Create my account",
@@ -243,7 +246,7 @@ export const en = {
   "push.error.endpoint": "That browser could not be registered.",
   "push.error.blocked": "Your browser is blocking notifications. Turn them on for this site in its settings.",
   "signUp.haveAccountAsk": "Already have an account?",
-  "signUp.free": "Free for every church. No card needed.",
+  "signUp.free": "Free for every church.",
   "signIn.noAccountAsk": "No account yet?",
   "signIn.volunteer": "Volunteer at check-in?",
   "signIn.openStation": "Open a check-in station",

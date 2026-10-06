@@ -11,7 +11,7 @@ export const dynamic = "force-static";
  */
 export default function OfflinePage() {
   return (
-    <main id="main" data-theme="light" className="grid min-h-dvh place-items-center bg-canvas px-6">
+    <main id="main" data-theme="light" className="site-wash grid min-h-dvh place-items-center px-6">
       <div className="flex max-w-sm flex-col items-center gap-4 text-center">
         <span
           aria-hidden

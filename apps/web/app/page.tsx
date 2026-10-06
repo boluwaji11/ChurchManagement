@@ -108,7 +108,7 @@ function Start({ className = SITE_CTA, arrow = true }: { className?: string; arr
 
 export default function Site() {
   return (
-    <div data-theme="light" className="flex min-h-dvh flex-col bg-canvas text-fg">
+    <div data-theme="light" className="site-wash flex min-h-dvh flex-col text-fg">
       <SiteHeader />
 
       <main id="top" className="flex-1">

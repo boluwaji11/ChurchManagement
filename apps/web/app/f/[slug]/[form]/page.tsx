@@ -42,7 +42,7 @@ export default async function PublicFormPage({
   const coverUrl = await sign(found.coverKey);
 
   return (
-    <div data-theme="light" className="flex min-h-dvh flex-col bg-canvas">
+    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
       <BrandRuleFor hue={found.church.brandHue} className="h-1.5 w-full" />
 
       {/* The church's name across the top, so somebody who followed a link off

@@ -1,36 +1,33 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { t } from "@connectapp/i18n";
 import { currentUser } from "@/lib/session";
 import { CreateChurchForm } from "./form";
-import { BrandBar } from "@/components/brand";
+import { AuthShell } from "../auth-shell";
 import { SignOutButton } from "@/components/sign-out-button";
-import { t } from "@connectapp/i18n";
+import type { Piece } from "@/components/site/art";
 
 export const dynamic = "force-dynamic";
 
+/** The margins of the second step, drawn as the first step draws them. */
+const ART: Piece[] = [
+  { name: "gathering", side: "left", y: 52, size: 250, inset: 16 },
+  { name: "sanctuary", side: "right", y: 52, size: 250, inset: 16 },
+];
+
+/** R1.1, R22.1. The second step: the church this account is starting. */
 export default async function StartPage() {
   const user = await currentUser();
   if (!user) redirect("/sign-in?next=/create-church");
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <BrandBar right={<SignOutButton />} />
-
-      <main id="main" className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-12">
-      <Link
-        href="/choose-church"
-        className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-      >
-        <ArrowLeft className="size-4" /> {t("action.back")}
-      </Link>
-
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display text-display text-fg">{t("createChurch.title")}</h1>
-      </div>
-
+    <AuthShell
+      title={t("createChurch.title")}
+      step={2}
+      art={ART}
+      width="max-w-[520px]"
+      footer={<SignOutButton />}
+    >
       <CreateChurchForm />
-      </main>
-    </div>
+    </AuthShell>
   );
 }

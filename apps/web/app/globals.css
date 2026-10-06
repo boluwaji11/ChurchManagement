@@ -27,3 +27,27 @@ select:-webkit-autofill {
   caret-color: var(--fg);
   transition: background-color 10000s ease-in-out 0s;
 }
+
+/*
+ * R24.4. The wash behind every page a church reads before it is anybody.
+ *
+ * Two soft pools of ink over the stone canvas, one under the top of the page
+ * and one in the far corner, so a public page has depth without a band of
+ * colour across it. Fixed to the viewport, so scrolling moves the page over the
+ * wash rather than dragging it along.
+ */
+.site-wash {
+  background-color: var(--canvas);
+  background-image:
+    radial-gradient(
+      60rem 34rem at 50% -6rem,
+      color-mix(in oklch, var(--primary) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      46rem 30rem at 108% 104%,
+      color-mix(in oklch, var(--primary) 16%, transparent),
+      transparent 70%
+    );
+  background-attachment: fixed;
+}

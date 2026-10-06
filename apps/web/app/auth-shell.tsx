@@ -1,20 +1,28 @@
 import * as React from "react";
+import { t } from "@connectapp/i18n";
+import { cn } from "@connectapp/ui";
 import { Mark } from "@/components/brand";
+import { Art, type Piece } from "@/components/site/art";
 
 /**
- * R1.7, R17.1. The screen somebody signs in or signs up on.
+ * R1.7, R17.1. The screens somebody signs in, signs up, or starts a church on.
  *
- * Built to the redesign: the mark on its own above a centred display heading,
+ * Built to the redesign: the mark and the name above a centred display heading,
  * then one card holding the fields, then whatever else there is to say under
  * it. The card is 36px inside with 22px between its rows and the fields stand
  * 56px tall, because this is a page with one job on it and the one job should
  * be the size of the page.
+ *
+ * It sits near the top of the window rather than in the middle. Centred, a
+ * short form floated in a field of nothing and a long one ran off the bottom.
  */
 export function AuthShell({
   title,
   under,
   children,
   footer,
+  step,
+  art,
   width = "max-w-[500px]",
 }: {
   title: string;
@@ -23,27 +31,39 @@ export function AuthShell({
   children: React.ReactNode;
   /** What sits below the card: the other way in, or the station. */
   footer?: React.ReactNode;
+  /** Which of the three steps of starting a church this screen is. */
+  step?: 1 | 2 | 3;
+  /** Drawings for the margins, as the website places them. */
+  art?: readonly Piece[];
   width?: string;
 }) {
   return (
-    <main id="main" data-theme="light" className="grid min-h-dvh place-items-center bg-canvas px-6 py-12">
-      <div className={`flex w-full ${width} flex-col gap-7`}>
-        <div className="flex flex-col items-center gap-3 text-center">
-          {/* The mark at the size the design draws it on this screen: 64px,
-              on its own, above the heading. */}
-          <span
-            aria-hidden
-            className="grid size-16 place-items-center rounded-[18px] bg-primary"
-          >
-            <Mark className="text-[2rem] [&>span]:bg-white" />
+    <main
+      id="main"
+      data-theme="light"
+      className="site-wash relative grid min-h-dvh justify-items-center px-6 pb-16 pt-12"
+    >
+      {art ? <Art pieces={art} /> : null}
+
+      <div className={cn("relative flex w-full flex-col gap-7", width)}>
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="flex items-center gap-2.5">
+            <Mark className="text-[1.75rem]" />
+            <span className="font-display text-[26px] leading-8 text-fg">{t("app.name")}</span>
           </span>
-          <h1 className="mt-3 font-display text-[36px] leading-[42px] text-fg sm:text-[44px] sm:leading-[50px]">
+
+          <h1 className="font-display text-[34px] leading-10 text-fg sm:text-[40px] sm:leading-[46px]">
             {title}
           </h1>
           {under ? <p className="text-[17px] text-fg-muted">{under}</p> : null}
         </div>
 
-        <div className="flex flex-col gap-5 rounded-[20px] border border-line bg-surface p-7 sm:p-9">
+        {step ? <AuthSteps at={step} /> : null}
+
+        <div
+          data-density="portal"
+          className="flex flex-col gap-5 rounded-[20px] border border-line bg-surface p-7 sm:p-9"
+        >
           {children}
         </div>
 
@@ -54,6 +74,56 @@ export function AuthShell({
         ) : null}
       </div>
     </main>
+  );
+}
+
+/**
+ * R22.1. The three steps of starting a church, and which one this is.
+ *
+ * Somebody filling in a sign-up form wants to know how many more there are. The
+ * steps behind this one are filled, the one ahead is a hairline.
+ */
+export function AuthSteps({ at }: { at: 1 | 2 | 3 }) {
+  const labels = [t("auth.step.account"), t("auth.step.church"), t("auth.step.setup")];
+
+  return (
+    <ol className="flex list-none items-start gap-0 p-0">
+      {labels.map((label, i) => {
+        const n = i + 1;
+        const done = n < at;
+        const here = n === at;
+        return (
+          <li key={label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+            <span className="flex w-full items-center">
+              <span
+                className={cn("h-0.5 flex-1 rounded-full", i === 0 ? "bg-transparent" : done || here ? "bg-primary" : "bg-line")}
+              />
+              <span
+                aria-hidden
+                className={cn(
+                  "mx-1 size-3 shrink-0 rounded-full",
+                  here ? "bg-primary ring-4 ring-primary/20" : done ? "bg-primary" : "bg-line",
+                )}
+              />
+              <span
+                className={cn(
+                  "h-0.5 flex-1 rounded-full",
+                  i === labels.length - 1 ? "bg-transparent" : done ? "bg-primary" : "bg-line",
+                )}
+              />
+            </span>
+            <span
+              className={cn(
+                "text-center text-[13px]",
+                here ? "font-semibold text-fg" : "text-fg-subtle",
+              )}
+            >
+              {label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
