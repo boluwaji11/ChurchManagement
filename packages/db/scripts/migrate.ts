@@ -9,7 +9,6 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { owner, closeConnections } from "../src/client";
 import { required } from "../src/env";
-import { SEED_TEAMS } from "../src/repo/serving";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -40,40 +39,6 @@ async function main() {
     : required("HEARTH_APP_PASSWORD");
   await sql.unsafe(`set hearth.app_password = '${appPassword.replace(/'/g, "''")}'`);
   await sql.unsafe(security);
-
-  /*
-   * R10.1. The teams a church starts with, for the churches that existed
-   * before teams did.
-   *
-   * createChurch writes these for anything made from now on. A church created
-   * last week would otherwise open Serving and find an empty screen, which
-   * reads as the feature being broken rather than as the church having no
-   * teams. Only a church with none is touched, so this is safe to re-run and
-   * never undoes a church that deleted one.
-   */
-  const empty = await sql<{ id: string }[]>`
-    select t.id from tenants t
-     where not exists (select 1 from teams where tenant_id = t.id)`;
-
-  for (const tenant of empty) {
-    for (const [position, team] of SEED_TEAMS.entries()) {
-      const [row] = await sql<{ id: string }[]>`
-        insert into teams (tenant_id, name, hue, position)
-        values (${tenant.id}, ${team.name}, ${team.hue}, ${position})
-        returning id`;
-      for (const [at, slot] of team.positions.entries()) {
-        await sql`
-          insert into team_positions
-            (tenant_id, team_id, name, needed, with_children, requires_check, position)
-          values (${tenant.id}, ${row!.id}, ${slot.name}, ${slot.needed ?? 1},
-                  ${slot.withChildren ?? false}, ${slot.withChildren ?? false}, ${at})`;
-      }
-    }
-  }
-
-  if (empty.length > 0) {
-    console.log(`Backfilled the starting teams for ${empty.length} church(es)`);
-  }
 
   const policyRows = await sql<{ count: string }[]>`
     select count(*)::text as count from pg_policies where schemaname = 'public'`;

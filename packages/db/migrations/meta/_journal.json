@@ -666,6 +666,13 @@
       "when": 1791255483856,
       "tag": "0094_self_signup",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1791313318916,
+      "tag": "0095_platform_admin",
+      "breakpoints": true
     }
   ]
 }

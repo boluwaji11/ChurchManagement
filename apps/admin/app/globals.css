@@ -1,0 +1,17 @@
+/* The same tokens the product is drawn with. See packages/ui/tokens. */
+@import "@connectapp/ui/tokens.css";
+
+/* Tailwind must see the component sources to generate their utilities. */
+@source "../../../packages/ui/src";
+
+/* R24.4. The wash the public pages carry, over the operator's own screens. */
+.site-wash {
+  background-color: var(--canvas);
+  background-image:
+    radial-gradient(
+      60rem 34rem at 50% -6rem,
+      color-mix(in oklch, var(--primary) 20%, transparent),
+      transparent 70%
+    );
+  background-attachment: fixed;
+}
