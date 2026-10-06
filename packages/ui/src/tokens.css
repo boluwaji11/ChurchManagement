@@ -149,6 +149,65 @@
   --hue-clay-key: var(--hue-clay-700);
 }
 
+[data-theme="light"] {
+  color-scheme: light;
+  --success: oklch(0.582 0.132 155);
+  --success-soft: oklch(0.945 0.040 155);
+  --success-text: oklch(0.448 0.108 155);
+  --warning: oklch(0.712 0.152 75);
+  --warning-soft: oklch(0.958 0.046 75);
+  --warning-text: oklch(0.512 0.118 62);
+  --danger: oklch(0.558 0.198 25);
+  --danger-soft: oklch(0.948 0.036 25);
+  --danger-text: oklch(0.482 0.182 25);
+  --info: oklch(0.582 0.122 235);
+  --info-soft: oklch(0.948 0.036 235);
+  --info-text: oklch(0.468 0.112 238);
+  --critical: oklch(0.505 0.225 20);
+  --critical-soft: oklch(0.935 0.052 20);
+  --critical-text: oklch(0.432 0.205 20);
+  --canvas: var(--stone-50);
+  --surface: #ffffff;
+  --sunken: var(--stone-100);
+  --fg: var(--stone-900);
+  --fg-muted: var(--stone-600);
+  --fg-subtle: var(--stone-500);
+  --line: var(--stone-200);
+  --line-strong: var(--stone-500);
+  --primary: var(--ink-600);
+  --primary-fg: #ffffff;
+  --primary-soft: var(--ink-50);
+  --accent: var(--ember-500);
+  --accent-fg: var(--stone-950);
+  --accent-soft: var(--ember-100);
+  --ring: var(--ink-500);
+  --overlay: oklch(0.198 0.009 75 / 0.45);
+  --hue-rose-tint: var(--hue-rose-100);
+  --hue-rose-key: var(--hue-rose-700);
+  --hue-coral-tint: var(--hue-coral-100);
+  --hue-coral-key: var(--hue-coral-700);
+  --hue-amber-tint: var(--hue-amber-100);
+  --hue-amber-key: var(--hue-amber-700);
+  --hue-citron-tint: var(--hue-citron-100);
+  --hue-citron-key: var(--hue-citron-700);
+  --hue-fern-tint: var(--hue-fern-100);
+  --hue-fern-key: var(--hue-fern-700);
+  --hue-jade-tint: var(--hue-jade-100);
+  --hue-jade-key: var(--hue-jade-700);
+  --hue-teal-tint: var(--hue-teal-100);
+  --hue-teal-key: var(--hue-teal-700);
+  --hue-sky-tint: var(--hue-sky-100);
+  --hue-sky-key: var(--hue-sky-700);
+  --hue-indigo-tint: var(--hue-indigo-100);
+  --hue-indigo-key: var(--hue-indigo-700);
+  --hue-violet-tint: var(--hue-violet-100);
+  --hue-violet-key: var(--hue-violet-700);
+  --hue-orchid-tint: var(--hue-orchid-100);
+  --hue-orchid-key: var(--hue-orchid-700);
+  --hue-clay-tint: var(--hue-clay-100);
+  --hue-clay-key: var(--hue-clay-700);
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --canvas: var(--stone-950);
@@ -275,6 +334,10 @@
 :root, [data-density="office"] {
   --d-text-body: 0.875rem;
   --d-leading-body: 1.25rem;
+  --d-text-label: 0.8125rem;
+  --d-leading-label: 1rem;
+  --d-text-caption: 0.75rem;
+  --d-leading-caption: 1rem;
   --d-tap: 2.5rem;
   --d-tap-touch: 2.75rem;
   --d-row-h: 2.25rem;
@@ -289,6 +352,10 @@
 [data-density="station"] {
   --d-text-body: 1.25rem;
   --d-leading-body: 1.75rem;
+  --d-text-label: 1.125rem;
+  --d-leading-label: 1.5rem;
+  --d-text-caption: 1rem;
+  --d-leading-caption: 1.25rem;
   --d-tap: 3.5rem;
   --d-tap-touch: 3.5rem;
   --d-row-h: 4.5rem;
@@ -303,6 +370,10 @@
 [data-density="portal"] {
   --d-text-body: 1rem;
   --d-leading-body: 1.5rem;
+  --d-text-label: 0.9375rem;
+  --d-leading-label: 1.25rem;
+  --d-text-caption: 0.875rem;
+  --d-leading-caption: 1.125rem;
   --d-tap: 2.75rem;
   --d-tap-touch: 2.75rem;
   --d-row-h: 3.5rem;
@@ -477,16 +548,16 @@
   --text-body-lg--line-height: 1.5rem;
   --text-body-lg--font-weight: 400;
   --text-body-lg--letter-spacing: 0;
-  --text-body: 0.875rem;
-  --text-body--line-height: 1.25rem;
+  --text-body: var(--d-text-body);
+  --text-body--line-height: var(--d-leading-body);
   --text-body--font-weight: 400;
   --text-body--letter-spacing: 0;
-  --text-label: 0.8125rem;
-  --text-label--line-height: 1rem;
+  --text-label: var(--d-text-label);
+  --text-label--line-height: var(--d-leading-label);
   --text-label--font-weight: 500;
   --text-label--letter-spacing: 0;
-  --text-caption: 0.75rem;
-  --text-caption--line-height: 1rem;
+  --text-caption: var(--d-text-caption);
+  --text-caption--line-height: var(--d-leading-caption);
   --text-caption--font-weight: 400;
   --text-caption--letter-spacing: 0.005em;
   --text-code: 0.875rem;
@@ -545,6 +616,16 @@
     line-height: var(--d-leading-body);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* A subtree at its own density reads at that density. body computes its size
+     from the root, and everything under it inherits that number rather than
+     re-resolving the variable, so without this a portal screen inside an office
+     page sets its inputs at 16px and everything it did not name at 14px. The
+     root is left alone: a size in rem on html redefines what rem means. */
+  [data-density]:not(html) {
+    font-size: var(--d-text-body);
+    line-height: var(--d-leading-body);
   }
 
   /* Tabular figures everywhere a number is compared to another number. */

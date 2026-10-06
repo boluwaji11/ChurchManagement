@@ -82,6 +82,22 @@ w(`  /* Light hue pairs: tint an area with 100, key text to 700. */`);
 lightSpectrumPairs.forEach(w);
 w(`}`);
 w();
+
+/* The light palette again, on any element rather than the root alone, so a
+   subtree can hold itself to light while the rest of the page follows the
+   reader. Every public page does: a church deciding whether to trust us reads
+   the same page as the church next door, in the colours the design draws. */
+w(`[data-theme="light"] {`);
+w(`  color-scheme: light;`);
+for (const [name, v] of Object.entries(colour.status)) {
+  w(`  --${name}: ${v.base};`);
+  w(`  --${name}-soft: ${v.soft};`);
+  w(`  --${name}-text: ${v.text};`);
+}
+for (const [k, v] of Object.entries(colour.semantic.light)) w(`  --${k}: ${resolve(v)};`);
+lightSpectrumPairs.forEach(w);
+w(`}`);
+w();
 w(`@media (prefers-color-scheme: dark) {`);
 w(`  :root:not([data-theme="light"]) {`);
 darkBody.forEach(w);
@@ -185,6 +201,16 @@ w(`@layer base {
     line-height: var(--d-leading-body);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* A subtree at its own density reads at that density. body computes its size
+     from the root, and everything under it inherits that number rather than
+     re-resolving the variable, so without this a portal screen inside an office
+     page sets its inputs at 16px and everything it did not name at 14px. The
+     root is left alone: a size in rem on html redefines what rem means. */
+  [data-density]:not(html) {
+    font-size: var(--d-text-body);
+    line-height: var(--d-leading-body);
   }
 
   /* Tabular figures everywhere a number is compared to another number. */

@@ -1796,8 +1796,6 @@ export const en = {
   "home.awaySpan": "{from} to {to}",
   "home.awaySave": "Add {count}",
   "home.people": "People",
-  "home.shows": "What the church directory shows",
-  "home.showsNote": "You choose. Staff can always reach you.",
   "home.listed": "In the directory",
   "home.showEmail": "Email",
   "home.showPhone": "Phone",

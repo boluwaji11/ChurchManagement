@@ -54,7 +54,7 @@ export function EventPage({
     : Math.max(0, event.capacity - event.going);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas">
+    <div data-theme="light" className="flex min-h-dvh flex-col bg-canvas">
       {banner}
 
       {/* The church's own mark and name, first thing, left, the way its own

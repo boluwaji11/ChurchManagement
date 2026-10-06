@@ -47,7 +47,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
                 href={`${item.href}?church=${church}`}
                 aria-current={on ? "page" : undefined}
                 className={cn(
-                  "flex min-h-9 items-center rounded-sm px-2.5 text-left text-[13px]",
+                  "flex min-h-9 items-center rounded-sm px-2.5 text-left text-[length:var(--d-text-label)]",
                   on
                     ? "bg-line font-semibold text-fg"
                     : "font-medium text-fg-muted hover:bg-line hover:text-fg",

@@ -46,7 +46,7 @@ export default async function PublicGroupsPage({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div data-theme="light" className="flex min-h-dvh flex-col">
       <BrandRuleFor hue={church.brandHue} className="h-1.5 w-full" />
 
       <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">

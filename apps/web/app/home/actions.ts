@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, personForUser, answerMyAssignment, addBlockout, removeBlockout,
-  setDirectoryPreferences, checkInMyChildren, InvalidInputError,
+  checkInMyChildren, InvalidInputError,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
@@ -124,31 +124,3 @@ export async function checkInMine(
   }
 }
 
-/**
- * R17.3. What the church directory shows of this member.
- *
- * The repository checks the record is their own before it writes, so the id
- * never comes off the request.
- */
-export async function setMyPrivacy(
-  patch: Record<string, boolean>,
-  church?: string,
-): Promise<Done> {
-  try {
-    const { session, scope } = await asMember(church);
-    await withTenant(scope, async (tx) => {
-      const self = await personForUser(tx, session.userId);
-      if (!self) throw new InvalidInputError("member.error.noRecord");
-      await setDirectoryPreferences(
-        tx,
-        { tenantId: session.tenantId, role: session.role, memberId: self },
-        self,
-        patch,
-      );
-    });
-    revalidatePath("/home/household");
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}

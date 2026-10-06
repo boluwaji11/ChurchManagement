@@ -38,7 +38,7 @@ export function ThemeChoice({ current }: { current: Theme }) {
           className={cn(
             // Three small choices, sized to their words rather than stretched
             // across whatever room the card has.
-            "flex cursor-pointer items-center gap-2 rounded-[10px] bg-surface px-3.5 py-2.5 text-left text-[13px] font-medium",
+            "flex cursor-pointer items-center gap-2 rounded-[10px] bg-surface px-3.5 py-2.5 text-left text-[length:var(--d-text-label)] font-medium",
             chosen === value
               ? "border-[1.5px] border-primary text-fg"
               : "border border-line text-fg-muted hover:bg-sunken hover:text-fg",

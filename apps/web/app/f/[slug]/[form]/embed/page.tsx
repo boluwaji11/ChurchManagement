@@ -30,7 +30,7 @@ export default async function EmbeddedFormPage({
   }
 
   return (
-    <main id="main" className="w-full p-4">
+    <main data-theme="light" id="main" className="w-full p-4">
       {coverUrl ? (
         <img src={coverUrl} alt="" className="mb-5 aspect-[6/1] w-full rounded-[14px] object-cover" />
       ) : null}

@@ -3,24 +3,57 @@
   "modes": {
     "office": {
       "$use": "Maria at a desk on a Tuesday. Dense, keyboard-first, calm. The October 2026 redesign sets the numbers: 40px buttons and inputs, 36px rows, 16px icons inside a control, 14px of padding either side, a 10px radius.",
-      "text-body": "0.875rem", "leading-body": "1.25rem",
-      "tap": "2.5rem", "tap-touch": "2.75rem", "row-h": "2.25rem",
-      "gutter": "1rem", "pad-card": "1rem", "pad-control-x": "0.875rem",
-      "icon": "1rem", "radius-control": "10px", "content-max": "80rem"
+      "text-body": "0.875rem",
+      "leading-body": "1.25rem",
+      "text-label": "0.8125rem",
+      "leading-label": "1rem",
+      "text-caption": "0.75rem",
+      "leading-caption": "1rem",
+      "tap": "2.5rem",
+      "tap-touch": "2.75rem",
+      "row-h": "2.25rem",
+      "gutter": "1rem",
+      "pad-card": "1rem",
+      "pad-control-x": "0.875rem",
+      "icon": "1rem",
+      "radius-control": "10px",
+      "content-max": "80rem"
     },
     "station": {
       "$use": "Ruth at check-in, Sunday 09:58, forty families queuing. Unmissable, fast, zero ambiguity.",
-      "text-body": "1.25rem", "leading-body": "1.75rem",
-      "tap": "3.5rem", "tap-touch": "3.5rem", "row-h": "4.5rem",
-      "gutter": "2rem", "pad-card": "1.5rem", "pad-control-x": "1.5rem",
-      "icon": "2rem", "radius-control": "14px", "content-max": "45rem"
+      "text-body": "1.25rem",
+      "leading-body": "1.75rem",
+      "text-label": "1.125rem",
+      "leading-label": "1.5rem",
+      "text-caption": "1rem",
+      "leading-caption": "1.25rem",
+      "tap": "3.5rem",
+      "tap-touch": "3.5rem",
+      "row-h": "4.5rem",
+      "gutter": "2rem",
+      "pad-card": "1.5rem",
+      "pad-control-x": "1.5rem",
+      "icon": "2rem",
+      "radius-control": "14px",
+      "content-max": "45rem"
     },
     "portal": {
       "$use": "A member on a phone for four minutes a week. Warm, simple, app-like.",
-      "text-body": "1rem", "leading-body": "1.5rem",
-      "tap": "2.75rem", "tap-touch": "2.75rem", "row-h": "3.5rem",
-      "gutter": "1rem", "pad-card": "1.25rem", "pad-control-x": "1rem",
-      "icon": "1.5rem", "radius-control": "12px", "content-max": "35rem"
+      "text-body": "1rem",
+      "leading-body": "1.5rem",
+      "text-label": "0.9375rem",
+      "leading-label": "1.25rem",
+      "text-caption": "0.875rem",
+      "leading-caption": "1.125rem",
+      "tap": "2.75rem",
+      "tap-touch": "2.75rem",
+      "row-h": "3.5rem",
+      "gutter": "1rem",
+      "pad-card": "1.25rem",
+      "pad-control-x": "1rem",
+      "icon": "1.5rem",
+      "radius-control": "12px",
+      "content-max": "35rem"
     }
   }
 }

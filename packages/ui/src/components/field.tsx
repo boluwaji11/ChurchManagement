@@ -101,7 +101,7 @@ export function Field({
       <Label
         id={labelId}
         htmlFor={group ? undefined : id}
-        className="text-label text-fg flex items-center gap-1"
+        className="flex items-center gap-1 text-[length:var(--d-text-label)] font-medium leading-[var(--d-leading-label)] text-fg"
       >
         {label}
         {/* The control carries aria-required, so this is decoration for the eye
@@ -116,7 +116,7 @@ export function Field({
       {/* Under the question and above the box, because it is read before the
           answer is given rather than after. */}
       {hint ? (
-        <p id={hintId} className="text-caption leading-5 text-fg-muted">
+        <p id={hintId} className="text-[length:var(--d-text-caption)] leading-[var(--d-leading-caption)] text-fg-muted">
           {hint}
         </p>
       ) : null}
@@ -124,7 +124,7 @@ export function Field({
       <FieldControlContext.Provider value={wiring}>{control}</FieldControlContext.Provider>
 
       {error ? (
-        <p id={errorId} role="alert" className="flex items-start gap-1.5 text-caption text-danger-text">
+        <p id={errorId} role="alert" className="flex items-start gap-1.5 text-[length:var(--d-text-caption)] leading-[var(--d-leading-caption)] text-danger-text">
           <AlertCircle className="mt-px size-3.5 shrink-0" aria-hidden />
           {error}
         </p>

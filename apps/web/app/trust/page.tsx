@@ -24,7 +24,7 @@ const PROCESSORS = ["supabase", "vercel", "stripe"] as const;
 
 export default function TrustPage() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div data-theme="light" className="flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-6">
         <Logo />
         <Link

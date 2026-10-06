@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Flame } from "lucide-react";
+import { Mark } from "@/components/brand";
 
 /**
  * R1.7, R17.1. The screen somebody signs in or signs up on.
@@ -26,16 +26,16 @@ export function AuthShell({
   width?: string;
 }) {
   return (
-    <main id="main" className="grid min-h-dvh place-items-center bg-canvas px-6 py-12">
+    <main id="main" data-theme="light" className="grid min-h-dvh place-items-center bg-canvas px-6 py-12">
       <div className={`flex w-full ${width} flex-col gap-7`}>
         <div className="flex flex-col items-center gap-3 text-center">
           {/* The mark at the size the design draws it on this screen: 64px,
               on its own, above the heading. */}
           <span
             aria-hidden
-            className="grid size-16 place-items-center rounded-[18px] bg-ember-500 text-white"
+            className="grid size-16 place-items-center rounded-[18px] bg-primary"
           >
-            <Flame className="size-8" />
+            <Mark className="text-[2rem] [&>span]:bg-white" />
           </span>
           <h1 className="mt-3 font-display text-[36px] leading-[42px] text-fg sm:text-[44px] sm:leading-[50px]">
             {title}

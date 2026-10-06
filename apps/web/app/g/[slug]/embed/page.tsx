@@ -41,7 +41,7 @@ export default async function EmbeddedGroupsPage({
   }
 
   return (
-    <main id="main" className="w-full p-4">
+    <main data-theme="light" id="main" className="w-full p-4">
       {groups.length === 0 ? (
         <Empty icon="group" title={t("publicGroups.none")} />
       ) : (

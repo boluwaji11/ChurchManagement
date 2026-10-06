@@ -1,25 +1,20 @@
 import { redirect } from "next/navigation";
 import {
-  withTenant, personForUser, householdFor, getPerson, directoryPreferencesFor,
-  listContacts, listAddresses, canEditPeople, canReadIncidents,
-  type PersonContact, type Visibility,
+  withTenant, personForUser, householdFor, canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { Avatar } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
-import { Privacy } from "./privacy";
-import { onDayLong } from "../when";
 
 export const dynamic = "force-dynamic";
 
 /**
- * R17.2, R17.3. A member's own household, and what the church publishes of it.
+ * R17.2. A member's own household.
  *
  * Reading rather than editing: changing a name or an address is a question for
- * the church office, and the one thing a member decides on their own is what
- * the directory shows. R17.2's full self-service edit is HRT-157's second half
- * and is not here yet.
+ * the church office. What the directory publishes is settled on the profile,
+ * where a member changes or clears the field itself.
  */
 export default async function MyHouseholdPage({
   searchParams,
@@ -42,17 +37,7 @@ export default async function MyHouseholdPage({
     async (tx) => {
       const self = await personForUser(tx, session.userId);
       if (!self) return null;
-      const me = await getPerson(tx, self);
-      const [home] = await listAddresses(tx, self);
-      return {
-        household: await householdFor(tx, self),
-        privacy: await directoryPreferencesFor(tx, self),
-        contacts: await listContacts(tx, self),
-        birthday: me?.dateOfBirth ?? null,
-        address: home
-          ? [home.line1, home.city, home.region].filter(Boolean).join(", ")
-          : "",
-      };
+      return { household: await householdFor(tx, self) };
     },
   );
 
@@ -67,24 +52,13 @@ export default async function MyHouseholdPage({
     );
   }
 
-  const lead = (kind: PersonContact["kind"]) =>
-    mine.contacts.find((one) => one.kind === kind && one.isPrimary)?.value
-    ?? mine.contacts.find((one) => one.kind === kind)?.value
-    ?? "";
-
-  const shown: Partial<Record<keyof Visibility, string>> = {
-    showPhone: lead("phone"),
-    showEmail: lead("email"),
-    showAddress: mine.address,
-    showBirthday: mine.birthday ? onDayLong(mine.birthday) : "",
-  };
 
   return (
     <PortalShell session={session}>
       <PortalTitle title={t("nav.myHousehold")} />
 
       <div className="flex flex-wrap items-start gap-6">
-        <Panel className="flex min-w-0 flex-[1_1_320px] flex-col gap-3">
+        <Panel className="flex min-w-0 flex-1 flex-col gap-3">
           <span className="font-semibold text-fg">{t("home.people")}</span>
           {mine.household ? (
             mine.household.members.map((one) => (
@@ -110,9 +84,6 @@ export default async function MyHouseholdPage({
           )}
         </Panel>
 
-        <div className="flex min-w-0 flex-[999_1_420px] flex-col">
-          <Privacy value={mine.privacy} shown={shown} church={session.tenantSlug} />
-        </div>
       </div>
     </PortalShell>
   );

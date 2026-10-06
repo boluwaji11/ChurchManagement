@@ -28,7 +28,7 @@ export function GroupPublicPage({
   banner?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas">
+    <div data-theme="light" className="flex min-h-dvh flex-col bg-canvas">
       {banner}
 
       <header className="px-5 pt-3 pb-1 sm:px-8 sm:pt-4">
