@@ -47,7 +47,7 @@ export function AuthShell({
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
       {/* The mark sits where it sits on the website, so somebody who arrived
           from there finds it in the same place and it still goes home. */}
-      <header className="border-b border-line">
+      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
         <div className="mx-auto flex w-full max-w-[1200px] items-center px-6 py-3">
           <Link href="/" className="flex items-center gap-2.5 rounded-md text-fg no-underline">
             <Mark className="text-[1.5rem]" />
@@ -58,7 +58,7 @@ export function AuthShell({
 
       <main
         id="main"
-        className="relative grid flex-1 justify-items-center px-6 pb-16 pt-20 sm:pt-24"
+        className="relative grid flex-1 justify-items-center px-6 pb-14 pt-8 sm:pt-10"
       >
         {art ? <Art pieces={art} /> : null}
 

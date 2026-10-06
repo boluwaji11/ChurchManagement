@@ -205,7 +205,7 @@ export const en = {
   "auth.error.expiredLink": "That link has run out. Ask for a new one.",
   "auth.error.closed": "This church is not taking new accounts.",
   "auth.error.unknown": "That did not work. Try again, and tell us if it keeps happening.",
-  "signUp.title": "Getting started",
+  "signUp.title": "Let's bring your church in",
   "signUp.name": "Your name",
   "signUp.password": "Password",
   "signUp.submit": "Create my account",
