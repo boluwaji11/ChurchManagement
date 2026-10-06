@@ -12,6 +12,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { useFormError } from "@/lib/form-error";
+import { usePanelGuard } from "@/components/panel-guard";
 import {
   invite, invitees, withdraw, changeRole, removeAccess,
 } from "./actions";
@@ -463,21 +464,23 @@ function InviteDialog({
   );
 
   const formId = React.useId();
+  const [dirty, setDirty] = React.useState(false);
+
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setPerson("");
+      setEmail("");
+      setQuery("");
+      setFound([]);
+      setFailed(undefined);
+      setDirty(false);
+    }
+  };
+  const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) {
-          setPerson("");
-          setEmail("");
-          setQuery("");
-          setFound([]);
-          setFailed(undefined);
-        }
-      }}
-    >
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button><Plus /> {t("team.invite")}</Button>
       </SheetTrigger>
@@ -489,15 +492,18 @@ function InviteDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={pending || saving}>
+            <Button type="submit" form={formId} disabled={pending || saving || !dirty}>
               {t("team.invite")}
             </Button>
           </>
         }
       >
+        {guard}
+
         <form
           id={formId}
           noValidate
+          onInput={() => setDirty(true)}
           action={(data) => {
             data.set("church", church);
             data.set("role", role);

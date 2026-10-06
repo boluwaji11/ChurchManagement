@@ -10,6 +10,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { usePanelGuard } from "@/components/panel-guard";
 import { Empty } from "@/components/empty";
 import { createStation, saveStation, archiveStation } from "./actions";
 
@@ -210,9 +211,17 @@ function StationDialog({
   const [printer, setPrinter] = React.useState(station?.printer ?? "paper");
 
   const formId = React.useId();
+  const [dirty, setDirty] = React.useState(false);
+  const { onOpenChange, guard } = usePanelGuard({
+    dirty,
+    setOpen: (next) => {
+      setOpen(next);
+      if (!next) setDirty(false);
+    },
+  });
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent
         title={title}
@@ -222,12 +231,17 @@ function StationDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={pending}>{t("action.save")}</Button>
+            <Button type="submit" form={formId} disabled={pending || !dirty}>
+              {t("action.save")}
+            </Button>
           </>
         }
       >
+        {guard}
+
         <form
           id={formId}
+          onInput={() => setDirty(true)}
           action={(data) => {
             onSave({
               name: String(data.get("name") ?? ""),
@@ -246,7 +260,7 @@ function StationDialog({
           <div className="flex flex-wrap gap-4">
             <div className="flex min-w-48 flex-1 flex-col gap-1.5">
               <span className="text-label text-fg">{t("stations.mode")}</span>
-              <Select value={mode} onValueChange={setMode}>
+              <Select value={mode} onValueChange={(next) => { setMode(next); setDirty(true); }}>
                 <SelectTrigger aria-label={t("stations.mode")}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MODES.map((option) => (
@@ -260,7 +274,7 @@ function StationDialog({
 
             <div className="flex min-w-48 flex-1 flex-col gap-1.5">
               <span className="text-label text-fg">{t("stations.printer")}</span>
-              <Select value={printer} onValueChange={setPrinter}>
+              <Select value={printer} onValueChange={(next) => { setPrinter(next); setDirty(true); }}>
                 <SelectTrigger aria-label={t("stations.printer")}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PRINTERS.map((option) => (

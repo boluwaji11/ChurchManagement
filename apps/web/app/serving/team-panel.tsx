@@ -14,6 +14,7 @@ import {
 } from "./actions";
 import { useFormError } from "@/lib/form-error";
 import { Confirm } from "@/components/confirm";
+import { usePanelGuard } from "@/components/panel-guard";
 
 export interface TeamDraft {
   id: string;
@@ -96,6 +97,8 @@ export function TeamPanel({
   /** Which of the panel's two steps is showing. */
   const [step, setStep] = React.useState<"team" | "members">("team");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
+  /** R24.6. Whether anything in the panel has been touched since it opened. */
+  const [dirty, setDirty] = React.useState(false);
   const [saving, startTransition] = React.useTransition();
   // The actions sit in the panel's own footer, outside the form, so they reach
   // it by name.
@@ -112,8 +115,10 @@ export function TeamPanel({
     if (step === "members") look("");
   }, [step, look]);
 
-  const change = (at: number, fields: Partial<PositionDraft>) =>
+  const change = (at: number, fields: Partial<PositionDraft>) => {
+    setDirty(true);
     setPositions((was) => was.map((one, i) => (i === at ? { ...one, ...fields } : one)));
+  };
 
   // The panel is filled from the team each time it opens, so a close without
   // saving does not leave half an edit behind for the next reader.
@@ -124,11 +129,15 @@ export function TeamPanel({
     setPeople(roster ?? []);
     setLeft([]);
     setStep("team");
+    setDirty(false);
+    setDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen });
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       {/* R24.6. From the right rather than over the middle: the team being
           written down belongs beside the list of teams it joins, and the panel
@@ -179,16 +188,18 @@ export function TeamPanel({
                 />
               ) : null}
 
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" form={formId} disabled={saving}>
+              <Button type="submit" form={formId} disabled={saving || !dirty}>
                 {t("action.save")}
               </Button>
             </>
           )
         }
       >
+        {guard}
+
         {step === "members" ? (
           <div className="flex flex-col gap-4">
             <button
@@ -216,6 +227,8 @@ export function TeamPanel({
                 if (!hit) return;
                 setPeople((was) => [...was, { memberId, name: hit.name, membershipId: null }]);
                 setLeft((was) => was.filter((id) => id !== memberId));
+                setDirty(true);
+                setDirty(true);
               }}
               placeholder={t("serving.addFromPeople")}
               emptyLabel={t("serving.roster.noMatch")}
@@ -256,6 +269,8 @@ export function TeamPanel({
                         onClick={() => {
                           if (one.membershipId) setLeft((was) => [...was, one.memberId]);
                           setPeople((was) => was.filter((x) => x.memberId !== one.memberId));
+                          setDirty(true);
+                          setDirty(true);
                         }}
                       >
                         <X />
@@ -270,6 +285,7 @@ export function TeamPanel({
         <form
           id={formId}
           noValidate
+          onInput={() => setDirty(true)}
           action={(data) => {
             data.set("church", church);
             if (team) data.set("id", team.id);
@@ -317,6 +333,8 @@ export function TeamPanel({
                 }
               }
 
+              setDirty(false);
+              setDirty(false);
               setOpen(false);
               router.refresh();
             });
@@ -374,6 +392,8 @@ export function TeamPanel({
                           onConfirm={() => {
                             if (one.id) setDropped((was) => [...was, one.id!]);
                             setPositions((was) => was.filter((_, at) => at !== i));
+                            setDirty(true);
+                            setDirty(true);
                           }}
                           trigger={
                             <IconButton
@@ -417,7 +437,10 @@ export function TeamPanel({
               type="button"
               variant="ghost"
               className="self-start"
-              onClick={() => setPositions((was) => [...was, EMPTY_POSITION])}
+              onClick={() => {
+                setDirty(true);
+                setPositions((was) => [...was, EMPTY_POSITION]);
+              }}
             >
               <Plus /> {t("serving.position.add")}
             </Button>

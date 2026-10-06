@@ -10,6 +10,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { RichText } from "@/components/rich-text";
+import { usePanelGuard } from "@/components/panel-guard";
 import { saveType, archiveType } from "./actions";
 import { useFormError } from "@/lib/form-error";
 
@@ -133,17 +134,22 @@ function TypeDialog({
    * over it. A box on top of a box is one of the things this product refuses.
    */
   const [asking, setAsking] = React.useState(false);
+  /** R24.6. Whether the panel has been typed in since it opened. */
+  const [dirty, setDirty] = React.useState(false);
 
   const formId = React.useId();
 
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setAsking(false);
+      setDirty(false);
+    }
+  };
+  const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
+
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setAsking(false);
-      }}
-    >
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         {trigger ?? <Button><Plus /> {t("groupType.add")}</Button>}
       </SheetTrigger>
@@ -191,13 +197,15 @@ function TypeDialog({
                   <Archive />
                 </IconButton>
               ) : null}
-              <Button type="submit" form={formId} disabled={pending || saving}>
+              <Button type="submit" form={formId} disabled={pending || saving || !dirty}>
                 {t("action.save")}
               </Button>
             </>
           )
         }
       >
+        {guard}
+
         {asking && type && onArchive ? (
           <p className="text-[length:var(--d-text-body)] text-fg">
             {t("groupType.archiveBody")}
@@ -206,6 +214,7 @@ function TypeDialog({
           <form
             id={formId}
             noValidate
+            onInput={() => setDirty(true)}
             action={(data) => {
               data.set("church", church);
               if (type) {
@@ -216,6 +225,7 @@ function TypeDialog({
                 const result = await saveType(data);
                 setError(result.error);
                 if (!result.error) {
+                  setDirty(false);
                   setOpen(false);
                   router.refresh();
                 }
