@@ -239,7 +239,7 @@ export async function schedule(
       await pushTo(ctx, [account], {
         title: session.tenantName,
         body: t("push.serving"),
-        href: "/home/serving",
+        href: "/home/schedule",
         tag: `serving-${input.occurrenceId}`,
       });
     }

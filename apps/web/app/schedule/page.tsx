@@ -34,7 +34,7 @@ function MonthStep({
   const query = new URLSearchParams({ church, at, ...(team ? { team } : {}) });
   return (
     <Link
-      href={`/serving?${query.toString()}`}
+      href={`/schedule?${query.toString()}`}
       aria-label={label}
       className="grid size-8 place-items-center rounded-sm border border-line-strong bg-surface"
     >

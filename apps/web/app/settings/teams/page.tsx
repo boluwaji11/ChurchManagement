@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import {
   withTenant, listTeams, positionsForTeams, getTeam, canManageTeams,
 } from "@connectapp/db";
@@ -87,13 +85,6 @@ export default async function TeamsSettingsPage({
           };
         })}
       />
-
-      <Link
-        href={`/serving?church=${session.tenantSlug}`}
-        className="flex items-center gap-1.5 self-start font-medium text-primary"
-      >
-        {t("settings.teams.where")} <ArrowRight className="size-4" aria-hidden />
-      </Link>
     </>
   );
 }

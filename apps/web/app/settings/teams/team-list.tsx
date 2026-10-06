@@ -6,8 +6,8 @@ import { Plus, ShieldCheck, Undo2 } from "lucide-react";
 import { Badge, Banner, Button, LIFT } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import { TeamPanel, type PositionDraft, type MemberDraft } from "../../serving/team-panel";
-import { archiveTeam } from "../../serving/actions";
+import { TeamPanel, type PositionDraft, type MemberDraft } from "../../schedule/team-panel";
+import { archiveTeam } from "../../schedule/actions";
 
 export interface TeamItem {
   id: string;

@@ -30,7 +30,7 @@ export default async function TeamPage({
 
   redirect(
     team
-      ? `/serving?church=${session.tenantSlug}&team=${team.id}`
+      ? `/schedule?church=${session.tenantSlug}&team=${team.id}`
       : `/settings/teams?church=${session.tenantSlug}`,
   );
 }

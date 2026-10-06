@@ -67,7 +67,7 @@ export default async function SchedulePlanPage({
   );
 
   if (!team) notFound();
-  if (!mine) redirect(`/serving?church=${session.tenantSlug}`);
+  if (!mine) redirect(`/schedule?church=${session.tenantSlug}`);
 
   return (
     <AppShell
@@ -75,7 +75,7 @@ export default async function SchedulePlanPage({
       title={t("plan.title")}
     >
       <Button variant="ghost" asChild className="mb-4">
-        <Link href={`/serving?church=${session.tenantSlug}&team=${team.id}`}>
+        <Link href={`/schedule?church=${session.tenantSlug}&team=${team.id}`}>
           <ChevronLeft aria-hidden /> {team.name}
         </Link>
       </Button>

@@ -35,7 +35,7 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
   const path = usePathname();
 
   /*
-   * The longest match wins, so /home/serving lights Serving and leaves Home
+   * The longest match wins, so /home/schedule lights Serving and leaves Home
    * alone. Matching on a prefix alone underlined both, because every member
    * screen lives under /home.
    */

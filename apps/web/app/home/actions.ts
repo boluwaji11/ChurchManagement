@@ -49,7 +49,7 @@ export async function answerMine(
       );
     });
     revalidatePath("/home");
-    revalidatePath("/home/serving");
+    revalidatePath("/home/schedule");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -74,7 +74,7 @@ export async function addAway(
         { memberId: self, startsOn, endsOn, reason },
       );
     });
-    revalidatePath("/home/serving");
+    revalidatePath("/home/schedule");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -90,7 +90,7 @@ export async function removeAway(id: string, church?: string): Promise<Done> {
         { tenantId: session.tenantId, role: session.role, userId: session.userId },
         id,
       ));
-    revalidatePath("/home/serving");
+    revalidatePath("/home/schedule");
     return {};
   } catch (error) {
     return { error: explain(error) };

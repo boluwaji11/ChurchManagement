@@ -10,7 +10,7 @@ import {
 } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { Respond } from "./serving/respond";
+import { Respond } from "./schedule/respond";
 import { CheckinCard } from "./checkin-card";
 import { onDay, dayName, readableTime } from "./when";
 
@@ -163,7 +163,7 @@ export default async function MemberHomePage({
             ) : null}
 
             <Link
-              href={`/home/serving?church=${session.tenantSlug}`}
+              href={`/home/schedule?church=${session.tenantSlug}`}
               className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
             >
               {t("home.seeAll")}

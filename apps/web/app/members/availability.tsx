@@ -10,7 +10,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import type { ServingFrequency } from "@connectapp/db";
-import { saveBlockout, dropBlockout, saveFrequency } from "../serving/actions";
+import { saveBlockout, dropBlockout, saveFrequency } from "../schedule/actions";
 
 export interface AwayRange {
   id: string;

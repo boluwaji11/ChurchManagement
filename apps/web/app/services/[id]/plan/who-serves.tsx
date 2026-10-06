@@ -10,7 +10,7 @@ import {
 import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import type { PlanCandidate } from "@connectapp/db";
-import { schedule, unschedule, whoCouldFill } from "../../../serving/actions";
+import { schedule, unschedule, whoCouldFill } from "../../../schedule/actions";
 
 export interface ServingEntry {
   assignmentId: string;
@@ -278,7 +278,7 @@ function CopyLink({ token }: { token: string }) {
       label={copied ? t("plan.copied") : t("plan.copyLink")}
       onClick={() => {
         navigator.clipboard
-          .writeText(`${window.location.origin}/serving/respond/${token}`)
+          .writeText(`${window.location.origin}/schedule/respond/${token}`)
           .then(() => {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);

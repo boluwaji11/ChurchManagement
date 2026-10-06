@@ -63,7 +63,7 @@ export function SchedulePlan({
   const [pending, startTransition] = React.useTransition();
 
   const choose = (id: string) => {
-    router.push(`/serving/${teamId}/schedule?church=${church}&service=${id}`);
+    router.push(`/schedule/${teamId}/schedule?church=${church}&service=${id}`);
   };
 
   const take = (id: string) => {
@@ -291,7 +291,7 @@ function CopyLink({ token }: { token: string }) {
       label={copied ? t("plan.copied") : t("plan.copyLink")}
       onClick={() => {
         navigator.clipboard
-          .writeText(`${window.location.origin}/serving/respond/${token}`)
+          .writeText(`${window.location.origin}/schedule/respond/${token}`)
           .then(() => {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);

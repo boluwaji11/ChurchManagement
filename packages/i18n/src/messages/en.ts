@@ -416,7 +416,6 @@ export const en = {
   "settings.lede.teams": "The teams your church schedules, and the positions each one fills.",
   "settings.teams.none.title": "No teams yet",
   "settings.teams.none.body": "Create the teams your church schedules volunteers onto.",
-  "settings.teams.where": "Schedules for these teams are on Serving.",
   "settings.lede.stations": "Tablets and kiosks that run check-in, and the printer each one uses.",
   "settings.lede.tags": "Short labels for filtering members.",
   "settings.lede.fields": "Extra details you keep on each member.",

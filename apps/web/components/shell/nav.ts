@@ -99,7 +99,7 @@ export function navFor(role: TenantRole): NavEntry[] {
 
   // R10.1. The schedule. A team leader has this and nothing else.
   if (canLeadTeams(role)) {
-    out.push({ label: t("nav.serving"), href: "/serving", icon: HandHeart });
+    out.push({ label: t("nav.serving"), href: "/schedule", icon: HandHeart });
   }
 
 

@@ -45,7 +45,7 @@ export default async function MyServingPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
   if (canEditPeople(session) || canReadIncidents(session)) {
-    redirect(`/serving?church=${session.tenantSlug}`);
+    redirect(`/schedule?church=${session.tenantSlug}`);
   }
 
   const mine = await withTenant(
