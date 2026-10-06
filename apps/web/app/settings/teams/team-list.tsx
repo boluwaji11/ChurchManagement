@@ -15,7 +15,7 @@ export interface TeamItem {
   description: string | null;
   hue: string;
   members: number;
-  positionNames: string[];
+  positions: { id: string; name: string }[];
   needsChecks: boolean;
   archived: boolean;
 }
@@ -66,6 +66,7 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
                   description: team.description,
                   hue: team.hue,
                 }}
+                positions={team.positions}
                 title={t("serving.editTeam")}
                 trigger={
                   <button
@@ -82,11 +83,11 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
                       </span>
                     </span>
 
-                    {team.positionNames.length > 0 ? (
+                    {team.positions.length > 0 ? (
                       <span className="flex flex-wrap gap-1.5">
-                        {team.positionNames.map((name) => (
+                        {team.positions.map(({ id, name }) => (
                           <span
-                            key={name}
+                            key={id}
                             className="flex h-[26px] items-center rounded-full bg-sunken px-2.5 text-[12px] font-medium text-fg"
                           >
                             {name}
@@ -105,7 +106,7 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
                     <span className="mt-auto w-full border-t border-sunken pt-3 text-[13px] text-fg-muted">
                       {[
                         plural("serving.volunteerCount", team.members),
-                        plural("serving.positionCount", team.positionNames.length),
+                        plural("serving.positionCount", team.positions.length),
                       ].join(" · ")}
                     </span>
                   </button>

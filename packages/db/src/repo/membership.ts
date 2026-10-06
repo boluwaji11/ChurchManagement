@@ -4,7 +4,6 @@ import type { TenantRole } from "../roles";
 import { PERMISSIONS, type Permission } from "../permissions";
 import { InvalidInputError } from "../errors";
 import { DEFAULT_PIPELINES } from "./followups";
-import { SEED_TEAMS } from "./serving";
 import {
   addressAlreadyClaimed, claimRecord, claimableRecord, nameForRecord, recordForAccount,
   writeAccount, writeRecordFor,
@@ -465,24 +464,6 @@ export async function createChurch(input: {
         await tx`
           insert into pipeline_steps (tenant_id, pipeline_id, name, due_days, position)
           values (${tenant.id}, ${row!.id}, ${step.name}, ${step.dueDays}, ${at})`;
-      }
-    }
-
-    // R10.1. The five teams the target church already runs, with the
-    // positions each one schedules. Same reason again: a worship leader
-    // opening Serving should see their band, not a form asking what a
-    // position is.
-    for (const [position, team] of SEED_TEAMS.entries()) {
-      const [row] = await tx<{ id: string }[]>`
-        insert into teams (tenant_id, slug, name, hue, position)
-        values (${tenant.id}, hearth_slug(${team.name}), ${team.name}, ${team.hue}, ${position})
-        returning id`;
-      for (const [at, slot] of team.positions.entries()) {
-        await tx`
-          insert into team_positions
-            (tenant_id, team_id, name, needed, with_children, requires_check, position)
-          values (${tenant.id}, ${row!.id}, ${slot.name}, ${slot.needed ?? 1},
-                  ${slot.withChildren ?? false}, ${slot.withChildren ?? false}, ${at})`;
       }
     }
 

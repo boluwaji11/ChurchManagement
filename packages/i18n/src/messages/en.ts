@@ -1949,6 +1949,7 @@ export const en = {
   "serving.positions": "Positions",
   "serving.teamNamed": "{name} team",
   "serving.position.add": "Add a position",
+  "serving.position.remove": "Remove the position",
   "serving.position.name": "Name",
   "serving.position.needed": "How many",
   "serving.position.withChildren": "Works with children",

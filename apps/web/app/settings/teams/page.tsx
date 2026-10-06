@@ -59,7 +59,7 @@ export default async function TeamsSettingsPage({
             description: team.description,
             hue: team.hue,
             members: team.members,
-            positionNames: of.map((one) => one.name),
+            positions: of.map((one) => ({ id: one.id, name: one.name })),
             needsChecks: team.needsChecks,
             archived: team.archivedAt !== null,
           };
