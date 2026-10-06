@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Settings2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   withTenant, listTeams, getTeam, getChurch, answerCounts, listOccurrences,
   assignmentsForTeam, blockoutsFor, openSlots, positionsForTeams,
@@ -160,9 +160,9 @@ export default async function ServingPage({
    */
   const action =
     view === "teams" && canManage && data.teams.length > 0 ? (
-      <Button asChild>
-        <Link href={`/serving?church=${session.tenantSlug}&view=teams&add=1`}>
-          <Plus /> {t("serving.addTeam")}
+      <Button variant="secondary" asChild>
+        <Link href={`/settings/teams?church=${session.tenantSlug}`}>
+          <Settings2 /> {t("serving.manageTeams")}
         </Link>
       </Button>
     ) : undefined;

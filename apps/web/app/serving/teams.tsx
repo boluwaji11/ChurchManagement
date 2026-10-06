@@ -44,7 +44,9 @@ export function Teams({
         action={
           canManage ? (
             <Button asChild>
-              <Link href={`/serving?church=${church}&view=teams&add=1`}>
+              {/* R10.1. A team is written down in Settings, where its name,
+                  colour and positions live. This screen schedules them. */}
+              <Link href={`/settings/teams?church=${church}`}>
                 <Plus /> {t("serving.addTeam")}
               </Link>
             </Button>
