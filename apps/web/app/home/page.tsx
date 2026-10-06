@@ -188,11 +188,6 @@ export default async function MemberHomePage({
                           {when.getDate()}
                         </span>
                       </span>
-                      <span
-                        aria-hidden
-                        className="size-2 shrink-0 rounded-full"
-                        style={{ background: `var(--hue-${one.hue}-500)` }}
-                      />
                       <span className="flex min-w-[180px] flex-1 flex-col leading-5">
                         <span className="font-medium text-fg">{one.name}</span>
                         <span className="text-caption text-fg-muted">

@@ -5,7 +5,7 @@ import {
   withTenant, getTeam, getChurch, canManageTeams, canLeadTeams, leadsTeam,
   upcomingServices, assignmentsForTeam,
 } from "@connectapp/db";
-import { Button, HueDot, type Hue } from "@connectapp/ui";
+import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { PageMeta } from "@/components/section";
 import { AppShell } from "@/components/app-shell";
@@ -81,7 +81,6 @@ export default async function SchedulePlanPage({
       </Button>
 
       <div className="mb-8 flex items-center gap-3">
-        <HueDot hue={team.hue as Hue} />
         <PageMeta>{team.name}</PageMeta>
       </div>
 

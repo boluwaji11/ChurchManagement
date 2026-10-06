@@ -4,11 +4,9 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Archive, Plus, Trash2 } from "lucide-react";
 import {
-  Banner, Button, IconButton, Field, HueDot, Input, Switch, Textarea,
+  Banner, Button, IconButton, Field, Input, Switch, Textarea,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  HUES, type Hue,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { saveTeam, savePosition, archivePosition } from "./actions";
@@ -18,7 +16,6 @@ export interface TeamDraft {
   id: string;
   name: string;
   description: string | null;
-  hue: string;
 }
 
 /** R10.2. A position as the dialog holds it while it is being edited. */
@@ -26,8 +23,6 @@ export interface PositionDraft {
   /** Null on a position being written for the first time. */
   id: string | null;
   name: string;
-  /** R10.3. How many of this position a service needs filled. */
-  needed: number;
   /** R10.10. Whether it puts somebody in a room with children. */
   withChildren: boolean;
   /** R10.11. Whether a valid background check gates being scheduled to it. */
@@ -37,7 +32,6 @@ export interface PositionDraft {
 const EMPTY_POSITION: PositionDraft = {
   id: null,
   name: "",
-  needed: 1,
   withChildren: false,
   requiresCheck: false,
 };
@@ -67,7 +61,6 @@ export function TeamDialog({
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = useFormError(open);
-  const [hue, setHue] = React.useState(team?.hue ?? "teal");
   /*
    * R10.2. A team is the positions it schedules, so they are written here
    * rather than on a second screen somebody has to find afterwards.
@@ -92,7 +85,6 @@ export function TeamDialog({
     if (!open) return;
     setPositions(blank.length > 0 ? blank : [EMPTY_POSITION]);
     setDropped([]);
-    setHue(team?.hue ?? "teal");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -122,7 +114,6 @@ export function TeamDialog({
           noValidate
           action={(data) => {
             data.set("church", church);
-            data.set("hue", hue);
             if (team) data.set("id", team.id);
             startTransition(async () => {
               const result = await saveTeam(data);
@@ -140,7 +131,6 @@ export function TeamDialog({
                   if (
                     one.id
                     && was?.name === name
-                    && was.needed === one.needed
                     && was.withChildren === one.withChildren
                     && was.requiresCheck === one.requiresCheck
                   ) continue;
@@ -149,7 +139,10 @@ export function TeamDialog({
                     {
                       teamId,
                       name,
-                      needed: one.needed,
+                      // R10.3. Every position asks for one. A church that
+                      // wants three vocalists adds three people to it; the
+                      // count was a second number to keep right for no gain.
+                      needed: 1,
                       withChildren: one.withChildren,
                       requiresCheck: one.requiresCheck,
                     },
@@ -218,41 +211,25 @@ export function TeamDialog({
                         </IconButton>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-fg-muted">
-                        <label className="flex items-center gap-1.5">
-                          {t("serving.position.needed")}
-                          <input
-                            type="number"
-                            min={1}
-                            value={one.needed}
-                            className="w-14 rounded-sm border-b border-line bg-transparent px-1 py-0.5 text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
-                            onChange={(e) =>
-                              change(i, { needed: Math.max(1, Number(e.target.value) || 1) })
-                            }
-                          />
-                        </label>
-
+                      <div className="flex flex-col gap-1">
                         {/* R10.10, R10.11. A position in a children's room is
-                            the one that gates scheduling on a valid check, so
-                            both facts are set where the position is written. */}
-                        <label className="flex items-center gap-1.5">
+                            the one place a background check gates scheduling,
+                            so the one switch sets both facts. */}
+                        <label className="flex items-center gap-1.5 text-[13px] text-fg-muted">
                           <Switch
                             checked={one.withChildren}
                             onCheckedChange={(on) =>
-                              change(i, { withChildren: on, requiresCheck: on || one.requiresCheck })
+                              change(i, { withChildren: on, requiresCheck: on })
                             }
                           />
                           {t("serving.position.withChildren")}
                         </label>
 
-                        <label className="flex items-center gap-1.5">
-                          <Switch
-                            checked={one.requiresCheck}
-                            disabled={one.withChildren}
-                            onCheckedChange={(on) => change(i, { requiresCheck: on })}
-                          />
-                          {t("serving.position.requiresCheck")}
-                        </label>
+                        {one.withChildren ? (
+                          <span className="pl-11 text-[12px] italic text-fg-subtle">
+                            {t("serving.position.checkImplied")}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   </li>
@@ -268,25 +245,6 @@ export function TeamDialog({
             >
               <Plus /> {t("serving.position.add")}
             </Button>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-label text-fg">{t("serving.team.colour")}</span>
-            <Select value={hue} onValueChange={setHue}>
-              <SelectTrigger aria-label={t("serving.team.colour")} className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {HUES.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    <span className="flex items-center gap-2">
-                      <HueDot hue={option as Hue} />
-                      {t(`hue.${option}` as never)}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
         </form>

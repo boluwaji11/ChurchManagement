@@ -13,7 +13,6 @@ export interface TeamItem {
   id: string;
   name: string;
   description: string | null;
-  hue: string;
   members: number;
   positions: PositionDraft[];
   needsChecks: boolean;
@@ -64,7 +63,6 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
                   id: team.id,
                   name: team.name,
                   description: team.description,
-                  hue: team.hue,
                 }}
                 positions={team.positions}
                 title={t("serving.editTeam")}
@@ -74,10 +72,6 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
                     className={`flex h-full w-full cursor-pointer flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 text-left ${LIFT}`}
                   >
                     <span className="flex w-full items-center gap-2.5">
-                      <span
-                        className="size-3 shrink-0 rounded-[4px]"
-                        style={{ background: `var(--hue-${team.hue}-500)` }}
-                      />
                       <span className="min-w-0 flex-1 truncate font-semibold text-fg">
                         {team.name}
                       </span>

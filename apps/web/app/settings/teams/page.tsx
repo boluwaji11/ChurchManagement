@@ -57,7 +57,6 @@ export default async function TeamsSettingsPage({
             id: team.id,
             name: team.name,
             description: team.description,
-            hue: team.hue,
             members: team.members,
             positions: of.map((one) => ({
               id: one.id,

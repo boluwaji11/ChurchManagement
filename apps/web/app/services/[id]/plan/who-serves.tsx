@@ -90,11 +90,6 @@ export function WhoServes({
           {teams.map((team) => (
             <div key={team.id} className="flex flex-col gap-2">
               <span className="flex items-center gap-2">
-                <span
-                  className="size-2.5 rounded-full"
-                  style={{ background: `var(--hue-${team.hue}-500)` }}
-                  aria-hidden
-                />
                 <span className="text-label text-fg">{team.name}</span>
               </span>
 

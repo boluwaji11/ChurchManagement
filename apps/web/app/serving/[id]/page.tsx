@@ -71,10 +71,6 @@ export default async function TeamPage({
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <span
-            className="mt-2.5 size-3.5 shrink-0 rounded-[4px]"
-            style={{ background: `var(--hue-${team.hue}-500)` }}
-          />
           <div>
             <h2 className="font-display text-[22px] leading-[28px] text-fg">
               {t("serving.teamNamed", { name: team.name })}
@@ -102,7 +98,6 @@ export default async function TeamPage({
                   id: team.id,
                   name: team.name,
                   description: team.description,
-                  hue: team.hue,
                 }}
                 positions={team.positions.map((one) => ({
                   id: one.id,

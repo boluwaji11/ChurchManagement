@@ -66,10 +66,6 @@ export function Teams({
                 around text rather than an anchor around buttons. */}
             <section className={`relative flex h-full cursor-pointer flex-col gap-3.5 rounded-lg border border-line bg-surface p-4.5 focus-within:shadow-md ${LIFT}`}>
               <div className="flex items-center gap-2.5">
-                <span
-                  className="size-3 shrink-0 rounded-[4px]"
-                  style={{ background: `var(--hue-${team.hue}-500)` }}
-                />
                 <h3 className="min-w-0 flex-1 truncate font-display text-[21px] leading-[26px] text-fg">
                   <Link
                     href={`/serving/${team.slug}?church=${church}`}

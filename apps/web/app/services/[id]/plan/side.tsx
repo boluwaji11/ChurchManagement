@@ -46,10 +46,6 @@ export function PlanSide({
 
             return (
               <div key={team.id} className="flex items-center gap-2.5 text-[13px]">
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: `var(--hue-${team.hue}-500)` }}
-                />
                 <span className="min-w-0 flex-1 truncate text-fg">{team.name}</span>
                 <span
                   data-numeric
