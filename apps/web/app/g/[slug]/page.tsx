@@ -5,7 +5,7 @@ import { Card } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { BrandRuleFor } from "@/components/brand-rule";
-import { supabaseServer } from "@/lib/supabase/server";
+import { photoUrls } from "@/lib/photos";
 import { GroupLine } from "./line";
 
 export const dynamic = "force-dynamic";
@@ -27,23 +27,23 @@ export default async function PublicGroupsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const church = await publicChurch(slug);
+
+  // Both reads take the address, so neither waits on the other.
+  const [church, groups] = await Promise.all([publicChurch(slug), publicGroups(slug)]);
   if (!church) notFound();
 
-  const groups = await publicGroups(slug);
-
-  // The bucket is private, so each picture is served through a signed link.
-  const photos = new Map<string, string>();
-  const withPhotos = groups.filter((group) => group.photoKey);
-  if (withPhotos.length > 0) {
-    const supabase = await supabaseServer();
-    for (const group of withPhotos) {
-      const signed = await supabase.storage
-        .from("church")
-        .createSignedUrl(group.photoKey!, 3600);
-      if (signed.data?.signedUrl) photos.set(group.id, signed.data.signedUrl);
-    }
-  }
+  /*
+   * The bucket is private, so each picture is served through a signed link.
+   * Signing them one at a time was one round trip to storage per group, in
+   * turn, on a page a stranger is waiting on.
+   */
+  const signed = await photoUrls(groups.map((group) => group.photoKey));
+  const photos = new Map<string, string>(
+    groups.flatMap((group) => {
+      const url = group.photoKey ? signed[group.photoKey] : undefined;
+      return url ? [[group.id, url] as const] : [];
+    }),
+  );
 
   return (
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
