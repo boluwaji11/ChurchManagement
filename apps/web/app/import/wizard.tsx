@@ -339,7 +339,7 @@ function MapColumns({
     <>
       {/* The file, in one line above the table: what it is called, how big it
           is, and where it came out of. */}
-      <div className="flex flex-wrap items-center gap-2.5 text-[13px] text-fg-muted">
+      <div className="flex flex-wrap items-center justify-center gap-2.5 text-[13px] text-fg-muted">
         <FileSpreadsheet className="size-[18px] shrink-0 text-primary" aria-hidden />
         <span className="font-semibold text-fg">{filename}</span>
         <span>
