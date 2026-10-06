@@ -876,6 +876,7 @@ export const en = {
   "common.no": "No",
 
   /* R1.6. One line per permission in the matrix. */
+  "roles.heldCount": "{count} of {total}",
   "roles.group.members": "Members",
   "roles.group.checkin": "Check-in",
   "roles.group.week": "Services, groups and serving",

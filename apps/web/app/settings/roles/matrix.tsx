@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Check, Plus, Undo2 } from "lucide-react";
+import { Archive, Check, ChevronDown, ChevronRight, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Checkbox, Field, IconButton, Input,
   Sheet, SheetTrigger, SheetContent,
@@ -61,6 +61,11 @@ export function Matrix({
 }) {
   const open = roles.filter((role) => !role.archived);
   const archived = roles.filter((role) => role.archived);
+  // R1.6. A section somebody has read can be folded away, so the grid is as
+  // short as the question they came with.
+  const [shut, setShut] = React.useState<string[]>([]);
+  const fold = (key: string) =>
+    setShut((was) => (was.includes(key) ? was.filter((one) => one !== key) : [...was, key]));
 
   return (
     <div className="flex flex-col gap-5">
@@ -103,13 +108,25 @@ export function Matrix({
               <tr className="border-b border-sunken">
                 <th
                   colSpan={open.length + 1}
-                  className="sticky left-0 bg-sunken/60 px-5 py-2 text-left text-[12px] font-semibold tracking-[0.04em] text-fg-muted uppercase"
+                  className="sticky left-0 bg-sunken/60 p-0 text-left"
                 >
-                  {t(`roles.group.${group.key}` as never)}
+                  <button
+                    type="button"
+                    onClick={() => fold(group.key)}
+                    aria-expanded={!shut.includes(group.key)}
+                    className="flex w-full cursor-pointer items-center gap-1.5 px-5 py-2 text-[12px] font-semibold tracking-[0.04em] text-fg-muted uppercase"
+                  >
+                    {shut.includes(group.key) ? (
+                      <ChevronRight className="size-3.5" aria-hidden />
+                    ) : (
+                      <ChevronDown className="size-3.5" aria-hidden />
+                    )}
+                    {t(`roles.group.${group.key}` as never)}
+                  </button>
                 </th>
               </tr>
 
-              {group.permissions.map((permission) => (
+              {(shut.includes(group.key) ? [] : group.permissions).map((permission) => (
             <tr key={permission} className="border-b border-sunken last:border-0">
               <td className="sticky left-0 bg-surface px-5 py-2.5 text-[length:var(--d-text-body)] text-fg">
                 {t(`permission.${permission}` as never)}
@@ -220,6 +237,9 @@ export function RoleForm({
   const [held, setHeld] = React.useState<string[]>(role?.permissions ?? []);
   const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
+  const [shut, setShut] = React.useState<string[]>([]);
+  const fold = (key: string) =>
+    setShut((was) => (was.includes(key) ? was.filter((one) => one !== key) : [...was, key]));
 
   // Reopening shows what is stored, rather than what was abandoned last time.
   React.useEffect(() => {
@@ -321,20 +341,38 @@ export function RoleForm({
                 members, and what may it do at check-in. */}
             {groups.map((group) => {
               const whole = group.permissions.every((one) => held.includes(one));
+              const folded = shut.includes(group.key);
+              const count = group.permissions.filter((one) => held.includes(one)).length;
 
               return (
                 <section key={group.key} className="flex flex-col gap-0.5">
-                  <label className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-1.5">
+                  <div className="flex items-center gap-2.5 rounded-sm px-1 py-1.5">
                     <Checkbox
                       checked={whole}
                       onCheckedChange={(on) => setGroup(group, on === true)}
+                      aria-label={t(`roles.group.${group.key}` as never)}
                     />
-                    <span className="text-[13px] font-semibold tracking-[0.04em] text-fg-muted uppercase">
+                    <button
+                      type="button"
+                      onClick={() => fold(group.key)}
+                      aria-expanded={!folded}
+                      className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 text-left text-[13px] font-semibold tracking-[0.04em] text-fg-muted uppercase"
+                    >
+                      {folded ? (
+                        <ChevronRight className="size-3.5" aria-hidden />
+                      ) : (
+                        <ChevronDown className="size-3.5" aria-hidden />
+                      )}
                       {t(`roles.group.${group.key}` as never)}
-                    </span>
-                  </label>
+                      {folded && count > 0 ? (
+                        <span className="font-medium tracking-normal normal-case text-fg-subtle">
+                          {t("roles.heldCount", { count, total: group.permissions.length })}
+                        </span>
+                      ) : null}
+                    </button>
+                  </div>
 
-                  {group.permissions.map((permission) => (
+                  {(folded ? [] : group.permissions).map((permission) => (
                     <label
                       key={permission}
                       className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-1.5 pl-7 hover:bg-sunken"
