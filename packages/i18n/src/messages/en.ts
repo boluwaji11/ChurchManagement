@@ -963,6 +963,8 @@ export const en = {
   "import.field": "ConnectApp field",
   "import.sample": "First row",
   "import.ignore": "Do not import",
+  "import.findField": "Search fields",
+  "import.noField": "No field by that name",
   "import.strategy": "When someone is already in the directory",
   "import.strategy.skip": "Leave them as they are",
   "import.strategy.update": "Update them from the file",

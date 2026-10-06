@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, Check, FileSpreadsheet } from "lucide-react";
 import {
   Button, Card, CardTitle, Separator, Banner, Badge,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Combobox,
   RadioGroup, RadioItem, Spinner, Working,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -365,24 +365,27 @@ function MapColumns({
                     {inspection.samples?.[header] || ""}
                   </td>
                   <td className="border-b border-sunken px-4 py-2.5">
-                    <Select
+                    {/* A church with its own fields has a long list here, and
+                        the person matching the columns knows the name of the
+                        one they want. Typing finds it. */}
+                    <Combobox
+                      className="min-w-[200px]"
+                      options={[
+                        { value: IGNORE_VALUE, label: t("import.ignore") },
+                        ...fields
+                          .filter((f) => f.key === current || !taken.has(f.key))
+                          .map((f) => ({ value: f.key, label: f.label })),
+                      ]}
                       value={current === IGNORE ? IGNORE_VALUE : current}
-                      onValueChange={(v) =>
+                      onChange={(v) =>
                         setMapping({ ...mapping, [header]: v === IGNORE_VALUE ? IGNORE : v })
                       }
-                    >
-                      <SelectTrigger className="min-h-[34px] min-w-[180px] text-[13px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={IGNORE_VALUE}>{t("import.ignore")}</SelectItem>
-                        {fields
-                          .filter((f) => f.key === current || !taken.has(f.key))
-                          .map((f) => (
-                            <SelectItem key={f.key} value={f.key}>{f.label}</SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                      clearable={false}
+                      placeholder={t("import.findField")}
+                      emptyLabel={t("import.noField")}
+                      clearLabel={t("date.clear")}
+                      aria-label={t("import.field")}
+                    />
                   </td>
                 </tr>
               );
