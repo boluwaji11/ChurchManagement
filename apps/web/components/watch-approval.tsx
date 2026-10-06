@@ -33,11 +33,13 @@ export function WatchApproval({ church }: { church: string }) {
     };
 
     const timer = window.setInterval(() => void ask(), 60_000);
-    document.addEventListener("visibilitychange", () => void ask());
+    const back = () => void ask();
+    document.addEventListener("visibilitychange", back);
 
     return () => {
       stopped = true;
       window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", back);
     };
   }, [church, router]);
 

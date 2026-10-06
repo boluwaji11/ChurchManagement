@@ -36,6 +36,12 @@ const config: NextConfig = {
   experimental: {
     // Shared element transitions where a card becomes a detail page. (R24.12)
     viewTransition: true,
+    /*
+     * 197 files import the component library through its one barrel, and
+     * without this every one of them pulls the whole package in. Next already
+     * does the same for lucide-react.
+     */
+    optimizePackageImports: ["@connectapp/ui"],
   },
 };
 
