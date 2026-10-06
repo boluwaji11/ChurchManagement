@@ -927,7 +927,6 @@ export const en = {
   "fields.type": "Type",
   "fields.start": "What are you keeping?",
   "fields.ownField": "Create your own",
-  "fields.ownField.detail": "Name it yourself",
   "fields.back": "Back",
   "fieldLib.occupation": "Occupation",
   "fieldLib.employer": "Employer",
