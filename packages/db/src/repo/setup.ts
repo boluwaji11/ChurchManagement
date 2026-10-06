@@ -18,7 +18,14 @@ import { canManageChurch } from "./church";
  * find out.
  */
 
-export const SETUP_STEPS = ["church", "services", "members", "team", "rooms"] as const;
+/*
+ * R22.1. In the order one unblocks the next, rather than the order the settings
+ * happen to sit in. Nothing in the product works without a directory: groups,
+ * check-in, serving and every report read off it, and the target is an hour
+ * from signing up to a directory somebody can use. The church's own details
+ * come last because creating the church already set its name and its timezone.
+ */
+export const SETUP_STEPS = ["members", "services", "rooms", "team", "church"] as const;
 export type SetupStep = (typeof SETUP_STEPS)[number];
 
 export interface SetupState {
@@ -31,6 +38,8 @@ export interface SetupProgress {
   steps: SetupState[];
   /** How many of the five are answered, one way or the other. */
   settled: number;
+  /** What is actually left, which is the number worth saying out loud. */
+  left: number;
   complete: boolean;
   dismissed: boolean;
 }
@@ -81,6 +90,8 @@ export async function setupProgress(db: Tx, tenantId: string): Promise<SetupProg
   return {
     steps,
     settled: steps.filter((step) => step.done || step.skipped).length,
+    /** What is actually left, which is the number worth saying out loud. */
+    left: steps.filter((step) => !step.done && !step.skipped).length,
     complete: steps.every((step) => step.done || step.skipped),
     dismissed: church?.dismissedAt !== null && church?.dismissedAt !== undefined,
   };

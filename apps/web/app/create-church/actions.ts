@@ -47,5 +47,5 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
    * setup step, and it used to drop somebody into the directory instead, where
    * the only row is themselves.
    */
-  redirect(`/setup?church=${slug}&welcome=1`);
+  redirect(`/setup?church=${slug}`);
 }

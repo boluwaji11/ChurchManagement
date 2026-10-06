@@ -407,7 +407,14 @@ export function Directory({
         <span className="text-[13px] text-fg-muted">
           {matching === 0
             ? t("directory.none")
-            : t("directory.showing", { range: t("directory.range", { first, upto, matching }) })}
+            : t("directory.showing", {
+                range:
+                  // One row is one row. "1 to 1 of 1" is three numbers for a
+                  // fact that needs one.
+                  first === upto
+                    ? t("directory.rangeOne", { first, matching })
+                    : t("directory.range", { first, upto, matching }),
+              })}
         </span>
         <Pages
           page={page}
