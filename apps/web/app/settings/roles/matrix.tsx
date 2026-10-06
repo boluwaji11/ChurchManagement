@@ -61,9 +61,11 @@ export function Matrix({
 }) {
   const open = roles.filter((role) => !role.archived);
   const archived = roles.filter((role) => role.archived);
-  // R1.6. A section somebody has read can be folded away, so the grid is as
-  // short as the question they came with.
-  const [shut, setShut] = React.useState<string[]>([]);
+  /*
+   * R1.6. Only the first section is open to begin with. Twenty rows against
+   * nine columns is a wall, and the one everybody comes for is Members.
+   */
+  const [shut, setShut] = React.useState<string[]>(groups.slice(1).map((one) => one.key));
   const fold = (key: string) =>
     setShut((was) => (was.includes(key) ? was.filter((one) => one !== key) : [...was, key]));
 
@@ -78,25 +80,24 @@ export function Matrix({
             </th>
 
             {open.map((role) => (
-              <th key={role.id} className="px-2 py-3 text-center align-bottom">
-                {/* Upright, because nine role names across a table is a column
-                    width problem every product solves by turning the words. */}
-                <span className="mx-auto flex h-36 w-8 items-end justify-center">
-                  {/* R1.6. Owner is the one column nobody may narrow: there is
-                      nobody above them to put a permission back. */}
-                  {role.key === "owner" ? (
-                    <Upright>{nameOf(role)}</Upright>
-                  ) : (
-                    <RoleForm church={church} role={role} permissions={permissions} groups={groups}>
-                      <button
-                        type="button"
-                        className="cursor-pointer rounded-sm hover:bg-sunken"
-                      >
-                        <Upright>{nameOf(role)}</Upright>
-                      </button>
-                    </RoleForm>
-                  )}
-                </span>
+              <th
+                key={role.id}
+                className="w-[92px] border-l border-line px-2 py-3 text-center align-bottom text-[12px] font-medium text-fg"
+              >
+                {/* R1.6. Owner is the one column nobody may narrow: there is
+                    nobody above them to put a permission back. */}
+                {role.key === "owner" ? (
+                  nameOf(role)
+                ) : (
+                  <RoleForm church={church} role={role} permissions={permissions} groups={groups}>
+                    <button
+                      type="button"
+                      className="w-full cursor-pointer rounded-sm px-1 py-0.5 hover:bg-sunken"
+                    >
+                      {nameOf(role)}
+                    </button>
+                  </RoleForm>
+                )}
               </th>
             ))}
           </tr>
@@ -140,7 +141,7 @@ export function Matrix({
                 });
 
                 return (
-                  <td key={role.id} className="px-2 py-2.5 text-center">
+                  <td key={role.id} className="border-l border-sunken px-2 py-2.5 text-center">
                     {held ? (
                       <Check className="mx-auto size-4 text-primary" aria-label={label} />
                     ) : (
@@ -201,14 +202,6 @@ function Shelf({ church, roles }: { church: string; roles: RoleRow[] }) {
   );
 }
 
-/** A role name turned on its side, so nine of them fit across a table. */
-function Upright({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rotate-180 text-[12px] font-medium whitespace-nowrap text-fg [text-orientation:mixed] [writing-mode:vertical-rl]">
-      {children}
-    </span>
-  );
-}
 
 /**
  * R1.6. A role's name and everything it may do, in one form.
@@ -237,7 +230,7 @@ export function RoleForm({
   const [held, setHeld] = React.useState<string[]>(role?.permissions ?? []);
   const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
-  const [shut, setShut] = React.useState<string[]>([]);
+  const [shut, setShut] = React.useState<string[]>(groups.slice(1).map((one) => one.key));
   const fold = (key: string) =>
     setShut((was) => (was.includes(key) ? was.filter((one) => one !== key) : [...was, key]));
 
@@ -246,6 +239,7 @@ export function RoleForm({
     if (!open) return;
     setName(role ? nameOf(role) : "");
     setHeld(role?.permissions ?? []);
+    setShut(groups.slice(1).map((one) => one.key));
     setError(undefined);
   }, [open, role?.name, role?.permissions]);
 
