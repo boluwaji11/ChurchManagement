@@ -2,10 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { syncUserAndAcceptInvitations, membershipsForUser, canEditPeople } from "@connectapp/db";
+import { syncUserAndAcceptInvitations } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { explainAuth } from "@/lib/auth-errors";
+import { landingFor } from "@/lib/landing";
 
 /** Returns never, so callers use `return fail(...)` and control flow narrows. */
 const fail = (message: string, next?: string): never =>
@@ -58,21 +59,5 @@ export async function signInWithPassword(data: FormData) {
   // R5.5. A pastoral account lands on its queue. It is the one role whose job
   // is the follow-ups rather than the records, and the directory is a click
   // away from it.
-  redirect(next || (await landing(result.user.id)));
-}
-
-async function landing(userId: string): Promise<string> {
-  try {
-    const memberships = await membershipsForUser(userId);
-    if (memberships.length !== 1) return "/members";
-    const role = memberships[0]!.role;
-
-    // R5.5. The one role whose job is the follow-ups rather than the records.
-    if (role === "pastoral") return "/followups";
-    // R3.1. Everybody else who does not work in the church's records lands on
-    // the directory the church publishes, which is the one with anybody in it.
-    return canEditPeople(role) ? "/members" : "/home";
-  } catch {
-    return "/members";
-  }
+  redirect(next || (await landingFor(result.user.id)));
 }

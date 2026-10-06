@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { syncUserAndAcceptInvitations } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { explainAuth } from "@/lib/auth-errors";
+import { landingFor } from "@/lib/landing";
 
 /**
  * Where an email link lands. Handles both shapes Supabase sends: a PKCE `code`,
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const next = searchParams.get("next") || "/members";
+  const next = searchParams.get("next");
 
   const supabase = await supabaseServer();
 
@@ -40,5 +41,5 @@ export async function GET(request: NextRequest) {
     emailVerified: Boolean(user.email_confirmed_at),
   });
 
-  return NextResponse.redirect(`${origin}${next}`);
+  return NextResponse.redirect(`${origin}${next || (await landingFor(user.id))}`);
 }

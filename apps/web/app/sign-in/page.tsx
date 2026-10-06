@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { currentUser } from "@/lib/session";
+import { landingFor } from "@/lib/landing";
 import { AuthShell } from "../auth-shell";
 import { SignInForm } from "./form";
 
@@ -16,7 +17,10 @@ export default async function SignIn({
   }>;
 }) {
   const params = await searchParams;
-  if (await currentUser()) redirect(params.next ?? "/members");
+  const signedIn = await currentUser();
+  // R24.6. Somebody who is already signed in and presses Sign in on the website
+  // goes where signing in would have put them, rather than to the directory.
+  if (signedIn) redirect(params.next ?? (await landingFor(signedIn.id)));
 
   return (
     <AuthShell
