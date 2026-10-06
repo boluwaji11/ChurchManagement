@@ -489,7 +489,7 @@ export const en = {
   "settings.tab.account": "Account",
   "settings.tab.security": "Security",
   "settings.tab.church": "Church",
-  "provisional.title": "This church is still being checked",
+  "provisional.title": "This church is still being reviewed for full access",
   "provisional.body": "It works for you, and holds up to {limit} members. Invitations and your own sign-up address open once somebody has looked at it, usually within the hour.",
   "provisional.room": "{members} of {limit} members",
   "provisional.error.locked": "That opens once somebody has looked at this church, usually within the hour.",
