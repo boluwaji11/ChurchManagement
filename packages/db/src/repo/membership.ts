@@ -3,7 +3,6 @@ import { owner } from "../client";
 import type { TenantRole } from "../roles";
 import { PERMISSIONS, type Permission } from "../permissions";
 import { InvalidInputError } from "../errors";
-import { DEFAULT_PIPELINES } from "./followups";
 import {
   addressAlreadyClaimed, claimRecord, claimableRecord, nameForRecord, recordForAccount,
   writeAccount, writeRecordFor,
@@ -449,22 +448,6 @@ export async function createChurch(input: {
         insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
         values (${tenant.id}, ${person.id}, 'email', 'home',
                 ${input.user.email.trim().toLowerCase()}, true)`;
-    }
-
-    // R5.2. The six follow-up pipelines, with their steps. Same reason: a
-    // church should be able to welcome its first visitor at its first service
-    // rather than design a process first.
-    for (const [position, pipeline] of DEFAULT_PIPELINES.entries()) {
-      const [row] = await tx<{ id: string }[]>`
-        insert into pipelines (tenant_id, key, name, description, hue, position)
-        values (${tenant.id}, ${pipeline.key}, ${pipeline.name}, ${pipeline.description},
-                ${pipeline.hue}, ${position})
-        returning id`;
-      for (const [at, step] of pipeline.steps.entries()) {
-        await tx`
-          insert into pipeline_steps (tenant_id, pipeline_id, name, due_days, position)
-          values (${tenant.id}, ${row!.id}, ${step.name}, ${step.dueDays}, ${at})`;
-      }
     }
 
     return { tenantId: tenant.id, slug, name };

@@ -497,69 +497,72 @@ function StageForm({
       <div className="flex flex-col gap-3">
         <span className="text-label text-fg">{t("pipelines.steps")}</span>
 
-        {/* The steps are one thread rather than a stack of boxes, so the order
-            a church is writing down reads as an order. */}
-        <div className="relative flex flex-col gap-3">
-          {steps.length > 1 ? (
-            <span
-              aria-hidden
-              className="absolute top-9 bottom-5 left-[3px] w-px bg-line-strong"
-            />
-          ) : null}
-
+        {/* R5.2. The same path the positions draw: a numbered marker a row,
+            the line between them carrying its own dot, and the words on an
+            underline rather than in a box. */}
+        <ol className="m-0 flex list-none flex-col p-0">
           {steps.map((step, at) => (
-            <div key={step.key} className="relative flex flex-wrap items-end gap-2 pl-5">
-              <span
-                aria-hidden
-                className="absolute bottom-4 left-0 size-[7px] rounded-full bg-line-strong"
-              />
-              <input type="hidden" name="stepId" value={step.id} />
-              <div className="min-w-48 flex-1">
-                <Field label={t("pipelines.stepN", { count: String(at + 1) })} required>
-                  <Input
-                    name="stepName"
-                    value={step.name}
-                    onChange={(e) => change(step.key, { name: e.target.value })}
-                    autoComplete="off"
-                  />
-                </Field>
-              </div>
-              <div className="w-24">
-                <Field label={t("pipelines.days")}>
-                  <Input
+            <li key={step.key} className="flex gap-2.5">
+              {steps.length > 1 ? (
+                <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                  <span className="grid size-5 shrink-0 place-items-center rounded-full border border-primary/40 bg-surface text-[10px] font-semibold text-primary">
+                    {at + 1}
+                  </span>
+                  {at === steps.length - 1 ? null : (
+                    <span className="relative my-1 w-px flex-1 bg-primary/40">
+                      <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary" />
+                    </span>
+                  )}
+                </span>
+              ) : null}
+
+              <div className="flex min-w-0 flex-1 items-start gap-2 pb-3">
+                <input type="hidden" name="stepId" value={step.id} />
+                <input
+                  name="stepName"
+                  value={step.name}
+                  aria-label={t("pipelines.stepN", { count: String(at + 1) })}
+                  autoComplete="off"
+                  className="-mt-1 min-w-0 flex-1 rounded-sm border-b border-line bg-transparent px-1 py-1 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                  onChange={(e) => change(step.key, { name: e.target.value })}
+                />
+                <label className="-mt-1 flex items-center gap-1.5 text-[13px] text-fg-muted">
+                  {t("pipelines.days")}
+                  <input
                     name="stepDays"
                     inputMode="numeric"
                     value={step.days}
+                    className="w-14 rounded-sm border-b border-line bg-transparent px-1 py-1 text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
                     onChange={(e) => change(step.key, { days: e.target.value })}
                   />
-                </Field>
+                </label>
+                <IconButton
+                  label={t("pipelines.removeStep")}
+                  type="button"
+                  variant="ghost"
+                  className="-mt-2.5"
+                  onClick={() => setSteps((all) => all.filter((s) => s.key !== step.key))}
+                >
+                  <X />
+                </IconButton>
               </div>
-              <IconButton
-                label={t("pipelines.removeStep")}
-                type="button"
-                variant="ghost"
-                onClick={() => setSteps((all) => all.filter((s) => s.key !== step.key))}
-              >
-                <X />
-              </IconButton>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
 
-        <div>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() =>
-              setSteps((all) => [
-                ...all,
-                { key: `new-${all.length}-${Date.now()}`, id: "", name: "", days: "7" },
-              ])
-            }
-          >
-            <Plus /> {t("pipelines.addStep")}
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          className="self-start"
+          onClick={() =>
+            setSteps((all) => [
+              ...all,
+              { key: `new-${all.length}-${Date.now()}`, id: "", name: "", days: "7" },
+            ])
+          }
+        >
+          <Plus /> {t("pipelines.addStep")}
+        </Button>
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3">
