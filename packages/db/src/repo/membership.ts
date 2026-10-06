@@ -3,7 +3,6 @@ import { owner } from "../client";
 import type { TenantRole } from "../roles";
 import { PERMISSIONS, type Permission } from "../permissions";
 import { InvalidInputError } from "../errors";
-import { DEFAULT_GROUP_TYPES } from "./groups";
 import { DEFAULT_PIPELINES } from "./followups";
 import { SEED_TEAMS } from "./serving";
 import {
@@ -451,16 +450,6 @@ export async function createChurch(input: {
         insert into contact_methods (tenant_id, member_id, kind, label, value, is_primary)
         values (${tenant.id}, ${person.id}, 'email', 'home',
                 ${input.user.email.trim().toLowerCase()}, true)`;
-    }
-
-    // R9.1. The group types a church starts with. Written here rather than on
-    // first use, so the form that creates a group has something to choose from
-    // and nobody has to configure a vocabulary before they can write anything
-    // down. Any of them can be renamed, added to or archived.
-    for (const [position, type] of DEFAULT_GROUP_TYPES.entries()) {
-      await tx`
-        insert into group_types (tenant_id, name, hue, position)
-        values (${tenant.id}, ${type.name}, ${type.hue}, ${position})`;
     }
 
     // R5.2. The six follow-up pipelines, with their steps. Same reason: a
