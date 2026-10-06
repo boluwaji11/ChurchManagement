@@ -582,6 +582,24 @@ export async function listInvitations(tenantId: string): Promise<PendingInvitati
  * with no owner is a church nobody can administer, and the members it belongs to
  * cannot fix it themselves.
  */
+/**
+ * R1.4. The built-in role this account holds in this church, or null.
+ *
+ * The enum column rather than the whole set, because the one question it
+ * answers is whether somebody is the owner, and the owner is the one role
+ * nobody else may change or take away.
+ */
+export async function memberRole(
+  tenantId: string,
+  userId: string,
+): Promise<TenantRole | null> {
+  const rows = await owner()<{ role: TenantRole }[]>`
+    select role from tenant_members
+     where tenant_id = ${tenantId} and user_id = ${userId}
+     limit 1`;
+  return rows[0]?.role ?? null;
+}
+
 export async function setMemberRole(
   tenantId: string,
   userId: string,

@@ -2,7 +2,7 @@
 
 import {
   createInvitation, revokeInvitation, setMemberRole, canManageChurch,
-  withTenant, peopleToInvite, listRoles, owner,
+  withTenant, peopleToInvite, listRoles, memberRole,
   type TenantRole,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -89,11 +89,8 @@ export async function changeRole(
      * R1.4. An Owner's row is only an Owner's to change. Admin may run the
      * church; it may not take the keys off the person who holds them.
      */
-    const [row] = await owner()<{ role: string }[]>`
-      select role::text as role from tenant_members
-       where tenant_id = ${session.tenantId} and user_id = ${userId}
-       limit 1`;
-    if (row?.role === "owner" && session.role !== "owner") {
+    const held = await memberRole(session.tenantId, userId);
+    if (held === "owner" && session.role !== "owner") {
       return { error: t("team.error.owner") };
     }
     if (role === "owner" && session.role !== "owner") {
@@ -122,12 +119,9 @@ export async function removeAccess(userId: string, church?: string): Promise<Tea
   try {
     const session = await allowed(church);
 
-    const [row] = await owner()<{ role: string }[]>`
-      select role::text as role from tenant_members
-       where tenant_id = ${session.tenantId} and user_id = ${userId}
-       limit 1`;
-    if (!row) return { error: t("team.error.gone") };
-    if (row.role === "owner") return { error: t("team.error.owner") };
+    const held = await memberRole(session.tenantId, userId);
+    if (!held) return { error: t("team.error.gone") };
+    if (held === "owner") return { error: t("team.error.owner") };
 
     const member = await withTenant(
       { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },

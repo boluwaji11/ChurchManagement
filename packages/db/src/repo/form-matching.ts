@@ -1,4 +1,5 @@
 import type { Sql, TransactionSql } from "postgres";
+import { owner } from "../client";
 import { indexPeople, findMatches, type ExistingPerson } from "../import/match";
 import {
   CUSTOM_TARGET, answered,
@@ -399,6 +400,22 @@ async function writeCustom(
  * to somebody is left alone, because running it again could attach it to
  * somebody else after a human decided.
  */
+/**
+ * R4.4. The same pass, with the connection chosen here rather than by a screen.
+ *
+ * It writes members records on behalf of a form rather than on behalf of the
+ * person who pressed the button, which is the path a public submission already
+ * takes, so it runs on the owner connection. Choosing that connection is the
+ * data layer's decision: a request path that can reach for it is a request path
+ * that row-level security no longer constrains, and the guard in
+ * tests/request-path.ts is what keeps that true.
+ */
+export async function placeUnplacedForTenant(
+  input: { tenantId: string; formId: string; fields: FormFieldDef[] },
+): Promise<{ placed: number; waiting: number }> {
+  return placeUnplaced(owner(), input);
+}
+
 export async function placeUnplaced(
   sql: Sql,
   input: { tenantId: string; formId: string; fields: FormFieldDef[] },

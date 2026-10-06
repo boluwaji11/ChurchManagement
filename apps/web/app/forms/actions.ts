@@ -3,7 +3,7 @@
 import {
   withTenant, createForm, updateForm, setFormStatus, setFormArchived,
   addFormField, updateFormField, removeFormField, moveFormField, reorderFormFields,
-  getForm, placeUnplaced, owner, canManageChurch, setFormCover, setFormHue, templateFor,
+  getForm, placeUnplacedForTenant, canManageChurch, setFormCover, setFormHue, templateFor,
   type FormInput, type FormFieldInput, type FormStatus,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -181,10 +181,10 @@ export async function shiftQuestion(
  * picker, so the work has to be runnable over what is already there. Only
  * submissions that landed nowhere are touched.
  *
- * Permission is checked here and the pass itself runs on the owner connection,
- * because it writes members records on behalf of a form rather than on behalf of
- * the person pressing the button, which is the same path a public submission
- * takes.
+ * Permission is checked here and the pass itself is carried out in the data
+ * layer, which chooses its own connection: it writes members records on behalf
+ * of a form rather than on behalf of the person pressing the button, which is
+ * the path a public submission already takes.
  */
 export async function matchResponses(
   formId: string,
@@ -197,7 +197,7 @@ export async function matchResponses(
     const form = await withTenant(ctx, (tx) => getForm(tx, formId));
     if (!form) return { error: t("form.error.missing") };
 
-    const result = await placeUnplaced(owner(), {
+    const result = await placeUnplacedForTenant({
       tenantId: actor.tenantId,
       formId,
       fields: form.fields,
