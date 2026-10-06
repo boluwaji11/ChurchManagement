@@ -59,7 +59,6 @@ export function SiteHeader() {
 
 const FOOT = [
   { href: "/trust", key: "site.foot.data" },
-  { href: "#pricing", key: "site.foot.pricing" },
   { href: "https://github.com/boluwaji11/ChurchManagement", key: "site.foot.source" },
   { href: "https://github.com/boluwaji11/ChurchManagement/discussions", key: "site.foot.forum" },
   { href: "https://github.com/sponsors/boluwaji11", key: "site.foot.donate" },

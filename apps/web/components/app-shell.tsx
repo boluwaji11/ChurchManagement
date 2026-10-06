@@ -94,7 +94,7 @@ export async function AppShell({
   }));
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="site-wash flex min-h-dvh">
       <Sidebar
         entries={entries}
         churchName={session.tenantName}

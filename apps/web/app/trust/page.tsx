@@ -1,9 +1,8 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Card, Separator } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Logo } from "@/components/brand";
 import { SiteFooter } from "@/components/site/chrome";
+import { Art, type Piece } from "@/components/site/art";
 
 export const dynamic = "force-static";
 
@@ -23,20 +22,23 @@ export const dynamic = "force-static";
 const PROMISES = ["training", "export", "source", "winddown", "money"] as const;
 const PROCESSORS = ["supabase", "vercel", "stripe"] as const;
 
+/** The margins of the page a church reads before it trusts anybody. */
+const ART: Piece[] = [
+  { name: "safe", side: "left", y: 34, size: 190, inset: 32 },
+  { name: "connecting", side: "right", y: 48, size: 220, inset: 28 },
+];
+
 export default function TrustPage() {
   return (
-    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-6">
-        <Logo href="/" />
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
-        >
-          <ArrowLeft className="size-4" /> {t("trust.back")}
-        </Link>
+    <div data-theme="light" className="site-wash relative flex min-h-dvh flex-col">
+      <Art pieces={ART} />
+      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center px-6 py-3">
+          <Logo href="/" />
+        </div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 py-12 sm:px-6">
+      <main id="main" className="relative mx-auto w-full max-w-2xl flex-1 px-4 py-12 sm:px-6">
         <h1 className="mb-10 font-display text-display text-fg">{t("trust.title")}</h1>
 
         <div className="flex flex-col gap-6">
@@ -67,7 +69,6 @@ export default function TrustPage() {
           </Card>
         </div>
 
-        <p className="mt-10 text-caption text-fg-muted">{t("trust.ask")}</p>
       </main>
 
       <SiteFooter />

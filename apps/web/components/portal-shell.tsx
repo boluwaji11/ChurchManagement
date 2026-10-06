@@ -81,7 +81,7 @@ export async function PortalShell({
     : null;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas" data-density="portal">
+    <div className="site-wash flex min-h-dvh flex-col" data-density="portal">
       {/* R17.11. What a phone reads when somebody adds this church to their
           home screen, and the worker that keeps it answering with no signal.
           React hoists both into the head. */}
@@ -91,7 +91,7 @@ export async function PortalShell({
 
       <DemoBanner tenantId={session.tenantId} />
 
-      <header className="sticky top-0 z-20 border-b border-line bg-canvas">
+      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
         <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center gap-x-6 px-6">
           {homepage ? (
             <a

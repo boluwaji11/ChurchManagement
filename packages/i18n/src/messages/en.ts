@@ -70,7 +70,6 @@ export const en = {
 
   // Landing
   "trust.title": "What we promise, and what holds us to it",
-  "trust.back": "Back",
   "trust.training.title": "Your records never train a model",
   "trust.training.body": "No church data is used to train, fine-tune or evaluate a machine learning model. Not by us, and not by anybody we pay to run part of this. The product carries no model at all: there is nothing in it that could send a record anywhere, and a test refuses the build if one appears.",
   "trust.export.title": "You can take everything, any day",
@@ -86,7 +85,6 @@ export const en = {
   "trust.who.supabase": "Supabase. The database, sign-in and file storage. Hosted in the United States.",
   "trust.who.vercel": "Vercel. Runs the web application. No records are stored there.",
   "trust.who.stripe": "Stripe. Processes giving, against the church's own account. Arrives with giving.",
-  "trust.ask": "Something here unclear? Ask, and we will answer in public.",
   "home.tagline": "Church management software.",
   "home.signIn": "Sign in",
   "home.demo": "See a demo",
