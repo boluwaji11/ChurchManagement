@@ -125,31 +125,52 @@ export function TeamDialog({
 
           <div className="flex flex-col gap-2">
             <span className="text-label text-fg">{t("serving.team.positions")}</span>
-            {positions.map((one, i) => (
-              <div key={one.id ?? `new-${i}`} className="flex items-center gap-2">
-                <Input
-                  value={one.name}
-                  aria-label={t("serving.team.positionName")}
-                  autoComplete="off"
-                  className="min-w-0 flex-1"
-                  onChange={(e) =>
-                    setPositions((was) =>
-                      was.map((x, at) => (at === i ? { ...x, name: e.target.value } : x)),
-                    )
-                  }
-                />
-                <IconButton
-                  label={t("serving.position.remove")}
-                  variant="ghost"
-                  onClick={() => {
-                    if (one.id) setDropped((was) => [...was, one.id!]);
-                    setPositions((was) => was.filter((_, at) => at !== i));
-                  }}
-                >
-                  <Trash2 />
-                </IconButton>
-              </div>
-            ))}
+
+            {/* R10.2. The same path the setup dock draws: a marker a row, the
+                line between them carrying its own dot. A position is one line
+                of a list, and a boxed card each made six of them read as six
+                separate things. */}
+            <ol className="m-0 flex list-none flex-col p-0">
+              {positions.map((one, i) => (
+                <li key={one.id ?? `new-${i}`} className="flex items-start gap-2.5">
+                  <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full border border-line-strong bg-surface text-[10px] font-semibold text-fg-subtle">
+                      {i + 1}
+                    </span>
+                    {i === positions.length - 1 ? null : (
+                      <span className="relative my-1 h-4 w-px bg-line-strong">
+                        <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-line-strong" />
+                      </span>
+                    )}
+                  </span>
+
+                  <input
+                    value={one.name}
+                    aria-label={t("serving.team.positionName")}
+                    autoComplete="off"
+                    className="-mt-1 min-w-0 flex-1 rounded-sm border-b border-line bg-transparent px-1 py-1 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                    onChange={(e) =>
+                      setPositions((was) =>
+                        was.map((x, at) => (at === i ? { ...x, name: e.target.value } : x)),
+                      )
+                    }
+                  />
+
+                  <IconButton
+                    label={t("serving.position.remove")}
+                    variant="ghost"
+                    className="-mt-1.5"
+                    onClick={() => {
+                      if (one.id) setDropped((was) => [...was, one.id!]);
+                      setPositions((was) => was.filter((_, at) => at !== i));
+                    }}
+                  >
+                    <Trash2 />
+                  </IconButton>
+                </li>
+              ))}
+            </ol>
+
             <Button
               type="button"
               variant="ghost"
