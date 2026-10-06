@@ -68,3 +68,48 @@ self.addEventListener("fetch", (event) => {
       }),
   );
 });
+
+/**
+ * R16.10. A push arriving while the app is closed.
+ *
+ * The payload carries the words already made, because a worker woken at seven
+ * on a Sunday has no session and cannot ask the server what language this
+ * person reads.
+ */
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    return;
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icon.svg",
+      badge: "/icon.svg",
+      // Two of the same thing replace rather than stack, so somebody who left
+      // their phone in a drawer comes back to one line rather than nine.
+      tag: payload.tag || "connectapp",
+      data: { href: payload.href || "/home" },
+    }),
+  );
+});
+
+/** Pressing it opens the screen it is about, in a window that is already open. */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const href = event.notification.data?.href || "/home";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      for (const one of windows) {
+        if (one.url.includes(href) && "focus" in one) return one.focus();
+      }
+      return self.clients.openWindow(href);
+    }),
+  );
+});

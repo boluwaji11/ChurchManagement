@@ -466,8 +466,14 @@ straight away; the requirement is the one that holds.
 
 **On HRT-156.** The portal is installable and holds an offline shell: a manifest a church at a
 time, so the icon on a phone carries the church's name and opens on that member's own screen, and a
-network-first worker that answers from its cache when there is no signal. Push is the other half and
-waits on messaging: R16.10 sends a push, and nothing in this repo sends anything yet.
+network-first worker that answers from its cache when there is no signal.
+
+Push is built and does not break the messaging deferral. A web push goes to the browser's own push
+service, free, with no credential belonging to the church involved, so there is no send queue, no
+composer, and nothing being resold. It carries the lines the bell already carries. One trigger is
+wired, the one a member actually waits on: being put on the rota. Turn it on from the account menu.
+With no VAPID pair in the environment the product runs with no push at all and members read the
+bell, which is a working church.
 
 **HRT-161 is cut.** A form is something a church puts on its own website for whoever reads it, and
 the public link already does that for everybody including members. A second way in, behind a
@@ -482,7 +488,7 @@ no business in.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-155 | Magic link sign-in, with a password as an option | R17.1 | Resolved |
-| HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | Active |
+| HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | Resolved |
 | HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Resolved |
 | HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |
 | HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |

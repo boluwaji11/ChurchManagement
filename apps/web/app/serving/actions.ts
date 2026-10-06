@@ -6,11 +6,14 @@ import {
   addToTeam, removeFromTeam, setTeamMemberRole, setTeamMemberPositions,
   lookupPeople, listPeople, getChurch,
   assign, unassign, candidatesFor, addBlockout, removeBlockout, setServingPreference,
+  userForPerson,
   type TeamRole, type TagHue, type PlanCandidate, type ServingFrequency,
 } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
+import { pushTo } from "@/lib/push";
 
 async function context(church?: string) {
   const session = await requireSession(church);
@@ -220,9 +223,27 @@ export async function schedule(
   },
   church?: string,
 ): Promise<ScheduleResult> {
-  const { actor, ctx } = await context(church);
+  const { session, actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => assign(tx, actor, input));
+
+    /*
+     * R16.10, R17.7. The one notification a member actually waits on. Sent
+     * after the write, so a push that is slow or refused cannot hold up the
+     * rota, and addressed to the account behind the person rather than to the
+     * person, because a push goes to a browser.
+     */
+    const account = await withTenant(ctx, (tx) => userForPerson(tx, input.memberId));
+
+    if (account) {
+      await pushTo(ctx, [account], {
+        title: session.tenantName,
+        body: t("push.serving"),
+        href: "/home/serving",
+        tag: `serving-${input.occurrenceId}`,
+      });
+    }
+
     return {};
   } catch (error) {
     return { error: explain(error) };

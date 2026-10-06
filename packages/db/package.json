@@ -24,11 +24,13 @@
     "drizzle-orm": "^0.38.3",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.2",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/jszip": "^3.4.1",
     "@types/node": "^22.10.2",
+    "@types/web-push": "^3.6.4",
     "drizzle-kit": "^0.30.1",
     "tsx": "^4.19.2",
     "vitest": "^2.1.8"

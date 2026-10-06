@@ -125,3 +125,18 @@ export async function canSeePerson(db: Tx, viewer: Viewer, memberId: string): Pr
   const allowed = await visiblePeople(db, viewer);
   return allowed === null || allowed.includes(memberId);
 }
+
+/**
+ * R16.10. The account behind a person, where they have one.
+ *
+ * The other way round from personForUser. A push goes to a browser, a browser
+ * belongs to an account, and the thing being notified about is a person.
+ */
+export async function userForPerson(db: Tx, memberId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ userId: members.appUserId })
+    .from(members)
+    .where(eq(members.id, memberId))
+    .limit(1);
+  return row?.userId ?? null;
+}

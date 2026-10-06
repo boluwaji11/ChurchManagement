@@ -3,14 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Download, LogOut, Settings, ShieldCheck } from "lucide-react";
+import { Bell, BellOff, Download, LogOut, Settings, ShieldCheck } from "lucide-react";
 import {
   Avatar,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { useInstall } from "./installed";
+import { useInstall, usePush } from "./installed";
 
 export interface PortalTab {
   label: string;
@@ -87,6 +87,7 @@ export function PortalAccount({
    */
   const out = React.useRef<HTMLFormElement>(null);
   const install = useInstall();
+  const push = usePush(church);
 
   return (
     <DropdownMenu>
@@ -111,6 +112,15 @@ export function PortalAccount({
             <ShieldCheck /> {t("settings.tab.security")}
           </Link>
         </DropdownMenuItem>
+        {push ? (
+          <DropdownMenuItem
+            disabled={push.busy}
+            onSelect={(e) => { e.preventDefault(); push.toggle(); }}
+          >
+            {push.on ? <BellOff /> : <Bell />}
+            {push.on ? t("portal.notifyOff") : t("portal.notifyOn")}
+          </DropdownMenuItem>
+        ) : null}
         {install ? (
           <DropdownMenuItem onSelect={install}>
             <Download /> {t("portal.install")}
