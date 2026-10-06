@@ -1,9 +1,6 @@
 import * as React from "react";
 import { cookies } from "next/headers";
-import {
-  withTenant, countUnread, listNotifications, NOTIFICATION_LOOK, getChurch,
-  setupProgress, canManageChurch,
-} from "@connectapp/db";
+import { NOTIFICATION_LOOK } from "@connectapp/db";
 import { t, spellingFor } from "@connectapp/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
@@ -16,11 +13,11 @@ import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
 import { SetupDock } from "./setup-dock";
 import { SETUP_LINKS } from "@/lib/setup-links";
 import { ChurchMarkProvider } from "./church-mark";
-import { supabaseServer } from "@/lib/supabase/server";
 import { readsAs } from "@/lib/spelling";
 import { SpellingProvider } from "./spelling-provider";
 import type { Session } from "@/lib/session";
-import { myPhotoUrl } from "@/lib/my-photo";
+import { shellData } from "@/lib/shell-data";
+import { photoUrls } from "@/lib/photos";
 
 /**
  * R24.6. The frame every staff screen sits in.
@@ -60,24 +57,8 @@ export async function AppShell({
 }) {
   const collapsed = (await cookies()).get(SIDEBAR_COOKIE)?.value === "1";
 
-  // R24.6. The bell: its number, and the twenty lines behind it.
-  const counts = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
-    async (tx) => ({
-      unread: await countUnread(tx, session.userId),
-      notifications: await listNotifications(tx, session.userId),
-      // R1.1. The church's own mark, for the sidebar and the phone's top bar.
-      church: await getChurch(tx, session.tenantId),
-      /*
-       * R22.1. The setup path, where there is still one to walk. Only for
-       * somebody who runs the church, because nobody else can do any of it,
-       * and read here so the guide can follow them onto any screen.
-       */
-      setup: canManageChurch(session)
-        ? await setupProgress(tx, session.tenantId)
-        : null,
-    }),
-  );
+  // R24.6. The bell, the church's mark, the setup path and the reader's face.
+  const counts = await shellData(session);
 
   /*
    * R22.8. Which spelling this church reads, set before anything on the page
@@ -87,17 +68,16 @@ export async function AppShell({
   readsAs(counts.church?.country);
 
   /*
-   * The bucket is private, so the logo is served through a signed URL with an
-   * hour on it. Every staff screen is force-dynamic, so a reader who leaves a
-   * tab open overnight gets a fresh one on their next navigation.
+   * The bucket is private, so the mark and the face are served through signed
+   * URLs with an hour on them. Every staff screen is force-dynamic, so a reader
+   * who leaves a tab open overnight gets fresh ones on their next navigation.
+   * Both keys go up in one call: signing them one at a time was two round trips
+   * to storage in the middle of the render.
    */
-  let logoUrl: string | null = null;
   const logoKey = counts.church?.logoKey ?? null;
-  if (logoKey) {
-    const supabase = await supabaseServer();
-    const signed = await supabase.storage.from("church").createSignedUrl(logoKey, 3600);
-    logoUrl = signed.data?.signedUrl ?? null;
-  }
+  const signed = await photoUrls([logoKey, counts.photoKey]);
+  const logoUrl = logoKey ? (signed[logoKey] ?? null) : null;
+  const photoUrl = counts.photoKey ? (signed[counts.photoKey] ?? null) : null;
 
   const entries: ShellEntry[] = navFor(session).map(({ icon: Icon, ...rest }) => ({
     ...rest,
@@ -110,7 +90,7 @@ export async function AppShell({
         entries={entries}
         churchName={session.tenantName}
         personName={session.displayName}
-        photoUrl={await myPhotoUrl(session)}
+        photoUrl={photoUrl}
         roleName={t(`role.${session.role}` as never)}
         userId={session.userId}
         church={session.tenantSlug}
@@ -119,12 +99,8 @@ export async function AppShell({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <DemoBanner tenantId={session.tenantId} />
-        <ProvisionalBanner
-          tenantId={session.tenantId}
-          role={session.role}
-          church={session.tenantSlug}
-        />
+        <DemoBanner info={counts.demo} />
+        <ProvisionalBanner standing={counts.standing} church={session.tenantSlug} />
 
         <TopBar
           title={title}

@@ -104,6 +104,28 @@ export const churchFromHost = cache(async (): Promise<string | null> => {
   return found?.slug ?? null;
 });
 
+/**
+ * Every church this user belongs to.
+ *
+ * The same read as membershipsForUser, held for the duration of one request.
+ * A settings page resolves the session twice, once in the layout from the host
+ * and once in the page from the address, and the two asked the database the
+ * same question each time.
+ */
+const myMemberships = cache(async (userId: string): Promise<Membership[]> =>
+  membershipsForUser(userId),
+);
+
+/**
+ * The same two lookups the authorization chain below has always made, held for
+ * the duration of one request. Every verification still runs, against the same
+ * table, for the same user and the same church. A settings page asks twice.
+ */
+const tenantBySlug = cache(async (slug: string) => resolveTenantBySlug(slug));
+const myMembership = cache(async (userId: string, tenantId: string) =>
+  verifyMembership(userId, tenantId),
+);
+
 export const requireSession = cache(async (asked?: string): Promise<Session> => {
   /*
    * The address in the request wins, because a link somebody was sent names
@@ -119,15 +141,15 @@ export const requireSession = cache(async (asked?: string): Promise<Session> => 
     redirect("/sign-in");
   }
 
-  const memberships = await membershipsForUser(user.id);
+  const memberships = await myMemberships(user.id);
   if (memberships.length === 0) redirect("/choose-church?reason=none");
 
   let chosen: Membership | undefined;
 
   if (slug) {
-    const tenant = await resolveTenantBySlug(slug);
+    const tenant = await tenantBySlug(slug);
     // Same outcome whether the church does not exist or the user is not in it.
-    chosen = tenant ? ((await verifyMembership(user.id, tenant.id)) ?? undefined) : undefined;
+    chosen = tenant ? ((await myMembership(user.id, tenant.id)) ?? undefined) : undefined;
     if (!chosen) redirect("/choose-church?reason=denied");
   } else if (memberships.length === 1) {
     chosen = memberships[0];

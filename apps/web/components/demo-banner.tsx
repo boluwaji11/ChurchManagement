@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Banner, Button } from "@connectapp/ui";
-import { demoChurchInfo } from "@connectapp/db";
+import type { demoChurchInfo } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -11,8 +11,11 @@ import { t } from "@connectapp/i18n";
  * whole reason the demo is a separate church is that nobody can mistake it for
  * their own, and saying so is the cheap half of that.
  */
-export async function DemoBanner({ tenantId }: { tenantId: string }) {
-  const info = await demoChurchInfo(tenantId);
+export function DemoBanner({
+  info,
+}: {
+  info: Awaited<ReturnType<typeof demoChurchInfo>>;
+}) {
   if (!info.isDemo || !info.expiresAt) return null;
 
   const when = info.expiresAt.toLocaleString(undefined, {

@@ -1,5 +1,5 @@
 import { Banner } from "@connectapp/ui";
-import { withTenant, churchStanding, type TenantRole } from "@connectapp/db";
+import type { ChurchStanding } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { WatchApproval } from "./watch-approval";
 
@@ -11,19 +11,14 @@ import { WatchApproval } from "./watch-approval";
  * error with no context. This is the one case a sentence is earned, because the
  * sentence is what happens next.
  */
-export async function ProvisionalBanner({
-  tenantId,
-  role,
+export function ProvisionalBanner({
+  standing,
   church,
 }: {
-  tenantId: string;
-  role: TenantRole;
+  standing: ChurchStanding;
   /** R1.1. The address this church reads by, for the watch below. */
   church: string;
 }) {
-  const standing = await withTenant({ tenantId, role }, (tx) =>
-    churchStanding(tx, tenantId),
-  );
   if (standing.approved) return null;
 
   return (

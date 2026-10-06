@@ -1,6 +1,5 @@
 import * as React from "react";
 import Link from "next/link";
-import { withTenant, getChurch } from "@connectapp/db";
 import { t, spellingFor } from "@connectapp/i18n";
 import { FlameMark } from "./brand";
 import { ChurchMarkProvider } from "./church-mark";
@@ -10,9 +9,9 @@ import { PortalTabs, PortalAccount, type PortalTab } from "./portal/tabs";
 import { Installed } from "./portal/installed";
 import { PortalTitle, PortalSection, Panel } from "./portal/panel";
 import { PublicFooter } from "./public-footer";
-import { supabaseServer } from "@/lib/supabase/server";
 import { readsAs } from "@/lib/spelling";
-import { myPhotoUrl } from "@/lib/my-photo";
+import { shellData } from "@/lib/shell-data";
+import { photoUrls } from "@/lib/photos";
 import type { Session } from "@/lib/session";
 
 export { PortalTitle, PortalSection, Panel };
@@ -39,28 +38,21 @@ export async function PortalShell({
   tabs?: PortalTab[];
   children: React.ReactNode;
 }) {
-  const church = await withTenant(
-    {
-      tenantId: session.tenantId,
-      role: session.role,
-      userId: session.userId,
-      permissions: session.permissions,
-    },
-    (tx) => getChurch(tx, session.tenantId),
-  );
+  const shell = await shellData(session);
+  const church = shell.church;
 
   const spelling = spellingFor(church?.country);
   readsAs(church?.country);
 
-  // The bucket is private, so the logo is served through a URL signed for an
-  // hour. Every portal screen is force-dynamic, so a tab left open overnight
-  // gets a fresh one on its next navigation.
-  let logoUrl: string | null = null;
-  if (church?.logoKey) {
-    const supabase = await supabaseServer();
-    const signed = await supabase.storage.from("church").createSignedUrl(church.logoKey, 3600);
-    logoUrl = signed.data?.signedUrl ?? null;
-  }
+  /*
+   * The bucket is private, so the mark and the face are served through URLs
+   * signed for an hour. Every portal screen is force-dynamic, so a tab left
+   * open overnight gets fresh ones on its next navigation. Both keys go up in
+   * one call.
+   */
+  const signed = await photoUrls([church?.logoKey, shell.photoKey]);
+  const logoUrl = church?.logoKey ? (signed[church.logoKey] ?? null) : null;
+  const photoUrl = shell.photoKey ? (signed[shell.photoKey] ?? null) : null;
 
   const slug = session.tenantSlug;
   const theTabs: PortalTab[] = tabs ?? [
@@ -89,7 +81,7 @@ export async function PortalShell({
       <meta name="theme-color" content="#faf8f5" />
       <Installed />
 
-      <DemoBanner tenantId={session.tenantId} />
+      <DemoBanner info={shell.demo} />
 
       <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
         <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center gap-x-6 px-6">
@@ -124,7 +116,7 @@ export async function PortalShell({
             name={session.displayName}
             userId={session.userId}
             church={slug}
-            photoUrl={await myPhotoUrl(session)}
+            photoUrl={photoUrl}
           />
         </div>
       </header>
