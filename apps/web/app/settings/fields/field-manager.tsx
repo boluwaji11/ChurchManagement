@@ -145,6 +145,7 @@ function FieldSheet({
   const [choices, setChoices] = React.useState((field?.options ?? []).join("\n"));
   // R1.10. Adding opens on the library. Editing opens on the field itself.
   const [picking, setPicking] = React.useState(!field);
+  const [all, setAll] = React.useState(false);
   const [error, setError] = useFormError(open);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, setPending] = React.useState(false);
@@ -155,6 +156,7 @@ function FieldSheet({
     setLabel(field?.label ?? "");
     setChoices((field?.options ?? []).join("\n"));
     setPicking(!field);
+    setAll(false);
     setError(undefined);
     setConfirming(false);
   }, [open, field?.type, field?.label]);
@@ -169,7 +171,10 @@ function FieldSheet({
   };
 
   const held = new Set(taken.map((one) => one.trim().toLowerCase()));
-  const offered = FIELD_LIBRARY.filter((one) => !held.has(presetValues(one).label.toLowerCase()));
+  const offered = FIELD_LIBRARY
+    .filter((one) => !held.has(presetValues(one).label.toLowerCase()))
+    .sort((a, b) => presetValues(a).label.localeCompare(presetValues(b).label));
+  const shown = all ? offered : offered.slice(0, 5);
 
   const run = async (fn: (d: FormData) => Promise<{ error?: string }>, data: FormData) => {
     setError(undefined);
@@ -266,65 +271,74 @@ function FieldSheet({
 
         {picking ? (
           /*
-           * R1.10. The details churches already keep, before a blank name box.
-           * The connector down the left is the product's own list, and the last
-           * row is the blank form for anything this list does not cover.
+           * R1.10. Naming it yourself comes first, because a church that knows
+           * what it wants should not read a list to get to the blank form. The
+           * details churches already keep follow, five at a time.
            */
-          <ol className="m-0 flex list-none flex-col p-0">
-            {offered.map((preset, i) => {
-              const values = presetValues(preset);
-              const Icon = iconFor(values.type);
-
-              return (
-                <li key={preset.key} className="flex gap-2.5">
-                  <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                    <span className="mt-4 size-2.5 shrink-0 rounded-full bg-primary" />
-                    <span className="my-1 w-px flex-1 bg-primary/35" />
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => start(preset)}
-                    className="mb-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
-                  >
-                    <Icon className="size-[18px] shrink-0 text-fg-muted" aria-hidden />
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="font-medium text-fg">{values.label}</span>
-                      {values.options.length > 0 ? (
-                        <span className="truncate text-[12px] text-fg-subtle">
-                          {values.options.join(", ")}
-                        </span>
-                      ) : null}
-                    </span>
-                    <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-                  </button>
-                </li>
-              );
-            })}
-
-            <li className="flex gap-2.5">
-              <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                <span className="mt-4 size-2.5 shrink-0 rounded-full bg-primary" />
+          <div className="flex flex-col">
+            <button
+              type="button"
+              onClick={() => {
+                setLabel("");
+                setType("text");
+                setChoices("");
+                setPicking(false);
+              }}
+              className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-sunken"
+            >
+              <Plus className="size-[18px] shrink-0 text-primary" aria-hidden />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-semibold text-fg">{t("fields.ownField")}</span>
+                <span className="text-[12px] text-fg-subtle">{t("fields.ownField.detail")}</span>
               </span>
+              <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+            </button>
+
+            <hr className="my-2 border-0 border-t border-line" />
+
+            <ol className="m-0 flex list-none flex-col p-0">
+              {shown.map((preset) => {
+                const values = presetValues(preset);
+                const Icon = iconFor(values.type);
+
+                return (
+                  <li key={preset.key} className="flex gap-2.5">
+                    <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                      <span className="mt-4 size-2.5 shrink-0 rounded-full bg-primary" />
+                      <span className="my-1 w-px flex-1 bg-primary/35" />
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => start(preset)}
+                      className="mb-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
+                    >
+                      <Icon className="size-[18px] shrink-0 text-fg-muted" aria-hidden />
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="font-medium text-fg">{values.label}</span>
+                        {values.options.length > 0 ? (
+                          <span className="truncate text-[12px] text-fg-subtle">
+                            {values.options.join(", ")}
+                          </span>
+                        ) : null}
+                      </span>
+                      <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+
+            {offered.length > shown.length ? (
               <button
                 type="button"
-                onClick={() => {
-                  setLabel("");
-                  setType("text");
-                  setChoices("");
-                  setPicking(false);
-                }}
-                className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
+                onClick={() => setAll(true)}
+                className="cursor-pointer self-start rounded-md px-2 py-2 font-medium text-primary"
               >
-                <Plus className="size-[18px] shrink-0 text-primary" aria-hidden />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="font-medium text-fg">{t("fields.ownField")}</span>
-                  <span className="text-[12px] text-fg-subtle">{t("fields.ownField.detail")}</span>
-                </span>
-                <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                {t("list.showMore", { count: offered.length - shown.length })}
               </button>
-            </li>
-          </ol>
+            ) : null}
+          </div>
         ) : null}
 
         <form
