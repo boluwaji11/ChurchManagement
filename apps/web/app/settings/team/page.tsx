@@ -1,6 +1,6 @@
 import {
   listTeam, listInvitations, canManageChurch, withTenant,
-  listRoles, churchStanding,
+  listRoles,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
