@@ -15,6 +15,10 @@ import { Art, type Piece } from "@/components/site/art";
  *
  * It sits near the top of the window rather than in the middle. Centred, a
  * short form floated in a field of nothing and a long one ran off the bottom.
+ *
+ * The heading is a page title rather than a hero, so it sits just above the
+ * wordmark in size. A 40px headline over a 26px mark read as the heading being
+ * the brand.
  */
 export function AuthShell({
   title,
@@ -41,21 +45,21 @@ export function AuthShell({
     <main
       id="main"
       data-theme="light"
-      className="site-wash relative grid min-h-dvh justify-items-center px-6 pb-16 pt-12"
+      className="site-wash relative grid min-h-dvh justify-items-center px-6 pb-16 pt-20 sm:pt-24"
     >
       {art ? <Art pieces={art} /> : null}
 
       <div className={cn("relative flex w-full flex-col gap-7", width)}>
-        <div className="flex flex-col items-center gap-4 text-center">
+        <div className="flex flex-col items-center gap-3 text-center">
           <span className="flex items-center gap-2.5">
-            <Mark className="text-[1.75rem]" />
-            <span className="font-display text-[26px] leading-8 text-fg">{t("app.name")}</span>
+            <Mark className="text-[1.6rem]" />
+            <span className="font-display text-[24px] leading-[30px] text-fg">{t("app.name")}</span>
           </span>
 
-          <h1 className="font-display text-[34px] leading-10 text-fg sm:text-[40px] sm:leading-[46px]">
+          <h1 className="font-display text-[26px] leading-8 text-fg sm:text-[30px] sm:leading-9">
             {title}
           </h1>
-          {under ? <p className="text-[17px] text-fg-muted">{under}</p> : null}
+          {under ? <p className="text-[16px] leading-6 text-fg-muted">{under}</p> : null}
         </div>
 
         {step ? <AuthSteps at={step} /> : null}
