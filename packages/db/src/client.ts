@@ -120,10 +120,16 @@ export interface TenantContext {
  */
 export async function withTenant<T>(ctx: TenantContext, work: (tx: Tx) => Promise<T>): Promise<T> {
   return appDb().transaction(async (tx) => {
-    await tx.execute(sql`select set_config('app.tenant_id', ${ctx.tenantId}, true)`);
-    await tx.execute(sql`select set_config('app.role', ${ctx.role}, true)`);
-    await tx.execute(sql`select set_config('app.user_id', ${ctx.userId ?? ""}, true)`);
-    await tx.execute(sql`select set_config('app.ip', ${ctx.ip ?? ""}, true)`);
+    /*
+     * One statement for all four settings. The database is a continent away, so
+     * a round trip costs about 20ms, and four statements spent 60ms of every
+     * transaction saying things that fit in one. Measured in docs/performance.md.
+     */
+    await tx.execute(sql`select
+      set_config('app.tenant_id', ${ctx.tenantId}, true),
+      set_config('app.role', ${ctx.role}, true),
+      set_config('app.user_id', ${ctx.userId ?? ""}, true),
+      set_config('app.ip', ${ctx.ip ?? ""}, true)`);
     return work(tx);
   });
 }
