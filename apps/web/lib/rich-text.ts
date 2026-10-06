@@ -8,6 +8,27 @@
  * renderer stays the only thing that decides what an element may be.
  */
 
+/**
+ * An inline mark, applied a line at a time.
+ *
+ * Bolding across two lines gives a <strong> with blocks inside it, and wrapping
+ * the whole thing in one pair of asterisks writes markdown where the opening
+ * and closing marks sit on different lines. Nothing reads that back, so the
+ * asterisks appeared in the box as text. Each line carries its own pair, and
+ * the spaces at either end stay outside them.
+ */
+function marked(text: string, wrap: string): string {
+  return text
+    .split("\n")
+    .map((line) => {
+      const parts = /^(\s*)(.*?)(\s*)$/.exec(line);
+      if (!parts) return line;
+      const [, left = "", body = "", right = ""] = parts;
+      return body ? `${left}${wrap}${body}${wrap}${right}` : line;
+    })
+    .join("\n");
+}
+
 /** The HTML the editor produces, as markdown. */
 export function htmlToMarkdown(root: Node): string {
   const out: string[] = [];
@@ -27,10 +48,10 @@ export function htmlToMarkdown(root: Node): string {
         return "\n";
       case "STRONG":
       case "B":
-        return `**${kids()}**`;
+        return marked(kids(), "**");
       case "EM":
       case "I":
-        return `_${kids()}_`;
+        return marked(kids(), "_");
       case "A": {
         const href = el.getAttribute("href") ?? "";
         return /^https?:\/\//i.test(href) ? `[${kids()}](${href})` : kids();
