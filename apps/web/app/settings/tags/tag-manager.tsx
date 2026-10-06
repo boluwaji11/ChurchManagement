@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { Trash2, Merge, Check, Plus } from "lucide-react";
+import { ArrowLeft, Trash2, Merge, Check, Plus } from "lucide-react";
 import {
   HUES,
   Button, IconButton, Input, Field, Separator, Banner, HueDot,
@@ -12,6 +12,8 @@ import {
 import { t, plural } from "@connectapp/i18n";
 import { addTag, saveTag, removeTag, foldTag } from "../../tags/actions";
 import { useFormError } from "@/lib/form-error";
+import { LibraryPicker } from "@/components/library-picker";
+import { tagLibrary } from "./library";
 
 export interface TagItem {
   id: string;
@@ -64,7 +66,7 @@ export function TagManager({
             </span>
           ))}
 
-        {canCreate ? <NewTag church={church} /> : null}
+        {canCreate ? <NewTag church={church} taken={tags.map((one) => one.name)} /> : null}
       </div>
     </section>
   );
@@ -80,10 +82,21 @@ const CHIP = "flex h-9 items-center justify-center rounded-full px-3.5 text-labe
  * was a form sitting there asking to be filled in on a screen somebody opened
  * to read.
  */
-export function NewTag({ church, filled }: { church: string; filled?: boolean }) {
+export function NewTag({
+  church,
+  filled,
+  taken = [],
+}: {
+  church: string;
+  filled?: boolean;
+  /** R1.13. What this church already keeps, so the library leaves it out. */
+  taken?: string[];
+}) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
+  const library = React.useMemo(() => tagLibrary(taken), [taken.join("|")]);
+  const [picking, setPicking] = React.useState(library.length > 0);
   const [error, setError] = useFormError(open);
   const [pending, setPending] = React.useState(false);
 
@@ -107,8 +120,16 @@ export function NewTag({ church, filled }: { church: string; filled?: boolean })
     }
   };
 
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setName("");
+      setPicking(library.length > 0);
+    }
+  };
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
         {filled ? (
           <Button>
@@ -124,26 +145,59 @@ export function NewTag({ church, filled }: { church: string; filled?: boolean })
         )}
       </SheetTrigger>
 
-      <SheetContent title={t("tags.add")} closeLabel={t("common.close")}>
+      <SheetContent
+        title={picking ? t("tags.start") : t("tags.add")}
+        closeLabel={t("common.close")}
+        footer={
+          picking ? null : (
+            <Button
+              type="button"
+              loading={pending}
+              disabled={pending || !name.trim()}
+              onClick={() => void save()}
+            >
+              {t("action.add")}
+            </Button>
+          )
+        }
+      >
         {error ? <Banner tone="danger" title={t("tags.failed")}>{error}</Banner> : null}
 
-        <Field label={t("tags.name")} required>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="off"
-            autoFocus
+        {picking ? (
+          <LibraryPicker
+            ownLabel={t("tags.ownTag")}
+            items={library}
+            onOwn={() => {
+              setName("");
+              setPicking(false);
+            }}
+            onPick={(item) => {
+              setName(item.label);
+              setPicking(false);
+            }}
           />
-        </Field>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {library.length === 0 ? null : (
+              <button
+                type="button"
+                onClick={() => setPicking(true)}
+                className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+              >
+                <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}
+              </button>
+            )}
 
-        <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-            {t("action.cancel")}
-          </Button>
-          <Button type="button" disabled={pending || !name.trim()} onClick={() => void save()}>
-            {t("action.add")}
-          </Button>
-        </div>
+            <Field label={t("tags.name")} required>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="off"
+                autoFocus
+              />
+            </Field>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );

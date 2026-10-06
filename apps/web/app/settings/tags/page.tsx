@@ -35,7 +35,11 @@ export default async function TagsPage({
           icon="tag"
           title={t("tags.empty.title")}
           body={t("tags.empty.body")}
-          action={canCreate ? <NewTag church={session.tenantSlug} filled /> : undefined}
+          action={
+            canCreate
+              ? <NewTag church={session.tenantSlug} filled taken={tags.map((one) => one.name)} />
+              : undefined
+          }
         />
       ) : (
         <TagManager church={session.tenantSlug} tags={tags} canManage={canManage} canCreate={canCreate} />
