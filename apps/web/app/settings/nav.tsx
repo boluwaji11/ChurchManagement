@@ -40,13 +40,13 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
         return (
           <div key={group.title} className="group relative flex items-stretch">
             {/* A hairline between one section and the next. */}
-            {at === 0 ? null : <span aria-hidden className="my-2 w-px bg-line" />}
+            {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
 
             <Link
               href={`${first.href}?church=${church}`}
               aria-current={open ? "page" : undefined}
               className={cn(
-                "flex items-center gap-1.5 px-3.5 py-2.5",
+                "flex items-center gap-1.5 px-6 py-3",
                 "text-[length:var(--d-text-label)] no-underline",
                 "border-b-2 -mb-px",
                 open
