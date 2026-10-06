@@ -79,7 +79,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         // R17.2. A member's own household reads here rather than from a tab of
         // its own: it is something they look at, not somewhere they work.
         ...(readsAsMember(session)
-          ? [{ href: "/home/household", label: t("nav.myHousehold") }]
+          ? [{ href: "/settings/household", label: t("settings.tab.household") }]
           : []),
         { href: "/settings/security", label: t("settings.tab.security") },
       ],

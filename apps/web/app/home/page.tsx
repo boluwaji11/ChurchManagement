@@ -247,7 +247,7 @@ export default async function MemberHomePage({
                 </span>
               ))}
               <Link
-                href={`/home/household?church=${session.tenantSlug}`}
+                href={`/settings/household?church=${session.tenantSlug}`}
                 className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
               >
                 {t("home.seeAll")}

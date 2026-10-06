@@ -49,6 +49,42 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
     timer.current = setTimeout(() => setChosen(title), 1400);
   };
 
+  /*
+   * R17.1. A member has one section, so its screens are the row.
+   *
+   * A menu with a single heading, hiding three names behind a hover, is a door
+   * in front of a door.
+   */
+  const only = groups.length === 1 ? groups[0]! : null;
+  if (only) {
+    return (
+      <nav
+        aria-label={t("settings.sections")}
+        className="sticky top-0 z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
+      >
+        {only.items.map((item, at) => (
+          <div key={item.href} className="flex items-stretch">
+            {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
+            <Link
+              href={`${item.href}?church=${church}`}
+              aria-current={item.href === pathname ? "page" : undefined}
+              className={cn(
+                "flex items-center px-6 py-3",
+                "text-[length:var(--d-text-label)] no-underline",
+                "border-b-2 -mb-px",
+                item.href === pathname
+                  ? "border-primary font-semibold text-fg"
+                  : "border-transparent font-medium text-fg-muted hover:text-fg",
+              )}
+            >
+              {item.label}
+            </Link>
+          </div>
+        ))}
+      </nav>
+    );
+  }
+
   return (
     <nav
       aria-label={t("settings.sections")}
