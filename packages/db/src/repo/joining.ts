@@ -22,7 +22,9 @@ import { owner } from "../client";
 import { InvalidInputError } from "../errors";
 import { PermissionError, type TenantRole } from "../roles";
 import { canManageChurch } from "./church";
-import { claimRecord, claimableRecord, nameForRecord, writeRecordFor } from "./claim";
+import {
+  claimRecord, claimableRecord, nameForRecord, writeAccount, writeRecordFor,
+} from "./claim";
 
 export interface JoinTarget {
   tenantId: string;
@@ -125,12 +127,7 @@ export async function joinChurch(input: {
     await tx`select set_config('app.user_id', ${input.user.id}, true)`;
     await tx`select set_config('app.role', 'member', true)`;
 
-    await tx`
-      insert into app_users (id, email, full_name)
-      values (${input.user.id}, ${email}, ${fullName})
-      on conflict (id) do update set
-        email = excluded.email,
-        full_name = coalesce(excluded.full_name, app_users.full_name)`;
+    await writeAccount(tx, { id: input.user.id, email, fullName });
 
     const already = await tx`
       select 1 from tenant_members

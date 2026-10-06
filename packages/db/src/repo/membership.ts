@@ -8,7 +8,7 @@ import { DEFAULT_PIPELINES } from "./followups";
 import { SEED_TEAMS } from "./serving";
 import {
   addressAlreadyClaimed, claimRecord, claimableRecord, nameForRecord, recordForAccount,
-  writeRecordFor,
+  writeAccount, writeRecordFor,
 } from "./claim";
 
 export interface Membership {
@@ -146,10 +146,7 @@ export async function syncUserAndAcceptInvitations(user: {
   const sql = owner();
   const email = user.email.trim().toLowerCase();
 
-  await sql`
-    insert into app_users (id, email, full_name)
-    values (${user.id}, ${email}, ${user.fullName ?? null})
-    on conflict (id) do update set email = excluded.email, full_name = coalesce(excluded.full_name, app_users.full_name)`;
+  await writeAccount(sql, { id: user.id, email, fullName: user.fullName });
 
   const pending = await sql<
     { id: string; tenant_id: string; role: TenantRole; member_id: string | null }[]
@@ -411,12 +408,7 @@ export async function createChurch(input: {
       values (${tenant.id}, ${name}, true)
       returning id`;
 
-    await tx`
-      insert into app_users (id, email, full_name)
-      values (${input.user.id}, ${input.user.email.trim().toLowerCase()}, ${input.user.fullName ?? null})
-      on conflict (id) do update set
-        email = excluded.email,
-        full_name = coalesce(excluded.full_name, app_users.full_name)`;
+    await writeAccount(tx, input.user);
 
     await tx`
       insert into tenant_members (tenant_id, user_id, role)

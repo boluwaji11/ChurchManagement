@@ -1,4 +1,5 @@
 import type postgres from "postgres";
+import { InvalidInputError } from "../errors";
 
 /**
  * R1.7, R2.1. The rules for tying an account to a person record.
@@ -146,4 +147,53 @@ export function nameForRecord(
   if (parts.length >= 2) return { first: parts[0]!, last: parts.slice(1).join(" ") };
   if (parts.length === 1) return { first: parts[0]!, last: "" };
   return { first: email.split("@")[0] ?? email, last: "" };
+}
+
+/**
+ * R1.7. Writes the account row, and releases the address first where it is held
+ * by an account that no longer exists.
+ *
+ * app_users.id is the Supabase auth user's id and the email is unique, so an
+ * auth user deleted out from under us leaves a row holding an address its owner
+ * can never use again: signing up issues a new id, and the insert collides on
+ * the email rather than on the id. That used to be an unhandled constraint
+ * violation on the screen where somebody creates their church.
+ *
+ * The leftover is released only when nothing is behind it: no auth user, no
+ * membership, no person record. tenant_members cascades from here, so deleting
+ * a row that still had memberships would quietly take a church away from
+ * somebody. An address that is genuinely in use is refused instead, in the same
+ * words sign-up uses.
+ */
+export async function writeAccount(
+  db: Runner,
+  user: { id: string; email: string; fullName?: string | null },
+): Promise<void> {
+  const email = user.email.trim().toLowerCase();
+
+  await db`
+    delete from app_users a
+     where a.email = ${email}
+       and a.id <> ${user.id}
+       and not exists (select 1 from auth.users u where u.id = a.id)
+       and not exists (select 1 from tenant_members m where m.user_id = a.id)
+       and not exists (select 1 from members p where p.app_user_id = a.id)`;
+
+  try {
+    await db`
+      insert into app_users (id, email, full_name)
+      values (${user.id}, ${email}, ${user.fullName ?? null})
+      on conflict (id) do update set
+        email = excluded.email,
+        full_name = coalesce(excluded.full_name, app_users.full_name)`;
+  } catch (error) {
+    if (
+      error instanceof Error
+      && "constraint_name" in error
+      && error["constraint_name"] === "app_users_email_key"
+    ) {
+      throw new InvalidInputError("auth.error.taken");
+    }
+    throw error;
+  }
 }
