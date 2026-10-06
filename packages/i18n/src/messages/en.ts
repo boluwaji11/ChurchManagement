@@ -124,7 +124,7 @@ export const en = {
   "site.features.reports": "Reports",
   "site.features.reports.body": "See how your church is growing.",
   "site.people.eyebrow": "Member management",
-  "site.people.title": "Know your people.",
+  "site.people.title": "Know your congregants.",
   "site.people.households": "Members and households",
   "site.people.followups": "Follow-ups for visitors",
   "site.people.fields": "Tags and custom fields",

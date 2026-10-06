@@ -18,6 +18,9 @@ import { t } from "@connectapp/i18n";
 import { SiteFooter, SiteHeader, START } from "@/components/site/chrome";
 import { CheckinLabels, GiveCard } from "@/components/site/mocks";
 import {
+  Book, Bread, Candle, Cross, Cup, Doodles, Dove, Fish, Olive, Water, Wheat,
+} from "@/components/site/doodles";
+import {
   BrowserFrame,
   Eyebrow,
   PhoneFrame,
@@ -64,6 +67,31 @@ const TRUST = [
 
 const PRICE = ["everything", "fee", "source", "donations"] as const;
 
+/* The marks behind the four sections with room for them. Nothing sits behind a
+   screen of the product or a grid of cards: those sections are already full. */
+const HERO_MARKS = [
+  { mark: Dove, x: 9, y: 26, size: 150, turn: -8 },
+  { mark: Wheat, x: 91, y: 22, size: 120, turn: 10 },
+  { mark: Olive, x: 16, y: 80, size: 118, turn: 6 },
+  { mark: Cross, x: 86, y: 78, size: 96, turn: -10 },
+] as const;
+
+const PURPOSE_MARKS = [
+  { mark: Book, x: 11, y: 34, size: 132, turn: -6 },
+  { mark: Candle, x: 89, y: 66, size: 118, turn: 8 },
+] as const;
+
+const PRICE_MARKS = [
+  { mark: Bread, x: 12, y: 40, size: 130, turn: -5 },
+  { mark: Cup, x: 88, y: 58, size: 126, turn: 7 },
+] as const;
+
+const END_MARKS = [
+  { mark: Fish, x: 10, y: 30, size: 138, turn: -9 },
+  { mark: Water, x: 90, y: 68, size: 136, turn: 5 },
+  { mark: Dove, x: 78, y: 20, size: 100, turn: 14 },
+] as const;
+
 /** "Get started free", at whatever size the section calls for. */
 function Start({ className = SITE_CTA, arrow = true }: { className?: string; arrow?: boolean }) {
   return (
@@ -83,7 +111,8 @@ export default function Site() {
 
       <main id="top" className="flex-1">
         {/* The first screen. One claim, one line under it, two ways on. */}
-        <section className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 pb-14 pt-24 text-center">
+        <section className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 pb-14 pt-24 text-center">
+          <Doodles spots={[...HERO_MARKS]} />
           <h1 className="m-0 max-w-[14ch] text-balance font-display text-[clamp(44px,6.4vw,76px)] font-normal leading-[1.04] tracking-[-0.015em]">
             {t("site.hero.title")}
           </h1>
@@ -97,8 +126,9 @@ export default function Site() {
         </section>
 
         {/* Why a church would want this at all, before any feature is named. */}
-        <section className="border-t border-line bg-primary-soft">
-          <div className="mx-auto flex w-full max-w-[880px] flex-col items-center gap-5 px-6 py-24 text-center">
+        <section className="relative border-t border-line bg-primary-soft">
+          <Doodles spots={[...PURPOSE_MARKS]} />
+          <div className="relative mx-auto flex w-full max-w-[880px] flex-col items-center gap-5 px-6 py-24 text-center">
             <h2 className="m-0 text-balance font-display text-[clamp(36px,5vw,56px)] font-normal leading-[1.08] text-fg">
               {t("site.purpose.title")}
             </h2>
@@ -226,8 +256,9 @@ export default function Site() {
         </section>
 
         {/* The entire pricing table. */}
-        <section id="pricing" className="border-t border-line">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-10 px-6 py-[104px]">
+        <section id="pricing" className="relative border-t border-line">
+          <Doodles spots={[...PRICE_MARKS]} />
+          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-10 px-6 py-[104px]">
             <SectionTitle className="text-center">{t("site.price.title")}</SectionTitle>
             <div className="flex w-[min(480px,100%)] flex-col gap-7 rounded-[20px] border border-stone-300 bg-canvas p-10">
               <div className="flex flex-wrap items-baseline gap-3">
@@ -277,8 +308,9 @@ export default function Site() {
           </section>
         ) : null}
 
-        <section className="border-t border-line bg-surface">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 py-[120px] text-center">
+        <section className="relative border-t border-line bg-surface">
+          <Doodles spots={[...END_MARKS]} />
+          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 py-[120px] text-center">
             <h2 className="m-0 font-display text-[clamp(40px,5.4vw,64px)] font-normal leading-[1.05] text-fg">
               {t("site.end.title")}
             </h2>
