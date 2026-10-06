@@ -11,6 +11,7 @@ import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
+import { photoUrls } from "@/lib/photos";
 import { shortDate, readableTime } from "@/lib/dates";
 import { ServingViews } from "./views";
 
@@ -138,6 +139,9 @@ export default async function ServingPage({
   );
 
   const openOf = (teamId: string) => data.open[teamId] ?? 0;
+
+  // R2.9. The faces in the picker of who could fill a slot.
+  const faces = await photoUrls((data.team?.members ?? []).map((one) => one.photoKey));
 
   const month = new Date(`${data.month}-01T00:00:00`).toLocaleDateString(undefined, {
     month: "long",
@@ -284,6 +288,7 @@ export default async function ServingPage({
                   return {
                     memberId: one.memberId,
                     name: one.name,
+                    photoUrl: one.photoKey ? (faces[one.photoKey] ?? null) : null,
                     note: off ? t("serving.away", { date: shortDate(off.startsOn) }) : "",
                     away: Boolean(off),
                   };

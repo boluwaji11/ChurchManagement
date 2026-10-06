@@ -36,6 +36,8 @@ export interface PositionDraft {
 export interface MemberDraft {
   memberId: string;
   name: string;
+  /** R2.9. Their face, when the church has one for them. */
+  photoUrl?: string | null;
   /** Null for somebody being put on the team now. */
   membershipId: string | null;
 }
@@ -243,6 +245,7 @@ export function TeamPanel({
                     <span className="flex min-w-0 flex-1 items-center gap-3 pb-3">
                       <Avatar
                         name={one.name}
+                        src={one.photoUrl}
                         id={one.memberId}
                         className="size-8 text-[12px] font-semibold"
                       />

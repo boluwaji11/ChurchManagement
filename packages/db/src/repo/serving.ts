@@ -90,6 +90,8 @@ export interface TeamMemberView {
   /** R24.6. Their readable address, so a roster row links without an id. */
   personSlug: string;
   name: string;
+  /** R2.9. Their photo in the bucket, for the avatar beside their name. */
+  photoKey: string | null;
   role: TeamRole;
   joinedOn: string;
   /** The positions this person plays on this team, in the team's own order. */
@@ -217,6 +219,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
       firstName: members.firstName,
       preferredName: members.preferredName,
       lastName: members.lastName,
+      photoKey: members.photoKey,
     })
     .from(teamMembers)
     .innerJoin(members, eq(members.id, teamMembers.memberId))
@@ -249,6 +252,7 @@ export async function getTeam(db: Tx, id: string): Promise<TeamDetail | null> {
       memberId: r.memberId,
       personSlug: r.personSlug,
       name: displayName(r),
+      photoKey: r.photoKey,
       role: r.role as TeamRole,
       joinedOn: r.joinedOn,
       positions: played

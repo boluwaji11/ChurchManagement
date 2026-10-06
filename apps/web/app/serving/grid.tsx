@@ -41,6 +41,8 @@ export interface GridPosition {
 export interface GridVolunteer {
   memberId: string;
   name: string;
+  /** R2.9. Their face, when the church has one for them. */
+  photoUrl?: string | null;
   /** How much they are already doing, or the day they are away. */
   note: string;
   away: boolean;
@@ -420,7 +422,12 @@ export function ScheduleGrid({
                 onDragEnd={() => setDragging(null)}
                 className="flex cursor-grab items-center gap-2.5 rounded-md border border-line bg-canvas px-2.5 py-2"
               >
-                <Avatar name={one.name} id={one.memberId} className="size-7 text-[11px] font-semibold" />
+                <Avatar
+                  name={one.name}
+                  src={one.photoUrl}
+                  id={one.memberId}
+                  className="size-7 text-[11px] font-semibold"
+                />
                 <span className="min-w-0 flex-1 leading-4">
                   <span className="block truncate text-[13px] font-medium text-fg">
                     {one.name}

@@ -7,6 +7,7 @@ import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
+import { photoUrls } from "@/lib/photos";
 import { TeamList, AddTeam } from "./team-list";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,11 @@ export default async function TeamsSettingsPage({
     },
   );
 
+  // R2.9. Every face on every roster, signed in one round trip.
+  const faces = await photoUrls(
+    Object.values(rosters).flat().map((one) => one.photoKey),
+  );
+
   return (
     <>
       <SettingsHeading
@@ -66,6 +72,7 @@ export default async function TeamsSettingsPage({
             members: (rosters[team.id] ?? []).map((one) => ({
               memberId: one.memberId,
               name: one.name,
+              photoUrl: one.photoKey ? (faces[one.photoKey] ?? null) : null,
               membershipId: one.id,
             })),
             positions: of.map((one) => ({
