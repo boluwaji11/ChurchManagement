@@ -16,44 +16,66 @@ const NAV = [
 export const START = "/sign-up?next=/create-church";
 
 /**
- * The bar at the top of the website: the mark, the sections, and the two things
- * a church can do. Translucent over the canvas so the page shows through as it
- * scrolls under.
+ * The bar every ConnectApp page carries: the mark and the name, top left, at one
+ * size and in one place.
+ *
+ * Written once because it drifted. The website drew it at 22px in a 1200px row
+ * and the trust page drew it at 17px in a 4px gutter, which is the kind of
+ * difference a reader feels without being able to name.
  */
-export function SiteHeader() {
+export function SiteBar({
+  home = "/",
+  children,
+}: {
+  /** Where the mark goes. The website keeps the reader on the page. */
+  home?: string;
+  /** Whatever the page hangs on the right of the bar. */
+  children?: React.ReactNode;
+}) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
       <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-6 px-6 py-3">
-        <Link href="#top" className="flex items-center gap-2.5 rounded-md text-fg no-underline">
+        <Link href={home} className="flex items-center gap-2.5 rounded-md text-fg no-underline">
           <Mark className="text-[1.5rem]" />
           <span className="font-display text-[22px] leading-7">{t("app.name")}</span>
         </Link>
-
-        <nav aria-label={t("site.nav.label")} className="flex min-w-0 flex-1 flex-wrap justify-center gap-1">
-          {NAV.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="rounded-lg px-2.5 py-1.5 text-[14px] font-medium text-fg-muted no-underline hover:bg-sunken hover:text-fg"
-            >
-              {t(item.key)}
-            </a>
-          ))}
-        </nav>
-
-        <div className="ml-auto flex flex-none items-center gap-2">
-          <Button variant="ghost" className={SITE_BAR_CTA} asChild>
-            <Link href="/sign-in">{t("home.signIn")}</Link>
-          </Button>
-          <Button className={SITE_BAR_CTA} asChild>
-            <Link href={START}>
-              {t("site.start")}
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-        </div>
+        {children}
       </div>
     </header>
+  );
+}
+
+/**
+ * The bar at the top of the website: the mark, the sections, and the two things
+ * a church can do.
+ */
+export function SiteHeader() {
+  return (
+    <SiteBar home="#top">
+      <nav aria-label={t("site.nav.label")} className="flex min-w-0 flex-1 flex-wrap justify-center gap-1">
+        {NAV.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="rounded-lg px-2.5 py-1.5 text-[14px] font-medium text-fg-muted no-underline hover:bg-sunken hover:text-fg"
+          >
+            {t(item.key)}
+          </a>
+        ))}
+      </nav>
+
+      <div className="ml-auto flex flex-none items-center gap-2">
+        <Button variant="ghost" className={SITE_BAR_CTA} asChild>
+          <Link href="/sign-in">{t("home.signIn")}</Link>
+        </Button>
+        <Button className={SITE_BAR_CTA} asChild>
+          <Link href={START}>
+            {t("site.start")}
+            <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </div>
+    </SiteBar>
   );
 }
 

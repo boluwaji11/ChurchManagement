@@ -1,7 +1,6 @@
 import { Card, Separator } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { Logo } from "@/components/brand";
-import { SiteFooter } from "@/components/site/chrome";
+import { SiteBar, SiteFooter } from "@/components/site/chrome";
 import { Art, type Piece } from "@/components/site/art";
 
 export const dynamic = "force-static";
@@ -32,11 +31,7 @@ export default function TrustPage() {
   return (
     <div data-theme="light" className="site-wash relative flex min-h-dvh flex-col">
       <Art pieces={ART} />
-      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
-        <div className="mx-auto flex w-full max-w-[1200px] items-center px-6 py-3">
-          <Logo href="/" />
-        </div>
-      </header>
+      <SiteBar />
 
       <main id="main" className="relative mx-auto w-full max-w-2xl flex-1 px-4 py-12 sm:px-6">
         <h1 className="mb-10 font-display text-display text-fg">{t("trust.title")}</h1>

@@ -1,9 +1,7 @@
 import * as React from "react";
 import { t } from "@connectapp/i18n";
 import { cn } from "@connectapp/ui";
-import Link from "next/link";
-import { Mark } from "@/components/brand";
-import { SiteFooter } from "@/components/site/chrome";
+import { SiteBar, SiteFooter } from "@/components/site/chrome";
 import { Art, type Piece } from "@/components/site/art";
 
 /**
@@ -45,16 +43,7 @@ export function AuthShell({
 }) {
   return (
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      {/* The mark sits where it sits on the website, so somebody who arrived
-          from there finds it in the same place and it still goes home. */}
-      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
-        <div className="mx-auto flex w-full max-w-[1200px] items-center px-6 py-3">
-          <Link href="/" className="flex items-center gap-2.5 rounded-md text-fg no-underline">
-            <Mark className="text-[1.5rem]" />
-            <span className="font-display text-[22px] leading-7">{t("app.name")}</span>
-          </Link>
-        </div>
-      </header>
+      <SiteBar />
 
       <main
         id="main"
