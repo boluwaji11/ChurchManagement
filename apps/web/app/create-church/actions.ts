@@ -42,5 +42,10 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
     return { error: explain(error) };
   }
 
-  redirect(`/members?church=${slug}&welcome=1`);
+  /*
+   * R22.1. Step three. The rail on the two screens before this one promised a
+   * setup step, and it used to drop somebody into the directory instead, where
+   * the only row is themselves.
+   */
+  redirect(`/setup?church=${slug}&welcome=1`);
 }

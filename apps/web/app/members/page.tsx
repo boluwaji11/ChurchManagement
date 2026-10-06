@@ -88,16 +88,6 @@ export default async function PeoplePage({
         <Banner tone="success" title={t("person.archived.title")} className="mb-8" />
       ) : null}
 
-      {params.welcome ? (
-        <Banner
-          tone="success"
-          title={t("createChurch.welcome.title", { church: session.tenantName })}
-          className="mb-8"
-        >
-          {t("createChurch.welcome.body")}
-        </Banner>
-      ) : null}
-
       {session.role === "staff" || session.role === "member" ? (
         <Banner tone="info" title={t("members.restricted.title")} className="mb-8" />
       ) : null}

@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { Church } from "lucide-react";
+import { useFormStatus } from "react-dom";
 import {
-  Button, Input, Field, Banner,
+  Button, Input, Field, Banner, Working,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -78,12 +79,33 @@ function zoneName(zone: string): string {
   return rest.join(" / ").replace(/_/g, " ") || zone;
 }
 
+/**
+ * R24.6. The press that builds a church says so while it does it.
+ *
+ * Creating one writes the church, its campus, the founder's record, the group
+ * types, six pipelines and the starter teams, so there is a real wait here.
+ * useFormStatus rather than a flag of our own: React runs a form action inside
+ * a transition, which defers an ordinary state update, so the button that set
+ * one never repainted before the await and the press looked like it had missed.
+ */
+function Submit() {
+  const { pending } = useFormStatus();
+
+  return (
+    <>
+      <Button type="submit" full loading={pending}>
+        <Church /> {t("createChurch.submit")}
+      </Button>
+      <Working open={pending} label={t("createChurch.working")} />
+    </>
+  );
+}
+
 export function CreateChurchForm() {
   const [name, setName] = React.useState("");
   const [zone, setZone] = React.useState(FALLBACK);
   const [nameError, setNameError] = React.useState<string>();
   const [error, setError] = React.useState<string>();
-  const [pending, setPending] = React.useState(false);
 
   // Runs after hydration, so the server and the client render the same thing.
   React.useEffect(() => setZone(detect()), []);
@@ -118,13 +140,8 @@ export function CreateChurchForm() {
       return;
     }
     setNameError(undefined);
-    setPending(true);
-    try {
-      const result = await createChurchAccount(data);
-      if (result?.error) setError(result.error);
-    } finally {
-      setPending(false);
-    }
+    const result = await createChurchAccount(data);
+    if (result?.error) setError(result.error);
   };
 
   return (
@@ -154,9 +171,7 @@ export function CreateChurchForm() {
         </Select>
       </Field>
 
-      <Button type="submit" full loading={pending}>
-        <Church /> {t("createChurch.submit")}
-      </Button>
+      <Submit />
     </form>
   );
 }

@@ -19,9 +19,9 @@ export const dynamic = "force-dynamic";
 export default async function SetupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; welcome?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, welcome } = await searchParams;
   const session = await requireSession(church);
 
   if (!canManageChurch(session)) {
@@ -45,6 +45,16 @@ export default async function SetupPage({
       session={session}
       title={t("setup.title")}
     >
+      {welcome ? (
+        <Banner
+          tone="success"
+          title={t("createChurch.welcome.title", { church: session.tenantName })}
+          className="mb-6"
+        >
+          {t("createChurch.welcome.body")}
+        </Banner>
+      ) : null}
+
       <Steps
         church={session.tenantSlug}
         settled={progress.settled}
