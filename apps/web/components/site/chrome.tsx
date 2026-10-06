@@ -1,0 +1,91 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { Mark } from "@/components/brand";
+import { SITE_BAR_CTA } from "./kit";
+
+const NAV = [
+  { href: "#features", key: "site.nav.features" },
+  { href: "#members", key: "site.nav.members" },
+  { href: "#giving", key: "site.nav.giving" },
+  { href: "#checkin", key: "site.nav.checkin" },
+  { href: "#pricing", key: "site.nav.pricing" },
+] as const;
+
+/** Where somebody who has decided starts. The one destination on the page. */
+export const START = "/sign-up?next=/create-church";
+
+/**
+ * The bar at the top of the website: the mark, the sections, and the two things
+ * a church can do. Translucent over the canvas so the page shows through as it
+ * scrolls under.
+ */
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-6 px-6 py-3">
+        <Link href="#top" className="flex items-center gap-2.5 rounded-md text-fg no-underline">
+          <Mark className="text-[1.5rem]" />
+          <span className="font-display text-[22px] leading-7">{t("app.name")}</span>
+        </Link>
+
+        <nav aria-label={t("site.nav.label")} className="flex min-w-0 flex-1 flex-wrap gap-1">
+          {NAV.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="rounded-lg px-2.5 py-1.5 text-[14px] font-medium text-fg-muted no-underline hover:bg-sunken hover:text-fg"
+            >
+              {t(item.key)}
+            </a>
+          ))}
+        </nav>
+
+        <div className="ml-auto flex flex-none items-center gap-2">
+          <Button variant="ghost" className={SITE_BAR_CTA} asChild>
+            <Link href="/sign-in">{t("home.signIn")}</Link>
+          </Button>
+          <Button className={SITE_BAR_CTA} asChild>
+            <Link href={START}>
+              {t("site.start")}
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+const FOOT = [
+  { href: "/trust", key: "site.foot.data" },
+  { href: "#pricing", key: "site.foot.pricing" },
+  { href: "https://github.com/boluwaji11/ChurchManagement", key: "site.foot.source" },
+  { href: "https://github.com/boluwaji11/ChurchManagement/discussions", key: "site.foot.forum" },
+  { href: "https://github.com/sponsors/boluwaji11", key: "site.foot.donate" },
+  { href: "/sign-in", key: "home.signIn" },
+] as const;
+
+/** R21.12. The promises and the source, where somebody deciding can reach them. */
+export function SiteFooter() {
+  return (
+    <footer className="border-t border-line">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-start gap-x-12 gap-y-6 px-6 py-10">
+        <div className="flex flex-[1_1_280px] flex-col gap-2.5">
+          <span className="flex items-center gap-2.5">
+            <Mark className="text-[1.25rem]" />
+            <span className="font-display text-[19px] text-fg">{t("app.name")}</span>
+          </span>
+        </div>
+        <nav aria-label={t("site.foot.label")} className="flex flex-wrap gap-x-7 gap-y-2 text-[14px]">
+          {FOOT.map((item) => (
+            <Link key={item.key} href={item.href} className="text-fg-muted no-underline hover:text-fg">
+              {t(item.key)}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </footer>
+  );
+}

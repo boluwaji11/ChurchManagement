@@ -47,6 +47,7 @@ export function Sidebar({
   entries,
   churchName,
   personName,
+  photoUrl,
   roleName,
   userId,
   church,
@@ -56,6 +57,8 @@ export function Sidebar({
   entries: ShellEntry[];
   churchName: string;
   personName: string;
+  /** R2.9. Their own face, when they have uploaded one. */
+  photoUrl?: string | null;
   roleName: string;
   userId: string;
   church: string;
@@ -193,7 +196,7 @@ export function Sidebar({
             collapsed ? "justify-center p-1" : "px-1 py-2",
           )}
         >
-          <Avatar name={personName} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
+          <Avatar name={personName} src={photoUrl} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
           {collapsed ? null : (
             <span className="flex min-w-0 flex-1 flex-col leading-4">
               <span className="truncate text-[13px] font-medium text-fg">{personName}</span>

@@ -69,6 +69,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
 | HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Resolved |
 | HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Active |
+| HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is

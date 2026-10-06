@@ -7,7 +7,7 @@ import { t } from "@connectapp/i18n";
 /**
  * Three rising embers. The same mark as the favicon and the app icon.
  *
- * Drawn rather than imported so it inherits the accent token and changes with
+ * Drawn rather than imported so it inherits the primary token and changes with
  * the theme, and so it stays crisp at 20px on a header and 40px on a sign-in
  * page without a second asset.
  */
@@ -17,7 +17,7 @@ export function Mark({ className }: { className?: string }) {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="w-[0.25em] rounded-full bg-accent"
+          className="w-[0.25em] rounded-full bg-primary"
           style={{ height: `${0.55 + i * 0.225}em`, opacity: 0.45 + i * 0.275 }}
         />
       ))}
@@ -85,7 +85,7 @@ export function FlameMark({
   }
 
   return (
-    <span aria-hidden className="grid shrink-0 place-items-center bg-ember-500 text-white" style={box}>
+    <span aria-hidden className="grid shrink-0 place-items-center bg-primary text-primary-fg" style={box}>
       <Flame style={{ width: size === 32 ? 16 : 14, height: size === 32 ? 16 : 14 }} />
     </span>
   );

@@ -17,6 +17,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { readsAs } from "@/lib/spelling";
 import { SpellingProvider } from "./spelling-provider";
 import type { Session } from "@/lib/session";
+import { myPhotoUrl } from "@/lib/my-photo";
 
 /**
  * R24.6. The frame every staff screen sits in.
@@ -98,6 +99,7 @@ export async function AppShell({
         entries={entries}
         churchName={session.tenantName}
         personName={session.displayName}
+        photoUrl={await myPhotoUrl(session)}
         roleName={t(`role.${session.role}` as never)}
         userId={session.userId}
         church={session.tenantSlug}

@@ -12,6 +12,7 @@ import { PortalTitle, PortalSection, Panel } from "./portal/panel";
 import { PublicFooter } from "./public-footer";
 import { supabaseServer } from "@/lib/supabase/server";
 import { readsAs } from "@/lib/spelling";
+import { myPhotoUrl } from "@/lib/my-photo";
 import type { Session } from "@/lib/session";
 
 export { PortalTitle, PortalSection, Panel };
@@ -120,7 +121,12 @@ export async function PortalShell({
 
           <PortalTabs tabs={theTabs} church={slug} />
 
-          <PortalAccount name={session.displayName} userId={session.userId} church={slug} />
+          <PortalAccount
+            name={session.displayName}
+            userId={session.userId}
+            church={slug}
+            photoUrl={await myPhotoUrl(session)}
+          />
         </div>
       </header>
 

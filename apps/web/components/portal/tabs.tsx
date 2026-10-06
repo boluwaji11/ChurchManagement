@@ -74,10 +74,13 @@ export function PortalAccount({
   name,
   userId,
   church,
+  photoUrl,
 }: {
   name: string;
   userId: string;
   church: string;
+  /** R2.9. Their own face, when they have uploaded one. */
+  photoUrl?: string | null;
 }) {
   /*
    * The form sits outside the menu and is submitted by the item.
@@ -97,7 +100,7 @@ export function PortalAccount({
           aria-label={name}
           className="flex shrink-0 cursor-pointer items-center gap-2.5 rounded-full py-1 pl-1 pr-2 hover:bg-sunken"
         >
-          <Avatar name={name} id={userId} size="sm" className="size-9 text-[13px] font-semibold" />
+          <Avatar name={name} src={photoUrl} id={userId} size="sm" className="size-9 text-[13px] font-semibold" />
           <span className="hidden text-[14px] font-medium text-fg sm:inline">{name}</span>
         </button>
       </DropdownMenuTrigger>
