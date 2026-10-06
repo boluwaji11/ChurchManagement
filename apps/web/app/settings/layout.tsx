@@ -115,11 +115,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     return (
       <PortalShell session={session}>
         <PortalTitle title={t("nav.settings")} />
-        <div className="flex flex-wrap items-stretch gap-7">
+        <div className="flex flex-col gap-6">
           <SettingsNav groups={groups} church={session.tenantSlug} />
-          <div className="flex min-w-0 flex-[999_1_400px] flex-col gap-5 md:border-l md:border-line md:pl-7">
-            {children}
-          </div>
+          <div className="flex min-w-0 flex-col gap-5">{children}</div>
         </div>
       </PortalShell>
     );
@@ -127,14 +125,10 @@ export default async function SettingsLayout({ children }: { children: React.Rea
 
   return (
     <AppShell session={session} title={t("nav.settings")}>
-      <div className="flex flex-wrap items-stretch gap-7">
+      <div className="flex flex-col gap-6">
         <SettingsNav groups={groups} church={session.tenantSlug} />
 
-        {/* A hairline between the menu and what it opened, so the two read as
-            two columns rather than one wide one. */}
-        <div className="flex min-w-0 flex-[999_1_400px] flex-col gap-5 md:border-l md:border-line md:pl-7">
-          {children}
-        </div>
+        <div className="flex min-w-0 flex-col gap-5">{children}</div>
       </div>
     </AppShell>
   );

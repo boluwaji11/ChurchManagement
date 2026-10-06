@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@connectapp/ui";
+import { ChevronDown } from "lucide-react";
+import {
+  cn, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 export interface SettingsLink {
@@ -17,13 +20,12 @@ export interface SettingsGroup {
 }
 
 /**
- * R24.6. The settings menu down the left, as the design draws it.
+ * R24.6. The settings menu as one frozen row across the top.
  *
- * Real links rather than a tab widget: each section is a page, so it can be
- * linked to, opened in its own tab and reloaded on the one it was on.
- *
- * Grouped, because a church opening settings is looking for one of five things,
- * and twelve names in a row is a list somebody reads twice.
+ * Twelve names down the left outgrew the column, and a church reading a screen
+ * should not scroll a menu to reach the next one. Each section is a press that
+ * opens its own list, the row stays put while the screen under it scrolls, and
+ * the section holding the open screen is marked.
  */
 export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; church: string }) {
   const pathname = usePathname();
@@ -31,34 +33,50 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
   return (
     <nav
       aria-label={t("settings.sections")}
-      className="flex max-w-50 flex-[1_1_160px] flex-col gap-3.5"
+      className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center gap-1 border-b border-line bg-canvas px-1 py-2"
     >
-      {groups.map((group) => (
-        <div key={group.title} className="flex flex-col gap-0.5">
-          <span className="px-2.5 pt-1 pb-1.5 text-[15px] font-bold text-fg">
-            {group.title}
-          </span>
+      {groups.map((group) => {
+        const here = group.items.some((item) => item.href === pathname);
+        const open = group.items.find((item) => item.href === pathname);
 
-          {group.items.map((item) => {
-            const on = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={`${item.href}?church=${church}`}
-                aria-current={on ? "page" : undefined}
-                className={cn(
-                  "flex min-h-9 items-center rounded-sm px-2.5 text-left text-[length:var(--d-text-label)]",
-                  on
-                    ? "bg-line font-semibold text-fg"
-                    : "font-medium text-fg-muted hover:bg-line hover:text-fg",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      ))}
+        return (
+          <DropdownMenu key={group.title}>
+            <DropdownMenuTrigger
+              className={cn(
+                "flex h-9 cursor-pointer items-center gap-1.5 rounded-sm px-3",
+                "text-[length:var(--d-text-label)] outline-none",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]",
+                here
+                  ? "bg-line font-semibold text-fg"
+                  : "font-medium text-fg-muted hover:bg-line hover:text-fg",
+              )}
+            >
+              {group.title}
+              {/* The screen being read, named on the section that holds it, so
+                  the row says where you are without opening anything. */}
+              {open ? <span className="text-fg-subtle">· {open.label}</span> : null}
+              <ChevronDown className="size-3.5 opacity-60" aria-hidden />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="start">
+              {group.items.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link
+                    href={`${item.href}?church=${church}`}
+                    aria-current={item.href === pathname ? "page" : undefined}
+                    className={cn(
+                      "no-underline",
+                      item.href === pathname ? "font-semibold text-fg" : "text-fg-muted",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      })}
     </nav>
   );
 }
