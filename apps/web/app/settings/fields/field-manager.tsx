@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
+import { ArrowLeft, ChevronRight, Plus, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
 import {
   Banner, Button, IconButton, Input, Textarea, Field,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -12,6 +12,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { addField, saveField, removeField } from "../../fields/actions";
 import { useFormError } from "@/lib/form-error";
+import { FIELD_LIBRARY, presetValues, type FieldPreset } from "./library";
 
 export interface FieldItem {
   id: string;
@@ -70,7 +71,7 @@ export function FieldManager({
             className="relative flex min-h-14 items-center gap-3 border-b border-sunken py-2 last:border-0"
           >
             {canManage ? (
-              <FieldSheet church={church} field={field}>
+              <FieldSheet church={church} field={field} taken={fields.map((one) => one.label)}>
                 <button
                   type="button"
                   aria-label={t("fields.editOne", { name: field.label })}
@@ -103,13 +104,14 @@ export function FieldManager({
 }
 
 /** One choice per line. A textarea beats a repeating row builder for six items. */
-function Choices({ defaultValue }: { defaultValue?: string }) {
+function Choices({ value, onChange }: { value: string; onChange: (next: string) => void }) {
   return (
     <Field label={t("fields.choices")}>
       <Textarea
         name="options"
         rows={4}
-        defaultValue={defaultValue}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={t("fields.choicesPlaceholder")}
       />
     </Field>
@@ -126,17 +128,23 @@ function Choices({ defaultValue }: { defaultValue?: string }) {
 function FieldSheet({
   church,
   field,
+  taken,
   children,
 }: {
   church: string;
   /** The field being changed, or nothing when one is being added. */
   field?: FieldItem;
+  /** What this church already keeps, so the library does not offer it twice. */
+  taken: string[];
   children: React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [type, setType] = React.useState(field?.type ?? "text");
   const [label, setLabel] = React.useState(field?.label ?? "");
+  const [choices, setChoices] = React.useState((field?.options ?? []).join("\n"));
+  // R1.10. Adding opens on the library. Editing opens on the field itself.
+  const [picking, setPicking] = React.useState(!field);
   const [error, setError] = useFormError(open);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, setPending] = React.useState(false);
@@ -145,9 +153,23 @@ function FieldSheet({
     if (!open) return;
     setType(field?.type ?? "text");
     setLabel(field?.label ?? "");
+    setChoices((field?.options ?? []).join("\n"));
+    setPicking(!field);
     setError(undefined);
     setConfirming(false);
   }, [open, field?.type, field?.label]);
+
+  /** A ready-made field fills the form somebody would have typed. */
+  const start = (preset: FieldPreset) => {
+    const values = presetValues(preset);
+    setLabel(values.label);
+    setType(values.type);
+    setChoices(values.options.join("\n"));
+    setPicking(false);
+  };
+
+  const held = new Set(taken.map((one) => one.trim().toLowerCase()));
+  const offered = FIELD_LIBRARY.filter((one) => !held.has(presetValues(one).label.toLowerCase()));
 
   const run = async (fn: (d: FormData) => Promise<{ error?: string }>, data: FormData) => {
     setError(undefined);
@@ -169,9 +191,10 @@ function FieldSheet({
       <SheetTrigger asChild>{children}</SheetTrigger>
 
       <SheetContent
-        title={field ? field.label : t("fields.add")}
+        title={field ? field.label : picking ? t("fields.start") : t("fields.add")}
         closeLabel={t("common.close")}
         footer={
+          picking ? null : (
           <>
             {field ? (
               /*
@@ -236,11 +259,76 @@ function FieldSheet({
               {field ? t("action.save") : t("action.add")}
             </Button>
           </>
+          )
         }
       >
         {error ? <Banner tone="danger" title={t("fields.failed")}>{error}</Banner> : null}
 
+        {picking ? (
+          /*
+           * R1.10. The details churches already keep, before a blank name box.
+           * The connector down the left is the product's own list, and the last
+           * row is the blank form for anything this list does not cover.
+           */
+          <ol className="m-0 flex list-none flex-col p-0">
+            {offered.map((preset, i) => {
+              const values = presetValues(preset);
+              const Icon = iconFor(values.type);
+
+              return (
+                <li key={preset.key} className="flex gap-2.5">
+                  <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                    <span className="mt-4 size-2.5 shrink-0 rounded-full bg-primary" />
+                    <span className="my-1 w-px flex-1 bg-primary/35" />
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => start(preset)}
+                    className="mb-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
+                  >
+                    <Icon className="size-[18px] shrink-0 text-fg-muted" aria-hidden />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="font-medium text-fg">{values.label}</span>
+                      {values.options.length > 0 ? (
+                        <span className="truncate text-[12px] text-fg-subtle">
+                          {values.options.join(", ")}
+                        </span>
+                      ) : null}
+                    </span>
+                    <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                  </button>
+                </li>
+              );
+            })}
+
+            <li className="flex gap-2.5">
+              <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                <span className="mt-4 size-2.5 shrink-0 rounded-full bg-primary" />
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setLabel("");
+                  setType("text");
+                  setChoices("");
+                  setPicking(false);
+                }}
+                className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
+              >
+                <Plus className="size-[18px] shrink-0 text-primary" aria-hidden />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="font-medium text-fg">{t("fields.ownField")}</span>
+                  <span className="text-[12px] text-fg-subtle">{t("fields.ownField.detail")}</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+              </button>
+            </li>
+          </ol>
+        ) : null}
+
         <form
+          hidden={picking}
           id="field-form"
           action={(d) => run(field ? saveField : addField, d)}
           noValidate
@@ -248,6 +336,16 @@ function FieldSheet({
         >
           <input type="hidden" name="church" value={church} />
           {field ? <input type="hidden" name="id" value={field.id} /> : null}
+
+          {field ? null : (
+            <button
+              type="button"
+              onClick={() => setPicking(true)}
+              className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+            >
+              <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}
+            </button>
+          )}
 
           <Field label={t("fields.name")} required>
             <Input
@@ -277,7 +375,7 @@ function FieldSheet({
           </Field>
 
           {hasChoices(type) ? (
-            <Choices key={type} defaultValue={(field?.options ?? []).join("\n")} />
+            <Choices value={choices} onChange={setChoices} />
           ) : null}
         </form>
       </SheetContent>
@@ -286,9 +384,9 @@ function FieldSheet({
 }
 
 /** R1.10. The one action this screen carries, beside its title. */
-export function NewField({ church }: { church: string }) {
+export function NewField({ church, taken = [] }: { church: string; taken?: string[] }) {
   return (
-    <FieldSheet church={church}>
+    <FieldSheet church={church} taken={taken}>
       <Button>
         <Plus /> {t("fields.add")}
       </Button>

@@ -29,7 +29,11 @@ export default async function FieldsPage({
         lede="settings.lede.fields"
         // R24.17. An empty screen offers its action in the middle, where the
         // reader is looking. Two of the same button is one too many.
-        action={canManage && fields.length > 0 ? <NewField church={session.tenantSlug} /> : undefined}
+        action={
+          canManage && fields.length > 0
+            ? <NewField church={session.tenantSlug} taken={fields.map((one) => one.label)} />
+            : undefined
+        }
       />
 
 
@@ -38,7 +42,7 @@ export default async function FieldsPage({
             icon="field"
             title={t("fields.empty.title")}
           body={t("fields.empty.body")}
-            action={<NewField church={session.tenantSlug} />}
+            action={<NewField church={session.tenantSlug} taken={fields.map((one) => one.label)} />}
           />
         ) : null}
 
