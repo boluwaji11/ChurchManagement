@@ -868,7 +868,6 @@ export const en = {
   "settings.tab.household": "My household",
   "settings.tab.roles": "Roles",
   "settings.lede.website": "Manage what your church sees on your own website",
-  "settings.lede.household": "The people the church keeps with you",
   "settings.lede.roles": "Manage your roles and permissions",
   "roles.permission": "Permission",
   "roles.cell.on": "{role} can {permission}",

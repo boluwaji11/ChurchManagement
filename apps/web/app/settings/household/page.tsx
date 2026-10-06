@@ -47,7 +47,7 @@ export default async function MyHouseholdPage({
 
   return (
     <>
-      <SettingsHeading title="settings.tab.household" lede="settings.lede.household" />
+      <SettingsHeading title="settings.tab.household" />
 
       {!mine ? (
         <p className="text-[length:var(--d-text-body)] text-fg-muted">

@@ -16,7 +16,8 @@ export function SettingsHeading({
   action,
 }: {
   title: MessageKey;
-  lede: MessageKey;
+  /** Left out where the screen says what it is without one. */
+  lede?: MessageKey;
   /** The one button this section carries, which sits on the right of the title. */
   action?: React.ReactNode;
 }) {
@@ -26,7 +27,7 @@ export function SettingsHeading({
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
       <div className="min-w-0 flex-1">
         <h2 className="font-display text-[22px] leading-[28px] text-fg">{t(title)}</h2>
-        <p className="mt-1 text-fg-muted">{t(lede)}</p>
+        {lede ? <p className="mt-1 text-fg-muted">{t(lede)}</p> : null}
       </div>
       {action}
     </div>
