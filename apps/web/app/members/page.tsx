@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
-  canEditPeople, canArchivePeople, canReadIncidents, canManageChurch, setupProgress,
+  canEditPeople, canArchivePeople, canReadIncidents,
   listSavedLists, resolveList, countPeopleByStatus, listGroups, PER_PAGE,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
@@ -9,7 +9,6 @@ import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";
-import { SetupBanner } from "../setup/banner";
 import {
   queryFromParams, pageFromParams, paramsFromRule, type DirectoryParams,
 } from "@/lib/directory-query";
@@ -37,7 +36,7 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { members, tags, groups, counts, duplicates, matching, setup, lists, viewing } = await withTenant(
+  const { members, tags, groups, counts, duplicates, matching, lists, viewing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // R1.14. A saved list is either a set of members or the filters it was
@@ -60,11 +59,6 @@ export default async function PeoplePage({
         // R2.14. The numbers beside each status in the filter drawer.
         counts: await countPeopleByStatus(tx),
         duplicates: canArchivePeople(session) ? (await findDuplicatePairs(tx)).length : 0,
-        // R22.1. Until the church is set up, this is the first thing on the
-        // screen somebody lands on.
-        setup: canManageChurch(session)
-          ? await setupProgress(tx, session.tenantId)
-          : null,
       };
     },
   );
@@ -80,9 +74,6 @@ export default async function PeoplePage({
     >
       {/* R22.1. Above everything, because it is about the church rather than
           about this screen. */}
-      {setup && !setup.complete && !setup.dismissed ? (
-        <SetupBanner church={session.tenantSlug} />
-      ) : null}
 
       {params.archived ? (
         <Banner tone="success" title={t("person.archived.title")} className="mb-8" />

@@ -2,6 +2,7 @@ import * as React from "react";
 import { cookies } from "next/headers";
 import {
   withTenant, countUnread, listNotifications, NOTIFICATION_LOOK, getChurch,
+  setupProgress, canManageChurch,
 } from "@connectapp/db";
 import { t, spellingFor } from "@connectapp/i18n";
 import { DemoBanner } from "./demo-banner";
@@ -12,6 +13,8 @@ import { NotificationBell } from "./shell/bell";
 import { when } from "@/lib/when";
 import { navFor } from "./shell/nav";
 import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
+import { SetupDock } from "./setup-dock";
+import { SETUP_LINKS } from "@/lib/setup-links";
 import { ChurchMarkProvider } from "./church-mark";
 import { supabaseServer } from "@/lib/supabase/server";
 import { readsAs } from "@/lib/spelling";
@@ -65,6 +68,14 @@ export async function AppShell({
       notifications: await listNotifications(tx, session.userId),
       // R1.1. The church's own mark, for the sidebar and the phone's top bar.
       church: await getChurch(tx, session.tenantId),
+      /*
+       * R22.1. The setup path, where there is still one to walk. Only for
+       * somebody who runs the church, because nobody else can do any of it,
+       * and read here so the guide can follow them onto any screen.
+       */
+      setup: canManageChurch(session)
+        ? await setupProgress(tx, session.tenantId)
+        : null,
     }),
   );
 
@@ -163,6 +174,20 @@ export async function AppShell({
       </div>
 
       <MobileTabs entries={entries} church={session.tenantSlug} />
+
+      {/* R22.1. The setup path, following whoever is walking it. */}
+      {counts.setup && !counts.setup.complete && !counts.setup.dismissed ? (
+        <SetupDock
+          church={session.tenantSlug}
+          done={counts.setup.settled}
+          steps={counts.setup.steps.map((step) => ({
+            step: step.step,
+            done: step.done,
+            skipped: step.skipped,
+            href: SETUP_LINKS[step.step],
+          }))}
+        />
+      ) : null}
     </div>
   );
 }

@@ -72,6 +72,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Resolved |
 | HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Resolved |
 | HRT-224 | Onboarding: a welcome, the five things in the order one unblocks the next | R22.1, R22.3 | Resolved |
+| HRT-225 | The setup dock: the path follows whoever is walking it, on any screen | R22.1, R22.3 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
