@@ -36,6 +36,18 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
    * It comes back the next time the pointer leaves and returns.
    */
   const [chosen, setChosen] = React.useState<string | null>(null);
+  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  React.useEffect(() => () => clearTimeout(timer.current), []);
+
+  /*
+   * It closes a moment after the press rather than on it. The screen behind is
+   * still arriving, and a list that vanishes under the finger reads as a
+   * mis-tap.
+   */
+  const closeSoon = (title: string) => {
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setChosen(title), 1400);
+  };
 
   return (
     <nav
@@ -50,7 +62,10 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
           <div
             key={group.title}
             className="group relative flex items-stretch"
-            onMouseLeave={() => setChosen((was) => (was === group.title ? null : was))}
+            onMouseLeave={() => {
+              clearTimeout(timer.current);
+              setChosen((was) => (was === group.title ? null : was));
+            }}
           >
             {/* A hairline between one section and the next. */}
             {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
@@ -92,7 +107,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
                   href={`${item.href}?church=${church}`}
                   aria-current={item.href === pathname ? "page" : undefined}
                   onClick={(event) => {
-                    setChosen(group.title);
+                    closeSoon(group.title);
                     // Focus would hold it open on its own.
                     event.currentTarget.blur();
                   }}

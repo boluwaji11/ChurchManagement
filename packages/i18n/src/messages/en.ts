@@ -488,7 +488,7 @@ export const en = {
   "settings.export.download": "Download",
   "settings.tab.account": "Account",
   "settings.tab.security": "Security",
-  "settings.tab.church": "Church",
+  "settings.tab.church": "Church profile",
   "provisional.title": "This church is still being reviewed for full access",
   "provisional.body": "It works for you, and holds up to {limit} members. Invitations and your own sign-up address open once approved, usually within the hour.",
   "provisional.room": "{members} of {limit} members",
