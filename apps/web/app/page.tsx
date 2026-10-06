@@ -178,9 +178,10 @@ export default function Site() {
                 aria-hidden
                 className="hidden w-[280px] shrink-0 self-center lg:block"
               />
-              <p className="m-0 min-w-0 flex-[1_1_300px] text-[17px] leading-[28px] text-fg-muted">
-                {t("site.why.ours")}
-              </p>
+              <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-4 text-[17px] leading-[28px] text-fg-muted">
+                <p className="m-0">{t("site.why.gave")}</p>
+                <p className="m-0">{t("site.why.ours")}</p>
+              </div>
             </div>
 
             <blockquote className="m-0 flex flex-col items-center gap-2 text-center">
