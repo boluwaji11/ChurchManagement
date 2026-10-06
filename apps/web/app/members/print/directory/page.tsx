@@ -1,12 +1,12 @@
 import {
   withTenant, getChurch, memberDirectory, canEditPeople, canReadIncidents,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "../../../checkin/rooms/print/auto-print";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,7 @@ export default async function PrintDirectoryPage({
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Banner tone="info" title={t("printDirectory.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </main>
     );
   }

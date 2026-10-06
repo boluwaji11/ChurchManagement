@@ -1,10 +1,10 @@
 import { withTenant, listTagsWithCounts, canManageTags, canEditPeople } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { Empty } from "@/components/empty";
 import { requireSession } from "@/lib/session";
 import { TagManager, NewTag } from "./tag-manager";
 import { t } from "@connectapp/i18n";
 import { SettingsHeading } from "../heading";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +29,7 @@ export default async function TagsPage({
 
 
       {!canCreate && !canManage ? (
-        <Banner tone="info" title={t("tags.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       ) : tags.length === 0 ? (
         <Empty
           icon="tag"

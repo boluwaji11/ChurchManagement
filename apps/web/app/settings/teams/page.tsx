@@ -1,12 +1,11 @@
 import {
   withTenant, listTeams, positionsForTeams, getTeam, canManageTeams,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { photoUrls } from "@/lib/photos";
 import { TeamList, AddTeam } from "./team-list";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +25,7 @@ export default async function TeamsSettingsPage({
   const session = await requireSession(church);
 
   if (!canManageTeams(session)) {
-    return <Banner tone="info" title={t("settings.tab.teams")}>{t("forbidden.askAdmin")}</Banner>;
+    return <Denied />;
   }
 
   const { teams, positions, rosters } = await withTenant(

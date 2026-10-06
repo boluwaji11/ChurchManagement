@@ -7,7 +7,7 @@ import {
   type RoomRosterEntry,
 } from "@connectapp/db";
 import { serviceNow } from "@connectapp/db/rules";
-import { Banner, Button } from "@connectapp/ui";
+import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
@@ -17,6 +17,7 @@ import { churchNow } from "@/lib/church-now";
 import { ageLine } from "@/lib/room-ages";
 import { Floor, type FloorStart } from "./floor";
 import { CheckInSheet } from "./check-in-sheet";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -152,7 +153,7 @@ export default async function CheckinPage({
   if (!canSupervise(session)) {
     return (
       <AppShell session={session} title={t("checkin.title")}>
-        <Banner tone="info" title={t("checkin.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </AppShell>
     );
   }

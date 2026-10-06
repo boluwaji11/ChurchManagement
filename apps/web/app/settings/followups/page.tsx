@@ -1,9 +1,8 @@
 import { withTenant, listPipelines, assignableUsers, canManageChurch } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { Pipelines, NewPipeline } from "./pipelines";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +16,7 @@ export default async function PipelineSettingsPage({
   const session = await requireSession(church);
 
   if (!canManageChurch(session)) {
-    return <Banner tone="info" title={t("pipelines.title")}>{t("forbidden.askAdmin")}</Banner>;
+    return <Denied />;
   }
 
   const { rows, team } = await withTenant(

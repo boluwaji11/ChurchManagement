@@ -1259,7 +1259,7 @@ export const en = {
   // Permissions
   "forbidden.addPeople": "Your role cannot add members",
   "forbidden.editPeople": "Your role cannot edit members",
-  "forbidden.askAdmin": "Ask an Owner or an Admin.",
+  "forbidden.denied": "Access denied",
 
   // Validation
   "validate.required": "Enter {what}.",

@@ -1,5 +1,4 @@
 import { withTenant, listImports, canEditPeople, canArchivePeople } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
@@ -7,6 +6,7 @@ import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { ImportWizard } from "./wizard";
 import { ImportHistory } from "./history";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,7 @@ export default async function ImportPage({
           }
         />
       ) : (
-        <Banner tone="info" title={t("forbidden.addPeople")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       )}
     </AppShell>
   );

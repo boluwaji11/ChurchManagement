@@ -20,7 +20,7 @@ const ROLES: TenantRole[] = [
 
 async function allowed(church?: string) {
   const session = await requireSession(church);
-  if (!canManageChurch(session)) throw new Error(t("forbidden.askAdmin"));
+  if (!canManageChurch(session)) throw new Error(t("forbidden.denied"));
   return session;
 }
 

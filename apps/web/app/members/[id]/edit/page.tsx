@@ -11,6 +11,7 @@ import { AppShell } from "@/components/app-shell";
 import { PersonForm, PersonFormActions } from "../../person-form";
 import { toAddress } from "@/lib/address";
 import { t } from "@connectapp/i18n";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -111,7 +112,7 @@ export default async function EditPersonPage({
           }}
         />
       ) : (
-        <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       )}
     </AppShell>
   );

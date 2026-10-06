@@ -6,13 +6,14 @@ import {
   canEditPeople, canReadIncidents, SCREEN_LIMIT, cleanSpec,
   type ReportResult, type ReportSpec, type ReportPage,
 } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
 async function context(church?: string) {
   const session = await requireSession(church);
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    throw new Error("forbidden.askAdmin");
+    throw new Error(t("forbidden.denied"));
   }
   return {
     session,

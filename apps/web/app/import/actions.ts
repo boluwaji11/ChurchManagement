@@ -80,7 +80,7 @@ export async function inspectFile(input: { church?: string } & FilePayload): Pro
   // different set of fields. Which one it is comes from the headers rather than
   // from asking, because a church exporting its groups knows what it exported.
   if (isGroupSheet(sheet.headers)) {
-    if (!canManageGroups(session)) return { error: t("forbidden.askAdmin") };
+    if (!canManageGroups(session)) return { error: t("forbidden.denied") };
     return {
       headers: sheet.headers,
       mapping: guessGroupMapping(sheet.headers),
@@ -262,7 +262,7 @@ async function previewGroups(
   session: { tenantId: string; role: TenantRole },
   input: { mapping: Record<string, string> } & FilePayload,
 ): Promise<Preview> {
-  if (!canManageGroups(session)) return { error: t("forbidden.askAdmin") };
+  if (!canManageGroups(session)) return { error: t("forbidden.denied") };
   if (!Object.values(input.mapping).includes("groupName")) {
     return { error: t("import.group.noColumn") };
   }

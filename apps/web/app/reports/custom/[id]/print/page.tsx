@@ -3,7 +3,6 @@ import {
   withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents,
   GRID_COLUMNS, type ReportTile, type ReportResult,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -12,6 +11,7 @@ import { getChurch } from "@connectapp/db";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { Answer } from "../../../answer";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +43,7 @@ export default async function PrintReportPage({
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Banner tone="info" title={t("reports.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </main>
     );
   }

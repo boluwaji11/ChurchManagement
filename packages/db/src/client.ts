@@ -58,11 +58,37 @@ function warnIfDirectHost(url: string): void {
   }
 }
 
-const connect = (url: string) => {
+/**
+ * How many connections one pool may hold.
+ *
+ * Supabase's pooler on port 5432 runs in session mode, where every client
+ * connection pins a server connection for as long as it is open, idle or not,
+ * and the ceiling is fifteen clients per role. Two pools asking for eight each
+ * is sixteen, so one web process could exhaust the pooler on its own and the
+ * next request failed with EMAXCONNSESSION rather than waiting its turn. The
+ * dev project has had it happen.
+ *
+ * Six and two leaves room for the operator portal and the job worker alongside.
+ * A render holds a connection for about 90ms, so six of them serve a church
+ * many times over, and a seventh caller queues instead of failing.
+ *
+ * Port 6543 is the same pooler in transaction mode, which multiplexes and lifts
+ * the ceiling by a long way. `prepare: false` below is what it requires, and it
+ * is already set, so moving to it is a change of address and nothing else.
+ */
+const POOL = { app: 6, owner: 2 } as const;
+
+const connect = (url: string, max: number) => {
   warnIfDirectHost(url);
   return postgres(url, {
-    max: 8,
-    idle_timeout: 20,
+    max,
+    /*
+     * An idle connection in session mode is still holding a server connection,
+     * so it is given back sooner than it used to be. The cost of reopening one
+     * is a TLS handshake, measured at 281ms, which is why this is ten seconds
+     * rather than one.
+     */
+    idle_timeout: 10,
     connect_timeout: 30,
     prepare: false,
     ssl: isLoopback(url) ? false : "require",
@@ -76,7 +102,7 @@ const connect = (url: string) => {
  */
 export function owner(): postgres.Sql {
   loadEnv();
-  ownerSql ??= connect(required("DATABASE_URL"));
+  ownerSql ??= connect(required("DATABASE_URL"), POOL.owner);
   return ownerSql;
 }
 
@@ -90,7 +116,7 @@ export function owner(): postgres.Sql {
  */
 export function appDb(): Db {
   loadEnv();
-  appSql ??= connect(required("APP_DATABASE_URL"));
+  appSql ??= connect(required("APP_DATABASE_URL"), POOL.app);
   appDrizzle ??= drizzle(appSql, { schema });
   return appDrizzle;
 }

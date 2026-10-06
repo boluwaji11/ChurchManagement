@@ -3,11 +3,11 @@ import { ArrowLeft } from "lucide-react";
 import {
   withTenant, listHouseholds, listCustomFields, listCampuses, canEditPeople,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PersonForm, PersonFormActions } from "../person-form";
 import { t } from "@connectapp/i18n";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +61,7 @@ export default async function NewPersonPage({
           campuses={data.campuses.map((one) => ({ id: one.id, name: one.name }))}
         />
       ) : (
-        <Banner tone="info" title={t("forbidden.addPeople")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       )}
     </AppShell>
   );

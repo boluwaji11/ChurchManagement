@@ -2,12 +2,12 @@ import {
   withTenant, listStations, listRooms, listOccurrences, getChurch, canManageStations,
   canCheckIn,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { StationPicker } from "../station-picker";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +38,7 @@ export default async function StationPage({
   if (!canCheckIn(session)) {
     return (
       <AppShell session={session} title={t("checkin.check")}>
-        <Banner tone="info" title={t("checkin.check")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </AppShell>
     );
   }

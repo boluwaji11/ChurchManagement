@@ -4,7 +4,7 @@ import {
   withTenant, listIncidents, listRooms, listPeople, listOccurrences, stillHere, getChurch,
   canReadIncidents, canCheckIn, type Incident,
 } from "@connectapp/db";
-import { Banner, Button } from "@connectapp/ui";
+import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
@@ -12,6 +12,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Notify } from "./notify";
 import { FileReport } from "./file-report";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function IncidentsPage({
   if (!canReadIncidents(session)) {
     return (
       <AppShell session={session} title={t("incident.title")}>
-        <Banner tone="info" title={t("incident.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </AppShell>
     );
   }

@@ -1,11 +1,10 @@
 import {
   withTenant, listGroupTypes, groupTypeCounts, canManageGroups,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { TypeManager } from "./type-manager";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +50,7 @@ export default async function GroupTypesPage({
           }))}
         />
       ) : (
-        <Banner tone="info" title={t("settings.tab.grouptypes")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       )}
     </div>
   );

@@ -2,13 +2,12 @@ import {
   listTeam, listInvitations, canManageChurch, withTenant,
   listRoles,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
 import { SettingsHeading } from "../heading";
 import { Team } from "./team";
 import { longDate } from "@/lib/dates";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +21,7 @@ export default async function TeamPage({
   const session = await requireSession(church);
 
   if (!canManageChurch(session)) {
-    return <Banner tone="info" title={t("team.title")}>{t("forbidden.askAdmin")}</Banner>;
+    return <Denied />;
   }
 
   const [members, invitations, roles, shell] = await Promise.all([

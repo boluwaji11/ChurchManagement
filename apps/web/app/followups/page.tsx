@@ -1,7 +1,6 @@
 import {
   withTenant, getChurch, listPipelines, boardEntries, CONNECTED_DAYS, canFollowUp,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -9,6 +8,7 @@ import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { Board, DragHint, type BoardCard, type BoardStage } from "./board";
 import { PipelinePicker } from "./pipeline-picker";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,7 @@ export default async function FollowUpsPage({
   if (!canFollowUp(session)) {
     return (
       <AppShell session={session} title={t("queue.title")}>
-        <Banner tone="info" title={t("followups.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </AppShell>
     );
   }

@@ -1,10 +1,10 @@
 import { withTenant, listCustomFields, canManageCustomFields } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { Empty } from "@/components/empty";
 import { requireSession } from "@/lib/session";
 import { FieldManager, NewField } from "./field-manager";
 import { t } from "@connectapp/i18n";
 import { SettingsHeading } from "../heading";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,7 @@ export default async function FieldsPage({
         ) : null}
 
         {!canManage ? (
-          <Banner tone="info" title={t("fields.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
+          <Denied />
         ) : (
           <FieldManager church={session.tenantSlug} fields={fields} canManage={canManage} />
         )}

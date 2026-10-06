@@ -27,9 +27,9 @@ export async function addNote(data: FormData): Promise<NoteResult> {
   const confidential = field(data, "classification") === "confidential";
 
   if (!body) return { error: t("notes.error.empty") };
-  if (!canEditPeople(session)) return { error: t("forbidden.askAdmin") };
+  if (!canEditPeople(session)) return { error: t("forbidden.denied") };
   if (confidential && !canReadConfidentialNotes(session)) {
-    return { error: t("forbidden.askAdmin") };
+    return { error: t("forbidden.denied") };
   }
 
   try {

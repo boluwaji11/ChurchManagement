@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { withTenant, setupProgress, canManageChurch } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { SiteBar, SiteFooter } from "@/components/site/chrome";
@@ -10,6 +9,7 @@ import { SignedInAs } from "@/components/signed-in-as";
 import { requireSession, currentUser } from "@/lib/session";
 import { Steps } from "./steps";
 import { SETUP_LINKS } from "@/lib/setup-links";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +43,7 @@ export default async function SetupPage({
   if (!canManageChurch(session)) {
     return (
       <AppShell session={session} title={t("setup.title")}>
-        <Banner tone="info" title={t("setup.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </AppShell>
     );
   }

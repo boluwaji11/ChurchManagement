@@ -1,9 +1,8 @@
 import { withTenant, listRooms, canManageRooms } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { RoomManager, AddRoom } from "./room-manager";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +19,7 @@ export default async function RoomsPage({
   );
 
   if (!canManageRooms(session)) {
-    return <Banner tone="info" title={t("rooms.title")}>{t("forbidden.askAdmin")}</Banner>;
+    return <Denied />;
   }
 
   return (

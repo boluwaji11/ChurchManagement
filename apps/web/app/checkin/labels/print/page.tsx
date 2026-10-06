@@ -1,11 +1,11 @@
 import {
   withTenant, labelsFor, getLabelLayout, canCheckIn, type LabelPair,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { LabelSheet } from "../sheet";
 import { LocalLabels } from "../local";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ export default async function LabelsPage({
   if (!canCheckIn(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Banner tone="info" title={t("labels.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </main>
     );
   }

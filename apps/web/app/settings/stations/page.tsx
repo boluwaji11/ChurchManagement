@@ -1,9 +1,8 @@
 import { withTenant, listStations, canManageStations } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { StationManager } from "./station-manager";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +22,7 @@ export default async function StationsPage({
   );
 
   if (!canManageStations(session)) {
-    return <Banner tone="info" title={t("stations.title")}>{t("forbidden.askAdmin")}</Banner>;
+    return <Denied />;
   }
 
   return (

@@ -5,11 +5,11 @@ import {
   canManageServices,
 } from "@connectapp/db";
 import { upcomingMeetings } from "@connectapp/db/rules";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +74,7 @@ export default async function CalendarPage({
   if (!canManageServices(session)) {
     return (
       <AppShell session={session} title={t("calendar.title")}>
-        <Banner tone="info" title={t("calendar.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </AppShell>
     );
   }

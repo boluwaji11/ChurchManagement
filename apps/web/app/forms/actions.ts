@@ -191,7 +191,7 @@ export async function matchResponses(
   church?: string,
 ): Promise<FormResult & { placed?: number; waiting?: number }> {
   const { actor, ctx } = await context(church);
-  if (!canManageChurch(actor.role)) return { error: t("forbidden.askAdmin") };
+  if (!canManageChurch(actor.role)) return { error: t("forbidden.denied") };
 
   try {
     const form = await withTenant(ctx, (tx) => getForm(tx, formId));

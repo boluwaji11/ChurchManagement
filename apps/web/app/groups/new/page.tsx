@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { withTenant, listGroupTypes, canManageGroups } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { GroupEditor, GroupFormActions } from "../group-editor";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +55,7 @@ export default async function NewGroupPage({
           types={types.map((one) => ({ id: one.id, name: one.name, hue: one.hue }))}
         />
       ) : (
-        <Banner tone="info" title={t("groups.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       )}
     </AppShell>
   );

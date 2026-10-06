@@ -1,12 +1,12 @@
 import {
   withTenant, roomRoster, listRooms, listOccurrences, getChurch, canSupervise,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { ageLine } from "@/lib/room-ages";
 import { AutoPrint } from "./auto-print";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +44,7 @@ export default async function RosterPrintPage({
   if (!canSupervise(session) || !service) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Banner tone="info" title={t("print.roster.title")}>{t("forbidden.askAdmin")}</Banner>
+        <Denied />
       </main>
     );
   }

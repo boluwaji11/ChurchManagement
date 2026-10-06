@@ -1,13 +1,13 @@
 import {
   withTenant, findDuplicatePairs, listMerges, getPersonForEdit, canArchivePeople,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Review, type PersonSide } from "./review";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,7 @@ export default async function DuplicatesPage({
         session={session}
         title={t("merge.title")}
       >
-          <Banner tone="info" title={t("forbidden.editPeople")}>{t("forbidden.askAdmin")}</Banner>
+          <Denied />
       </AppShell>
     );
   }

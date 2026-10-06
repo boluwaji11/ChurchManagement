@@ -1,10 +1,10 @@
 import { withTenant, listHouseholdRows, canManageHouseholds } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { Empty } from "@/components/empty";
 import { SettingsHeading } from "../heading";
 import { HouseholdList, NewHousehold } from "./households";
+import { Denied } from "@/components/denied";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +19,7 @@ export default async function HouseholdsPage({
 
   if (!canManageHouseholds(session)) {
     return (
-      <Banner tone="info" title={t("households.forbidden.title")}>
-        {t("forbidden.askAdmin")}
-      </Banner>
+      <Denied />
     );
   }
 
