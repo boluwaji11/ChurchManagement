@@ -91,7 +91,13 @@ function inlineHtml(text: string): string {
   out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
   out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   out = out.replace(/_([^_]+)_/g, "<em>$1</em>");
-  return out;
+  /*
+   * A mark with nothing to close it runs to the end of its line, which is what
+   * somebody who bolded across a line break meant. Anything still left over is
+   * dropped: a box that shows asterisks is a box that looks broken.
+   */
+  out = out.replace(/\*\*([^*]+)$/, "<strong>$1</strong>");
+  return out.replace(/\*\*/g, "");
 }
 
 /**
@@ -128,7 +134,8 @@ export function markdownToHtml(markdown: string): string {
       continue;
     }
 
-    if (line.trim() === "") {
+    // An empty line, or one holding nothing but marks that lost their pair.
+    if (line.trim() === "" || /^[*_\s]+$/.test(line)) {
       i += 1;
       continue;
     }
