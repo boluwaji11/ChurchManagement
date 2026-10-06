@@ -3,10 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Check, FileSpreadsheet } from "lucide-react";
+import { AlertTriangle, Check, ChevronRight, FileSpreadsheet } from "lucide-react";
 import {
   Button, Card, CardTitle, Separator, Banner, Badge,
-  Combobox,
+  Combobox, Sheet, SheetContent,
   RadioGroup, RadioItem, Spinner, Working,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -410,10 +410,26 @@ function MapColumns({
   );
 }
 
-/** One of the three numbers at the top of the check step. */
-function Stat({ label, value, warn }: { label: string; value: number; warn?: boolean }) {
-  return (
-    <div className="rounded-lg border border-line bg-surface px-4.5 py-4">
+/**
+ * One of the three numbers at the top of the check step.
+ *
+ * The one with something behind it opens it. Three hundred rows of detail on
+ * the screen is a wall somebody scrolls past, and the number is the thing they
+ * actually read.
+ */
+function Stat({
+  label,
+  value,
+  warn,
+  onOpen,
+}: {
+  label: string;
+  value: number;
+  warn?: boolean;
+  onOpen?: () => void;
+}) {
+  const inside = (
+    <>
       <div
         className="text-[13px] font-medium"
         style={{ color: warn ? "var(--hue-amber-key)" : "var(--color-fg-muted)" }}
@@ -421,7 +437,21 @@ function Stat({ label, value, warn }: { label: string; value: number; warn?: boo
         {label}
       </div>
       <div className="font-display text-[36px] leading-[42px] text-fg">{value}</div>
-    </div>
+    </>
+  );
+
+  const box = "rounded-lg border border-line bg-surface px-4.5 py-4 text-left";
+
+  return onOpen ? (
+    <button type="button" onClick={onOpen} className={`${box} cursor-pointer hover:border-line-strong hover:bg-sunken`}>
+      {inside}
+      <span className="mt-1 flex items-center gap-1 text-[13px] font-medium text-primary">
+        {t("import.openProblems")}
+        <ChevronRight className="size-4" aria-hidden />
+      </span>
+    </button>
+  ) : (
+    <div className={box}>{inside}</div>
   );
 }
 
@@ -450,6 +480,7 @@ function PreviewStep({
   );
 
   const cap = preview.cap;
+  const [looking, setLooking] = React.useState(false);
 
   return (
     <>
@@ -469,45 +500,62 @@ function PreviewStep({
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
         <Stat label={t("import.stat.new")} value={totals.create} />
         <Stat label={t("import.stat.updates")} value={totals.update} />
-        <Stat label={t("import.stat.problems")} value={totals.skip + totals.fail} warn />
+        <Stat
+          label={t("import.stat.problems")}
+          value={totals.skip + totals.fail}
+          warn
+          onOpen={totals.skip + totals.fail > 0 ? () => setLooking(true) : undefined}
+        />
       </div>
 
-      {/* What to do about somebody already in the directory belongs with the
-          rows it decides: changing it redraws the check underneath. */}
-      {groups ? null : (
-        <Card>
-          <CardTitle>{t("import.strategy")}</CardTitle>
-          <Separator className="my-4" />
-          <RadioGroup value={strategy} onValueChange={setStrategy}>
-            <RadioItem value="skip">{t("import.strategy.skip")}</RadioItem>
-            <RadioItem value="update">{t("import.strategy.update")}</RadioItem>
-            <RadioItem value="create">{t("import.strategy.create")}</RadioItem>
-          </RadioGroup>
-        </Card>
-      )}
+      {/* The rows that need a decision, and the decision, in one panel. What to
+          do about somebody already in the directory belongs beside the rows it
+          decides, and changing it redraws them underneath. */}
+      <Sheet open={looking} onOpenChange={setLooking}>
+        <SheetContent
+          title={t("import.stat.problems")}
+          closeLabel={t("common.close")}
+          width="620px"
+          footer={<Button onClick={() => setLooking(false)}>{t("common.close")}</Button>}
+        >
+          <div className="flex flex-col gap-5">
+            {groups ? null : (
+              <Card>
+                <CardTitle>{t("import.strategy")}</CardTitle>
+                <Separator className="my-4" />
+                <RadioGroup value={strategy} onValueChange={setStrategy}>
+                  <RadioItem value="skip">{t("import.strategy.skip")}</RadioItem>
+                  <RadioItem value="update">{t("import.strategy.update")}</RadioItem>
+                  <RadioItem value="create">{t("import.strategy.create")}</RadioItem>
+                </RadioGroup>
+              </Card>
+            )}
 
-      {problems.length > 0 ? (
-        <section className="rounded-lg border border-line bg-surface px-5 py-2">
-          {problems.map((row) => (
-            <div
-              key={row.lineNumber}
-              className="flex items-start gap-3 border-b border-sunken py-2.5 last:border-0"
-            >
-              <AlertTriangle
-                className="mt-0.5 size-4 shrink-0"
-                style={{ color: "var(--hue-amber-key)" }}
-                aria-hidden
-              />
-              <span data-numeric className="w-16 shrink-0 font-mono text-[12px] text-fg-muted">
-                {t("import.row", { line: row.lineNumber })}
-              </span>
-              <span className="min-w-0 flex-1 text-fg">
-                {[row.name, row.detail].filter(Boolean).join(" · ")}
-              </span>
-            </div>
-          ))}
-        </section>
-      ) : null}
+            {problems.length > 0 ? (
+              <section className="rounded-lg border border-line bg-surface px-5 py-2">
+                {problems.map((row) => (
+                  <div
+                    key={row.lineNumber}
+                    className="flex items-start gap-3 border-b border-sunken py-2.5 last:border-0"
+                  >
+                    <AlertTriangle
+                      className="mt-0.5 size-4 shrink-0"
+                      style={{ color: "var(--hue-amber-key)" }}
+                      aria-hidden
+                    />
+                    <span data-numeric className="w-16 shrink-0 font-mono text-[12px] text-fg-muted">
+                      {t("import.row", { line: row.lineNumber })}
+                    </span>
+                    <span className="min-w-0 flex-1 text-[13px] text-fg">
+                      {[row.name, row.detail].filter(Boolean).join(" · ")}
+                    </span>
+                  </div>
+                ))}
+              </section>
+            ) : null}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <div className="flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={onBack}>

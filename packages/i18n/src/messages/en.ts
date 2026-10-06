@@ -963,6 +963,7 @@ export const en = {
   "import.field": "ConnectApp field",
   "import.sample": "First row",
   "import.ignore": "Do not import",
+  "import.openProblems": "Look at these",
   "import.skip.capped": "Past the {limit} this church holds while it is being reviewed",
   "import.findField": "Search fields",
   "import.noField": "No field by that name",
