@@ -1730,7 +1730,6 @@ export const en = {
   "setup.dock.all": "Open setup",
   "setup.dock.close": "Hide this",
   "setup.dock.hide.title": "Hide the setup guide?",
-  "setup.dock.hide.body": "It comes back next time you sign in. Turn it off for good and everything in it still waits in Settings.",
   "setup.dock.hide.now": "Hide for now",
   "setup.dock.hide.ever": "Do not show it again",
   "setup.short.church": "Church details",

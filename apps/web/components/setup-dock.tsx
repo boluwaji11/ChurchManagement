@@ -120,27 +120,12 @@ export function SetupDock({
           const here = next.step === step.step;
           const last = i === steps.length - 1;
           return (
-            <li key={step.step} className="relative flex">
-              {last ? null : (
+            <li key={step.step} className={cn("flex gap-2.5", last ? "pb-0" : "pb-3")}>
+              {/* The marker column stretches the whole row, so the line runs
+                  from under one marker to the top of the next whatever the row
+                  turns out to be, with a dot sitting on it. */}
+              <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
                 <span
-                  aria-hidden
-                  className={cn(
-                    "absolute left-[9.5px] top-[26px] bottom-0 w-px",
-                    step.done ? "bg-primary" : "bg-line-strong",
-                  )}
-                />
-              )}
-
-              <Link
-                href={`${step.href}?church=${church}&setup=1`}
-                className={cn(
-                  "relative z-10 mb-1 flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-1 py-1",
-                  "text-[13px] no-underline transition-colors duration-instant hover:bg-sunken",
-                  here ? "font-semibold text-fg" : step.done ? "text-fg-subtle" : "text-fg-muted",
-                )}
-              >
-                <span
-                  aria-hidden
                   className={cn(
                     "grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-semibold",
                     step.done || here
@@ -150,9 +135,32 @@ export function SetupDock({
                 >
                   {step.done ? <Check className="size-3" /> : i + 1}
                 </span>
-                <span className="min-w-0 truncate">
-                  {t(`setup.short.${step.step}` as never)}
-                </span>
+                {last ? null : (
+                  <span
+                    className={cn(
+                      "relative mt-1 w-px flex-1",
+                      step.done ? "bg-primary" : "bg-line-strong",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "absolute left-1/2 top-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full",
+                        step.done ? "bg-primary" : "bg-line-strong",
+                      )}
+                    />
+                  </span>
+                )}
+              </span>
+
+              <Link
+                href={`${step.href}?church=${church}&setup=1`}
+                className={cn(
+                  "-mt-0.5 min-w-0 flex-1 truncate rounded-lg px-1.5 py-1 no-underline",
+                  "text-[13px] transition-colors duration-instant hover:bg-sunken",
+                  here ? "font-semibold text-fg" : step.done ? "text-fg-subtle" : "text-fg-muted",
+                )}
+              >
+                {t(`setup.short.${step.step}` as never)}
               </Link>
             </li>
           );
@@ -175,9 +183,6 @@ export function SetupDock({
 
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent title={t("setup.dock.hide.title")}>
-          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">
-            {t("setup.dock.hide.body")}
-          </p>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="ghost" data-dismiss onClick={hideForGood}>
