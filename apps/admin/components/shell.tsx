@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Building2, Gauge, ScrollText, ShieldCheck, UserSearch } from "lucide-react";
 import { Avatar } from "@connectapp/ui";
+import { Brand } from "./brand";
 import { signOut } from "@/app/actions";
 import type { Operator } from "@/lib/admin";
 
@@ -40,15 +41,7 @@ export function Shell({
         className="sticky top-0 flex h-dvh w-[232px] shrink-0 flex-col gap-1 border-r border-line bg-surface/70 px-3 py-4 backdrop-blur-[8px]"
       >
         <Link href="/" className="mb-4 flex items-center gap-2.5 px-2 no-underline">
-          <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary text-[15px] font-semibold text-primary-fg">
-            C
-          </span>
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="font-display text-[17px] text-fg">ConnectApp</span>
-            <span className="text-[12px] font-medium tracking-[0.08em] text-primary uppercase">
-              Admin
-            </span>
-          </span>
+          <Brand />
         </Link>
 
         {SECTIONS.map(({ href, label, icon: Icon }) => (

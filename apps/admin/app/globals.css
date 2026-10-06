@@ -8,10 +8,40 @@
 .site-wash {
   background-color: var(--canvas);
   background-image:
+    url("/art/wash.svg"),
     radial-gradient(
       60rem 34rem at 50% -6rem,
-      color-mix(in oklch, var(--primary) 20%, transparent),
+      color-mix(in oklch, var(--primary) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      46rem 30rem at 108% 104%,
+      color-mix(in oklch, var(--primary) 16%, transparent),
       transparent 70%
     );
+  background-repeat: no-repeat;
+  background-position: right -5rem bottom -3rem;
+  background-size: 42rem auto;
   background-attachment: fixed;
+}
+
+/*
+ * The drawing is the first thing to go when there is no room for it. Under
+ * 1280px the page is already carrying everything it can, and a church behind a
+ * table of names is in the way rather than behind it.
+ */
+@media (max-width: 1279px) {
+  .site-wash {
+    background-image:
+      radial-gradient(
+        60rem 34rem at 50% -6rem,
+        color-mix(in oklch, var(--primary) 24%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        46rem 30rem at 108% 104%,
+        color-mix(in oklch, var(--primary) 16%, transparent),
+        transparent 70%
+      );
+  }
 }
