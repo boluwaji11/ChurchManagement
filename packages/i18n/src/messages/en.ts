@@ -853,7 +853,7 @@ export const en = {
   "roles.permission": "Permission",
   "roles.cell.on": "{role} can {permission}",
   "roles.cell.off": "{role} cannot {permission}",
-  "roles.add": "Create a new role",
+  "roles.add": "Add a new role",
   "roles.name": "Name",
   "roles.all": "Select all",
   "roles.archiveOne": "Archive {name}",
