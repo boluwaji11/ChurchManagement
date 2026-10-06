@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@connectapp/ui";
@@ -27,6 +28,14 @@ export interface SettingsGroup {
  */
 export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; church: string }) {
   const pathname = usePathname();
+  /*
+   * The list closes when something in it is chosen.
+   *
+   * It opens on hover, and after a press the pointer is still sitting where it
+   * was, so without this the list stays open over the screen it just opened.
+   * It comes back the next time the pointer leaves and returns.
+   */
+  const [chosen, setChosen] = React.useState<string | null>(null);
 
   return (
     <nav
@@ -38,7 +47,11 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
         const first = group.items[0]!;
 
         return (
-          <div key={group.title} className="group relative flex items-stretch">
+          <div
+            key={group.title}
+            className="group relative flex items-stretch"
+            onMouseLeave={() => setChosen((was) => (was === group.title ? null : was))}
+          >
             {/* A hairline between one section and the next. */}
             {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
 
@@ -65,8 +78,12 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
                 "invisible absolute top-full left-0 z-30 min-w-[11rem] translate-y-0 opacity-0",
                 "rounded-lg border border-line bg-surface p-1 shadow-lg",
                 "transition-opacity duration-instant",
-                "group-hover:visible group-hover:opacity-100",
-                "group-focus-within:visible group-focus-within:opacity-100",
+                chosen === group.title
+                  ? "pointer-events-none"
+                  : [
+                      "group-hover:visible group-hover:opacity-100",
+                      "group-focus-within:visible group-focus-within:opacity-100",
+                    ],
               )}
             >
               {group.items.map((item) => (
@@ -74,6 +91,11 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
                   key={item.href}
                   href={`${item.href}?church=${church}`}
                   aria-current={item.href === pathname ? "page" : undefined}
+                  onClick={(event) => {
+                    setChosen(group.title);
+                    // Focus would hold it open on its own.
+                    event.currentTarget.blur();
+                  }}
                   className={cn(
                     "flex min-h-[var(--d-tap)] items-center rounded-md px-2.5 no-underline",
                     "text-[length:var(--d-text-body)] hover:bg-sunken",
