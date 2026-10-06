@@ -394,108 +394,112 @@ export function Finder({
       ) : null}
 
 
-      {/* The box, the count, and one Filter button on the right. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <SearchField
-          value={query}
-          onChange={setQuery}
-          placeholder={t("find.groupOrLeader")}
-        />
+      {/* With nothing to search through, the whole row is noise over an
+          empty screen, so it waits until there is a first group. */}
+      {all.length > 0 ? (
+        /* The box, the count, and one Filter button on the right. */
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchField
+            value={query}
+            onChange={setQuery}
+            placeholder={t("find.groupOrLeader")}
+          />
 
-        <span className="flex-1" />
+          <span className="flex-1" />
 
-        <SortMenu
-          value={order}
-          onChange={(next) => setOrder(next as GroupOrder)}
-          options={[
-            { value: "name", label: t("list.sort.name") },
-            { value: "newest", label: t("list.sort.newest") },
-            { value: "oldest", label: t("list.sort.oldest") },
-            { value: "draftsFirst", label: t("list.sort.draftsFirst") },
-          ]}
-        />
+          <SortMenu
+            value={order}
+            onChange={(next) => setOrder(next as GroupOrder)}
+            options={[
+              { value: "name", label: t("list.sort.name") },
+              { value: "newest", label: t("list.sort.newest") },
+              { value: "oldest", label: t("list.sort.oldest") },
+              { value: "draftsFirst", label: t("list.sort.draftsFirst") },
+            ]}
+          />
 
-        <ViewToggle value={view} onChange={setView} />
+          <ViewToggle value={view} onChange={setView} />
 
-        <Sheet
-          open={open}
-          onOpenChange={(next) => {
-            if (next) setDraft(chosen);
-            setOpen(next);
-          }}
-        >
-          <SheetTrigger asChild>
-            <Button variant="secondary" className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
-              <SlidersHorizontal className="size-4" aria-hidden />
-              {picked > 0 ? t("find.filterCount", { count: picked }) : t("find.filter")}
-            </Button>
-          </SheetTrigger>
-
-          <SheetContent
-            title={t("find.filterTitle")}
-            closeLabel={t("common.close")}
-            width="380px"
-            footer={
-              <div className="flex w-full items-center gap-2">
-                <Button variant="secondary" onClick={clear}>
-                  {t("find.clear")}
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={() => {
-                    setChosen(draft);
-                    setOpen(false);
-                  }}
-                >
-                  {plural("find.show", drafted.length)}
-                </Button>
-              </div>
-            }
+          <Sheet
+            open={open}
+            onOpenChange={(next) => {
+              if (next) setDraft(chosen);
+              setOpen(next);
+            }}
           >
-            <div className="flex flex-col gap-4">
-              {sections.map((section) => (
-                <div key={section.k} className="flex flex-col gap-1.5">
-                  <span className="text-label text-fg">{section.label}</span>
-                  <MultiSelect
-                    label={section.label}
-                    options={section.opts}
-                    value={draft[section.k]}
-                    onChange={(next) => pick(section.k, next)}
-                    summary={(picks) =>
-                      picks.length > 2
-                        ? t("find.chosen", { count: picks.length })
-                        : picks.map((one) => one.label).join(", ")
-                    }
-                  />
+            <SheetTrigger asChild>
+              <Button variant="secondary" className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
+                <SlidersHorizontal className="size-4" aria-hidden />
+                {picked > 0 ? t("find.filterCount", { count: picked }) : t("find.filter")}
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent
+              title={t("find.filterTitle")}
+              closeLabel={t("common.close")}
+              width="380px"
+              footer={
+                <div className="flex w-full items-center gap-2">
+                  <Button variant="secondary" onClick={clear}>
+                    {t("find.clear")}
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      setChosen(draft);
+                      setOpen(false);
+                    }}
+                  >
+                    {plural("find.show", drafted.length)}
+                  </Button>
                 </div>
-              ))}
+              }
+            >
+              <div className="flex flex-col gap-4">
+                {sections.map((section) => (
+                  <div key={section.k} className="flex flex-col gap-1.5">
+                    <span className="text-label text-fg">{section.label}</span>
+                    <MultiSelect
+                      label={section.label}
+                      options={section.opts}
+                      value={draft[section.k]}
+                      onChange={(next) => pick(section.k, next)}
+                      summary={(picks) =>
+                        picks.length > 2
+                          ? t("find.chosen", { count: picks.length })
+                          : picks.map((one) => one.label).join(", ")
+                      }
+                    />
+                  </div>
+                ))}
 
-              {/* Nothing moves while somebody is still choosing, unless they
-                  would rather watch it narrow as they go. */}
-              <label className="mt-2 flex cursor-pointer items-center gap-3 border-t border-line pt-4">
-                <Switch
-                  checked={live}
-                  onCheckedChange={(on) => {
-                    setLive(on);
-                    if (on) setChosen(draft);
-                  }}
-                />
-                <span className="text-[length:var(--d-text-body)] text-fg">
-                  {t("find.liveFilter")}
-                </span>
-              </label>
-            </div>
-          </SheetContent>
-        </Sheet>
+                {/* Nothing moves while somebody is still choosing, unless they
+                    would rather watch it narrow as they go. */}
+                <label className="mt-2 flex cursor-pointer items-center gap-3 border-t border-line pt-4">
+                  <Switch
+                    checked={live}
+                    onCheckedChange={(on) => {
+                      setLive(on);
+                      if (on) setChosen(draft);
+                    }}
+                  />
+                  <span className="text-[length:var(--d-text-body)] text-fg">
+                    {t("find.liveFilter")}
+                  </span>
+                </label>
+              </div>
+            </SheetContent>
+          </Sheet>
 
-        {canManage ? (
-          <Button asChild className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
-            <Link href={`/groups/new?church=${church}`}>
-              <Plus className="size-4" aria-hidden /> {t("groups.add")}
-            </Link>
-          </Button>
-        ) : null}
-      </div>
+          {canManage ? (
+            <Button asChild className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
+              <Link href={`/groups/new?church=${church}`}>
+                <Plus className="size-4" aria-hidden /> {t("groups.add")}
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       {shown.length === 0 ? (
         /*
