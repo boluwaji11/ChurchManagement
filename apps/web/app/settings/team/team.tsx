@@ -13,6 +13,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { useFormError } from "@/lib/form-error";
 import { usePanelGuard } from "@/components/panel-guard";
+import { Confirm } from "@/components/confirm";
 import {
   invite, invitees, withdraw, changeRole, removeAccess,
 } from "./actions";
@@ -88,6 +89,8 @@ export function Team({
   const [error, setError] = useFormError(changing);
   const [removing, setRemoving] = React.useState<Member | null>(null);
   const [pending, startTransition] = React.useTransition();
+  /** R1.4. Whether the person reading this holds the church's own keys. */
+  const iAmOwner = members.some((one) => one.isSelf && one.role === "owner");
 
   const run = (work: () => Promise<{ error?: string }>, said?: string) =>
     startTransition(async () => {
@@ -160,7 +163,6 @@ export function Team({
               {t("team.removeKeep")}
             </Button>
             <Button
-              variant="danger"
               disabled={pending}
               onClick={() => {
                 const who = removing;
@@ -170,7 +172,7 @@ export function Team({
                 }
               }}
             >
-              <X /> {t("team.remove")}
+              {t("team.remove")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -230,7 +232,9 @@ export function Team({
                 </td>
 
                 <td className="px-5 py-3">
-                  {member.isSelf ? (
+                  {/* R1.4. An owner's row is only an owner's to change. There
+                      is nobody above them to undo it. */}
+                  {member.isSelf || (member.role === "owner" && !iAmOwner) ? (
                     <Badge tone="neutral">{member.roleName ?? roleName(member.role)}</Badge>
                   ) : (
                     /* R1.4. Promoting somebody to owner, or demoting the person
@@ -257,7 +261,7 @@ export function Team({
                 </td>
 
                 <td className="px-2 py-3">
-                  {member.isSelf ? null : (
+                  {member.isSelf || member.role === "owner" ? null : (
                     <IconButton
                       label={t("team.remove")}
                       variant="ghost"
@@ -291,14 +295,24 @@ export function Team({
                     <span className="text-caption text-fg-muted">
                       {t("team.until", { day: invitation.expiresAt })}
                     </span>
-                    <IconButton
-                      label={t("team.withdraw")}
-                      variant="ghost"
+                    {/* R24.x. Withdrawing an invitation takes away the only
+                        way that address has in, so it asks first. */}
+                    <Confirm
+                      title={t("team.withdrawTitle", { email: invitation.email })}
+                      body={t("team.withdrawBody")}
+                      confirmLabel={t("team.withdraw")}
                       disabled={pending}
-                      onClick={() => run(() => withdraw(invitation.id, church))}
-                    >
-                      <X />
-                    </IconButton>
+                      onConfirm={() => run(() => withdraw(invitation.id, church))}
+                      trigger={
+                        <IconButton
+                          label={t("team.withdraw")}
+                          variant="ghost"
+                          disabled={pending}
+                        >
+                          <X />
+                        </IconButton>
+                      }
+                    />
                   </span>
                 </div>
               </li>
@@ -497,9 +511,6 @@ function InviteDialog({
         closeLabel={t("common.close")}
         footer={
           <>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
             <Button type="submit" form={formId} disabled={pending || saving || !dirty || !role}>
               {t("team.send")}
             </Button>

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { GripVertical } from "lucide-react";
 import {
-  withTenant, getChurch, dashboard, attendanceByService, openFollowUps, setupProgress,
+  withTenant, dashboard, attendanceByService, openFollowUps, setupProgress,
   listOccurrences, listGroups, listEvents,
   canEditPeople, canReadIncidents,
 } from "@connectapp/db";
@@ -9,6 +9,7 @@ import { upcomingMeetings } from "@connectapp/db/rules";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { shellData } from "@/lib/shell-data";
 import { churchNow, hasHappened } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { SetupChecklist } from "./checklist";
@@ -87,16 +88,34 @@ export default async function DashboardPage({
     permissions: session.permissions,
   };
 
+  /*
+   * The frame around this screen has already read the church, and the clock
+   * this page runs on comes out of it. Reading it again was a second trip for
+   * a timezone.
+   */
+  const profile = (await shellData(session)).church;
+  const clockNow = churchNow(profile?.timezone ?? "America/Chicago");
+
   const { numbers, weeks, setup, tasks, week, next, now } = await withTenant(ctx, async (tx) => {
-    const profile = await getChurch(tx, session.tenantId);
-    const clockNow = churchNow(profile?.timezone ?? "America/Chicago");
     const today = clockNow.date;
     const until = shift(today, AHEAD);
     const brand = profile?.brandHue ?? "indigo";
 
-    const occurrences = await listOccurrences(tx, { from: today, to: until });
-    const groups = await listGroups(tx);
-    const events = (await listEvents(tx)).filter((one) => one.status === "published");
+    /*
+     * Seven reads that have nothing to say to each other used to wait on each
+     * other, one round trip at a time. They go down the one connection together.
+     */
+    const [occurrences, groups, published, counts, byService, progress, followUps] =
+      await Promise.all([
+        listOccurrences(tx, { from: today, to: until }),
+        listGroups(tx),
+        listEvents(tx),
+        dashboard(tx, today),
+        attendanceByService(tx, { from: shift(today, -WEEKS * 7), to: today }),
+        setupProgress(tx, session.tenantId),
+        openFollowUps(tx, 5),
+      ]);
+    const events = published.filter((one) => one.status === "published");
 
     const entries: WeekEntry[] = [];
     for (let i = 0; i <= AHEAD; i += 1) {
@@ -147,10 +166,10 @@ export default async function DashboardPage({
 
     return {
       now: clockNow,
-      numbers: await dashboard(tx, today),
-      weeks: await attendanceByService(tx, { from: shift(today, -WEEKS * 7), to: today }),
-      setup: await setupProgress(tx, session.tenantId),
-      tasks: await openFollowUps(tx, 5),
+      numbers: counts,
+      weeks: byService,
+      setup: progress,
+      tasks: followUps,
       week: entries,
       // The service the church is heading towards, which is the one thing
       // worth saying beside today's date.

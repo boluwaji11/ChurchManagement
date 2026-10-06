@@ -1,8 +1,8 @@
 "use server";
 
 import {
-  createInvitation, revokeInvitation, setMemberRole, removeMember, canManageChurch,
-  withTenant, peopleToInvite, listRoles,
+  createInvitation, revokeInvitation, setMemberRole, canManageChurch,
+  withTenant, peopleToInvite, listRoles, owner,
   type TenantRole,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -84,6 +84,22 @@ export async function changeRole(
 ): Promise<TeamResult> {
   try {
     const session = await allowed(church);
+
+    /*
+     * R1.4. An Owner's row is only an Owner's to change. Admin may run the
+     * church; it may not take the keys off the person who holds them.
+     */
+    const [row] = await owner()<{ role: string }[]>`
+      select role::text as role from tenant_members
+       where tenant_id = ${session.tenantId} and user_id = ${userId}
+       limit 1`;
+    if (row?.role === "owner" && session.role !== "owner") {
+      return { error: t("team.error.owner") };
+    }
+    if (role === "owner" && session.role !== "owner") {
+      return { error: t("team.error.onlyOwner") };
+    }
+
     await setMemberRole(session.tenantId, userId, role, roleId ?? null);
     return {};
   } catch (error) {
@@ -91,11 +107,34 @@ export async function changeRole(
   }
 }
 
-/** R1.4. Taking access away. The person's record in the church is untouched. */
+/**
+ * R1.4. Taking somebody's access away puts them back on Member.
+ *
+ * Deleting the membership outright left a person with a record in the church
+ * and no way into the portal that is theirs: the directory, their household,
+ * their own serving. Member is the floor, so that is where somebody who should
+ * no longer be running things lands.
+ *
+ * An Owner is never put back. There is nobody above them to undo it, and a
+ * church whose last Owner was demoted by an Admin has lost its own keys.
+ */
 export async function removeAccess(userId: string, church?: string): Promise<TeamResult> {
   try {
     const session = await allowed(church);
-    await removeMember(session.tenantId, userId);
+
+    const [row] = await owner()<{ role: string }[]>`
+      select role::text as role from tenant_members
+       where tenant_id = ${session.tenantId} and user_id = ${userId}
+       limit 1`;
+    if (!row) return { error: t("team.error.gone") };
+    if (row.role === "owner") return { error: t("team.error.owner") };
+
+    const member = await withTenant(
+      { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
+      (tx) => listRoles(tx, session.tenantId),
+    ).then((all) => all.find((one) => one.builtin && one.key === "member"));
+
+    await setMemberRole(session.tenantId, userId, "member", member?.id ?? null);
     return {};
   } catch (error) {
     return { error: explain(error) };
