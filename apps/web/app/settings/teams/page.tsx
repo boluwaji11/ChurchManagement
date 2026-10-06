@@ -56,7 +56,11 @@ export default async function TeamsSettingsPage({
       <SettingsHeading
         title="settings.tab.teams"
         lede="settings.lede.teams"
-        action={teams.length > 0 ? <AddTeam church={session.tenantSlug} /> : undefined}
+        action={
+          teams.length > 0
+            ? <AddTeam church={session.tenantSlug} taken={teams.map((one) => one.name)} />
+            : undefined
+        }
       />
 
       <TeamList

@@ -83,7 +83,7 @@ export function NotificationBell({
         onClick={() => setOpen((was) => !was)}
         aria-label={t("bell.title")}
         aria-expanded={open}
-        className="relative grid size-9 place-items-center rounded-md border border-line-strong bg-surface hover:bg-sunken"
+        className="relative grid size-9 cursor-pointer place-items-center rounded-md border border-line-strong bg-surface hover:bg-sunken"
       >
         <Bell className="size-[17px]" aria-hidden />
         {unread > 0 ? (
@@ -106,7 +106,7 @@ export function NotificationBell({
                     void readAll(church);
                     setOpen(false);
                   }}
-                  className="text-[13px] font-medium text-primary"
+                  className="cursor-pointer text-[13px] font-medium text-primary"
                 >
                   {t("bell.markAll")}
                 </button>

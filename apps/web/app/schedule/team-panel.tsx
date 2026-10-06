@@ -15,6 +15,8 @@ import {
 import { useFormError } from "@/lib/form-error";
 import { Confirm } from "@/components/confirm";
 import { usePanelGuard } from "@/components/panel-guard";
+import { LibraryPicker } from "@/components/library-picker";
+import { teamLibrary } from "./library";
 
 export interface TeamDraft {
   id: string;
@@ -63,6 +65,7 @@ export function TeamPanel({
   team,
   positions: existing,
   members: roster,
+  taken = [],
   title,
   trigger,
 }: {
@@ -72,6 +75,8 @@ export function TeamPanel({
   positions?: PositionDraft[];
   /** R10.1. Who is on it today. */
   members?: MemberDraft[];
+  /** R10.1. The teams this church already has, so the library leaves them out. */
+  taken?: string[];
   title: string;
   trigger: React.ReactNode;
 }) {
@@ -94,8 +99,14 @@ export function TeamPanel({
    */
   const [people, setPeople] = React.useState<MemberDraft[]>(roster ?? []);
   const [left, setLeft] = React.useState<string[]>([]);
-  /** Which of the panel's two steps is showing. */
-  const [step, setStep] = React.useState<"team" | "members">("team");
+  // R10.1. Writing a team opens on the teams churches already run.
+  const library = React.useMemo(() => teamLibrary(taken), [taken.join("|")]);
+  const [name, setName] = React.useState(team?.name ?? "");
+  const [about, setAbout] = React.useState(team?.description ?? "");
+  /** Which of the panel's steps is showing. */
+  const [step, setStep] = React.useState<"pick" | "team" | "members">(
+    team || library.length === 0 ? "team" : "pick",
+  );
   const [hits, setHits] = React.useState<PersonHit[]>([]);
   /** R24.6. Whether anything in the panel has been touched since it opened. */
   const [dirty, setDirty] = React.useState(false);
@@ -128,7 +139,9 @@ export function TeamPanel({
     setDropped([]);
     setPeople(roster ?? []);
     setLeft([]);
-    setStep("team");
+    setName(team?.name ?? "");
+    setAbout(team?.description ?? "");
+    setStep(team || library.length === 0 ? "team" : "pick");
     setDirty(false);
     setDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,11 +156,17 @@ export function TeamPanel({
           written down belongs beside the list of teams it joins, and the panel
           has room for the positions without the page moving. */}
       <SheetContent
-        title={step === "members" ? t("serving.roster") : title}
+        title={
+          step === "members"
+            ? t("serving.roster")
+            : step === "pick"
+              ? t("serving.start")
+              : title
+        }
         closeLabel={t("common.close")}
         width="520px"
         footer={
-          step === "members" ? (
+          step === "pick" ? null : step === "members" ? (
             <Button type="button" onClick={() => setStep("team")}>
               {t("action.done")}
             </Button>
@@ -200,7 +219,30 @@ export function TeamPanel({
       >
         {guard}
 
-        {step === "members" ? (
+        {step === "pick" ? (
+          <LibraryPicker
+            ownLabel={t("serving.ownTeam")}
+            items={library}
+            onOwn={() => {
+              setName("");
+              setAbout("");
+              setPositions([EMPTY_POSITION]);
+              setStep("team");
+            }}
+            onPick={(item) => {
+              const picked = library.find((one) => one.key === item.key);
+              setName(item.label);
+              setAbout(picked?.body ?? "");
+              setPositions(
+                picked && picked.positions.length > 0
+                  ? picked.positions.map((one) => ({ id: null, ...one }))
+                  : [EMPTY_POSITION],
+              );
+              setDirty(true);
+              setStep("team");
+            }}
+          />
+        ) : step === "members" ? (
           <div className="flex flex-col gap-4">
             <button
               type="button"
@@ -343,12 +385,33 @@ export function TeamPanel({
         >
           {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
 
+          {team || library.length === 0 ? null : (
+            <button
+              type="button"
+              onClick={() => setStep("pick")}
+              className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+            >
+              <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}
+            </button>
+          )}
+
           <Field label={t("serving.team.name")} required>
-            <Input name="name" defaultValue={team?.name ?? ""} autoComplete="off" autoFocus />
+            <Input
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
           </Field>
 
           <Field label={t("serving.team.description")}>
-            <Textarea name="description" rows={2} defaultValue={team?.description ?? ""} />
+            <Textarea
+              name="description"
+              rows={2}
+              value={about}
+              onChange={(e) => setAbout(e.target.value)}
+            />
           </Field>
 
           <div className="flex flex-col gap-2">

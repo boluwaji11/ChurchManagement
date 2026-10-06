@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { withTenant, getChurch, canManageChurch } from "@connectapp/db";
+import { withTenant, getChurch, canManageChurch, churchStanding } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { OnYourSite } from "../church/on-your-site";
@@ -24,9 +24,13 @@ export default async function WebsitePage({
   const session = await requireSession(church);
   if (!canManageChurch(session)) redirect(`/settings/profile?church=${session.tenantSlug}`);
 
-  const profile = await withTenant(
+  const { profile, standing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    (tx) => getChurch(tx, session.tenantId),
+    async (tx) => ({
+      profile: await getChurch(tx, session.tenantId),
+      // R1.1. Every address on this screen is refused until the church is approved.
+      standing: await churchStanding(tx, session.tenantId),
+    }),
   );
 
   // R9.5. The address a church pastes into its own site, as this request saw it.
@@ -44,6 +48,7 @@ export default async function WebsitePage({
         selfSignup={profile?.selfSignup ?? false}
         domain={profile?.customDomain ?? null}
         appHost={host}
+        approved={standing.approved}
       />
     </>
   );

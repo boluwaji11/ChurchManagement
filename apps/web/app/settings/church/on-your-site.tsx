@@ -82,9 +82,11 @@ function Head({ icon, title }: { icon: React.ReactNode; title: string }) {
  * both refuse those, so a framed sign-in is a sign-in that works until it
  * quietly does not. The finder has no session and frames fine.
  */
-export function OnYourSite({ origin, slug, selfSignup, domain, appHost }: {
+export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved }: {
   origin: string;
   slug: string;
+  /** R1.1. Whether a human has looked at this church yet. */
+  approved: boolean;
   /** R1.7. Whether somebody can make an account from the church's own address. */
   selfSignup: boolean;
   /** R1.1. The church's own address, where it has pointed one here. */
@@ -92,7 +94,13 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost }: {
   /** What a church points its CNAME at. */
   appHost: string;
 }) {
-  const [open, setOpen] = React.useState(selfSignup);
+  /*
+   * R1.1. None of this reaches anybody until the church has been approved: the
+   * join address, the group finder and the church's own domain are all refused
+   * at the door. The switch reads off rather than on, because what it says it
+   * does is not happening.
+   */
+  const [open, setOpen] = React.useState(approved && selfSignup);
   const [draft, setDraft] = React.useState(domain ?? "");
   const [saved, setSaved] = React.useState(domain);
   const [error, setError] = React.useState<string>();
@@ -108,6 +116,18 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost }: {
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-2">
+      {approved ? null : (
+        <div className="lg:col-span-2">
+          <Banner tone="info" title={t("site.waiting")}>{t("site.waitingBody")}</Banner>
+        </div>
+      )}
+
+      {error ? (
+        <div className="lg:col-span-2">
+          <Banner tone="danger" title={t("domain.title")}>{error}</Banner>
+        </div>
+      ) : null}
+
       {/* R1.7. The address a church puts behind "My account" on its own
           website. There is no code to hand out: the address names the church,
           and the switch decides whether it is open. */}
@@ -120,7 +140,7 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost }: {
         <label className="mt-auto flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
           <Switch
             checked={open}
-            disabled={pending}
+            disabled={pending || !approved}
             onCheckedChange={(on) => {
               setOpen(on);
               start(async () => {
@@ -167,12 +187,13 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost }: {
               onChange={(e) => setDraft(e.target.value)}
               placeholder={t("domain.hint")}
               inputMode="url"
+              disabled={!approved}
             />
           </Field>
           <Button
             variant="secondary"
             loading={pending}
-            disabled={draft.trim() === (saved ?? "")}
+            disabled={!approved || draft.trim() === (saved ?? "")}
             onClick={() =>
               start(async () => {
                 const back = await saveDomain(draft, slug);
@@ -189,8 +210,6 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost }: {
         </div>
 
         <p className="text-[13px] text-fg-muted">{t("domain.dns", { target: appHost })}</p>
-
-        {error ? <Banner tone="danger" title={t("domain.title")}>{error}</Banner> : null}
       </Card>
     </div>
   );

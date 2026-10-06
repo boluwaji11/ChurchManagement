@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Plus, Undo2 } from "lucide-react";
+import { ArrowLeft, Archive, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Input, LIFT,
   Sheet, SheetContent, SheetTrigger,
@@ -11,6 +11,8 @@ import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { RichText } from "@/components/rich-text";
 import { usePanelGuard } from "@/components/panel-guard";
+import { LibraryPicker } from "@/components/library-picker";
+import { groupTypeLibrary } from "./library";
 import { saveType, archiveType } from "./actions";
 import { useFormError } from "@/lib/form-error";
 
@@ -56,12 +58,12 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
           icon="group"
           title={t("groupType.empty.title")}
           body={t("groupType.empty.body")}
-          action={<TypeDialog church={church} pending={pending} />}
+          action={<TypeDialog church={church} pending={pending} taken={types.map((one) => one.name)} />}
         />
       ) : (
         <>
           <div className="flex justify-end">
-            <TypeDialog church={church} pending={pending} />
+            <TypeDialog church={church} pending={pending} taken={types.map((one) => one.name)} />
           </div>
 
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
@@ -115,6 +117,7 @@ function TypeDialog({
   church,
   pending,
   type,
+  taken = [],
   trigger,
   onArchive,
 }: {
@@ -122,6 +125,8 @@ function TypeDialog({
   pending: boolean;
   /** Given when an existing kind is being changed. */
   type?: TypeRow;
+  /** R9.1. What this church already keeps, so the library leaves it out. */
+  taken?: string[];
   trigger?: React.ReactNode;
   onArchive?: () => void;
 }) {
@@ -139,11 +144,22 @@ function TypeDialog({
 
   const formId = React.useId();
 
+  // R9.1. Writing one opens on the kinds churches already run.
+  const library = React.useMemo(() => groupTypeLibrary(taken), [taken.join("|")]);
+  const [picking, setPicking] = React.useState(!type && library.length > 0);
+  const [name, setName] = React.useState(type?.name ?? "");
+  const [body, setBody] = React.useState(type?.description ?? "");
+  /** Remounts the editor when a ready-made kind fills it. */
+  const [filled, setFilled] = React.useState(0);
+
   const close = (next: boolean) => {
     setOpen(next);
     if (!next) {
       setAsking(false);
       setDirty(false);
+      setPicking(!type && library.length > 0);
+      setName(type?.name ?? "");
+      setBody(type?.description ?? "");
     }
   };
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
@@ -160,11 +176,13 @@ function TypeDialog({
             ? t("groupType.archiveTitle", { name: type.name })
             : type
               ? t("groupType.editTitle", { name: type.name })
-              : t("groupType.newTitle")
+              : picking
+                ? t("groupType.start")
+                : t("groupType.newTitle")
         }
         closeLabel={t("common.close")}
         footer={
-          asking && type && onArchive ? (
+          picking ? null : asking && type && onArchive ? (
             <>
               <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
                 {t("groups.keep")}
@@ -206,7 +224,26 @@ function TypeDialog({
       >
         {guard}
 
-        {asking && type && onArchive ? (
+        {picking ? (
+          <LibraryPicker
+            ownLabel={t("groupType.ownType")}
+            items={library}
+            onOwn={() => {
+              setName("");
+              setBody("");
+              setFilled((n) => n + 1);
+              setPicking(false);
+            }}
+            onPick={(item) => {
+              const picked = library.find((one) => one.key === item.key);
+              setName(item.label);
+              setBody(picked?.body ?? "");
+              setFilled((n) => n + 1);
+              setDirty(true);
+              setPicking(false);
+            }}
+          />
+        ) : asking && type && onArchive ? (
           <p className="text-[length:var(--d-text-body)] text-fg">
             {t("groupType.archiveBody")}
           </p>
@@ -235,14 +272,31 @@ function TypeDialog({
           >
             {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
+            {type || library.length === 0 ? null : (
+              <button
+                type="button"
+                onClick={() => setPicking(true)}
+                className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+              >
+                <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}
+              </button>
+            )}
+
             <Field label={t("groupType.name")} required>
-              <Input name="name" defaultValue={type?.name ?? ""} autoComplete="off" autoFocus />
+              <Input
+                name="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="off"
+                autoFocus
+              />
             </Field>
 
             <Field label={t("groupType.description")}>
               <RichText
+                key={filled}
                 name="description"
-                defaultValue={type?.description ?? ""}
+                defaultValue={body}
                 minHeight={160}
               />
             </Field>

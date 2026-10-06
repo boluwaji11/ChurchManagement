@@ -49,7 +49,7 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
           icon="serving"
           title={t("settings.teams.none.title")}
           body={t("settings.teams.none.body")}
-          action={<AddTeam church={church} />}
+          action={<AddTeam church={church} taken={teams.map((one) => one.name)} />}
         />
       ) : (
         <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
@@ -134,10 +134,11 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
 }
 
 /** R10.1. Writing a team down, from the heading or from the empty screen. */
-export function AddTeam({ church }: { church: string }) {
+export function AddTeam({ church, taken = [] }: { church: string; taken?: string[] }) {
   return (
     <TeamPanel
       church={church}
+      taken={taken}
       title={t("serving.addTeam")}
       trigger={
         <Button>
