@@ -13,6 +13,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
+import { useFormError } from "@/lib/form-error";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
   keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom, shapeOf,
@@ -382,7 +383,7 @@ function ItemDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [kind, setKind] = React.useState(item?.kind ?? "song");
   const [title, setTitle] = React.useState(item?.title ?? "");
   const [minutes, setMinutes] = React.useState(String(item?.minutes ?? 5));
@@ -486,7 +487,7 @@ function ItemDialog({
 function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [body, setBody] = React.useState("");
   const [pending, startTransition] = React.useTransition();
 
@@ -838,7 +839,7 @@ function TemplateDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [name, setName] = React.useState("");
   const [editing, setEditing] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");

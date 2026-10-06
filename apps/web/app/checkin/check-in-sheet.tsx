@@ -8,6 +8,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { place, checkInTo } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface Candidate {
   /** "v:<visitId>" for somebody already here, "p:<memberId>" for anybody else. */
@@ -42,7 +43,7 @@ export function CheckInSheet({
   const [open, setOpen] = React.useState(false);
   const [who, setWho] = React.useState("");
   const [roomId, setRoomId] = React.useState("");
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   const submit = () => {

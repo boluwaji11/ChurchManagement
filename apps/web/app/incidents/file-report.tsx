@@ -10,6 +10,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import { report } from "../checkin/rooms/actions";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R8.13. Writing a report from the screen the leads read.
@@ -35,7 +36,7 @@ export function FileReport({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [memberId, setPersonId] = React.useState("");
   const [roomId, setRoomId] = React.useState("");
   const [serviceId, setServiceId] = React.useState("");

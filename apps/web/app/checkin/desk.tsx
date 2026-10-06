@@ -19,6 +19,7 @@ import { Connection, useStationWorker } from "./offline/connection";
 import { keepLabels } from "./offline/store";
 import { Allergies, warnings } from "./allergies";
 import { Checkout, type OfflineCheckout } from "./checkout";
+import { useFormError } from "@/lib/form-error";
 
 export interface DeskRoom {
   id: string;
@@ -80,7 +81,7 @@ export function Desk({
   /** R8.12. Which children came in with a bag or a stroller. */
   const [bags, setBags] = React.useState<Record<string, boolean>>({});
   const [counts, setCounts] = React.useState<Record<string, number>>({});
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [blocked, setBlocked] = React.useState<string>();
   const [done, setDone] = React.useState<string[]>([]);
   // Who is waiting on a label. Until the volunteer says the labels are in the

@@ -9,6 +9,7 @@ import {
 } from "@connectapp/ui";
 import { plural, t } from "@connectapp/i18n";
 import { skip, putAway } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface StepView {
   step: string;
@@ -45,8 +46,8 @@ export function Steps({
   left: number;
 }) {
   const router = useRouter();
-  const [error, setError] = React.useState<string>();
   const [asking, setAsking] = React.useState(false);
+  const [error, setError] = useFormError(asking);
   const [leaving, setLeaving] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 

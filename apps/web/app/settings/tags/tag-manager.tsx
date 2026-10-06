@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { addTag, saveTag, removeTag, foldTag } from "../../tags/actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface TagItem {
   id: string;
@@ -83,7 +84,7 @@ export function NewTag({ church }: { church: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, setPending] = React.useState(false);
 
   const save = async () => {
@@ -153,7 +154,7 @@ export function NewTag({ church }: { church: string }) {
 function EditTag({ church, tag, others }: { church: string; tag: TagItem; others: TagItem[] }) {
   const [open, setOpen] = React.useState(false);
   const [hue, setHue] = React.useState(tag.hue);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, setPending] = React.useState(false);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [mergeInto, setMergeInto] = React.useState<string>();

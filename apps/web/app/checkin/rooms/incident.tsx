@@ -9,6 +9,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import { report } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R8.13. Writing it down in the room, at the time.
@@ -37,7 +38,7 @@ export function IncidentDialog({
   today: string;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [notified, setNotified] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 

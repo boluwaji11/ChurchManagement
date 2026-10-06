@@ -11,6 +11,7 @@ import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { RichText } from "@/components/rich-text";
 import { saveType, archiveType } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface TypeRow {
   id: string;
@@ -124,7 +125,7 @@ function TypeDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [saving, startTransition] = React.useTransition();
   /*
    * R24.6. Asked in the panel that is already open rather than a second one

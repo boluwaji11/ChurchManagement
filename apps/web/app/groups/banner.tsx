@@ -9,6 +9,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { clearGroupPhoto } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R9.2, R1.16. The picture across the top of a group.
@@ -34,9 +35,9 @@ export function GroupBanner({
   canEdit: boolean;
 }) {
   const router = useRouter();
-  const [error, setError] = React.useState<string>();
   const [busy, setBusy] = React.useState(false);
   const [asking, setAsking] = React.useState(false);
+  const [error, setError] = useFormError(asking);
   const [, startTransition] = React.useTransition();
   const input = React.useRef<HTMLInputElement>(null);
 

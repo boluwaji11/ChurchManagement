@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { saveTeam, savePosition } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface TeamDraft {
   id: string;
@@ -39,7 +40,7 @@ export function TeamDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [hue, setHue] = React.useState(team?.hue ?? "teal");
   /*
    * R10.2. A team is the positions it schedules, so they are written here

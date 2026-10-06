@@ -10,6 +10,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { addNote } from "./note-actions";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R2.7. A note about somebody.
@@ -35,7 +36,7 @@ export function NoteForm({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [confidential, setConfidential] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 

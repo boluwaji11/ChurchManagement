@@ -11,6 +11,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { useFormError } from "@/lib/form-error";
 import {
   invite, invitees, withdraw, changeRole, removeAccess,
 } from "./actions";
@@ -84,9 +85,9 @@ export function Team({
   invitations: Invitation[];
 }) {
   const router = useRouter();
-  const [error, setError] = React.useState<string>();
   const [message, setMessage] = React.useState<string>();
   const [changing, setChanging] = React.useState<{ member: Member; role: string } | null>(null);
+  const [error, setError] = useFormError(changing);
   const [removing, setRemoving] = React.useState<Member | null>(null);
   const [pending, startTransition] = React.useTransition();
 

@@ -14,6 +14,7 @@ import { decide, setOpenToJoin, leave, publishGroup } from "../actions";
 import { AddMember } from "../add-member";
 import { Picker } from "@/components/picker";
 import { record, open as openMeeting } from "./meeting-actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface DetailMeeting {
   /** The day, as YYYY-MM-DD. */
@@ -100,8 +101,8 @@ export function GroupDetail({
 }) {
   const router = useRouter();
   const [tab, setTab] = React.useState("overview");
-  const [error, setError] = React.useState<string>();
   const [removing, setRemoving] = React.useState<DetailMember | null>(null);
+  const [error, setError] = useFormError(removing);
   const [deciding, setDeciding] = React.useState<(DetailRequest & { approve: boolean }) | null>(
     null,
   );

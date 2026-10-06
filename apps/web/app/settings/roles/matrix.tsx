@@ -9,6 +9,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { addRole, saveRole, putAway } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface RoleRow {
   id: string;
@@ -194,7 +195,7 @@ export function RoleForm({
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState(role?.name ?? "");
   const [held, setHeld] = React.useState<string[]>(role?.permissions ?? []);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   // Reopening shows what is stored, rather than what was abandoned last time.

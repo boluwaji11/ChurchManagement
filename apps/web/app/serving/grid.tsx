@@ -7,6 +7,7 @@ import { Avatar, Banner, Button, Combobox, Input, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { schedule, unschedule, whoCouldFill, savePosition } from "./actions";
 import type { PlanCandidate } from "@connectapp/db";
+import { useFormError } from "@/lib/form-error";
 
 export interface GridService {
   id: string;
@@ -50,7 +51,7 @@ function AddPosition({ church, teamId }: { church: string; teamId: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   const save = () => {
@@ -123,7 +124,7 @@ function FillSlot({
 }) {
   const [open, setOpen] = React.useState(false);
   const [who, setWho] = React.useState<PlanCandidate[]>([]);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   const look = () => {

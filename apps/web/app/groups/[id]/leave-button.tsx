@@ -8,6 +8,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { leaveMine } from "../actions";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R9.4, R17.5. Taking yourself out of a group.
@@ -28,7 +29,7 @@ export function LeaveButton({
 }) {
   const router = useRouter();
   const [asking, setAsking] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(asking);
   const [pending, startTransition] = React.useTransition();
 
   return (

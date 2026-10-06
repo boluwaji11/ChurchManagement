@@ -16,6 +16,7 @@ import { Connection, useStationWorker } from "./offline/connection";
 import { keepLabels } from "./offline/store";
 import { Allergies, warnings } from "./allergies";
 import type { DeskRoom, DeskService } from "./desk";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R8.1, R24.14. The screen a family drives itself.
@@ -67,7 +68,7 @@ export function Kiosk({
   const [codes, setCodes] = React.useState<Record<string, string>>({});
   const [finished, setFinished] = React.useState<string[]>([]);
   const [seen, setSeen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [blocked, setBlocked] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 

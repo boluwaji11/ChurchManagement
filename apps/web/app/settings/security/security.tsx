@@ -5,6 +5,7 @@ import { Check, ChevronRight, KeyRound, Mail } from "lucide-react";
 import { Banner, Button, Field, Input } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { changeEmail, changePassword, emailMeALink } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R1.8. The two things somebody changes about how they get in.
@@ -56,7 +57,7 @@ function Row({
 
 export function Security({ email }: { email: string }) {
   const [open, setOpen] = React.useState<"email" | "password" | null>(null);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [message, setMessage] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 

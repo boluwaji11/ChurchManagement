@@ -12,6 +12,7 @@ import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
 import { addGathering } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 const REPEATS = ["never", "weekly", "fortnightly", "monthly"] as const;
 
@@ -36,7 +37,7 @@ export function AddService({
   const [open, setOpen] = React.useState(false);
   const [repeat, setRepeat] = React.useState<string>("never");
   const [date, setDate] = React.useState("");
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   return (

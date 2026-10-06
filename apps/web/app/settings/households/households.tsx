@@ -15,6 +15,7 @@ import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
 import { add, setName, setRole, putAway, fold, freePeople, putIn, takeOut } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface HouseholdItem {
   id: string;
@@ -582,7 +583,7 @@ export function NewHousehold({ church }: { church: string }) {
   const [chosen, setChosen] = React.useState<HouseholdItem["members"]>([]);
   const [find, setFind] = React.useState("");
   const [free, setFree] = React.useState<{ id: string; slug: string; name: string }[]>([]);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   const close = (next: boolean) => {

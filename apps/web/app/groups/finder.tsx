@@ -13,6 +13,7 @@ import { Empty } from "@/components/empty";
 import { t, plural } from "@connectapp/i18n";
 import { archive } from "./actions";
 import { SearchField } from "@/components/search-field";
+import { useFormError } from "@/lib/form-error";
 import {
   SortMenu, ViewToggle, ShowMore, useListPreference, useShowMore, type ListView,
 } from "@/components/list-controls";
@@ -175,7 +176,7 @@ export function Finder({
   const [draft, setDraft] = React.useState<Chosen>(NOTHING);
   const [live, setLive] = React.useState(false);
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [dismissed, setDismissed] = React.useState<string[]>([]);
   const [pending, startTransition] = React.useTransition();
 

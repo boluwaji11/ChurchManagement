@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { addField, saveField, removeField } from "../../fields/actions";
+import { useFormError } from "@/lib/form-error";
 
 export interface FieldItem {
   id: string;
@@ -136,7 +137,7 @@ function FieldSheet({
   const [open, setOpen] = React.useState(false);
   const [type, setType] = React.useState(field?.type ?? "text");
   const [label, setLabel] = React.useState(field?.label ?? "");
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 

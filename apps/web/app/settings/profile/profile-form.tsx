@@ -17,6 +17,7 @@ import { Picker } from "@/components/picker";
 import { oneLineAddress, type AddressValues } from "@/lib/address";
 import { maritalOptions, schoolOptions } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -78,7 +79,7 @@ export function ProfileForm({
 }) {
   const router = useRouter();
   const [editing, setEditing] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(editing);
   const [busy, setBusy] = React.useState(false);
   const [dropping, setDropping] = React.useState(false);
   const [showing, setShowing] = React.useState(false);

@@ -10,6 +10,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { pickup, release } from "./actions";
 import type { PickupPerson, OverrideKind } from "@connectapp/db";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * R8.7 to R8.9. Letting a child go.
@@ -58,7 +59,7 @@ export function Checkout({
   const [code, setCode] = React.useState("");
   const [block, setBlock] = React.useState<{ kind: string; message: string } | null>(null);
   const [reason, setReason] = React.useState("");
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   React.useEffect(() => {
