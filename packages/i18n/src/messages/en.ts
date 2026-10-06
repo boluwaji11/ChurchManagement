@@ -69,7 +69,7 @@ export const en = {
   "action.more": "More",
 
   // Landing
-  "trust.title": "What we promise, and what holds us to it",
+  "trust.title": "How we manage your data",
   "trust.training.title": "Your records never train a model",
   "trust.training.body": "No church data is used to train, fine-tune or evaluate a machine learning model. Not by us, and not by anybody we pay to run part of this. The product carries no model at all: there is nothing in it that could send a record anywhere, and a test refuses the build if one appears.",
   "trust.export.title": "You can take everything, any day",
