@@ -209,7 +209,7 @@ export const en = {
   "signUp.haveAccount": "I already have an account",
   "signUp.failed": "That did not work",
   "signUp.sent.title": "Check your email",
-  "signUp.sent.body": "We sent a link to {email}. Open it to verify your account and carry on.",
+  "signUp.sent.body": "We sent a link to {email}. Open it to verify your account.",
   "signUp.sent.wait": "Email not received? Look in spam.",
   "signUp.sent.again": "Send it again",
   "signUp.sent.resent": "Sent. Look again in a moment.",
