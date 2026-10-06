@@ -354,7 +354,7 @@ function MapColumns({
             <tr className="text-[12px] font-semibold text-fg">
               <th className="border-b border-line px-4 py-3 font-medium">{t("import.column")}</th>
               <th className="border-b border-line px-4 py-3 font-medium">{t("import.sample")}</th>
-              <th className="border-b border-line px-4 py-3 font-medium">{t("import.field")}</th>
+              <th className="w-[240px] border-b border-line px-4 py-3 font-medium">{t("import.field")}</th>
             </tr>
           </thead>
           <tbody>
@@ -373,7 +373,7 @@ function MapColumns({
                         the person matching the columns knows the name of the
                         one they want. Typing finds it. */}
                     <Combobox
-                      className="min-w-[200px]"
+                      className="w-full"
                       options={[
                         { value: IGNORE_VALUE, label: t("import.ignore") },
                         ...fields
