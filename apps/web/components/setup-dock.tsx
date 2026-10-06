@@ -157,7 +157,9 @@ export function SetupDock({
                 href={`${step.href}?church=${church}&setup=1`}
                 className={cn(
                   "-mt-0.5 min-w-0 flex-1 truncate rounded-lg px-1.5 py-1 no-underline",
-                  "text-[13px] transition-colors duration-instant hover:bg-sunken",
+                  // Colour rather than a fill: a grey block behind one line of
+                  // a five line path breaks the path.
+                  "text-[13px] transition-colors duration-instant hover:text-primary",
                   here ? "font-semibold text-fg" : step.done ? "text-fg-subtle" : "text-fg-muted",
                 )}
               >
