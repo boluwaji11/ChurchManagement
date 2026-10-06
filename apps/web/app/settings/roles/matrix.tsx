@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Check, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
+import { ArrowLeft, Archive, Check, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 import {
   Banner, Button, Checkbox, Field, IconButton, Input,
   Sheet, SheetTrigger, SheetContent,
@@ -193,6 +193,8 @@ export function RoleForm({
   const [pending, startTransition] = React.useTransition();
   // R1.6. Adding opens on the ready-made roles. Editing opens on the role.
   const [picking, setPicking] = React.useState(!role && shelf.length > 0);
+  /** A ready-made role being read before it is taken up. */
+  const [taking, setTaking] = React.useState<RoleRow | null>(null);
   const [shut, setShut] = React.useState<string[]>(groups.slice(1).map((one) => one.key));
   const fold = (key: string) =>
     setShut((was) => (was.includes(key) ? was.filter((one) => one !== key) : [...was, key]));
@@ -204,6 +206,7 @@ export function RoleForm({
     setHeld(role?.permissions ?? []);
     setShut(groups.slice(1).map((one) => one.key));
     setPicking(!role && shelf.length > 0);
+    setTaking(null);
     setError(undefined);
   }, [open, role?.name, role?.permissions]);
 
@@ -234,7 +237,7 @@ export function RoleForm({
       <SheetTrigger asChild>{children}</SheetTrigger>
 
       <SheetContent
-        title={role ? nameOf(role) : picking ? t("roles.start") : t("roles.add")}
+        title={role ? nameOf(role) : picking ? t("roles.start") : taking ? nameOf(taking) : t("roles.add")}
         closeLabel={t("common.close")}
         width="520px"
         footer={
@@ -256,14 +259,29 @@ export function RoleForm({
               type="button"
               disabled={pending || !name.trim()}
               onClick={() =>
-                run(() =>
-                  role
-                    ? saveRole(role.id, name, held, church)
-                    : addRole(name, held, church),
-                )
+                run(async () => {
+                  if (role) return saveRole(role.id, name, held, church);
+                  if (!taking) return addRole(name, held, church);
+
+                  /*
+                   * Taking a ready-made role up unchanged leaves it tracking
+                   * the product: a permission we add later reaches it. Only a
+                   * church that edited it owns it from then on.
+                   */
+                  const same =
+                    name === nameOf(taking) &&
+                    held.length === taking.permissions.length &&
+                    held.every((one) => taking.permissions.includes(one));
+
+                  if (!same) {
+                    const written = await saveRole(taking.id, name, held, church);
+                    if (written.error) return written;
+                  }
+                  return putAway(taking.id, false, church);
+                })
               }
             >
-              {t("action.save")}
+              {taking ? t("action.add") : t("action.save")}
             </Button>
           </>
           )
@@ -280,7 +298,12 @@ export function RoleForm({
           <div className="flex flex-col">
             <button
               type="button"
-              onClick={() => setPicking(false)}
+              onClick={() => {
+                setTaking(null);
+                setName("");
+                setHeld([]);
+                setPicking(false);
+              }}
               className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-sunken"
             >
               <Plus className="size-[18px] shrink-0 text-primary" aria-hidden />
@@ -300,8 +323,12 @@ export function RoleForm({
 
                   <button
                     type="button"
-                    disabled={pending}
-                    onClick={() => run(() => putAway(one.id, false, church))}
+                    onClick={() => {
+                      setTaking(one);
+                      setName(nameOf(one));
+                      setHeld(one.permissions);
+                      setPicking(false);
+                    }}
                     className="mb-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
                   >
                     <span className="flex min-w-0 flex-1 flex-col">
@@ -322,6 +349,16 @@ export function RoleForm({
         ) : null}
 
         <div className="flex flex-col gap-5" hidden={picking}>
+          {role || shelf.length === 0 ? null : (
+            <button
+              type="button"
+              onClick={() => setPicking(true)}
+              className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+            >
+              <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}
+            </button>
+          )}
+
           <Field label={t("roles.name")} required>
             <Input
               value={name}
