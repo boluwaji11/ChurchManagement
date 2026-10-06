@@ -5,6 +5,7 @@ import { currentUser } from "@/lib/session";
 import { AuthShell } from "../auth-shell";
 import type { Piece } from "@/components/site/art";
 import { SignUpForm } from "./form";
+import { SignUpSent } from "./sent";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +26,8 @@ export default async function SignUpPage({
 
   return (
     <AuthShell
-      title={t("signUp.title")}
-      under={t("signUp.free")}
+      title={params.sent ? t("signUp.sent.title") : t("signUp.title")}
+      under={params.sent ? undefined : t("signUp.free")}
       step={1}
       art={ART}
       width="max-w-[520px]"
@@ -36,9 +37,7 @@ export default async function SignUpPage({
       ) : null}
 
       {params.sent ? (
-        <Banner tone="success" title={t("signUp.sent.title")}>
-          {t("signUp.sent.body", { email: params.sent })}
-        </Banner>
+        <SignUpSent email={params.sent} next={params.next} />
       ) : (
         <SignUpForm next={params.next} />
       )}

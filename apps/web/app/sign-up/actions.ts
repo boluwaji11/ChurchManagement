@@ -85,6 +85,27 @@ export async function signUp(data: FormData) {
   redirect(`/sign-up?sent=${encodeURIComponent(email)}`);
 }
 
+/**
+ * R1.7. The confirmation again, for the one that never arrived.
+ *
+ * Supabase answers an unknown address the same way as a known one, so this
+ * cannot be used to find out who has an account.
+ */
+export async function resendSignUp(data: FormData): Promise<{ error?: string }> {
+  const email = String(data.get("email") ?? "").trim().toLowerCase();
+  const next = String(data.get("next") ?? "") || "/choose-church";
+  if (!email) return { error: t("signIn.error.noEmail") };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: `${await origin()}/auth/callback?next=${encodeURIComponent(next)}` },
+  });
+  if (error) return { error: explainAuth(error) };
+  return {};
+}
+
 /** R1.8. A link to set a password, for somebody who has forgotten or never had one. */
 export async function sendReset(data: FormData) {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
