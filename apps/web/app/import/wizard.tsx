@@ -210,7 +210,7 @@ function Steps({ current }: { current: Step }) {
   const index = order.indexOf(current as (typeof order)[number]);
 
   return (
-    <ol className="flex items-center overflow-x-auto">
+    <ol className="flex items-center justify-center overflow-x-auto">
       {order.map((s, i) => {
         const done = i < index;
         const now = i === index;
@@ -269,6 +269,8 @@ function ChooseFile({ busy, onFile }: { busy: boolean; onFile: (f: File) => void
 
   return (
     <>
+      {/* R19.1. Centred under the steps, because this screen holds one thing
+          and the eye should land on it rather than read along to it. */}
       <button
         type="button"
         disabled={busy}
@@ -283,7 +285,7 @@ function ChooseFile({ busy, onFile }: { busy: boolean; onFile: (f: File) => void
           setOver(false);
           take(e.dataTransfer.files?.[0]);
         }}
-        className={`flex cursor-pointer flex-col items-center gap-2.5 rounded-lg border-2 border-dashed bg-surface px-6 py-12 text-fg-muted hover:border-primary hover:bg-sunken disabled:cursor-wait ${
+        className={`mx-auto flex w-full max-w-[720px] cursor-pointer flex-col items-center gap-2.5 rounded-lg border-2 border-dashed bg-surface px-6 py-12 text-fg-muted hover:border-primary hover:bg-sunken disabled:cursor-wait ${
           over ? "border-primary bg-sunken" : "border-line-strong"
         }`}
       >
