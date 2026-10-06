@@ -1044,7 +1044,7 @@ export const en = {
   "import.skip.duplicateInFile": "Same member as line {line} of this file.",
   "import.skip.vanished": "That member was removed while the preview was open.",
   "import.why.capped": "Past the member cap",
-  "import.why.capped.do": "Once your church is approved, import this same file again. Everything past the cap comes in then.",
+  "import.why.capped.do": "Once your church is approved, import this same file again. Everything past the cap will be imported.",
   "import.why.duplicate": "Already in the directory",
   "import.why.duplicate.do": "The three answers above decide all of these at once.",
   "import.why.unsure": "Looks like somebody already here",
