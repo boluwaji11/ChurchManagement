@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
-import {
-  cn, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-} from "@connectapp/ui";
+import { cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 export interface SettingsLink {
@@ -22,10 +19,11 @@ export interface SettingsGroup {
 /**
  * R24.6. The settings menu as one frozen row across the top.
  *
- * Twelve names down the left outgrew the column, and a church reading a screen
- * should not scroll a menu to reach the next one. Each section is a press that
- * opens its own list, the row stays put while the screen under it scrolls, and
- * the section holding the open screen is marked.
+ * Twelve names down the left outgrew the column. Each section carries its own
+ * list, which opens under the pointer, and the section holding the open screen
+ * wears a line in the church's purple. The heading is a link to the first
+ * screen in the section, so a press always lands somewhere and the keyboard
+ * reaches the list through focus rather than through a press.
  */
 export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; church: string }) {
   const pathname = usePathname();
@@ -33,48 +31,60 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
   return (
     <nav
       aria-label={t("settings.sections")}
-      className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center gap-1 border-b border-line bg-canvas px-1 py-2"
+      className="sticky top-0 z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
     >
-      {groups.map((group) => {
-        const here = group.items.some((item) => item.href === pathname);
+      {groups.map((group, at) => {
         const open = group.items.find((item) => item.href === pathname);
+        const first = group.items[0]!;
 
         return (
-          <DropdownMenu key={group.title}>
-            <DropdownMenuTrigger
+          <div key={group.title} className="group relative flex items-stretch">
+            {/* A hairline between one section and the next. */}
+            {at === 0 ? null : <span aria-hidden className="my-2 w-px bg-line" />}
+
+            <Link
+              href={`${first.href}?church=${church}`}
+              aria-current={open ? "page" : undefined}
               className={cn(
-                "flex h-9 cursor-pointer items-center gap-1.5 rounded-sm px-3",
-                "text-[length:var(--d-text-label)] outline-none",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]",
-                here
-                  ? "bg-line font-semibold text-fg"
-                  : "font-medium text-fg-muted hover:bg-line hover:text-fg",
+                "flex items-center gap-1.5 px-3.5 py-2.5",
+                "text-[length:var(--d-text-label)] no-underline",
+                "border-b-2 -mb-px",
+                open
+                  ? "border-primary font-semibold text-fg"
+                  : "border-transparent font-medium text-fg-muted hover:text-fg",
               )}
             >
               {group.title}
-              {/* The screen being read, named on the section that holds it, so
-                  the row says where you are without opening anything. */}
-              {open ? <span className="text-fg-subtle">· {open.label}</span> : null}
-              <ChevronDown className="size-3.5 opacity-60" aria-hidden />
-            </DropdownMenuTrigger>
+              {open ? <span className="font-normal text-fg-subtle">· {open.label}</span> : null}
+            </Link>
 
-            <DropdownMenuContent align="start">
+            {/* Under the pointer rather than behind a press. Focus opens it
+                too, so the keyboard reaches every screen in the section. */}
+            <div
+              className={cn(
+                "invisible absolute top-full left-0 z-30 min-w-[11rem] translate-y-0 opacity-0",
+                "rounded-lg border border-line bg-surface p-1 shadow-lg",
+                "transition-opacity duration-instant",
+                "group-hover:visible group-hover:opacity-100",
+                "group-focus-within:visible group-focus-within:opacity-100",
+              )}
+            >
               {group.items.map((item) => (
-                <DropdownMenuItem key={item.href} asChild>
-                  <Link
-                    href={`${item.href}?church=${church}`}
-                    aria-current={item.href === pathname ? "page" : undefined}
-                    className={cn(
-                      "no-underline",
-                      item.href === pathname ? "font-semibold text-fg" : "text-fg-muted",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                </DropdownMenuItem>
+                <Link
+                  key={item.href}
+                  href={`${item.href}?church=${church}`}
+                  aria-current={item.href === pathname ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-[var(--d-tap)] items-center rounded-md px-2.5 no-underline",
+                    "text-[length:var(--d-text-body)] hover:bg-sunken",
+                    item.href === pathname ? "font-semibold text-fg" : "text-fg-muted",
+                  )}
+                >
+                  {item.label}
+                </Link>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </div>
+          </div>
         );
       })}
     </nav>
