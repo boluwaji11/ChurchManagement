@@ -8,8 +8,6 @@ import { SITE_BAR_CTA } from "./kit";
 const NAV = [
   { href: "#why", key: "site.nav.why" },
   { href: "#features", key: "site.nav.features" },
-  { href: "#members", key: "site.nav.members" },
-  { href: "#giving", key: "site.nav.giving" },
   { href: "#checkin", key: "site.nav.checkin" },
   { href: "#pricing", key: "site.nav.pricing" },
 ] as const;
@@ -31,7 +29,7 @@ export function SiteHeader() {
           <span className="font-display text-[22px] leading-7">{t("app.name")}</span>
         </Link>
 
-        <nav aria-label={t("site.nav.label")} className="flex min-w-0 flex-1 flex-wrap gap-1">
+        <nav aria-label={t("site.nav.label")} className="flex min-w-0 flex-1 flex-wrap justify-center gap-1">
           {NAV.map((item) => (
             <a
               key={item.href}

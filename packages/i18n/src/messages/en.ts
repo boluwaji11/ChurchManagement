@@ -96,8 +96,6 @@ export const en = {
   "site.foot.label": "Footer",
   "site.nav.why": "Why",
   "site.nav.features": "Features",
-  "site.nav.members": "Members",
-  "site.nav.giving": "Giving",
   "site.nav.checkin": "Check-in",
   "site.nav.pricing": "Pricing",
   "site.start": "Get started free",
