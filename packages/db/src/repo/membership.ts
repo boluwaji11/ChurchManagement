@@ -393,7 +393,15 @@ export function slugify(name: string): string {
 export async function createChurch(input: {
   name: string;
   timezone: string;
-  user: { id: string; email: string; fullName?: string | null; emailVerified: boolean };
+  user: {
+    id: string;
+    email: string;
+    fullName?: string | null;
+    /** R2.1. The two halves of the founder's own record in the church. */
+    firstName?: string | null;
+    lastName?: string | null;
+    emailVerified: boolean;
+  };
 }): Promise<{ tenantId: string; slug: string; name: string }> {
   const name = input.name.trim().replace(/\s+/g, " ");
   if (name.length < 2) throw new InvalidInputError("error.churchNameShort");
@@ -455,16 +463,18 @@ export async function createChurch(input: {
      * met by "no record" on their own profile screen. The church is empty at
      * this point, so the slug cannot clash and no quota applies.
      *
-     * The name arrived as one line, because asking a founder to fill two boxes
-     * on the first screen buys nothing. It splits on the last space, which is
-     * right for most names and wrong for some, and the profile screen corrects
-     * it in two keystrokes.
+     * Sign-up asks for the two names separately, so nothing here has to work
+     * out where a name splits. An account made before that change falls back to
+     * splitting the one line it has.
      */
     const whole = (input.user.fullName ?? "").trim().replace(/\s+/g, " ");
     const cut = whole.lastIndexOf(" ");
-    const first = cut > 0 ? whole.slice(0, cut) : whole;
-    const last = cut > 0 ? whole.slice(cut + 1) : "";
-    const personSlug = slugify(whole) || slugify(input.user.email.split("@")[0] ?? "") || "owner";
+    const first = (input.user.firstName ?? "").trim() || (cut > 0 ? whole.slice(0, cut) : whole);
+    const last = (input.user.lastName ?? "").trim() || (cut > 0 ? whole.slice(cut + 1) : "");
+    const personSlug =
+      slugify([first, last].filter(Boolean).join(" "))
+      || slugify(input.user.email.split("@")[0] ?? "")
+      || "owner";
 
     const [person] = await tx<{ id: string }[]>`
       insert into members (

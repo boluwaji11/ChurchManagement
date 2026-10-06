@@ -32,6 +32,8 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        firstName: user.firstName,
+        lastName: user.lastName,
         emailVerified: user.emailVerified,
       },
     });

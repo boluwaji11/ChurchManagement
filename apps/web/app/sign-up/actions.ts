@@ -35,9 +35,12 @@ const fail = (message: string, next?: string): never =>
 export async function signUp(data: FormData) {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
   const password = String(data.get("password") ?? "");
-  const fullName = String(data.get("fullName") ?? "").trim();
+  const firstName = String(data.get("firstName") ?? "").trim().replace(/\s+/g, " ");
+  const lastName = String(data.get("lastName") ?? "").trim().replace(/\s+/g, " ");
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
   const next = String(data.get("next") ?? "") || "/choose-church";
 
+  if (!firstName || !lastName) return fail(t("signUp.error.name"), next);
   if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return fail(t("signUp.error.email"), next);
   if (password.length < 10) return fail(t("signUp.error.password"), next);
 
@@ -46,7 +49,7 @@ export async function signUp(data: FormData) {
     email,
     password,
     options: {
-      data: { full_name: fullName || null },
+      data: { full_name: fullName || null, first_name: firstName, last_name: lastName },
       emailRedirectTo: `${await origin()}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });

@@ -44,6 +44,8 @@ export const currentUser = cache(async () => {
     id: data.user.id,
     email: data.user.email ?? "",
     fullName: (data.user.user_metadata?.["full_name"] as string | undefined) ?? null,
+    firstName: (data.user.user_metadata?.["first_name"] as string | undefined) ?? null,
+    lastName: (data.user.user_metadata?.["last_name"] as string | undefined) ?? null,
     emailVerified: Boolean(data.user.email_confirmed_at),
   };
 });
