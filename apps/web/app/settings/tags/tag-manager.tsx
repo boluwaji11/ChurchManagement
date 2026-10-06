@@ -97,7 +97,7 @@ export function NewTag({
   const [name, setName] = React.useState("");
   const library = React.useMemo(() => tagLibrary(taken), [taken.join("|")]);
   const [picking, setPicking] = React.useState(library.length > 0);
-  const [error, setError] = useFormError(open);
+  const [error, setError] = useFormError(open && !picking);
   const [pending, setPending] = React.useState(false);
 
   const save = async () => {

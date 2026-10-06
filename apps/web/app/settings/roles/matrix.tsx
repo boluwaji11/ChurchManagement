@@ -193,10 +193,10 @@ export function RoleForm({
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState(role?.name ?? "");
   const [held, setHeld] = React.useState<string[]>(role?.permissions ?? []);
-  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
   // R1.6. Adding opens on the ready-made roles. Editing opens on the role.
   const [picking, setPicking] = React.useState(!role && shelf.length > 0);
+  const [error, setError] = useFormError(open && !picking);
   /** A ready-made role being read before it is taken up. */
   const [taking, setTaking] = React.useState<RoleRow | null>(null);
   const [shut, setShut] = React.useState<string[]>(groups.slice(1).map((one) => one.key));

@@ -82,7 +82,6 @@ export function TeamPanel({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = useFormError(open);
   /*
    * R10.2. A team is the positions it schedules, so they are written here
    * rather than on a second screen somebody has to find afterwards.
@@ -107,6 +106,7 @@ export function TeamPanel({
   const [step, setStep] = React.useState<"pick" | "team" | "members">(
     team || library.length === 0 ? "team" : "pick",
   );
+  const [error, setError] = useFormError(open && step === "team");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
   /** R24.6. Whether anything in the panel has been touched since it opened. */
   const [dirty, setDirty] = React.useState(false);

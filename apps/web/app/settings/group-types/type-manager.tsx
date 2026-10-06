@@ -132,7 +132,6 @@ function TypeDialog({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = useFormError(open);
   const [saving, startTransition] = React.useTransition();
   /*
    * R24.6. Asked in the panel that is already open rather than a second one
@@ -147,6 +146,7 @@ function TypeDialog({
   // R9.1. Writing one opens on the kinds churches already run.
   const library = React.useMemo(() => groupTypeLibrary(taken), [taken.join("|")]);
   const [picking, setPicking] = React.useState(!type && library.length > 0);
+  const [error, setError] = useFormError(open && !picking);
   const [name, setName] = React.useState(type?.name ?? "");
   const [body, setBody] = React.useState(type?.description ?? "");
   /** Remounts the editor when a ready-made kind fills it. */

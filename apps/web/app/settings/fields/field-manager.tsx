@@ -201,7 +201,7 @@ function FieldSheet({
   // R1.10. Adding opens on the library. Editing opens on the field itself.
   const [picking, setPicking] = React.useState(!field);
   const [all, setAll] = React.useState(false);
-  const [error, setError] = useFormError(open);
+  const [error, setError] = useFormError(open && !picking);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 

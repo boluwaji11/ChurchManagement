@@ -37,6 +37,13 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       ref={ref}
       aria-label={label}
       title={label}
+      /*
+       * A button inside a form submits it unless it is told otherwise, and a
+       * repeated row action is never the thing that submits. Every bin, every
+       * x and every toolbar mark inside a panel was sending the form, which
+       * closed the panel. Passing `type` still overrides this.
+       */
+      type="button"
       className={cn(iconButton({ variant }), className)}
       {...props}
     >
