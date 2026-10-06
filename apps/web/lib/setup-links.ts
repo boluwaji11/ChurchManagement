@@ -4,7 +4,10 @@ import type { SetupStep } from "@connectapp/db";
 export const SETUP_LINKS: Record<SetupStep, string> = {
   church: "/settings/church",
   services: "/services",
-  members: "/import",
+  // The directory rather than the importer: a church with forty people may
+  // well rather type them than build a spreadsheet first, and both buttons are
+  // on this screen.
+  members: "/members",
   team: "/settings/team",
   rooms: "/settings/rooms",
 };
