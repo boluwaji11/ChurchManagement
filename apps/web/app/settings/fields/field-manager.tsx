@@ -4,13 +4,14 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, Plus, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
 import {
-  Banner, Button, IconButton, Input, Textarea, Field,
+  Banner, Button, IconButton, Input, Field,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { addField, saveField, removeField } from "../../fields/actions";
+import { Confirm } from "@/components/confirm";
 import { useFormError } from "@/lib/form-error";
 import { FIELD_LIBRARY, presetValues, type FieldPreset } from "./library";
 
@@ -105,16 +106,70 @@ export function FieldManager({
 
 /** One choice per line. A textarea beats a repeating row builder for six items. */
 function Choices({ value, onChange }: { value: string; onChange: (next: string) => void }) {
+  // The form sends one choice per line, which is what the server already reads.
+  const lines = value === "" ? [""] : value.split("\n");
+  const write = (next: string[]) => onChange(next.join("\n"));
+
   return (
-    <Field label={t("fields.choices")}>
-      <Textarea
-        name="options"
-        rows={4}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={t("fields.choicesPlaceholder")}
-      />
-    </Field>
+    <div className="flex flex-col gap-2">
+      <span className="text-label text-fg">{t("fields.choices")}</span>
+      <input type="hidden" name="options" value={value} />
+
+      <ol className="m-0 flex list-none flex-col p-0">
+        {lines.map((line, i) => (
+          <li key={i} className="flex gap-2.5">
+            <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+              <span className="grid size-5 shrink-0 place-items-center rounded-full border border-primary/40 bg-surface text-[10px] font-semibold text-primary">
+                {i + 1}
+              </span>
+              {i === lines.length - 1 ? null : (
+                <span className="relative my-1 w-px flex-1 bg-primary/40">
+                  <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary" />
+                </span>
+              )}
+            </span>
+
+            <div className="flex min-w-0 flex-1 items-start gap-2 pb-3">
+              <input
+                value={line}
+                aria-label={t("fields.choice")}
+                autoComplete="off"
+                placeholder={t("fields.choicesPlaceholder")}
+                className="-mt-1 min-w-0 flex-1 rounded-sm border-b border-line bg-transparent px-1 py-1 text-[length:var(--d-text-body)] text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                onChange={(e) => write(lines.map((was, at) => (at === i ? e.target.value : was)))}
+              />
+
+              {lines.length > 1 ? (
+                <Confirm
+                  title={t("fields.choice.removeTitle", { name: line || t("fields.choice") })}
+                  body={t("fields.choice.removeBody")}
+                  confirmLabel={t("fields.choice.removeAction")}
+                  onConfirm={() => write(lines.filter((_, at) => at !== i))}
+                  trigger={
+                    <IconButton
+                      label={t("fields.choice.remove")}
+                      variant="ghost"
+                      className="-mt-2.5"
+                    >
+                      <Trash2 />
+                    </IconButton>
+                  }
+                />
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <Button
+        type="button"
+        variant="ghost"
+        className="self-start"
+        onClick={() => write([...lines, ""])}
+      >
+        <Plus /> {t("fields.choice.add")}
+      </Button>
+    </div>
   );
 }
 
@@ -252,9 +307,6 @@ function FieldSheet({
               </Dialog>
             ) : null}
 
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
             <Button
               type="submit"
               form="field-form"
