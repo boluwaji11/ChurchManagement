@@ -61,34 +61,32 @@ function warnIfDirectHost(url: string): void {
 /**
  * How many connections one pool may hold.
  *
- * Supabase's pooler on port 5432 runs in session mode, where every client
- * connection pins a server connection for as long as it is open, idle or not,
- * and the ceiling is fifteen clients per role. Two pools asking for eight each
- * is sixteen, so one web process could exhaust the pooler on its own and the
- * next request failed with EMAXCONNSESSION rather than waiting its turn. The
- * dev project has had it happen.
+ * Port 6543 is the Supabase pooler in transaction mode: a server connection is
+ * held for the length of a transaction rather than for the length of a client
+ * connection, so an idle client costs the pooler nothing and the ceiling that
+ * session mode on 5432 imposes (fifteen clients per role, which two pools of
+ * eight could exhaust on their own) does not apply. `prepare: false` below is
+ * what transaction mode requires.
  *
- * Six and two leaves room for the operator portal and the job worker alongside.
- * A render holds a connection for about 90ms, so six of them serve a church
- * many times over, and a seventh caller queues instead of failing.
- *
- * Port 6543 is the same pooler in transaction mode, which multiplexes and lifts
- * the ceiling by a long way. `prepare: false` below is what it requires, and it
- * is already set, so moving to it is a change of address and nothing else.
+ * A render holds a connection for about 90ms, so ten of them serve a church
+ * many times over and an eleventh caller queues rather than failing.
  */
-const POOL = { app: 6, owner: 2 } as const;
+const POOL = { app: 10, owner: 4 } as const;
 
 const connect = (url: string, max: number) => {
   warnIfDirectHost(url);
   return postgres(url, {
     max,
     /*
-     * An idle connection in session mode is still holding a server connection,
-     * so it is given back sooner than it used to be. The cost of reopening one
-     * is a TLS handshake, measured at 281ms, which is why this is ten seconds
-     * rather than one.
+     * Connections are kept rather than dropped between presses.
+     *
+     * Reopening one costs a TLS handshake, measured at 281ms, and ten seconds
+     * is shorter than the pause between two things somebody does on a screen,
+     * so every one of those pauses was being paid for. In transaction mode an
+     * idle client holds nothing at the far end, so the only cost of keeping it
+     * is a socket.
      */
-    idle_timeout: 10,
+    idle_timeout: 300,
     connect_timeout: 30,
     prepare: false,
     ssl: isLoopback(url) ? false : "require",
