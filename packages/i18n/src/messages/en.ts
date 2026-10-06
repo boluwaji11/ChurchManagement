@@ -1292,7 +1292,7 @@ export const en = {
   "groupType.error.taken": "{name} is already a type.",
   "groupType.error.missing": "That type could not be found.",
   "settings.tab.grouptypes": "Group types",
-  "settings.lede.grouptypes": "The kinds of group this church runs.",
+  "settings.lede.grouptypes": "The kinds of group your church runs.",
   "groupType.add": "Create a new group type",
   "groupType.name": "Name",
   "groupType.description": "What it is for",
