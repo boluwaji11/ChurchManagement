@@ -206,11 +206,10 @@ export default async function GroupPage({
           : (group.typeName ?? t("groups.title")),
       }
     : {
-        // Reached from somewhere that is not a list of groups: the press goes
-        // to whatever was actually behind it, so the word stays general rather
-        // than naming a screen the reader was never on.
+        // Reached from somewhere that is not a list of groups: the press opens
+        // the groups screen, which is where this record lives.
         href: `/groups?church=${session.tenantSlug}`,
-        label: t("action.back"),
+        label: t("groups.title"),
       };
 
   return (
