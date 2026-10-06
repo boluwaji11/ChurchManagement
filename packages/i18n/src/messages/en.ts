@@ -419,7 +419,7 @@ export const en = {
   "settings.teams.where": "Schedules for these teams are on Serving.",
   "settings.lede.stations": "Tablets and kiosks that run check-in, and the printer each one uses.",
   "settings.lede.tags": "Short labels for filtering members.",
-  "settings.lede.fields": "Extra details you keep on each member. They show on the profile and in filters.",
+  "settings.lede.fields": "Extra details you keep on each member.",
   "settings.lede.followups": "The steps each journey goes through, in your church's own words.",
   "settings.title.profile": "Your profile",
   "settings.lede.profile": "View and update your details.",
