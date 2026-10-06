@@ -147,7 +147,9 @@ export function ImportWizard({
       {error ? <Banner tone="danger" title={t("import.failed")}>{error}</Banner> : null}
 
       {step === "file" ? (
-        <div className="grid items-start gap-5 lg:[grid-template-columns:1fr_minmax(300px,360px)]">
+        /* One column down the middle: the target first, and whatever has been
+           imported before under it. */
+        <div className="mx-auto flex w-full max-w-[720px] flex-col gap-5">
           <ChooseFile busy={busy} onFile={onFile} />
           {history}
         </div>
