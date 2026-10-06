@@ -473,7 +473,7 @@ export const en = {
   "settings.export.groupsWhat": "Every group and who is in it",
   "settings.export.teams": "Teams",
   "settings.export.teamsWhat": "Every team, who serves on it and in what position",
-  "settings.export.serving": "Serving",
+  "settings.export.serving": "Schedule",
   "settings.export.servingWhat": "Who was scheduled when, and what they answered",
   "settings.export.followups": "Follow-ups",
   "settings.export.followupsWhat": "Who is in which stage, and what is still owed",
