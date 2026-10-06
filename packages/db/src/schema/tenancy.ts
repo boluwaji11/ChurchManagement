@@ -72,6 +72,16 @@ export const tenants = pgTable(
      */
     joinCode: text("join_code"),
     /**
+     * R1.1, R17.1. The church's own address for its members' screens.
+     *
+     * A member reading their serving dates on the church's own host is on the
+     * church's site rather than on ours, and the session cookie is first-party,
+     * which is the only way the signed-in screens can live inside a church's
+     * domain at all. Compared against the Host header, so it is stored the way
+     * that header arrives: lower case, no scheme, no path.
+     */
+    customDomain: text("custom_domain"),
+    /**
      * R8.11. What goes on a child's label.
      *
      * The church's own layout rather than the station's, because a parent who

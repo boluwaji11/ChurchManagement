@@ -70,6 +70,8 @@ export default async function SettingsPage({
             origin={origin}
             slug={session.tenantSlug}
             joinCode={profile?.joinCode ? formatJoinCode(profile.joinCode) : null}
+            domain={profile?.customDomain ?? null}
+            appHost={host}
           />
         ) : null}
     </div>

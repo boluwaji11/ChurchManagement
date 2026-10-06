@@ -2,8 +2,11 @@
 
 import * as React from "react";
 import { Copy, ExternalLink } from "lucide-react";
-import { Card, CardTitle, Field, IconButton, Input, Separator, Textarea } from "@connectapp/ui";
+import {
+  Banner, Button, Card, CardTitle, Field, IconButton, Input, Separator, Textarea,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { saveDomain } from "./domain-actions";
 
 /** One thing to copy, with the button that copies it. */
 function Copyable({
@@ -71,11 +74,20 @@ function Copyable({
  * both refuse those, so a framed sign-in is a sign-in that works until it
  * quietly does not. The finder has no session and frames fine.
  */
-export function OnYourSite({ origin, slug, joinCode }: {
+export function OnYourSite({ origin, slug, joinCode, domain, appHost }: {
   origin: string;
   slug: string;
   joinCode: string | null;
+  /** R1.1. The church's own address, where it has pointed one here. */
+  domain: string | null;
+  /** What a church points its CNAME at. */
+  appHost: string;
 }) {
+  const [draft, setDraft] = React.useState(domain ?? "");
+  const [saved, setSaved] = React.useState(domain);
+  const [error, setError] = React.useState<string>();
+  const [pending, start] = React.useTransition();
+
   const groupsLink = `${origin}/g/${slug}`;
   // The title is read by whoever lands on the church's page with a screen
   // reader, so it is the church's word for groups rather than ours.
@@ -99,6 +111,46 @@ export function OnYourSite({ origin, slug, joinCode }: {
 
         <Copyable label={t("site.groups")} value={groupsLink} open={groupsLink} />
         <Copyable label={t("site.snippet")} value={snippet} rows={3} />
+
+        {/* R1.1, R17.1. The church's own name over the whole of it. A frame
+            cannot carry a session, so this is the way the signed-in screens
+            live on the church's own address. */}
+        <div className="flex flex-col gap-2 border-t border-line pt-5">
+          <span className="font-semibold text-fg">{t("domain.title")}</span>
+          <p className="text-[length:var(--d-text-body)] text-fg-muted">
+            {t("domain.dns", { target: appHost })}
+          </p>
+
+          <div className="flex flex-wrap items-end gap-2">
+            <Field label={t("domain.label")} className="min-w-[240px] flex-1">
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder={t("domain.hint")}
+                inputMode="url"
+              />
+            </Field>
+            <Button
+              variant="secondary"
+              loading={pending}
+              disabled={draft.trim() === (saved ?? "")}
+              onClick={() =>
+                start(async () => {
+                  const back = await saveDomain(draft, slug);
+                  setError(back.error);
+                  if (!back.error) {
+                    setSaved(back.domain ?? null);
+                    setDraft(back.domain ?? "");
+                  }
+                })
+              }
+            >
+              {t("action.save")}
+            </Button>
+          </div>
+
+          {error ? <Banner tone="danger" title={t("domain.title")}>{error}</Banner> : null}
+        </div>
       </div>
     </Card>
   );

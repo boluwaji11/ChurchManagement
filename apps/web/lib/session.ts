@@ -2,8 +2,10 @@ import "server-only";
 import { readsAs } from "./spelling";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import {
-  membershipsForUser, verifyMembership, resolveTenantBySlug, demoMembership,
+  membershipsForUser, verifyMembership, resolveTenantBySlug, resolveTenantByHost,
+  demoMembership,
   type Membership, type TenantRole, type Permission,
 } from "@connectapp/db";
 import { supabaseServer } from "./supabase/server";
@@ -85,7 +87,29 @@ const demoVisitorSession = cache(async (): Promise<Session | null> => {
   };
 });
 
-export const requireSession = cache(async (slug?: string): Promise<Session> => {
+/**
+ * R1.1, R17.1. The church this request arrived at, where the host names one.
+ *
+ * A church pointing its own name at the app means every screen underneath is
+ * that church's without a word of it in the address. Cached per request,
+ * because every screen asks and the answer cannot change mid-render.
+ */
+export const churchFromHost = cache(async (): Promise<string | null> => {
+  const head = await headers();
+  const host = head.get("x-forwarded-host") ?? head.get("host");
+  if (!host) return null;
+  const found = await resolveTenantByHost(host);
+  return found?.slug ?? null;
+});
+
+export const requireSession = cache(async (asked?: string): Promise<Session> => {
+  /*
+   * The address in the request wins, because a link somebody was sent names
+   * the church on purpose. Failing that, the host answers, which is what makes
+   * a church's own domain feel like the church's own software.
+   */
+  const slug = asked ?? (await churchFromHost());
+
   const user = await currentUser();
   if (!user) {
     const demo = await demoVisitorSession();

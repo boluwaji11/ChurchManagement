@@ -339,6 +339,13 @@ Two of the three pieces are built as the design draws them and one cannot be.
   the join link: it signs somebody in or signs them up and puts them in the church.
 - **A signed-in panel cannot be framed.** A session inside somebody else's page is a third-party
   cookie, and Safari blocks those outright while Chrome is removing them. A framed sign-in works
-  until it quietly does not, which is worse than a link. The way to put the signed-in screens on a
-  church's own address is a custom domain pointed at the app, so the cookie is first-party. That is
-  infrastructure rather than a feature and has no story yet.
+  until it quietly does not, which is worse than a link.
+- **So the signed-in screens take the church's own address instead.** A church sets a domain in
+  Settings, Church and points it here with a CNAME. `tenants.custom_domain` holds it, one church a
+  host, and `requireSession` resolves the church from the `Host` header when the request carries no
+  `church` parameter. The cookie is then first-party and nothing is being worked around. An address
+  in the request still wins, because a link somebody was sent names its church on purpose.
+
+  Trying it locally: put `127.0.0.1 members.yourchurch.test` in `/etc/hosts`, set that domain on a
+  church, and open `http://members.yourchurch.test:4488/home`. In production the deployment needs a
+  wildcard certificate or a certificate a host, which is the part that is infrastructure.
