@@ -118,6 +118,7 @@
   --accent-fg: var(--stone-950);
   --accent-soft: var(--ember-100);
   --ring: var(--ink-500);
+  --selection: var(--ink-100);
   --overlay: oklch(0.198 0.009 75 / 0.45);
 }
 
@@ -181,6 +182,7 @@
   --accent-fg: var(--stone-950);
   --accent-soft: var(--ember-100);
   --ring: var(--ink-500);
+  --selection: var(--ink-100);
   --overlay: oklch(0.198 0.009 75 / 0.45);
   --hue-rose-tint: var(--hue-rose-100);
   --hue-rose-key: var(--hue-rose-700);
@@ -225,6 +227,7 @@
     --accent-fg: var(--stone-950);
     --accent-soft: oklch(0.298 0.060 62);
     --ring: var(--ink-300);
+    --selection: oklch(0.332 0.072 285);
     --overlay: oklch(0.100 0.006 75 / 0.65);
     --success: oklch(0.582 0.132 155);
     --success-soft: oklch(0.268 0.058 155);
@@ -285,6 +288,7 @@
     --accent-fg: var(--stone-950);
     --accent-soft: oklch(0.298 0.060 62);
     --ring: var(--ink-300);
+    --selection: oklch(0.332 0.072 285);
     --overlay: oklch(0.100 0.006 75 / 0.65);
     --success: oklch(0.582 0.132 155);
     --success-soft: oklch(0.268 0.058 155);
@@ -520,6 +524,7 @@
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
   --color-ring: var(--ring);
+  --color-selection: var(--selection);
   --color-overlay: var(--overlay);
 
   /* Faces. Display serif for hierarchy, sans for work, mono for codes read aloud. */
@@ -643,7 +648,7 @@
     border-radius: var(--radius-sm);
   }
 
-  ::selection { background: var(--accent-soft); color: var(--fg); }
+  ::selection { background: var(--selection); color: var(--fg); }
 
   /* Reduced motion means no motion, not less. One override, so no component can forget. (R24.13) */
   @media (prefers-reduced-motion: reduce) {

@@ -228,7 +228,7 @@ w(`@layer base {
     border-radius: var(--radius-sm);
   }
 
-  ::selection { background: var(--accent-soft); color: var(--fg); }
+  ::selection { background: var(--selection); color: var(--fg); }
 
   /* Reduced motion means no motion, not less. One override, so no component can forget. (R24.13) */
   @media (prefers-reduced-motion: reduce) {

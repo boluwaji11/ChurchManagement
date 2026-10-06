@@ -184,6 +184,7 @@
       "accent-fg": "{stone.950}",
       "accent-soft": "{ember.100}",
       "ring": "{ink.500}",
+      "selection": "{ink.100}",
       "overlay": "oklch(0.198 0.009 75 / 0.45)"
     },
     "dark": {
@@ -202,6 +203,7 @@
       "accent-fg": "{stone.950}",
       "accent-soft": "oklch(0.298 0.060 62)",
       "ring": "{ink.300}",
+      "selection": "oklch(0.332 0.072 285)",
       "overlay": "oklch(0.100 0.006 75 / 0.65)"
     }
   },
