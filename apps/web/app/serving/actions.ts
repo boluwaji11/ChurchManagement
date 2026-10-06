@@ -230,7 +230,7 @@ export async function schedule(
     /*
      * R16.10, R17.7. The one notification a member actually waits on. Sent
      * after the write, so a push that is slow or refused cannot hold up the
-     * rota, and addressed to the account behind the person rather than to the
+     * schedule, and addressed to the account behind the person rather than to the
      * person, because a push goes to a browser.
      */
     const account = await withTenant(ctx, (tx) => userForPerson(tx, input.memberId));

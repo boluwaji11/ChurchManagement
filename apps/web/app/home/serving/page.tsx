@@ -33,7 +33,7 @@ const STATES = {
 /**
  * R17.7. A member's own serving: what is coming, and when they are away.
  *
- * The church's rota lives on /serving and belongs to the team lead. This is
+ * The church's schedule lives on /serving and belongs to the team lead. This is
  * the same data from the other side: their dates, their answer, and the days
  * they have said not to ask.
  */

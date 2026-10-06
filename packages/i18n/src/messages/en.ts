@@ -1993,7 +1993,7 @@ export const en = {
   "serving.onTeams": "Serving",
   "serving.since": "since {day}",
   "serving.archiveTitle": "Archive {name}?",
-  "serving.archiveBody": "The team comes off the lists. Every rota it ran keeps its records.",
+  "serving.archiveBody": "The team comes off the lists. Every schedule it ran keeps its records.",
   "serving.keep": "Keep it",
   "serving.position.archiveTitle": "Archive {name}?",
   "serving.team": "Team",

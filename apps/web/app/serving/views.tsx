@@ -10,7 +10,7 @@ import { t } from "@connectapp/i18n";
 import { ScheduleGrid, type GridService, type GridTeam, type GridSlot, type GridPosition, type GridVolunteer } from "./grid";
 
 /**
- * R10.3. The rota, which is the whole of this screen.
+ * R10.3. The schedule, which is the whole of this screen.
  *
  * The teams themselves are written down in Settings: their names, their
  * positions and what each one asks of a volunteer change once a year, and this

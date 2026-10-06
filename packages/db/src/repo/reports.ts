@@ -132,7 +132,7 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
       (select count(*) from follow_ups f
         where f.done_at is null and f.due_on is not null and f.due_on < ${today}::date)::text as overdue`);
 
-  // R10.6. The next service's rota against what each position needs.
+  // R10.6. The next service's schedule against what each position needs.
   const [gaps] = await db.execute<{ gaps: string }>(sql`
     with next_service as (
       select o.id from service_occurrences o

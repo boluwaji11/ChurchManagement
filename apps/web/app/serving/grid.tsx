@@ -190,7 +190,7 @@ const LOOK = {
 /**
  * R10.3, R10.4. One team's month: a row per position, a column per service.
  *
- * A leader fills a rota by looking across a month rather than one service at a
+ * A leader fills a schedule by looking across a month rather than one service at a
  * time, so the whole month is the screen and a volunteer is dragged from the
  * list beside it onto the slot they are taking.
  */
@@ -389,7 +389,7 @@ export function ScheduleGrid({
             ))}
           </div>
 
-          {/* R10.2. A position the rota is missing, added where it is missed. */}
+          {/* R10.2. A position the schedule is missing, added where it is missed. */}
           {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
         </section>
 

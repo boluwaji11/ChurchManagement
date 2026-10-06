@@ -46,10 +46,10 @@ function MonthStep({
 const COLUMNS = 4;
 
 /**
- * R10.1, R10.3. Serving: the rota, and the teams that fill it.
+ * R10.1, R10.3. Serving: the schedule, and the teams that fill it.
  *
  * A volunteer serves across the church, so this is one screen for every team
- * rather than a schedule held inside each ministry. The rota leads, because
+ * rather than a schedule held inside each ministry. The schedule leads, because
  * that is what somebody opens this on a Tuesday to do.
  */
 export default async function ServingPage({

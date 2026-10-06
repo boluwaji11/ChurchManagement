@@ -97,7 +97,7 @@ export function navFor(role: TenantRole): NavEntry[] {
     out.push({ label: t("nav.services"), href: "/services", icon: ListMusic });
   }
 
-  // R10.1. The rota. A team leader has this and nothing else.
+  // R10.1. The schedule. A team leader has this and nothing else.
   if (canLeadTeams(role)) {
     out.push({ label: t("nav.serving"), href: "/serving", icon: HandHeart });
   }

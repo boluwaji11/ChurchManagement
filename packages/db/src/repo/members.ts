@@ -198,7 +198,7 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
     where.push(opts.group === "any" ? inAny : sql`not ${inAny}`);
   }
 
-  // R10.1. On a team. Counted from the team's roll rather than from a rota, so
+  // R10.1. On a team. Counted from the team's roll rather than from a schedule, so
   // somebody between rotas still counts as serving.
   if (opts.serving) {
     const onAny = sql`exists (

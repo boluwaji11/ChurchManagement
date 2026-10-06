@@ -476,7 +476,7 @@ network-first worker that answers from its cache when there is no signal.
 Push is built and does not break the messaging deferral. A web push goes to the browser's own push
 service, free, with no credential belonging to the church involved, so there is no send queue, no
 composer, and nothing being resold. It carries the lines the bell already carries. One trigger is
-wired, the one a member actually waits on: being put on the rota. Turn it on from the account menu.
+wired, the one a member actually waits on: being put on the schedule. Turn it on from the account menu.
 With no VAPID pair in the environment the product runs with no push at all and members read the
 bell, which is a working church.
 

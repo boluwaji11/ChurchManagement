@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  *
  * A team is a standing arrangement rather than a week's work: its name, its
  * colour and the positions it fills change once a year. Serving is where those
- * teams are scheduled, so the rota stays the thing that screen is for.
+ * teams are scheduled, so the schedule stays the thing that screen is for.
  */
 export default async function TeamsSettingsPage({
   searchParams,
