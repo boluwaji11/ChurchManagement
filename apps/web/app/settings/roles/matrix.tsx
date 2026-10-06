@@ -85,13 +85,17 @@ export function Matrix({
               >
                 {/* R1.6. Owner is the one column nobody may narrow: there is
                     nobody above them to put a permission back. */}
+                {/* R24.x. The name is the way in, so it is drawn as one: purple
+                    is what the rest of the product presses. Owner is ink,
+                    because there is nobody above them to put a permission
+                    back and the column cannot be changed. */}
                 {role.key === "owner" ? (
                   nameOf(role)
                 ) : (
                   <RoleForm church={church} role={role} permissions={permissions} groups={groups}>
                     <button
                       type="button"
-                      className="w-full cursor-pointer rounded-sm px-1 py-0.5 hover:bg-sunken"
+                      className="w-full cursor-pointer rounded-sm px-1 py-0.5 font-medium text-primary underline decoration-primary/35 underline-offset-[3px] hover:bg-sunken hover:decoration-primary"
                     >
                       {nameOf(role)}
                     </button>
