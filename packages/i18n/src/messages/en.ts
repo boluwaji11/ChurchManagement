@@ -1406,7 +1406,7 @@ export const en = {
   "groups.restore": "Restore",
   "groups.meets": "{day}s at {time}",
   "groups.none.title": "No groups yet",
-  "groups.none.body": "Create the groups your church meets in through the week.",
+  "groups.none.body": "Create the groups your church meets in.",
   "groups.memberCount.one": "{count} member",
   "groups.memberCount.other": "{count} members",
   "groupType.error.name": "Enter a name for the type.",
