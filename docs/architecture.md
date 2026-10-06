@@ -197,6 +197,30 @@ Append only. No application role can update or delete an entry, including Owner.
 action, entity, before and after values, timestamp, and IP. Covers every write to people, giving,
 notes, permissions, and check-in, and every **read** of a confidential note or a giving record.
 
+## The admin portal
+
+`apps/admin` is the platform's own portal, deployed separately from the product and never reachable
+with a church's session. It approves a new church, takes one out of service, looks up which churches
+an address can sign in to, and keeps the operators themselves. Its reads cross every tenant, so they
+run on the owner connection behind a check that the asking account holds a live row in
+`platform_admins`; that check is the first statement of every function in `repo/platform.ts`.
+
+`platform_events` is append only, the same rule as a church's own audit log, and carries the note the
+operator typed. Archiving writes `tenants.archived_at`, which `membershipsForUser`,
+`verifyMembership`, the slug resolver and the self-sign-up lookup all filter on, so an archived
+church cannot be signed in to or found.
+
+**The first operator** is granted from a terminal that already holds the production database URL,
+because before there is one there is nobody to press the button:
+
+```
+pnpm --filter @connectapp/db platform:admin grant you@example.org "Your Name"
+```
+
+The account has to exist first: sign up in the product with that address, then grant it. Everything
+after that happens inside the portal, under Operators. `platform:admin list` and
+`platform:admin revoke <email>` are the way back in if the last operator is ever lost.
+
 ## Offline check-in
 
 The check-in station is the only place where offline is a hard requirement, so it gets a deliberate

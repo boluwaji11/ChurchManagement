@@ -17,7 +17,8 @@
     "seed:users": "tsx scripts/seed-users.ts",
     "metrics": "tsx scripts/metrics.ts",
     "approve": "tsx scripts/approve.ts",
-    "census": "tsx scripts/census.ts"
+    "census": "tsx scripts/census.ts",
+    "platform:admin": "tsx scripts/platform-admin.ts"
   },
   "dependencies": {
     "@connectapp/i18n": "workspace:*",
