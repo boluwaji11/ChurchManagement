@@ -27,12 +27,15 @@ export function RichText({
   defaultValue,
   className,
   minHeight = 160,
+  maxHeight,
 }: {
   name: string;
   /** Markdown, as it is stored. */
   defaultValue: string;
   className?: string;
   minHeight?: number;
+  /** Past this the box keeps its height and the text scrolls inside it. */
+  maxHeight?: number;
 }) {
   const box = React.useRef<HTMLDivElement>(null);
   const [markdown, setMarkdown] = React.useState(defaultValue);
@@ -170,8 +173,9 @@ export function RichText({
           "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4",
           "[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5",
           "[&_strong]:font-semibold",
+          maxHeight ? "overflow-y-auto" : "",
         )}
-        style={{ minHeight }}
+        style={{ minHeight, maxHeight }}
       />
 
       <Dialog open={asking} onOpenChange={setAsking}>

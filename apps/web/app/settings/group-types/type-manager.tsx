@@ -204,7 +204,12 @@ function TypeDialog({
           </Field>
 
           <Field label={t("groupType.description")}>
-            <RichText name="description" defaultValue={type?.description ?? ""} minHeight={120} />
+            <RichText
+              name="description"
+              defaultValue={type?.description ?? ""}
+              minHeight={110}
+              maxHeight={180}
+            />
           </Field>
 
           <DialogFooter className="justify-between">
