@@ -11,6 +11,7 @@ import {
 import { Avatar, Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { photoUrls } from "@/lib/photos";
 import { AppShell } from "@/components/app-shell";
 import { lifecycleLabel } from "@/lib/person-input";
 import { longDate } from "@/lib/dates";
@@ -130,6 +131,8 @@ export default async function PersonPage({
   const { person, contacts, addresses, household, groups, serving, history } = result;
 
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
+  // R2.9. Their face, signed for the hour.
+  const faces = await photoUrls([person.photoKey]);
   const canEdit = canEditPeople(session);
 
   const places = [
@@ -152,7 +155,12 @@ export default async function PersonPage({
           that places them: what they are to the church, whose household, and
           since when. */}
       <div className="flex flex-wrap items-center gap-5">
-        <Avatar name={display} id={person.id} className="size-[72px] text-[24px] font-semibold" />
+        <Avatar
+          name={display}
+          src={person.photoKey ? (faces[person.photoKey] ?? null) : null}
+          id={person.id}
+          className="size-[72px] text-[24px] font-semibold"
+        />
         <div className="min-w-[200px] flex-1">
           <div className="font-display text-[32px] leading-[38px] text-fg">{display}</div>
           <div className="mt-2 flex flex-wrap items-center gap-2">

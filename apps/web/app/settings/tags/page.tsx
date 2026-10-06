@@ -28,20 +28,18 @@ export default async function TagsPage({
       <SettingsHeading title="settings.tab.tags" lede="settings.lede.tags" />
 
 
-        {tags.length === 0 && canCreate ? (
-          <Empty
-            icon="tag"
-            title={t("tags.empty.title")}
-            body={t("tags.empty.body")}
-            action={<NewTag church={session.tenantSlug} />}
-          />
-        ) : null}
-
-        {!canCreate && !canManage ? (
-          <Banner tone="info" title={t("tags.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
-        ) : (
-          <TagManager church={session.tenantSlug} tags={tags} canManage={canManage} canCreate={canCreate} />
-        )}
+      {!canCreate && !canManage ? (
+        <Banner tone="info" title={t("tags.forbidden.title")}>{t("forbidden.askAdmin")}</Banner>
+      ) : tags.length === 0 ? (
+        <Empty
+          icon="tag"
+          title={t("tags.empty.title")}
+          body={t("tags.empty.body")}
+          action={canCreate ? <NewTag church={session.tenantSlug} filled /> : undefined}
+        />
+      ) : (
+        <TagManager church={session.tenantSlug} tags={tags} canManage={canManage} canCreate={canCreate} />
+      )}
     </div>
   );
 }

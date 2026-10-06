@@ -418,7 +418,7 @@ export const en = {
   "settings.teams.none.body": "Create the teams your church schedules volunteers onto.",
   "settings.teams.where": "Schedules for these teams are on Serving.",
   "settings.lede.stations": "Tablets and kiosks that run check-in, and the printer each one uses.",
-  "settings.lede.tags": "Short labels for filtering Members. Removing a tag takes it off everyone.",
+  "settings.lede.tags": "Short labels for filtering members.",
   "settings.lede.fields": "Extra details you keep on each member. They show on the profile and in filters.",
   "settings.lede.followups": "The steps each journey goes through, in your church's own words.",
   "settings.title.profile": "Your profile",
@@ -753,7 +753,7 @@ export const en = {
   "personForm.household": "Household",
   "personForm.householdNone": "Not in a household",
   "settings.tab.households": "Manage households",
-  "settings.lede.households": "The families this church keeps together.",
+  "settings.lede.households": "The families your church keeps together.",
   "households.rename": "Rename {name}",
   "households.add": "New household",
   "households.members": "Who is in it",
@@ -1106,7 +1106,7 @@ export const en = {
 
   // Export
   "export.title": "Export everything",
-  "export.body": "Every record this church holds, as a spreadsheet and as a data file.",
+  "export.body": "Every record your church holds, as a spreadsheet and as a data file.",
   "export.download": "Download",
 
   // Merging duplicates

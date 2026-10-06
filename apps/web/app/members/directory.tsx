@@ -31,6 +31,8 @@ export interface Row {
   id: string;
   slug: string;
   displayName: string;
+  /** R2.9. Their face, when the church has one for them. */
+  photoUrl?: string | null;
   lifecycleStatus: string;
   householdName: string | null;
   primaryEmail: string | null;
@@ -377,7 +379,7 @@ export function Directory({
                       href={`/members/${p.slug}?church=${church}`}
                       className="flex items-center gap-2.5 font-medium text-fg"
                     >
-                      <Avatar name={p.displayName} id={p.id} size="sm" className="size-7 text-[11px] font-semibold" />
+                      <Avatar name={p.displayName} src={p.photoUrl} id={p.id} size="sm" className="size-7 text-[11px] font-semibold" />
                       <span className="truncate">{p.displayName}</span>
                     </Link>
                   </td>

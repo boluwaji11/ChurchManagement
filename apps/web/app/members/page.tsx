@@ -9,6 +9,7 @@ import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";
+import { photoUrls } from "@/lib/photos";
 import {
   queryFromParams, pageFromParams, paramsFromRule, type DirectoryParams,
 } from "@/lib/directory-query";
@@ -64,6 +65,8 @@ export default async function PeoplePage({
   );
 
   const canEdit = canEditPeople(session);
+  // R2.9. Every face on the list, signed in one round trip.
+  const faces = await photoUrls(members.map((one) => one.photoKey));
 
   return (
     <AppShell
@@ -98,6 +101,7 @@ export default async function PeoplePage({
         groups={groups.map((g) => ({ id: g.id, name: g.name, hue: g.typeHue }))}
         rows={members.map((p) => ({
           id: p.id,
+          photoUrl: p.photoKey ? (faces[p.photoKey] ?? null) : null,
           slug: p.slug,
           displayName: p.displayName,
           lifecycleStatus: p.lifecycleStatus,

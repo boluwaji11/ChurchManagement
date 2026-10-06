@@ -24,6 +24,8 @@ export interface PersonRow {
   primaryPhone: string | null;
   /** R2.14. The tag names, for the column the directory shows them in. */
   tagNames: string[];
+  /** R2.9. Their photo in the bucket, for the avatar on every list. */
+  photoKey: string | null;
   archivedAt: Date | null;
 }
 
@@ -251,6 +253,7 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
       preferredName: members.preferredName,
       lifecycleStatus: members.lifecycleStatus,
       dateOfBirth: members.dateOfBirth,
+      photoKey: members.photoKey,
       archivedAt: members.archivedAt,
       householdName: households.name,
       primaryEmail: sql<string | null>`(

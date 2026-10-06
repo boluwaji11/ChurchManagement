@@ -80,7 +80,7 @@ const CHIP = "flex h-9 items-center justify-center rounded-full px-3.5 text-labe
  * was a form sitting there asking to be filled in on a screen somebody opened
  * to read.
  */
-export function NewTag({ church }: { church: string }) {
+export function NewTag({ church, filled }: { church: string; filled?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
@@ -110,12 +110,18 @@ export function NewTag({ church }: { church: string }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button
-          type="button"
-          className={`${CHIP} cursor-pointer gap-1.5 border border-dashed border-line-strong text-fg-muted hover:bg-sunken hover:text-fg`}
-        >
-          <Plus className="size-4" aria-hidden /> {t("tags.add")}
-        </button>
+        {filled ? (
+          <Button>
+            <Plus /> {t("tags.add")}
+          </Button>
+        ) : (
+          <button
+            type="button"
+            className={`${CHIP} cursor-pointer gap-1.5 border border-dashed border-line-strong text-fg-muted hover:bg-sunken hover:text-fg`}
+          >
+            <Plus className="size-4" aria-hidden /> {t("tags.add")}
+          </button>
+        )}
       </SheetTrigger>
 
       <SheetContent title={t("tags.add")} closeLabel={t("common.close")}>
