@@ -104,7 +104,13 @@ export const SelectContent = React.forwardRef<
       <P.Content
         ref={ref}
         position={position}
+        side="bottom"
+        align="start"
         sideOffset={6}
+        // Shrink to the room under the field rather than flipping over whatever
+        // is above it. Radix measures the space and hands it over in this
+        // variable; without it a long list jumps the panel to the other side.
+        style={{ maxHeight: "var(--radix-select-content-available-height)" }}
         onCloseAutoFocus={() => setQuery("")}
         className={cn(
           "z-50 min-w-[11rem] overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg p-1.5",
@@ -141,7 +147,7 @@ export const SelectContent = React.forwardRef<
           </div>
         ) : null}
 
-        <P.Viewport className="flex max-h-[280px] flex-col gap-0.5 overflow-y-auto">{shown}</P.Viewport>
+        <P.Viewport className="flex max-h-[min(18rem,var(--radix-select-content-available-height))] flex-col gap-0.5 overflow-y-auto">{shown}</P.Viewport>
       </P.Content>
     </P.Portal>
   );

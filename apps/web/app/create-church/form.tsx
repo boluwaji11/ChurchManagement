@@ -44,12 +44,38 @@ function allZones(): string[] {
   }
 }
 
-/** "Eastern" where a church would say that, and "Lagos, Africa" everywhere else. */
-function zoneLabel(zone: string): string {
+/**
+ * "GMT+01:00" for a zone, which is the half of the answer a reader recognises.
+ *
+ * IANA names a zone after a city, because a city is what keeps the same clock
+ * through a century of rule changes. Nobody looks for "Africa/Lagos", they look
+ * for an offset, so the offset leads and the city says which one of the several
+ * on that offset this is.
+ */
+function offsetOf(zone: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      timeZoneName: "longOffset",
+    }).formatToParts(new Date());
+    return parts.find((p) => p.type === "timeZoneName")?.value ?? "GMT";
+  } catch {
+    return "GMT";
+  }
+}
+
+/** Minutes east of GMT, for sorting the list the way a reader expects it. */
+function offsetRank(offset: string): number {
+  const m = /GMT([+-])(\d{2}):(\d{2})/.exec(offset);
+  if (!m) return 0;
+  return (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3]));
+}
+
+/** "(GMT-06:00) Central" where a church would say that, "(GMT+01:00) Lagos" elsewhere. */
+function zoneName(zone: string): string {
   if ((FRIENDLY as readonly string[]).includes(zone)) return t(`tz.${zone}` as never);
-  const [region, ...rest] = zone.split("/");
-  const city = rest.join(" / ").replace(/_/g, " ");
-  return city ? `${city}, ${(region ?? "").replace(/_/g, " ")}` : zone;
+  const [, ...rest] = zone.split("/");
+  return rest.join(" / ").replace(/_/g, " ") || zone;
 }
 
 export function CreateChurchForm() {
@@ -68,13 +94,21 @@ export function CreateChurchForm() {
    * and is what the field opens on.
    */
   const zones = React.useMemo(() => {
+    const draw = (z: string): [string, string] => {
+      const offset = offsetOf(z);
+      return [z, `(${offset}) ${zoneName(z)}`];
+    };
     const rest = allZones()
       .filter((z) => !(FRIENDLY as readonly string[]).includes(z))
-      .map((z): [string, string] => [z, zoneLabel(z)])
-      .sort((a, b) => a[1].localeCompare(b[1]));
-    const head = FRIENDLY.map((z): [string, string] => [z, zoneLabel(z)]);
+      .map(draw)
+      .sort(
+        (a, b) =>
+          offsetRank(a[1].slice(1, a[1].indexOf(")"))) -
+            offsetRank(b[1].slice(1, b[1].indexOf(")"))) || a[1].localeCompare(b[1]),
+      );
+    const head = FRIENDLY.map(draw);
     const all = [...head, ...rest];
-    return all.some(([z]) => z === zone) ? all : [...all, [zone, zoneLabel(zone)] as [string, string]];
+    return all.some(([z]) => z === zone) ? all : [...all, draw(zone)];
   }, [zone]);
 
   const action = async (data: FormData) => {

@@ -15,7 +15,16 @@ import { clearSectionMemory } from "./shell/section-memory";
  * form posts rather than calling an action, so it still works without
  * JavaScript once the dialog is open.
  */
-export function SignOutButton({ label, compact }: { label?: string; compact?: boolean }) {
+export function SignOutButton({
+  label,
+  compact,
+  className,
+}: {
+  label?: string;
+  compact?: boolean;
+  /** Where a bar wants it smaller than a form's button. */
+  className?: string;
+}) {
   const text = label ?? t("action.signOut");
 
   return (
@@ -28,7 +37,7 @@ export function SignOutButton({ label, compact }: { label?: string; compact?: bo
             <LogOut /> {text}
           </Button>
         ) : (
-          <Button type="button" variant="secondary">
+          <Button type="button" className={className}>
             <LogOut /> {text}
           </Button>
         )}

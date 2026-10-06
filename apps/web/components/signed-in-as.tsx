@@ -14,7 +14,7 @@ export function SignedInAs({ email }: { email: string }) {
       <span className="hidden max-w-[260px] truncate text-[14px] text-fg-muted sm:inline">
         {t("chooseChurch.signedInAs", { email })}
       </span>
-      <SignOutButton />
+      <SignOutButton className="min-h-8 gap-1.5 rounded-lg px-3 text-[13px]" />
     </div>
   );
 }
