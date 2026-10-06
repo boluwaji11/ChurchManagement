@@ -3,7 +3,7 @@ import { t } from "@connectapp/i18n";
 import { currentUser } from "@/lib/session";
 import { CreateChurchForm } from "./form";
 import { AuthShell } from "../auth-shell";
-import { SignOutButton } from "@/components/sign-out-button";
+import { SignedInAs } from "@/components/signed-in-as";
 import type { Piece } from "@/components/site/art";
 
 export const dynamic = "force-dynamic";
@@ -19,13 +19,15 @@ export default async function StartPage() {
   const user = await currentUser();
   if (!user) redirect("/sign-in?next=/create-church");
 
+  const first = user.firstName?.trim() || user.fullName?.trim().split(/\s+/)[0];
+
   return (
     <AuthShell
-      title={t("createChurch.title")}
+      title={first ? t("createChurch.greeting", { name: first }) : t("createChurch.title")}
       step={2}
       art={ART}
       width="max-w-[520px]"
-      footer={<SignOutButton />}
+      bar={<SignedInAs email={user.email} />}
     >
       <CreateChurchForm />
     </AuthShell>

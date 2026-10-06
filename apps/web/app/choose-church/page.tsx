@@ -4,7 +4,7 @@ import { ArrowRight, Church, Plus } from "lucide-react";
 import { membershipsForUser, canEditPeople, canReadIncidents } from "@connectapp/db";
 import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
-import { SignOutButton } from "@/components/sign-out-button";
+import { SignedInAs } from "@/components/signed-in-as";
 import { AuthShell, AUTH_BUTTON } from "../auth-shell";
 import type { Piece } from "@/components/site/art";
 import { t } from "@connectapp/i18n";
@@ -36,11 +36,10 @@ export default async function ChooseChurch({
   return (
     <AuthShell
       title={memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
-      under={t("chooseChurch.signedInAs", { email: user.email })}
       step={2}
       art={ART}
       width="max-w-[520px]"
-      footer={<SignOutButton />}
+      bar={<SignedInAs email={user.email} />}
     >
       {notice ? (
         <Banner tone={notice === "denied" ? "warning" : "info"} title={t(`chooseChurch.${notice}.title`)}>

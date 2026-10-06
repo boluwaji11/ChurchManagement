@@ -27,6 +27,7 @@ export function AuthShell({
   footer,
   step,
   art,
+  bar,
   width = "max-w-[500px]",
 }: {
   title: string;
@@ -39,11 +40,13 @@ export function AuthShell({
   step?: 1 | 2 | 3;
   /** Drawings for the margins, as the website places them. */
   art?: readonly Piece[];
+  /** Who is signed in, on the right of the bar where a product puts it. */
+  bar?: React.ReactNode;
   width?: string;
 }) {
   return (
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      <SiteBar />
+      <SiteBar>{bar}</SiteBar>
 
       <main
         id="main"

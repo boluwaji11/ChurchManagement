@@ -277,8 +277,9 @@ export const en = {
 
   // Creating a church
   "createChurch.title": "Create a church account",
+  "createChurch.greeting": "{name}, let's set up your church",
+  "createChurch.searchZone": "Search timezones",
   "createChurch.name": "Church name",
-  "createChurch.namePlaceholder": "Riverside Fellowship",
   "createChurch.timezone": "Timezone",
   "createChurch.submit": "Create it",
   "createChurch.failed": "Not created",
