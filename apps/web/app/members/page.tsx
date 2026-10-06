@@ -48,18 +48,33 @@ export default async function PeoplePage({
         : queryFromParams(params);
       if (opened?.kind === "static") query.ids = opened.ids ?? [];
 
-      return {
-        lists: canEditPeople(session) ? await listSavedLists(tx) : [],
-        viewing: opened ? { id: params.list!, name: opened.name, kind: opened.kind } : null,
+      /*
+       * Six reads that have nothing to say to each other go down the one
+       * connection together. Waiting on each one in turn spent a round trip
+       * apiece, and the round trip is the expensive part.
+       */
+      const [lists, members, matching, tags, groups, counts, pairs] = await Promise.all([
+        canEditPeople(session) ? listSavedLists(tx) : [],
         // R9.3. Who is asking goes to the query layer, which decides what they
         // may see. A group leader gets their own group and nobody else.
-        members: await listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
-        matching: await countPeople(tx, { ...query, viewer }),
-        tags: await listTagsWithCounts(tx),
-        groups: await listGroups(tx),
+        listPeople(tx, { ...query, viewer, page, perPage: PER_PAGE }),
+        countPeople(tx, { ...query, viewer }),
+        listTagsWithCounts(tx),
+        listGroups(tx),
         // R2.14. The numbers beside each status in the filter drawer.
-        counts: await countPeopleByStatus(tx),
-        duplicates: canArchivePeople(session) ? (await findDuplicatePairs(tx)).length : 0,
+        countPeopleByStatus(tx),
+        canArchivePeople(session) ? findDuplicatePairs(tx) : [],
+      ]);
+
+      return {
+        lists,
+        viewing: opened ? { id: params.list!, name: opened.name, kind: opened.kind } : null,
+        members,
+        matching,
+        tags,
+        groups,
+        counts,
+        duplicates: pairs.length,
       };
     },
   );

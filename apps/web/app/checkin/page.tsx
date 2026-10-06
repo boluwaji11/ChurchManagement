@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FileWarning, Tag, Printer, Move, Plus } from "lucide-react";
 import {
   withTenant, listRooms, listOccurrences, listStations, listIncidents, listPeople,
-  visitsFor, getChurch,
+  visitsFor,
   roomBoard, roomRoster, arriving, canSupervise, canReadIncidents,
   type RoomRosterEntry,
 } from "@connectapp/db";
@@ -12,6 +12,7 @@ import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { shellData } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { ageLine } from "@/lib/room-ages";
 import { Floor, type FloorStart } from "./floor";
@@ -42,12 +43,32 @@ export default async function CheckinPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
+  // The frame around this screen has already read the church, and the clock the
+  // board runs on comes out of it.
+  const profile = (await shellData(session)).church;
+  const clock = churchNow(profile?.timezone ?? "America/Chicago");
+
   const data = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
-      const profile = await getChurch(tx, session.tenantId);
-      const clock = churchNow(profile?.timezone ?? "America/Chicago");
-      const today = await listOccurrences(tx, { from: clock.date, to: clock.date });
+      /*
+       * Everything that does not depend on which service is chosen, in one pass
+       * down the connection.
+       */
+      const [today, rooms, directory, stationList, incidents] = await Promise.all([
+        listOccurrences(tx, { from: clock.date, to: clock.date }),
+        listRooms(tx),
+        // R8.14. Anybody the church holds who is not already checked in to
+        // this service, so a child who walked past the desk can still be
+        // checked in from here.
+        listPeople(tx, { sort: "name" }),
+        listStations(tx),
+        // R8.13. The number on the Incidents button is the reports where the
+        // guardian has still to be told, which is the one thing left open on a
+        // report that has been written.
+        canReadIncidents(session) ? listIncidents(tx, { role: session.role }) : [],
+      ]);
+
       const services = today
         .filter((o) => o.status === "scheduled")
         .map((o) => ({
@@ -66,12 +87,21 @@ export default async function CheckinPage({
         services[0]?.id ||
         "";
 
-      const rooms = await listRooms(tx);
-      const board = chosen ? await roomBoard(tx, chosen) : null;
-      const rosters: Record<string, RoomRosterEntry[]> = {};
-      for (const room of board?.rooms ?? []) {
-        rosters[room.roomId] = await roomRoster(tx, chosen!, room.roomId);
-      }
+      // The three reads that needed to know which service, together.
+      const [board, waiting, here] = await Promise.all([
+        chosen ? roomBoard(tx, chosen) : null,
+        chosen ? arriving(tx, chosen, clock.date) : [],
+        chosen ? visitsFor(tx, chosen) : [],
+      ]);
+
+      // One roster per room. A church with eight rooms spent eight round trips
+      // here, in turn, while a volunteer waited at the desk.
+      const lists = await Promise.all(
+        (board?.rooms ?? []).map(async (room) =>
+          [room.roomId, await roomRoster(tx, chosen, room.roomId)] as const,
+        ),
+      );
+      const rosters: Record<string, RoomRosterEntry[]> = Object.fromEntries(lists);
 
       return {
         clock,
@@ -80,21 +110,11 @@ export default async function CheckinPage({
         rooms,
         board,
         rosters,
-        waiting: chosen ? await arriving(tx, chosen, clock.date) : [],
-        // R8.14. Anybody the church holds who is not already checked in to
-        // this service, so a child who walked past the desk can still be
-        // checked in from here.
-        directory: await listPeople(tx, { sort: "name" }),
-        here: chosen ? await visitsFor(tx, chosen) : [],
-        stations: (await listStations(tx)).length,
-        // R8.13. The number on the Incidents button is the reports where the
-        // guardian has still to be told, which is the one thing left open on a
-        // report that has been written.
-        openIncidents: canReadIncidents(session)
-          ? (await listIncidents(tx, { role: session.role })).filter(
-              (i) => i.notifiedAt === null,
-            ).length
-          : 0,
+        waiting,
+        directory,
+        here,
+        stations: stationList.length,
+        openIncidents: incidents.filter((i) => i.notifiedAt === null).length,
       };
     },
   );

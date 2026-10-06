@@ -29,17 +29,21 @@ export default async function EditPersonPage({
     // Found by their readable address or by their id, so everything after this
     // works from the record's own id rather than from whatever was in the URL.
     const person = await getPersonForEdit(tx, id);
-    return {
-      person,
-      households: await listHouseholds(tx),
-      customFields: await listCustomFields(tx, "person"),
-      campuses: await listCampuses(tx),
-      customValues: person ? await getCustomValues(tx, "person", person.id) : {},
-      tags: await listTagsWithCounts(tx),
-      assigned: person ? await listTagsForPerson(tx, person.id) : [],
-      contacts: person ? await listContacts(tx, person.id) : [],
-      places: person ? await listAddresses(tx, person.id) : [],
-    };
+
+    // Eight reads that only ever needed the id, in one pass down the connection.
+    const [households, customFields, campuses, customValues, tags, assigned, contacts, places] =
+      await Promise.all([
+        listHouseholds(tx),
+        listCustomFields(tx, "person"),
+        listCampuses(tx),
+        person ? getCustomValues(tx, "person", person.id) : {},
+        listTagsWithCounts(tx),
+        person ? listTagsForPerson(tx, person.id) : [],
+        person ? listContacts(tx, person.id) : [],
+        person ? listAddresses(tx, person.id) : [],
+      ]);
+
+    return { person, households, customFields, campuses, customValues, tags, assigned, contacts, places };
   });
 
   // Another church's person is reported exactly like a person who does not exist.

@@ -4,6 +4,7 @@ import { NOTIFICATION_LOOK } from "@connectapp/db";
 import { t, spellingFor } from "@connectapp/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
+import { WatchAccess } from "./watch-access";
 import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";
 import { TopBar } from "./shell/top-bar";
 import { NotificationBell } from "./shell/bell";
@@ -99,6 +100,12 @@ export async function AppShell({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* R1.4. A role changed elsewhere reaches this screen on its own. */}
+        <WatchAccess
+          church={session.tenantSlug}
+          access={[session.role, ...[...(session.permissions ?? [])].sort()].join("|")}
+        />
+
         <DemoBanner info={counts.demo} />
         <ProvisionalBanner standing={counts.standing} church={session.tenantSlug} />
 

@@ -108,21 +108,24 @@ export default async function PersonPage({
     // works from the record's own id rather than from whatever was in the URL.
     const memberId = person.id;
 
-    return {
-      person,
+    // Six reads about the same person, all of them keyed on the id above, so
+    // they go down the one connection together rather than in turn.
+    const [contacts, addresses, household, groups, serving, history] = await Promise.all([
       // R2.4. Every way of reaching them, not only the one that leads.
-      contacts: await listContacts(tx, memberId),
-      addresses: await listAddresses(tx, memberId),
-      household: await householdFor(tx, memberId),
-      groups: await groupsForPerson(tx, memberId),
-      serving: await servingForPerson(tx, memberId),
+      listContacts(tx, memberId),
+      listAddresses(tx, memberId),
+      householdFor(tx, memberId),
+      groupsForPerson(tx, memberId),
+      servingForPerson(tx, memberId),
       // R2.15. Everything that has happened with this person, in one order.
-      history: await personTimeline(
+      personTimeline(
         tx,
         { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
         memberId,
       ),
-    };
+    ]);
+
+    return { person, contacts, addresses, household, groups, serving, history };
   });
 
   // Not found and not permitted are the same response on purpose. A person in
