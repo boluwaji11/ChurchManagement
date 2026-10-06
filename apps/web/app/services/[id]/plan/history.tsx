@@ -36,7 +36,8 @@ export function History({ changes }: { changes: PlanChange[] }) {
       <span className="font-display text-heading text-fg">{t("history.title")}</span>
 
       {changes.length === 0 ? (
-        <Empty icon="history" title={t("history.empty")} />
+        <Empty icon="history" title={t("history.empty")}
+        body={t("history.empty.body")} />
       ) : (
         <ul className="flex flex-col gap-2">
           {changes.map((change) => {

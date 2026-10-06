@@ -140,6 +140,7 @@ export default async function EventsPage({
         <Empty
           icon="calendar"
           title={putAway ? t("event.archived.none") : t("event.empty")}
+          body={putAway ? undefined : t("event.empty.body")}
           action={action}
         />
       ) : (

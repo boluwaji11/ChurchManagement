@@ -84,7 +84,8 @@ export function WhoServes({
       {error ? <Banner tone="danger" title={t("plan.failed")}>{error}</Banner> : null}
 
       {teams.length === 0 ? (
-        <Empty icon="serving" title={t("serves.empty")} />
+        <Empty icon="serving" title={t("serves.empty")}
+          body={t("serves.empty.body")} />
       ) : (
         <div className="flex flex-col gap-5">
           {teams.map((team) => (

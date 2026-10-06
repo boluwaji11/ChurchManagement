@@ -401,7 +401,8 @@ export function EventView({
 
       {showing === "registrations" ? (
         registrations.length === 0 ? (
-          <Empty icon="members" title={t("event.registrations.none")} />
+          <Empty icon="members" title={t("event.registrations.none")}
+                body={t("event.registrations.none.body")} />
         ) : (
           <div className="-mt-2 flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-end gap-0.5">

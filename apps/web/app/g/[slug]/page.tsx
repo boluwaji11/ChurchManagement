@@ -55,7 +55,8 @@ export default async function PublicGroupsPage({
         </h1>
 
         {groups.length === 0 ? (
-          <Empty icon="group" title={t("publicGroups.none")} />
+          <Empty icon="group" title={t("publicGroups.none")}
+          body={t("publicGroups.none.body")} />
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {groups.map((group) => (

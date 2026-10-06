@@ -48,6 +48,7 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
         <Empty
           icon="serving"
           title={t("settings.teams.none.title")}
+          body={t("settings.teams.none.body")}
           action={<AddTeam church={church} />}
         />
       ) : (

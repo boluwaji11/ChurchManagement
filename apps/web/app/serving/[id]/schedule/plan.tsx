@@ -85,7 +85,8 @@ export function SchedulePlan({
     });
   };
 
-  if (gatherings.length === 0) return <Empty icon="calendar" title={t("plan.empty")} />;
+  if (gatherings.length === 0) return <Empty icon="calendar" title={t("plan.empty")}
+          body={t("plan.empty.body")} />;
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>

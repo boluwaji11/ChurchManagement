@@ -37,6 +37,7 @@ export default async function FieldsPage({
           <Empty
             icon="field"
             title={t("fields.empty.title")}
+          body={t("fields.empty.body")}
             action={<NewField church={session.tenantSlug} />}
           />
         ) : null}

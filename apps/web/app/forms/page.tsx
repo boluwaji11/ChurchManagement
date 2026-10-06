@@ -62,6 +62,7 @@ export default async function FormsPage({
         <Empty
           icon="form"
           title={putAway ? t("form.archived.none") : t("form.empty")}
+          body={putAway ? undefined : t("form.empty.body")}
           action={putAway ? undefined : <NewFormButton church={session.tenantSlug} />}
         />
       ) : (

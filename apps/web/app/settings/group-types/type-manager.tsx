@@ -54,6 +54,7 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
         <Empty
           icon="group"
           title={t("groupType.empty.title")}
+          body={t("groupType.empty.body")}
           action={<TypeDialog church={church} pending={pending} />}
         />
       ) : (

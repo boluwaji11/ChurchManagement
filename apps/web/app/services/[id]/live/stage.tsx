@@ -82,7 +82,8 @@ export function Stage({
     .reduce((total, item) => total + item.minutes * 60, 0);
   const drift = sinceStart - plannedSoFar;
 
-  if (live.items.length === 0) return <Empty icon="order" title={t("order.empty")} />;
+  if (live.items.length === 0) return <Empty icon="order" title={t("order.empty")}
+        body={t("order.empty.body")} />;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>

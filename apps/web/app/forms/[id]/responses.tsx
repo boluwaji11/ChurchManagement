@@ -137,7 +137,8 @@ export function Responses({
     router.push(`${pathname}?${query.toString()}`, { scroll: false });
   };
 
-  if (total === 0) return <Empty icon="inbox" title={t("form.responses.empty")} />;
+  if (total === 0) return <Empty icon="inbox" title={t("form.responses.empty")}
+          body={t("form.responses.empty.body")} />;
 
   const first = (page - 1) * perPage + 1;
   const upto = Math.min(page * perPage, total);

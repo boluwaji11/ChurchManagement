@@ -511,6 +511,7 @@ export function Finder({
           <Empty
             icon="group"
             title={t("groups.none.title")}
+            body={t("groups.none.body")}
             action={
               canManage ? (
                 <Button asChild>
