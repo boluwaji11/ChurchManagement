@@ -1,7 +1,6 @@
 import {
   canManageChurch, canManageCustomFields, canEditPeople, canManageRooms,
   canArchivePeople, canManageHouseholds, canManageGroups, canManageTeams,
-  withTenant, setupProgress,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -15,8 +14,8 @@ export const dynamic = "force-dynamic";
 /**
  * R24.6. Everything a church administers, behind one menu.
  *
- * Built to docs/redesign/design: the sections grouped down the left, the one
- * being read beside them. Tags and custom fields used to sit in the main
+ * Built to docs/redesign/design: the sections across the top, each carrying its
+ * own list. Tags and custom fields used to sit in the main
  * navigation beside the directory, which put the two things a volunteer touches
  * every day next to two they touch twice a year. The directory is the product.
  * This is the drawer.
@@ -24,24 +23,10 @@ export const dynamic = "force-dynamic";
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
 
-  /*
-   * R22.1. The wizard is a thing a church does once. It is here while there is
-   * something left to do and gone afterwards, rather than sitting in the
-   * settings of a church that finished in March.
-   */
-  const setup = canManageChurch(session)
-    ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
-        setupProgress(tx, session.tenantId),
-      )
-    : null;
-
   const groups: SettingsGroup[] = [
     {
       title: t("settings.group.church"),
       items: [
-        ...(setup && !setup.complete
-          ? [{ href: "/setup", label: t("settings.tab.setup") }]
-          : []),
         ...(canManageChurch(session)
           ? [
               { href: "/settings/church", label: t("settings.tab.church") },
