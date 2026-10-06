@@ -38,7 +38,11 @@ export default async function RolesPage({
   }));
 
   // R1.6. The ready-made roles this church has not taken up yet.
-  const shelf = rows.filter((role) => role.archived);
+  /*
+   * R1.6. Member is where everybody starts, so it is not something to take up.
+   * It stays in the list of roles, which is what the grid reads.
+   */
+  const shelf = rows.filter((role) => role.archived && role.key !== "member");
 
   return (
     <>

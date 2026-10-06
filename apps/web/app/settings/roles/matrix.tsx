@@ -261,7 +261,10 @@ export function RoleForm({
 
             <Button
               type="button"
-              disabled={pending || !name.trim()}
+              /* R1.6. A role that holds nothing is a member with a different
+                 word on it. The built-ins are exempt: Group leader holds none
+                 of these and still means something. */
+              disabled={pending || !name.trim() || (!taking?.builtin && !role?.builtin && held.length === 0)}
               onClick={() =>
                 run(async () => {
                   if (role) return saveRole(role.id, name, held, church);

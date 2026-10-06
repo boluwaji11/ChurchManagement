@@ -886,6 +886,7 @@ export const en = {
   "roles.rename": "Rename {name}",
   "roles.failed": "That did not save. Try again.",
   "roles.error.name": "Enter a name.",
+  "roles.error.empty": "Choose at least one thing this role may do.",
   "roles.error.taken": "There is already a role with that name.",
   "roles.error.builtin": "A role ConnectApp ships with cannot be deleted.",
   "roles.error.owner": "The Owner cannot be changed.",

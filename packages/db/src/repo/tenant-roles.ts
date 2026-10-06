@@ -239,6 +239,13 @@ export async function createRole(
   const title = clean(name);
   if (!title) throw new InvalidInputError("roles.error.name");
 
+  /*
+   * R1.6. A role that holds nothing is a member with a different word on it.
+   * The built-ins are exempt: Group leader holds none of these and still means
+   * something, because being the leader of a group is read from the group.
+   */
+  if (known(permissions).length === 0) throw new InvalidInputError("roles.error.empty");
+
   const key = slug(title);
   if (!key) throw new InvalidInputError("roles.error.name");
 
@@ -320,9 +327,16 @@ export async function setPermissions(
   if (!row) throw new InvalidInputError("roles.error.missing");
   if (row.key === FIXED) throw new InvalidInputError("roles.error.owner");
 
+  const kept = known(permissions);
+  // R1.6. A church's own role that holds nothing is a member with a different
+  // word on it. A built-in keeps whatever the product gave it.
+  if (kept.length === 0 && row.key.startsWith("custom_")) {
+    throw new InvalidInputError("roles.error.empty");
+  }
+
   await db
     .update(tenantRoles)
-    .set({ permissions: known(permissions), customised: true })
+    .set({ permissions: kept, customised: true })
     .where(eq(tenantRoles.id, id));
 }
 
