@@ -87,11 +87,10 @@ export default async function GroupsPage({
     const landing = (
       <TypesLanding church={session.tenantSlug} types={kinds} canManage={manage} />
     );
+    /* The kinds are the heading. A title over a list of names that are
+       themselves titles says the word twice. */
     return portal ? (
-      <PortalShell session={session}>
-        <PortalTitle title={t("find.title")} under={t("find.lede")} />
-        {landing}
-      </PortalShell>
+      <PortalShell session={session}>{landing}</PortalShell>
     ) : (
       <AppShell session={session} title={t("groups.title")}>{landing}</AppShell>
     );
