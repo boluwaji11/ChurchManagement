@@ -45,6 +45,26 @@ export const PERSON_FIELDS: TargetField[] = [
     aliases: ["household", "household name", "family", "family name", "family id"] },
   { key: "householdRole", label: "personForm.householdRole",
     aliases: ["household role", "family role", "relationship", "role in family", "family position"] },
+  { key: "address", label: "personForm.address",
+    aliases: ["address", "home address", "street address", "street", "address line 1", "address 1", "mailing address"] },
+  { key: "addressLine2", label: "address.line2",
+    aliases: ["address line 2", "address 2", "apartment", "unit", "suite"] },
+  { key: "city", label: "address.city",
+    aliases: ["city", "town", "suburb"] },
+  { key: "region", label: "address.region",
+    aliases: ["state", "province", "county", "region"] },
+  { key: "postalCode", label: "address.postalCode",
+    aliases: ["zip", "zip code", "postcode", "postal code", "post code"] },
+  { key: "maritalStatus", label: "person.maritalStatus",
+    aliases: ["marital status", "marital", "married", "relationship status"] },
+  { key: "schoolLevel", label: "person.schoolLevel",
+    aliases: ["school level", "grade", "school grade", "grade level", "year group", "school year"] },
+  { key: "allergies", label: "personForm.allergies",
+    aliases: ["allergies", "allergy", "allergen", "allergens"] },
+  { key: "medicalNote", label: "personForm.medicalNote",
+    aliases: ["medical", "medical note", "medical notes", "medical information", "conditions"] },
+  { key: "tags", label: "tags.title",
+    aliases: ["tags", "tag", "labels", "label", "attributes"] },
 ];
 
 /** The value used in a mapping to mean "do not import this column". */
@@ -170,4 +190,44 @@ export function parseHouseholdRole(raw: string): string {
   if (/spouse|wife|partner|husband/.test(n)) return "spouse";
   if (/child|son|daughter|dependent|kid/.test(n)) return "child";
   return "other";
+}
+
+/**
+ * R2.1. Marital status, from whatever word the file uses.
+ *
+ * A closed list in the product, so an import that cannot place a word leaves
+ * the field empty rather than inventing a seventh answer nothing counts.
+ */
+export function parseMarital(raw: string): string | null {
+  const n = normalise(raw);
+  if (!n) return null;
+  if (/^(m|married)$/.test(n) || n.includes("married")) return "married";
+  if (n.includes("engaged")) return "engaged";
+  if (n.includes("widow")) return "widowed";
+  if (n.includes("divorc")) return "divorced";
+  if (n.includes("separat")) return "separated";
+  if (/^(s|single)$/.test(n) || n.includes("single") || n.includes("unmarried")) return "single";
+  return null;
+}
+
+/** R2.1. School year, from "4th grade", "Grade 4", "4" and the rest of them. */
+export function parseSchoolLevel(raw: string): string | null {
+  const n = normalise(raw);
+  if (!n) return null;
+  if (/pre k|prek|preschool|pre school|nursery/.test(n)) return "pre_k";
+  if (/kinder|^k$/.test(n)) return "kindergarten";
+  if (/graduate|grad school|masters|phd/.test(n)) return "graduate";
+  if (/college|university|undergrad/.test(n)) return "college";
+
+  const grade = /(\d{1,2})/.exec(n);
+  if (grade) {
+    const year = Number(grade[1]);
+    if (year >= 1 && year <= 12) return `grade_${year}`;
+  }
+  return null;
+}
+
+/** A column holding several values. "Worship; Small group" is two tags. */
+export function splitValues(raw: string): string[] {
+  return raw.split(/[;,|]/).map((v) => v.trim()).filter(Boolean);
 }

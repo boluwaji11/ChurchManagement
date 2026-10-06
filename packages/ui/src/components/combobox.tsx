@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, X } from "lucide-react";
 import { cn } from "../lib/cn";
 
@@ -82,12 +83,22 @@ export function Combobox({
   const [query, setQuery] = React.useState("");
   const [active, setActive] = React.useState(0);
   const root = React.useRef<HTMLDivElement>(null);
+  const list = React.useRef<HTMLUListElement>(null);
   const input = React.useRef<HTMLInputElement>(null);
   const listId = React.useId();
   const [above, setAbove] = React.useState(false);
   // How tall the list may be where it is, so it shortens rather than covering
   // what is around it.
   const [room, setRoom] = React.useState(256);
+  /*
+   * Where the list goes, in the window's own coordinates.
+   *
+   * The list is drawn on the body rather than inside the field, because a field
+   * inside anything that scrolls (a table in a pane, a panel from the right)
+   * has its list clipped by that container's edge, and a list cut off halfway
+   * down its second row is the control looking broken.
+   */
+  const [box, setBox] = React.useState<{ left: number; width: number; top: number } | null>(null);
 
   /*
    * A list that would run off the bottom of the window opens upwards instead.
@@ -107,6 +118,11 @@ export function Combobox({
       const flip = below < 160 && over > below + 80;
       setAbove(flip);
       setRoom(Math.max(120, Math.min(256, flip ? over : below)));
+      setBox({
+        left: box.left,
+        width: box.width,
+        top: flip ? box.top : box.bottom,
+      });
     };
     place();
     window.addEventListener("resize", place);
@@ -135,7 +151,9 @@ export function Combobox({
   React.useEffect(() => {
     if (!open) return;
     const away = (e: MouseEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (root.current?.contains(target) || list.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", away);
     return () => document.removeEventListener("mousedown", away);
@@ -286,14 +304,21 @@ export function Combobox({
         </button>
       </div>
 
-      {open ? (
+      {open && box ? createPortal(
         <ul
+          ref={list}
           id={listId}
           role="listbox"
-          style={{ maxHeight: room }}
+          style={{
+            maxHeight: room,
+            left: box.left,
+            width: box.width,
+            ...(above
+              ? { bottom: Math.round(window.innerHeight - box.top) + 4 }
+              : { top: box.top + 4 }),
+          }}
           className={cn(
-            "absolute z-50 w-full overflow-y-auto p-1",
-            above ? "bottom-full mb-1" : "top-full mt-1",
+            "fixed z-50 overflow-y-auto p-1",
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
         >
@@ -341,7 +366,8 @@ export function Combobox({
               {footer}
             </li>
           ) : null}
-        </ul>
+        </ul>,
+        document.body,
       ) : null}
     </div>
   );

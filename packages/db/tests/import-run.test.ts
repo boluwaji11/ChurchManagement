@@ -35,7 +35,7 @@ async function makePlan(
 ): Promise<Plan> {
   const sheet = readSheet(text);
   return run(tenantId, role, (tx) =>
-    plan(tx, { filename: "members.csv", sheet, mapping: guessMapping(sheet.headers), strategy }),
+    plan(tx, { filename: "members.csv", sheet, mapping: guessMapping(sheet.headers), strategy, tenantId }),
   );
 }
 
@@ -274,7 +274,7 @@ describe("households and custom fields come across", () => {
     expect(mapping["Importtest allergy"]).toBe(`cf:${field.id}`);
 
     const p = await run(riverside, "owner", (tx) =>
-      plan(tx, { filename: "members.csv", sheet: readSheet(text), mapping, strategy: "skip" }),
+      plan(tx, { filename: "members.csv", sheet: readSheet(text), mapping, strategy: "skip", tenantId: riverside }),
     );
     await run(riverside, "owner", (tx) => commit(tx, as(riverside), p));
 

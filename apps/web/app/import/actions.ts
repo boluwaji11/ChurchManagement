@@ -133,6 +133,8 @@ export interface Preview {
   truncated?: boolean;
   /** R19.5. The groups a membership file would bring into existence. */
   newGroups?: string[];
+  /** R1.1. Set while the church is still being reviewed. */
+  cap?: { limit: number; room: number; held: number };
 }
 
 /** How many rows of the preview are shown. Enough to judge, not enough to scroll forever. */
@@ -155,7 +157,7 @@ export async function previewImport(input: {
 
   const sheet = await read(input);
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
-    plan(tx, { filename: input.filename, sheet, mapping: input.mapping, strategy: input.strategy }),
+    plan(tx, { filename: input.filename, sheet, mapping: input.mapping, strategy: input.strategy, tenantId: session.tenantId }),
   );
 
   // Anything that will not simply be added comes first, because that is what a
@@ -167,6 +169,7 @@ export async function previewImport(input: {
 
   return {
     totals: result.totals,
+    cap: result.cap,
     truncated: ordered.length > PREVIEW_ROWS,
     rows: ordered.slice(0, PREVIEW_ROWS).map((row) => ({
       lineNumber: row.lineNumber,
@@ -293,6 +296,7 @@ export async function runImport(input: {
           sheet,
           mapping: input.mapping,
           strategy: input.strategy,
+          tenantId: session.tenantId,
         });
         return commit(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions }, fresh);
       },

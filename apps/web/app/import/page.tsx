@@ -25,8 +25,7 @@ export default async function ImportPage({
   return (
     <AppShell
       session={session}
-      title={t("import.title")}
-      max="max-w-[1180px]"
+      max="max-w-[1180px] mx-auto"
     >
       <Link
         href={`/members?church=${session.tenantSlug}`}

@@ -6,8 +6,13 @@ import { importBatches, importRows } from "../schema/imports";
 import { canEditPeople, PermissionError, type TenantRole } from "../roles";
 import { createPerson, updatePerson, getPersonForEdit, type PersonInput, type LifecycleStatus, type HouseholdRole } from "../repo/members";
 import { listCustomFields, setCustomValues, coerceCustomValue, type CustomFieldDef } from "../repo/custom-fields";
+import { ensureTag, setPersonTag } from "../repo/tags";
+import { churchStanding } from "../repo/provisional";
 import type { Sheet } from "./csv";
-import { PERSON_FIELDS, parseImportedDate, parseLifecycle, parseHouseholdRole } from "./columns";
+import {
+  PERSON_FIELDS, parseImportedDate, parseLifecycle, parseHouseholdRole,
+  parseMarital, parseSchoolLevel, splitValues,
+} from "./columns";
 import { buildMatchIndex, findMatches, indexNewPerson, type Match, type MatchIndex } from "./match";
 
 /**
@@ -29,6 +34,8 @@ export interface PlannedRow {
   /** Values for the message named by `reason`. */
   reasonParams?: Record<string, string>;
   person: PersonInput;
+  /** R2.3. Tag names from the file, applied after the person is written. */
+  tags: string[];
   custom: Record<string, unknown>;
   matches: Match[];
   /** Set when the row will update, or would have. */
@@ -43,6 +50,8 @@ export interface Plan {
   strategy: DuplicateStrategy;
   rows: PlannedRow[];
   totals: { create: number; update: number; skip: number; fail: number };
+  /** R1.1. Set while the church is still being reviewed, so a screen can say so. */
+  cap?: { limit: number; room: number; held: number };
 }
 
 /** Marks an id that only exists in this plan, not in the database. */
@@ -69,6 +78,7 @@ export async function plan(
     sheet: Sheet;
     mapping: Record<string, string>;
     strategy: DuplicateStrategy;
+    tenantId: string;
   },
 ): Promise<Plan> {
   const sheet = input.sheet;
@@ -80,11 +90,34 @@ export async function plan(
   // person appearing twice in one file is caught. A church's export often has a
   // row per household member per group, and without this an import of 500 rows
   // creates the same family four times.
+  /*
+   * R1.1. A church still being reviewed holds 25 members.
+   *
+   * The rows past that become skips here, in the plan, rather than an error
+   * thrown halfway through the write. The person then sees on the Check step
+   * exactly how many of their file goes in now, and the rest is a second import
+   * once the church is approved, against a file they still have.
+   */
+  const standing = await churchStanding(db, input.tenantId);
+  let room = standing.remaining ?? Number.POSITIVE_INFINITY;
+
   const rows: PlannedRow[] = [];
   sheet.rows.forEach((row, i) => {
     const planned = planRow(row, sheet.lineNumbers[i] ?? i + 2, input.mapping, input.strategy, index, customById);
+
+    if (planned.outcome === "create" && room <= 0) {
+      rows.push({
+        ...planned,
+        outcome: "skip",
+        reason: "import.skip.capped",
+        reasonParams: { limit: String(standing.limit) },
+      });
+      return;
+    }
+
     rows.push(planned);
     if (planned.outcome === "create") {
+      room -= 1;
       indexNewPerson(index, {
         id: `${PLANNED}${planned.lineNumber}`,
         firstName: planned.person.firstName,
@@ -106,6 +139,9 @@ export async function plan(
     strategy: input.strategy,
     rows,
     totals,
+    cap: standing.approved
+      ? undefined
+      : { limit: standing.limit, room: standing.remaining ?? 0, held: standing.members },
   };
 }
 
@@ -128,6 +164,7 @@ function planRow(
     reason,
     reasonParams: params,
     person: { firstName, lastName, lifecycleStatus: "visitor" },
+    tags: [],
     custom: {},
     matches: [],
     source,
@@ -148,6 +185,24 @@ function planRow(
     dates[key] = parsed.value;
   }
 
+  /*
+   * R2.4. The address, from one column or from five.
+   *
+   * A Planning Center export carries the street, the city, the state and the
+   * zip as their own columns; a spreadsheet a church typed itself usually has
+   * one line. Both arrive here, and anything with no street at all is left off
+   * rather than written as a city on its own.
+   */
+  const line1 = get("address");
+  const city = get("city");
+  const region = get("region");
+  const postalCode = get("postalCode");
+  const line2 = get("addressLine2");
+  const address =
+    line1 && (city || region || postalCode || line2)
+      ? { line1, line2: line2 || null, city: city || null, region: region || null, postalCode: postalCode || null }
+      : line1 || null;
+
   const person: PersonInput = {
     firstName,
     lastName,
@@ -160,7 +215,14 @@ function planRow(
     lifecycleStatus: parseLifecycle(get("lifecycleStatus")) as LifecycleStatus,
     householdName: get("householdName") || null,
     householdRole: parseHouseholdRole(get("householdRole")) as HouseholdRole,
+    address,
+    maritalStatus: parseMarital(get("maritalStatus")),
+    schoolLevel: parseSchoolLevel(get("schoolLevel")),
+    allergies: get("allergies") || null,
+    medicalNote: get("medicalNote") || null,
   };
+
+  const tagNames = splitValues(get("tags"));
 
   const customValues: Record<string, unknown> = {};
   for (const [header, target] of Object.entries(mapping)) {
@@ -186,6 +248,7 @@ function planRow(
       reason: "import.skip.duplicateInFile",
       reasonParams: { line: strongest.memberId.slice(PLANNED.length) },
       person,
+      tags: tagNames,
       custom: customValues,
       matches: [],
       source,
@@ -194,19 +257,19 @@ function planRow(
 
   if (strongest && !strongest.memberId.startsWith(PLANNED)) {
     if (strategy === "skip") {
-      return { lineNumber, outcome: "skip", reason: "import.skip.duplicate", person, custom: customValues, matches, targetId: strongest.memberId, source };
+      return { lineNumber, outcome: "skip", reason: "import.skip.duplicate", person, tags: tagNames, custom: customValues, matches, targetId: strongest.memberId, source };
     }
     if (strategy === "update") {
       // Only a match somebody could defend is written over. A shared surname or
       // a household phone is not enough to overwrite a record.
       if (strongest.confidence === "certain") {
-        return { lineNumber, outcome: "update", person, custom: customValues, matches, targetId: strongest.memberId, source };
+        return { lineNumber, outcome: "update", person, tags: tagNames, custom: customValues, matches, targetId: strongest.memberId, source };
       }
-      return { lineNumber, outcome: "skip", reason: "import.skip.unsure", person, custom: customValues, matches, targetId: strongest.memberId, source };
+      return { lineNumber, outcome: "skip", reason: "import.skip.unsure", person, tags: tagNames, custom: customValues, matches, targetId: strongest.memberId, source };
     }
   }
 
-  return { lineNumber, outcome: "create", person, custom: customValues, matches, source };
+  return { lineNumber, outcome: "create", person, tags: tagNames, custom: customValues, matches, source };
 }
 
 /** "Vegetarian; Gluten free" and "Vegetarian, Gluten free" are both a list. */
@@ -274,6 +337,7 @@ export async function commit(
       }
       await updatePerson(db, actor, row.targetId, merged(before, row.person));
       await writeCustom(db, actor, row.targetId, row.custom);
+      await writeTags(db, actor, row.targetId, row.tags);
       await record(db, actor, batch.id, row, row.targetId, before);
       result.updated++;
       continue;
@@ -281,6 +345,7 @@ export async function commit(
 
     const created = await createPerson(db, actor, row.person);
     await writeCustom(db, actor, created.id, row.custom);
+    await writeTags(db, actor, created.id, row.tags);
     await record(db, actor, batch.id, row, created.id, null);
     result.created++;
   }
@@ -324,6 +389,25 @@ function merged(before: PersonInput, incoming: PersonInput): PersonInput {
     householdName: incoming.householdName ?? null,
     householdRole: incoming.householdRole ?? before.householdRole,
   };
+}
+
+/**
+ * R2.3. The tags a row carries, applied to the person.
+ *
+ * Adding only. A file that does not mention a tag is a file that does not
+ * mention it, and reading that as "take it off" loses what the church put on by
+ * hand.
+ */
+async function writeTags(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole; userId?: string },
+  memberId: string,
+  names: string[],
+): Promise<void> {
+  for (const name of names) {
+    const tag = await ensureTag(db, actor, name);
+    if (tag) await setPersonTag(db, actor, memberId, tag.id, true);
+  }
 }
 
 async function writeCustom(

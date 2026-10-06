@@ -99,12 +99,12 @@ export function ImportWizard({
     }
   };
 
-  const toPreview = async () => {
+  const toPreview = async (next = strategy) => {
     setBusy(true);
     setError(undefined);
     try {
       const found = await previewImport({
-        church, ...file, mapping, strategy: strategy as never, groups: inspection?.groups,
+        church, ...file, mapping, strategy: next as never, groups: inspection?.groups,
       });
       if (found.error) {
         setError(found.error);
@@ -159,17 +159,21 @@ export function ImportWizard({
           inspection={inspection}
           mapping={mapping}
           setMapping={setMapping}
-          strategy={strategy}
-          setStrategy={setStrategy}
           busy={busy}
           onBack={reset}
-          onNext={toPreview}
+          onNext={() => toPreview()}
         />
       ) : null}
 
       {step === "preview" && preview ? (
         <PreviewStep
           preview={preview}
+          groups={inspection?.groups}
+          strategy={strategy}
+          setStrategy={(next) => {
+            setStrategy(next);
+            void toPreview(next);
+          }}
           busy={busy}
           onBack={() => setStep("map")}
           onConfirm={doImport}
@@ -308,8 +312,6 @@ function MapColumns({
   inspection,
   mapping,
   setMapping,
-  strategy,
-  setStrategy,
   busy,
   onBack,
   onNext,
@@ -318,8 +320,6 @@ function MapColumns({
   inspection: Inspection;
   mapping: Record<string, string>;
   setMapping: (m: Record<string, string>) => void;
-  strategy: string;
-  setStrategy: (s: string) => void;
   busy: boolean;
   onBack: () => void;
   onNext: () => void;
@@ -394,20 +394,6 @@ function MapColumns({
         </table>
       </section>
 
-      {/* What to do about somebody already in the directory is a question about
-          a members file. A membership row joins a group or it does not. */}
-      {inspection.groups ? null : (
-        <Card>
-          <CardTitle>{t("import.strategy")}</CardTitle>
-          <Separator className="my-4" />
-          <RadioGroup value={strategy} onValueChange={setStrategy}>
-            <RadioItem value="skip">{t("import.strategy.skip")}</RadioItem>
-            <RadioItem value="update">{t("import.strategy.update")}</RadioItem>
-            <RadioItem value="create">{t("import.strategy.create")}</RadioItem>
-          </RadioGroup>
-        </Card>
-      )}
-
       <div className="flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={onBack}>
           {t("import.back")}
@@ -437,11 +423,18 @@ function Stat({ label, value, warn }: { label: string; value: number; warn?: boo
 
 function PreviewStep({
   preview,
+  groups,
+  strategy,
+  setStrategy,
   busy,
   onBack,
   onConfirm,
 }: {
   preview: Preview;
+  /** R19.5. True for a file of memberships, which has no duplicate question. */
+  groups?: boolean;
+  strategy: string;
+  setStrategy: (s: string) => void;
   busy: boolean;
   onBack: () => void;
   onConfirm: () => void;
@@ -452,13 +445,42 @@ function PreviewStep({
     (row) => row.outcome === "skip" || row.outcome === "fail",
   );
 
+  const cap = preview.cap;
+
   return (
     <>
+      {/* R1.1. The cap is a fact about this file, so it is said here, over the
+          numbers it changes, rather than discovered at the end. */}
+      {cap ? (
+        <Banner
+          tone={cap.room === 0 ? "warning" : "info"}
+          title={t("import.cap.title", { limit: cap.limit })}
+        >
+          {cap.room === 0
+            ? t("import.cap.full", { limit: cap.limit })
+            : t("import.cap.body", { room: cap.room })}
+        </Banner>
+      ) : null}
+
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
         <Stat label={t("import.stat.new")} value={totals.create} />
         <Stat label={t("import.stat.updates")} value={totals.update} />
         <Stat label={t("import.stat.problems")} value={totals.skip + totals.fail} warn />
       </div>
+
+      {/* What to do about somebody already in the directory belongs with the
+          rows it decides: changing it redraws the check underneath. */}
+      {groups ? null : (
+        <Card>
+          <CardTitle>{t("import.strategy")}</CardTitle>
+          <Separator className="my-4" />
+          <RadioGroup value={strategy} onValueChange={setStrategy}>
+            <RadioItem value="skip">{t("import.strategy.skip")}</RadioItem>
+            <RadioItem value="update">{t("import.strategy.update")}</RadioItem>
+            <RadioItem value="create">{t("import.strategy.create")}</RadioItem>
+          </RadioGroup>
+        </Card>
+      )}
 
       {problems.length > 0 ? (
         <section className="rounded-lg border border-line bg-surface px-5 py-2">

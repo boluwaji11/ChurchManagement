@@ -27,7 +27,7 @@ const csv = (body: string) => `First Name,Last Name,Email Address,DOB,Membership
 async function importFile(text: string, strategy: "skip" | "update" | "create" = "skip") {
   const sheet = readSheet(text);
   const p = await run(riverside, "owner", (tx) =>
-    plan(tx, { filename: "rollback.csv", sheet, mapping: guessMapping(sheet.headers), strategy }),
+    plan(tx, { filename: "rollback.csv", sheet, mapping: guessMapping(sheet.headers), strategy, tenantId: riverside }),
   );
   return run(riverside, "owner", (tx) => commit(tx, as(riverside), p));
 }

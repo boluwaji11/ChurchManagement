@@ -111,6 +111,33 @@ export async function createTag(
   return row;
 }
 
+/**
+ * R19.1. The tag by that name, made if the church has not got it.
+ *
+ * An import is the one place a tag arrives without anybody choosing it, and a
+ * file with "Worship; Greeter" in a column means those two tags. Matching is by
+ * name without case, so an import does not leave "greeter" beside "Greeter".
+ */
+export async function ensureTag(
+  db: Tx,
+  actor: WriteActor,
+  rawName: string,
+): Promise<{ id: string } | null> {
+  if (!canEditPeople(actor.role)) throw new PermissionError(actor.role, "createTag");
+
+  const name = normaliseTagName(rawName);
+  if (!name) return null;
+
+  const existing = await findByName(db, name);
+  if (existing) return existing;
+
+  const [row] = await db
+    .insert(tags)
+    .values({ tenantId: actor.tenantId, name, hue: await nextHue(db) })
+    .returning({ id: tags.id });
+  return row ?? null;
+}
+
 export async function renameTag(db: Tx, actor: WriteActor, id: string, rawName: string): Promise<void> {
   if (!canManageTags(actor.role)) throw new PermissionError(actor.role, "renameTag");
 
