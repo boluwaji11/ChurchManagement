@@ -56,30 +56,44 @@ export function htmlToMarkdown(root: Node): string {
         const href = el.getAttribute("href") ?? "";
         return /^https?:\/\//i.test(href) ? `[${kids()}](${href})` : kids();
       }
+      /*
+       * No blank line of its own around a list. The only blank lines in what is
+       * stored are then the ones somebody typed, which is what lets them come
+       * back exactly where they were put.
+       */
       case "UL":
-        return `\n${Array.from(el.children)
+        return `${Array.from(el.children)
           .map((li) => `- ${walk(li, "ul")}`)
           .join("\n")}\n`;
       case "OL":
-        return `\n${Array.from(el.children)
+        return `${Array.from(el.children)
           .map((li, i) => `${i + 1}. ${walk(li, "ol")}`)
           .join("\n")}\n`;
       case "LI":
         return kids(null);
       case "DIV":
-      case "P":
-        return `${kids()}\n`;
+      case "P": {
+        const inside = kids();
+        // An empty paragraph is the one break somebody pressed Enter for. The
+        // browser writes it as a div holding a single line break, and counting
+        // both would double every blank line each time the panel opened.
+        return inside.trim() === "" ? "\n" : `${inside}\n`;
+      }
       default:
         return kids();
     }
   };
 
-  for (const child of Array.from(root.childNodes)) out.push(walk(child, null));
+  for (const child of Array.from(root.childNodes)) {
+    const text = walk(child, null);
+    // A list has to start its own line even where what came before it did not
+    // end one, which happens with bare text at the top of the box.
+    const starts = /^(-\s|\d+\.\s)/.test(text);
+    const open = out.length > 0 && !out[out.length - 1]!.endsWith("\n");
+    out.push(starts && open ? `\n${text}` : text);
+  }
 
-  return out
-    .join("")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  return out.join("").replace(/\n{4,}/g, "\n\n\n").replace(/\s+$/, "");
 }
 
 const escape = (text: string) =>
@@ -138,16 +152,9 @@ export function markdownToHtml(markdown: string): string {
 
     // An empty line, or one holding nothing but marks that lost their pair.
     if (line.trim() === "" || /^[*_\s]+$/.test(line)) {
-      /*
-       * A blank line somebody typed between two paragraphs is a blank line they
-       * want to see again. The blank lines around a list are the writer's own
-       * punctuation, so they are left out: a list that gained a gap above it
-       * every time the panel opened would walk down the page.
-       */
-      const listish = (one?: string) =>
-        !!one && (/^\s*[-*]\s+/.test(one) || /^\s*\d+\.\s+/.test(one));
-      const next = lines.slice(i + 1).find((one) => one.trim() !== "");
-      if (out[out.length - 1]?.startsWith("<div") && next && !listish(next)) {
+      // A blank line between two blocks is one somebody typed, so it comes
+      // back. One at the very top or the very bottom is not worth keeping.
+      if (out.length > 0 && lines.slice(i + 1).some((one) => one.trim() !== "")) {
         out.push("<div><br></div>");
       }
       i += 1;
