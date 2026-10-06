@@ -27,27 +27,39 @@ export default async function RolesPage({
     (tx) => listRoles(tx, session.tenantId, { includeArchived: true }),
   );
 
+  const rows = roles.map((role) => ({
+    id: role.id,
+    key: role.key,
+    name: role.name,
+    permissions: [...role.permissions],
+    builtin: role.builtin,
+    archived: role.archived,
+    members: role.members,
+  }));
+
+  // R1.6. The ready-made roles this church has not taken up yet.
+  const shelf = rows.filter((role) => role.archived);
+
   return (
     <>
       <SettingsHeading
         title="settings.tab.roles"
         lede="settings.lede.roles"
-        action={<NewRole church={session.tenantSlug} permissions={[...PERMISSIONS]} groups={groups} />}
+        action={
+          <NewRole
+            church={session.tenantSlug}
+            permissions={[...PERMISSIONS]}
+            groups={groups}
+            shelf={shelf}
+          />
+        }
       />
 
       <Matrix
         church={session.tenantSlug}
         permissions={[...PERMISSIONS]}
         groups={groups}
-        roles={roles.map((role) => ({
-          id: role.id,
-          key: role.key,
-          name: role.name,
-          permissions: [...role.permissions],
-          builtin: role.builtin,
-          archived: role.archived,
-          members: role.members,
-        }))}
+        roles={rows}
       />
     </>
   );

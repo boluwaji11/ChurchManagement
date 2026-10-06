@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Check, ChevronDown, ChevronRight, Plus, Undo2 } from "lucide-react";
+import { Archive, Check, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 import {
   Banner, Button, Checkbox, Field, IconButton, Input,
   Sheet, SheetTrigger, SheetContent,
@@ -60,7 +60,6 @@ export function Matrix({
   groups: PermissionGroupRow[];
 }) {
   const open = roles.filter((role) => !role.archived);
-  const archived = roles.filter((role) => role.archived);
   /*
    * R1.6. Only the first section is open to begin with. Twenty rows against
    * nine columns is a wall, and the one everybody comes for is Members.
@@ -145,10 +144,7 @@ export function Matrix({
                     {held ? (
                       <Check className="mx-auto size-4 text-primary" aria-label={label} />
                     ) : (
-                      <span
-                        aria-label={label}
-                        className="mx-auto block size-1 rounded-full bg-line-strong"
-                      />
+                      <X className="mx-auto size-4 text-fg-subtle/50" aria-label={label} />
                     )}
                   </td>
                 );
@@ -161,47 +157,9 @@ export function Matrix({
       </table>
       </section>
 
-      {archived.length === 0 ? null : <Shelf church={church} roles={archived} />}
     </div>
   );
 }
-
-/** R1.6. The roles this church has put away, and the way back. */
-function Shelf({ church, roles }: { church: string; roles: RoleRow[] }) {
-  const router = useRouter();
-  const [pending, startTransition] = React.useTransition();
-
-  return (
-    <section className="flex flex-col gap-2">
-      <span className="text-[12px] font-semibold text-fg-subtle">{t("roles.archived")}</span>
-
-      <div className="rounded-[14px] border border-line bg-surface px-5 py-1">
-        {roles.map((role) => (
-          <div
-            key={role.id}
-            className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
-          >
-            <span className="flex-1 text-fg-subtle">{nameOf(role)}</span>
-            <IconButton
-              label={t("roles.restore", { name: nameOf(role) })}
-              variant="ghost"
-              disabled={pending}
-              onClick={() =>
-                startTransition(async () => {
-                  await putAway(role.id, false, church);
-                  router.refresh();
-                })
-              }
-            >
-              <Undo2 />
-            </IconButton>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 
 /**
  * R1.6. A role's name and everything it may do, in one form.
@@ -215,6 +173,7 @@ export function RoleForm({
   role,
   permissions,
   groups,
+  shelf = [],
   children,
 }: {
   church: string;
@@ -222,6 +181,8 @@ export function RoleForm({
   role?: RoleRow;
   permissions: string[];
   groups: PermissionGroupRow[];
+  /** R1.6. The ready-made roles this church has not taken up yet. */
+  shelf?: RoleRow[];
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -230,6 +191,8 @@ export function RoleForm({
   const [held, setHeld] = React.useState<string[]>(role?.permissions ?? []);
   const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
+  // R1.6. Adding opens on the ready-made roles. Editing opens on the role.
+  const [picking, setPicking] = React.useState(!role && shelf.length > 0);
   const [shut, setShut] = React.useState<string[]>(groups.slice(1).map((one) => one.key));
   const fold = (key: string) =>
     setShut((was) => (was.includes(key) ? was.filter((one) => one !== key) : [...was, key]));
@@ -240,6 +203,7 @@ export function RoleForm({
     setName(role ? nameOf(role) : "");
     setHeld(role?.permissions ?? []);
     setShut(groups.slice(1).map((one) => one.key));
+    setPicking(!role && shelf.length > 0);
     setError(undefined);
   }, [open, role?.name, role?.permissions]);
 
@@ -270,10 +234,11 @@ export function RoleForm({
       <SheetTrigger asChild>{children}</SheetTrigger>
 
       <SheetContent
-        title={role ? nameOf(role) : t("roles.add")}
+        title={role ? nameOf(role) : picking ? t("roles.start") : t("roles.add")}
         closeLabel={t("common.close")}
         width="520px"
         footer={
+          picking ? null : (
           <>
             {role ? (
               <IconButton
@@ -301,11 +266,62 @@ export function RoleForm({
               {t("action.save")}
             </Button>
           </>
+          )
         }
       >
         {error ? <Banner tone="danger" title={t("roles.failed")}>{error}</Banner> : null}
 
-        <div className="flex flex-col gap-5">
+        {picking ? (
+          /*
+           * R1.6. The roles the product already knows how to be, before a blank
+           * name and twenty checkboxes. Taking one up puts it back on the grid
+           * with the permissions it has always had.
+           */
+          <div className="flex flex-col">
+            <button
+              type="button"
+              onClick={() => setPicking(false)}
+              className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-sunken"
+            >
+              <Plus className="size-[18px] shrink-0 text-primary" aria-hidden />
+              <span className="min-w-0 flex-1 font-semibold text-fg">{t("roles.ownRole")}</span>
+              <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+            </button>
+
+            <hr className="my-2 border-0 border-t border-line" />
+
+            <ol className="m-0 flex list-none flex-col p-0">
+              {shelf.map((one) => (
+                <li key={one.id} className="flex gap-2.5">
+                  <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                    <span className="mt-4 size-2.5 shrink-0 rounded-full bg-primary" />
+                    <span className="my-1 w-px flex-1 bg-primary/35" />
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => run(() => putAway(one.id, false, church))}
+                    className="mb-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="font-medium text-fg">{nameOf(one)}</span>
+                      <span className="truncate text-[12px] text-fg-subtle">
+                        {t("roles.heldCount", {
+                          count: one.permissions.length,
+                          total: permissions.length,
+                        })}
+                      </span>
+                    </span>
+                    <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
+
+        <div className="flex flex-col gap-5" hidden={picking}>
           <Field label={t("roles.name")} required>
             <Input
               value={name}
@@ -395,13 +411,15 @@ export function NewRole({
   church,
   permissions,
   groups,
+  shelf,
 }: {
   church: string;
   permissions: string[];
   groups: PermissionGroupRow[];
+  shelf?: RoleRow[];
 }) {
   return (
-    <RoleForm church={church} permissions={permissions} groups={groups}>
+    <RoleForm church={church} permissions={permissions} groups={groups} shelf={shelf}>
       <Button>
         <Plus /> {t("roles.add")}
       </Button>

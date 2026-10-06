@@ -849,7 +849,7 @@ export const en = {
   "area.services": "services",
   "area.teams": "teams",
   "settings.tab.roles": "Roles",
-  "settings.lede.roles": "Every permission against every role.",
+  "settings.lede.roles": "Manage your roles and permissions",
   "roles.permission": "Permission",
   "roles.cell.on": "{role} can {permission}",
   "roles.cell.off": "{role} cannot {permission}",
@@ -877,6 +877,8 @@ export const en = {
 
   /* R1.6. One line per permission in the matrix. */
   "roles.heldCount": "{count} of {total}",
+  "roles.start": "Which role?",
+  "roles.ownRole": "Create your own",
   "roles.group.members": "Members",
   "roles.group.checkin": "Check-in",
   "roles.group.week": "Services, groups and serving",

@@ -62,6 +62,13 @@ function known(raw: readonly string[]): Permission[] {
  * one keeps its change, so nothing written here is applied twice.
  */
 export async function ensureBuiltIns(db: Tx, tenantId: string): Promise<void> {
+  /*
+   * R1.6. A church starts with Owner and adds the rest when it needs them.
+   *
+   * The other eight go in already on the shelf, where the roles screen offers
+   * them as ready-made answers. Nine roles against twenty permissions is a grid
+   * nobody reads, and eight of the nine are empty in a church of forty people.
+   */
   const rows = TENANT_ROLES.map((key, position) => ({
     tenantId,
     key,
@@ -69,6 +76,7 @@ export async function ensureBuiltIns(db: Tx, tenantId: string): Promise<void> {
     permissions: [...ROLE_PERMISSIONS[key]],
     builtin: true,
     position,
+    archivedAt: key === "owner" ? null : new Date(),
   }));
 
   await db

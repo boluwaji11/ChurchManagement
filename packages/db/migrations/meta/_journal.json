@@ -673,6 +673,13 @@
       "when": 1791313318916,
       "tag": "0095_platform_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1791320383717,
+      "tag": "0096_roles_start_at_owner",
+      "breakpoints": true
     }
   ]
 }
