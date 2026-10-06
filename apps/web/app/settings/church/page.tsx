@@ -3,9 +3,7 @@ import {
   primaryCampus,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
-import { headers } from "next/headers";
 import { ChurchSections } from "./sections";
-import { OnYourSite } from "./on-your-site";
 import { ChurchLogo } from "../logo";
 import { supabaseServer } from "@/lib/supabase/server";
 import { SettingsHeading } from "../heading";
@@ -38,12 +36,6 @@ export default async function SettingsPage({
     logoUrl = signed.data?.signedUrl ?? null;
   }
 
-  // R9.5. The address a church pastes into its own site, as this request saw it.
-  const head = await headers();
-  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
-  const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const origin = `${proto}://${host}`;
-
   return (
     <div className="flex flex-col gap-5">
         {profile ? (
@@ -64,15 +56,6 @@ export default async function SettingsPage({
           />
         ) : null}
 
-        {canManageChurch(session) ? (
-          <OnYourSite
-            origin={origin}
-            slug={session.tenantSlug}
-            selfSignup={profile?.selfSignup ?? false}
-            domain={profile?.customDomain ?? null}
-            appHost={host}
-          />
-        ) : null}
     </div>
   );
 }

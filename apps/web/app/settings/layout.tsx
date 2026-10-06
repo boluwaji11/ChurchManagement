@@ -30,6 +30,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         ...(canManageChurch(session)
           ? [
               { href: "/settings/church", label: t("settings.tab.church") },
+              { href: "/settings/website", label: t("settings.tab.website") },
               { href: "/settings/roles", label: t("settings.tab.roles") },
               { href: "/settings/team", label: t("settings.tab.team") },
             ]
