@@ -22,6 +22,7 @@ import {
   Eyebrow,
   PhoneFrame,
   SectionTitle,
+  Shot,
   SITE_CTA,
   SITE_CTA_QUIET,
   Ticks,
@@ -110,7 +111,9 @@ export default function Site() {
         {/* The product, full width, opening the demo. */}
         <section id="product" className="mx-auto w-full max-w-[1280px] px-6 pb-[104px] pt-24">
           <StartDemoButton className="block h-auto min-h-0 w-full rounded-2xl border-0 bg-transparent p-0 shadow-none hover:bg-transparent active:scale-100">
-            <BrowserFrame />
+            <BrowserFrame>
+              <Shot src="/marketing/office.png" />
+            </BrowserFrame>
           </StartDemoButton>
         </section>
 
@@ -150,7 +153,9 @@ export default function Site() {
               />
             </div>
             <div className="min-w-0 flex-[1.4_1_440px]">
-              <BrowserFrame />
+              <BrowserFrame>
+                <Shot src="/marketing/people.png" />
+              </BrowserFrame>
             </div>
           </div>
         </section>
@@ -171,7 +176,9 @@ export default function Site() {
               />
             </div>
             <div className="min-w-0 flex-[1.4_1_440px]">
-              <PhoneFrame />
+              <PhoneFrame>
+                <Shot src="/marketing/member.png" />
+              </PhoneFrame>
             </div>
           </div>
         </section>

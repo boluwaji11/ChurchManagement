@@ -50,7 +50,15 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
   const on = (tab: PortalTab) => lit >= 0 && reach(tab) === lit;
 
   return (
-    <nav className="-mb-px flex min-w-0 flex-1 flex-wrap items-stretch">
+    <nav
+      className={
+        /* On a phone the tabs take a line of their own under the church name
+           and scroll sideways. Wrapping them put Serving on top of the avatar. */
+        "-mb-px order-last flex w-full min-w-0 items-stretch overflow-x-auto " +
+        "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden " +
+        "sm:order-none sm:w-auto sm:flex-1"
+      }
+    >
       {tabs.map((tab) => (
         <Link
           key={tab.href}
@@ -98,7 +106,7 @@ export function PortalAccount({
         <button
           type="button"
           aria-label={name}
-          className="flex shrink-0 cursor-pointer items-center gap-2.5 rounded-full py-1 pl-1 pr-2 hover:bg-sunken"
+          className="ml-auto flex shrink-0 cursor-pointer items-center gap-2.5 rounded-full py-1 pl-1 pr-2 hover:bg-sunken"
         >
           <Avatar name={name} src={photoUrl} id={userId} size="sm" className="size-9 text-[13px] font-semibold" />
           <span className="hidden text-[14px] font-medium text-fg sm:inline">{name}</span>

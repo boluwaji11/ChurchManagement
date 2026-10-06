@@ -107,3 +107,14 @@ export function PhoneFrame({ children }: { children?: React.ReactNode }) {
     </div>
   );
 }
+
+/**
+ * A screen of the product, filling its frame.
+ *
+ * The files under public/marketing are captures of the real thing, taken at
+ * twice the size so they stay sharp, and they are retaken whenever the screen
+ * they show changes.
+ */
+export function Shot({ src }: { src: string }) {
+  return <img src={src} alt="" className="size-full object-cover object-top" />;
+}

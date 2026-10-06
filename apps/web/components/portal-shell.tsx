@@ -93,7 +93,7 @@ export async function PortalShell({
       <DemoBanner tenantId={session.tenantId} />
 
       <header className="sticky top-0 z-20 border-b border-line bg-canvas">
-        <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center gap-x-6 gap-y-1 px-6">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center gap-x-6 px-6">
           {homepage ? (
             <a
               href={homepage}
