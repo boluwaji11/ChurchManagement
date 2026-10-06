@@ -15,11 +15,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * One drawing, large and faint, behind the column rather than beside it. The
- * church this page is setting up is the people in it, and the oldest of them
- * are the ones a directory is really for.
+ * church itself, because that is the thing this page is setting up.
  */
 const ART: Piece[] = [
-  { name: "elders", side: "right", y: 56, size: 560, inset: -80, faint: true },
+  { name: "sanctuary", side: "right", y: 58, size: 620, inset: -110, faint: true },
 ];
 
 /**
