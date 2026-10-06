@@ -107,7 +107,7 @@ export const SelectContent = React.forwardRef<
         sideOffset={6}
         onCloseAutoFocus={() => setQuery("")}
         className={cn(
-          "z-50 min-w-[11rem] overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg p-2",
+          "z-50 min-w-[11rem] overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg p-1.5",
           "data-[state=open]:animate-[connectapp-rise_var(--duration-fast)_var(--ease-out)]",
           className,
         )}
@@ -141,7 +141,7 @@ export const SelectContent = React.forwardRef<
           </div>
         ) : null}
 
-        <P.Viewport className="flex max-h-[260px] flex-col gap-1.5 overflow-y-auto">{shown}</P.Viewport>
+        <P.Viewport className="flex max-h-[280px] flex-col gap-0.5 overflow-y-auto">{shown}</P.Viewport>
       </P.Content>
     </P.Portal>
   );
@@ -164,15 +164,17 @@ export const SelectItem = React.forwardRef<
   <P.Item
     ref={ref}
     className={cn(
+      // A row of text, not a button. Boxing every option made a list of six
+      // read as six controls to weigh up rather than one question to answer.
       "relative flex cursor-pointer select-none items-center gap-2",
-      "rounded-[10px] border border-line-strong bg-surface px-3 py-2",
-      "text-[length:var(--d-text-body)] font-medium text-fg outline-none",
+      "min-h-[var(--d-tap)] rounded-[8px] px-3 py-1.5",
+      "text-[length:var(--d-text-body)] text-fg outline-none",
       "transition-colors duration-instant ease-out",
-      "data-[highlighted]:bg-sunken data-[highlighted]:border-fg-subtle",
-      // After the highlighted rules, so the chosen one stays filled while the
+      "data-[highlighted]:bg-sunken",
+      // After the highlighted rules, so the chosen one stays marked while the
       // pointer is over it.
-      "data-[state=checked]:border-primary data-[state=checked]:bg-primary",
-      "data-[state=checked]:text-primary-fg",
+      "data-[state=checked]:bg-primary-soft data-[state=checked]:font-semibold",
+      "data-[state=checked]:text-primary",
       "data-[disabled]:opacity-45 data-[disabled]:pointer-events-none",
       className,
     )}
