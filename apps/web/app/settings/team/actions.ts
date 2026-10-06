@@ -2,7 +2,7 @@
 
 import {
   createInvitation, revokeInvitation, setMemberRole, removeMember, canManageChurch,
-  withTenant, peopleToInvite,
+  withTenant, peopleToInvite, listRoles,
   type TenantRole,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -29,15 +29,29 @@ export async function invite(data: FormData): Promise<TeamResult> {
   try {
     const session = await allowed(field(data, "church") || undefined);
     const email = field(data, "email").toLowerCase();
-    const role = field(data, "role") as TenantRole;
 
     if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return { error: t("team.error.email") };
+
+    /*
+     * R1.6. The church picks one of its own roles, so what arrives is a row id.
+     * It is read back here rather than trusted: a built-in travels as its key
+     * and a church's own role as its id, and anything else is refused.
+     */
+    const chosen = await withTenant(
+      { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
+      (tx) => listRoles(tx, session.tenantId),
+    );
+    const picked = chosen.find((one) => one.id === field(data, "role") && !one.archived);
+    if (!picked) return { error: t("team.error.role") };
+
+    const role = (picked.builtin ? picked.key : "member") as TenantRole;
     if (!ROLES.includes(role)) return { error: t("team.error.role") };
 
     await createInvitation({
       tenantId: session.tenantId,
       email,
       role,
+      roleId: picked.builtin ? null : picked.id,
       invitedByUserId: session.userId,
       // R1.7. Where the church picked somebody it already holds, the account
       // ties to that record on first sign-in.

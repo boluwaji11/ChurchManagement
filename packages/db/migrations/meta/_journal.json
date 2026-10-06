@@ -680,6 +680,13 @@
       "when": 1791320383717,
       "tag": "0096_roles_start_at_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1791321405354,
+      "tag": "0097_invite_to_a_churchs_own_role",
+      "breakpoints": true
     }
   ]
 }

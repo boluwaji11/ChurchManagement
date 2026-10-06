@@ -46,12 +46,6 @@ export interface Invitation {
   expiresAt: string;
 }
 
-/** R1.4. The built-in roles, widest reach first, which is the order they read in. */
-const ROLES = [
-  "owner", "admin", "staff", "pastoral", "finance",
-  "group_leader", "team_leader", "checkin_volunteer", "member",
-] as const;
-
 const roleName = (role: string) => t(`role.${role}` as never);
 
 /** A built-in's name is ours to write; a church's own role carries its own. */
@@ -78,12 +72,15 @@ export function Team({
   roles,
   members,
   invitations,
+  approved,
 }: {
   church: string;
   /** R1.6. Every role this church has, built-in and its own. */
   roles: ChurchRoleOption[];
   members: Member[];
   invitations: Invitation[];
+  /** R1.1. Whether a human has looked at this church yet. */
+  approved: boolean;
 }) {
   const router = useRouter();
   const [message, setMessage] = React.useState<string>();
@@ -179,9 +176,15 @@ export function Team({
         </DialogContent>
       </Dialog>
 
-      <div className="flex justify-end">
-        <InviteDialog church={church} pending={pending} onDone={() => router.refresh()} />
-      </div>
+      {/* R1.1. A church nobody has looked at yet cannot reach outside itself,
+          so the button is not offered. The server refuses it as well. */}
+      {approved ? (
+        <div className="flex justify-end">
+          <InviteDialog church={church} roles={roles} pending={pending} onDone={() => router.refresh()} />
+        </div>
+      ) : (
+        <Banner tone="info" title={t("team.waiting")}>{t("team.waitingBody")}</Banner>
+      )}
 
       {/* R1.4. A row per person: who they are, what they may do, and when they
           were last here. The three a church checks when somebody leaves. */}
@@ -428,15 +431,20 @@ function RoleGuide({ roles }: { roles: ChurchRoleOption[] }) {
 
 function InviteDialog({
   church,
+  roles,
   pending,
   onDone,
 }: {
   church: string;
+  /** R1.6. The roles this church has taken up. Nothing else may be given. */
+  roles: ChurchRoleOption[];
   pending: boolean;
   onDone: () => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [role, setRole] = React.useState("staff");
+  // Everything but Owner, which is given by handing the church over.
+  const giveable = roles.filter((one) => one.key !== "owner");
+  const [role, setRole] = React.useState(giveable[0]?.id ?? "");
   const [failed, setFailed] = React.useState<string>();
   const [saving, startTransition] = React.useTransition();
 
@@ -492,8 +500,8 @@ function InviteDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={pending || saving || !dirty}>
-              {t("team.invite")}
+            <Button type="submit" form={formId} disabled={pending || saving || !dirty || !role}>
+              {t("team.send")}
             </Button>
           </>
         }
@@ -562,8 +570,8 @@ function InviteDialog({
             <Select value={role} onValueChange={setRole}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {ROLES.map((r) => (
-                  <SelectItem key={r} value={r}>{roleName(r)}</SelectItem>
+                {giveable.map((one) => (
+                  <SelectItem key={one.id} value={one.id}>{titleOf(one)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

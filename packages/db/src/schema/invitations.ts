@@ -1,5 +1,5 @@
 import { pgTable, uuid, text, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
-import { tenants, appUsers } from "./tenancy";
+import { tenants, appUsers, tenantRoles } from "./tenancy";
 import { members } from "./members";
 import { tenantRole } from "./enums";
 
@@ -22,6 +22,13 @@ export const invitations = pgTable(
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     email: text("email").notNull(),
     role: tenantRole("role").notNull().default("staff"),
+    /**
+     * R1.6. The role the church actually chose, where it wrote its own.
+     *
+     * The enum above then reads "member", the same way it does on
+     * tenant_members, so anything reading it alone fails closed.
+     */
+    roleId: uuid("role_id").references(() => tenantRoles.id, { onDelete: "set null" }),
     /**
      * R1.7. The record this account is for, where the church knows which one.
      *

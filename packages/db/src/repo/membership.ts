@@ -147,9 +147,9 @@ export async function syncUserAndAcceptInvitations(user: {
   await writeAccount(sql, { id: user.id, email, fullName: user.fullName });
 
   const pending = await sql<
-    { id: string; tenant_id: string; role: TenantRole; member_id: string | null }[]
+    { id: string; tenant_id: string; role: TenantRole; role_id: string | null; member_id: string | null }[]
   >`
-    select id, tenant_id, role, member_id from invitations
+    select id, tenant_id, role, role_id, member_id from invitations
     where lower(email) = ${email}
       and accepted_at is null
       and revoked_at is null
@@ -158,9 +158,11 @@ export async function syncUserAndAcceptInvitations(user: {
   const joined: Membership[] = [];
   for (const invite of pending) {
     await sql`
-      insert into tenant_members (tenant_id, user_id, role)
-      values (${invite.tenant_id}, ${user.id}, ${invite.role}::tenant_role)
-      on conflict (tenant_id, user_id) do update set role = excluded.role`;
+      insert into tenant_members (tenant_id, user_id, role, role_id)
+      values (${invite.tenant_id}, ${user.id}, ${invite.role}::tenant_role, ${invite.role_id})
+      on conflict (tenant_id, user_id) do update set
+        role = excluded.role,
+        role_id = excluded.role_id`;
     await sql`
       update invitations
       set accepted_at = now(), accepted_by_user_id = ${user.id}
@@ -263,6 +265,8 @@ export async function createInvitation(input: {
   tenantId: string;
   email: string;
   role: TenantRole;
+  /** R1.6. The church's own role, where it chose one. */
+  roleId?: string | null;
   invitedByUserId?: string;
   /** R1.7. The record this is for, so accepting ties the account to it. */
   memberId?: string | null;
@@ -279,15 +283,21 @@ export async function createInvitation(input: {
     select approved_at is not null as approved from tenants where id = ${input.tenantId}`;
   if (!standing?.approved) throw new InvalidInputError("provisional.error.locked");
 
+  // R1.6. A church's own role carries "member" in the enum, which is what the
+  // audit log records and what anything reading that column alone falls back to.
+  const builtIn: TenantRole = input.roleId ? "member" : input.role;
+
   const rows = await sql<{ id: string }[]>`
-    insert into invitations (tenant_id, email, role, invited_by_user_id, member_id, expires_at)
+    insert into invitations (tenant_id, email, role, role_id, invited_by_user_id, member_id, expires_at)
     values (
-      ${input.tenantId}, ${input.email.trim().toLowerCase()}, ${input.role}::tenant_role,
+      ${input.tenantId}, ${input.email.trim().toLowerCase()}, ${builtIn}::tenant_role,
+      ${input.roleId ?? null},
       ${input.invitedByUserId ?? null}, ${input.memberId ?? null},
       now() + make_interval(days => ${input.days ?? 14})
     )
     on conflict (tenant_id, email) do update set
       role = excluded.role,
+      role_id = excluded.role_id,
       member_id = coalesce(excluded.member_id, invitations.member_id),
       expires_at = excluded.expires_at,
       revoked_at = null,
