@@ -4,8 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Check, X } from "lucide-react";
-import { Button, IconButton, cn } from "@connectapp/ui";
+import {
+  Button, Dialog, DialogContent, DialogClose, DialogFooter, IconButton, cn,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { putAway } from "@/app/setup/actions";
 
 export interface DockStep {
   step: string;
@@ -24,9 +27,9 @@ export interface DockStep {
  * says how far through somebody is, and carries the next step so they never
  * have to find their way back.
  *
- * Closing it closes it for this visit rather than for good. Skipping the whole
- * thing is a decision with a confirm behind it, on the setup page, and a corner
- * of a screen is not where somebody should make it by accident.
+ * Closing it asks which kind of closing is meant. For this visit is the common
+ * one and the easy one. For good is the same decision as skipping the whole of
+ * setup, so it is said in those words rather than hidden behind an x.
  */
 export function SetupDock({
   church,
@@ -51,13 +54,25 @@ export function SetupDock({
     }
   }, [key]);
 
-  const close = () => {
+  const [asking, setAsking] = React.useState(false);
+  const [, startTransition] = React.useTransition();
+
+  const hideForNow = () => {
+    setAsking(false);
     setShut(true);
     try {
       sessionStorage.setItem(key, "1");
     } catch {
       /* A browser with storage switched off still closes it for this render. */
     }
+  };
+
+  const hideForGood = () => {
+    setAsking(false);
+    setShut(true);
+    startTransition(async () => {
+      await putAway(church);
+    });
   };
 
   /*
@@ -77,8 +92,10 @@ export function SetupDock({
         "bottom-20 sm:bottom-6",
         "flex flex-col gap-3 rounded-2xl border border-line p-4",
         // Translucent, so it reads as something laid over the screen rather
-        // than a hole cut in it, and the page keeps showing through.
-        "bg-[color-mix(in_oklch,var(--surface)_86%,transparent)] backdrop-blur-[12px]",
+        // than a hole cut in it, and the page keeps showing through. The wash
+        // over it is the one the public pages carry, at the size of a panel.
+        "bg-[color-mix(in_oklch,var(--surface)_84%,transparent)] backdrop-blur-[12px]",
+        "bg-[image:radial-gradient(22rem_14rem_at_0%_0%,color-mix(in_oklch,var(--primary)_20%,transparent),transparent_70%)]",
         "shadow-[0_8px_28px_oklch(0.3_0.04_75/0.16)]",
       )}
     >
@@ -89,7 +106,7 @@ export function SetupDock({
             {t("setup.dock.count", { done: String(done), all: String(steps.length) })}
           </span>
         </span>
-        <IconButton label={t("setup.dock.close")} variant="ghost" onClick={close}>
+        <IconButton label={t("setup.dock.close")} variant="ghost" onClick={() => setAsking(true)}>
           <X />
         </IconButton>
       </div>
@@ -155,6 +172,22 @@ export function SetupDock({
           </Link>
         </Button>
       </div>
+
+      <Dialog open={asking} onOpenChange={setAsking}>
+        <DialogContent title={t("setup.dock.hide.title")}>
+          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">
+            {t("setup.dock.hide.body")}
+          </p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="ghost" data-dismiss onClick={hideForGood}>
+                {t("setup.dock.hide.ever")}
+              </Button>
+            </DialogClose>
+            <Button onClick={hideForNow}>{t("setup.dock.hide.now")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }
