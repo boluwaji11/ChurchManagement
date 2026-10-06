@@ -34,7 +34,7 @@ export default function TrustPage() {
       <SiteBar />
 
       <main id="main" className="relative mx-auto w-full max-w-2xl flex-1 px-4 py-12 sm:px-6">
-        <h1 className="mb-10 font-display text-display text-fg">{t("trust.title")}</h1>
+        <h1 className="mb-10 text-center font-display text-display text-fg">{t("trust.title")}</h1>
 
         <div className="flex flex-col gap-6">
           {PROMISES.map((promise) => (
