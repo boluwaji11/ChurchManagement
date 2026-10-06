@@ -78,8 +78,15 @@ export default async function GroupsPage({
     };
   }).filter((one) => one.all > 0 || manage);
 
-  if (!type && kinds.length > 1) {
-    const landing = <TypesLanding church={session.tenantSlug} types={kinds} />;
+  /*
+   * R9.5. The kinds lead, for everybody. A member arriving at the groups screen
+   * and a leader arriving at it are choosing between the same three or four
+   * things the church calls by name, so they meet the same screen.
+   */
+  if (!type && kinds.length > 0) {
+    const landing = (
+      <TypesLanding church={session.tenantSlug} types={kinds} canManage={manage} />
+    );
     return portal ? (
       <PortalShell session={session}>
         <PortalTitle title={t("find.title")} under={t("find.lede")} />
