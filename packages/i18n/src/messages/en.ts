@@ -1238,7 +1238,7 @@ export const en = {
   "groups.editTitle": "Edit {name}",
   "groups.name": "Name",
   "groups.description": "What it is for",
-  "groups.type": "Type",
+  "groups.type": "Group type",
   "groups.day": "Day",
   "groups.time": "Time",
   "groups.frequency": "How often",
