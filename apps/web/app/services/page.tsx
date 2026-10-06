@@ -134,21 +134,16 @@ export default async function ServicesPage({
          rather than taking a band of its own above it. */
     >
       {upcoming.length === 0 && past.length === 0 ? (
-        <>
-          <h2 className="font-display text-[22px] leading-[28px] text-fg">
-            {t("services.upcoming")}
-          </h2>
-          <Empty
-            icon="calendar"
-            title={t("services.none.title")}
-            body={t("services.none.body")}
-            action={
-              canEdit ? (
-                <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
-              ) : undefined
-            }
-          />
-        </>
+        <Empty
+          icon="calendar"
+          title={t("services.none.title")}
+          body={t("services.none.body")}
+          action={
+            canEdit ? (
+              <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+            ) : undefined
+          }
+        />
       ) : (
         <ServiceBoard
           title={t("services.upcoming")}
