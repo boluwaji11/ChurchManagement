@@ -12,7 +12,7 @@ import { AUTH_INPUT, AUTH_BUTTON } from "../auth-shell";
  *
  * It only navigates. Everything that decides what happens is behind the link.
  */
-export function JoinWithCode() {
+export function JoinWithCode({ secondary }: { secondary?: boolean }) {
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
@@ -31,7 +31,7 @@ export function JoinWithCode() {
       <Field label={t("join.codeLabel")} required>
         <Input name="code" autoComplete="off" spellCheck={false} className={AUTH_INPUT} />
       </Field>
-      <Button type="submit" loading={pending} full className={AUTH_BUTTON}>
+      <Button type="submit" variant={secondary ? "secondary" : "primary"} loading={pending} full className={AUTH_BUTTON}>
         {t("join.codeAction")} <ArrowRight />
       </Button>
     </form>

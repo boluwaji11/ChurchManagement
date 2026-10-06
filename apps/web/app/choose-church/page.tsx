@@ -75,13 +75,36 @@ export default async function ChooseChurch({
         </ul>
       ) : null}
 
-      <JoinWithCode />
+      {/* Somebody who has just verified an address and belongs to nothing is
+          here to start a church. The code is the other way in, under a rule,
+          for the member who was handed one. */}
+      {memberships.length === 0 ? (
+        <>
+          <Button asChild full className={AUTH_BUTTON}>
+            <Link href="/create-church">
+              <Plus /> {t("createChurch.title")}
+            </Link>
+          </Button>
 
-      <Button asChild variant="ghost" full className={AUTH_BUTTON}>
-        <Link href="/create-church">
-          <Plus /> {t("createChurch.title")}
-        </Link>
-      </Button>
+          <div className="flex items-center gap-3 text-[13px] text-fg-subtle">
+            <span className="h-px flex-1 bg-line" />
+            {t("chooseChurch.orCode")}
+            <span className="h-px flex-1 bg-line" />
+          </div>
+
+          <JoinWithCode secondary />
+        </>
+      ) : (
+        <>
+          <JoinWithCode secondary />
+
+          <Button asChild variant="ghost" full className={AUTH_BUTTON}>
+            <Link href="/create-church">
+              <Plus /> {t("createChurch.title")}
+            </Link>
+          </Button>
+        </>
+      )}
     </AuthShell>
   );
 }

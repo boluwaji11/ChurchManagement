@@ -268,7 +268,8 @@ export const en = {
 
   // Choosing a church
   "chooseChurch.title": "Choose a church",
-  "chooseChurch.getIn": "Join your church",
+  "chooseChurch.getIn": "Create your church account",
+  "chooseChurch.orCode": "Were you given a church code?",
   "chooseChurch.signedInAs": "Signed in as {email}",
   "chooseChurch.none.title": "Your account is not in a church yet",
   "chooseChurch.none.body": "Use the code your church gave you, or create one.",
