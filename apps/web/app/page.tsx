@@ -155,7 +155,22 @@ export default function Site() {
             <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-8">
               <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-4 text-[17px] leading-[28px] text-fg-muted">
                 <p className="m-0">{t("site.why.hours")}</p>
-                <p className="m-0 font-semibold text-fg">{t("site.why.money")}</p>
+                <p className="m-0">
+                  {/* The sentence is one line in the catalogue so a translator
+                      reads it whole. Only the figure carries weight. */}
+                  {t("site.why.money")
+                    .split("{cost}")
+                    .flatMap((part, i) =>
+                      i === 0
+                        ? [part]
+                        : [
+                            <strong key="cost" className="font-semibold text-fg">
+                              {t("site.why.cost")}
+                            </strong>,
+                            part,
+                          ],
+                    )}
+                </p>
               </div>
               <img
                 src="/art/connecting.svg"

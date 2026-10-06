@@ -65,8 +65,8 @@ export function Ticks({ items }: { items: readonly string[] }) {
 /** One card in the feature grid, and in the trust row below it. */
 export function Tile({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-2xl border border-line bg-canvas p-6">
-      <span className="mb-2.5 grid size-10 place-items-center rounded-[10px] bg-primary-soft text-primary [&_svg]:size-5">
+    <div className="group flex flex-col gap-1.5 rounded-2xl border border-line bg-canvas p-6 transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_10px_28px_oklch(0.3_0.04_75/0.10)]">
+      <span className="mb-2.5 grid size-10 place-items-center rounded-[10px] bg-primary-soft text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-fg [&_svg]:size-5">
         {icon}
       </span>
       <span className="text-[17px] font-semibold text-fg">{title}</span>
