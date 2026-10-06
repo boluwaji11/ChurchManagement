@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  PERMISSIONS, ROLE_PERMISSIONS, TENANT_ROLES, can, rolesWith,
+  PERMISSIONS, PERMISSION_GROUPS, ROLE_PERMISSIONS, TENANT_ROLES, can, rolesWith,
   canEditPeople, canArchivePeople, canReadConfidentialNotes, canReadGivingAmounts,
 } from "../src/roles";
 import { canManageHouseholds } from "../src/roles";
@@ -92,5 +92,13 @@ describe("the permission matrix", () => {
 
   it("supervising a room is the same reach as running check-in", () => {
     expect([...CAN_SUPERVISE]).toEqual(["owner", "admin", "staff", "checkin_volunteer"]);
+  });
+});
+
+describe("the groups the screens read", () => {
+  it("names every permission exactly once", () => {
+    const listed = PERMISSION_GROUPS.flatMap((group) => group.permissions);
+    expect([...listed].sort()).toEqual([...PERMISSIONS].sort());
+    expect(new Set(listed).size).toBe(listed.length);
   });
 });

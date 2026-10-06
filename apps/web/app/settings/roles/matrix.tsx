@@ -5,11 +5,17 @@ import { useRouter } from "next/navigation";
 import { Archive, Check, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Checkbox, Field, IconButton, Input,
-  Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { addRole, saveRole, putAway } from "./actions";
 import { useFormError } from "@/lib/form-error";
+
+/** One heading in the permission list, and what sits under it. */
+export interface PermissionGroupRow {
+  key: string;
+  permissions: string[];
+}
 
 export interface RoleRow {
   id: string;
@@ -46,10 +52,12 @@ export function Matrix({
   church,
   roles,
   permissions,
+  groups,
 }: {
   church: string;
   roles: RoleRow[];
   permissions: string[];
+  groups: PermissionGroupRow[];
 }) {
   const open = roles.filter((role) => !role.archived);
   const archived = roles.filter((role) => role.archived);
@@ -74,7 +82,7 @@ export function Matrix({
                   {role.key === "owner" ? (
                     <Upright>{nameOf(role)}</Upright>
                   ) : (
-                    <RoleForm church={church} role={role} permissions={permissions}>
+                    <RoleForm church={church} role={role} permissions={permissions} groups={groups}>
                       <button
                         type="button"
                         className="cursor-pointer rounded-sm hover:bg-sunken"
@@ -90,7 +98,18 @@ export function Matrix({
         </thead>
 
         <tbody>
-          {permissions.map((permission) => (
+          {groups.map((group) => (
+            <React.Fragment key={group.key}>
+              <tr className="border-b border-sunken">
+                <th
+                  colSpan={open.length + 1}
+                  className="sticky left-0 bg-sunken/60 px-5 py-2 text-left text-[12px] font-semibold tracking-[0.04em] text-fg-muted uppercase"
+                >
+                  {t(`roles.group.${group.key}` as never)}
+                </th>
+              </tr>
+
+              {group.permissions.map((permission) => (
             <tr key={permission} className="border-b border-sunken last:border-0">
               <td className="sticky left-0 bg-surface px-5 py-2.5 text-[length:var(--d-text-body)] text-fg">
                 {t(`permission.${permission}` as never)}
@@ -117,6 +136,8 @@ export function Matrix({
                 );
               })}
             </tr>
+              ))}
+            </React.Fragment>
           ))}
         </tbody>
       </table>
@@ -183,12 +204,14 @@ export function RoleForm({
   church,
   role,
   permissions,
+  groups,
   children,
 }: {
   church: string;
   /** The role being changed, or nothing when one is being written. */
   role?: RoleRow;
   permissions: string[];
+  groups: PermissionGroupRow[];
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -221,18 +244,54 @@ export function RoleForm({
       on ? [...current, permission] : current.filter((one) => one !== permission),
     );
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+  /** Every permission under one heading, on or off together. */
+  const setGroup = (group: PermissionGroupRow, on: boolean) =>
+    setHeld((current) => {
+      const without = current.filter((one) => !group.permissions.includes(one));
+      return on ? [...without, ...group.permissions] : without;
+    });
 
-      <DialogContent
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{children}</SheetTrigger>
+
+      <SheetContent
         title={role ? nameOf(role) : t("roles.add")}
         closeLabel={t("common.close")}
-        className="max-w-xl"
+        width="520px"
+        footer={
+          <>
+            {role ? (
+              <IconButton
+                label={t("roles.archiveOne", { name: nameOf(role) })}
+                variant="ghost"
+                className="mr-auto"
+                disabled={pending}
+                onClick={() => run(() => putAway(role.id, true, church))}
+              >
+                <Archive />
+              </IconButton>
+            ) : null}
+
+            <Button
+              type="button"
+              disabled={pending || !name.trim()}
+              onClick={() =>
+                run(() =>
+                  role
+                    ? saveRole(role.id, name, held, church)
+                    : addRole(name, held, church),
+                )
+              }
+            >
+              {t("action.save")}
+            </Button>
+          </>
+        }
       >
         {error ? <Banner tone="danger" title={t("roles.failed")}>{error}</Banner> : null}
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <Field label={t("roles.name")} required>
             <Input
               value={name}
@@ -242,7 +301,7 @@ export function RoleForm({
             />
           </Field>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
               <span className="text-label text-fg">{t("roles.permission")}</span>
 
@@ -257,64 +316,60 @@ export function RoleForm({
               </label>
             </div>
 
-            <div className="flex max-h-80 flex-col gap-0.5 overflow-auto">
-              {permissions.map((permission) => (
-                <label
-                  key={permission}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-1.5 hover:bg-sunken"
-                >
-                  <Checkbox
-                    checked={held.includes(permission)}
-                    onCheckedChange={(on) => toggle(permission, on === true)}
-                  />
-                  <span className="text-[length:var(--d-text-body)] text-fg">
-                    {t(`permission.${permission}` as never)}
-                  </span>
-                </label>
-              ))}
-            </div>
+            {/* R1.6. Under headings, because the question somebody arrives with
+                is narrower than twenty rows: what may this role do with our
+                members, and what may it do at check-in. */}
+            {groups.map((group) => {
+              const whole = group.permissions.every((one) => held.includes(one));
+
+              return (
+                <section key={group.key} className="flex flex-col gap-0.5">
+                  <label className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-1.5">
+                    <Checkbox
+                      checked={whole}
+                      onCheckedChange={(on) => setGroup(group, on === true)}
+                    />
+                    <span className="text-[13px] font-semibold tracking-[0.04em] text-fg-muted uppercase">
+                      {t(`roles.group.${group.key}` as never)}
+                    </span>
+                  </label>
+
+                  {group.permissions.map((permission) => (
+                    <label
+                      key={permission}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-1.5 pl-7 hover:bg-sunken"
+                    >
+                      <Checkbox
+                        checked={held.includes(permission)}
+                        onCheckedChange={(on) => toggle(permission, on === true)}
+                      />
+                      <span className="text-[length:var(--d-text-body)] text-fg">
+                        {t(`permission.${permission}` as never)}
+                      </span>
+                    </label>
+                  ))}
+                </section>
+              );
+            })}
           </div>
         </div>
-
-        <DialogFooter>
-          {role ? (
-            <IconButton
-              label={t("roles.archiveOne", { name: nameOf(role) })}
-              variant="ghost"
-              className="mr-auto"
-              disabled={pending}
-              onClick={() => run(() => putAway(role.id, true, church))}
-            >
-              <Archive />
-            </IconButton>
-          ) : null}
-
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-            {t("action.cancel")}
-          </Button>
-          <Button
-            type="button"
-            disabled={pending || !name.trim()}
-            onClick={() =>
-              run(() =>
-                role
-                  ? saveRole(role.id, name, held, church)
-                  : addRole(name, held, church),
-              )
-            }
-          >
-            {t("action.save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
 /** R1.6. The one action this screen carries, beside its title. */
-export function NewRole({ church, permissions }: { church: string; permissions: string[] }) {
+export function NewRole({
+  church,
+  permissions,
+  groups,
+}: {
+  church: string;
+  permissions: string[];
+  groups: PermissionGroupRow[];
+}) {
   return (
-    <RoleForm church={church} permissions={permissions}>
+    <RoleForm church={church} permissions={permissions} groups={groups}>
       <Button>
         <Plus /> {t("roles.add")}
       </Button>

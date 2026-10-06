@@ -2,8 +2,8 @@ import { t } from "@connectapp/i18n";
 import { can, rolesWith, type TenantRole, type Who } from "./permissions";
 
 export {
-  TENANT_ROLES, PERMISSIONS, ROLE_PERMISSIONS, can, rolesWith,
-  type TenantRole, type Permission,
+  TENANT_ROLES, PERMISSIONS, PERMISSION_GROUPS, ROLE_PERMISSIONS, can, rolesWith,
+  type TenantRole, type Permission, type PermissionGroup,
 } from "./permissions";
 
 /**

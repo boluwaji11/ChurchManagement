@@ -66,6 +66,42 @@ export const PERMISSIONS = [
 export type Permission = (typeof PERMISSIONS)[number];
 
 /**
+ * R1.6. The same permissions, in the order a person reads them.
+ *
+ * Twenty rows of equal weight is a list nobody can hold in their head, and the
+ * question somebody actually arrives with is narrower than the list: what can
+ * this role do with our members, what can it do at check-in, what can it change
+ * about the church. The groups are the screen's order, and the permissions
+ * above stay the authority on what exists.
+ */
+export const PERMISSION_GROUPS = [
+  {
+    key: "members",
+    permissions: [
+      "members.edit", "members.archive", "members.households", "members.notes.confidential",
+    ],
+  },
+  {
+    key: "checkin",
+    permissions: [
+      "checkin.run", "checkin.supervise", "checkin.rooms", "checkin.stations",
+      "checkin.incidents", "checkin.checks",
+    ],
+  },
+  {
+    key: "week",
+    permissions: [
+      "services.manage", "teams.manage", "teams.lead",
+      "groups.manage", "events.manage", "followups.manage",
+    ],
+  },
+  { key: "church", permissions: ["church.manage", "church.fields", "church.tags"] },
+  { key: "money", permissions: ["giving.amounts"] },
+] as const satisfies readonly { key: string; permissions: readonly Permission[] }[];
+
+export type PermissionGroup = (typeof PERMISSION_GROUPS)[number]["key"];
+
+/**
  * The matrix.
  *
  * Owner holds everything by construction rather than by listing, because a
