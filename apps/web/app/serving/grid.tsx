@@ -255,7 +255,7 @@ export function ScheduleGrid({
 
       <div className="flex flex-wrap items-center gap-3">
         <Combobox
-          aria-label={t("serving.view.teams")}
+          aria-label={t("serving.team")}
           className="w-full max-w-[320px]"
           options={teams.map((one) => ({ value: one.id, label: one.name }))}
           value={team.id}

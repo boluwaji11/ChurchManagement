@@ -4,27 +4,25 @@ import * as React from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { Button, cn } from "@connectapp/ui";
+import { Button } from "@connectapp/ui";
 import { Empty } from "@/components/empty";
 import { t } from "@connectapp/i18n";
 import { ScheduleGrid, type GridService, type GridTeam, type GridSlot, type GridPosition, type GridVolunteer } from "./grid";
 
 /**
- * R10.1, R10.3. The two ways into serving: the rota, and the teams that fill it.
+ * R10.3. The rota, which is the whole of this screen.
  *
- * The schedule leads, because a leader opens this screen on a Tuesday to fill
- * the weekend rather than to edit a team.
+ * The teams themselves are written down in Settings: their names, their
+ * positions and what each one asks of a volunteer change once a year, and this
+ * is what a leader opens on a Tuesday to fill the weekend.
  */
 export function ServingViews({
   church,
-  view,
   heading,
   schedule,
   canManage,
-  teams: teamsView,
 }: {
   church: string;
-  view: "schedule" | "teams";
   /** Null when the church has no team or nothing scheduled to fill. */
   schedule: {
     teams: GridTeam[];
@@ -36,8 +34,7 @@ export function ServingViews({
   } | null;
   /** Whether this person may change a team. */
   canManage: boolean;
-  teams: React.ReactNode;
-  /** The heading and its summary, which sit under the two tabs. */
+  /** The month and its legend, above the grid. */
   heading: React.ReactNode;
 }) {
   const router = useRouter();
@@ -53,57 +50,40 @@ export function ServingViews({
     router.push(`${pathname}?${query.toString()}`, { scroll: false });
   };
 
+  if (!schedule) {
+    return (
+      <Empty
+        icon="calendar"
+        title={t("serving.noServices")}
+        body={t("serving.noServices.body")}
+        action={
+          canManage ? (
+            <Button asChild>
+              <Link href={`/services?church=${church}`}>
+                <Plus /> {t("services.add")}
+              </Link>
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
+
   return (
     <>
-      <div className="flex items-center gap-1 self-start rounded-md bg-sunken p-[3px]">
-        {(["schedule", "teams"] as const).map((one) => (
-          <button
-            key={one}
-            type="button"
-            onClick={() => go({ view: one === "schedule" ? undefined : one })}
-            aria-pressed={view === one}
-            className={cn(
-              "h-8 cursor-pointer rounded-sm px-3.5 text-[13px] font-medium",
-              view === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
-            )}
-          >
-            {t(`serving.view.${one}` as never)}
-          </button>
-        ))}
-      </div>
-
       {heading}
 
-      {view === "teams" ? (
-        teamsView
-      ) : schedule ? (
-        <ScheduleGrid
-          church={church}
-          teams={schedule.teams}
-          team={schedule.team}
-          positions={schedule.positions}
-          services={schedule.services}
-          slots={schedule.slots}
-          volunteers={schedule.volunteers}
-          canManage={canManage}
-          onTeam={(id) => go({ team: id })}
-        />
-      ) : (
-        <Empty
-          icon="calendar"
-          title={t("serving.noServices")}
-          body={t("serving.noServices.body")}
-          action={
-            canManage ? (
-              <Button asChild>
-                <Link href={`/services?church=${church}`}>
-                  <Plus /> {t("services.add")}
-                </Link>
-              </Button>
-            ) : undefined
-          }
-        />
-      )}
+      <ScheduleGrid
+        church={church}
+        teams={schedule.teams}
+        team={schedule.team}
+        positions={schedule.positions}
+        services={schedule.services}
+        slots={schedule.slots}
+        volunteers={schedule.volunteers}
+        canManage={canManage}
+        onTeam={(id) => go({ team: id })}
+      />
     </>
   );
 }

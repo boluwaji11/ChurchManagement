@@ -55,6 +55,7 @@ export default async function TeamsSettingsPage({
           const of = positions[team.id] ?? [];
           return {
             id: team.id,
+            slug: team.slug,
             name: team.name,
             description: team.description,
             members: team.members,

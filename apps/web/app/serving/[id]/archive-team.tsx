@@ -29,7 +29,7 @@ export function ArchiveTeam({
     startTransition(async () => {
       const result = await archiveTeam(data);
       setError(result.error);
-      if (!result.error) router.push(`/serving?church=${church}&view=teams`);
+      if (!result.error) router.push(`/settings/teams?church=${church}`);
     });
   };
 

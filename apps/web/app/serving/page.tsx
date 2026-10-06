@@ -1,19 +1,17 @@
 import * as React from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Settings2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   withTenant, listTeams, getTeam, getChurch, answerCounts, listOccurrences,
   assignmentsForTeam, blockoutsFor, openSlots, positionsForTeams,
   canManageTeams, canLeadTeams,
 } from "@connectapp/db";
-import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { shortDate, readableTime } from "@/lib/dates";
-import { Teams } from "./teams";
 import { ServingViews } from "./views";
 
 export const dynamic = "force-dynamic";
@@ -58,7 +56,7 @@ export default async function ServingPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; archived?: string; view?: string; team?: string; at?: string;
+    church?: string; archived?: string; team?: string; at?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -70,7 +68,6 @@ export default async function ServingPage({
 
   const canManage = canManageTeams(session);
   const showArchived = canManage && params.archived === "1";
-  const view = params.view === "teams" ? "teams" : "schedule";
   const asked = /^\d{4}-\d{2}$/.test(params.at ?? "") ? params.at! : null;
 
   const data = await withTenant(
@@ -158,33 +155,20 @@ export default async function ServingPage({
    * for a reply and carries the link they answer on. There is nothing to send
    * separately.
    */
-  const action =
-    view === "teams" && canManage && data.teams.length > 0 ? (
-      <Button variant="secondary" asChild>
-        <Link href={`/settings/teams?church=${session.tenantSlug}`}>
-          <Settings2 /> {t("serving.manageTeams")}
-        </Link>
-      </Button>
-    ) : undefined;
-
   return (
     <AppShell session={session} title={t("serving.title")} wide>
       <ServingViews
         church={session.tenantSlug}
-        view={view}
         canManage={canManage}
         heading={
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-[22px] leading-[28px] text-fg">
-              {view === "teams"
-                ? t("serving.view.teams")
-                : t("serving.schedule.title", { month })}
+              {t("serving.schedule.title", { month })}
             </h2>
 
-            {view === "schedule" ? (
-              <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2">
                 <MonthStep
                   church={session.tenantSlug}
                   at={shiftMonth(-1)}
@@ -218,33 +202,26 @@ export default async function ServingPage({
                 >
                   <ChevronRight className="size-4" aria-hidden />
                 </MonthStep>
-              </span>
-            ) : null}
+            </span>
           </div>
         </div>
 
-        {/* The one action for this view sits on the heading's own line, beside
-            the name of what it adds to. */}
-        {view === "teams" ? action : null}
-
         {/* R10.6. What the three marks in the grid mean. */}
-        {view === "schedule" ? (
-          <div className="flex flex-wrap gap-3.5 text-[12px] text-fg-muted">
-            {[
-              ["accepted", "fern"],
-              ["waiting", "amber"],
-              ["declined", "rose"],
-            ].map(([what, hue]) => (
-              <span key={what} className="flex items-center gap-1.5">
-                <span
-                  className="size-2.5 rounded-full"
-                  style={{ background: `var(--hue-${hue}-500)` }}
-                />
-                {t(`serving.legend.${what}` as never)}
-              </span>
-            ))}
-          </div>
-        ) : null}
+        <div className="flex flex-wrap gap-3.5 text-[12px] text-fg-muted">
+          {[
+            ["accepted", "fern"],
+            ["waiting", "amber"],
+            ["declined", "rose"],
+          ].map(([what, hue]) => (
+            <span key={what} className="flex items-center gap-1.5">
+              <span
+                className="size-2.5 rounded-full"
+                style={{ background: `var(--hue-${hue}-500)` }}
+              />
+              {t(`serving.legend.${what}` as never)}
+            </span>
+          ))}
+        </div>
       </div>
         }
         schedule={
@@ -313,25 +290,6 @@ export default async function ServingPage({
                 }),
               }
             : null
-        }
-        teams={
-          <Teams
-            church={session.tenantSlug}
-            canManage={canManage}
-            teams={data.teams.map((team) => ({
-              id: team.id,
-              slug: team.slug,
-              name: team.name,
-              description: team.description,
-              hue: team.hue,
-              members: team.members,
-              positions: team.positions,
-              positionNames: (data.positions[team.id] ?? []).map((one) => one.name),
-              needsChecks: team.needsChecks,
-              archived: team.archivedAt !== null,
-              open: openOf(team.id),
-            }))}
-          />
         }
       />
     </AppShell>
