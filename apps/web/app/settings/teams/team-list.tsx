@@ -54,7 +54,7 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
       ) : (
         <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
           {live.map((team) => (
-            <li key={team.id}>
+            <li key={team.id} className="cursor-pointer">
               {/* R24.6. The whole card opens the team's settings, the way a
                   room tile does, so there is one press rather than a row of
                   small ones. */}

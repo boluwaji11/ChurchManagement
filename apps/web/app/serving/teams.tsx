@@ -60,7 +60,7 @@ export function Teams({
     <div className="flex flex-col gap-4">
       <ul className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
         {teams.map((team) => (
-          <li key={team.id}>
+          <li key={team.id} className="cursor-pointer">
             {/* R24.x. The whole tile opens the team. The title carries the
                 link and stretches over the card, so the markup stays an anchor
                 around text rather than an anchor around buttons. */}
