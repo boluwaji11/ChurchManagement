@@ -429,6 +429,33 @@ export async function givingTotals(
 }
 
 /**
+ * R13.2. What has been authorised and has not arrived yet.
+ *
+ * Bank transfers only, in practice: a card either works or it does not. It is
+ * read without a date range, because the question is never "how much was on
+ * its way in March", it is "what is still coming".
+ */
+export async function onTheWay(
+  db: Tx,
+  memberId?: string,
+): Promise<{ cents: number; gifts: number }> {
+  const [row] = await db
+    .select({
+      cents: sql<number>`coalesce(sum(${gifts.amountCents}), 0)::int`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(gifts)
+    .where(
+      and(
+        sql`${gifts.status} = 'pending'`,
+        memberId ? eq(gifts.memberId, memberId) : undefined,
+      ),
+    );
+
+  return { cents: row?.cents ?? 0, gifts: row?.count ?? 0 };
+}
+
+/**
  * R13.18. What one person has given over a period.
  *
  * Read on their own record, where a pastor with the permission asks "are they

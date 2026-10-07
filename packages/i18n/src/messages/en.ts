@@ -1076,6 +1076,7 @@ export const en = {
   "giving.gift.refundCash": "Recorded as given back. The money itself is handed over by the church.",
   "giving.gift.refunded": "Refunded",
   "giving.gift.pending": "On its way",
+  "giving.onTheWay": "{amount} on its way",
   "giving.gift.pendingWhy": "A bank transfer takes a few days to arrive.",
   "giving.gift.failedState": "Did not arrive",
   "giving.failed": "That did not save. Try again.",

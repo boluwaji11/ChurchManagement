@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  withTenant, getChurch, listFunds, fundTotals, listBatches, listGifts, givingTotals,
+  withTenant, getChurch, listFunds, fundTotals, listBatches, listGifts, givingTotals, onTheWay,
   getStripeAccount, listRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
@@ -68,6 +68,8 @@ export default async function GivingPage({
       thisMonth: await givingTotals(tx, { from: `${month}-01`, to: today }),
       counts: await listBatches(tx, 6),
       recent: await listGifts(tx, ctx, { limit: 8 }),
+      /* R13.2. Bank transfers authorised and not yet arrived. */
+      coming: await onTheWay(tx),
       // R13.3. What the church is expecting without anybody doing anything.
       recurring: await listRecurring(tx, ctx, { activeOnly: true }),
       expected: await recurringMonthly(tx),
@@ -102,6 +104,14 @@ export default async function GivingPage({
             hue="sky"
           />
         </div>
+
+        {/* R13.2. Money a giver has authorised that the bank has not moved
+            yet. It is in none of the figures above, so it says so here. */}
+        {read.coming.cents > 0 ? (
+          <p className="-mt-4 m-0 text-[13px] text-warning-text">
+            {t("giving.onTheWay", { amount: money(read.coming.cents) })}
+          </p>
+        ) : null}
 
         {nothing ? (
           <Empty

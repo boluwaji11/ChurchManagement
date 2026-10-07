@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Download } from "lucide-react";
 import {
-  withTenant, personForUser, listGifts, givingForPerson, getChurch,
+  withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
   getStripeAccount, listRecurring,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -51,6 +51,8 @@ export async function MyGiving({ session }: { session: Session }) {
         { memberId: self, limit: 200 },
       ),
       total: await givingForPerson(tx, self, { from: `${year}-01-01`, to: `${year}-12-31` }),
+      /* R13.2. Their own bank transfer, before the bank has moved it. */
+      coming: await onTheWay(tx, self),
       /** R13.6. Whether the church can take a gift online at all. */
       online: (await getStripeAccount(tx))?.chargesEnabled ?? false,
       /** R13.3. What they have set to repeat, if anything. */
@@ -83,6 +85,11 @@ export async function MyGiving({ session }: { session: Session }) {
             <span className="text-caption text-fg-subtle">
               {t("home.myGiving.year", { year: mine.year })}
             </span>
+            {mine.coming.cents > 0 ? (
+              <span className="text-caption text-warning-text">
+                {t("giving.onTheWay", { amount: money(mine.coming.cents) })}
+              </span>
+            ) : null}
           </span>
 
           {mine.total.gifts > 0 ? (
