@@ -96,7 +96,10 @@ export default async function CalendarPage({
        * the church has on, and a draft is not yet something it has on.
        */
       const events = (await listEvents(tx)).filter((one) => one.status === "published");
-      const brand = profile?.brandHue ?? "indigo";
+      // R15.1. One colour a kind of thing: the services in the church's
+      // purple, what it is putting on in green, so a week reads at a glance.
+      const SERVICE_HUE = "violet";
+      const EVENT_HUE = "fern";
 
       const dates = Array.from({ length: SPAN }, (_, i) => shift(start, i));
 
@@ -111,7 +114,7 @@ export default async function CalendarPage({
               id: o.id,
               title: o.name,
               detail: clock(o.startsAt),
-              hue: brand,
+              hue: SERVICE_HUE,
               href: `/services/${o.slug}/plan`,
             }));
 
@@ -130,7 +133,7 @@ export default async function CalendarPage({
               ]
                 .filter(Boolean)
                 .join(" \u00b7 "),
-              hue: one.hue,
+              hue: EVENT_HUE,
               href: `/events/${one.slug}`,
             });
           }

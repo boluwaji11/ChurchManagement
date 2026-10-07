@@ -26,7 +26,7 @@ export default async function ItemKindsPage({
   const rows = manage
     ? await withTenant(
         { tenantId: session.tenantId, role: session.role },
-        (tx) => listItemKinds(tx, session.tenantId, { includeArchived: true }),
+        (tx) => listItemKinds(tx, { includeArchived: true }),
       )
     : [];
 
@@ -41,6 +41,7 @@ export default async function ItemKindsPage({
           church={session.tenantSlug}
           kinds={rows.map((row) => ({
             id: row.id,
+            slug: row.slug,
             name: row.name ?? (ours.includes(row.slug) ? t(`order.kind.${row.slug}` as never) : row.slug),
             archived: row.archived,
           }))}

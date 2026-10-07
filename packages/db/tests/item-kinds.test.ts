@@ -9,7 +9,8 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { withTenant, closeConnections, type Tx } from "../src/client";
 import { ensurePlan, addItem, getPlan } from "../src/repo/plans";
 import {
-  listItemKinds, addItemKind, renameItemKind, setItemKindArchived, BUILT_IN_KINDS,
+  listItemKinds, itemKindsForPlans, addItemKind, renameItemKind, setItemKindArchived,
+  BUILT_IN_KINDS,
 } from "../src/repo/item-kinds";
 import { addSpecialService } from "../src/repo/services";
 import { InvalidInputError } from "../src/errors";
@@ -35,20 +36,36 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await dropTenants([SLUG]);
+  await dropTenants(SLUG);
   await closeConnections();
 });
 
 describe("the kinds of plan item", () => {
-  it("starts every church with ours, named by the product", async () => {
-    const kinds = await run((tx) => listItemKinds(tx, tenant));
-    expect(kinds.map((one) => one.slug)).toEqual([...BUILT_IN_KINDS]);
-    expect(kinds.every((one) => one.name === null)).toBe(true);
+  it("starts a church with nothing written down, and offers ours to a plan", async () => {
+    expect(await run((tx) => listItemKinds(tx))).toEqual([]);
+
+    const offered = await run((tx) => itemKindsForPlans(tx));
+    expect(offered.map((one) => one.slug)).toEqual([...BUILT_IN_KINDS]);
+
+    // And a plan can be written against them before anybody opens settings.
+    await run((tx) => addItem(tx, as(), plan, { kind: "song", title: "Opening", minutes: 5 }));
+  });
+
+  it("takes one of ours as the church's own, keeping its slug", async () => {
+    await run((tx) => addItemKind(tx, as(), { builtIn: "song" }));
+    const kinds = await run((tx) => listItemKinds(tx));
+    expect(kinds.map((one) => one.slug)).toEqual(["song"]);
+    expect(kinds[0]!.name).toBeNull();
+
+    // Once the church keeps a list, ours are no longer offered beside it.
+    await expect(
+      run((tx) => addItem(tx, as(), plan, { kind: "sermon", title: "Nope", minutes: 5 })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
   });
 
   it("takes a kind the church runs, and files an item under it", async () => {
     await run((tx) => addItemKind(tx, as(), "Testimony"));
-    const kinds = await run((tx) => listItemKinds(tx, tenant));
+    const kinds = await run((tx) => listItemKinds(tx));
     const own = kinds.find((one) => one.name === "Testimony")!;
     expect(own.slug).toBe("testimony");
 
@@ -58,10 +75,10 @@ describe("the kinds of plan item", () => {
   });
 
   it("renames without touching the plans", async () => {
-    const own = (await run((tx) => listItemKinds(tx, tenant))).find((one) => one.slug === "testimony")!;
+    const own = (await run((tx) => listItemKinds(tx))).find((one) => one.slug === "testimony")!;
     await run((tx) => renameItemKind(tx, as(), own.id, "Story"));
 
-    const kinds = await run((tx) => listItemKinds(tx, tenant));
+    const kinds = await run((tx) => listItemKinds(tx));
     expect(kinds.find((one) => one.slug === "testimony")!.name).toBe("Story");
     const items = (await run((tx) => getPlan(tx, occurrence)))!.items;
     expect(items.map((one) => one.kind)).toContain("testimony");
@@ -76,10 +93,10 @@ describe("the kinds of plan item", () => {
   });
 
   it("archives a kind, and the item filed under it keeps it", async () => {
-    const own = (await run((tx) => listItemKinds(tx, tenant))).find((one) => one.slug === "testimony")!;
+    const own = (await run((tx) => listItemKinds(tx))).find((one) => one.slug === "testimony")!;
     await run((tx) => setItemKindArchived(tx, as(), own.id, true));
 
-    expect((await run((tx) => listItemKinds(tx, tenant))).map((one) => one.slug))
+    expect((await run((tx) => listItemKinds(tx))).map((one) => one.slug))
       .not.toContain("testimony");
     const items = (await run((tx) => getPlan(tx, occurrence)))!.items;
     expect(items.map((one) => one.kind)).toContain("testimony");

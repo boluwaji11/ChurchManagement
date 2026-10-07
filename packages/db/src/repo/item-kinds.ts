@@ -57,39 +57,27 @@ function slugify(name: string): string {
   return slug || "item";
 }
 
-/** R11.2. Writes ours in for a church that has never had the list. */
-async function seed(db: Tx, tenantId: string): Promise<void> {
-  await db
-    .insert(planItemKinds)
-    .values(
-      BUILT_IN_KINDS.map((slug, at) => ({ tenantId, slug, name: null, position: at })),
-    )
-    .onConflictDoNothing();
-}
-
-/** R11.2. What this church puts on a plan, in the order it reads them. */
+/**
+ * R11.2. What this church has written down, which may be nothing.
+ *
+ * A church starts with an empty list and picks from the eight, the way it does
+ * with its group types and its roles. Nothing is seeded, so what is here is
+ * what somebody chose.
+ */
 export async function listItemKinds(
   db: Tx,
-  tenantId: string,
   options: { includeArchived?: boolean } = {},
 ): Promise<ItemKindRow[]> {
-  const read = () =>
-    db
-      .select({
-        id: planItemKinds.id,
-        slug: planItemKinds.slug,
-        name: planItemKinds.name,
-        archivedAt: planItemKinds.archivedAt,
-      })
-      .from(planItemKinds)
-      .where(options.includeArchived ? undefined : isNull(planItemKinds.archivedAt))
-      .orderBy(asc(planItemKinds.position), asc(planItemKinds.createdAt));
-
-  let rows = await read();
-  if (rows.length === 0) {
-    await seed(db, tenantId);
-    rows = await read();
-  }
+  const rows = await db
+    .select({
+      id: planItemKinds.id,
+      slug: planItemKinds.slug,
+      name: planItemKinds.name,
+      archivedAt: planItemKinds.archivedAt,
+    })
+    .from(planItemKinds)
+    .where(options.includeArchived ? undefined : isNull(planItemKinds.archivedAt))
+    .orderBy(asc(planItemKinds.position), asc(planItemKinds.createdAt));
 
   return rows.map((row) => ({
     id: row.id,
@@ -99,6 +87,22 @@ export async function listItemKinds(
   }));
 }
 
+/**
+ * R11.2. What a plan offers, which is ours until the church says otherwise.
+ *
+ * A church that has never opened the settings screen still has to be able to
+ * write a plan, so the eight stand in while its own list is empty. They are
+ * read-only here: writing one down is what the settings screen does.
+ */
+export async function itemKindsForPlans(
+  db: Tx,
+  options: { includeArchived?: boolean } = {},
+): Promise<ItemKindRow[]> {
+  const rows = await listItemKinds(db, options);
+  if (rows.length > 0) return rows;
+  return BUILT_IN_KINDS.map((slug) => ({ id: slug, slug, name: null, archived: false }));
+}
+
 /** R11.2. Whether a slug is one this church still puts on a plan. */
 export async function kindIsLive(db: Tx, slug: string): Promise<boolean> {
   const [row] = await db
@@ -106,18 +110,48 @@ export async function kindIsLive(db: Tx, slug: string): Promise<boolean> {
     .from(planItemKinds)
     .where(and(eq(planItemKinds.slug, slug), isNull(planItemKinds.archivedAt)))
     .limit(1);
-  return row !== undefined;
+  if (row) return true;
+
+  // Nothing written down yet, so the eight are what a plan may use.
+  const [any] = await db.select({ id: planItemKinds.id }).from(planItemKinds).limit(1);
+  return any === undefined && (BUILT_IN_KINDS as readonly string[]).includes(slug);
 }
 
 /** R11.2. A kind this church runs that the product had no word for. */
 export async function addItemKind(
   db: Tx,
   actor: WriteActor,
-  name: string,
+  input: string | { name?: string; builtIn?: string },
 ): Promise<{ id: string }> {
   if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
-  const clean = checkName(name);
-  await listItemKinds(db, actor.tenantId);
+  const asked = typeof input === "string" ? { name: input } : input;
+
+  /*
+   * R11.2. One of ours keeps its slug and takes no name, so the product's own
+   * word still reads and every plan already filed under it still matches.
+   */
+  if (asked.builtIn) {
+    if (!(BUILT_IN_KINDS as readonly string[]).includes(asked.builtIn)) {
+      throw new InvalidInputError("itemKind.error.missing");
+    }
+    const [last] = await db
+      .select({ at: sql<number>`coalesce(max(${planItemKinds.position}), -1)::int` })
+      .from(planItemKinds);
+    const [made] = await db
+      .insert(planItemKinds)
+      .values({
+        tenantId: actor.tenantId,
+        slug: asked.builtIn,
+        name: null,
+        position: (last?.at ?? -1) + 1,
+      })
+      .onConflictDoNothing()
+      .returning({ id: planItemKinds.id });
+    if (!made) throw new InvalidInputError("itemKind.error.taken");
+    return { id: made.id };
+  }
+
+  const clean = checkName(asked.name);
 
   const [clash] = await db
     .select({ id: planItemKinds.id })

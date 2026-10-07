@@ -24,15 +24,15 @@ async function context(church?: string) {
 
 /** R11.2. A kind this church runs, or the church's word over one of ours. */
 export async function saveKind(
-  input: { id?: string; name: string },
+  input: { id?: string; name?: string; builtIn?: string },
   church?: string,
 ): Promise<KindResult> {
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) =>
       input.id
-        ? renameItemKind(tx, actor, input.id, input.name)
-        : addItemKind(tx, actor, input.name).then(() => {}),
+        ? renameItemKind(tx, actor, input.id, input.name ?? "")
+        : addItemKind(tx, actor, { name: input.name, builtIn: input.builtIn }).then(() => {}),
     );
     revalidatePath("/settings/item-kinds");
     return {};

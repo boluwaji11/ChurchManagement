@@ -1,5 +1,5 @@
 import {
-  withTenant, listTemplateShapes, canManageServices, listItemKinds,
+  withTenant, listTemplateShapes, canManageServices, itemKindsForPlans,
 } from "@connectapp/db";
 import { kindOptions } from "@/lib/kinds";
 import { requireSession } from "@/lib/session";
@@ -32,7 +32,7 @@ export default async function PlanTemplatesPage({
           templates: await listTemplateShapes(tx),
           // R11.2. Archived kinds come too, so a line already filed under one
           // still reads by name rather than by its slug.
-          kinds: kindOptions(await listItemKinds(tx, session.tenantId, { includeArchived: true })),
+          kinds: kindOptions(await itemKindsForPlans(tx, { includeArchived: true })),
         }),
       )
     : { templates: [], kinds: [] };

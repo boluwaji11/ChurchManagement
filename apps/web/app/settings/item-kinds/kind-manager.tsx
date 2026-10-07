@@ -8,12 +8,17 @@ import {
   Sheet, SheetContent, SheetTrigger,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Empty } from "@/components/empty";
+import { LibraryPicker } from "@/components/library-picker";
 import { usePanelGuard } from "@/components/panel-guard";
+import { itemKindLibrary } from "./library";
 import { useFormError } from "@/lib/form-error";
 import { saveKind, archiveKind } from "./actions";
 
 export interface KindRow {
   id: string;
+  /** What a plan item stores, so the library can leave out what is kept. */
+  slug: string;
   /** The church's own word, or ours where it has not written one. */
   name: string;
   archived: boolean;
@@ -41,13 +46,23 @@ export function KindManager({ church, kinds }: { church: string; kinds: KindRow[
 
   const live = kinds.filter((one) => !one.archived);
   const archived = kinds.filter((one) => one.archived);
+  const taken = kinds.map((one) => one.slug);
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("itemKind.failed")}>{error}</Banner> : null}
 
+      {live.length === 0 && archived.length === 0 ? (
+        <Empty
+          icon="calendar"
+          title={t("itemKind.empty.title")}
+          body={t("itemKind.empty.body")}
+          action={<KindPanel church={church} pending={pending} taken={taken} />}
+        />
+      ) : (
+        <>
       <div className="flex justify-end">
-        <KindPanel church={church} pending={pending} />
+        <KindPanel church={church} pending={pending} taken={taken} />
       </div>
 
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
@@ -57,6 +72,7 @@ export function KindManager({ church, kinds }: { church: string; kinds: KindRow[
             church={church}
             pending={pending}
             kind={one}
+            taken={taken}
             onArchive={() => setAsking(one)}
             trigger={
               <button
@@ -69,6 +85,8 @@ export function KindManager({ church, kinds }: { church: string; kinds: KindRow[
           />
         ))}
       </div>
+        </>
+      )}
 
       {archived.length > 0 ? (
         <div className="flex flex-col gap-2">
@@ -120,12 +138,15 @@ function KindPanel({
   church,
   pending,
   kind,
+  taken = [],
   trigger,
   onArchive,
 }: {
   church: string;
   pending: boolean;
   kind?: KindRow;
+  /** What this church already keeps, so the library leaves it out. */
+  taken?: string[];
   trigger?: React.ReactNode;
   onArchive?: () => void;
 }) {
@@ -133,7 +154,15 @@ function KindPanel({
   const [open, setOpen] = React.useState(false);
   const [saving, startTransition] = React.useTransition();
   const [dirty, setDirty] = React.useState(false);
-  const [error, setError] = useFormError(open);
+
+  // R11.2. Writing one down opens on what churches already put on a plan.
+  const library = React.useMemo(
+    () => itemKindLibrary(taken),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [taken.join("|")],
+  );
+  const [picking, setPicking] = React.useState(!kind && library.length > 0);
+  const [error, setError] = useFormError(open && !picking);
   const [name, setName] = React.useState(kind?.name ?? "");
 
   React.useEffect(() => {
@@ -143,13 +172,16 @@ function KindPanel({
 
   const close = (next: boolean) => {
     setOpen(next);
-    if (!next) setDirty(false);
+    if (!next) {
+      setDirty(false);
+      setPicking(!kind && library.length > 0);
+    }
   };
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
 
-  const save = () =>
+  const save = (input: { name?: string; builtIn?: string } = { name }) =>
     startTransition(async () => {
-      const result = await saveKind({ id: kind?.id, name }, church);
+      const result = await saveKind({ id: kind?.id, ...input }, church);
       setError(result.error);
       if (!result.error) {
         setDirty(false);
@@ -165,9 +197,16 @@ function KindPanel({
       </SheetTrigger>
 
       <SheetContent
-        title={kind ? t("itemKind.editTitle", { name: kind.name }) : t("itemKind.newTitle")}
+        title={
+          kind
+            ? t("itemKind.editTitle", { name: kind.name })
+            : picking
+              ? t("itemKind.start")
+              : t("itemKind.newTitle")
+        }
         closeLabel={t("common.close")}
         footer={
+          picking ? null : (
           <>
             {kind && onArchive ? (
               <IconButton
@@ -187,15 +226,27 @@ function KindPanel({
               type="button"
               disabled={pending || saving || !dirty}
               loading={saving}
-              onClick={save}
+              onClick={() => save()}
             >
               {t("action.save")}
             </Button>
           </>
+          )
         }
       >
         {guard}
 
+        {picking ? (
+          <LibraryPicker
+            ownLabel={t("itemKind.ownKind")}
+            items={library}
+            onOwn={() => {
+              setName("");
+              setPicking(false);
+            }}
+            onPick={(item) => save({ builtIn: item.key })}
+          />
+        ) : (
         <div className="flex flex-col gap-4">
           {error ? <Banner tone="danger" title={t("itemKind.failed")}>{error}</Banner> : null}
 
@@ -212,6 +263,7 @@ function KindPanel({
             />
           </Field>
         </div>
+        )}
       </SheetContent>
     </Sheet>
   );

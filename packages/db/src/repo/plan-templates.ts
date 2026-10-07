@@ -8,7 +8,7 @@ import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
 import type { ItemKind } from "./plans";
-import { listItemKinds, kindIsLive } from "./item-kinds";
+import { kindIsLive } from "./item-kinds";
 import type { WriteActor } from "./members";
 
 /**
@@ -142,8 +142,6 @@ async function checkLines(
   if (items.length === 0) throw new InvalidInputError("order.error.templateEmpty");
 
   // R11.2. Filed under the kinds this church runs, read from its own list.
-  await listItemKinds(db, tenantId);
-
   const lines = [];
   for (const item of items) {
     const title = item.title?.trim();

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
-  listTemplates, listItemKinds, rosterFor, listOccurrences, getChurch,
+  listTemplates, itemKindsForPlans, rosterFor, listOccurrences, getChurch,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -56,7 +56,7 @@ export default async function PlanPage({
       // R11.8. The shapes to start from, as the church keeps them in settings.
       templates: await listTemplates(tx),
       // R11.2. The words this church files an item under.
-      kinds: kindOptions(await listItemKinds(tx, session.tenantId, { includeArchived: true })),
+      kinds: kindOptions(await itemKindsForPlans(tx, { includeArchived: true })),
       // R11.9. Who serves, read from the same schedule the serving pages write.
       roster: await rosterFor(tx, occurrenceId),
       // R11.1. The church's other services, so a leader planning three in a

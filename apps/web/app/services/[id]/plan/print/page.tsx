@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import {
-  withTenant, getOccurrence, getPlan, runningTimes, listItemKinds,
+  withTenant, getOccurrence, getPlan, runningTimes, itemKindsForPlans,
   canManageServices,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -48,7 +48,7 @@ export default async function PrintPlanPage({
         occurrence,
         plan: await getPlan(tx, occurrenceId),
         // R11.2. The church's own word for each kind, on the sheet it hands out.
-        kinds: kindOptions(await listItemKinds(tx, session.tenantId, { includeArchived: true })),
+        kinds: kindOptions(await itemKindsForPlans(tx, { includeArchived: true })),
       };
     },
   );

@@ -8,7 +8,7 @@ import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
-import { listItemKinds, kindIsLive } from "./item-kinds";
+import { kindIsLive } from "./item-kinds";
 import type { WriteActor } from "./members";
 
 /**
@@ -275,7 +275,6 @@ async function checkItem(
 
   // R11.2. The kinds are the church's own list, so what an item may be filed
   // under is read from it rather than from a constant in here.
-  await listItemKinds(db, actor.tenantId);
   if (!(await kindIsLive(db, input.kind))) throw new InvalidInputError("order.error.kind");
 
   return { title, minutes: input.minutes, kind: input.kind };
