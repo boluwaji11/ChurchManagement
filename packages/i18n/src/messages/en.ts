@@ -1017,7 +1017,7 @@ export const en = {
   "give.manage": "Change or stop this gift",
   "give.stop": "Stop this gift",
   "give.stop.title": "Stop {gift}?",
-  "give.stop.body": "Stripe collects nothing more from this gift. What has already been given stays on the record.",
+  "give.stop.body": "Nothing more is collected.",
   "give.card": "Change the card",
   "give.manage.quiet": "Manage it without an account",
   "give.thanks.account": "Create an account to manage your giving",
