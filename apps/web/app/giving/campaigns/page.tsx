@@ -10,7 +10,7 @@ import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
 import { Empty } from "@/components/empty";
 import { money } from "@/lib/money";
-import { shortDate } from "@/lib/dates";
+import { longDate } from "@/lib/dates";
 import { CampaignPanel } from "./campaign-panel";
 import { Progress } from "./progress";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -130,7 +130,7 @@ export default async function CampaignsPage({
                   </span>
 
                   <span className="text-[12px] text-fg-subtle">
-                    {[shortDate(one.startsOn), one.endsOn ? shortDate(one.endsOn) : null]
+                    {[longDate(one.startsOn), one.endsOn ? longDate(one.endsOn) : null]
                       .filter(Boolean)
                       .join(" to ")}
                   </span>

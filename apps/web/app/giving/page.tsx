@@ -13,7 +13,7 @@ import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
 import { Figure } from "@/app/reports/figure";
 import { money } from "@/lib/money";
-import { shortDate } from "@/lib/dates";
+import { longDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
 import { GiftPanel } from "./gift-panel";
 import { RefundGift } from "./refund";
@@ -191,7 +191,7 @@ export default async function GivingPage({
                       className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-sunken"
                     >
                       <span className="w-[120px] shrink-0 text-[13px] font-medium text-fg-subtle">
-                        {shortDate(count.receivedOn)}
+                        {longDate(count.receivedOn)}
                       </span>
                       <span className="min-w-0 flex-1 font-medium text-fg">{count.name}</span>
                       <span
@@ -264,7 +264,7 @@ export default async function GivingPage({
                         gift under it, and the rule between them comes out. */}
                     <span className="flex items-center gap-1 text-[13px] text-fg-subtle">
                       {back ? <CornerDownRight className="size-3.5 shrink-0" aria-hidden /> : null}
-                      {shortDate(row.on)}
+                      {longDate(row.on)}
                     </span>
 
                     <span className="flex min-w-0 flex-col">
@@ -372,7 +372,7 @@ export default async function GivingPage({
                               }` as never,
                             ),
                             one.nextOn
-                              ? t("giving.recurring.next", { date: shortDate(one.nextOn) })
+                              ? t("giving.recurring.next", { date: longDate(one.nextOn) })
                               : null,
                           ]
                             .filter(Boolean)

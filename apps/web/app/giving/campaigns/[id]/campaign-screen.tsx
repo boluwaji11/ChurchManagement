@@ -13,7 +13,7 @@ import { Picker } from "@/components/picker";
 import { useFormError } from "@/lib/form-error";
 import { usePanelGuard } from "@/components/panel-guard";
 import { money, toCents } from "@/lib/money";
-import { shortDate } from "@/lib/dates";
+import { longDate } from "@/lib/dates";
 import { findGiver, type GiverHit } from "../../actions";
 import { savePledge, dropPledge, closeCampaign } from "../actions";
 import { CampaignPanel } from "../campaign-panel";
@@ -75,8 +75,8 @@ export function CampaignScreen({
               })}
             </span>
             <span className="text-[12px] text-fg-subtle">
-              {[campaign.fundName, shortDate(campaign.startsOn),
-                campaign.endsOn ? shortDate(campaign.endsOn) : null]
+              {[campaign.fundName, longDate(campaign.startsOn),
+                campaign.endsOn ? longDate(campaign.endsOn) : null]
                 .filter(Boolean)
                 .join(" · ")}
             </span>

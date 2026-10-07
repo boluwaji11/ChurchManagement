@@ -9,7 +9,7 @@ import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
 import type { Session } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { shortDate } from "@/lib/dates";
+import { longDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
@@ -157,7 +157,7 @@ export async function MyGiving({ session }: { session: Session }) {
                   <span className="text-caption text-fg-subtle">
                     {[
                       one.fundName,
-                      one.nextOn ? t("giving.recurring.next", { date: shortDate(one.nextOn) }) : null,
+                      one.nextOn ? t("giving.recurring.next", { date: longDate(one.nextOn) }) : null,
                     ]
                       .filter(Boolean)
                       .join(" \u00b7 ")}
@@ -213,7 +213,7 @@ export async function MyGiving({ session }: { session: Session }) {
                   {row.kind === "refund" ? (
                     <CornerDownRight className="size-3.5 shrink-0" aria-hidden />
                   ) : null}
-                  {shortDate(row.on)}
+                  {longDate(row.on)}
                 </span>
                 <span className="min-w-0 truncate font-medium text-fg">{row.gift.fundName}</span>
                 <span className="text-caption text-fg-subtle">
