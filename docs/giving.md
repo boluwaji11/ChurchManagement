@@ -31,6 +31,19 @@ account id in the `Stripe-Account` header, so Stripe treats the church as the me
 ConnectApp appears nowhere in that diagram. `application_fee_amount` is never set, and
 `PLATFORM_FEE` in `apps/web/lib/stripe.ts` is the constant that says so.
 
+### Accounts v1 and v2
+
+Connected accounts are created today through the **Accounts v1** API (`stripe.accounts.create`).
+Stripe no longer recommends v1 for new integrations and refuses it unless a platform enables
+[Accounts v1 support](https://dashboard.stripe.com/settings/developers/api-policies/feat_accounts_v1_support)
+in the dashboard, which this platform has done.
+
+**HRT-251** moves this to Accounts v2 before 0.3 ships. It is not a one-line change: it touches
+account creation, the onboarding link, the account session behind the embedded views, and
+`account.updated`, which under v2 is a v2 event delivered to an event destination rather than to
+the classic webhook endpoint this product handles today. Gifts themselves are unaffected: a payment
+intent on a connected account is a v1 object either way.
+
 ## Who pays the processing fee
 
 The church does, out of its own Stripe balance, at whatever rate Stripe gives it. Stripe discounts
