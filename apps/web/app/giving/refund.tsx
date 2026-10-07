@@ -24,7 +24,14 @@ export function RefundGift({
   gift,
 }: {
   church: string;
-  gift: { id: string; amountCents: number; refundedCents: number; method: string };
+  gift: {
+    id: string;
+    amountCents: number;
+    refundedCents: number;
+    method: string;
+    /** R13.14. Who gave it, where anybody is on it. */
+    giver?: string | null;
+  };
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -61,10 +68,16 @@ export function RefundGift({
             </Field>
 
             <p className="m-0 text-[13px] text-fg-muted">
+              {/* R13.14. The giver by name where the gift carries one. An
+                  anonymous gift has nobody to name, so it stays "they". */}
               {gift.method === "card"
-                ? t("giving.gift.refundCard")
+                ? gift.giver
+                  ? t("giving.gift.refundCard.named", { name: gift.giver })
+                  : t("giving.gift.refundCard")
                 : gift.method === "ach"
-                  ? t("giving.gift.refundBank")
+                  ? gift.giver
+                    ? t("giving.gift.refundBank.named", { name: gift.giver })
+                    : t("giving.gift.refundBank")
                   : t("giving.gift.refundCash")}
             </p>
           </div>

@@ -323,6 +323,7 @@ export default async function GivingPage({
                             amountCents: gift.amountCents,
                             refundedCents: gift.refundedCents,
                             method: gift.method,
+                            giver: gift.memberName,
                           }}
                         />
                       ) : null}
