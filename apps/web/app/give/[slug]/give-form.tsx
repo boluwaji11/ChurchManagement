@@ -155,25 +155,23 @@ export function GiveForm({
 
       {/* R13.3. Once or every month, decided beside the amount rather than
           behind a second page. */}
-      <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
+      <div className="grid grid-cols-6 gap-1 rounded-md bg-sunken p-[3px]">
         {REPEATS.map((one) => (
           <button
             key={one}
             type="button"
             onClick={() => setRepeat(one)}
             aria-pressed={repeat === one}
-            className={`flex h-9 flex-1 cursor-pointer items-center justify-center rounded-sm px-2 text-[12px] font-medium whitespace-nowrap ${
-              repeat === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
-            }`}
+            className={`flex h-9 cursor-pointer items-center justify-center rounded-sm px-2 text-[13px] font-medium whitespace-nowrap ${
+              one === "month" || one === "year" ? "col-span-3" : "col-span-2"
+            } ${repeat === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted"}`}
           >
             {t(`give.repeat.${one}` as never)}
           </button>
         ))}
       </div>
 
-      {/* R13.4. One fund, or the gift divided between several. */}
-      {splitting ? (
-        <Field label={t("give.fund")} required>
+      <Field label={t("give.fund")} required>
           <div className="flex flex-col gap-2">
             {funds.map((fund) => (
               <span key={fund.id} className="flex items-center gap-2">
