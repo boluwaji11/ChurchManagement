@@ -239,7 +239,7 @@ export default async function GivingPage({
                     key={row.key}
                     className={`grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px] ${
                       back
-                        ? "pt-2 relative before:absolute before:inset-x-10 before:top-0 before:h-px before:bg-line before:content-['']"
+                        ? "italic pt-2 relative before:absolute before:inset-x-10 before:top-0 before:h-px before:bg-line before:content-['']"
                         : row.tied
                           ? "border-b-0 pb-2"
                           : ""
