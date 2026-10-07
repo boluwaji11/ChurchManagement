@@ -14,15 +14,16 @@ import { giveBack } from "./actions";
  * R13.15. Giving a gift back.
  *
  * Part of it or all of it, because a giver who meant $50 and typed $500 wants
- * $450 back. A card gift goes back through Stripe to the card it came from; a
- * cash gift is written down here and handed over by the church.
+ * $450 back. Stripe sends an online gift back the way it came, to the card or
+ * to the bank account. A cash gift is written down here and handed over by the
+ * church.
  */
 export function RefundGift({
   church,
   gift,
 }: {
   church: string;
-  gift: { id: string; amountCents: number; refundedCents: number; online: boolean };
+  gift: { id: string; amountCents: number; refundedCents: number; method: string };
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -64,7 +65,11 @@ export function RefundGift({
             </Field>
 
             <p className="m-0 text-[13px] text-fg-muted">
-              {gift.online ? t("giving.gift.refundCard") : t("giving.gift.refundCash")}
+              {gift.method === "card"
+                ? t("giving.gift.refundCard")
+                : gift.method === "ach"
+                  ? t("giving.gift.refundBank")
+                  : t("giving.gift.refundCash")}
             </p>
           </div>
 

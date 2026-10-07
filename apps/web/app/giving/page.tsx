@@ -293,7 +293,7 @@ export default async function GivingPage({
                             id: gift.id,
                             amountCents: gift.amountCents,
                             refundedCents: gift.refundedCents,
-                            online: gift.method === "card" || gift.method === "ach",
+                            method: gift.method,
                           }}
                         />
                       ) : null}
