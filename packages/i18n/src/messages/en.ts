@@ -1040,7 +1040,7 @@ export const en = {
   "give.error.amount": "Enter an amount.",
   "give.error.email": "Enter an email address.",
   "give.thanks.title": "Thank you",
-  "give.thanks.body": "{church} has your gift, and your receipt is on its way from Stripe.",
+  "give.thanks.body": "{church} has your gift, and your receipt is on its way.",
   "give.thanks.again": "Give again",
   "give.thanks.home": "Back to {church}",
   "give.link": "Your giving page",
