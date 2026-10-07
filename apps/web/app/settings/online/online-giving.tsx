@@ -4,7 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Check, Copy, Download, ExternalLink, Link2, Loader2, Printer, QrCode, RefreshCw,
+  Check, CircleCheck, Copy, Download, ExternalLink, Link2, Loader2, Printer, QrCode,
+  RefreshCw,
 } from "lucide-react";
 import { Banner, Button, Card } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -215,6 +216,7 @@ export function OnlineGiving({
             }
           >
             {settling ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
+            {ready ? <CircleCheck className="size-3.5" aria-hidden /> : null}
             {!account
               ? t("stripe.state.none")
               : ready
