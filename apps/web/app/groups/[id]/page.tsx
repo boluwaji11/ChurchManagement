@@ -289,20 +289,18 @@ export default async function GroupPage({
           </div>
         </div>
 
-        {/* R9.2. Read here, changed on the edit screen. The group editor already
-            carries the banner with the rest of what a group is, and an upload
-            box on the page a member reads is an invitation to edit a group
-            while standing in it. */}
-        {photoUrl ? (
-          <GroupBanner
-            church={session.tenantSlug}
-            groupId={group.id}
-            groupName={group.name}
-            photoUrl={photoUrl}
-            hue={hue}
-            canEdit={false}
-          />
-        ) : null}
+        {/* R9.2. Read here, changed on the edit screen. A group with no picture
+            keeps the block in its kind's colour, which is what the design puts
+            beside the name. An upload box on the page a member reads is an
+            invitation to edit a group while standing in it. */}
+        <GroupBanner
+          church={session.tenantSlug}
+          groupId={group.id}
+          groupName={group.name}
+          photoUrl={photoUrl}
+          hue={hue}
+          canEdit={false}
+        />
       </div>
 
       <GroupDetail
