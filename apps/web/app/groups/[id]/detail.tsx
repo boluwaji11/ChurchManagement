@@ -185,8 +185,11 @@ export function GroupDetail({
               className={
                 status === "draft"
                   ? "h-[34px] min-h-0 px-2.5 text-[13px]"
-                  : "group/pub h-[34px] min-h-0 px-2.5 text-[13px] font-medium text-primary hover:underline hover:decoration-primary hover:underline-offset-[3px]"
+                  : "group/pub h-[34px] min-h-0 px-2.5 text-[13px] font-medium hover:underline hover:underline-offset-[3px]"
               }
+              /* Published is a state the church is pleased about, so it is the
+                 same green the open badge wears. */
+              style={status === "published" ? { color: "var(--hue-fern-key)" } : undefined}
             >
               {status === "draft" ? (
                 <>
