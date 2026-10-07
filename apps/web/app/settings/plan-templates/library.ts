@@ -37,6 +37,12 @@ const LINE = {
   groupsPrayer: { kind: "prayer", label: "planLib.item.groupsPrayer", minutes: 15 },
   kidsOut: { kind: "announcement", label: "planLib.item.kidsOut", minutes: 2 },
   reflection: { kind: "custom", label: "planLib.item.reflection", minutes: 5 },
+  candlelight: { kind: "custom", label: "planLib.item.candlelight", minutes: 8 },
+  processional: { kind: "custom", label: "planLib.item.processional", minutes: 5 },
+  recessional: { kind: "custom", label: "planLib.item.recessional", minutes: 5 },
+  vows: { kind: "custom", label: "planLib.item.vows", minutes: 10 },
+  tribute: { kind: "custom", label: "planLib.item.tribute", minutes: 10 },
+  message: { kind: "sermon", label: "planLib.item.message", minutes: 12 },
   closing: { kind: "song", label: "planLib.item.closing", minutes: 5 },
 } satisfies Record<string, LibraryLine>;
 
@@ -91,6 +97,34 @@ const SHAPES: { key: string; label: MessageKey; lines: LineKey[] }[] = [
     key: "carols",
     label: "planLib.carols",
     lines: ["carols", "welcome", "reading", "reflection", "offering", "closing"],
+  },
+  {
+    key: "christmasEve",
+    label: "planLib.christmasEve",
+    lines: ["carols", "welcome", "reading", "reflection", "candlelight", "closing"],
+  },
+  {
+    key: "goodFriday",
+    label: "planLib.goodFriday",
+    lines: ["reading", "reflection", "worship", "communion", "blessing"],
+  },
+  {
+    key: "easter",
+    label: "planLib.easter",
+    lines: [
+      "gathering", "welcome", "worship", "reading", "sermon", "response",
+      "offering", "blessing",
+    ],
+  },
+  {
+    key: "wedding",
+    label: "planLib.wedding",
+    lines: ["processional", "welcome", "reading", "message", "vows", "blessing", "recessional"],
+  },
+  {
+    key: "funeral",
+    label: "planLib.funeral",
+    lines: ["gathering", "welcome", "reading", "tribute", "message", "reflection", "blessing"],
   },
 ];
 
