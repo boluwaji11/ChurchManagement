@@ -111,7 +111,7 @@ export async function MyGiving({ session }: { session: Session }) {
             {mine.gifts.map((gift) => (
               <span
                 key={gift.id}
-                className="grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_120px]"
+                className="grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px]"
               >
                 <span className="text-caption text-fg-subtle">
                   {shortDate(gift.receivedOn)}
@@ -120,6 +120,10 @@ export async function MyGiving({ session }: { session: Session }) {
                 <span className="text-caption text-fg-subtle">
                   {t(`giving.method.${gift.method}` as never)}
                 </span>
+                {/* R13.2. Their bank transfer, before it has arrived. */}
+                <span className="flex text-caption">
+                  <GiftState status={gift.status} />
+                </span>
                 <span
                   data-numeric
                   className={`text-right font-mono ${
@@ -127,10 +131,6 @@ export async function MyGiving({ session }: { session: Session }) {
                   }`}
                 >
                   {gift.inKindDescription ?? money(gift.amountCents - gift.refundedCents)}
-                  {/* R13.2. Their bank transfer, before it has arrived. */}
-                  <span className="mt-1 flex justify-end font-sans">
-                    <GiftState status={gift.status} />
-                  </span>
                 </span>
               </span>
             ))}

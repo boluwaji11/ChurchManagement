@@ -33,5 +33,7 @@ export function GiftState({
     );
   }
 
-  return null;
+  /* Nearly every gift is settled, so it reads as a word rather than a badge:
+     a mark on every row is a mark that says nothing. */
+  return <span className="text-fg-subtle">{t("giving.gift.settled")}</span>;
 }

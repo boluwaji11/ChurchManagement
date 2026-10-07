@@ -217,7 +217,7 @@ export default async function GivingPage({
                 {read.recent.map((gift) => (
                   <li
                     key={gift.id}
-                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_72px]"
+                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
                   >
                     <span className="text-[13px] text-fg-subtle">
                       {shortDate(gift.receivedOn)}
@@ -254,11 +254,12 @@ export default async function GivingPage({
                           {t("giving.gift.refunded")}
                         </span>
                       ) : null}
-                      {/* R13.2. A bank transfer on its way, or one the bank
-                          returned. Neither is in the totals above. */}
-                      <span className="mt-1 flex justify-end font-sans">
-                        <GiftState status={gift.status} reason={gift.failureReason} />
-                      </span>
+                    </span>
+
+                    {/* R13.2. A bank transfer on its way, or one the bank
+                        returned. Neither is in the totals above. */}
+                    <span className="flex text-[13px]">
+                      <GiftState status={gift.status} reason={gift.failureReason} />
                     </span>
 
                     {/* R13.15, R13.18. The two things done to a gift, in the

@@ -1075,6 +1075,7 @@ export const en = {
   "giving.gift.refundCard": "Stripe gives it back to the card they used.",
   "giving.gift.refundCash": "Recorded as given back. The money itself is handed over by the church.",
   "giving.gift.refunded": "Refunded",
+  "giving.gift.settled": "Received",
   "giving.gift.pending": "On its way",
   "giving.onTheWay": "{amount} on its way",
   "giving.gift.pendingWhy": "A bank transfer takes a few days to arrive.",
