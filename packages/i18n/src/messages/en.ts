@@ -1138,6 +1138,7 @@ export const en = {
   "fund.namePlaceholder": "e.g. Building",
   "fund.start": "Add a fund",
   "fund.ownFund": "Write your own",
+  "fund.back": "Back",
   "fundLib.building": "Building",
   "fundLib.benevolence": "Benevolence",
   "fundLib.missions": "Missions",

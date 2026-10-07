@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Plus, Undo2 } from "lucide-react";
+import { Archive, ArrowLeft, Plus, Undo2 } from "lucide-react";
 import {
   Banner, Button, Checkbox, Dialog, DialogContent, DialogFooter, Field, IconButton,
   Input, LIFT, Sheet, SheetContent, SheetTrigger, Textarea,
@@ -287,6 +287,18 @@ function FundPanel({
 
         <div className="flex flex-col gap-4" hidden={picking}>
           {error ? <Banner tone="danger" title={t("fund.failed")}>{error}</Banner> : null}
+
+          {/* R24.6. The way back to what churches already keep, for somebody
+              who opened the wrong one. */}
+          {fund ? null : (
+            <button
+              type="button"
+              onClick={() => setPicking(true)}
+              className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
+            >
+              <ArrowLeft className="size-4" aria-hidden /> {t("fund.back")}
+            </button>
+          )}
 
           <Field label={t("fund.name")} required>
             <Input
