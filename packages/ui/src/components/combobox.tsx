@@ -317,8 +317,15 @@ export function Combobox({
               ? { bottom: Math.round(window.innerHeight - box.top) + 4 }
               : { top: box.top + 4 }),
           }}
+          /*
+           * R24.6. The list is portalled to the body so no panel can clip it,
+           * and a modal above it turns the body's pointer events off. This
+           * takes them back for itself, and the mark says what it is so a
+           * dialog does not mistake a press here for a press outside.
+           */
+          data-portal-list=""
           className={cn(
-            "fixed z-50 overflow-y-auto p-1",
+            "pointer-events-auto fixed z-50 overflow-y-auto p-1",
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
           )}
         >

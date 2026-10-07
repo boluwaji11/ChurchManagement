@@ -37,6 +37,17 @@ export function SheetContent({
     <P.Portal>
       <P.Overlay className="fixed inset-0 z-40 bg-overlay data-[state=open]:animate-[connectapp-fade_var(--duration-fast)_var(--ease-out)]" />
       <P.Content
+        /*
+         * R24.6. A list portalled to the body, such as the combobox's, is
+         * inside this panel as far as the reader is concerned. Without this,
+         * a press on one of its options reads as a press outside and shuts
+         * the panel they are working in.
+         */
+        onPointerDownOutside={(event) => {
+          if ((event.target as Element | null)?.closest("[data-portal-list]")) {
+            event.preventDefault();
+          }
+        }}
         className={cn(
           "fixed inset-y-0 right-0 z-50 flex h-full flex-col bg-canvas shadow-lg",
           "data-[state=open]:animate-[connectapp-slide-in_var(--duration-base)_var(--ease-out)]",

@@ -22,7 +22,7 @@ export function AttachGift({
   gift,
 }: {
   church: string;
-  gift: { id: string; label: string };
+  gift: { id: string; typed: string | null };
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -42,11 +42,14 @@ export function AttachGift({
       </IconButton>
 
       <Dialog open={open} onOpenChange={(on) => (on ? null : setOpen(false))}>
-        <DialogContent
-          title={t("giving.gift.attachTitle", { who: gift.label })}
-          closeLabel={t("common.close")}
-        >
+        <DialogContent title={t("giving.gift.attachTitle")} closeLabel={t("common.close")}>
           <div className="flex flex-col gap-4">
+            {/* What the giver typed, where they typed anything. */}
+            {gift.typed ? (
+              <p className="m-0 text-[13px] text-fg-muted">
+                {t("giving.gift.attachWas", { who: gift.typed })}
+              </p>
+            ) : null}
             {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
 
             <Field label={t("giving.gift.giver")} required>

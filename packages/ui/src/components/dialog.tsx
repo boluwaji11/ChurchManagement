@@ -53,6 +53,18 @@ export const DialogContent = React.forwardRef<
     />
     <P.Content
       ref={ref}
+      /*
+       * R24.6. A list portalled to the body, such as the combobox's, is
+       * inside this box as far as the reader is concerned. Without this, a
+       * press on one of its options reads as a press outside and shuts the
+       * box the reader is working in.
+       */
+      onPointerDownOutside={(event) => {
+        if ((event.target as Element | null)?.closest("[data-portal-list]")) {
+          event.preventDefault();
+        }
+        props.onPointerDownOutside?.(event);
+      }}
       role={alert ? "alertdialog" : undefined}
       onOpenAutoFocus={(event) => {
         if (!alert) {

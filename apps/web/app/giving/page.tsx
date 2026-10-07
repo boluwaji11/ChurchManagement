@@ -205,59 +205,62 @@ export default async function GivingPage({
                 {read.recent.map((gift) => (
                   <li
                     key={gift.id}
-                    className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-0"
+                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_72px]"
                   >
-                    <span className="w-[120px] shrink-0 text-[13px] text-fg-subtle">
+                    <span className="text-[13px] text-fg-subtle">
                       {shortDate(gift.receivedOn)}
                     </span>
-                    <span className="flex min-w-0 flex-1 flex-col">
+
+                    <span className="flex min-w-0 flex-col">
                       <span className="truncate text-fg">
                         {gift.memberName ?? t("giving.gift.anonymous")}
                       </span>
                       {/* R13.18. A gift on nobody's record is on nobody's
                           statement either, so it says so here. */}
-                      {gift.memberId === null && gift.memberName ? (
+                      {gift.memberId === null ? (
                         <span className="text-[12px] text-fg-subtle">
                           {t("giving.gift.unattached")}
                         </span>
                       ) : null}
                     </span>
-                    <span className="w-[140px] shrink-0 truncate text-[13px] text-fg-muted">
-                      {gift.fundName}
-                    </span>
-                    <span className="w-[80px] shrink-0 text-[13px] text-fg-muted">
+
+                    <span className="truncate text-[13px] text-fg-muted">{gift.fundName}</span>
+
+                    <span className="text-[13px] text-fg-muted">
                       {t(`giving.method.${gift.method}` as never)}
                     </span>
-                    <span data-numeric className="w-[100px] shrink-0 text-right font-mono text-fg">
+
+                    <span data-numeric className="text-right font-mono text-fg">
                       {gift.inKindDescription ? "" : money(gift.amountCents - gift.refundedCents)}
                       {gift.refundedCents > 0 ? (
-                        <span className="block text-[12px] font-sans text-fg-subtle">
+                        <span className="block font-sans text-[12px] text-fg-subtle">
                           {t("giving.gift.refunded")}
                         </span>
                       ) : null}
                     </span>
-                    {/* R13.15. Given back, in part or in whole. */}
-                    {manage && gift.memberId === null ? (
-                      <AttachGift
-                        church={session.tenantSlug}
-                        gift={{
-                          id: gift.id,
-                          label: gift.memberName ?? t("giving.gift.anonymous"),
-                        }}
-                      />
-                    ) : null}
-                    {manage && !gift.inKindDescription
-                      && gift.amountCents > gift.refundedCents ? (
-                      <RefundGift
-                        church={session.tenantSlug}
-                        gift={{
-                          id: gift.id,
-                          amountCents: gift.amountCents,
-                          refundedCents: gift.refundedCents,
-                          online: gift.method === "card" || gift.method === "ach",
-                        }}
-                      />
-                    ) : null}
+
+                    {/* R13.15, R13.18. The two things done to a gift, in the
+                        same place on every row whether or not they apply. */}
+                    <span className="flex items-center justify-end gap-1">
+                      {manage && gift.memberId === null ? (
+                        <AttachGift
+                          church={session.tenantSlug}
+                          gift={{ id: gift.id, typed: gift.memberName }}
+                        />
+                      ) : null}
+                      {manage && !gift.inKindDescription
+                        && gift.amountCents > gift.refundedCents ? (
+                        <RefundGift
+                          church={session.tenantSlug}
+                          gift={{
+                            id: gift.id,
+                            amountCents: gift.amountCents,
+                            refundedCents: gift.refundedCents,
+                            online: gift.method === "card" || gift.method === "ach",
+                          }}
+                        />
+                      ) : null}
+                    </span>
                   </li>
                 ))}
               </ul>
