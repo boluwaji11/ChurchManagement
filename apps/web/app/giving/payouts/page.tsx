@@ -53,7 +53,9 @@ export default async function PayoutsPage({
 
           {account ? (
             <a
-              href="https://dashboard.stripe.com/"
+              href={`https://dashboard.stripe.com/${account.accountId}${
+                account.livemode ? "" : "/test"
+              }`}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex items-center gap-1.5 font-medium text-primary no-underline"

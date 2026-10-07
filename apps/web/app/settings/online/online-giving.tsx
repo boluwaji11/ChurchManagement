@@ -140,6 +140,16 @@ export function OnlineGiving({
   const [pending, startTransition] = React.useTransition();
 
   const ready = Boolean(account?.chargesEnabled);
+
+  /*
+   * R13.1. Stripe addresses each account by its id, so this goes to the
+   * church's own, rather than to whichever account the browser happens to be
+   * signed in to. Somebody who is not on that account is asked to sign in,
+   * which is Stripe's business and not ours.
+   */
+  const inStripe = account
+    ? `https://dashboard.stripe.com/${account.accountId}${account.livemode ? "" : "/test"}`
+    : "https://dashboard.stripe.com/";
   const settling = Boolean(account && !account.chargesEnabled && account.detailsSubmitted);
 
   /*
@@ -243,7 +253,7 @@ export function OnlineGiving({
             {ready ? (
               <div className="flex flex-col gap-1.5">
                 <a
-                  href="https://dashboard.stripe.com/"
+                  href={inStripe}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="inline-flex w-fit items-center gap-1.5 font-medium text-primary no-underline"
