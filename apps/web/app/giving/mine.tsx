@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CornerDownRight, Download } from "lucide-react";
+import { CornerDownRight, Download, Repeat } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
   getStripeAccount, listRecurring, givingPage,
@@ -17,6 +17,7 @@ import * as React from "react";
 import { ChangeCard } from "./change-card";
 import { GiveHere } from "./give-here";
 import { CardSaved } from "./card-saved";
+import { GiftThanks } from "./gift-thanks";
 import { StopRepeating } from "./stop-repeating";
 
 /**
@@ -98,9 +99,10 @@ export async function MyGiving({ session }: { session: Session }) {
       />
 
       <div className="flex flex-col gap-4">
-        {/* R13.3. Said once, when Stripe sends them back with a new card. */}
+        {/* R13.3, R13.6. Said once, when Stripe sends them back. */}
         <React.Suspense fallback={null}>
           <CardSaved />
+          {page ? <GiftThanks slug={page.slug} church={page.name} /> : null}
         </React.Suspense>
         <Panel className="flex flex-wrap items-end justify-between gap-4">
           <span className="flex flex-col">
@@ -208,8 +210,14 @@ export async function MyGiving({ session }: { session: Session }) {
                   {shortDate(row.on)}
                 </span>
                 <span className="min-w-0 truncate font-medium text-fg">{row.gift.fundName}</span>
-                <span className="text-caption text-fg-subtle">
+                <span className="flex items-center gap-1.5 text-caption text-fg-subtle">
                   {t(`giving.method.${row.gift.method}` as never)}
+                  {row.gift.recurring && row.kind === "gift" ? (
+                    <Repeat
+                      className="size-3.5 shrink-0 text-primary"
+                      aria-label={t("giving.recurring.mark")}
+                    />
+                  ) : null}
                 </span>
                 {/* R13.2, R13.15. Their bank transfer before it arrives, and
                     anything the church gave back, on its own line. */}

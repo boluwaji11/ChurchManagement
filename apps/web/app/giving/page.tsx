@@ -4,7 +4,7 @@ import {
   getStripeAccount, listRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
-import { CornerDownRight } from "lucide-react";
+import { CornerDownRight, Repeat } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -267,8 +267,16 @@ export default async function GivingPage({
 
                     <span className="truncate text-[13px] text-fg-muted">{gift.fundName}</span>
 
-                    <span className="text-[13px] text-fg-muted">
+                    <span className="flex items-center gap-1.5 text-[13px] text-fg-muted">
                       {t(`giving.method.${gift.method}` as never)}
+                      {/* R13.3. Collected by a repeating gift, which is money
+                          the church can plan on. */}
+                      {gift.recurring && !back ? (
+                        <Repeat
+                          className="size-3.5 shrink-0 text-primary"
+                          aria-label={t("giving.recurring.mark")}
+                        />
+                      ) : null}
                     </span>
 
                     <span

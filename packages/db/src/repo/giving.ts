@@ -41,6 +41,8 @@ export interface Gift {
   failureReason: string | null;
   /** R13.15. The day the money went back, where any of it did. */
   refundedOn: string | null;
+  /** R13.3. Collected by a repeating gift. */
+  recurring: boolean;
 }
 
 export interface Batch {
@@ -371,6 +373,7 @@ export async function listGifts(
       status: gifts.status,
       failureReason: gifts.failureReason,
       refundedAt: sql<string | null>`${gifts.refundedAt}::text`,
+      recurring: gifts.recurring,
     })
     .from(gifts)
     .innerJoin(funds, eq(funds.id, gifts.fundId))
@@ -406,6 +409,7 @@ export async function listGifts(
     status: row.status,
     failureReason: row.failureReason,
     refundedOn: row.refundedAt ? row.refundedAt.slice(0, 10) : null,
+    recurring: row.recurring,
   }));
 }
 

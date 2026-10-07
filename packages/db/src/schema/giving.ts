@@ -145,6 +145,8 @@ export const gifts = pgTable(
     status: text("status").notNull().default("settled"),
     /** R13.2. What the bank said, where it said no. */
     failureReason: text("failure_reason"),
+    /** R13.3. Collected by a repeating gift rather than given by hand. */
+    recurring: boolean("recurring").notNull().default(false),
 
     /** R13.15. A refund is recorded against the gift rather than deleting it. */
     refundedCents: integer("refunded_cents").notNull().default(0),

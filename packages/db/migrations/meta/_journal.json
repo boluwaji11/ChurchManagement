@@ -785,6 +785,13 @@
       "when": 1791413000000,
       "tag": "0111_gift_status",
       "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1791414000000,
+      "tag": "0112_gift_recurring",
+      "breakpoints": true
     }
   ]
 }

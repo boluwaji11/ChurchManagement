@@ -342,6 +342,8 @@ export async function POST(request: Request) {
           coveredFee: metadata.coveredFee === "true",
           giverName: metadata.giverName || null,
           giverEmail: metadata.giverEmail || paid.customer_email || null,
+          /* R13.3. Raised by a subscription, which is what an invoice is. */
+          recurring: true,
         });
         break;
       }
