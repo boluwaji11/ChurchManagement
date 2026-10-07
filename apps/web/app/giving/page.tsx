@@ -4,7 +4,7 @@ import {
   getStripeAccount, listRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -81,13 +81,13 @@ export default async function GivingPage({
           <Figure
             label={t("giving.month")}
             value={roundMoney(read.thisMonth.cents)}
-            sub={t("giving.givers.sub", { count: String(read.thisMonth.gifts) })}
+            sub={plural("giving.givers.sub", read.thisMonth.gifts)}
             hue="fern"
           />
           <Figure
             label={t("giving.year")}
             value={roundMoney(read.thisYear.cents)}
-            sub={t("giving.givers.sub", { count: String(read.thisYear.gifts) })}
+            sub={plural("giving.givers.sub", read.thisYear.gifts)}
             hue="violet"
           />
           <Figure

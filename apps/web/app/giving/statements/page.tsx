@@ -3,7 +3,7 @@ import { ArrowLeft, Printer } from "lucide-react";
 import {
   withTenant, getChurch, statementGivers, canReadGivingAmounts,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -108,7 +108,7 @@ export default async function StatementsPage({
               >
                 <span className="min-w-0 flex-1 font-medium text-fg">{giver.name}</span>
                 <span className="w-[120px] shrink-0 text-[13px] text-fg-muted">
-                  {t("statement.gifts", { count: String(giver.gifts) })}
+                  {plural("statement.gifts", giver.gifts)}
                 </span>
                 <span data-numeric className="w-[120px] shrink-0 text-right font-mono text-fg">
                   {money(giver.totalCents)}

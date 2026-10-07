@@ -7,7 +7,7 @@ import {
   Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input, Textarea,
   Sheet, SheetContent, SheetTrigger,
 } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import type { Campaign, Pledge } from "@connectapp/db";
 import { Picker } from "@/components/picker";
 import { useFormError } from "@/lib/form-error";
@@ -70,9 +70,8 @@ export function CampaignScreen({
                 target: money(campaign.targetCents),
               })}
               {" · "}
-              {t("campaigns.pledged", {
+              {plural("campaigns.pledged", campaign.pledges, {
                 amount: money(campaign.pledgedCents),
-                count: String(campaign.pledges),
               })}
             </span>
             <span className="text-[12px] text-fg-subtle">

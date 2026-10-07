@@ -9,7 +9,7 @@ import {
   canEditPeople, canReadGivingAmounts,
 } from "@connectapp/db";
 import { Avatar, Button } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { photoUrls } from "@/lib/photos";
 import { AppShell } from "@/components/app-shell";
@@ -295,8 +295,7 @@ export default async function PersonPage({
             <div className="text-[13px] text-fg-muted">
               {giving.gifts === 0
                 ? t("person.noGifts")
-                : t("person.giving.year", {
-                    count: String(giving.gifts),
+                : plural("person.giving.year", giving.gifts, {
                     last: giving.lastOn ? shortDate(giving.lastOn) : "",
                   })}
             </div>

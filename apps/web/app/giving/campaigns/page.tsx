@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getChurch, listCampaigns, listFunds, canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -112,9 +112,8 @@ export default async function CampaignsPage({
                       })}
                     </span>
                     <span className="text-fg-muted">
-                      {t("campaigns.pledged", {
+                      {plural("campaigns.pledged", one.pledges, {
                         amount: money(one.pledgedCents),
-                        count: String(one.pledges),
                       })}
                     </span>
                   </span>
