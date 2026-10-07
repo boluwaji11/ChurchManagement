@@ -8,7 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { readsAsMember } from "@/lib/reads-as-member";
 import { TypesLanding, type TypeCard } from "./types-landing";
-import { plainFromMarkdown } from "@/lib/rich-text";
+import { Markdown } from "@/components/markdown";
 import { requireSession } from "@/lib/session";
 import { Finder } from "./finder";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -167,7 +167,16 @@ export default async function GroupsPage({
         {back}
         <PortalTitle
           title={only?.name ?? t("find.title")}
-          under={only?.description ? plainFromMarkdown(only.description) : t("find.lede")}
+          under={
+            only?.description ? (
+              <Markdown
+                text={only.description}
+                className="flex flex-col gap-2 text-[length:var(--d-text-body)] text-fg-muted"
+              />
+            ) : (
+              t("find.lede")
+            )
+          }
         />
         {finder}
       </PortalShell>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { plainFromMarkdown } from "@/lib/rich-text";
+import { Markdown } from "@/components/markdown";
 
 export interface TypeCard {
   id: string;
@@ -65,9 +65,13 @@ export function TypesLanding({
             </span>
 
             {one.description ? (
-              <span className="line-clamp-3 text-[length:var(--d-text-body)] text-fg-muted">
-                {plainFromMarkdown(one.description)}
-              </span>
+              /* The church's own words, laid out as they wrote them. The card
+                 is itself a link, so the description carries none of its own. */
+              <Markdown
+                flat
+                text={one.description}
+                className="flex flex-col gap-2 text-[length:var(--d-text-body)] text-fg-muted"
+              />
             ) : null}
           </span>
 

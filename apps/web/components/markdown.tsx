@@ -11,7 +11,7 @@ import * as React from "react";
  */
 
 /** Bold, italic and links, inside one line. */
-function inline(text: string, key: string): React.ReactNode[] {
+function inline(text: string, key: string, flat = false): React.ReactNode[] {
   const out: React.ReactNode[] = [];
   // The order matters: ** before _, so "**a_b**" is bold rather than half italic.
   const pattern = /(\*\*([^*]+)\*\*)|(_([^_]+)_)|(\[([^\]]+)\]\(([^)\s]+)\))/g;
@@ -22,15 +22,26 @@ function inline(text: string, key: string): React.ReactNode[] {
     const start = m.index!;
     if (start > at) out.push(text.slice(at, start));
 
+    /*
+     * Each mark's contents go through this again, so a link inside a bold and a
+     * bold inside a link both draw as what they are. Reading one level deep
+     * left the other level's asterisks on the page as text.
+     */
     if (m[2] !== undefined) {
-      out.push(<strong key={`${key}b${n}`} className="font-semibold">{m[2]}</strong>);
+      out.push(
+        <strong key={`${key}b${n}`} className="font-semibold">
+          {inline(m[2], `${key}b${n}`, flat)}
+        </strong>,
+      );
     } else if (m[4] !== undefined) {
-      out.push(<em key={`${key}i${n}`}>{m[4]}</em>);
+      out.push(<em key={`${key}i${n}`}>{inline(m[4], `${key}i${n}`, flat)}</em>);
     } else if (m[6] !== undefined) {
       const href = m[7]!;
       // Only the two schemes a church link is ever written in. Anything else,
       // javascript: among them, is drawn as the words it was typed as.
-      const safe = /^https?:\/\//i.test(href);
+      // R9.5. A description drawn inside a card that is itself a link cannot
+      // carry one of its own, so there the words are drawn without it.
+      const safe = !flat && /^https?:\/\//i.test(href);
       out.push(
         safe ? (
           <a
@@ -40,10 +51,10 @@ function inline(text: string, key: string): React.ReactNode[] {
             rel="noreferrer noopener"
             className="text-primary underline underline-offset-4"
           >
-            {m[6]}
+            {inline(m[6], `${key}l${n}`, flat)}
           </a>
         ) : (
-          m[6]
+          inline(m[6], `${key}l${n}`, flat)
         ),
       );
     }
@@ -56,7 +67,16 @@ function inline(text: string, key: string): React.ReactNode[] {
   return out;
 }
 
-export function Markdown({ text, className }: { text: string; className?: string }) {
+export function Markdown({
+  text,
+  className,
+  flat,
+}: {
+  text: string;
+  className?: string;
+  /** Drawn inside something that is already a link, so it carries none itself. */
+  flat?: boolean;
+}) {
   const blocks: React.ReactNode[] = [];
   const lines = text.split("\n");
 
@@ -72,7 +92,7 @@ export function Markdown({ text, className }: { text: string; className?: string
       }
       blocks.push(
         <ul key={`u${i}`} className="list-disc pl-5">
-          {items.map((item, n) => <li key={n}>{inline(item, `u${i}-${n}`)}</li>)}
+          {items.map((item, n) => <li key={n}>{inline(item, `u${i}-${n}`, flat)}</li>)}
         </ul>,
       );
       continue;
@@ -86,7 +106,7 @@ export function Markdown({ text, className }: { text: string; className?: string
       }
       blocks.push(
         <ol key={`o${i}`} className="list-decimal pl-5">
-          {items.map((item, n) => <li key={n}>{inline(item, `o${i}-${n}`)}</li>)}
+          {items.map((item, n) => <li key={n}>{inline(item, `o${i}-${n}`, flat)}</li>)}
         </ol>,
       );
       continue;
@@ -106,7 +126,7 @@ export function Markdown({ text, className }: { text: string; className?: string
       paragraph.push(lines[i]!);
       i += 1;
     }
-    blocks.push(<p key={`p${i}`}>{inline(paragraph.join(" "), `p${i}`)}</p>);
+    blocks.push(<p key={`p${i}`}>{inline(paragraph.join(" "), `p${i}`, flat)}</p>);
   }
 
   return <div className={className}>{blocks}</div>;

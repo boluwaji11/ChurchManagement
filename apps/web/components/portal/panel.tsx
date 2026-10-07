@@ -13,8 +13,10 @@ export function PortalTitle({ title, under }: { title: string; under?: React.Rea
   return (
     <div className="flex flex-col gap-1">
       <h1 className="font-display text-[36px] font-normal leading-[42px] text-fg">{title}</h1>
+      {/* A div rather than a paragraph: the line under a title is sometimes a
+          church's own description, which carries its own paragraphs. */}
       {under ? (
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{under}</p>
+        <div className="text-[length:var(--d-text-body)] text-fg-muted">{under}</div>
       ) : null}
     </div>
   );
