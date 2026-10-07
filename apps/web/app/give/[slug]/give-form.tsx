@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Lock } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import {
   Banner, Button, Card, Checkbox, Field, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -10,6 +10,7 @@ import { t } from "@connectapp/i18n";
 import { money, toCents } from "@/lib/money";
 import { withFee } from "@/lib/stripe-fee";
 import { startGift } from "./actions";
+import { Pay } from "./pay";
 
 /** The amounts a church's givers reach for first. */
 const QUICK = [2_000, 5_000, 10_000, 25_000];
@@ -24,10 +25,15 @@ export function GiveForm({
   slug,
   church,
   funds,
+  accountId,
+  publishableKey,
 }: {
   slug: string;
   church: string;
   funds: { id: string; name: string; description: string | null }[];
+  /** R13.2. The church's own account, which the payment is made on. */
+  accountId: string;
+  publishableKey: string;
 }) {
   const [amount, setAmount] = React.useState("");
   const [fundId, setFundId] = React.useState(funds[0]?.id ?? "");
@@ -40,6 +46,8 @@ export function GiveForm({
   const [repeat, setRepeat] = React.useState<"once" | "month" | "week">("once");
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+  /** R13.6. Stripe's fields, once the giver has said what they are giving. */
+  const [secret, setSecret] = React.useState<string>();
 
   const cents = toCents(amount) ?? 0;
   const shares = Object.entries(split)
@@ -74,9 +82,34 @@ export function GiveForm({
         );
         return;
       }
+      if (result.secret) {
+        setSecret(result.secret);
+        return;
+      }
+      // A browser Stripe cannot draw its frame in still has their own page.
       if (result.url) window.location.href = result.url;
     });
   };
+
+  /*
+   * R13.6. Once Stripe has the gift, the form gives way to its fields rather
+   * than sitting above them: two amounts on one screen is two questions.
+   */
+  if (secret) {
+    return (
+      <Card className="flex flex-col gap-4">
+        <button
+          type="button"
+          onClick={() => setSecret(undefined)}
+          className="flex w-fit cursor-pointer items-center gap-1.5 font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" aria-hidden /> {t("give.change")}
+        </button>
+
+        <Pay publishableKey={publishableKey} accountId={accountId} secret={secret} />
+      </Card>
+    );
+  }
 
   return (
     <Card className="flex flex-col gap-5">
@@ -218,8 +251,17 @@ export function GiveForm({
           : t(`give.submit.${repeat}` as never, { amount: money(charged) })}
       </Button>
 
-      <p className="m-0 flex items-center justify-center gap-1.5 text-[13px] text-fg-muted">
-        <Lock className="size-3.5" aria-hidden /> {t("give.secure")}
+      <p className="m-0 flex flex-wrap items-center justify-center gap-1.5 text-[13px] text-fg-muted">
+        <Lock className="size-3.5" aria-hidden />
+        {t("give.secure")}
+        <a
+          href="https://stripe.com/docs/security"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="font-medium text-primary"
+        >
+          {t("give.secure.more")}
+        </a>
       </p>
     </Card>
   );

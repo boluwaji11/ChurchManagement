@@ -6,6 +6,13 @@ import { stripe, stripeConfigured, asChurch, PLATFORM_FEE, withFee } from "@/lib
 
 export interface GiveResult {
   error?: string;
+  /**
+   * R13.2. What the browser needs to draw Stripe's payment fields inside our
+   * own page. The card goes from the giver to Stripe; this server never sees
+   * it, which is what keeps every church here in PCI scope SAQ-A.
+   */
+  secret?: string;
+  /** Where Stripe's own hosted page is, for a browser that cannot run theirs. */
   url?: string;
 }
 
@@ -129,13 +136,18 @@ export async function startGift(input: {
               subscription_data: { metadata },
             }),
         metadata,
-        success_url: `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${back}/give/${page.slug}`,
+        /*
+         * R13.6. Drawn inside the church's own page rather than on Stripe's.
+         * A giver standing in a car park should answer one question and be
+         * done, and a redirect to another domain is where people stop.
+         */
+        ui_mode: "embedded",
+        return_url: `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
       },
       asChurch(page.accountId),
     );
 
-    return { url: session.url ?? undefined };
+    return { secret: session.client_secret ?? undefined };
   } catch {
     return { error: "stripe.failed" };
   }

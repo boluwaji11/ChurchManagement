@@ -55,6 +55,8 @@ export default async function GivePage({
           slug={church.slug}
           church={church.name}
           funds={church.funds}
+          accountId={church.accountId}
+          publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
         />
       </div>
     </main>
