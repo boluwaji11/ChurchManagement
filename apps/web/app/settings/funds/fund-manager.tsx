@@ -20,6 +20,32 @@ import { saveFund, archiveFund } from "./actions";
  * restricted fund wears the word, because that is the distinction a treasurer
  * is answerable for.
  */
+/**
+ * R13.23. A short code for the fund, suggested from its name.
+ *
+ * The code is what the church's accounting software calls this fund, and it
+ * goes out on the export. Most churches use the obvious abbreviation, so it
+ * is offered rather than asked for, and anybody with their own chart of
+ * accounts types theirs over it.
+ */
+function suggestCode(name: string, taken: string[]): string {
+  const words = name.toUpperCase().replace(/[^A-Z0-9 ]/g, "").split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+
+  const base = (words.length > 1
+    ? words.map((one) => one.slice(0, 1)).join("")
+    : words[0]!.slice(0, 3)
+  ).slice(0, 4);
+
+  const used = new Set(taken.map((one) => one.toUpperCase()));
+  if (!used.has(base)) return base;
+  for (let at = 2; at < 100; at += 1) {
+    const next = `${base}${at}`;
+    if (!used.has(next)) return next;
+  }
+  return base;
+}
+
 export function FundManager({ church, funds }: { church: string; funds: Fund[] }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -33,6 +59,7 @@ export function FundManager({ church, funds }: { church: string; funds: Fund[] }
       if (!result.error) router.refresh();
     });
 
+  const codes = funds.map((one) => one.code ?? "").filter(Boolean);
   const live = funds.filter((one) => !one.archived);
   const archived = funds.filter((one) => one.archived);
 
@@ -41,7 +68,7 @@ export function FundManager({ church, funds }: { church: string; funds: Fund[] }
       {error ? <Banner tone="danger" title={t("fund.failed")}>{error}</Banner> : null}
 
       <div className="flex justify-end">
-        <FundPanel church={church} pending={pending} />
+        <FundPanel church={church} pending={pending} codesInUse={codes} />
       </div>
 
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
@@ -51,6 +78,7 @@ export function FundManager({ church, funds }: { church: string; funds: Fund[] }
             church={church}
             pending={pending}
             fund={fund}
+            codesInUse={codes.filter((one) => one !== fund.code)}
             onArchive={() => setAsking(fund)}
             trigger={
               <button
@@ -124,12 +152,15 @@ function FundPanel({
   church,
   pending,
   fund,
+  codesInUse,
   trigger,
   onArchive,
 }: {
   church: string;
   pending: boolean;
   fund?: Fund;
+  /** R13.23. The codes already spoken for, so a suggestion is its own. */
+  codesInUse: string[];
   trigger?: React.ReactNode;
   onArchive?: () => void;
 }) {
@@ -141,6 +172,8 @@ function FundPanel({
 
   const [name, setName] = React.useState(fund?.name ?? "");
   const [code, setCode] = React.useState(fund?.code ?? "");
+  /** Whether the code is this church's own rather than one we offered. */
+  const [ownCode, setOwnCode] = React.useState(Boolean(fund?.code));
   const [restricted, setRestricted] = React.useState(fund?.restricted ?? false);
   const [description, setDescription] = React.useState(fund?.description ?? "");
 
@@ -148,6 +181,7 @@ function FundPanel({
     if (!open) return;
     setName(fund?.name ?? "");
     setCode(fund?.code ?? "");
+    setOwnCode(Boolean(fund?.code));
     setRestricted(fund?.restricted ?? false);
     setDescription(fund?.description ?? "");
   }, [open, fund?.name, fund?.code, fund?.restricted, fund?.description]);
@@ -218,6 +252,7 @@ function FundPanel({
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
+                if (!ownCode) setCode(suggestCode(e.target.value, codesInUse));
                 setDirty(true);
               }}
               placeholder={t("fund.namePlaceholder")}
@@ -230,7 +265,8 @@ function FundPanel({
             <Input
               value={code}
               onChange={(e) => {
-                setCode(e.target.value);
+                setCode(e.target.value.toUpperCase());
+                setOwnCode(e.target.value.trim().length > 0);
                 setDirty(true);
               }}
               placeholder={t("fund.codePlaceholder")}

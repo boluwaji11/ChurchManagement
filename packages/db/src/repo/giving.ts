@@ -26,6 +26,8 @@ export interface Gift {
   memberName: string | null;
   fundId: string;
   fundName: string;
+  /** R13.23. What the church's accounting software calls this fund. */
+  fundCode: string | null;
   batchId: string | null;
   amountCents: number;
   method: string;
@@ -363,6 +365,7 @@ export async function listGifts(
       giverName: gifts.giverName,
       fundId: gifts.fundId,
       fundName: funds.name,
+      fundCode: funds.code,
       batchId: gifts.batchId,
       amountCents: gifts.amountCents,
       method: gifts.method,
@@ -400,6 +403,7 @@ export async function listGifts(
       : row.giverName,
     fundId: row.fundId,
     fundName: row.fundName,
+    fundCode: row.fundCode,
     batchId: row.batchId,
     amountCents: amounts ? row.amountCents : 0,
     method: row.method,

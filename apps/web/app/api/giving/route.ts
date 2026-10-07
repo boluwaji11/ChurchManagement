@@ -41,6 +41,8 @@ export async function GET(request: NextRequest) {
       Date: gift.receivedOn,
       Giver: gift.memberName ?? "",
       Fund: gift.fundName,
+      /* R13.23. What the church's own accounting calls it. */
+      Code: gift.fundCode ?? "",
       Method: gift.method,
       Reference: gift.reference ?? "",
       Amount: (gift.amountCents / 100).toFixed(2),
@@ -53,7 +55,7 @@ export async function GET(request: NextRequest) {
       Note: gift.note ?? "",
     })),
     [
-      "Date", "Giver", "Fund", "Method", "Reference", "Amount", "Fee", "Refunded",
+      "Date", "Giver", "Fund", "Code", "Method", "Reference", "Amount", "Fee", "Refunded",
       "Status", "In kind", "Note",
     ],
   );
