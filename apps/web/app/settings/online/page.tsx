@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
 import { stripeConfigured } from "@/lib/stripe";
+import { syncStripe } from "./actions";
 import { OnlineGiving } from "./online-giving";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +19,19 @@ export const dynamic = "force-dynamic";
 export default async function OnlineGivingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; from?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, from } = await searchParams;
   const session = await requireSession(church);
   const manage = canManageGiving(session);
+
+  /*
+   * R13.1. Back from Stripe, so what we hold about the account is already
+   * out of date. Asked once, here, rather than leaving a church looking at
+   * "Stripe still needs details" with a button to press to find out it does
+   * not.
+   */
+  if (manage && from === "stripe") await syncStripe(church);
 
   const read = manage
     ? await withTenant(

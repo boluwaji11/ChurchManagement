@@ -161,12 +161,17 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
       );
     }
 
-    const back = `${await origin()}/settings/online?church=${session.tenantSlug}`;
+    const here = `${await origin()}/settings/online?church=${session.tenantSlug}`;
+    /*
+     * R13.1. Coming back says so, so the screen can ask Stripe what the
+     * account looks like now rather than showing what it looked like before
+     * the church filled the form in.
+     */
     const link = await stripe().accountLinks.create({
       account: accountId,
       type: "account_onboarding",
-      refresh_url: back,
-      return_url: back,
+      refresh_url: here,
+      return_url: `${here}&from=stripe`,
     });
 
     return { url: link.url };
@@ -175,8 +180,13 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
   }
 }
 
-/** R13.1. Asking Stripe what the account looks like now. */
-export async function refreshStripe(church?: string): Promise<ConnectResult> {
+/**
+ * R13.1. Asking Stripe what the account looks like now, and writing it down.
+ *
+ * Separate from the action below because a screen rendering on the way back
+ * from Stripe calls it too, and a render may not ask for a revalidation.
+ */
+export async function syncStripe(church?: string): Promise<ConnectResult> {
   const { actor, ctx } = await context(church);
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
@@ -195,12 +205,20 @@ export async function refreshStripe(church?: string): Promise<ConnectResult> {
       }),
     );
 
-    revalidatePath("/settings/online");
-    revalidatePath("/giving");
     return {};
   } catch (error) {
     return { error: explain(error) };
   }
+}
+
+/** R13.1. The same, from a press, which puts the screens right afterwards. */
+export async function refreshStripe(church?: string): Promise<ConnectResult> {
+  const answer = await syncStripe(church);
+  if (!answer.error) {
+    revalidatePath("/settings/online");
+    revalidatePath("/giving");
+  }
+  return answer;
 }
 
 /** R13.1. A one-off link into the church's own Stripe dashboard. */
