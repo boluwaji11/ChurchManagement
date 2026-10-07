@@ -22,6 +22,7 @@ import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
 import { RepeatMark } from "./repeat-mark";
 import { StopRepeating } from "./stop-repeating";
+import { Tooltip } from "@connectapp/ui";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -420,28 +421,56 @@ export default async function GivingPage({
               </Link>
             </div>
 
-            <ul className="flex flex-col gap-2">
-              {read.funds.map((fund) => (
-                <li
-                  key={fund.id}
-                  className="flex flex-col rounded-[12px] border border-line bg-surface px-3.5 py-3"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="min-w-0 flex-1 truncate font-medium text-fg">
-                      {fund.name}
-                    </span>
-                    {fund.restricted ? (
-                      <span className="shrink-0 rounded-full bg-sunken px-2 py-0.5 text-[11px] font-medium text-fg-muted">
-                        {t("giving.restricted")}
+            {/* R13.9. The board's question is what the church can spend, so
+                the funds are read in two groups with a total on each. Money
+                given for a building is in the bank and is not available. */}
+            {([true, false] as const).map((restricted) => {
+              const group = read.funds.filter((one) => one.restricted === restricted);
+              if (group.length === 0) return null;
+              const held = group.reduce(
+                (sum, one) => sum + (read.byFund[one.id]?.cents ?? 0),
+                0,
+              );
+
+              return (
+                <div key={String(restricted)} className="flex flex-col gap-2">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <Tooltip
+                      content={
+                        restricted
+                          ? t("giving.funds.restrictedWhy")
+                          : t("giving.funds.availableWhy")
+                      }
+                    >
+                      <span className="text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
+                        {restricted
+                          ? t("giving.funds.restricted")
+                          : t("giving.funds.available")}
                       </span>
-                    ) : null}
-                  </span>
-                  <span data-numeric className="mt-1 font-mono text-[15px] text-fg">
-                    {money(read.byFund[fund.id]?.cents ?? 0)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                    </Tooltip>
+                    <span data-numeric className="font-mono text-[13px] text-fg-muted">
+                      {money(held)}
+                    </span>
+                  </div>
+
+                  <ul className="flex flex-col gap-2">
+                    {group.map((fund) => (
+                      <li
+                        key={fund.id}
+                        className="flex items-center gap-3 rounded-[12px] border border-line bg-surface px-3.5 py-3"
+                      >
+                        <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                          {fund.name}
+                        </span>
+                        <span data-numeric className="shrink-0 font-mono text-[15px] text-fg">
+                          {money(read.byFund[fund.id]?.cents ?? 0)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
             </div>
           </aside>
         </div>

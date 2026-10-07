@@ -64,6 +64,11 @@ export default async function GivingReport({
     };
   });
 
+  /* R13.9. Everything given to a fund the giver's intent binds. */
+  const restricted = read.byFund
+    .filter((fund) => fund.restricted)
+    .reduce((sum, fund) => sum + fund.cents, 0);
+
   const average = read.totals.givers > 0
     ? Math.round(read.totals.cents / read.totals.givers)
     : 0;
@@ -96,6 +101,26 @@ export default async function GivingReport({
             hue="amber"
           />
         </div>
+
+        {/* R13.9. What the giver's intent binds, apart from what it does
+            not. A board asking what the church can spend is asking for the
+            first of these two numbers. */}
+        {restricted > 0 ? (
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+            <Figure
+              label={t("giving.funds.available")}
+              value={money(read.totals.cents - restricted)}
+              sub={t("giving.funds.availableWhy")}
+              hue="sky"
+            />
+            <Figure
+              label={t("giving.funds.restricted")}
+              value={money(restricted)}
+              sub={t("giving.funds.restrictedWhy")}
+              hue="orchid"
+            />
+          </div>
+        ) : null}
 
         <Line
           title={t("reports.giving.overTime")}
