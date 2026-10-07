@@ -28,6 +28,7 @@ export function GiveForm({
   funds,
   accountId,
   publishableKey,
+  giver,
 }: {
   slug: string;
   church: string;
@@ -35,11 +36,13 @@ export function GiveForm({
   /** R13.2. The church's own account, which the payment is made on. */
   accountId: string;
   publishableKey: string;
+  /** R13.6. What we already know, where the giver is signed in. */
+  giver: { name: string; email: string };
 }) {
   const [amount, setAmount] = React.useState("");
   const [fundId, setFundId] = React.useState(funds[0]?.id ?? "");
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
+  const [name, setName] = React.useState(giver.name);
+  const [email, setEmail] = React.useState(giver.email);
   const [cover, setCover] = React.useState(false);
   /** R13.4. What each fund takes, where the giver has split it. */
   const [split, setSplit] = React.useState<Record<string, string>>({});
@@ -99,7 +102,7 @@ export function GiveForm({
    */
   if (secret) {
     return (
-      <Card className="flex flex-col gap-4">
+      <Card className="flex flex-col gap-4 p-6">
         <button
           type="button"
           onClick={() => setSecret(undefined)}

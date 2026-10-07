@@ -16,6 +16,7 @@ import { shortDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
 import { GiftPanel } from "./gift-panel";
 import { RefundGift } from "./refund";
+import { AttachGift } from "./attach";
 
 export const dynamic = "force-dynamic";
 
@@ -209,8 +210,17 @@ export default async function GivingPage({
                     <span className="w-[120px] shrink-0 text-[13px] text-fg-subtle">
                       {shortDate(gift.receivedOn)}
                     </span>
-                    <span className="min-w-0 flex-1 text-fg">
-                      {gift.memberName ?? t("giving.gift.anonymous")}
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate text-fg">
+                        {gift.memberName ?? t("giving.gift.anonymous")}
+                      </span>
+                      {/* R13.18. A gift on nobody's record is on nobody's
+                          statement either, so it says so here. */}
+                      {gift.memberId === null && gift.memberName ? (
+                        <span className="text-[12px] text-fg-subtle">
+                          {t("giving.gift.unattached")}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="w-[140px] shrink-0 truncate text-[13px] text-fg-muted">
                       {gift.fundName}
@@ -227,6 +237,15 @@ export default async function GivingPage({
                       ) : null}
                     </span>
                     {/* R13.15. Given back, in part or in whole. */}
+                    {manage && gift.memberId === null ? (
+                      <AttachGift
+                        church={session.tenantSlug}
+                        gift={{
+                          id: gift.id,
+                          label: gift.memberName ?? t("giving.gift.anonymous"),
+                        }}
+                      />
+                    ) : null}
                     {manage && !gift.inKindDescription
                       && gift.amountCents > gift.refundedCents ? (
                       <RefundGift

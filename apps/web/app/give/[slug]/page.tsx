@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { givingPage } from "@connectapp/db";
+import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { photoUrls } from "@/lib/photos";
 import { GiveForm } from "./give-form";
@@ -22,6 +23,15 @@ export default async function GivePage({
   const { slug } = await params;
   const church = await givingPage(slug);
   if (!church) notFound();
+
+  /*
+   * R13.6, R17.4. A member who is already signed in is not a stranger.
+   *
+   * Their name and address fill themselves in, which is the whole benefit of
+   * being known here. Nobody is asked to sign in: this page works for a
+   * visitor who has never heard of us, and that is the point of it.
+   */
+  const known = await currentUser();
 
   const signed = church.logoKey ? await photoUrls([church.logoKey]) : {};
   const logoUrl = church.logoKey ? (signed[church.logoKey] ?? null) : null;
@@ -56,6 +66,12 @@ export default async function GivePage({
           church={church.name}
           funds={church.funds}
           accountId={church.accountId}
+          giver={{
+            name: [known?.firstName, known?.lastName].filter(Boolean).join(" ")
+              || known?.fullName
+              || "",
+            email: known?.email ?? "",
+          }}
           publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
         />
       </div>

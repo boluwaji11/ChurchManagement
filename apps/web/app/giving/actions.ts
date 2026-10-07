@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, openBatch, updateBatch, closeBatch, reopenBatch,
-  recordGift, removeGift, refundGift, giftCharge, getStripeAccount,
+  recordGift, removeGift, refundGift, attachGift, giftCharge, getStripeAccount,
   getChurch, lookupPeople, type GiftMethod,
 } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch } from "@/lib/stripe";
@@ -170,6 +170,22 @@ export async function giveBack(
     }
 
     await withTenant(ctx, (tx) => refundGift(tx, actor, id, cents));
+    revalidatePath("/giving");
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R13.18. Saying who a gift was from, where nobody was attached to it. */
+export async function nameGiver(
+  id: string,
+  memberId: string | null,
+  church?: string,
+): Promise<GivingResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => attachGift(tx, actor, id, memberId));
     revalidatePath("/giving");
     return {};
   } catch (error) {

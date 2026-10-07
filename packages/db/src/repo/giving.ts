@@ -503,3 +503,27 @@ export async function giftCharge(
     .limit(1);
   return row ?? null;
 }
+
+/**
+ * R13.18. Putting a gift against the person who gave it.
+ *
+ * An online gift from an address the church has never seen arrives with a
+ * name and nobody attached. It still counts to the fund, but it is on no
+ * record and on no statement, which is noticed in January. This is how a
+ * treasurer says who it was, and `null` takes it back off a record.
+ */
+export async function attachGift(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  memberId: string | null,
+): Promise<void> {
+  if (!canManageGiving(actor)) throw new PermissionError(actor.role, "recordGift");
+
+  const changed = await db
+    .update(gifts)
+    .set({ memberId, updatedAt: new Date() })
+    .where(eq(gifts.id, id))
+    .returning({ id: gifts.id });
+  if (changed.length === 0) throw new InvalidInputError("gift.error.missing");
+}

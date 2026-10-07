@@ -36,7 +36,9 @@ export function Pay({
   );
 
   return (
-    <div className="min-h-[420px]">
+    // Stripe draws its own layout inside the frame; what we decide is where
+    // the frame sits, which is the middle of the card.
+    <div className="mx-auto min-h-[420px] w-full max-w-[460px]">
       <EmbeddedCheckoutProvider stripe={stripe} options={{ clientSecret: secret }}>
         <EmbeddedCheckout />
       </EmbeddedCheckoutProvider>
