@@ -110,15 +110,18 @@ export default async function MyGivingPage({
         ) : (
           <Panel className="flex flex-col divide-y divide-line px-5 py-0">
             {mine.gifts.map((gift) => (
-              <span key={gift.id} className="flex flex-wrap items-center gap-3 py-3">
-                <span className="w-[110px] shrink-0 text-caption text-fg-subtle">
+              <span
+                key={gift.id}
+                className="grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_120px]"
+              >
+                <span className="text-caption text-fg-subtle">
                   {shortDate(gift.receivedOn)}
                 </span>
-                <span className="min-w-0 flex-1 font-medium text-fg">{gift.fundName}</span>
-                <span className="w-[80px] shrink-0 text-caption text-fg-subtle">
+                <span className="min-w-0 truncate font-medium text-fg">{gift.fundName}</span>
+                <span className="text-caption text-fg-subtle">
                   {t(`giving.method.${gift.method}` as never)}
                 </span>
-                <span data-numeric className="shrink-0 font-mono text-fg">
+                <span data-numeric className="text-right font-mono text-fg">
                   {gift.inKindDescription ?? money(gift.amountCents - gift.refundedCents)}
                 </span>
               </span>
