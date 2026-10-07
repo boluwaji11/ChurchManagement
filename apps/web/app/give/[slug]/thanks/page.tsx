@@ -46,13 +46,13 @@ export default async function ThanksPage({
         <h1 className="font-display text-[28px] leading-[34px] text-fg">
           {t("give.thanks.title")}
         </h1>
+        {/* R13.2. A bank transfer is an instruction, so the giver is told
+            what happens next rather than that the money has arrived. */}
         <p className="m-0 text-fg-muted">
-          {t("give.thanks.body", { church: church.name })}
+          {gift.pending
+            ? t("give.thanks.bank", { church: church.name })
+            : t("give.thanks.body", { church: church.name })}
         </p>
-        {/* R13.2. A bank transfer, before the money has moved. */}
-        {gift.pending ? (
-          <p className="m-0 text-fg-muted">{t("give.thanks.bank", { church: church.name })}</p>
-        ) : null}
         {gift.repeating ? (
           <p className="m-0 text-fg-muted">{t("give.thanks.repeat")}</p>
         ) : null}

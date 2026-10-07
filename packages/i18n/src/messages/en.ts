@@ -1049,7 +1049,7 @@ export const en = {
   "give.thanks.title": "Thank you",
   "give.thanks.body": "{church} has your gift, and your receipt is on its way.",
   "give.thanks.again": "Give again",
-  "give.thanks.bank": "Your bank transfer takes a few days to reach {church}.",
+  "give.thanks.bank": "Your bank transfer takes a few days to reach {church}, and your receipt comes when it arrives.",
   "give.thanks.return": "View my giving",
   "give.link": "Your giving page",
   "give.qr": "Print a QR code",
