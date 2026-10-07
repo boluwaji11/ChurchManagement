@@ -9,15 +9,27 @@ import * as React from "react";
  */
 
 /** The screen's own name, at the size the design gives it. */
-export function PortalTitle({ title, under }: { title: string; under?: React.ReactNode }) {
+export function PortalTitle({
+  title,
+  under,
+  action,
+}: {
+  title: string;
+  under?: React.ReactNode;
+  /** R24.6. The screen's one action, which rides the title's own line. */
+  action?: React.ReactNode;
+}) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex min-w-0 flex-col gap-1">
       <h1 className="font-display text-[36px] font-normal leading-[42px] text-fg">{title}</h1>
       {/* A div rather than a paragraph: the line under a title is sometimes a
           church's own description, which carries its own paragraphs. */}
       {under ? (
         <div className="text-[length:var(--d-text-body)] text-fg-muted">{under}</div>
       ) : null}
+    </div>
+    {action}
     </div>
   );
 }

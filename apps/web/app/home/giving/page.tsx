@@ -71,7 +71,16 @@ export default async function MyGivingPage({
 
   return (
     <PortalShell session={session}>
-      <PortalTitle title={t("mine.giving.title")} />
+      <PortalTitle
+        title={t("mine.giving.title")}
+        action={
+          mine.online ? (
+            <Button asChild>
+              <Link href={`/give/${session.tenantSlug}`}>{t("home.giveNow")}</Link>
+            </Button>
+          ) : undefined
+        }
+      />
 
       <div className="flex flex-col gap-4">
         <Panel className="flex flex-wrap items-end justify-between gap-4">
@@ -84,25 +93,16 @@ export default async function MyGivingPage({
             </span>
           </span>
 
-          <div className="flex flex-wrap items-center gap-4">
-            {/* R13.6. The thing a member came here to do. */}
-            {mine.online ? (
-              <Button asChild>
-                <Link href={`/give/${session.tenantSlug}`}>{t("home.giveNow")}</Link>
-              </Button>
-            ) : null}
-
-            {mine.total.gifts > 0 ? (
-              <Link
-                href={`/home/giving/statement?church=${session.tenantSlug}&year=${mine.year}`}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center gap-1.5 font-medium text-primary no-underline"
-              >
-                <Download className="size-4" aria-hidden /> {t("mine.giving.statement")}
-              </Link>
-            ) : null}
-          </div>
+          {mine.total.gifts > 0 ? (
+            <Link
+              href={`/home/giving/statement?church=${session.tenantSlug}&year=${mine.year}`}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex items-center gap-1.5 font-medium text-primary no-underline"
+            >
+              <Download className="size-4" aria-hidden /> {t("mine.giving.statement")}
+            </Link>
+          ) : null}
         </Panel>
 
         {mine.gifts.length === 0 ? (
