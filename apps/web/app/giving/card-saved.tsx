@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, Dialog, DialogContent, DialogFooter } from "@connectapp/ui";
+import { Dialog, DialogContent } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -29,9 +29,6 @@ export function CardSaved() {
         <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
           {t("give.card.savedBody")}
         </p>
-        <DialogFooter>
-          <Button data-dismiss onClick={close}>{t("common.close")}</Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
