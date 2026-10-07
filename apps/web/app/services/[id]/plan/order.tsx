@@ -15,7 +15,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
-import { kindLabel, type KindOption } from "@/lib/kinds";
+import { kindLabel, type KindOption } from "@/lib/kind-label";
 import { useFormError } from "@/lib/form-error";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,

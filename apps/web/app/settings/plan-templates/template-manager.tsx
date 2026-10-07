@@ -11,7 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { TemplateShape } from "@connectapp/db";
-import type { KindOption } from "@/lib/kinds";
+import type { KindOption } from "@/lib/kind-label";
 import { Empty } from "@/components/empty";
 import { usePanelGuard } from "@/components/panel-guard";
 import { LibraryPicker } from "@/components/library-picker";
