@@ -9,6 +9,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
 import { money } from "@/lib/money";
+import { StatementsBy } from "./by";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,10 @@ export default async function StatementsPage({
     const profile = await getChurch(tx, session.tenantId);
     const here = churchNow(profile?.timezone ?? "America/Chicago").date.slice(0, 4);
     const year = /^\d{4}$/.test(asked ?? "") ? asked! : here;
-    return { year, givers: await statementGivers(tx, ctx, year) };
+    // R13.18. A person each, or a household each, as the church has chosen.
+    const by: "person" | "household" =
+      profile?.statementsBy === "household" ? "household" : "person";
+    return { year, by, givers: await statementGivers(tx, ctx, year, by) };
   });
 
   const years = [0, 1, 2].map((back) => String(Number(read.year) - back));
@@ -77,7 +81,10 @@ export default async function StatementsPage({
             ))}
           </div>
 
-          {read.givers.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-3">
+            {/* R13.18. The church's own choice, where it is felt. */}
+            <StatementsBy church={session.tenantSlug} by={read.by} />
+            {read.givers.length > 0 ? (
             <a
               href={`/giving/statements/print?church=${session.tenantSlug}&year=${read.year}`}
               target="_blank"
@@ -86,7 +93,8 @@ export default async function StatementsPage({
             >
               <Printer className="size-4" aria-hidden /> {t("statement.print")}
             </a>
-          ) : null}
+            ) : null}
+          </div>
         </div>
 
         {read.givers.length === 0 ? (

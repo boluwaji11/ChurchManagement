@@ -750,6 +750,13 @@
       "when": 1791408000000,
       "tag": "0106_campaigns_and_pledges",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1791409000000,
+      "tag": "0107_statements_by",
+      "breakpoints": true
     }
   ]
 }

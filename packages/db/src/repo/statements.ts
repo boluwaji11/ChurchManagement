@@ -1,8 +1,9 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { funds, gifts } from "../schema/giving";
-import { members } from "../schema/members";
-import { PermissionError, canReadGivingAmounts } from "../roles";
+import { members, households, householdMemberships } from "../schema/members";
+import { PermissionError, canReadGivingAmounts, canManageGiving } from "../roles";
+import { tenants } from "../schema/tenancy";
 import type { WriteActor } from "./members";
 
 /**
@@ -32,6 +33,7 @@ export interface StatementLine {
 }
 
 export interface Statement {
+  /** The person, or whoever in the household the statement was asked for. */
   memberId: string;
   name: string;
   lines: StatementLine[];
@@ -41,11 +43,18 @@ export interface Statement {
   needsAcknowledgment: boolean;
 }
 
-/** R13.19. Who has anything to receive a statement for, this year. */
+/**
+ * R13.18, R13.19. Who has anything to receive a statement for, this year.
+ *
+ * By person, or by household where the church has chosen that: a couple who
+ * gave on one card get one statement between them, and anybody with no
+ * household stands on their own either way.
+ */
 export async function statementGivers(
   db: Tx,
   who: WriteActor,
   year: string,
+  by: "person" | "household" = "person",
 ): Promise<{ memberId: string; name: string; totalCents: number; gifts: number }[]> {
   if (!canReadGivingAmounts(who)) throw new PermissionError(who.role, "manageGiving");
 
@@ -68,7 +77,7 @@ export async function statementGivers(
     .groupBy(gifts.memberId, members.firstName, members.lastName)
     .orderBy(asc(members.lastName), asc(members.firstName));
 
-  return rows
+  const people = rows
     .filter((row) => row.memberId !== null)
     .map((row) => ({
       memberId: row.memberId!,
@@ -76,14 +85,58 @@ export async function statementGivers(
       totalCents: row.totalCents,
       gifts: row.count,
     }));
+
+  if (by === "person") return people;
+
+  /*
+   * R13.18. Folded into households, with the household's own name on the
+   * statement and the first of its givers standing for it.
+   */
+  const homes = await db
+    .select({
+      memberId: householdMemberships.memberId,
+      householdId: householdMemberships.householdId,
+      name: households.name,
+    })
+    .from(householdMemberships)
+    .innerJoin(households, eq(households.id, householdMemberships.householdId));
+
+  const byMember = new Map(homes.map((row) => [row.memberId, row]));
+  const folded = new Map<string, { memberId: string; name: string; totalCents: number; gifts: number }>();
+
+  for (const one of people) {
+    const home = byMember.get(one.memberId);
+    const key = home?.householdId ?? one.memberId;
+    const held = folded.get(key);
+    if (held) {
+      held.totalCents += one.totalCents;
+      held.gifts += one.gifts;
+      continue;
+    }
+    folded.set(key, {
+      memberId: one.memberId,
+      name: home?.name ?? one.name,
+      totalCents: one.totalCents,
+      gifts: one.gifts,
+    });
+  }
+
+  return [...folded.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** R13.17. One person's statement for one year. */
+/**
+ * R13.17, R13.18. One statement for one year.
+ *
+ * Written for a person, or for the household they belong to where the church
+ * has chosen that, in which case every gift from anybody in it is on the one
+ * sheet under the household's own name.
+ */
 export async function statementFor(
   db: Tx,
   who: WriteActor,
   memberId: string,
   year: string,
+  by: "person" | "household" = "person",
 ): Promise<Statement | null> {
   if (!canReadGivingAmounts(who)) throw new PermissionError(who.role, "manageGiving");
 
@@ -93,6 +146,28 @@ export async function statementFor(
     .where(eq(members.id, memberId))
     .limit(1);
   if (!person) return null;
+
+  /* R13.18. Whose gifts go on this sheet, and whose name is at the top. */
+  let whose: string[] = [person.id];
+  let name = [person.first, person.last].filter(Boolean).join(" ");
+
+  if (by === "household") {
+    const [home] = await db
+      .select({ id: households.id, name: households.name })
+      .from(householdMemberships)
+      .innerJoin(households, eq(households.id, householdMemberships.householdId))
+      .where(eq(householdMemberships.memberId, person.id))
+      .limit(1);
+
+    if (home) {
+      name = home.name;
+      const kin = await db
+        .select({ memberId: householdMemberships.memberId })
+        .from(householdMemberships)
+        .where(eq(householdMemberships.householdId, home.id));
+      whose = kin.map((one) => one.memberId);
+    }
+  }
 
   const rows = await db
     .select({
@@ -106,7 +181,7 @@ export async function statementFor(
     .innerJoin(funds, eq(funds.id, gifts.fundId))
     .where(
       and(
-        eq(gifts.memberId, memberId),
+        inArray(gifts.memberId, whose),
         sql`${gifts.receivedOn} >= ${`${year}-01-01`}::date`,
         sql`${gifts.receivedOn} <= ${`${year}-12-31`}::date`,
       ),
@@ -115,9 +190,29 @@ export async function statementFor(
 
   return {
     memberId: person.id,
-    name: [person.first, person.last].filter(Boolean).join(" "),
+    name,
     lines: rows,
     totalCents: rows.reduce((sum, row) => sum + (row.inKindDescription ? 0 : row.amountCents), 0),
     needsAcknowledgment: rows.some((row) => row.amountCents >= ACKNOWLEDGE_FROM_CENTS),
   };
+}
+
+
+/**
+ * R13.18. The church's choice: one statement a person, or one a household.
+ *
+ * Its own writer rather than a field on the church form, because it is a
+ * decision the treasurer makes in January and the church profile is a screen
+ * the office secretary keeps.
+ */
+export async function setStatementsBy(
+  db: Tx,
+  actor: WriteActor,
+  by: "person" | "household",
+): Promise<void> {
+  if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
+  await db
+    .update(tenants)
+    .set({ statementsBy: by === "household" ? "household" : "person" })
+    .where(eq(tenants.id, actor.tenantId));
 }

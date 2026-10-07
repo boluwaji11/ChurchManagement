@@ -74,6 +74,13 @@ export const tenants = pgTable(
      */
     selfSignup: boolean("self_signup").notNull().default(true),
     /**
+     * R13.18. Whether a year-end statement is written a person or a household.
+     *
+     * Both are right for somebody: a couple who give on one card want one
+     * statement, and a church whose givers file separately wants two.
+     */
+    statementsBy: text("statements_by").notNull().default("person"),
+    /**
      * R1.1, R17.1. The church's own address for its members' screens.
      *
      * A member reading their serving dates on the church's own host is on the

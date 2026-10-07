@@ -975,6 +975,8 @@ export const en = {
   "reports.giving.lastGift": "Last gift",
   "reports.giving.firstGift": "First gift",
   "statement.title": "Giving statements",
+  "statement.by.person": "One a person",
+  "statement.by.household": "One a household",
   "statement.year": "Year",
   "statement.none": "Nobody has given this year",
   "statement.print": "Print all",

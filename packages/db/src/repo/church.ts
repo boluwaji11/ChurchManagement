@@ -44,6 +44,8 @@ export interface ChurchProfile {
   logoKey: string | null;
   /** R1.7. Null when the church has switched joining off. */
   selfSignup: boolean;
+  /** R13.18. Whether a statement is written a person or a household. */
+  statementsBy: string;
   /** R1.1. The church's own address for its members' screens. */
   customDomain: string | null;
 }
@@ -72,7 +74,8 @@ export async function getChurch(db: Tx, tenantId: string): Promise<ChurchProfile
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
-      selfSignup: tenants.selfSignup, customDomain: tenants.customDomain,
+      selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
+      customDomain: tenants.customDomain,
     })
     .from(tenants)
     .where(eq(tenants.id, tenantId))
@@ -135,7 +138,8 @@ export async function updateChurch(
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
-      selfSignup: tenants.selfSignup, customDomain: tenants.customDomain,
+      selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
+      customDomain: tenants.customDomain,
     });
 
   if (!row) throw new InvalidInputError("church.error.notFound");

@@ -40,14 +40,15 @@ export default async function StatementPrintPage({
     const profile = await getChurch(tx, session.tenantId);
     const here = churchNow(profile?.timezone ?? "America/Chicago").date.slice(0, 4);
     const year = /^\d{4}$/.test(asked ?? "") ? asked! : here;
+    const by = profile?.statementsBy === "household" ? "household" : "person";
 
     const people = member
       ? [member]
-      : (await statementGivers(tx, ctx, year)).map((one) => one.memberId);
+      : (await statementGivers(tx, ctx, year, by)).map((one) => one.memberId);
 
     const statements: Statement[] = [];
     for (const id of people) {
-      const one = await statementFor(tx, ctx, id, year);
+      const one = await statementFor(tx, ctx, id, year, by);
       if (one && one.lines.length > 0) statements.push(one);
     }
 

@@ -47,6 +47,7 @@ export default async function MyStatementPage({
         { ...ctx, permissions: [...(ctx.permissions ?? []), "giving.amounts"] },
         self,
         year,
+        profile?.statementsBy === "household" ? "household" : "person",
       ),
     };
   });

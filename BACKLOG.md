@@ -88,6 +88,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-244 | A member's own giving, and their own statement, from the portal | R13.19, R17.4 | Resolved |
 | HRT-245 | A repeating gift that has stopped collecting says so on the giving screen | R13.8 | Resolved |
 | HRT-246 | Campaigns and pledges: a target over a period, and what households committed | R13.16, R13.18 | Resolved |
+| HRT-247 | One statement a household, where the church chooses that | R13.18 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -708,6 +709,14 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-247, how to test it
+
+1. **Statements** carries the church's choice: One a person, or One a household.
+2. With a household chosen, two people in one household who both gave appear once, under the
+   household's name, and their gifts are on one sheet.
+3. Somebody with no household stands on their own either way.
+4. A member's own statement in the portal follows the same choice.
 
 ### HRT-246, how to test it
 

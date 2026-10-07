@@ -104,10 +104,13 @@ gift with its date and amount, any non-cash gift described and **not valued** by
 sentence that no goods or services were provided in exchange, and the acknowledgment line for a
 giver whose single gift reached $250.
 
-Two things are still owed before this is correct for every church: **household roll-up** (R13.18),
-so a couple receives one statement rather than two, and **quid pro quo** (R13.20), so a $100 gala
-ticket with a $40 dinner is stated as a $60 contribution. Until both land, a church with either
-case has to correct the statement by hand.
+A church chooses whether a statement is written **a person or a household**, on the statements
+screen itself. With households chosen, a couple who gave on one card receive one sheet under the
+household's name, and anybody with no household stands on their own either way.
+
+**Quid pro quo** (R13.20) is still owed: a $100 gala ticket with a $40 dinner should state a $60
+contribution, and until that lands a church selling anything with a benefit has to correct the
+statement by hand.
 
 **A CPA reads a sample statement before 0.3 ships.** That is a release gate in the PRD, not a
 nicety: a statement that is wrong in January is wrong for every giver at once.
