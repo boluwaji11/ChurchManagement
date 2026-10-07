@@ -132,7 +132,7 @@ export function GiveForm({
           {/* R13.6. The currency is part of the question, so it sits with
               the number rather than being remembered. The field grows to what
               is typed, which keeps the pair centred. */}
-          <div className="flex h-14 items-center justify-center gap-0.5 rounded-[var(--d-radius-control)] border border-line-strong bg-surface shadow-sm focus-within:border-fg-subtle">
+          <div className="flex h-14 items-center justify-center gap-0.5 rounded-[var(--d-radius-control)] border border-line bg-surface shadow-sm focus-within:border-fg-subtle">
             <span className="text-[26px] text-fg-subtle">{currencyMark()}</span>
             <input
               value={amount}
@@ -151,7 +151,7 @@ export function GiveForm({
                 key={one}
                 type="button"
                 onClick={() => setAmount((one / 100).toFixed(0))}
-                className="cursor-pointer rounded-full border border-line-strong bg-surface px-3.5 py-1.5 text-[13px] font-medium text-fg hover:bg-sunken"
+                className="cursor-pointer rounded-full border border-line bg-surface px-3.5 py-1.5 text-[13px] font-medium text-fg hover:bg-sunken"
               >
                 {money(one).replace(/\.00$/, "")}
               </button>
@@ -162,7 +162,7 @@ export function GiveForm({
 
       {/* R13.3. How often. Five of its own, the way the amounts above it are
           drawn, and the one in force is filled so it reads at a glance. */}
-      <div className="flex flex-wrap justify-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface p-2.5 shadow-sm">
+      <div className="flex flex-wrap justify-center gap-2 rounded-[var(--d-radius-control)] border border-line bg-surface p-2.5 shadow-sm">
         {REPEATS.map((one) => {
           const chosen = repeat === one;
 
@@ -196,7 +196,7 @@ export function GiveForm({
                   {fund.name}
                 </span>
                 <Input
-                  className="w-[120px]"
+                  className="w-[120px] border-line"
                   value={split[fund.id] ?? ""}
                   onChange={(e) =>
                     setSplit((was) => ({ ...was, [fund.id]: e.target.value }))
@@ -217,7 +217,9 @@ export function GiveForm({
       ) : (
         <Field label={t("give.fund")} required>
           <Select value={fundId} onValueChange={setFundId}>
-            <SelectTrigger aria-label={t("give.fund")}><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label={t("give.fund")} className="border-line">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {funds.map((fund) => (
                 <SelectItem key={fund.id} value={fund.id}>{fund.name}</SelectItem>
@@ -243,6 +245,7 @@ export function GiveForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t("give.name")}>
           <Input
+            className="border-line"
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"
@@ -250,6 +253,7 @@ export function GiveForm({
         </Field>
         <Field label={t("give.email")} required>
           <Input
+            className="border-line"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
