@@ -47,7 +47,7 @@ export function LibraryPicker({
         className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-sunken"
       >
         <Plus className="size-[18px] shrink-0 text-primary" aria-hidden />
-        <span className="min-w-0 flex-1 font-semibold text-fg">{ownLabel}</span>
+        <span className="min-w-0 flex-1 font-semibold text-primary">{ownLabel}</span>
         <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
       </button>
 

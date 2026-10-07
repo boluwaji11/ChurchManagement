@@ -1137,7 +1137,7 @@ export const en = {
   "fund.name": "Name",
   "fund.namePlaceholder": "e.g. Building",
   "fund.start": "Add a fund",
-  "fund.ownFund": "Write your own",
+  "fund.ownFund": "Create your own",
   "fund.back": "Back",
   "fundLib.building": "Building",
   "fundLib.benevolence": "Benevolence",
