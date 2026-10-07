@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Lock, LockOpen, Trash2 } from "lucide-react";
+import { Download, Lock, LockOpen, Printer, Trash2 } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Textarea,
 } from "@connectapp/ui";
@@ -101,6 +101,23 @@ export function CountScreen({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* R13.22, R13.23. What the treasurer takes to the bank, and what
+              goes into whatever the church keeps its accounts in. */}
+          <a
+            href={`/giving/counts/${count.id}/slip?church=${church}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex min-h-[var(--d-tap)] items-center gap-1.5 rounded-[var(--d-radius-control)] px-3 font-medium text-primary no-underline hover:bg-sunken"
+          >
+            <Printer className="size-4" aria-hidden /> {t("giving.count.slip")}
+          </a>
+          <a
+            href={`/api/giving?church=${church}&count=${count.id}`}
+            className="inline-flex min-h-[var(--d-tap)] items-center gap-1.5 rounded-[var(--d-radius-control)] px-3 font-medium text-primary no-underline hover:bg-sunken"
+          >
+            <Download className="size-4" aria-hidden /> {t("giving.export")}
+          </a>
+
           {count.closed ? (
             <Button
               variant="secondary"

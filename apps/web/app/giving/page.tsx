@@ -161,9 +161,18 @@ export default async function GivingPage({
               </ul>
             )}
 
-            <h2 className="mt-4 font-display text-[22px] leading-[28px] text-fg">
-              {t("giving.recent")}
-            </h2>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-[22px] leading-[28px] text-fg">
+                {t("giving.recent")}
+              </h2>
+              {/* R13.23. Everything recorded, as a spreadsheet. */}
+              <a
+                href={`/api/giving?church=${session.tenantSlug}`}
+                className="font-medium text-primary"
+              >
+                {t("giving.export")}
+              </a>
+            </div>
             {read.recent.length === 0 ? (
               <p className="text-fg-muted">{t("giving.recent.none")}</p>
             ) : (

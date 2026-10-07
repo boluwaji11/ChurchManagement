@@ -957,6 +957,8 @@ export const en = {
   "giving.count.empty": "Nothing entered yet",
   "giving.count.closedTitle": "Close {name}?",
   "giving.count.back": "All giving",
+  "giving.count.slip": "Deposit slip",
+  "giving.export": "Export",
   "giving.recent": "Recent gifts",
   "giving.recent.none": "No gifts recorded yet",
   "give.title": "Give to {church}",
