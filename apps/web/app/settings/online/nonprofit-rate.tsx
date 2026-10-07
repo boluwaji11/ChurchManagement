@@ -7,7 +7,8 @@ import { t } from "@connectapp/i18n";
 
 /** Where a church asks Stripe for the rate. */
 const STRIPE_NONPROFIT = "nonprofit@stripe.com";
-const STRIPE_HELP = "https://support.stripe.com/questions/stripe-nonprofit-discount";
+const STRIPE_HELP =
+  "https://support.stripe.com/questions/fee-discount-for-nonprofit-organizations";
 
 /**
  * R13.1. The money a church leaves on the table by not asking.
