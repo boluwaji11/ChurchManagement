@@ -4,7 +4,7 @@ import {
   getStripeAccount, listRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
-import { CornerLeftDown } from "lucide-react";
+import { CornerDownRight } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -238,13 +238,13 @@ export default async function GivingPage({
                   <li
                     key={row.key}
                     className={`grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px] ${
-                      back ? "border-b-0 pb-1" : row.tied ? "pt-1" : ""
+                      back ? "pt-1" : row.tied ? "border-b-0 pb-1" : ""
                     }`}
                   >
                     {/* R13.15. The turn marks the refund as belonging to the
                         gift under it, and the rule between them comes out. */}
                     <span className="flex items-center gap-1 text-[13px] text-fg-subtle">
-                      {back ? <CornerLeftDown className="size-3.5 shrink-0" aria-hidden /> : null}
+                      {back ? <CornerDownRight className="size-3.5 shrink-0" aria-hidden /> : null}
                       {shortDate(row.on)}
                     </span>
 

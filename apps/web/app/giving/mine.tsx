@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CornerLeftDown, Download } from "lucide-react";
+import { CornerDownRight, Download } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
   getStripeAccount, listRecurring,
@@ -123,14 +123,14 @@ export async function MyGiving({ session }: { session: Session }) {
               <span
                 key={row.key}
                 className={`grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px] ${
-                  row.kind === "refund" ? "pb-1" : row.tied ? "border-t-0 pt-1" : ""
+                  row.kind === "refund" ? "border-t-0 pt-1" : row.tied ? "pb-1" : ""
                 }`}
               >
                 {/* R13.15. The turn marks the refund as belonging to the gift
                     under it, and the rule between them comes out. */}
                 <span className="flex items-center gap-1 text-caption text-fg-subtle">
                   {row.kind === "refund" ? (
-                    <CornerLeftDown className="size-3.5 shrink-0" aria-hidden />
+                    <CornerDownRight className="size-3.5 shrink-0" aria-hidden />
                   ) : null}
                   {shortDate(row.on)}
                 </span>

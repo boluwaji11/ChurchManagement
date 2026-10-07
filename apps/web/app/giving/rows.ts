@@ -33,8 +33,17 @@ export function giftRows(gifts: Gift[]): GiftRow[] {
   const rows: GiftRow[] = [];
 
   for (const gift of gifts) {
-    /* The refund happened after the gift, and the list runs newest first, so
-       it leads its own gift where the two fall on the same day. */
+    rows.push({
+      key: gift.id,
+      gift,
+      kind: "gift",
+      on: gift.receivedOn,
+      amountCents: gift.amountCents,
+      status: gift.status,
+      tied: gift.refundedCents > 0,
+    });
+
+    /* Under the gift it came off, where the eye is already looking. */
     if (gift.refundedCents > 0) {
       rows.push({
         key: `${gift.id}:refund`,
@@ -46,17 +55,14 @@ export function giftRows(gifts: Gift[]): GiftRow[] {
         tied: true,
       });
     }
-
-    rows.push({
-      key: gift.id,
-      gift,
-      kind: "gift",
-      on: gift.receivedOn,
-      amountCents: gift.amountCents,
-      status: gift.status,
-      tied: gift.refundedCents > 0,
-    });
   }
 
-  return rows.sort((a, b) => (a.on === b.on ? 0 : a.on < b.on ? 1 : -1));
+  /*
+   * Newest first, and a pair stays a pair: the sort runs on the gift's own
+   * date, so a refund given back weeks later still sits under its gift rather
+   * than floating to the top of the list on its own.
+   */
+  return rows.sort((a, b) =>
+    a.gift.receivedOn === b.gift.receivedOn ? 0 : a.gift.receivedOn < b.gift.receivedOn ? 1 : -1,
+  );
 }
