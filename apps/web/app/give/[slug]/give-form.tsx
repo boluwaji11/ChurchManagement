@@ -132,11 +132,11 @@ export function GiveForm({
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
             placeholder="0.00"
-            className="h-14 text-[24px]"
+            className="h-14 text-center text-[26px]"
             autoComplete="off"
             autoFocus
           />
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             {QUICK.map((one) => (
               <button
                 key={one}
