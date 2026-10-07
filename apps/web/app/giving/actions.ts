@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, openBatch, updateBatch, closeBatch, reopenBatch,
-  recordGift, removeGift, getChurch, lookupPeople, type GiftMethod,
+  recordGift, removeGift, refundGift, giftCharge, getStripeAccount,
+  getChurch, lookupPeople, type GiftMethod,
 } from "@connectapp/db";
+import { stripe, stripeConfigured, asChurch } from "@/lib/stripe";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -133,6 +135,42 @@ export async function dropGift(
     await withTenant(ctx, (tx) => removeGift(tx, actor, id));
     revalidatePath("/giving");
     if (batchId) revalidatePath(`/giving/counts/${batchId}`);
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R13.15. Giving a gift back.
+ *
+ * A card gift goes back through Stripe first, on the church's own account, and
+ * is written down only once Stripe has agreed to it. A cash gift is written
+ * down here and handed over by the church.
+ */
+export async function giveBack(
+  id: string,
+  cents: number,
+  church?: string,
+): Promise<GivingResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    const gift = await withTenant(ctx, (tx) => giftCharge(tx, id));
+    if (!gift) return { error: "gift.error.missing" };
+
+    if (gift.chargeId) {
+      if (!stripeConfigured()) return { error: "stripe.unconfigured" };
+      const account = await withTenant(ctx, (tx) => getStripeAccount(tx));
+      if (!account) return { error: "stripe.unconfigured" };
+
+      await stripe().refunds.create(
+        { charge: gift.chargeId, amount: cents },
+        asChurch(account.accountId),
+      );
+    }
+
+    await withTenant(ctx, (tx) => refundGift(tx, actor, id, cents));
+    revalidatePath("/giving");
     return {};
   } catch (error) {
     return { error: explain(error) };

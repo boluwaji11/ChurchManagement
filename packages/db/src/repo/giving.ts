@@ -448,3 +448,58 @@ export async function givingForPerson(
 
   return { cents: row?.cents ?? 0, gifts: row?.count ?? 0, lastOn: row?.lastOn ?? null };
 }
+
+/**
+ * R13.15. A gift given back.
+ *
+ * Recorded against the gift rather than deleted, because it happened: the
+ * total comes down, the statement comes down with it, and the audit log keeps
+ * both. A gift taken by card is refunded through Stripe first and written down
+ * here afterwards, so the two can never disagree.
+ */
+export async function refundGift(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  cents: number,
+): Promise<void> {
+  if (!canManageGiving(actor)) throw new PermissionError(actor.role, "recordGift");
+
+  const [gift] = await db
+    .select({ amountCents: gifts.amountCents, refundedCents: gifts.refundedCents })
+    .from(gifts)
+    .where(eq(gifts.id, id))
+    .limit(1);
+  if (!gift) throw new InvalidInputError("gift.error.missing");
+
+  const amount = money(cents);
+  if (amount <= 0 || amount + gift.refundedCents > gift.amountCents) {
+    throw new InvalidInputError("gift.error.refund");
+  }
+
+  await db
+    .update(gifts)
+    .set({
+      refundedCents: gift.refundedCents + amount,
+      refundedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(gifts.id, id));
+}
+
+/** What Stripe needs to give a card gift back: the charge it was taken on. */
+export async function giftCharge(
+  db: Tx,
+  id: string,
+): Promise<{ chargeId: string | null; amountCents: number; refundedCents: number } | null> {
+  const [row] = await db
+    .select({
+      chargeId: gifts.stripeChargeId,
+      amountCents: gifts.amountCents,
+      refundedCents: gifts.refundedCents,
+    })
+    .from(gifts)
+    .where(eq(gifts.id, id))
+    .limit(1);
+  return row ?? null;
+}

@@ -15,6 +15,7 @@ import { money, roundMoney } from "@/lib/money";
 import { shortDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
 import { GiftPanel } from "./gift-panel";
+import { RefundGift } from "./refund";
 
 export const dynamic = "force-dynamic";
 
@@ -206,8 +207,26 @@ export default async function GivingPage({
                       {t(`giving.method.${gift.method}` as never)}
                     </span>
                     <span data-numeric className="w-[100px] shrink-0 text-right font-mono text-fg">
-                      {gift.inKindDescription ? "" : money(gift.amountCents)}
+                      {gift.inKindDescription ? "" : money(gift.amountCents - gift.refundedCents)}
+                      {gift.refundedCents > 0 ? (
+                        <span className="block text-[12px] font-sans text-fg-subtle">
+                          {t("giving.gift.refunded")}
+                        </span>
+                      ) : null}
                     </span>
+                    {/* R13.15. Given back, in part or in whole. */}
+                    {manage && !gift.inKindDescription
+                      && gift.amountCents > gift.refundedCents ? (
+                      <RefundGift
+                        church={session.tenantSlug}
+                        gift={{
+                          id: gift.id,
+                          amountCents: gift.amountCents,
+                          refundedCents: gift.refundedCents,
+                          online: gift.method === "card" || gift.method === "ach",
+                        }}
+                      />
+                    ) : null}
                   </li>
                 ))}
               </ul>

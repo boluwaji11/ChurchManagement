@@ -1,0 +1,102 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Undo2 } from "lucide-react";
+import {
+  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input,
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { money, toCents } from "@/lib/money";
+import { giveBack } from "./actions";
+
+/**
+ * R13.15. Giving a gift back.
+ *
+ * Part of it or all of it, because a giver who meant $50 and typed $500 wants
+ * $450 back. A card gift goes back through Stripe to the card it came from; a
+ * cash gift is written down here and handed over by the church.
+ */
+export function RefundGift({
+  church,
+  gift,
+}: {
+  church: string;
+  gift: { id: string; amountCents: number; refundedCents: number; online: boolean };
+}) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [amount, setAmount] = React.useState("");
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+
+  const left = gift.amountCents - gift.refundedCents;
+
+  React.useEffect(() => {
+    if (open) setAmount((left / 100).toFixed(2));
+  }, [open, left]);
+
+  return (
+    <>
+      <IconButton
+        label={t("giving.gift.refund")}
+        variant="ghost"
+        onClick={() => setOpen(true)}
+      >
+        <Undo2 />
+      </IconButton>
+
+      <Dialog open={open} onOpenChange={(on) => (on ? null : setOpen(false))}>
+        <DialogContent
+          title={t("giving.gift.refundTitle", { amount: money(toCents(amount) ?? 0) })}
+          closeLabel={t("common.close")}
+        >
+          <div className="flex flex-col gap-4">
+            {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
+
+            <Field label={t("giving.gift.amount")} required>
+              <Input
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                inputMode="decimal"
+                autoFocus
+              />
+            </Field>
+
+            <p className="m-0 text-[13px] text-fg-muted">
+              {gift.online ? t("giving.gift.refundCard") : t("giving.gift.refundCash")}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              loading={pending}
+              onClick={() => {
+                const cents = toCents(amount);
+                if (cents === null || cents <= 0) {
+                  setError(t("gift.error.amount"));
+                  return;
+                }
+                startTransition(async () => {
+                  const result = await giveBack(gift.id, cents, church);
+                  setError(result.error);
+                  if (!result.error) {
+                    setOpen(false);
+                    router.refresh();
+                  }
+                });
+              }}
+            >
+              {t("giving.gift.refund")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
