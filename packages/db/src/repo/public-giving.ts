@@ -106,3 +106,39 @@ export async function giverKnown(slug: string, email: string): Promise<boolean> 
      limit 1`;
   return rows.length > 0;
 }
+
+/**
+ * R13.2. The Stripe customer this church keeps for a member, if any.
+ *
+ * Read with no session, because the giving page has none, and keyed on the
+ * member's own id rather than anything the browser sent.
+ */
+export async function giverCustomer(memberId: string): Promise<string | null> {
+  const rows = await owner()<{ id: string | null }[]>`
+    select stripe_customer_id as id from members where id = ${memberId} limit 1`;
+  return rows[0]?.id ?? null;
+}
+
+/** R13.2. Writing down the customer Stripe just made for them. */
+export async function rememberCustomer(memberId: string, customerId: string): Promise<void> {
+  await owner()`
+    update members set stripe_customer_id = ${customerId}, updated_at = now()
+     where id = ${memberId} and stripe_customer_id is null`;
+}
+
+/** R13.2. Which member an address belongs to, where exactly one does. */
+export async function giverMember(slug: string, email: string): Promise<string | null> {
+  if (!SLUG.test(slug) || !email.includes("@")) return null;
+
+  const rows = await owner()<{ id: string }[]>`
+    select m.id
+      from members m
+      join tenants t on t.id = m.tenant_id
+      join contact_methods c on c.member_id = m.id
+     where t.slug = ${slug}
+       and c.kind = 'email'
+       and lower(c.value) = ${email.trim().toLowerCase()}
+       and m.archived_at is null
+     limit 2`;
+  return rows.length === 1 ? rows[0]!.id : null;
+}

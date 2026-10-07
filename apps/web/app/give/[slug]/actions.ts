@@ -1,7 +1,9 @@
 "use server";
 
 import { headers } from "next/headers";
-import { givingPage, giverKnown } from "@connectapp/db";
+import {
+  givingPage, giverKnown, giverMember, giverCustomer, rememberCustomer,
+} from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch, PLATFORM_FEE, withFee } from "@/lib/stripe";
 import { EVERY, type Repeat } from "./repeats";
 
@@ -79,6 +81,28 @@ export async function startGift(input: {
   const charged = input.coverFee ? withFee(input.amountCents) : input.amountCents;
   const back = await origin();
 
+  /*
+   * R13.2. A giver this church already knows is offered their own card back
+   * rather than being asked to type it again. The customer lives on the
+   * church's own Stripe account, and nothing about the card itself comes
+   * near this server: Stripe keeps it and hands back a handle.
+   */
+  const memberId = await giverMember(page.slug, email);
+  let customer = memberId ? await giverCustomer(memberId) : null;
+
+  if (memberId && !customer) {
+    try {
+      const made = await stripe().customers.create(
+        { email, name: input.name.trim() || undefined },
+        asChurch(page.accountId),
+      );
+      customer = made.id;
+      await rememberCustomer(memberId, customer);
+    } catch {
+      customer = null;
+    }
+  }
+
   const repeat: Repeat = input.repeat ?? "once";
   const every = repeat === "once" ? null : EVERY[repeat];
   const metadata = {
@@ -95,7 +119,21 @@ export async function startGift(input: {
     const session = await stripe().checkout.sessions.create(
       {
         mode: repeat === "once" ? "payment" : "subscription",
-        customer_email: email,
+        // A customer where the church knows them, and the address alone
+        // where it does not. Stripe refuses both at once.
+        ...(customer ? { customer } : { customer_email: email }),
+        /*
+         * R13.2. Offer to keep the card for next time, and offer the saved
+         * one back. Stripe asks the giver; a card is never kept quietly.
+         */
+        ...(repeat === "once" && customer
+          ? {
+              saved_payment_method_options: {
+                payment_method_save: "enabled" as const,
+                allow_redisplay_filters: ["always", "limited", "unspecified"] as const,
+              },
+            }
+          : {}),
         /*
          * R13.4. The giver sees what they chose, fund by fund, on Stripe's
          * own page. The fee they offered to cover rides on the first line.

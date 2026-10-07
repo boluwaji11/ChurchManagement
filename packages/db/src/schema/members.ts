@@ -57,6 +57,12 @@ export const members = pgTable(
     firstVisitOn: date("first_visit_on"),
     photoKey: text("photo_key"),
     /**
+     * R13.2. The customer Stripe keeps for them on this church's account, so
+     * a giver's card is offered back to them rather than typed again. A
+     * handle, never anything about the card itself.
+     */
+    stripeCustomerId: text("stripe_customer_id"),
+    /**
      * R8.10. What a volunteer has to know before a child goes into a room, in
      * the fewest words that are true: "Peanuts", "Bee stings". Printed on the
      * child's label and shown full size at check-in.
