@@ -999,7 +999,7 @@ export const en = {
   "give.fund": "Give to",
   "give.split": "Split this gift",
   "give.split.single": "Give to one fund",
-  "give.split.left": "{amount} left to place",
+  "give.split.left": "{amount} left to split",
   "give.split.over": "{amount} more than the gift",
   "give.name": "Your name",
   "give.email": "Email address",
