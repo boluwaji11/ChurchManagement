@@ -4,6 +4,18 @@ import { headers } from "next/headers";
 import { givingPage } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch, PLATFORM_FEE, withFee } from "@/lib/stripe";
 
+/** R13.3. The rhythms a church's givers actually keep. */
+export const REPEATS = ["once", "week", "fortnight", "month", "year"] as const;
+export type Repeat = (typeof REPEATS)[number];
+
+/** The same, as Stripe says it. */
+const EVERY: Record<Exclude<Repeat, "once">, { interval: "week" | "month" | "year"; count: number }> = {
+  week: { interval: "week", count: 1 },
+  fortnight: { interval: "week", count: 2 },
+  month: { interval: "month", count: 1 },
+  year: { interval: "year", count: 1 },
+};
+
 export interface GiveResult {
   error?: string;
   /**
@@ -47,8 +59,8 @@ export async function startGift(input: {
   coverFee: boolean;
   name: string;
   email: string;
-  /** R13.3. Every month, every week, or once. */
-  repeat?: "once" | "month" | "week";
+  /** R13.3. Once, or on whatever rhythm the giver keeps. */
+  repeat?: Repeat;
 }): Promise<GiveResult> {
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
@@ -78,7 +90,8 @@ export async function startGift(input: {
   const charged = input.coverFee ? withFee(input.amountCents) : input.amountCents;
   const back = await origin();
 
-  const repeat = input.repeat ?? "once";
+  const repeat: Repeat = input.repeat ?? "once";
+  const every = repeat === "once" ? null : EVERY[repeat];
   const metadata = {
     fundId: fund.id,
     // "fundId:cents;fundId:cents". Short enough for Stripe's 500 characters
@@ -110,9 +123,9 @@ export async function startGift(input: {
             currency: "usd",
             unit_amount: line.cents,
             product_data: { name: `${page.name} · ${line.fund}` },
-            ...(repeat === "once"
-              ? {}
-              : { recurring: { interval: repeat as "month" | "week" } }),
+            ...(every
+              ? { recurring: { interval: every.interval, interval_count: every.count } }
+              : {}),
           },
         })),
         /*

@@ -132,6 +132,7 @@ export async function POST(request: Request) {
           amountCents: item?.price.unit_amount ?? 0,
           currency: sub.currency,
           interval: item?.price.recurring?.interval ?? "month",
+          intervalCount: item?.price.recurring?.interval_count ?? 1,
           status: sub.status,
           startedOn: new Date(sub.created * 1000).toISOString().slice(0, 10),
           fundId: sub.metadata?.fundId || null,

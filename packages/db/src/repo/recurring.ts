@@ -21,6 +21,8 @@ export interface Recurring {
   fundName: string | null;
   amountCents: number;
   interval: string;
+  /** R13.3. Two of them means every fortnight. */
+  intervalCount: number;
   status: string;
   startedOn: string | null;
 }
@@ -40,6 +42,7 @@ export async function listRecurring(
       fundName: funds.name,
       amountCents: recurringGifts.amountCents,
       interval: recurringGifts.interval,
+      intervalCount: recurringGifts.intervalCount,
       status: recurringGifts.status,
       startedOn: sql<string | null>`${recurringGifts.startedOn}::text`,
     })
@@ -62,6 +65,7 @@ export async function listRecurring(
     fundName: row.fundName,
     amountCents: amounts ? row.amountCents : 0,
     interval: row.interval,
+    intervalCount: row.intervalCount,
     status: row.status,
     startedOn: row.startedOn,
   }));
@@ -71,10 +75,16 @@ export async function listRecurring(
 export async function recurringMonthly(db: Tx): Promise<number> {
   const [row] = await db
     .select({
+      /*
+       * R13.3. What a month of this comes to, whatever the schedule: a
+       * weekly gift is 52 of them a year, a fortnightly one half that, and a
+       * yearly one a twelfth of itself each month.
+       */
       cents: sql<number>`coalesce(sum(
-        case when ${recurringGifts.interval} = 'week'
-          then ${recurringGifts.amountCents} * 52 / 12
-          else ${recurringGifts.amountCents}
+        case ${recurringGifts.interval}
+          when 'week' then ${recurringGifts.amountCents} * 52 / 12 / ${recurringGifts.intervalCount}
+          when 'year' then ${recurringGifts.amountCents} / 12 / ${recurringGifts.intervalCount}
+          else ${recurringGifts.amountCents} / ${recurringGifts.intervalCount}
         end
       ), 0)::int`,
     })
@@ -97,6 +107,7 @@ export async function saveRecurring(input: {
   amountCents: number;
   currency: string;
   interval: string;
+  intervalCount?: number;
   status: string;
   startedOn: string;
   fundId?: string | null;
@@ -127,17 +138,19 @@ export async function saveRecurring(input: {
   await sql`
     insert into recurring_gifts (
       tenant_id, member_id, giver_name, giver_email, fund_id, amount_cents,
-      currency, interval, stripe_subscription_id, stripe_customer_id, status, started_on
+      currency, interval, interval_count, stripe_subscription_id,
+      stripe_customer_id, status, started_on
     )
     values (
       ${tenantId}, ${memberId}, ${input.giverName ?? null}, ${email},
       ${input.fundId ?? null}::uuid, ${input.amountCents}, ${input.currency},
-      ${input.interval}, ${input.subscriptionId}, ${input.customerId},
+      ${input.interval}, ${input.intervalCount ?? 1}, ${input.subscriptionId}, ${input.customerId},
       ${input.status}, ${input.startedOn}::date
     )
     on conflict (stripe_subscription_id) do update
       set amount_cents = excluded.amount_cents,
           interval = excluded.interval,
+          interval_count = excluded.interval_count,
           status = excluded.status,
           updated_at = now()`;
 }

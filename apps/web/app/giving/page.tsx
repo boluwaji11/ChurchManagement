@@ -275,7 +275,11 @@ export default async function GivingPage({
                         <span className="text-[12px] text-fg-subtle">
                           {[
                             one.fundName,
-                            t(`giving.recurring.every.${one.interval}` as never),
+                            t(
+                              `giving.recurring.every.${one.interval}${
+                                one.intervalCount > 1 ? `.${one.intervalCount}` : ""
+                              }` as never,
+                            ),
                           ]
                             .filter(Boolean)
                             .join(" \u00b7 ")}

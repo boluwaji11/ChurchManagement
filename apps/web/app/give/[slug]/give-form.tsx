@@ -9,7 +9,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { money, toCents } from "@/lib/money";
 import { withFee } from "@/lib/stripe-fee";
-import { startGift } from "./actions";
+import { startGift, REPEATS, type Repeat } from "./actions";
 import { Pay } from "./pay";
 
 /** The amounts a church's givers reach for first. */
@@ -43,7 +43,8 @@ export function GiveForm({
   /** R13.4. What each fund takes, where the giver has split it. */
   const [split, setSplit] = React.useState<Record<string, string>>({});
   const [splitting, setSplitting] = React.useState(false);
-  const [repeat, setRepeat] = React.useState<"once" | "month" | "week">("once");
+  /* R13.3. Weekly leads, because that is the rhythm a church gathers on. */
+  const [repeat, setRepeat] = React.useState<Repeat>("week");
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
   /** R13.6. Stripe's fields, once the giver has said what they are giving. */
@@ -154,13 +155,13 @@ export function GiveForm({
       {/* R13.3. Once or every month, decided beside the amount rather than
           behind a second page. */}
       <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
-        {(["once", "month", "week"] as const).map((one) => (
+        {REPEATS.map((one) => (
           <button
             key={one}
             type="button"
             onClick={() => setRepeat(one)}
             aria-pressed={repeat === one}
-            className={`flex h-9 flex-1 cursor-pointer items-center justify-center rounded-sm px-3 text-[13px] font-medium ${
+            className={`flex h-9 flex-1 cursor-pointer items-center justify-center rounded-sm px-2 text-[12px] font-medium whitespace-nowrap ${
               repeat === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
             }`}
           >

@@ -202,8 +202,10 @@ export const recurringGifts = pgTable(
     fundId: uuid("fund_id").references(() => funds.id, { onDelete: "set null" }),
     amountCents: integer("amount_cents").notNull().default(0),
     currency: text("currency").notNull().default("usd"),
-    /** month or week, as the giver chose. */
+    /** week, month or year, as Stripe says it. */
     interval: text("interval").notNull().default("month"),
+    /** R13.3. Two of them, for a gift every fortnight. */
+    intervalCount: integer("interval_count").notNull().default(1),
     stripeSubscriptionId: text("stripe_subscription_id").notNull(),
     stripeCustomerId: text("stripe_customer_id"),
     /** active, past_due, canceled. Stripe's own word for it. */
