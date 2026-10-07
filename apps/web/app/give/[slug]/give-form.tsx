@@ -102,7 +102,13 @@ export function GiveForm({
    */
   if (secret) {
     return (
-      <Card className="flex flex-col gap-4 p-6">
+      /*
+       * R13.6. Stripe's own form needs more width than the question that
+       * led to it, so this step steps outside the column the rest of the
+       * page is written in, and stays centred while it does.
+       */
+      <div className="relative left-1/2 w-[min(560px,calc(100vw-2.5rem))] -translate-x-1/2">
+      <Card className="flex flex-col gap-4 p-5">
         <button
           type="button"
           onClick={() => setSecret(undefined)}
@@ -113,6 +119,7 @@ export function GiveForm({
 
         <Pay publishableKey={publishableKey} accountId={accountId} secret={secret} />
       </Card>
+      </div>
     );
   }
 
