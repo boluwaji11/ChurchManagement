@@ -27,15 +27,8 @@ export function giftRows(gifts: Gift[]): GiftRow[] {
   const rows: GiftRow[] = [];
 
   for (const gift of gifts) {
-    rows.push({
-      key: gift.id,
-      gift,
-      kind: "gift",
-      on: gift.receivedOn,
-      amountCents: gift.amountCents,
-      status: gift.status,
-    });
-
+    /* The refund happened after the gift, and the list runs newest first, so
+       it leads its own gift where the two fall on the same day. */
     if (gift.refundedCents > 0) {
       rows.push({
         key: `${gift.id}:refund`,
@@ -46,6 +39,15 @@ export function giftRows(gifts: Gift[]): GiftRow[] {
         status: "refunded",
       });
     }
+
+    rows.push({
+      key: gift.id,
+      gift,
+      kind: "gift",
+      on: gift.receivedOn,
+      amountCents: gift.amountCents,
+      status: gift.status,
+    });
   }
 
   return rows.sort((a, b) => (a.on === b.on ? 0 : a.on < b.on ? 1 : -1));
