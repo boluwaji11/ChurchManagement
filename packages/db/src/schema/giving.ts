@@ -147,6 +147,8 @@ export const gifts = pgTable(
     failureReason: text("failure_reason"),
     /** R13.3. Collected by a repeating gift rather than given by hand. */
     recurring: boolean("recurring").notNull().default(false),
+    /** R13.3. The subscription that raised it, where one did. */
+    stripeSubscriptionId: text("stripe_subscription_id"),
 
     /** R13.15. A refund is recorded against the gift rather than deleting it. */
     refundedCents: integer("refunded_cents").notNull().default(0),
@@ -162,6 +164,7 @@ export const gifts = pgTable(
     index("gift_fund_idx").on(t.tenantId, t.fundId),
     index("gift_batch_idx").on(t.tenantId, t.batchId),
     index("gift_status_idx").on(t.tenantId, t.status),
+    index("gift_subscription_idx").on(t.tenantId, t.stripeSubscriptionId),
     /*
      * R13.4. One payment may write a row a fund, so the fund is part of what
      * makes a gift unique. A webhook delivered twice still writes once.

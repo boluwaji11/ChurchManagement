@@ -9,7 +9,7 @@ import {
 import {
   Banner, Button, IconButton, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
-  Table, Thead, Tr, Th, Td,
+  Table, Thead, Tr, Th, Td, Tooltip
 } from "@connectapp/ui";
 import type { ChurchEvent, EventRegistration } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
@@ -409,14 +409,15 @@ export function EventView({
               {/* A link rather than a button, because it fetches a file.
                   Shaped from the same tokens the IconButton beside it uses, so
                   the pair reads as one. */}
+              <Tooltip content={t("event.export")}>
               <a
                 href={`/events/${event.slug}/export?church=${church}`}
                 aria-label={t("event.export")}
-                title={t("event.export")}
                 className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
               >
                 <Download />
               </a>
+              </Tooltip>
               <PrintRoster church={church} eventSlug={event.slug} questions={questions} />
             </div>
 

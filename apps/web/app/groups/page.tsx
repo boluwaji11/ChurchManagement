@@ -12,8 +12,19 @@ import { Markdown } from "@/components/markdown";
 import { requireSession } from "@/lib/session";
 import { Finder } from "./finder";
 import { supabaseServer } from "@/lib/supabase/server";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("nav.groups"), church);
+}
 
 /**
  * R9.1 to R9.6. The one groups screen.

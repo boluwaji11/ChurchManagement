@@ -2,6 +2,7 @@ import * as React from "react";
 import { t } from "@connectapp/i18n";
 import type { LabelKind, LegendSpot } from "@connectapp/db/rules";
 import { Frame, Hint, Key, Keyed, Tappable, ceiling, readable, type Part } from "./plot";
+import { Tooltip } from "@connectapp/ui";
 
 /** What a label on a shape says, given the share it stands for. */
 export const labelled = (value: number, share: number, kind: LabelKind): string =>
@@ -144,9 +145,9 @@ export function Donut({
                     className="size-2.5 shrink-0 rounded-full"
                     style={{ background: `var(--hue-${one.hue}-500)` }}
                   />
-                  <span className="min-w-0 flex-1 truncate text-fg" title={one.label}>
-                    {one.label}
-                  </span>
+                  <Tooltip content={one.label}>
+                    <span className="min-w-0 flex-1 truncate text-fg">{one.label}</span>
+                  </Tooltip>
                   <span className="shrink-0 text-fg-muted tabular-nums">
                     {labels
                       ? labelled(one.value, one.value / sum, labelKind)
@@ -452,9 +453,11 @@ export function RowBars({
               }
               tabIndex={0}
             >
-              <span className="w-24 shrink-0 truncate text-[13px] text-fg-muted" title={one.label}>
-                {one.label}
-              </span>
+              <Tooltip content={one.label}>
+                <span className="w-24 shrink-0 truncate text-[13px] text-fg-muted">
+                  {one.label}
+                </span>
+              </Tooltip>
               <span
                 className={
                   fill

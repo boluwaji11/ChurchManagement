@@ -2,6 +2,7 @@ import { t } from "@connectapp/i18n";
 import type { ServiceCount } from "@connectapp/db";
 import { shortDate } from "@/lib/dates";
 import { Panel } from "./panel";
+import { Tooltip } from "@connectapp/ui";
 
 /**
  * R18.2. Attendance over the last weeks, as a line of bars.
@@ -29,10 +30,12 @@ export function Weeks({ services, today }: { services: ServiceCount[]; today: st
         <>
           <ol className="flex h-[120px] items-end gap-1.5">
             {held.map((one, i) => (
-              <li
+              <Tooltip
                 key={one.occurrenceId}
+                content={`${one.name} · ${shortDate(one.occursOn)} · ${one.present}`}
+              >
+              <li
                 className="min-w-0 flex-1 rounded-[4px]"
-                title={`${one.name} · ${shortDate(one.occursOn)} · ${one.present}`}
                 style={{
                   height: `${Math.max(2, Math.round((one.present / most) * 100))}%`,
                   background:
@@ -41,6 +44,7 @@ export function Weeks({ services, today }: { services: ServiceCount[]; today: st
                       : "var(--hue-violet-tint)",
                 }}
               />
+              </Tooltip>
             ))}
           </ol>
 

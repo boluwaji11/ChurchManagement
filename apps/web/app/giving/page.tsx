@@ -21,8 +21,21 @@ import { AttachGift } from "./attach";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
 import { RepeatMark } from "./repeat-mark";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. Giving to whoever runs it, My giving to everybody else. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  const session = await requireSession(church);
+  const theirs = !canManageGiving(session) && !canReadGivingAmounts(session);
+  return tabMetadata(t(theirs ? "mine.giving.title" : "giving.title"), church);
+}
 
 /**
  * R13.21. What has come in, and what is still being counted.

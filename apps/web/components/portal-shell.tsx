@@ -12,8 +12,9 @@ import { PublicFooter } from "./public-footer";
 import { readsAs } from "@/lib/spelling";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
-import { tabTitle } from "@/lib/tab-title";
+import { TabTitle } from "./tab-title";
 import type { Session } from "@/lib/session";
+import { Tooltip } from "@connectapp/ui";
 
 export { PortalTitle, PortalSection, Panel };
 
@@ -84,7 +85,7 @@ export async function PortalShell({
       {/* R17.11. What a phone reads when somebody adds this church to their
           home screen, and the worker that keeps it answering with no signal.
           React hoists both into the head. */}
-      <title>{tabTitle(tab, session.tenantName)}</title>
+      <TabTitle page={tab} church={session.tenantName} />
       <link rel="manifest" href={`/manifest.webmanifest?church=${slug}`} />
       <meta name="theme-color" content="#faf8f5" />
       <Installed />
@@ -94,11 +95,11 @@ export async function PortalShell({
       <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
         <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center gap-x-6 px-6">
           {homepage ? (
+            <Tooltip content={t("portal.churchSite", { church: session.tenantName })}>
             <a
               href={homepage}
               target="_blank"
               rel="noreferrer noopener"
-              title={t("portal.churchSite", { church: session.tenantName })}
               className="flex min-h-14 shrink-0 items-center gap-2.5"
             >
               <FlameMark size={32} logoUrl={logoUrl} churchName={session.tenantName} />
@@ -106,6 +107,7 @@ export async function PortalShell({
                 {session.tenantName}
               </span>
             </a>
+            </Tooltip>
           ) : (
             <Link
               href={`/home?church=${slug}`}

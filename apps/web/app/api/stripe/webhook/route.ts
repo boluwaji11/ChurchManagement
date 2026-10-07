@@ -352,6 +352,11 @@ export async function POST(request: Request) {
           giverEmail: metadata.giverEmail || paid.customer_email || null,
           /* R13.3. Raised by a subscription, which is what an invoice is. */
           recurring: true,
+          subscriptionId: subscription?.subscription
+            ? typeof subscription.subscription === "string"
+              ? subscription.subscription
+              : subscription.subscription.id
+            : null,
         });
         break;
       }

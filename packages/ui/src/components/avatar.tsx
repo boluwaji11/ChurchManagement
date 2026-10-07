@@ -42,7 +42,6 @@ export function Avatar({
       )}
       style={src ? undefined : { background: `var(--hue-${h}-tint)`, color: `var(--hue-${h}-key)` }}
       aria-hidden={false}
-      title={name}
     >
       {src ? (
         <img src={src} alt={name} className="size-full object-cover" />

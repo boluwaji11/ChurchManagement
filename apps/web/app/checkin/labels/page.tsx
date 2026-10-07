@@ -6,8 +6,19 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { LabelLayoutForm } from "./layout-form";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("labels.title"), church);
+}
 
 /**
  * R8.11. What prints when a child is checked in.

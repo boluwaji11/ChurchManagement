@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
 import { t } from "@connectapp/i18n";
+import { Tooltip } from "@connectapp/ui";
 
 /** R18.x. How far back a report reads, in days. */
 export const WINDOWS = [90, 180, 365] as const;
@@ -66,14 +67,15 @@ export function ReportFrame({
           ))}
         </div>
 
+        <Tooltip content={t("reports.export")}>
         <a
           href={`/reports/${path}/export?church=${church}&days=${days}`}
           aria-label={t("reports.export")}
-          title={t("reports.export")}
           className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
         >
           <Download />
         </a>
+        </Tooltip>
       </div>
 
       {children}

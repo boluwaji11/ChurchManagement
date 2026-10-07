@@ -64,7 +64,9 @@ export const monthDayOf = (value: string): number => read(value).getDate();
 
 /** The weekday names, in the reader's own language, starting on Sunday. */
 export function weekdays(): string[] {
-  const names = new Intl.DateTimeFormat(undefined, { weekday: "long" });
+  // Read in UTC, because the dates below are built in UTC: west of Greenwich
+  // a local reading lands on the day before and the whole list slides by one.
+  const names = new Intl.DateTimeFormat(undefined, { weekday: "long", timeZone: "UTC" });
   // 4 January 1970 was a Sunday, which is where the week starts here.
   return [0, 1, 2, 3, 4, 5, 6].map((at) => names.format(new Date(Date.UTC(1970, 0, 4 + at))));
 }

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/cn";
+import { Tooltip } from "./tooltip";
 
 const iconButton = cva(
   [
@@ -31,12 +32,19 @@ export interface IconButtonProps
   label: string;
 }
 
+/**
+ * R24.11. An icon alone, with its words a moment behind it.
+ *
+ * The label is the accessible name and the tooltip both. The tooltip is this
+ * product's own rather than the browser's `title`, which the operating system
+ * draws in its own colours, half a second late, wherever it likes.
+ */
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   ({ className, variant, label, children, ...props }, ref) => (
+    <Tooltip content={label}>
     <button
       ref={ref}
       aria-label={label}
-      title={label}
       /*
        * A button inside a form submits it unless it is told otherwise, and a
        * repeated row action is never the thing that submits. Every bin, every
@@ -49,6 +57,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     >
       {children}
     </button>
+    </Tooltip>
   ),
 );
 IconButton.displayName = "IconButton";

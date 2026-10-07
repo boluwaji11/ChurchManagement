@@ -1,4 +1,4 @@
-import { Badge } from "@connectapp/ui";
+import { Badge, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -27,18 +27,15 @@ export function GiftState({
 
   if (status === "pending") {
     return (
-      <Badge tone="warning" title={t("giving.gift.pendingWhy")}>
-        {t("giving.state.processing")}
-      </Badge>
+      <Tooltip content={t("giving.gift.pendingWhy")}>
+        <Badge tone="warning">{t("giving.state.processing")}</Badge>
+      </Tooltip>
     );
   }
 
   if (status === "failed") {
-    return (
-      <Badge tone="danger" title={reason ?? undefined}>
-        {t("giving.state.failed")}
-      </Badge>
-    );
+    const failed = <Badge tone="danger">{t("giving.state.failed")}</Badge>;
+    return reason ? <Tooltip content={reason}>{failed}</Tooltip> : failed;
   }
 
   /* Nearly every gift is settled, so it reads as a word rather than a badge:

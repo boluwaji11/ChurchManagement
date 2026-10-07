@@ -185,6 +185,18 @@ export async function markRecurring(input: {
            cancelled_at = case when ${input.status} = 'canceled' then now() else null end,
            updated_at = now()
      where stripe_subscription_id = ${input.subscriptionId}`;
+
+  /*
+   * R13.3. The mark on a gift says this church is collecting it on a rhythm.
+   * Once the rhythm has stopped, it says something that is no longer true, so
+   * it comes off the gifts that subscription raised.
+   */
+  if (input.status === "canceled") {
+    await sql`
+      update gifts set recurring = false, updated_at = now()
+       where stripe_subscription_id = ${input.subscriptionId}
+         and recurring`;
+  }
 }
 
 /** R13.3. Which church a subscription belongs to, for a read with no session. */

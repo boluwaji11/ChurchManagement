@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Check, Copy, ExternalLink, Globe, Link2, Users } from "lucide-react";
 import {
-  Banner, Button, Card, CardTitle, Field, Input, Separator, Switch, Textarea,
+  Banner, Button, Card, CardTitle, Field, Input, Separator, Switch, Textarea, Tooltip
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { saveDomain, setSignup } from "./domain-actions";
@@ -28,10 +28,10 @@ function Copyable({ value, open, label }: { value: string; open?: string; label:
         className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono text-[13px] text-fg outline-none"
       />
 
+      <Tooltip content={copied ? t("joining.copied") : t("joining.copy")}>
       <button
         type="button"
         aria-label={copied ? t("joining.copied") : t("joining.copy")}
-        title={copied ? t("joining.copied") : t("joining.copy")}
         onClick={() => {
           void navigator.clipboard?.writeText(value);
           setCopied(true);
@@ -41,18 +41,20 @@ function Copyable({ value, open, label }: { value: string; open?: string; label:
       >
         {copied ? <Check className="text-primary" /> : <Copy />}
       </button>
+      </Tooltip>
 
       {open ? (
+        <Tooltip content={t("site.open")}>
         <a
           href={open}
           target="_blank"
           rel="noreferrer noopener"
           aria-label={t("site.open")}
-          title={t("site.open")}
           className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-4"
         >
           <ExternalLink />
         </a>
+        </Tooltip>
       ) : null}
     </div>
   );

@@ -17,8 +17,19 @@ import { Tiles, type Tile } from "./tiles";
 import { Weeks } from "./weeks";
 import { ThisWeek, type WeekEntry } from "./this-week";
 import { FollowUp } from "./follow-up";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("dashboard.title"), church);
+}
 
 /** How far back the line of weeks reads. */
 const WEEKS = 12;

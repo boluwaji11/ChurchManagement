@@ -8,8 +8,19 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { longDate, readableTime } from "@/lib/dates";
 import { Stage } from "./stage";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("live.title"), church);
+}
 
 /**
  * R11.11. Live mode.

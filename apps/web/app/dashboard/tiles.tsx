@@ -3,6 +3,7 @@
 import * as React from "react";
 import { GripVertical } from "lucide-react";
 import { t } from "@connectapp/i18n";
+import { Tooltip } from "@connectapp/ui";
 
 export interface Tile {
   id: string;
@@ -92,10 +93,10 @@ export function Tiles({ church, tiles }: { church: string; tiles: Tile[] }) {
               />
               <span className="truncate">{tile.label}</span>
             </span>
+            <Tooltip content={t("dashboard.reorder")}>
             <button
               type="button"
               aria-label={t("dashboard.moveTile", { label: tile.label })}
-              title={t("dashboard.reorder")}
               onKeyDown={(e) => {
                 if (e.key === "ArrowLeft") { e.preventDefault(); moveTo(tile.id, i - 1); }
                 if (e.key === "ArrowRight") { e.preventDefault(); moveTo(tile.id, i + 1); }
@@ -104,6 +105,7 @@ export function Tiles({ church, tiles }: { church: string; tiles: Tile[] }) {
             >
               <GripVertical className="size-3.5" aria-hidden />
             </button>
+            </Tooltip>
           </div>
 
           <p data-numeric className="mt-3 font-display text-[40px] leading-[44px] text-fg">

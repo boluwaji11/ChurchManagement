@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Search, X } from "lucide-react";
-import { Input, cn } from "@connectapp/ui";
+import { Input, cn, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -52,10 +52,10 @@ export function SearchField({
       />
 
       {value ? (
+        <Tooltip content={t("search.clear")}>
         <button
           type="button"
           aria-label={t("search.clear")}
-          title={t("search.clear")}
           onClick={() => {
             onChange("");
             input.current?.focus();
@@ -64,6 +64,7 @@ export function SearchField({
         >
           <X className="size-4" aria-hidden />
         </button>
+        </Tooltip>
       ) : null}
     </div>
   );

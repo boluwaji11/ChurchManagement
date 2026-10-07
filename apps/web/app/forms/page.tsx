@@ -9,8 +9,19 @@ import { requireSession } from "@/lib/session";
 import { Empty } from "@/components/empty";
 import { NewFormButton } from "./new-form";
 import { FormSearch } from "./form-search";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("form.title"), church);
+}
 
 /**
  * R4.1. The forms a church has built.

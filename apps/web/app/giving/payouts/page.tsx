@@ -7,8 +7,19 @@ import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { Empty } from "@/components/empty";
 import { EmbeddedPayouts } from "./embedded";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("payouts.title"), church);
+}
 
 /**
  * R13.1. What Stripe is holding, and what it has paid out, inside ConnectApp.

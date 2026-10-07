@@ -19,7 +19,7 @@ import { SpellingProvider } from "./spelling-provider";
 import type { Session } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
-import { tabTitle } from "@/lib/tab-title";
+import { TabTitle } from "./tab-title";
 
 /**
  * R24.6. The frame every staff screen sits in.
@@ -96,7 +96,7 @@ export async function AppShell({
     <div className="site-wash flex min-h-dvh">
       {/* R17.1. The screen and the church it belongs to, in the browser tab.
           React hoists it into the head. */}
-      <title>{tabTitle(tab ?? title, session.tenantName)}</title>
+      <TabTitle page={tab ?? title} church={session.tenantName} />
 
       <Sidebar
         entries={entries}

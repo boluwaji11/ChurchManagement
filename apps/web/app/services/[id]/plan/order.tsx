@@ -11,7 +11,7 @@ import {
   Banner, Button, Field, IconButton, Input, Separator, Textarea, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate, Tooltip
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
@@ -300,9 +300,8 @@ export function Order({
                         ))}
 
                         {item.notes.map((note) => (
+                          <Tooltip key={note.id} content={note.body}>
                           <span
-                            key={note.id}
-                            title={note.body}
                             className="inline-flex min-w-0 items-center gap-0.5 rounded-full border border-line px-2 py-0.5"
                           >
                             <MessageSquare className="size-3.5 shrink-0 text-fg-muted" aria-hidden />
@@ -316,6 +315,7 @@ export function Order({
                               <X />
                             </IconButton>
                           </span>
+                          </Tooltip>
                         ))}
                       </span>
                     ) : null}
@@ -578,16 +578,17 @@ function Attachment({
 
   return (
     <span className="inline-flex max-w-full items-center gap-0.5 rounded-full border border-line px-2 py-0.5">
+      <Tooltip content={full}>
       <button
         type="button"
         onClick={open}
         disabled={opening}
-        title={full}
         className="flex min-w-0 items-center gap-1.5 text-[12px] text-fg-muted underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
       >
         <Paperclip className="size-3.5 shrink-0" aria-hidden />
         <span className="truncate">{name}</span>
       </button>
+      </Tooltip>
       <IconButton
         label={t("order.file.remove")}
         disabled={pending}

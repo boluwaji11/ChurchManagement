@@ -10,8 +10,19 @@ import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
 import { money } from "@/lib/money";
 import { StatementsBy } from "./by";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("statement.title"), church);
+}
 
 /**
  * R13.17 to R13.19. Who gets a statement, and what each one comes to.

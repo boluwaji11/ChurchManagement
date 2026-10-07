@@ -6,7 +6,7 @@ import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { photoUrls } from "@/lib/photos";
 import { GiveForm } from "./give-form";
-import { tabTitle } from "@/lib/tab-title";
+import { TabTitle } from "@/components/tab-title";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,7 @@ export default async function GivePage({
 
   return (
     <main className="site-wash grid min-h-dvh place-items-start justify-center px-5 py-10">
-      <title>{tabTitle(t("nav.giving"), church.name)}</title>
+      <TabTitle page={t("nav.giving")} church={church.name} />
       <div className="flex w-full max-w-[460px] flex-col gap-6">
         {/* R17.4. A member came here from their own screens, so the way back
             is to them. A stranger has no back: this page is where they

@@ -13,8 +13,19 @@ import { ReportFrame, backBy, windowOf } from "../frame";
 import { Figure } from "../figure";
 import { Line, RowBars } from "../charts";
 import { PagedTable } from "../paged-table";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("reports.title"), church);
+}
 
 /**
  * R13.21, R13.24, R13.25. What the church reads back about its giving.

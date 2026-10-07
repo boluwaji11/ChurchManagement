@@ -7,7 +7,7 @@ import { ManageGift } from "./manage";
 import { Button } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
-import { tabTitle } from "@/lib/tab-title";
+import { TabTitle } from "@/components/tab-title";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ export default async function ThanksPage({
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-5 py-10">
       <div className="flex w-full max-w-[420px] flex-col items-center gap-4 text-center">
-        <title>{tabTitle(t("nav.giving"), church.name)}</title>
+        <TabTitle page={t("nav.giving")} church={church.name} />
         <span className="grid size-14 place-items-center rounded-full bg-primary-soft text-primary [&_svg]:size-7">
           <Check />
         </span>

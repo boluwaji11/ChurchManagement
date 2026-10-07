@@ -127,6 +127,8 @@ export async function recordOnlineGift(input: {
   status?: "settled" | "pending";
   /** R13.3. Collected by a repeating gift rather than given by hand. */
   recurring?: boolean;
+  /** R13.3. The subscription that raised it, where one did. */
+  subscriptionId?: string | null;
 }): Promise<void> {
   const tenantId = await tenantForStripeAccount(input.accountId);
   if (!tenantId) return;
@@ -201,14 +203,15 @@ export async function recordOnlineGift(input: {
       insert into gifts (
         tenant_id, member_id, fund_id, amount_cents, currency, method,
         received_on, stripe_payment_intent_id, stripe_charge_id, fee_cents, covered_fee,
-        giver_name, giver_email, status, recurring
+        giver_name, giver_email, status, recurring, stripe_subscription_id
       )
       values (
         ${tenantId}, ${memberId}, ${share.fundId}, ${share.cents},
         ${input.currency}, ${input.method ?? "card"}, ${input.receivedOn}::date,
         ${input.paymentIntentId}, ${input.chargeId}, ${at === 0 ? input.feeCents : 0},
         ${input.coveredFee ?? false},
-        ${input.giverName ?? null}, ${email}, ${status}, ${input.recurring ?? false}
+        ${input.giverName ?? null}, ${email}, ${status}, ${input.recurring ?? false},
+        ${input.subscriptionId ?? null}
       )
       on conflict (tenant_id, stripe_payment_intent_id, fund_id) do update
          set status = ${status},

@@ -111,7 +111,6 @@ function Group({
                   e.dataTransfer.setData("text/plain", one.key);
                   e.dataTransfer.effectAllowed = "copy";
                 }}
-                title={t(one.label as never)}
                 data-subject={subject}
                 className="flex cursor-grab items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-fg hover:bg-sunken active:cursor-grabbing"
               >

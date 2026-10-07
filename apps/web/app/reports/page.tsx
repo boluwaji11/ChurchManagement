@@ -9,8 +9,19 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { SavedReports } from "./saved";
 import { StartReport } from "./start";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("reports.title"), church);
+}
 
 /**
  * R18.x. What a church can read back about itself.

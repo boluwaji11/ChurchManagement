@@ -7,7 +7,7 @@ import {
   Check, CircleCheck, Copy, Download, ExternalLink, Link2, Loader2, Printer, QrCode,
   RefreshCw,
 } from "lucide-react";
-import { Banner, Button, Card } from "@connectapp/ui";
+import { Banner, Button, Card, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ChurchStripeAccount } from "@connectapp/db";
 import type { AccountFace } from "./actions";
@@ -81,10 +81,10 @@ function Address({ value }: { value: string }) {
         onFocus={(e) => e.currentTarget.select()}
         className="min-w-0 flex-1 bg-transparent px-3 py-2 font-mono text-[13px] text-fg outline-none"
       />
+      <Tooltip content={copied ? t("joining.copied") : t("joining.copy")}>
       <button
         type="button"
         aria-label={copied ? t("joining.copied") : t("joining.copy")}
-        title={copied ? t("joining.copied") : t("joining.copy")}
         onClick={() => {
           void navigator.clipboard?.writeText(value);
           setCopied(true);
@@ -94,6 +94,7 @@ function Address({ value }: { value: string }) {
       >
         {copied ? <Check className="text-primary" /> : <Copy />}
       </button>
+      </Tooltip>
       <a
         href={value}
         target="_blank"

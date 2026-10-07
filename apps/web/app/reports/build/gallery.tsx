@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { VIEWS, VIEW_NEEDS, viewFits, type View } from "@connectapp/db/rules";
 import { t } from "@connectapp/i18n";
+import { Tooltip } from "@connectapp/ui";
 
 const ICONS: Record<View, React.ComponentType<{ className?: string }>> = {
   table: Table2,
@@ -55,16 +56,18 @@ export function Gallery({
           const fits = viewFits(one, { groupBy });
           const on = view === one;
           return (
-            <button
+            <Tooltip
               key={one}
-              type="button"
-              onClick={() => onPick(one)}
-              aria-pressed={on}
-              title={
+              content={
                 fits
                   ? t(`report.view.${one}` as never)
                   : `${t(`report.view.${one}` as never)} · ${t("report.needsGroup")}`
               }
+            >
+            <button
+              type="button"
+              onClick={() => onPick(one)}
+              aria-pressed={on}
               aria-label={t(`report.view.${one}` as never)}
               className={
                 on
@@ -76,6 +79,7 @@ export function Gallery({
             >
               <Icon className="size-4" />
             </button>
+            </Tooltip>
           );
         })}
       </div>

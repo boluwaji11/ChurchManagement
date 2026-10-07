@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  DatePicker, Popover, PopoverTrigger, PopoverContent, Tabs, TabsList, TabsTrigger, TabsContent,
+  DatePicker, Popover, PopoverTrigger, PopoverContent, Tabs, TabsList, TabsTrigger, TabsContent, Tooltip
 } from "@connectapp/ui";
 import {
   SUBJECTS, SUBJECT_KEYS, OPERATORS, BARE_OPERATORS, GROUPED_VIEWS, fieldOf,
@@ -232,15 +232,16 @@ export function Builder({
                   {at > 0 ? (
                     <li className="flex items-center gap-2 pl-1">
                       <span className="h-px w-3 bg-line" aria-hidden />
+                      <Tooltip content={t("report.joinSwap")}>
                       <button
                         type="button"
                         onClick={() => change({ join: tile.join === "and" ? "or" : "and" })}
-                        title={t("report.joinSwap")}
                         aria-label={t("report.joinSwap")}
                         className="cursor-pointer rounded-full border border-line-strong bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted transition-colors hover:border-fg-subtle hover:text-fg"
                       >
                         {t(tile.join === "and" ? "report.join.and" : "report.join.or")}
                       </button>
+                      </Tooltip>
                       <span className="h-px flex-1 bg-line" aria-hidden />
                     </li>
                   ) : null}

@@ -13,8 +13,19 @@ import { NewEventButton } from "./new-event";
 import { EventCard, EventRow } from "./card";
 import { EventSearch } from "./event-search";
 import { MemberEvents } from "./member-events";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("event.title"), church);
+}
 
 /**
  * R14.1. How far back the list reads.

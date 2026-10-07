@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import {
-  Switch, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Switch, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Tooltip
 } from "@connectapp/ui";
 import {
   AXIS_WAYS, CHART_HUES, CHART_SORTS, GROUPED_VIEWS, LABEL_KINDS, LEGEND_SPOTS, PAGE_SIZES,
@@ -109,13 +109,12 @@ function Swatches({
   return (
     <div className="flex flex-wrap gap-1.5">
       {CHART_HUES.map((hue) => (
+        <Tooltip key={hue} content={t(`hue.${hue}` as never)}>
         <button
-          key={hue}
           type="button"
           onClick={() => onChange(hue)}
           aria-pressed={value === hue}
           aria-label={t(`hue.${hue}` as never)}
-          title={t(`hue.${hue}` as never)}
           className={
             value === hue
               ? "size-5 cursor-pointer rounded-full ring-2 ring-fg ring-offset-2 ring-offset-surface"
@@ -123,6 +122,7 @@ function Swatches({
           }
           style={{ background: `var(--hue-${hue}-500)` }}
         />
+        </Tooltip>
       ))}
     </div>
   );
@@ -179,7 +179,9 @@ export function Format({
             <ul className="flex flex-col gap-2">
               {series.slice(0, 12).map((name, i) => (
                 <li key={name + i} className="flex flex-col gap-1">
-                  <span className={`truncate text-fg ${SMALL}`} title={name}>{name}</span>
+                  <Tooltip content={name}>
+                    <span className={`truncate text-fg ${SMALL}`}>{name}</span>
+                  </Tooltip>
                   <Swatches value={hueAt(i)} onChange={(hue) => setHueAt(i, hue)} />
                 </li>
               ))}

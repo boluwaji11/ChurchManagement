@@ -21,6 +21,12 @@ export function Tooltip({
         <P.Content
           side={side}
           sideOffset={6}
+          /*
+           * R24.x. A mark at the edge of a table, or on the last row of a
+           * list, would otherwise put its tooltip off the screen. Radix
+           * flips and shifts it; the padding keeps it off the glass.
+           */
+          collisionPadding={8}
           className={cn(
             "z-50 rounded-md bg-stone-900 px-2.5 py-1.5 text-caption text-stone-50 shadow-md",
             "select-none data-[state=delayed-open]:animate-[connectapp-rise_var(--duration-fast)_var(--ease-out)]",

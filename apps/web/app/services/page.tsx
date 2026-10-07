@@ -8,8 +8,19 @@ import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { AddService } from "./add-service";
 import { ServiceBoard, type ServiceCard } from "./board";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("services.title"), church);
+}
 
 /** How far ahead the screen reads. A church plans a few weeks, not a year. */
 const AHEAD_DAYS = 70;

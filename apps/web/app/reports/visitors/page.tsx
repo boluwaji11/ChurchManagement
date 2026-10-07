@@ -12,8 +12,19 @@ import { ReportFrame, backBy, windowOf } from "../frame";
 import { Figure } from "../figure";
 import { Donut, Funnel, Line, type Slice } from "../charts";
 import { PagedTable, type Row } from "../paged-table";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("reports.title"), church);
+}
 
 /** Where somebody has got to, which is what the ring splits them by. */
 function standing(one: VisitorRow): "connected" | "returned" | "once" {

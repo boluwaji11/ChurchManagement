@@ -14,8 +14,19 @@ import { churchNow } from "@/lib/church-now";
 import { photoUrls } from "@/lib/photos";
 import { shortDate, readableTime } from "@/lib/dates";
 import { ServingViews } from "./views";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("serving.title"), church);
+}
 
 /** One of the three controls that move the schedule a month at a time. */
 function MonthStep({
