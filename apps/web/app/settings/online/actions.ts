@@ -64,22 +64,52 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
 
     if (!accountId) {
       const profile = await withTenant(ctx, (tx) => getChurch(tx, session.tenantId));
-      const account = await stripe().accounts.create({
-        type: "standard",
-        business_type: "non_profit",
-        email: profile?.email ?? undefined,
-        company: { name: profile?.legalName || session.tenantName || undefined },
+      const name = profile?.legalName || profile?.name || session.tenantName || "Church";
+
+      /*
+       * R13.1. An Accounts v2 account with the merchant configuration and the
+       * full Stripe dashboard, which is what used to be called a Standard
+       * account: the church is the merchant of record, it signs in to Stripe
+       * itself, and Stripe collects the fees and carries the losses. The
+       * platform is named on the account and takes nothing from it.
+       *
+       * `non_profit` is a first-class entity type here, so a church is
+       * described to Stripe as what it is.
+       */
+      const account = await stripe().v2.core.accounts.create({
+        display_name: name,
+        contact_email: profile?.email ?? undefined,
+        dashboard: "full",
+        identity: {
+          country: (profile?.country || "US").toLowerCase(),
+          entity_type: "non_profit",
+          business_details: { registered_name: name },
+        },
+        configuration: {
+          merchant: { capabilities: { card_payments: { requested: true } } },
+        },
+        defaults: {
+          currency: "usd",
+          responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
+          locales: ["en-US"],
+        },
         metadata: { tenantId: session.tenantId, slug: session.tenantSlug },
       });
       accountId = account.id;
 
+      /*
+       * What Stripe will let the account do reads off the v1 view of it, which
+       * accepts a v2 id and answers in the shape the rest of this product and
+       * the webhook already speak.
+       */
+      const state = await stripe().accounts.retrieve(accountId);
       const id = accountId;
       await withTenant(ctx, (tx) =>
         saveStripeAccount(tx, actor, {
           accountId: id,
-          chargesEnabled: account.charges_enabled ?? false,
-          payoutsEnabled: account.payouts_enabled ?? false,
-          detailsSubmitted: account.details_submitted ?? false,
+          chargesEnabled: state.charges_enabled ?? false,
+          payoutsEnabled: state.payouts_enabled ?? false,
+          detailsSubmitted: state.details_submitted ?? false,
           livemode: liveKey(),
         }),
       );

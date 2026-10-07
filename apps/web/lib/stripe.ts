@@ -25,7 +25,13 @@ let client: Stripe | null = null;
 export function stripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set.");
-  client ??= new Stripe(key, { apiVersion: "2025-09-30.clover" as Stripe.LatestApiVersion });
+  /*
+   * No pinned version: the SDK's own is what its types describe, and the
+   * Accounts v2 API this product creates accounts with lives there. Pinning an
+   * older one is what made `accounts.create` answer that v1 is no longer
+   * recommended for a new integration.
+   */
+  client ??= new Stripe(key);
   return client;
 }
 
