@@ -1556,6 +1556,7 @@ export const en = {
   "group.banner.remove": "Remove banner",
   "group.draftText": "Draft",
   "group.publish": "Publish",
+  "group.published": "Published",
   "group.unpublish": "Back to draft",
   "group.openText": "Open to new members",
   "group.closedText": "Closed to new members",

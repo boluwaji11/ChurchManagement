@@ -156,31 +156,54 @@ export function GroupDetail({
             : openToJoin ? t("group.openText") : t("group.closedText")}
         </span>
 
-        {join}
+        {join ? <span className="ml-auto">{join}</span> : null}
 
         {canManage ? (
           <div className="ml-auto flex flex-wrap items-center gap-1">
             {status === "published" ? (
+              /* Drawn as the product draws anything it is pressed by: purple,
+                 underlined under the pointer. */
               <Button
                 variant="ghost"
                 disabled={pending}
                 onClick={() => run(() => setOpenToJoin(groupId, !openToJoin, church))}
-                className="h-[34px] min-h-0 px-2.5 text-[13px]"
+                className="h-[34px] min-h-0 px-2.5 text-[13px] font-medium text-primary hover:underline hover:decoration-primary hover:underline-offset-[3px]"
               >
                 {openToJoin ? <Lock /> : <LockOpen />}
                 {openToJoin ? t("group.close") : t("group.open")}
               </Button>
             ) : null}
 
+            {/* R9.4. Published says where the group stands, and says what the
+                press does once somebody is over it. A button whose only word is
+                the undoing of the state reads as the state itself. */}
             <Button
               variant={status === "draft" ? "primary" : "ghost"}
               disabled={pending}
               onClick={() =>
                 run(() => publishGroup(groupId, status === "draft" ? "published" : "draft", church))}
-              className="h-[34px] min-h-0 px-2.5 text-[13px]"
+              className={
+                status === "draft"
+                  ? "h-[34px] min-h-0 px-2.5 text-[13px]"
+                  : "group/pub h-[34px] min-h-0 px-2.5 text-[13px] font-medium text-primary hover:underline hover:decoration-primary hover:underline-offset-[3px]"
+              }
             >
-              {status === "draft" ? <Globe /> : <PencilLine />}
-              {status === "draft" ? t("group.publish") : t("group.unpublish")}
+              {status === "draft" ? (
+                <>
+                  <Globe /> {t("group.publish")}
+                </>
+              ) : (
+                <>
+                  <Globe className="group-hover/pub:hidden group-focus-visible/pub:hidden" />
+                  <PencilLine className="hidden group-hover/pub:block group-focus-visible/pub:block" />
+                  <span className="group-hover/pub:hidden group-focus-visible/pub:hidden">
+                    {t("group.published")}
+                  </span>
+                  <span className="hidden group-hover/pub:inline group-focus-visible/pub:inline">
+                    {t("group.unpublish")}
+                  </span>
+                </>
+              )}
             </Button>
           </div>
         ) : null}
