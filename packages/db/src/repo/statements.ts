@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { funds, gifts } from "../schema/giving";
 import { members, households, householdMemberships } from "../schema/members";
 import { PermissionError, canReadGivingAmounts, canManageGiving } from "../roles";
+import { settled } from "./gift-status";
 import { tenants } from "../schema/tenancy";
 import type { WriteActor } from "./members";
 
@@ -70,6 +71,7 @@ export async function statementGivers(
     .innerJoin(members, eq(members.id, gifts.memberId))
     .where(
       and(
+        settled,
         sql`${gifts.receivedOn} >= ${`${year}-01-01`}::date`,
         sql`${gifts.receivedOn} <= ${`${year}-12-31`}::date`,
       ),
@@ -181,6 +183,7 @@ export async function statementFor(
     .innerJoin(funds, eq(funds.id, gifts.fundId))
     .where(
       and(
+        settled,
         inArray(gifts.memberId, whose),
         sql`${gifts.receivedOn} >= ${`${year}-01-01`}::date`,
         sql`${gifts.receivedOn} <= ${`${year}-12-31`}::date`,

@@ -778,6 +778,13 @@
       "when": 1791412000000,
       "tag": "0110_member_stripe_customer",
       "breakpoints": true
+    },
+    {
+      "idx": 111,
+      "version": "7",
+      "when": 1791413000000,
+      "tag": "0111_gift_status",
+      "breakpoints": true
     }
   ]
 }

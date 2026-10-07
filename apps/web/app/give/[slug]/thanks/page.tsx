@@ -30,7 +30,7 @@ export default async function ThanksPage({
    */
   const gift = session
     ? await giftSession(slug, session)
-    : { repeating: false, email: null, known: false };
+    : { repeating: false, email: null, known: false, pending: false };
 
   /* R17.4. Somebody already signed in has screens of their own to go back to. */
   const signedIn = Boolean(await currentUser());
@@ -47,6 +47,10 @@ export default async function ThanksPage({
         <p className="m-0 text-fg-muted">
           {t("give.thanks.body", { church: church.name })}
         </p>
+        {/* R13.2. A bank transfer, before the money has moved. */}
+        {gift.pending ? (
+          <p className="m-0 text-fg-muted">{t("give.thanks.bank", { church: church.name })}</p>
+        ) : null}
         {gift.repeating ? (
           <p className="m-0 text-fg-muted">{t("give.thanks.repeat")}</p>
         ) : null}

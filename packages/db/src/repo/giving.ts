@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { funds, giftBatches, gifts } from "../schema/giving";
 import { members } from "../schema/members";
 import { PermissionError, canManageGiving, canReadGivingAmounts } from "../roles";
+import { settled } from "./gift-status";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./members";
 
@@ -34,6 +35,10 @@ export interface Gift {
   inKindDescription: string | null;
   feeCents: number;
   refundedCents: number;
+  /** R13.2. settled, pending or failed. */
+  status: string;
+  /** R13.2. What the bank said, where a bank debit did not arrive. */
+  failureReason: string | null;
 }
 
 export interface Batch {
@@ -361,6 +366,8 @@ export async function listGifts(
       inKindDescription: gifts.inKindDescription,
       feeCents: gifts.feeCents,
       refundedCents: gifts.refundedCents,
+      status: gifts.status,
+      failureReason: gifts.failureReason,
     })
     .from(gifts)
     .innerJoin(funds, eq(funds.id, gifts.fundId))
@@ -393,6 +400,8 @@ export async function listGifts(
     inKindDescription: row.inKindDescription,
     feeCents: amounts ? row.feeCents : 0,
     refundedCents: amounts ? row.refundedCents : 0,
+    status: row.status,
+    failureReason: row.failureReason,
   }));
 }
 
@@ -410,6 +419,7 @@ export async function givingTotals(
     .from(gifts)
     .where(
       and(
+        settled,
         sql`${gifts.receivedOn} >= ${range.from}::date`,
         sql`${gifts.receivedOn} <= ${range.to}::date`,
       ),
@@ -440,6 +450,7 @@ export async function givingForPerson(
     .from(gifts)
     .where(
       and(
+        settled,
         eq(gifts.memberId, memberId),
         sql`${gifts.receivedOn} >= ${range.from}::date`,
         sql`${gifts.receivedOn} <= ${range.to}::date`,

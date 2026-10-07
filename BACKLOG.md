@@ -93,6 +93,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-249 | A printable QR code for the foyer and the bulletin | R13.7 | Resolved. Text-to-give waits on messaging |
 | HRT-250 | The church's balance, payouts and payments read inside ConnectApp, no actions | R13.1 | Resolved |
 | HRT-251 | Stripe Accounts v2: account creation, onboarding links, account sessions and the v2 event destination | R13.1 | New, before 0.3 ships |
+| HRT-252 | A bank gift shows the day it is authorised and counts the day it arrives, with what the bank said where it did not | R13.2 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is

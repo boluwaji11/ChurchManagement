@@ -62,6 +62,24 @@ Stripe ships a new account with **ACH debits off**, and a card is 2.2% + 30¢ wh
 when it creates the account and switches the method on as soon as Stripe will take payments. A
 church can still turn it off in its own Stripe settings.
 
+### When a bank gift counts
+
+A card answers in a second. A bank debit is an instruction: the giver authorises it, Stripe moves
+the money over the following days, and the bank can still return it after that. So a gift carries a
+status.
+
+| What arrives | What the gift does |
+|---|---|
+| `payment_intent.processing` | Written with status `pending`. It shows on the giving list as "On its way" and is in no total, no fund balance, no campaign and no statement. |
+| `payment_intent.succeeded` | The same row settles, keeping its id, its fund split and whoever it was attached to. The charge and the fee Stripe took are written then, because only settlement knows them. |
+| `payment_intent.payment_failed` | Status `failed`, with the bank's own words in `failure_reason`. |
+| `charge.dispute.created` | A return after settlement. The money has gone back out of the church's balance, so the gift fails and every total comes down with it. |
+
+The date on the gift is the day the giver gave, which is the date the IRS wants on the statement,
+and it does not move when the money lands.
+
+The giver is told the same thing on the thank-you page: a bank transfer takes a few days to arrive.
+
 ## Who pays the processing fee
 
 The church does, out of its own Stripe balance, at whatever rate Stripe gives it. Stripe discounts

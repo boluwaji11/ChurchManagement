@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { funds, gifts } from "../schema/giving";
 import { members } from "../schema/members";
 import { PermissionError, canReadGivingAmounts } from "../roles";
+import { settled } from "./gift-status";
 import type { WriteActor } from "./members";
 
 /**
@@ -32,6 +33,7 @@ export async function givingByMonth(
     .from(gifts)
     .where(
       and(
+        settled,
         sql`${gifts.receivedOn} >= ${range.from}::date`,
         sql`${gifts.receivedOn} <= ${range.to}::date`,
       ),
@@ -58,6 +60,7 @@ export async function givingByFund(
     .innerJoin(funds, eq(funds.id, gifts.fundId))
     .where(
       and(
+        settled,
         sql`${gifts.receivedOn} >= ${range.from}::date`,
         sql`${gifts.receivedOn} <= ${range.to}::date`,
       ),
@@ -95,11 +98,13 @@ export async function lapsedGivers(
     .innerJoin(members, eq(members.id, gifts.memberId))
     .where(
       and(
+        settled,
         sql`${gifts.receivedOn} < ${since}::date`,
         sql`${gifts.receivedOn} >= (${since}::date - interval '1 year')`,
         sql`not exists (
           select 1 from gifts g2
            where g2.member_id = ${members.id}
+             and g2.status = 'settled'
              and g2.received_on >= ${since}::date
         )`,
       ),
@@ -136,6 +141,7 @@ export async function firstTimeGivers(
     })
     .from(gifts)
     .innerJoin(members, eq(members.id, gifts.memberId))
+    .where(settled)
     .groupBy(members.id, members.firstName, members.lastName)
     .having(
       and(

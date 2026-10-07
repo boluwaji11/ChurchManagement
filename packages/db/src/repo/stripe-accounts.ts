@@ -117,6 +117,14 @@ export async function recordOnlineGift(input: {
   /** R13.6. What the giver typed on the church's own giving page. */
   giverName?: string | null;
   giverEmail?: string | null;
+  /**
+   * R13.2. settled, or pending while a bank debit is still on its way.
+   *
+   * A gift written pending is updated in place when the money lands, because
+   * it is the same payment: the row keeps its id, so a fund it was split
+   * across and a person it was attached to both survive settlement.
+   */
+  status?: "settled" | "pending";
 }): Promise<void> {
   const tenantId = await tenantForStripeAccount(input.accountId);
   if (!tenantId) return;
@@ -177,20 +185,74 @@ export async function recordOnlineGift(input: {
     ? parts
     : [{ fundId, cents: input.amountCents }];
 
+  const status = input.status ?? "settled";
+
   for (const [at, share] of shares.entries()) {
+    /*
+     * R13.2. A bank debit arrives here twice: once pending, when the giver
+     * authorises it, and again days later when the money has moved. The
+     * second one settles the row that is already there and writes what only
+     * settlement knows, the charge and the fee Stripe took. A redelivered
+     * event changes nothing, because a settled gift is left alone.
+     */
     await sql`
       insert into gifts (
         tenant_id, member_id, fund_id, amount_cents, currency, method,
         received_on, stripe_payment_intent_id, stripe_charge_id, fee_cents, covered_fee,
-        giver_name, giver_email
+        giver_name, giver_email, status
       )
       values (
         ${tenantId}, ${memberId}, ${share.fundId}, ${share.cents},
         ${input.currency}, ${input.method ?? "card"}, ${input.receivedOn}::date,
         ${input.paymentIntentId}, ${input.chargeId}, ${at === 0 ? input.feeCents : 0},
         ${input.coveredFee ?? false},
-        ${input.giverName ?? null}, ${email}
+        ${input.giverName ?? null}, ${email}, ${status}
       )
-      on conflict (tenant_id, stripe_payment_intent_id, fund_id) do nothing`;
+      on conflict (tenant_id, stripe_payment_intent_id, fund_id) do update
+         set status = ${status},
+             stripe_charge_id = coalesce(${input.chargeId}, gifts.stripe_charge_id),
+             fee_cents = ${at === 0 ? input.feeCents : 0},
+             method = ${input.method ?? "card"},
+             updated_at = now()
+       where gifts.status <> 'settled'`;
   }
+}
+
+/**
+ * R13.2. A bank debit that was returned, or a payment the bank refused.
+ *
+ * The row stays and reads as failed. A treasurer who was told a gift was on
+ * its way needs to see that it did not arrive, and the giver usually rings
+ * about it.
+ */
+export async function failOnlineGift(input: {
+  accountId: string;
+  paymentIntentId?: string | null;
+  chargeId?: string | null;
+  /** What the bank said, as Stripe passed it on. */
+  reason?: string | null;
+}): Promise<void> {
+  const tenantId = await tenantForStripeAccount(input.accountId);
+  if (!tenantId) return;
+  const intentId = input.paymentIntentId ?? null;
+  const chargeId = input.chargeId ?? null;
+  if (!intentId && !chargeId) return;
+
+  /*
+   * A bank debit can also be returned after it has settled, days later, which
+   * is why a settled gift is not spared here: the money went back out of the
+   * church's account and the record has to say so. A gift already marked
+   * failed is left as it is, so a redelivered event keeps the first reason.
+   */
+  await owner()`
+    update gifts
+       set status = 'failed',
+           failure_reason = coalesce(${input.reason ?? null}, failure_reason),
+           updated_at = now()
+     where tenant_id = ${tenantId}
+       and status <> 'failed'
+       and (
+         (${intentId}::text is not null and stripe_payment_intent_id = ${intentId})
+         or (${chargeId}::text is not null and stripe_charge_id = ${chargeId})
+       )`;
 }

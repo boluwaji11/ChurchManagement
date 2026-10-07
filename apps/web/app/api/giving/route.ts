@@ -46,10 +46,16 @@ export async function GET(request: NextRequest) {
       Amount: (gift.amountCents / 100).toFixed(2),
       Fee: (gift.feeCents / 100).toFixed(2),
       Refunded: (gift.refundedCents / 100).toFixed(2),
+      /* R13.2. A bank transfer still on its way is on the sheet and out of
+         the church's accounts until it says settled. */
+      Status: gift.status,
       "In kind": gift.inKindDescription ?? "",
       Note: gift.note ?? "",
     })),
-    ["Date", "Giver", "Fund", "Method", "Reference", "Amount", "Fee", "Refunded", "In kind", "Note"],
+    [
+      "Date", "Giver", "Fund", "Method", "Reference", "Amount", "Fee", "Refunded",
+      "Status", "In kind", "Note",
+    ],
   );
 
   return new Response(csv, {

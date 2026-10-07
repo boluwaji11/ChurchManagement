@@ -92,6 +92,7 @@ export * from "./repo/schedule";
 export * from "./repo/respond";
 export * from "./repo/plans";
 export * from "./repo/item-kinds";
+export * from "./repo/gift-status";
 export * from "./repo/funds";
 export * from "./repo/giving";
 export * from "./repo/stripe-accounts";

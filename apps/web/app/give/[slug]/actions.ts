@@ -242,8 +242,8 @@ export async function manageGiving(slug: string, sessionId: string): Promise<Giv
 export async function giftSession(
   slug: string,
   sessionId: string,
-): Promise<{ repeating: boolean; email: string | null; known: boolean }> {
-  const nothing = { repeating: false, email: null, known: false };
+): Promise<{ repeating: boolean; email: string | null; known: boolean; pending: boolean }> {
+  const nothing = { repeating: false, email: null, known: false, pending: false };
   if (!stripeConfigured() || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return nothing;
 
   const page = await givingPage(slug);
@@ -261,6 +261,12 @@ export async function giftSession(
       repeating: checkout.mode === "subscription",
       email,
       known: email ? await giverKnown(slug, email) : false,
+      /*
+       * R13.2. A bank transfer is authorised here and arrives days later, so
+       * Stripe leaves the session unpaid until the money moves. The giver is
+       * told that rather than being shown a receipt that has not been sent.
+       */
+      pending: checkout.payment_status === "unpaid",
     };
   } catch {
     return nothing;

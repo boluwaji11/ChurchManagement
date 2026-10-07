@@ -12,6 +12,7 @@ import type { Session } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
+import { GiftState } from "./gift-state";
 
 /**
  * R13.19, R17.4. A member's own giving, and their own statement.
@@ -112,8 +113,17 @@ export async function MyGiving({ session }: { session: Session }) {
                 <span className="text-caption text-fg-subtle">
                   {t(`giving.method.${gift.method}` as never)}
                 </span>
-                <span data-numeric className="text-right font-mono text-fg">
+                <span
+                  data-numeric
+                  className={`text-right font-mono ${
+                    gift.status === "settled" ? "text-fg" : "text-fg-subtle"
+                  }`}
+                >
                   {gift.inKindDescription ?? money(gift.amountCents - gift.refundedCents)}
+                  {/* R13.2. Their bank transfer, before it has arrived. */}
+                  <span className="mt-1 flex justify-end font-sans">
+                    <GiftState status={gift.status} />
+                  </span>
                 </span>
               </span>
             ))}

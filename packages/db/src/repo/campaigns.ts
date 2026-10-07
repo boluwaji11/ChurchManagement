@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { campaigns, funds, gifts, pledges } from "../schema/giving";
 import { members } from "../schema/members";
 import { PermissionError, canManageGiving, canReadGivingAmounts } from "../roles";
+import { settled } from "./gift-status";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./members";
 
@@ -82,6 +83,7 @@ export async function listCampaigns(
       .from(gifts)
       .where(
         and(
+          settled,
           eq(gifts.fundId, row.fundId),
           sql`${gifts.receivedOn} >= ${row.startsOn}::date`,
           row.endsOn ? sql`${gifts.receivedOn} <= ${row.endsOn}::date` : sql`true`,
@@ -238,6 +240,7 @@ export async function listPledges(
         select coalesce(sum(g.amount_cents - g.refunded_cents), 0)::int
           from gifts g
          where g.fund_id = ${campaign.fundId}
+           and g.status = 'settled'
            and g.received_on >= ${campaign.startsOn}::date
            ${campaign.endsOn ? sql`and g.received_on <= ${campaign.endsOn}::date` : sql``}
            and (

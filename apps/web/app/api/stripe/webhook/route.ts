@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import {
-  markStripeAccount, recordOnlineGift, saveRecurring, markRecurring,
+  markStripeAccount, recordOnlineGift, failOnlineGift, saveRecurring, markRecurring,
 } from "@connectapp/db";
 import { stripe, stripeConfigured } from "@/lib/stripe";
 
@@ -20,6 +20,17 @@ function methodFrom(type: string | undefined): "card" | "ach" | "other" {
   if (type === "card" || type === "link") return "card";
   if (type.endsWith("_debit") || type === "us_bank_account") return "ach";
   return "other";
+}
+
+/**
+ * R13.2. Why the bank said no, in words a treasurer can act on.
+ *
+ * Stripe carries the bank's own message, and that message is what the giver
+ * will be told when they ring their bank, so it is passed through as given.
+ */
+function whyFrom(error: Stripe.PaymentIntent.LastPaymentError | null | undefined): string | null {
+  if (!error) return null;
+  return error.message || error.decline_code || error.code || null;
 }
 
 /**
@@ -135,6 +146,79 @@ export async function POST(request: Request) {
           coveredFee: intent.metadata?.coveredFee === "true",
           giverName: intent.metadata?.giverName || null,
           giverEmail: intent.metadata?.giverEmail || null,
+        });
+        break;
+      }
+
+      /*
+       * R13.2. A bank debit the giver has authorised.
+       *
+       * Stripe takes the instruction now and moves the money over the next
+       * few days, so the gift is written down pending: the church can see it
+       * coming, and no total counts it until it has arrived. A card never
+       * reaches here.
+       */
+      case "payment_intent.processing": {
+        if (!account) break;
+        const waiting = event.data.object as Stripe.PaymentIntent;
+        if (!waiting.metadata?.fundId) break;
+
+        await recordOnlineGift({
+          accountId: account,
+          paymentIntentId: waiting.id,
+          chargeId: null,
+          amountCents: waiting.amount,
+          feeCents: 0,
+          currency: waiting.currency,
+          receivedOn: new Date(waiting.created * 1000).toISOString().slice(0, 10),
+          method: methodFrom(waiting.payment_method_types?.[0]),
+          fundId: waiting.metadata?.fundId || null,
+          split: splitFrom(waiting.metadata?.split),
+          memberId: waiting.metadata?.memberId || null,
+          coveredFee: waiting.metadata?.coveredFee === "true",
+          giverName: waiting.metadata?.giverName || null,
+          giverEmail: waiting.metadata?.giverEmail || null,
+          status: "pending",
+        });
+        break;
+      }
+
+      /*
+       * R13.2. The bank returned it, or refused it.
+       *
+       * The row stays and reads as failed, because the church was already
+       * shown the gift on its way and has to see that it did not arrive.
+       */
+      case "payment_intent.payment_failed": {
+        if (!account) break;
+        const refused = event.data.object as Stripe.PaymentIntent;
+        await failOnlineGift({
+          accountId: account,
+          paymentIntentId: refused.id,
+          reason: whyFrom(refused.last_payment_error),
+        });
+        break;
+      }
+
+      /*
+       * R13.2. A bank debit returned after it had settled.
+       *
+       * Stripe raises a return on a settled bank debit as a dispute, days or
+       * weeks later, and takes the money back out of the church's balance.
+       * The gift reads as failed from then on, so the fund total and the
+       * statement both come down with it.
+       */
+      case "charge.dispute.created": {
+        if (!account) break;
+        const dispute = event.data.object as Stripe.Dispute;
+        await failOnlineGift({
+          accountId: account,
+          chargeId: typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id,
+          paymentIntentId:
+            typeof dispute.payment_intent === "string"
+              ? dispute.payment_intent
+              : dispute.payment_intent?.id ?? null,
+          reason: dispute.reason ?? null,
         });
         break;
       }

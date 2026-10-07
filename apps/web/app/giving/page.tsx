@@ -17,6 +17,7 @@ import { StartCount } from "./start-count";
 import { GiftPanel } from "./gift-panel";
 import { RefundGift } from "./refund";
 import { AttachGift } from "./attach";
+import { GiftState } from "./gift-state";
 
 export const dynamic = "force-dynamic";
 
@@ -231,13 +232,23 @@ export default async function GivingPage({
                       {t(`giving.method.${gift.method}` as never)}
                     </span>
 
-                    <span data-numeric className="text-right font-mono text-fg">
+                    <span
+                      data-numeric
+                      className={`text-right font-mono ${
+                        gift.status === "settled" ? "text-fg" : "text-fg-subtle"
+                      }`}
+                    >
                       {gift.inKindDescription ? "" : money(gift.amountCents - gift.refundedCents)}
                       {gift.refundedCents > 0 ? (
                         <span className="block font-sans text-[12px] text-fg-subtle">
                           {t("giving.gift.refunded")}
                         </span>
                       ) : null}
+                      {/* R13.2. A bank transfer on its way, or one the bank
+                          returned. Neither is in the totals above. */}
+                      <span className="mt-1 flex justify-end font-sans">
+                        <GiftState status={gift.status} reason={gift.failureReason} />
+                      </span>
                     </span>
 
                     {/* R13.15, R13.18. The two things done to a gift, in the
@@ -249,7 +260,7 @@ export default async function GivingPage({
                           gift={{ id: gift.id, typed: gift.memberName }}
                         />
                       ) : null}
-                      {manage && !gift.inKindDescription
+                      {manage && !gift.inKindDescription && gift.status === "settled"
                         && gift.amountCents > gift.refundedCents ? (
                         <RefundGift
                           church={session.tenantSlug}

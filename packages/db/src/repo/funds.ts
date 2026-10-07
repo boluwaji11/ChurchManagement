@@ -1,6 +1,7 @@
 import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { funds, gifts } from "../schema/giving";
+import { settled } from "./gift-status";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageGiving } from "../roles";
@@ -158,6 +159,7 @@ export async function fundTotals(
     .from(gifts)
     .where(
       and(
+        settled,
         sql`${gifts.receivedOn} >= ${range.from}::date`,
         sql`${gifts.receivedOn} <= ${range.to}::date`,
       ),

@@ -133,6 +133,19 @@ export const gifts = pgTable(
     /** R13.5. Whether the giver chose to add the processing fee to the gift. */
     coveredFee: boolean("covered_fee").notNull().default(false),
 
+    /*
+     * R13.2. settled, pending or failed.
+     *
+     * A card answers in a second. A bank debit is an instruction Stripe
+     * carries out over the following days, and it can be returned after that,
+     * so a gift given by bank is written down when the giver authorises it and
+     * counts once the money has actually moved. Anything entered by hand is
+     * settled: somebody is holding the cash.
+     */
+    status: text("status").notNull().default("settled"),
+    /** R13.2. What the bank said, where it said no. */
+    failureReason: text("failure_reason"),
+
     /** R13.15. A refund is recorded against the gift rather than deleting it. */
     refundedCents: integer("refunded_cents").notNull().default(0),
     refundedAt: timestamp("refunded_at", { withTimezone: true }),
@@ -146,6 +159,7 @@ export const gifts = pgTable(
     index("gift_member_idx").on(t.tenantId, t.memberId),
     index("gift_fund_idx").on(t.tenantId, t.fundId),
     index("gift_batch_idx").on(t.tenantId, t.batchId),
+    index("gift_status_idx").on(t.tenantId, t.status),
     /*
      * R13.4. One payment may write a row a fund, so the fund is part of what
      * makes a gift unique. A webhook delivered twice still writes once.
