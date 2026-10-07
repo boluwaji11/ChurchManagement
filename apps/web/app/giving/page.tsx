@@ -111,8 +111,15 @@ export default async function GivingPage({
         <div className="grid items-start gap-6 lg:[grid-template-columns:minmax(0,1fr)_minmax(260px,320px)]">
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-[22px] leading-[28px] text-fg">
+              <h2 className="flex flex-wrap items-baseline gap-3 font-display text-[22px] leading-[28px] text-fg">
                 {t("giving.counts")}
+                {/* R13.17. January's work, a press away from the Monday one. */}
+                <Link
+                  href={`/giving/statements?church=${session.tenantSlug}`}
+                  className="text-[13px] font-medium text-primary"
+                >
+                  {t("giving.statements")}
+                </Link>
               </h2>
               {manage ? (
                 <div className="flex flex-wrap items-center gap-2">

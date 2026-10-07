@@ -77,3 +77,18 @@ A closed count stops taking lines, because it is now the record of a deposit.
 
 Without a key, the giving screens still work for cash and cheques, and the online giving screen says
 the platform is not set up for it.
+
+## Statements
+
+A year-end statement is written to IRS Publication 1771: the church's legal name and address, each
+gift with its date and amount, any non-cash gift described and **not valued** by the church, the
+sentence that no goods or services were provided in exchange, and the acknowledgment line for a
+giver whose single gift reached $250.
+
+Two things are still owed before this is correct for every church: **household roll-up** (R13.18),
+so a couple receives one statement rather than two, and **quid pro quo** (R13.20), so a $100 gala
+ticket with a $40 dinner is stated as a $60 contribution. Until both land, a church with either
+case has to correct the statement by hand.
+
+**A CPA reads a sample statement before 0.3 ships.** That is a release gate in the PRD, not a
+nicety: a statement that is wrong in January is wrong for every giver at once.

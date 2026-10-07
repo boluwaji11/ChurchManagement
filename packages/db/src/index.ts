@@ -96,6 +96,7 @@ export * from "./repo/funds";
 export * from "./repo/giving";
 export * from "./repo/stripe-accounts";
 export * from "./repo/public-giving";
+export * from "./repo/statements";
 export * from "./repo/plan-templates";
 export * from "./repo/live";
 export * from "./repo/plan-history";
