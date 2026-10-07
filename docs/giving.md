@@ -88,6 +88,14 @@ The giver changes or stops it in **Stripe's billing portal**, which the thank-yo
 them. There is no account on our side to sign in to, so the checkout session Stripe has just handed
 them is what stands in: nobody else has it, and it is spent when they leave the page.
 
+## A split gift
+
+A gift divided between funds is written as **one gift a fund**, not as a gift with parts. A
+treasurer's question is always "how much went to the building", and every total, statement,
+campaign and export already answers that one row at a time. The fee sits on the first row, because
+Stripe charged it once on the whole payment, and the index that stops a redelivered webhook writing
+twice takes the fund as well as the payment.
+
 ## Campaigns
 
 A campaign is a target over a period against **one fund**, which is what makes progress countable:

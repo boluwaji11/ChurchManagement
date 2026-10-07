@@ -31,6 +31,11 @@ async function origin(): Promise<string> {
 export async function startGift(input: {
   slug: string;
   fundId: string;
+  /**
+   * R13.4. Where the giver split it, what each fund takes, in whole cents.
+   * Left out, the whole gift goes to `fundId`.
+   */
+  split?: { fundId: string; cents: number }[];
   amountCents: number;
   coverFee: boolean;
   name: string;
@@ -53,12 +58,25 @@ export async function startGift(input: {
   const email = input.email.trim().toLowerCase();
   if (!email.includes("@")) return { error: "give.error.email" };
 
+  /*
+   * R13.4. A split has to add up to the gift, and every fund in it has to be
+   * one this church is receiving to. Anything else is treated as no split.
+   */
+  const split = (input.split ?? []).filter(
+    (part) => part.cents > 0 && page.funds.some((one) => one.id === part.fundId),
+  );
+  const splitTotal = split.reduce((sum, part) => sum + part.cents, 0);
+  const shares = split.length > 1 && splitTotal === input.amountCents ? split : [];
+
   const charged = input.coverFee ? withFee(input.amountCents) : input.amountCents;
   const back = await origin();
 
   const repeat = input.repeat ?? "once";
   const metadata = {
     fundId: fund.id,
+    // "fundId:cents;fundId:cents". Short enough for Stripe's 500 characters
+    // at the eight funds a giving page offers to split across.
+    split: shares.map((part) => `${part.fundId}:${part.cents}`).join(";"),
     coveredFee: String(input.coverFee),
     giverName: input.name.trim().slice(0, 120),
     giverEmail: email,
@@ -69,19 +87,27 @@ export async function startGift(input: {
       {
         mode: repeat === "once" ? "payment" : "subscription",
         customer_email: email,
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: "usd",
-              unit_amount: charged,
-              product_data: { name: `${page.name} · ${fund.name}` },
-              ...(repeat === "once"
-                ? {}
-                : { recurring: { interval: repeat as "month" | "week" } }),
-            },
+        /*
+         * R13.4. The giver sees what they chose, fund by fund, on Stripe's
+         * own page. The fee they offered to cover rides on the first line.
+         */
+        line_items: (shares.length > 0
+          ? shares.map((part, at) => ({
+              fund: page.funds.find((one) => one.id === part.fundId)!.name,
+              cents: at === 0 ? part.cents + (charged - input.amountCents) : part.cents,
+            }))
+          : [{ fund: fund.name, cents: charged }]
+        ).map((line) => ({
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: line.cents,
+            product_data: { name: `${page.name} · ${line.fund}` },
+            ...(repeat === "once"
+              ? {}
+              : { recurring: { interval: repeat as "month" | "week" } }),
           },
-        ],
+        })),
         /*
          * R13.1. No application fee. The platform takes nothing, and this
          * line is here so that a change to it is a change somebody made.

@@ -146,7 +146,11 @@ export const gifts = pgTable(
     index("gift_member_idx").on(t.tenantId, t.memberId),
     index("gift_fund_idx").on(t.tenantId, t.fundId),
     index("gift_batch_idx").on(t.tenantId, t.batchId),
-    uniqueIndex("gift_intent_unique").on(t.tenantId, t.stripePaymentIntentId),
+    /*
+     * R13.4. One payment may write a row a fund, so the fund is part of what
+     * makes a gift unique. A webhook delivered twice still writes once.
+     */
+    uniqueIndex("gift_intent_fund_unique").on(t.tenantId, t.stripePaymentIntentId, t.fundId),
   ],
 );
 

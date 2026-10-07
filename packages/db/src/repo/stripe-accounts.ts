@@ -108,6 +108,8 @@ export async function recordOnlineGift(input: {
   receivedOn: string;
   /** From the metadata the giving page put on the payment. */
   fundId?: string | null;
+  /** R13.4. Where the gift was split, what each fund took, in whole cents. */
+  split?: { fundId: string; cents: number }[];
   memberId?: string | null;
   coveredFee?: boolean;
   /** R13.6. What the giver typed on the church's own giving page. */
@@ -158,18 +160,35 @@ export async function recordOnlineGift(input: {
     if (people.length === 1) memberId = people[0]!.id;
   }
 
-  await sql`
-    insert into gifts (
-      tenant_id, member_id, fund_id, amount_cents, currency, method,
-      received_on, stripe_payment_intent_id, stripe_charge_id, fee_cents, covered_fee,
-      giver_name, giver_email
-    )
-    values (
-      ${tenantId}, ${memberId}, ${fundId}, ${input.amountCents},
-      ${input.currency}, 'card', ${input.receivedOn}::date,
-      ${input.paymentIntentId}, ${input.chargeId}, ${input.feeCents},
-      ${input.coveredFee ?? false},
-      ${input.giverName ?? null}, ${email}
-    )
-    on conflict (tenant_id, stripe_payment_intent_id) do nothing`;
+  /*
+   * R13.4. A split is one row a fund. The fee rides on the first of them,
+   * because Stripe charged it once on the whole payment.
+   */
+  const live = await sql<{ id: string }[]>`
+    select id from funds where tenant_id = ${tenantId} and archived_at is null`;
+  const known = new Set(live.map((one) => one.id));
+
+  const parts = (input.split ?? [])
+    .filter((part) => known.has(part.fundId) && part.cents > 0)
+    .slice(0, 8);
+  const shares = parts.length > 0
+    ? parts
+    : [{ fundId, cents: input.amountCents }];
+
+  for (const [at, share] of shares.entries()) {
+    await sql`
+      insert into gifts (
+        tenant_id, member_id, fund_id, amount_cents, currency, method,
+        received_on, stripe_payment_intent_id, stripe_charge_id, fee_cents, covered_fee,
+        giver_name, giver_email
+      )
+      values (
+        ${tenantId}, ${memberId}, ${share.fundId}, ${share.cents},
+        ${input.currency}, 'card', ${input.receivedOn}::date,
+        ${input.paymentIntentId}, ${input.chargeId}, ${at === 0 ? input.feeCents : 0},
+        ${input.coveredFee ?? false},
+        ${input.giverName ?? null}, ${email}
+      )
+      on conflict (tenant_id, stripe_payment_intent_id, fund_id) do nothing`;
+  }
 }

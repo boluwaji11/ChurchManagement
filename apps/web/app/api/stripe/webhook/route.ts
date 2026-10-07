@@ -9,6 +9,26 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
+ * R13.4. "fundId:cents;fundId:cents" as the giving page wrote it.
+ *
+ * Anything malformed comes back empty, and the gift lands whole on the fund
+ * the payment named, because a gift that arrived has to be recorded.
+ */
+function splitFrom(value: string | undefined | null): { fundId: string; cents: number }[] {
+  if (!value) return [];
+  return value
+    .split(";")
+    .map((part) => {
+      const [fundId, cents] = part.split(":");
+      const amount = Number(cents);
+      return fundId && Number.isInteger(amount) && amount > 0
+        ? { fundId, cents: amount }
+        : null;
+    })
+    .filter((part): part is { fundId: string; cents: number } => part !== null);
+}
+
+/**
  * R13.1, R13.2. What Stripe tells us after the fact.
  *
  * Every event here is about a church's own connected account, which is why
@@ -84,6 +104,7 @@ export async function POST(request: Request) {
           currency: intent.currency,
           receivedOn: new Date(intent.created * 1000).toISOString().slice(0, 10),
           fundId: intent.metadata?.fundId || null,
+          split: splitFrom(intent.metadata?.split),
           memberId: intent.metadata?.memberId || null,
           coveredFee: intent.metadata?.coveredFee === "true",
           giverName: intent.metadata?.giverName || null,
@@ -198,6 +219,7 @@ export async function POST(request: Request) {
           currency: invoice.currency,
           receivedOn: new Date(invoice.created * 1000).toISOString().slice(0, 10),
           fundId: metadata?.fundId || null,
+          split: splitFrom(metadata?.split),
           coveredFee: metadata?.coveredFee === "true",
           giverName: metadata?.giverName || null,
           giverEmail: metadata?.giverEmail || invoice.customer_email || null,

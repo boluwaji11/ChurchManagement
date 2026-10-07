@@ -34,11 +34,19 @@ export function GiveForm({
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [cover, setCover] = React.useState(false);
+  /** R13.4. What each fund takes, where the giver has split it. */
+  const [split, setSplit] = React.useState<Record<string, string>>({});
+  const [splitting, setSplitting] = React.useState(false);
   const [repeat, setRepeat] = React.useState<"once" | "month" | "week">("once");
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   const cents = toCents(amount) ?? 0;
+  const shares = Object.entries(split)
+    .map(([id, typed]) => ({ fundId: id, cents: toCents(typed) ?? 0 }))
+    .filter((one) => one.cents > 0);
+  const placed = shares.reduce((sum, one) => sum + one.cents, 0);
+  const left = cents - placed;
   const fee = cents > 0 ? withFee(cents) - cents : 0;
   const charged = cover ? cents + fee : cents;
 
@@ -49,7 +57,14 @@ export function GiveForm({
     }
     startTransition(async () => {
       const result = await startGift({
-        slug, fundId, amountCents: cents, coverFee: cover, name, email, repeat,
+        slug,
+        fundId,
+        split: splitting ? shares : undefined,
+        amountCents: cents,
+        coverFee: cover,
+        name,
+        email,
+        repeat,
       });
       if (result.error) {
         setError(
@@ -111,16 +126,59 @@ export function GiveForm({
         ))}
       </div>
 
-      <Field label={t("give.fund")} required>
-        <Select value={fundId} onValueChange={setFundId}>
-          <SelectTrigger aria-label={t("give.fund")}><SelectValue /></SelectTrigger>
-          <SelectContent>
+      {/* R13.4. One fund, or the gift divided between several. */}
+      {splitting ? (
+        <Field label={t("give.fund")} required>
+          <div className="flex flex-col gap-2">
             {funds.map((fund) => (
-              <SelectItem key={fund.id} value={fund.id}>{fund.name}</SelectItem>
+              <span key={fund.id} className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+                  {fund.name}
+                </span>
+                <Input
+                  className="w-[120px]"
+                  value={split[fund.id] ?? ""}
+                  onChange={(e) =>
+                    setSplit((was) => ({ ...was, [fund.id]: e.target.value }))
+                  }
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  aria-label={fund.name}
+                />
+              </span>
             ))}
-          </SelectContent>
-        </Select>
-      </Field>
+            <span className="text-[13px] text-fg-muted">
+              {left >= 0
+                ? t("give.split.left", { amount: money(left) })
+                : t("give.split.over", { amount: money(-left) })}
+            </span>
+          </div>
+        </Field>
+      ) : (
+        <Field label={t("give.fund")} required>
+          <Select value={fundId} onValueChange={setFundId}>
+            <SelectTrigger aria-label={t("give.fund")}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {funds.map((fund) => (
+                <SelectItem key={fund.id} value={fund.id}>{fund.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      )}
+
+      {funds.length > 1 ? (
+        <button
+          type="button"
+          onClick={() => {
+            setSplitting((was) => !was);
+            setSplit({});
+          }}
+          className="-mt-2 cursor-pointer self-start font-medium text-primary"
+        >
+          {splitting ? t("give.split.single") : t("give.split")}
+        </button>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t("give.name")}>
@@ -151,7 +209,7 @@ export function GiveForm({
 
       <Button
         className="h-12"
-        disabled={pending || cents <= 0}
+        disabled={pending || cents <= 0 || (splitting && (left !== 0 || shares.length < 2))}
         loading={pending}
         onClick={give}
       >
