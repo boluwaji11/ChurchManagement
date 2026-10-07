@@ -109,7 +109,7 @@ export async function MyGiving({ session }: { session: Session }) {
         ) : (
           <Panel className="flex flex-col divide-y divide-line px-5 py-0">
             <span
-              className="grid items-center gap-3 py-2.5 text-[12px] font-semibold text-fg-subtle [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px]"
+              className="grid items-center gap-3 py-2.5 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px]"
             >
               <span>{t("giving.col.date")}</span>
               <span>{t("giving.col.fund")}</span>

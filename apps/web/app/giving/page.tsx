@@ -217,7 +217,7 @@ export default async function GivingPage({
                 {/* The column names, so a treasurer reading down the list
                     knows which cell is which. */}
                 <li
-                  className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-semibold text-fg-subtle [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
+                  className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
                 >
                   <span>{t("giving.col.date")}</span>
                   <span>{t("giving.col.giver")}</span>
