@@ -961,6 +961,7 @@ export const en = {
   "giving.export": "Export",
   "giving.recent": "Recent gifts",
   "giving.recent.none": "No gifts recorded yet",
+  "person.giving.year": "{count} gifts this year · last {last}",
   "give.title": "Give to {church}",
   "give.amount": "Amount",
   "give.fund": "Give to",

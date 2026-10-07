@@ -5,8 +5,8 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import {
   withTenant, getPerson, householdFor,
   personTimeline, servingForPerson, groupsForPerson,
-  listContacts, listAddresses,
-  canEditPeople,
+  listContacts, listAddresses, givingForPerson, getChurch,
+  canEditPeople, canReadGivingAmounts,
 } from "@connectapp/db";
 import { Avatar, Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -14,7 +14,9 @@ import { requireSession } from "@/lib/session";
 import { photoUrls } from "@/lib/photos";
 import { AppShell } from "@/components/app-shell";
 import { lifecycleLabel } from "@/lib/person-input";
-import { longDate } from "@/lib/dates";
+import { longDate, shortDate } from "@/lib/dates";
+import { money } from "@/lib/money";
+import { churchNow } from "@/lib/church-now";
 import { Timeline } from "./timeline";
 import { Contacts } from "./contacts";
 import { Places } from "./places";
@@ -110,7 +112,16 @@ export default async function PersonPage({
 
     // Six reads about the same person, all of them keyed on the id above, so
     // they go down the one connection together rather than in turn.
-    const [contacts, addresses, household, groups, serving, history] = await Promise.all([
+    /*
+     * R1.5. Giving amounts are a field-level permission, so the read itself
+     * is skipped rather than the number being hidden on the way out.
+     */
+    const amounts = canReadGivingAmounts(session);
+    const year = churchNow(
+      (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
+    ).date.slice(0, 4);
+
+    const [contacts, addresses, household, groups, serving, history, giving] = await Promise.all([
       // R2.4. Every way of reaching them, not only the one that leads.
       listContacts(tx, memberId),
       listAddresses(tx, memberId),
@@ -123,15 +134,18 @@ export default async function PersonPage({
         { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
         memberId,
       ),
+      amounts
+        ? givingForPerson(tx, memberId, { from: `${year}-01-01`, to: `${year}-12-31` })
+        : Promise.resolve(null),
     ]);
 
-    return { person, contacts, addresses, household, groups, serving, history };
+    return { person, contacts, addresses, household, groups, serving, history, giving };
   });
 
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, contacts, addresses, household, groups, serving, history } = result;
+  const { person, contacts, addresses, household, groups, serving, history, giving } = result;
 
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   // R2.9. Their face, signed for the hour.
@@ -267,16 +281,27 @@ export default async function PersonPage({
         </InfoCard>
 
         {/*
-          * R13.x. The shell of the giving card the design draws here.
+          * R13.18, R1.5. What this person has given this year.
           *
-          * There are no gift or fund tables yet, so it has nothing to read and
-          * shows what a person with no recorded giving would see. It fills in
-          * when the money work is built.
+          * Only for somebody whose role carries "See how much somebody gives".
+          * Everybody else does not see an empty card where the number would
+          * be: they see no card, because the absence of one says nothing.
           */}
-        <InfoCard title={t("person.giving")}>
-          <div className="font-display text-[32px] leading-[38px] text-fg">{EMPTY}</div>
-          <div className="text-[13px] text-fg-muted">{t("person.noGifts")}</div>
-        </InfoCard>
+        {giving ? (
+          <InfoCard title={t("person.giving")}>
+            <div data-numeric className="font-display text-[32px] leading-[38px] text-fg">
+              {giving.gifts === 0 ? EMPTY : money(giving.cents)}
+            </div>
+            <div className="text-[13px] text-fg-muted">
+              {giving.gifts === 0
+                ? t("person.noGifts")
+                : t("person.giving.year", {
+                    count: String(giving.gifts),
+                    last: giving.lastOn ? shortDate(giving.lastOn) : "",
+                  })}
+            </div>
+          </InfoCard>
+        ) : null}
 
         <InfoCard title={t("person.groupsAndTeams")}>
           {places.length === 0 ? (

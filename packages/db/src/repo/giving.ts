@@ -417,3 +417,34 @@ export async function givingTotals(
 
   return { cents: row?.cents ?? 0, gifts: row?.count ?? 0, givers: row?.givers ?? 0 };
 }
+
+/**
+ * R13.18. What one person has given over a period.
+ *
+ * Read on their own record, where a pastor with the permission asks "are they
+ * giving" and a treasurer asks "what goes on their statement". The household
+ * roll-up that makes a couple one statement is R13.18 proper and comes with
+ * the statements.
+ */
+export async function givingForPerson(
+  db: Tx,
+  memberId: string,
+  range: { from: string; to: string },
+): Promise<{ cents: number; gifts: number; lastOn: string | null }> {
+  const [row] = await db
+    .select({
+      cents: sql<number>`coalesce(sum(${gifts.amountCents} - ${gifts.refundedCents}), 0)::int`,
+      count: sql<number>`count(*)::int`,
+      lastOn: sql<string | null>`max(${gifts.receivedOn})::text`,
+    })
+    .from(gifts)
+    .where(
+      and(
+        eq(gifts.memberId, memberId),
+        sql`${gifts.receivedOn} >= ${range.from}::date`,
+        sql`${gifts.receivedOn} <= ${range.to}::date`,
+      ),
+    );
+
+  return { cents: row?.cents ?? 0, gifts: row?.count ?? 0, lastOn: row?.lastOn ?? null };
+}
