@@ -55,6 +55,13 @@ Settings → Money → Online giving says so beside the account, and drafts the 
 name and Stripe account already in it. Nothing is sent from this product: the church's own mail
 client opens and the church presses send.
 
+### Bank debits
+
+Stripe ships a new account with **ACH debits off**, and a card is 2.2% + 30¢ while a bank debit is
+0.8% capped at $5. On a $4,000 gift that is $5 against $88, so this product asks for the capability
+when it creates the account and switches the method on as soon as Stripe will take payments. A
+church can still turn it off in its own Stripe settings.
+
 ## Who pays the processing fee
 
 The church does, out of its own Stripe balance, at whatever rate Stripe gives it. Stripe discounts

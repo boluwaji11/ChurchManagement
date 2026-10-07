@@ -6,7 +6,7 @@ import { withTenant, getChurch, getStripeAccount, saveStripeAccount } from "@con
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
-import { stripe, stripeConfigured } from "@/lib/stripe";
+import { stripe, stripeConfigured, asChurch } from "@/lib/stripe";
 
 export interface ConnectResult {
   error?: string;
@@ -117,7 +117,16 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
         },
         configuration: {
           merchant: {
-            capabilities: { card_payments: { requested: true } },
+            capabilities: {
+              card_payments: { requested: true },
+              /*
+               * R13.1. A bank debit costs a church 0.8% capped at $5, against
+               * 2.2% and 30c on a card. On a four-figure gift that is the
+               * difference between $5 and $90, so it is asked for from the
+               * first moment rather than left for somebody to discover.
+               */
+              ach_debit_payments: { requested: true },
+            },
             // 8661 is the merchant category for a religious organisation,
             // which is what every church on this platform is.
             mcc: "8661",
@@ -195,6 +204,8 @@ export async function syncStripe(church?: string): Promise<ConnectResult> {
     if (!existing) return {};
 
     const account = await stripe().accounts.retrieve(existing.accountId);
+    if (account.charges_enabled) await allowBankDebits(existing.accountId);
+
     await withTenant(ctx, (tx) =>
       saveStripeAccount(tx, actor, {
         accountId: account.id,
@@ -281,5 +292,49 @@ export async function accountFace(church?: string): Promise<AccountFace> {
     };
   } catch {
     return nothing;
+  }
+}
+
+/**
+ * R13.1. Switch bank debits on for a church that can take them.
+ *
+ * Stripe decides which methods a checkout offers from the account's own
+ * payment method settings, and it ships with bank debits off. A church is
+ * better off with them on: 0.8% capped at $5 against 2.2% and 30c, which on
+ * a four-figure gift is the difference between $5 and $90.
+ *
+ * Quiet on failure. A church whose account cannot take bank debits yet still
+ * has a working card page, and Stripe asks it for whatever it needs.
+ */
+async function allowBankDebits(accountId: string): Promise<void> {
+  try {
+    /*
+     * Two things have to be true: Stripe has to let the account take bank
+     * debits at all, and the account's own settings have to offer them. An
+     * account made before this was asked for has neither.
+     */
+    const account = await stripe().accounts.retrieve(accountId);
+    if (account.capabilities?.us_bank_account_ach_payments !== "active") {
+      await stripe().accounts.update(accountId, {
+        capabilities: { us_bank_account_ach_payments: { requested: true } },
+      });
+    }
+
+    const configs = await stripe().paymentMethodConfigurations.list(
+      {},
+      asChurch(accountId),
+    );
+    const theirs = configs.data.find(
+      (one) => one.is_default && one.us_bank_account?.display_preference.overridable,
+    );
+    if (!theirs || theirs.us_bank_account?.display_preference.value === "on") return;
+
+    await stripe().paymentMethodConfigurations.update(
+      theirs.id,
+      { us_bank_account: { display_preference: { preference: "on" } } },
+      asChurch(accountId),
+    );
+  } catch {
+    // Nothing to tell the church: the card page works either way.
   }
 }
