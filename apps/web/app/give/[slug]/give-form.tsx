@@ -7,7 +7,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { currencyMark, money, toCents } from "@/lib/money";
+import { currencyMark, groupAmount, money, toCents } from "@/lib/money";
 import { withFee } from "@/lib/stripe-fee";
 import { startGift } from "./actions";
 import { REPEATS, type Repeat } from "./repeats";
@@ -139,7 +139,7 @@ export function GiveForm({
             <span className="text-[26px] text-fg-subtle">{currencyMark()}</span>
             <input
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => setAmount(groupAmount(e.target.value))}
               inputMode="decimal"
               placeholder="0.00"
               aria-label={t("give.amount")}
@@ -153,7 +153,7 @@ export function GiveForm({
               <button
                 key={one}
                 type="button"
-                onClick={() => setAmount((one / 100).toFixed(0))}
+                onClick={() => setAmount(groupAmount(String(one / 100)))}
                 className="cursor-pointer rounded-full border border-line bg-surface px-3.5 py-1.5 text-[13px] font-medium text-fg hover:bg-sunken"
               >
                 {money(one).replace(/\.00$/, "")}

@@ -44,3 +44,23 @@ export function currencyMark(currency = "usd"): string {
   }).formatToParts(0);
   return parts.find((part) => part.type === "currency")?.value ?? "$";
 }
+
+/**
+ * What somebody is typing, grouped as they type it.
+ *
+ * "4563.15" reads as 4,563.15 while the cursor is still in the field, because
+ * a four-figure gift with no comma is a figure somebody has to count the
+ * digits of. A half-typed "45." keeps its point, and the cents stop at two.
+ */
+export function groupAmount(typed: string): string {
+  const clean = typed.replace(/[^0-9.]/g, "");
+  const [whole = "", ...rest] = clean.split(".");
+  const decimals = rest.join("").slice(0, 2);
+
+  const grouped = whole === "" ? "" : Number(whole).toLocaleString(undefined, {
+    maximumFractionDigits: 0,
+  });
+
+  if (!clean.includes(".")) return grouped;
+  return `${grouped}.${decimals}`;
+}
