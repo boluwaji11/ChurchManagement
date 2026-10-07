@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { Markdown } from "@/components/markdown";
+import { plainFromMarkdown } from "@/lib/rich-text";
 
 export interface TypeCard {
   id: string;
@@ -65,13 +65,13 @@ export function TypesLanding({
             </span>
 
             {one.description ? (
-              /* The church's own words, laid out as they wrote them. The card
-                 is itself a link, so the description carries none of its own. */
-              <Markdown
-                flat
-                text={one.description}
-                className="flex flex-col gap-2 text-[length:var(--d-text-body)] text-fg-muted"
-              />
+              /* One line, with the rest behind the press. The row is a choice
+                 between three or four names, and a kind that happens to carry
+                 six paragraphs would otherwise bury the one under it. The whole
+                 description heads the list this opens. */
+              <span className="line-clamp-1 text-[length:var(--d-text-body)] text-fg-muted">
+                {plainFromMarkdown(one.description)}
+              </span>
             ) : null}
           </span>
 
