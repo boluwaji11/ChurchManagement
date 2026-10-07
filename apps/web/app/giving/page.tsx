@@ -214,6 +214,20 @@ export default async function GivingPage({
               <p className="text-fg-muted">{t("giving.recent.none")}</p>
             ) : (
               <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+                {/* The column names, so a treasurer reading down the list
+                    knows which cell is which. */}
+                <li
+                  className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-semibold text-fg-subtle [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
+                >
+                  <span>{t("giving.col.date")}</span>
+                  <span>{t("giving.col.giver")}</span>
+                  <span>{t("giving.col.fund")}</span>
+                  <span>{t("giving.col.method")}</span>
+                  <span className="text-right">{t("giving.col.amount")}</span>
+                  <span>{t("giving.col.status")}</span>
+                  <span />
+                </li>
+
                 {read.recent.map((gift) => (
                   <li
                     key={gift.id}

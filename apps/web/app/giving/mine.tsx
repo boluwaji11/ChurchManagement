@@ -108,6 +108,16 @@ export async function MyGiving({ session }: { session: Session }) {
           <p className="text-fg-muted">{t("mine.giving.none")}</p>
         ) : (
           <Panel className="flex flex-col divide-y divide-line px-5 py-0">
+            <span
+              className="grid items-center gap-3 py-2.5 text-[12px] font-semibold text-fg-subtle [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px]"
+            >
+              <span>{t("giving.col.date")}</span>
+              <span>{t("giving.col.fund")}</span>
+              <span>{t("giving.col.method")}</span>
+              <span>{t("giving.col.status")}</span>
+              <span className="text-right">{t("giving.col.amount")}</span>
+            </span>
+
             {mine.gifts.map((gift) => (
               <span
                 key={gift.id}
@@ -122,7 +132,7 @@ export async function MyGiving({ session }: { session: Session }) {
                 </span>
                 {/* R13.2. Their bank transfer, before it has arrived. */}
                 <span className="flex text-caption">
-                  <GiftState status={gift.status} />
+                  <GiftState status={gift.status} audience="giver" />
                 </span>
                 <span
                   data-numeric
