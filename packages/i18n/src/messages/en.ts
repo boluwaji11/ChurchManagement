@@ -233,7 +233,7 @@ export const en = {
   "password.current": "Current password",
   "password.new": "New password",
   "password.change": "Change my password",
-  "password.confirm": "New password again",
+  "password.confirm": "Confirm new password",
   "password.error.match": "The two new passwords are different.",
   "password.row": "Change your password",
   "password.sendLink": "Send me a link to set one",
