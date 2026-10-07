@@ -8,6 +8,7 @@ import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
+import { listItemKinds, kindIsLive } from "./item-kinds";
 import type { WriteActor } from "./members";
 
 /**
@@ -19,12 +20,14 @@ import type { WriteActor } from "./members";
  * the clock time it starts at, and the plan carries the time it ends.
  */
 
-/** R11.2. The kinds a church already has words for, plus one for everything else. */
-export const ITEM_KINDS = [
-  "song", "scripture", "sermon", "prayer", "offering",
-  "announcement", "media", "custom",
-] as const;
-export type ItemKind = (typeof ITEM_KINDS)[number];
+/**
+ * R11.2. What an item is filed under.
+ *
+ * A slug rather than a fixed set: the kinds are a list the church keeps, so
+ * this is whatever `plan_item_kinds` says it runs. `BUILT_IN_KINDS` holds the
+ * eight every church starts with.
+ */
+export type ItemKind = string;
 
 export interface PlanItem {
   id: string;
@@ -259,13 +262,22 @@ export async function updatePlan(
   if (changed.length === 0) throw new InvalidInputError("order.error.missing");
 }
 
-function checkItem(input: ItemInput): { title: string; minutes: number; kind: ItemKind } {
+async function checkItem(
+  db: Tx,
+  actor: WriteActor,
+  input: ItemInput,
+): Promise<{ title: string; minutes: number; kind: ItemKind }> {
   const title = input.title?.trim();
   if (!title) throw new InvalidInputError("order.error.title");
-  if (!ITEM_KINDS.includes(input.kind)) throw new InvalidInputError("order.error.kind");
   if (!Number.isInteger(input.minutes) || input.minutes < 0 || input.minutes > 600) {
     throw new InvalidInputError("order.error.minutes");
   }
+
+  // R11.2. The kinds are the church's own list, so what an item may be filed
+  // under is read from it rather than from a constant in here.
+  await listItemKinds(db, actor.tenantId);
+  if (!(await kindIsLive(db, input.kind))) throw new InvalidInputError("order.error.kind");
+
   return { title, minutes: input.minutes, kind: input.kind };
 }
 
@@ -277,7 +289,7 @@ export async function addItem(
   input: ItemInput,
 ): Promise<{ id: string }> {
   if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
-  const values = checkItem(input);
+  const values = await checkItem(db, actor, input);
 
   const [last] = await db
     .select({ at: sql<number>`coalesce(max(${planItems.position}), -1)::int` })
@@ -305,7 +317,7 @@ export async function updateItem(
   input: ItemInput,
 ): Promise<void> {
   if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
-  const values = checkItem(input);
+  const values = await checkItem(db, actor, input);
 
   const changed = await db
     .update(planItems)

@@ -50,7 +50,10 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     {
       title: t("settings.group.services"),
       items: canManageServices(session)
-        ? [{ href: "/settings/plan-templates", label: t("settings.tab.plans") }]
+        ? [
+            { href: "/settings/plan-templates", label: t("settings.tab.plans") },
+            { href: "/settings/item-kinds", label: t("settings.tab.kinds") },
+          ]
         : [],
     },
     {

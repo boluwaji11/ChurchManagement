@@ -7,7 +7,8 @@ import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
-import { ITEM_KINDS, type ItemKind } from "./plans";
+import type { ItemKind } from "./plans";
+import { listItemKinds, kindIsLive } from "./item-kinds";
 import type { WriteActor } from "./members";
 
 /**
@@ -133,18 +134,27 @@ export interface TemplateShape extends PlanTemplate {
   archived: boolean;
 }
 
-function checkLines(items: ShapeInput[]): { kind: ItemKind; title: string; minutes: number }[] {
+async function checkLines(
+  db: Tx,
+  tenantId: string,
+  items: ShapeInput[],
+): Promise<{ kind: ItemKind; title: string; minutes: number }[]> {
   if (items.length === 0) throw new InvalidInputError("order.error.templateEmpty");
 
-  return items.map((item) => {
+  // R11.2. Filed under the kinds this church runs, read from its own list.
+  await listItemKinds(db, tenantId);
+
+  const lines = [];
+  for (const item of items) {
     const title = item.title?.trim();
     if (!title) throw new InvalidInputError("order.error.title");
-    if (!ITEM_KINDS.includes(item.kind as ItemKind)) throw new InvalidInputError("order.error.kind");
     if (!Number.isInteger(item.minutes) || item.minutes < 0 || item.minutes > 600) {
       throw new InvalidInputError("order.error.minutes");
     }
-    return { kind: item.kind as ItemKind, title: title.slice(0, 200), minutes: item.minutes };
-  });
+    if (!(await kindIsLive(db, item.kind))) throw new InvalidInputError("order.error.kind");
+    lines.push({ kind: item.kind, title: title.slice(0, 200), minutes: item.minutes });
+  }
+  return lines;
 }
 
 /**
@@ -162,7 +172,7 @@ export async function writeTemplate(
 ): Promise<{ id: string }> {
   if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
   const name = checkName(input.name);
-  const lines = checkLines(input.items);
+  const lines = await checkLines(db, actor.tenantId, input.items);
 
   const [clash] = await db
     .select({ id: planTemplates.id })

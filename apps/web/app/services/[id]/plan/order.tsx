@@ -15,15 +15,12 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
+import { kindLabel, type KindOption } from "@/lib/kinds";
 import { useFormError } from "@/lib/form-error";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
   keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, shapeOf,
 } from "./actions";
-
-const KINDS: ItemKind[] = [
-  "song", "scripture", "sermon", "prayer", "offering", "announcement", "media", "custom",
-];
 
 export interface OrderItem {
   id: string;
@@ -99,6 +96,7 @@ export function Order({
   theme,
   items,
   templates,
+  kinds,
 }: {
   church: string;
   occurrenceId: string;
@@ -108,6 +106,8 @@ export function Order({
   theme: string | null;
   items: OrderItem[];
   templates: OrderTemplate[];
+  /** R11.2. The kinds this church files an item under, in its own words. */
+  kinds: KindOption[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -178,6 +178,7 @@ export function Order({
           church={church}
           planId={planId}
           templates={templates}
+          kinds={kinds}
           disabled={pending}
         />
         <TemplateDialog
@@ -244,6 +245,7 @@ export function Order({
                       church={church}
                       planId={planId}
                       item={item}
+                      kinds={kinds}
                       trigger={
                         <button
                           type="button"
@@ -268,7 +270,7 @@ export function Order({
                                 color: `var(--hue-${hue}-key)`,
                               }}
                             >
-                              {t(`order.kind.${item.kind}` as never)}
+                              {kindLabel(item.kind, kinds)}
                             </span>
                           </span>
 
@@ -347,6 +349,7 @@ export function Order({
         <ItemDialog
           church={church}
           planId={planId}
+          kinds={kinds}
           trigger={
             <button
               type="button"
@@ -366,17 +369,19 @@ function ItemDialog({
   church,
   planId,
   item,
+  kinds,
   trigger,
 }: {
   church: string;
   planId: string;
   item?: OrderItem;
+  kinds: KindOption[];
   trigger: React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = useFormError(open);
-  const [kind, setKind] = React.useState(item?.kind ?? "song");
+  const [kind, setKind] = React.useState(item?.kind ?? kinds[0]?.slug ?? "custom");
   const [title, setTitle] = React.useState(item?.title ?? "");
   const [minutes, setMinutes] = React.useState(String(item?.minutes ?? 5));
   const [description, setDescription] = React.useState(item?.description ?? "");
@@ -421,11 +426,13 @@ function ItemDialog({
               <Select value={kind} onValueChange={setKind}>
                 <SelectTrigger aria-label={t("order.kind")}><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {KINDS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {t(`order.kind.${option}` as never)}
-                    </SelectItem>
-                  ))}
+                  {kinds
+                    .filter((option) => !option.archived || option.slug === kind)
+                    .map((option) => (
+                      <SelectItem key={option.slug} value={option.slug}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -639,11 +646,13 @@ function StartFrom({
   church,
   planId,
   templates,
+  kinds,
   disabled,
 }: {
   church: string;
   planId: string;
   templates: OrderTemplate[];
+  kinds: KindOption[];
   disabled: boolean;
 }) {
   const router = useRouter();
@@ -741,7 +750,7 @@ function StartFrom({
                   className="flex items-center gap-3 border-b border-sunken px-3.5 py-2.5 last:border-0"
                 >
                   <span className="w-[110px] shrink-0 text-[13px] text-fg-subtle">
-                    {t(`order.kind.${item.kind}` as never)}
+                    {kindLabel(item.kind, kinds)}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-fg">{item.title}</span>
                   <span data-numeric className="shrink-0 font-mono text-[13px] text-fg-muted">

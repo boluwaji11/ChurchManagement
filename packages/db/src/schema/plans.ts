@@ -169,6 +169,31 @@ export const planTemplates = pgTable(
   ],
 );
 
+/**
+ * R11.2. The kinds of item this church puts on a plan.
+ *
+ * `slug` is what a plan item stores, so a kind can be renamed without touching
+ * a single plan. `name` null means this is one of ours and the product's own
+ * word is still the right one.
+ */
+export const planItemKinds = pgTable(
+  "plan_item_kinds",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    slug: text("slug").notNull(),
+    name: text("name"),
+    position: integer("position").notNull().default(0),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("plan_item_kind_tenant_idx").on(t.tenantId),
+    uniqueIndex("plan_item_kind_slug_unique").on(t.tenantId, t.slug),
+  ],
+);
+
 /** R11.8. One line of a saved shape, matching planItems without the content. */
 export const planTemplateItems = pgTable(
   "plan_template_items",

@@ -3,12 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
-  listTemplates, rosterFor, listOccurrences, getChurch,
+  listTemplates, listItemKinds, rosterFor, listOccurrences, getChurch,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { longDate, readableTime, shortDate } from "@/lib/dates";
+import { kindOptions } from "@/lib/kinds";
 import { churchNow } from "@/lib/church-now";
 import { Order } from "./order";
 import { PlanSide } from "./side";
@@ -54,6 +55,8 @@ export default async function PlanPage({
       plan,
       // R11.8. The shapes to start from, as the church keeps them in settings.
       templates: await listTemplates(tx),
+      // R11.2. The words this church files an item under.
+      kinds: kindOptions(await listItemKinds(tx, session.tenantId, { includeArchived: true })),
       // R11.9. Who serves, read from the same schedule the serving pages write.
       roster: await rosterFor(tx, occurrenceId),
       // R11.1. The church's other services, so a leader planning three in a
@@ -66,7 +69,7 @@ export default async function PlanPage({
   });
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, templates, roster, others } = result;
+  const { occurrence, plan, templates, kinds, roster, others } = result;
 
   // R11.3. The clock the plan runs on, worked out the same way the order does.
   const [h, m] = occurrence.startsAt.split(":").map(Number);
@@ -148,6 +151,7 @@ export default async function PlanPage({
               })),
             }))}
             templates={templates}
+            kinds={kinds}
           />
         </div>
 

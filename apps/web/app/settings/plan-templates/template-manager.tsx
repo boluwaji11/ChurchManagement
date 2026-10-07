@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { TemplateShape } from "@connectapp/db";
+import type { KindOption } from "@/lib/kinds";
 import { Empty } from "@/components/empty";
 import { usePanelGuard } from "@/components/panel-guard";
 import { LibraryPicker } from "@/components/library-picker";
@@ -38,8 +39,8 @@ export function TemplateManager({
 }: {
   church: string;
   templates: TemplateShape[];
-  /** R11.2. The kinds an item can be, read from the data layer by the page. */
-  kinds: string[];
+  /** R11.2. The kinds this church files an item under. */
+  kinds: KindOption[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -164,7 +165,7 @@ function TemplatePanel({
 }: {
   church: string;
   pending: boolean;
-  kinds: string[];
+  kinds: KindOption[];
   /** Given when an existing shape is being changed. */
   template?: TemplateShape;
   /** What this church already keeps, so the library leaves it out. */
@@ -338,7 +339,7 @@ function Lines({
   onChange,
 }: {
   lines: ShapeLine[];
-  kinds: string[];
+  kinds: KindOption[];
   onChange: (next: ShapeLine[]) => void;
 }) {
   const [dragging, setDragging] = React.useState<number | null>(null);
@@ -425,11 +426,13 @@ function Lines({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {kinds.map((kind) => (
-                      <SelectItem key={kind} value={kind}>
-                        {t(`order.kind.${kind}` as never)}
-                      </SelectItem>
-                    ))}
+                    {kinds
+                      .filter((kind) => !kind.archived || kind.slug === line.kind)
+                      .map((kind) => (
+                        <SelectItem key={kind.slug} value={kind.slug}>
+                          {kind.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
 
@@ -466,7 +469,7 @@ function Lines({
 
       <button
         type="button"
-        onClick={() => onChange([...lines, { kind: "song", title: "", minutes: 5 }])}
+        onClick={() => onChange([...lines, { kind: kinds[0]?.slug ?? "custom", title: "", minutes: 5 }])}
         className="flex cursor-pointer items-center gap-1.5 self-start rounded-md px-2 py-1.5 font-medium text-primary"
       >
         <Plus className="size-4" aria-hidden /> {t("planTpl.item.add")}

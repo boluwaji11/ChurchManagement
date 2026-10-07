@@ -91,6 +91,7 @@ export * from "./repo/serving";
 export * from "./repo/schedule";
 export * from "./repo/respond";
 export * from "./repo/plans";
+export * from "./repo/item-kinds";
 export * from "./repo/plan-templates";
 export * from "./repo/live";
 export * from "./repo/plan-history";

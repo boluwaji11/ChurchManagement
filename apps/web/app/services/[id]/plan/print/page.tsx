@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import {
-  withTenant, getOccurrence, getPlan, runningTimes,
+  withTenant, getOccurrence, getPlan, runningTimes, listItemKinds,
   canManageServices,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { dayAndMonth, readableTime } from "@/lib/dates";
+import { kindLabel, kindOptions } from "@/lib/kinds";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 
 export const dynamic = "force-dynamic";
@@ -46,12 +47,14 @@ export default async function PrintPlanPage({
       return {
         occurrence,
         plan: await getPlan(tx, occurrenceId),
+        // R11.2. The church's own word for each kind, on the sheet it hands out.
+        kinds: kindOptions(await listItemKinds(tx, session.tenantId, { includeArchived: true })),
       };
     },
   );
 
   if (!result?.plan) notFound();
-  const { occurrence, plan } = result;
+  const { occurrence, plan, kinds } = result;
   const timed = runningTimes(plan.serviceStartsAt, plan.items);
 
   return (
@@ -96,7 +99,7 @@ export default async function PrintPlanPage({
                   {readableTime(item.startsAt)}
                 </span>
                 <span className="w-[130px] shrink-0 text-[15px] text-neutral-500">
-                  {t(`order.kind.${item.kind}` as never)}
+                  {kindLabel(item.kind, kinds)}
                 </span>
 
                 <span className="min-w-0 flex-1">
