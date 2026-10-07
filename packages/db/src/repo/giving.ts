@@ -39,6 +39,8 @@ export interface Gift {
   status: string;
   /** R13.2. What the bank said, where a bank debit did not arrive. */
   failureReason: string | null;
+  /** R13.15. The day the money went back, where any of it did. */
+  refundedOn: string | null;
 }
 
 export interface Batch {
@@ -368,6 +370,7 @@ export async function listGifts(
       refundedCents: gifts.refundedCents,
       status: gifts.status,
       failureReason: gifts.failureReason,
+      refundedAt: sql<string | null>`${gifts.refundedAt}::text`,
     })
     .from(gifts)
     .innerJoin(funds, eq(funds.id, gifts.fundId))
@@ -402,6 +405,7 @@ export async function listGifts(
     refundedCents: amounts ? row.refundedCents : 0,
     status: row.status,
     failureReason: row.failureReason,
+    refundedOn: row.refundedAt ? row.refundedAt.slice(0, 10) : null,
   }));
 }
 

@@ -1079,6 +1079,7 @@ export const en = {
   "giving.onTheWay": "{amount} processing",
   "giving.gift.pendingWhy": "A bank transfer takes a few days to arrive.",
   "giving.state.received": "Received",
+  "giving.state.refunded": "Refunded",
   "giving.state.complete": "Complete",
   "giving.state.processing": "Processing",
   "giving.state.failed": "Failed",

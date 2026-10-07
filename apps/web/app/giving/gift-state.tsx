@@ -21,6 +21,10 @@ export function GiftState({
   reason?: string | null;
   audience?: "church" | "giver";
 }) {
+  if (status === "refunded") {
+    return <span className="text-fg-subtle">{t("giving.state.refunded")}</span>;
+  }
+
   if (status === "pending") {
     return (
       <Badge tone="warning" title={t("giving.gift.pendingWhy")}>

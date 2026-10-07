@@ -13,6 +13,7 @@ import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { GiftState } from "./gift-state";
+import { giftRows } from "./rows";
 
 /**
  * R13.19, R17.4. A member's own giving, and their own statement.
@@ -118,29 +119,30 @@ export async function MyGiving({ session }: { session: Session }) {
               <span className="text-right">{t("giving.col.amount")}</span>
             </span>
 
-            {mine.gifts.map((gift) => (
+            {giftRows(mine.gifts).map((row) => (
               <span
-                key={gift.id}
+                key={row.key}
                 className="grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px]"
               >
+                <span className="text-caption text-fg-subtle">{shortDate(row.on)}</span>
+                <span className="min-w-0 truncate font-medium text-fg">{row.gift.fundName}</span>
                 <span className="text-caption text-fg-subtle">
-                  {shortDate(gift.receivedOn)}
+                  {t(`giving.method.${row.gift.method}` as never)}
                 </span>
-                <span className="min-w-0 truncate font-medium text-fg">{gift.fundName}</span>
-                <span className="text-caption text-fg-subtle">
-                  {t(`giving.method.${gift.method}` as never)}
-                </span>
-                {/* R13.2. Their bank transfer, before it has arrived. */}
+                {/* R13.2, R13.15. Their bank transfer before it arrives, and
+                    anything the church gave back, on its own line. */}
                 <span className="flex text-caption">
-                  <GiftState status={gift.status} audience="giver" />
+                  <GiftState status={row.status} audience="giver" />
                 </span>
                 <span
                   data-numeric
                   className={`text-right font-mono ${
-                    gift.status === "settled" ? "text-fg" : "text-fg-subtle"
+                    row.status === "settled" ? "text-fg" : "text-fg-subtle"
                   }`}
                 >
-                  {gift.inKindDescription ?? money(gift.amountCents - gift.refundedCents)}
+                  {row.gift.inKindDescription && row.kind === "gift"
+                    ? row.gift.inKindDescription
+                    : money(row.amountCents)}
                 </span>
               </span>
             ))}

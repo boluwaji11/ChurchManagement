@@ -18,6 +18,7 @@ import { GiftPanel } from "./gift-panel";
 import { RefundGift } from "./refund";
 import { AttachGift } from "./attach";
 import { GiftState } from "./gift-state";
+import { giftRows } from "./rows";
 
 export const dynamic = "force-dynamic";
 
@@ -195,6 +196,109 @@ export default async function GivingPage({
                     </Link>
                   </li>
                 ))}
+              </ul>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-[22px] leading-[28px] text-fg">
+                {t("giving.recent")}
+              </h2>
+              {/* R13.23. Everything recorded, as a spreadsheet. */}
+              <a
+                href={`/api/giving?church=${session.tenantSlug}`}
+                className="font-medium text-primary"
+              >
+                {t("giving.export")}
+              </a>
+            </div>
+            {read.recent.length === 0 ? (
+              <p className="text-fg-muted">{t("giving.recent.none")}</p>
+            ) : (
+              <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+                {/* The column names, so a treasurer reading down the list
+                    knows which cell is which. */}
+                <li
+                  className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
+                >
+                  <span>{t("giving.col.date")}</span>
+                  <span>{t("giving.col.giver")}</span>
+                  <span>{t("giving.col.fund")}</span>
+                  <span>{t("giving.col.method")}</span>
+                  <span className="text-right">{t("giving.col.amount")}</span>
+                  <span>{t("giving.col.status")}</span>
+                  <span />
+                </li>
+
+                {giftRows(read.recent).map((row) => {
+                  const gift = row.gift;
+                  const back = row.kind === "refund";
+
+                  return (
+                  <li
+                    key={row.key}
+                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
+                  >
+                    <span className="text-[13px] text-fg-subtle">{shortDate(row.on)}</span>
+
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate text-fg">
+                        {gift.memberName ?? t("giving.gift.anonymous")}
+                      </span>
+                      {/* R13.18. A gift on nobody's record is on nobody's
+                          statement either, so it says so here. */}
+                      {gift.memberId === null && !back ? (
+                        <span className="text-[12px] text-fg-subtle">
+                          {t("giving.gift.unattached")}
+                        </span>
+                      ) : null}
+                    </span>
+
+                    <span className="truncate text-[13px] text-fg-muted">{gift.fundName}</span>
+
+                    <span className="text-[13px] text-fg-muted">
+                      {t(`giving.method.${gift.method}` as never)}
+                    </span>
+
+                    <span
+                      data-numeric
+                      className={`text-right font-mono ${
+                        gift.status === "settled" && !back ? "text-fg" : "text-fg-subtle"
+                      }`}
+                    >
+                      {gift.inKindDescription && !back ? "" : money(row.amountCents)}
+                    </span>
+
+                    {/* R13.2, R13.15. Where the money has got to: on its way,
+                        returned by the bank, or given back by the church. */}
+                    <span className="flex text-[13px]">
+                      <GiftState status={row.status} reason={gift.failureReason} />
+                    </span>
+
+                    {/* R13.15, R13.18. The two things done to a gift, in the
+                        same place on every row whether or not they apply. */}
+                    <span className="flex items-center justify-end gap-1">
+                      {manage && gift.memberId === null && !back ? (
+                        <AttachGift
+                          church={session.tenantSlug}
+                          gift={{ id: gift.id, typed: gift.memberName }}
+                        />
+                      ) : null}
+                      {manage && !back && !gift.inKindDescription && gift.status === "settled"
+                        && gift.amountCents > gift.refundedCents ? (
+                        <RefundGift
+                          church={session.tenantSlug}
+                          gift={{
+                            id: gift.id,
+                            amountCents: gift.amountCents,
+                            refundedCents: gift.refundedCents,
+                            method: gift.method,
+                          }}
+                        />
+                      ) : null}
+                    </span>
+                  </li>
+                  );
+                })}
               </ul>
             )}
 
