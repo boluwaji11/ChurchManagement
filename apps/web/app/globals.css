@@ -5,6 +5,15 @@
 @source "../../../packages/ui/src";
 
 /*
+ * R24.6. How far down the page starts, under the bar that holds the page's
+ * name. Anything that pins itself to the top of a screen sits below that bar
+ * rather than under it, so the two never cover each other.
+ */
+:root {
+  --d-topbar: 63px;
+}
+
+/*
  * R24.6. A remembered email and password look like every other field.
  *
  * Chrome paints its own background over anything it filled in, in a colour it

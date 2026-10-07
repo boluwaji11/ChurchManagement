@@ -60,7 +60,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
     return (
       <nav
         aria-label={t("settings.sections")}
-        className="sticky top-0 z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
+        className="sticky top-[var(--d-topbar)] z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
       >
         {only.items.map((item, at) => (
           <div key={item.href} className="flex items-stretch">
@@ -88,7 +88,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
   return (
     <nav
       aria-label={t("settings.sections")}
-      className="sticky top-0 z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
+      className="sticky top-[var(--d-topbar)] z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
     >
       {groups.map((group, at) => {
         const open = group.items.find((item) => item.href === pathname);
