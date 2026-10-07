@@ -215,9 +215,11 @@ export function OnlineGiving({
           </span>
 
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate font-semibold text-fg">
-              {face.name || t("stripe.title")}
-            </span>
+            {/* The church's own account, where there is one. The badge
+                beside it already says whose rails these are. */}
+            {face.name ? (
+              <span className="truncate font-semibold text-fg">{face.name}</span>
+            ) : null}
             {account ? (
               <span className="truncate text-[12px] text-fg-subtle">
                 {[

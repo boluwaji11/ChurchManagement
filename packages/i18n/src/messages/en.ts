@@ -1174,7 +1174,7 @@ export const en = {
   "stripe.missing.website": "Website",
   "stripe.missing.address": "Address",
   "stripe.missing.go": "Church profile",
-  "stripe.connect": "Connect Stripe",
+  "stripe.connect": "Connect via Stripe",
   "stripe.continue": "Finish connecting",
   "stripe.open": "Open Stripe",
   "stripe.refresh": "Check again",
