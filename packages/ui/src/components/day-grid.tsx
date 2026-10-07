@@ -83,6 +83,67 @@ export function DayGrid({
     onChange([...next].sort());
   };
 
+  /*
+   * R10.4. A run of days is drawn across rather than tapped one at a time.
+   *
+   * Somebody away for a fortnight is answering one question, and fourteen
+   * presses is the kind of thing that stops people answering it. Pressing and
+   * dragging marks everything the pointer passes over, and holding Shift
+   * reaches the same range from the keyboard. Whether the run is being added or
+   * taken away is decided by the day it started on, so dragging back over a run
+   * clears it.
+   */
+  const anchor = React.useRef<string | null>(null);
+  const mode = React.useRef<"add" | "remove">("add");
+  const dragged = React.useRef(false);
+  const [drawing, setDrawing] = React.useState(false);
+
+  const daysBetween = (a: string, b: string): string[] => {
+    const [from, to] = a <= b ? [a, b] : [b, a];
+    const out: string[] = [];
+    const [y, m, d] = from.split("-").map(Number) as [number, number, number];
+    const at = new Date(y, m - 1, d);
+    for (let guard = 0; guard < 400; guard += 1) {
+      const day = iso(at.getFullYear(), at.getMonth(), at.getDate());
+      if (day > to) break;
+      if (day >= floor) out.push(day);
+      at.setDate(at.getDate() + 1);
+    }
+    return out;
+  };
+
+  const run = (to: string) => {
+    const at = anchor.current;
+    if (!at) return;
+    const next = new Set(chosen);
+    for (const day of daysBetween(at, to)) {
+      if (mode.current === "add") next.add(day);
+      else next.delete(day);
+    }
+    onChange([...next].sort());
+  };
+
+  const begin = (day: string, extend: boolean) => {
+    if (extend && anchor.current) {
+      run(day);
+      return;
+    }
+    anchor.current = day;
+    mode.current = chosen.has(day) ? "remove" : "add";
+    run(day);
+  };
+
+  React.useEffect(() => {
+    if (!drawing) return;
+    const stop = () => setDrawing(false);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    return () => {
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+  }, [drawing]);
+
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <div className="flex items-center justify-between gap-2">
@@ -117,7 +178,9 @@ export function DayGrid({
         ))}
       </div>
 
-      <div role="grid" className="grid grid-cols-7 gap-0.5">
+      {/* Dragging across days is a selection gesture, so the browser must not
+          read it as scrolling the page or selecting text. */}
+      <div role="grid" className="grid touch-none grid-cols-7 gap-0.5 select-none">
         {cells.map((cell) => {
           const on = chosen.has(cell.iso);
           const outside = cell.month !== cursor.m;
@@ -130,7 +193,29 @@ export function DayGrid({
               aria-pressed={on}
               aria-disabled={blocked || undefined}
               disabled={blocked}
-              onClick={() => toggle(cell.iso)}
+              onPointerDown={(event) => {
+                // The pointer owns this press. The click that follows it is the
+                // same gesture arriving twice.
+                dragged.current = true;
+                setDrawing(true);
+                begin(cell.iso, event.shiftKey);
+              }}
+              onPointerEnter={() => {
+                if (drawing) run(cell.iso);
+              }}
+              onClick={(event) => {
+                if (dragged.current) {
+                  dragged.current = false;
+                  return;
+                }
+                // The keyboard, which sends a click and no pointer.
+                if (event.shiftKey) begin(cell.iso, true);
+                else {
+                  anchor.current = cell.iso;
+                  mode.current = chosen.has(cell.iso) ? "remove" : "add";
+                  toggle(cell.iso);
+                }
+              }}
               className={cn(
                 "flex h-9 cursor-pointer items-center justify-center rounded-md",
                 "text-[length:var(--d-text-body)] transition-colors duration-instant",
