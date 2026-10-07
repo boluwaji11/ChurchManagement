@@ -5,13 +5,10 @@ import { givingPage } from "@connectapp/db";
 import { giftSession } from "../actions";
 import { ManageGift } from "./manage";
 import { Button } from "@connectapp/ui";
+import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
-
-/** A church writes its address with or without the scheme; a link needs one. */
-const siteOf = (website: string): string =>
-  /^https?:\/\//i.test(website) ? website : `https://${website}`;
 
 /** R13.6. What a giver reads when Stripe sends them back. */
 export default async function ThanksPage({
@@ -35,6 +32,9 @@ export default async function ThanksPage({
     ? await giftSession(slug, session)
     : { repeating: false, email: null, known: false };
 
+  /* R17.4. Somebody already signed in has screens of their own to go back to. */
+  const signedIn = Boolean(await currentUser());
+
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-5 py-10">
       <div className="flex w-full max-w-[420px] flex-col items-center gap-4 text-center">
@@ -52,17 +52,31 @@ export default async function ThanksPage({
         ) : null}
 
         {/*
-          * R13.3, R17.4. A repeating gift is something somebody will want to
-          * change one day. Where the church has no record of them and its door
-          * is open, an account is the offer, because then it is a screen in
-          * this product rather than a page on Stripe. Managing it without one
-          * stays available, in smaller print, because nobody should have to
-          * make an account to stop giving.
+          * R13.3, R17.4. One way on, chosen for whoever is standing here.
+          *
+          * Somebody already signed in goes back to their own screens, because
+          * their giving is on them. Somebody the church knows is offered the
+          * way in. Somebody it does not know, where the church's door is
+          * open, is offered an account, since a repeating gift is a thing
+          * they will want to change one day and a screen in this product
+          * beats a page on Stripe. Managing it without an account stays, in
+          * smaller print, because nobody should have to make one to stop
+          * giving.
           */}
-        {gift.repeating && session ? (
-          <div className="flex flex-col items-center gap-3">
-            {church.selfSignup && !gift.known && gift.email ? (
-              <>
+        <div className="flex flex-col items-center gap-3">
+          {signedIn ? (
+            <Button asChild>
+              <Link href={`/home?church=${church.slug}`}>{t("give.thanks.return")}</Link>
+            </Button>
+          ) : gift.repeating && session ? (
+            <>
+              {gift.known ? (
+                <Button asChild>
+                  <Link href={`/sign-in?next=${encodeURIComponent("/home/giving")}`}>
+                    {t("give.thanks.signIn")}
+                  </Link>
+                </Button>
+              ) : church.selfSignup && gift.email ? (
                 <Button asChild>
                   <Link
                     href={`/sign-up?next=${encodeURIComponent(`/join/${church.slug}`)}&email=${
@@ -72,32 +86,14 @@ export default async function ThanksPage({
                     {t("give.thanks.account")}
                   </Link>
                 </Button>
-                <ManageGift slug={church.slug} session={session} quiet />
-              </>
-            ) : gift.known ? (
-              <>
-                <Button asChild>
-                  <Link href={`/sign-in?next=${encodeURIComponent("/home/giving")}`}>
-                    {t("give.thanks.signIn")}
-                  </Link>
-                </Button>
-                <ManageGift slug={church.slug} session={session} quiet />
-              </>
-            ) : (
-              <ManageGift slug={church.slug} session={session} />
-            )}
-          </div>
-        ) : null}
-        {/* R13.6. A giver came from the church's own website, and that is
-            where they are going back to. Giving again is the quieter of the
-            two, because somebody who has just given is done. */}
-        <div className="flex flex-col items-center gap-3">
-          {church.website ? (
-            <Button asChild>
-              <a href={siteOf(church.website)}>
-                {t("give.thanks.home", { church: church.name })}
-              </a>
-            </Button>
+              ) : null}
+
+              <ManageGift
+                slug={church.slug}
+                session={session}
+                quiet={gift.known || (church.selfSignup && Boolean(gift.email))}
+              />
+            </>
           ) : null}
 
           <Link href={`/give/${church.slug}`} className="font-medium text-primary">
