@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   withTenant, findGroups, personForUser, householdFor, assignmentsForPerson,
-  givingForPerson, getStripeAccount,
   listEvents, listOccurrences, myChildren, canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -11,7 +10,6 @@ import {
 } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { money } from "@/lib/money";
 import { Respond } from "./schedule/respond";
 import { CheckinCard } from "./checkin-card";
 import { onDay, dayName, readableTime } from "./when";
@@ -80,18 +78,6 @@ export default async function MemberHomePage({
         events: (await listEvents(tx, { from: now.date }))
           .filter((one) => one.listed && one.status === "published")
           .slice(0, 3),
-        /*
-         * R13.19, R17.4. Their own giving, which a member may always read
-         * whatever their role says about anybody else's.
-         */
-        giving: self
-          ? await givingForPerson(tx, self, {
-              from: `${now.date.slice(0, 4)}-01-01`,
-              to: `${now.date.slice(0, 4)}-12-31`,
-            })
-          : null,
-        /** R13.6. Whether the church can take a gift online at all. */
-        online: (await getStripeAccount(tx))?.chargesEnabled ?? false,
       };
     },
   );
@@ -246,40 +232,6 @@ export default async function MemberHomePage({
               {mine.groups.length > 0 ? t("home.findAnother") : t("find.title")}
             </Link>
           </Panel>
-
-          {/* R13.19, R17.4. What they have given, and the way to give again.
-              Nothing is drawn where the church has neither. */}
-          {mine.giving && (mine.giving.gifts > 0 || mine.online) ? (
-            <Panel className="flex flex-col gap-2.5">
-              <span className="text-caption font-medium text-fg-subtle">
-                {t("home.myGiving")}
-              </span>
-              <span data-numeric className="font-display text-[28px] leading-[34px] text-fg">
-                {money(mine.giving.cents)}
-              </span>
-              <span className="text-caption text-fg-subtle">
-                {t("home.myGiving.year", { year: mine.today.slice(0, 4) })}
-              </span>
-              <div className="flex flex-wrap items-center gap-4">
-                {mine.online ? (
-                  <Link
-                    href={`/give/${session.tenantSlug}`}
-                    className="text-[length:var(--d-text-body)] font-medium text-primary"
-                  >
-                    {t("home.giveNow")}
-                  </Link>
-                ) : null}
-                {mine.giving.gifts > 0 ? (
-                  <Link
-                    href={`/home/giving?church=${session.tenantSlug}`}
-                    className="text-[length:var(--d-text-body)] font-medium text-primary"
-                  >
-                    {t("home.myGiving.see")}
-                  </Link>
-                ) : null}
-              </div>
-            </Panel>
-          ) : null}
 
           {mine.household ? (
             <Panel className="flex flex-col gap-2.5">

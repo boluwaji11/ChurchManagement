@@ -78,17 +78,16 @@ export async function POST(request: Request) {
        */
       case "payment_intent.succeeded": {
         if (!account) break;
-        const intent = event.data.object as Stripe.PaymentIntent & {
-          invoice?: string | { id: string } | null;
-        };
+        const intent = event.data.object as Stripe.PaymentIntent;
 
         /*
          * R13.3. A collection on a repeating gift arrives twice: once as this
-         * payment, and once as the invoice that raised it. The invoice is the
-         * one that knows who gave and what for, because the metadata lives on
-         * the subscription, so this leaves it alone.
+         * payment and once as the invoice that raised it. Only the invoice
+         * knows who gave and what for, because that lives on the
+         * subscription, so a payment this product did not write metadata onto
+         * is left to the invoice below.
          */
-        if (intent.invoice) break;
+        if (!intent.metadata?.fundId) break;
         const chargeId =
           typeof intent.latest_charge === "string"
             ? intent.latest_charge
@@ -186,54 +185,59 @@ export async function POST(request: Request) {
        */
       case "invoice.paid": {
         if (!account) break;
-        const invoice = event.data.object as Stripe.Invoice & {
-          payment_intent?: string | { id: string } | null;
-          subscription?: string | { id: string } | null;
-          charge?: string | { id: string } | null;
-        };
+        const paid = event.data.object as Stripe.Invoice;
+
+        /*
+         * R13.3. An invoice no longer names its subscription or its payment
+         * at the top level: the subscription and its metadata sit under
+         * `parent`, and the payment is one of `payments`, which has to be
+         * asked for. Both are read here rather than guessed at.
+         */
+        const subscription = paid.parent?.subscription_details;
+        const metadata = subscription?.metadata ?? {};
+
+        const full = await stripe().invoices.retrieve(
+          paid.id as string,
+          { expand: ["payments"] },
+          { stripeAccount: account },
+        );
+        const payment = full.payments?.data?.[0]?.payment;
         const intentId =
-          typeof invoice.payment_intent === "string"
-            ? invoice.payment_intent
-            : invoice.payment_intent?.id ?? null;
+          payment && payment.type === "payment_intent"
+            ? typeof payment.payment_intent === "string"
+              ? payment.payment_intent
+              : payment.payment_intent?.id ?? null
+            : null;
         if (!intentId) break;
 
-        const subId =
-          typeof invoice.subscription === "string"
-            ? invoice.subscription
-            : invoice.subscription?.id ?? null;
-
+        /* The fee Stripe took, which the church pays and reconciles against. */
         let feeCents = 0;
-        const chargeId =
-          typeof invoice.charge === "string" ? invoice.charge : invoice.charge?.id ?? null;
-        if (chargeId) {
-          const charge = await stripe().charges.retrieve(
-            chargeId,
-            { expand: ["balance_transaction"] },
-            { stripeAccount: account },
-          );
+        let chargeId: string | null = null;
+        const intent = await stripe().paymentIntents.retrieve(
+          intentId,
+          { expand: ["latest_charge.balance_transaction"] },
+          { stripeAccount: account },
+        );
+        const charge = intent.latest_charge;
+        if (charge && typeof charge !== "string") {
+          chargeId = charge.id;
           const balance = charge.balance_transaction;
           if (balance && typeof balance !== "string") feeCents = balance.fee;
         }
-
-        const metadata = subId
-          ? (
-              await stripe().subscriptions.retrieve(subId, {}, { stripeAccount: account })
-            ).metadata
-          : {};
 
         await recordOnlineGift({
           accountId: account,
           paymentIntentId: intentId,
           chargeId,
-          amountCents: invoice.amount_paid,
+          amountCents: paid.amount_paid,
           feeCents,
-          currency: invoice.currency,
-          receivedOn: new Date(invoice.created * 1000).toISOString().slice(0, 10),
-          fundId: metadata?.fundId || null,
-          split: splitFrom(metadata?.split),
-          coveredFee: metadata?.coveredFee === "true",
-          giverName: metadata?.giverName || null,
-          giverEmail: metadata?.giverEmail || invoice.customer_email || null,
+          currency: paid.currency,
+          receivedOn: new Date(paid.created * 1000).toISOString().slice(0, 10),
+          fundId: metadata.fundId || null,
+          split: splitFrom(metadata.split),
+          coveredFee: metadata.coveredFee === "true",
+          giverName: metadata.giverName || null,
+          giverEmail: metadata.giverEmail || paid.customer_email || null,
         });
         break;
       }

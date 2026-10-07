@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import { Download } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, getChurch,
+  getStripeAccount, listRecurring,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
+import { Button } from "@connectapp/ui";
 import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -57,6 +59,11 @@ export default async function MyGivingPage({
         { memberId: self, limit: 200 },
       ),
       total: await givingForPerson(tx, self, { from: `${year}-01-01`, to: `${year}-12-31` }),
+      /** R13.6. Whether the church can take a gift online at all. */
+      online: (await getStripeAccount(tx))?.chargesEnabled ?? false,
+      /** R13.3. What they have set to repeat, if anything. */
+      repeating: (await listRecurring(tx, { ...ctx, permissions: [...(ctx.permissions ?? []), "giving.amounts"] }, { activeOnly: true }))
+        .filter((one) => one.name === session.displayName),
     };
   });
 
@@ -77,14 +84,25 @@ export default async function MyGivingPage({
             </span>
           </span>
 
-          <Link
-            href={`/home/giving/statement?church=${session.tenantSlug}&year=${mine.year}`}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="inline-flex items-center gap-1.5 font-medium text-primary no-underline"
-          >
-            <Download className="size-4" aria-hidden /> {t("mine.giving.statement")}
-          </Link>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* R13.6. The thing a member came here to do. */}
+            {mine.online ? (
+              <Button asChild>
+                <Link href={`/give/${session.tenantSlug}`}>{t("home.giveNow")}</Link>
+              </Button>
+            ) : null}
+
+            {mine.total.gifts > 0 ? (
+              <Link
+                href={`/home/giving/statement?church=${session.tenantSlug}&year=${mine.year}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1.5 font-medium text-primary no-underline"
+              >
+                <Download className="size-4" aria-hidden /> {t("mine.giving.statement")}
+              </Link>
+            ) : null}
+          </div>
         </Panel>
 
         {mine.gifts.length === 0 ? (
