@@ -66,7 +66,7 @@ export default async function ThanksPage({
         <div className="flex flex-col items-center gap-3">
           {signedIn ? (
             <Button asChild>
-              <Link href={`/home/giving?church=${church.slug}`}>{t("give.thanks.return")}</Link>
+              <Link href={`/giving?church=${church.slug}`}>{t("give.thanks.return")}</Link>
             </Button>
           ) : gift.repeating && session ? (
             <>

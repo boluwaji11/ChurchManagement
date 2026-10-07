@@ -8,12 +8,10 @@ import {
 import { t } from "@connectapp/i18n";
 import { Button } from "@connectapp/ui";
 import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
-import { requireSession } from "@/lib/session";
+import type { Session } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
-
-export const dynamic = "force-dynamic";
 
 /**
  * R13.19, R17.4. A member's own giving, and their own statement.
@@ -22,14 +20,7 @@ export const dynamic = "force-dynamic";
  * is the screen that means a church secretary is not asked for a copy of a
  * statement in the second week of January.
  */
-export default async function MyGivingPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ church?: string }>;
-}) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
-
+export async function MyGiving({ session }: { session: Session }) {
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,
@@ -95,7 +86,7 @@ export default async function MyGivingPage({
 
           {mine.total.gifts > 0 ? (
             <Link
-              href={`/home/giving/statement?church=${session.tenantSlug}&year=${mine.year}`}
+              href={`/giving/statement?church=${session.tenantSlug}&year=${mine.year}`}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex items-center gap-1.5 font-medium text-primary no-underline"

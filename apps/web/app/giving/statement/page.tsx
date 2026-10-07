@@ -52,7 +52,7 @@ export default async function MyStatementPage({
     };
   });
 
-  if (!read?.statement) redirect(`/home?church=${session.tenantSlug}`);
+  if (!read?.statement) redirect(`/giving?church=${session.tenantSlug}`);
 
   const { statement } = read;
   const inKind = statement.lines.filter((line) => line.inKindDescription);

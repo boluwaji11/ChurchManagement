@@ -62,7 +62,7 @@ export async function PortalShell({
     { label: t("nav.serving"), href: "/home/schedule" },
     // R13.19, R17.4. Giving is a thing a member comes to do, so it is a
     // place in the portal rather than a card on the way past.
-    { label: t("nav.giving"), href: "/home/giving" },
+    { label: t("nav.giving"), href: "/giving" },
   ];
 
   /*

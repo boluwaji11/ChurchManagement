@@ -8,7 +8,7 @@ import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { Denied } from "@/components/denied";
+import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
 import { Figure } from "@/app/reports/figure";
 import { money, roundMoney } from "@/lib/money";
@@ -37,13 +37,14 @@ export default async function GivingPage({
   const manage = canManageGiving(session);
   const amounts = canReadGivingAmounts(session);
 
-  if (!manage && !amounts) {
-    return (
-      <AppShell session={session} title={t("giving.title")}>
-        <Denied />
-      </AppShell>
-    );
-  }
+  /*
+   * R17.4. The same address read from the other side.
+   *
+   * A member opening Giving is asking about their own, the way opening Groups
+   * asks which groups they are in. Two routes for one word would have meant
+   * two places for a link to point and one of them always wrong.
+   */
+  if (!manage && !amounts) return <MyGiving session={session} />;
 
   const ctx = {
     tenantId: session.tenantId,
