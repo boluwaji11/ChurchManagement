@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, GripVertical, Plus, Trash2 } from "lucide-react";
+import { Archive, ArrowLeft, GripVertical, Plus, Trash2, Undo2 } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Input, LIFT, cn,
+  Dialog, DialogContent, DialogFooter,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Sheet, SheetContent, SheetTrigger,
 } from "@connectapp/ui";
@@ -15,7 +16,7 @@ import { usePanelGuard } from "@/components/panel-guard";
 import { LibraryPicker } from "@/components/library-picker";
 import { useFormError } from "@/lib/form-error";
 import { planTemplateLibrary, type ShapeLine } from "./library";
-import { saveTemplate, deleteTemplate } from "./actions";
+import { saveTemplate, archiveTemplate } from "./actions";
 
 const summary = (lines: { minutes: number }[]) =>
   t("order.summary", {
@@ -43,6 +44,12 @@ export function TemplateManager({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+  /*
+   * R24.6. The question is asked in a box of its own, after the panel has
+   * closed, so the confirmation reads the way every other one in the product
+   * does and nothing is stacked on anything.
+   */
+  const [asking, setAsking] = React.useState<TemplateShape | null>(null);
 
   const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
@@ -51,13 +58,15 @@ export function TemplateManager({
       if (!result.error) router.refresh();
     });
 
+  const live = templates.filter((one) => !one.archived);
+  const archived = templates.filter((one) => one.archived);
   const taken = templates.map((one) => one.name);
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("planTpl.failed")}>{error}</Banner> : null}
 
-      {templates.length === 0 ? (
+      {live.length === 0 && archived.length === 0 ? (
         <Empty
           icon="calendar"
           title={t("planTpl.empty.title")}
@@ -71,7 +80,7 @@ export function TemplateManager({
           </div>
 
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
-            {templates.map((one) => (
+            {live.map((one) => (
               <TemplatePanel
                 key={one.id}
                 church={church}
@@ -79,7 +88,7 @@ export function TemplateManager({
                 template={one}
                 taken={taken}
                 kinds={kinds}
-                onDelete={() => run(() => deleteTemplate(one.id, church))}
+                onArchive={() => setAsking(one)}
                 trigger={
                   <button
                     type="button"
@@ -94,6 +103,51 @@ export function TemplateManager({
           </div>
         </>
       )}
+
+      {archived.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-label text-fg-muted">{t("planTpl.archived")}</h2>
+          {archived.map((one) => (
+            <div key={one.id} className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">{one.name}</span>
+              <Button
+                variant="ghost"
+                disabled={pending}
+                className="h-8 min-h-0 px-2.5 text-[13px]"
+                onClick={() => run(() => archiveTemplate(one.id, false, church))}
+              >
+                <Undo2 className="size-4" aria-hidden /> {t("planTpl.restore")}
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <Dialog open={asking !== null} onOpenChange={(on) => (on ? null : setAsking(null))}>
+        <DialogContent
+          alert
+          title={t("planTpl.archiveTitle", { name: asking?.name ?? "" })}
+        >
+          <p className="text-[length:var(--d-text-body)] text-fg">{t("planTpl.archiveBody")}</p>
+
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setAsking(null)}>
+              {t("planTpl.keep")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                const one = asking;
+                setAsking(null);
+                if (one) run(() => archiveTemplate(one.id, true, church));
+              }}
+            >
+              {t("planTpl.archive")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -106,7 +160,7 @@ function TemplatePanel({
   taken = [],
   kinds,
   trigger,
-  onDelete,
+  onArchive,
 }: {
   church: string;
   pending: boolean;
@@ -116,13 +170,12 @@ function TemplatePanel({
   /** What this church already keeps, so the library leaves it out. */
   taken?: string[];
   trigger?: React.ReactNode;
-  onDelete?: () => void;
+  /** Asked for in a box of its own, so the panel closes before the question. */
+  onArchive?: () => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [saving, startTransition] = React.useTransition();
-  /* R24.6. Asked in the panel that is already open rather than a second one. */
-  const [asking, setAsking] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
 
   const library = React.useMemo(
@@ -146,7 +199,6 @@ function TemplatePanel({
   const close = (next: boolean) => {
     setOpen(next);
     if (!next) {
-      setAsking(false);
       setDirty(false);
       setPicking(!template && library.length > 0);
     }
@@ -181,45 +233,30 @@ function TemplatePanel({
       <SheetContent
         width="640px"
         title={
-          asking && template
-            ? t("planTpl.removeTitle", { name: template.name })
-            : template
-              ? t("planTpl.editTitle", { name: template.name })
-              : picking
-                ? t("planTpl.start")
-                : t("planTpl.newTitle")
+          template
+            ? t("planTpl.editTitle", { name: template.name })
+            : picking
+              ? t("planTpl.start")
+              : t("planTpl.newTitle")
         }
         closeLabel={t("common.close")}
         footer={
-          picking ? null : asking && template && onDelete ? (
+          picking ? null : (
             <>
-              <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
-                {t("planTpl.keep")}
-              </Button>
-              <Button
-                type="button"
-                variant="danger"
-                disabled={pending}
-                onClick={() => {
-                  setAsking(false);
-                  setOpen(false);
-                  onDelete();
-                }}
-              >
-                {t("planTpl.remove")}
-              </Button>
-            </>
-          ) : (
-            <>
-              {template && onDelete ? (
+              {/* R11.8. Taking it off the list lives here rather than on the
+                  tile, so the tile stays one thing to press. */}
+              {template && onArchive ? (
                 <IconButton
-                  label={t("planTpl.remove")}
+                  label={t("planTpl.archive")}
                   variant="ghost"
                   className="mr-auto"
                   disabled={pending || saving}
-                  onClick={() => setAsking(true)}
+                  onClick={() => {
+                    setOpen(false);
+                    onArchive();
+                  }}
                 >
-                  <Trash2 />
+                  <Archive />
                 </IconButton>
               ) : null}
               <Button
@@ -253,8 +290,6 @@ function TemplatePanel({
               setPicking(false);
             }}
           />
-        ) : asking && template && onDelete ? (
-          <p className="text-[length:var(--d-text-body)] text-fg">{t("planTpl.removeBody")}</p>
         ) : (
           <div className="flex flex-col gap-4">
             {error ? <Banner tone="danger" title={t("planTpl.failed")}>{error}</Banner> : null}

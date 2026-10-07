@@ -12,7 +12,9 @@ export default async function SignInPage() {
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-6 py-10">
       <div className="flex w-full max-w-[380px] flex-col gap-6">
-        <div className="flex items-center gap-2.5">
+        {/* Over the box rather than off its left edge, so the mark and the
+            card share one centre line. */}
+        <div className="flex items-center justify-center gap-2.5">
           <Brand size="md" />
         </div>
 

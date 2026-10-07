@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, lt, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, lt, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import {
   servicePlans, planItems, planTemplates, planTemplateItems,
@@ -43,7 +43,7 @@ function checkName(name: string | undefined | null): string {
   return trimmed.slice(0, NAME_LIMIT);
 }
 
-/** R11.8. The shapes this church has saved. */
+/** R11.8. The shapes this church has saved, the live ones. */
 export async function listTemplates(db: Tx): Promise<PlanTemplate[]> {
   return db
     .select({
@@ -54,6 +54,7 @@ export async function listTemplates(db: Tx): Promise<PlanTemplate[]> {
     })
     .from(planTemplates)
     .leftJoin(planTemplateItems, eq(planTemplateItems.templateId, planTemplates.id))
+    .where(isNull(planTemplates.archivedAt))
     .groupBy(planTemplates.id, planTemplates.name)
     .orderBy(asc(planTemplates.name));
 }
@@ -129,6 +130,7 @@ export interface ShapeInput {
 /** A shape and everything on it, for a screen that edits the shape itself. */
 export interface TemplateShape extends PlanTemplate {
   lines: ShapeItem[];
+  archived: boolean;
 }
 
 function checkLines(items: ShapeInput[]): { kind: ItemKind; title: string; minutes: number }[] {
@@ -210,6 +212,7 @@ export async function listTemplateShapes(db: Tx): Promise<TemplateShape[]> {
     .select({
       id: planTemplates.id,
       name: planTemplates.name,
+      archivedAt: planTemplates.archivedAt,
       kind: planTemplateItems.kind,
       title: planTemplateItems.title,
       minutes: planTemplateItems.minutes,
@@ -222,7 +225,14 @@ export async function listTemplateShapes(db: Tx): Promise<TemplateShape[]> {
   for (const row of rows) {
     let shape = held.get(row.id);
     if (!shape) {
-      shape = { id: row.id, name: row.name, items: 0, minutes: 0, lines: [] };
+      shape = {
+        id: row.id,
+        name: row.name,
+        items: 0,
+        minutes: 0,
+        lines: [],
+        archived: row.archivedAt !== null,
+      };
       held.set(row.id, shape);
     }
     if (row.title === null) continue;
@@ -253,6 +263,28 @@ export async function renameTemplate(
   const changed = await db
     .update(planTemplates)
     .set({ name: clean, updatedAt: new Date() })
+    .where(eq(planTemplates.id, id))
+    .returning({ id: planTemplates.id });
+  if (changed.length === 0) throw new InvalidInputError("order.error.template");
+}
+
+/**
+ * R11.8. Takes a shape off the list a plan starts from, or puts it back.
+ *
+ * The plans built from it keep their items either way: a plan is a record of a
+ * service, and it stopped being a copy of this shape the moment it was laid
+ * down.
+ */
+export async function setTemplateArchived(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  archived: boolean,
+): Promise<void> {
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
+  const changed = await db
+    .update(planTemplates)
+    .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
     .where(eq(planTemplates.id, id))
     .returning({ id: planTemplates.id });
   if (changed.length === 0) throw new InvalidInputError("order.error.template");

@@ -687,6 +687,13 @@
       "when": 1791321405354,
       "tag": "0097_invite_to_a_churchs_own_role",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1791400000000,
+      "tag": "0098_plan_templates_archive",
+      "breakpoints": true
     }
   ]
 }

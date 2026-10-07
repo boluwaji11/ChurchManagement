@@ -158,6 +158,8 @@ export const planTemplates = pgTable(
     tenantId: tenantId(),
     /** "Morning service", "Carols", "Midweek". What the church calls the shape. */
     name: text("name").notNull(),
+    /** R11.8. Set when the shape comes off the list a plan starts from. */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: created(),
     updatedAt: updated(),
   },

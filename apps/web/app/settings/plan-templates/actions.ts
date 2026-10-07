@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { withTenant, writeTemplate, removeTemplate, type ShapeInput } from "@connectapp/db";
+import {
+  withTenant, writeTemplate, setTemplateArchived, type ShapeInput,
+} from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
@@ -35,11 +37,15 @@ export async function saveTemplate(
   }
 }
 
-/** R11.8. Deleting a shape. The plans built from it are untouched. */
-export async function deleteTemplate(id: string, church?: string): Promise<TemplateResult> {
+/** R11.8. Taking a shape off the list, or putting it back. */
+export async function archiveTemplate(
+  id: string,
+  archived: boolean,
+  church?: string,
+): Promise<TemplateResult> {
   const { actor, ctx } = await context(church);
   try {
-    await withTenant(ctx, (tx) => removeTemplate(tx, actor, id));
+    await withTenant(ctx, (tx) => setTemplateArchived(tx, actor, id, archived));
     revalidatePath("/settings/plan-templates");
     return {};
   } catch (error) {
