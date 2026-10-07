@@ -81,7 +81,9 @@ export function FundManager({ church, funds }: { church: string; funds: Fund[] }
             pending={pending}
             fund={fund}
             codesInUse={codes.filter((one) => one !== fund.code)}
-            onArchive={() => setAsking(fund)}
+            /* R13.9. A church keeps at least one fund, because a gift has
+               to go somewhere, so the last one cannot be put away. */
+            onArchive={live.length > 1 ? () => setAsking(fund) : undefined}
             trigger={
               <button
                 type="button"
