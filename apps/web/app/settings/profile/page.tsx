@@ -5,7 +5,9 @@ import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { cookies } from "next/headers";
 import { requireSession } from "@/lib/session";
+import { Church, SunMoon } from "lucide-react";
 import { SettingsHeading } from "../heading";
+import { SettingCard, Details, Detail } from "../card";
 import { ProfileForm } from "./profile-form";
 import { toAddress } from "@/lib/address";
 import { ThemeChoice } from "../theme";
@@ -76,7 +78,7 @@ export default async function ProfilePage({
       <SettingsHeading title="settings.title.profile" lede="settings.lede.profile" />
 
       {result?.person ? (
-        <section className="rounded-[14px] border border-line bg-surface p-5">
+        <section className="rounded-[14px] border border-line bg-surface p-5 shadow-sm">
           <ProfileForm
             church={session.tenantSlug}
             signedInAs={session.email}
@@ -105,20 +107,24 @@ export default async function ProfilePage({
       {/* R1.6. Which church somebody is signed in to and what they may do in
           it. Neither is theirs to change, so it sits outside the card the
           pencil opens. */}
-      <section className="flex flex-col gap-1 rounded-[14px] border border-line bg-surface p-5">
-        <span className="text-[15px] font-bold text-fg">{t("settings.profile.church")}</span>
-        <span className="text-[length:var(--d-text-body)] text-fg">{session.tenantName}</span>
-        <span className="text-[13px] text-fg-muted">
-          {t("settings.profile.roleIs", { role: t(`role.${session.role}` as never) })}
-        </span>
-      </section>
+      <SettingCard
+        icon={<Church />}
+        title={t("settings.profile.church")}
+        lede={session.tenantName}
+      >
+        <Details>
+          <Detail label={t("settings.profile.churchName")}>{session.tenantName}</Detail>
+          <Detail label={t("settings.profile.role")}>
+            {t(`role.${session.role}` as never)}
+          </Detail>
+        </Details>
+      </SettingCard>
 
       {/* R24.x. Light, dark, or whatever this device is set to. It lived on a
           menu item of its own for one row of three buttons. */}
-      <section className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
-        <span className="text-[15px] font-bold text-fg">{t("settings.tab.appearance")}</span>
+      <SettingCard icon={<SunMoon />} title={t("settings.tab.appearance")}>
         <ThemeChoice current={theme} />
-      </section>
+      </SettingCard>
     </>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronRight, KeyRound, Mail } from "lucide-react";
+import { Check, KeyRound, Mail } from "lucide-react";
 import { Banner, Button, Field, Input } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Said } from "@/components/said";
+import { SettingCard } from "../card";
 import { changeEmail, changePassword, emailMeALink } from "./actions";
 import { useFormError } from "@/lib/form-error";
 
@@ -20,12 +21,15 @@ import { useFormError } from "@/lib/form-error";
  * away from.
  */
 function Row({
+  icon,
   title,
   value,
   open,
   onToggle,
   children,
 }: {
+  /** The mark that says which kind of thing this row changes. */
+  icon: React.ReactNode;
   title: string;
   /** What it is set to now, read without opening anything. */
   value?: string;
@@ -34,25 +38,18 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[14px] border border-line bg-surface">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center gap-3 px-5 py-4 text-left hover:bg-sunken"
-      >
-        <span className="flex min-w-0 flex-1 flex-col leading-5">
-          <span className="text-[15px] font-bold text-fg">{title}</span>
-          {value ? <span className="truncate text-[13px] text-fg-muted">{value}</span> : null}
-        </span>
-        <ChevronRight
-          className={`size-4 shrink-0 text-fg-subtle transition-transform ${open ? "rotate-90" : ""}`}
-          aria-hidden
-        />
-      </button>
-
-      {open ? <div className="border-t border-line px-5 py-4">{children}</div> : null}
-    </section>
+    <SettingCard
+      icon={icon}
+      title={title}
+      lede={value}
+      action={
+        <Button variant={open ? "ghost" : "secondary"} onClick={onToggle} aria-expanded={open}>
+          {open ? t("common.close") : t("action.change")}
+        </Button>
+      }
+    >
+      {open ? children : undefined}
+    </SettingCard>
   );
 }
 
@@ -86,6 +83,7 @@ export function Security({ email }: { email: string }) {
       <Said message={message} onClose={() => setMessage(undefined)} />
 
       <Row
+        icon={<Mail />}
         title={t("email.row")}
         value={email}
         open={open === "email"}
@@ -112,7 +110,12 @@ export function Security({ email }: { email: string }) {
         </form>
       </Row>
 
-      <Row title={t("password.row")} open={open === "password"} onToggle={() => toggle("password")}>
+      <Row
+        icon={<KeyRound />}
+        title={t("password.row")}
+        open={open === "password"}
+        onToggle={() => toggle("password")}
+      >
         <form
           noValidate
           action={(data) => run(() => changePassword(data), t("password.changed"))}

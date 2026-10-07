@@ -18,6 +18,7 @@ import { oneLineAddress, type AddressValues } from "@/lib/address";
 import { maritalOptions, schoolOptions } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
 import { useFormError } from "@/lib/form-error";
+import { Details, Detail } from "../card";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -48,9 +49,6 @@ export interface CampusChoice {
   id: string;
   name: string;
 }
-
-/** What a field with nothing in it reads as. */
-const EMPTY = <span aria-hidden className="inline-block h-px w-3 bg-line-strong align-middle" />;
 
 /**
  * R17.1. Your own details.
@@ -266,7 +264,7 @@ export function ProfileForm({
       </div>
 
       {editing ? null : (
-        <dl className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+        <Details>
           {[
             // The name is the card's own heading, beside the face.
             [t("settings.profile.phone"), values.phone],
@@ -291,14 +289,9 @@ export function ProfileForm({
                 ] as [string, string]]
               : []),
           ].map(([label, value]) => (
-            <div key={label} className="flex min-w-0 flex-col gap-0.5">
-              <dt className="text-label font-semibold text-fg">{label}</dt>
-              <dd className="truncate text-[length:var(--d-text-body)] text-fg">
-                {value?.trim() ? value : EMPTY}
-              </dd>
-            </div>
+            <Detail key={label ?? ""} label={label ?? ""}>{value ?? ""}</Detail>
           ))}
-        </dl>
+        </Details>
       )}
 
       <form

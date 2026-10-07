@@ -8,6 +8,7 @@ import { FormActions, BackToView } from "@/components/form-actions";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@connectapp/i18n";
 import { Said } from "@/components/said";
 import { saveChurch } from "./actions";
+import { Details, Detail } from "./card";
 
 export interface ChurchValues {
   slug: string;
@@ -84,7 +85,7 @@ export function ChurchForm({
 
       {/* R1.1. The design lays these out as a grid that fills the room it has
           rather than two fixed columns, so a wide screen reads three across. */}
-      <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
+      <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5 shadow-sm">
         {/* The mark and the name read as the heading of the card, the way a
             person's face and name do on their own screen. */}
         <div className="flex flex-wrap items-center gap-4">
@@ -206,9 +207,6 @@ export function ChurchForm({
   );
 }
 
-/** What a field with nothing in it reads as. */
-const EMPTY = "\u2014";
-
 /**
  * A church writes "example.com" rather than a scheme, so one is put in front of
  * it to make a link. An address that already carries one is left as written.
@@ -241,28 +239,23 @@ function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: s
   ];
 
   return (
-    <dl className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+    <Details>
       {rows.map(([label, value, link]) => (
-        <div key={label} className="flex min-w-0 flex-col gap-0.5">
-          <dt className="text-label text-fg-subtle">{label}</dt>
-          <dd className="truncate text-[length:var(--d-text-body)] text-fg">
-            {!value?.trim() ? (
-              EMPTY
-            ) : link ? (
-              <a
-                href={link}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-primary underline-offset-4 hover:underline"
-              >
-                {value}
-              </a>
-            ) : (
-              value
-            )}
-          </dd>
-        </div>
+        <Detail key={label} label={label}>
+          {!value?.trim() ? null : link ? (
+            <a
+              href={link}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              {value}
+            </a>
+          ) : (
+            value
+          )}
+        </Detail>
       ))}
-    </dl>
+    </Details>
   );
 }
