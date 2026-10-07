@@ -210,7 +210,13 @@ export function GiveForm({
                 />
               </span>
             ))}
-            <span className="text-center text-[13px] italic text-fg-muted">
+            {/* Over the gift is a mistake to put right, so it says so in the
+                colour this product says that in. */}
+            <span
+              className={`text-center text-[13px] italic ${
+                left < 0 ? "text-danger-text" : "text-fg-muted"
+              }`}
+            >
               {left >= 0
                 ? t("give.split.left", { amount: money(left) })
                 : t("give.split.over", { amount: money(-left) })}
