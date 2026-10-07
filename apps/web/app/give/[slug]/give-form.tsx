@@ -162,7 +162,7 @@ export function GiveForm({
 
       {/* R13.3. How often. Five of its own, the way the amounts above it are
           drawn, and the one in force is filled so it reads at a glance. */}
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap justify-center gap-2 rounded-[14px] border border-line p-2.5">
         {REPEATS.map((one) => {
           const chosen = repeat === one;
 
@@ -177,7 +177,7 @@ export function GiveForm({
                 "text-[13px] font-medium whitespace-nowrap",
                 chosen
                   ? "border-primary bg-primary text-primary-fg"
-                  : "border-line bg-surface text-fg hover:border-line-strong hover:bg-sunken",
+                  : "border-transparent bg-sunken text-fg hover:bg-line",
               ].join(" ")}
             >
               {t(`give.repeat.${one}` as never)}
