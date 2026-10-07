@@ -188,6 +188,17 @@ export default async function GroupsPage({
   return (
     <AppShell session={session} title={only?.name ?? t("groups.title")}>
       {back}
+
+      {/* R9.5. The kind's own words head its list here as well. The top bar
+          carries the name and nothing else, so without this the church's
+          description was readable in the member's portal and nowhere else. */}
+      {only?.description ? (
+        <Markdown
+          text={only.description}
+          className="-mt-1 flex max-w-[70ch] flex-col gap-1.5 text-[13px] leading-[20px] text-fg-muted"
+        />
+      ) : null}
+
       {finder}
     </AppShell>
   );
