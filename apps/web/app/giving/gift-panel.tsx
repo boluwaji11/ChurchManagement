@@ -9,6 +9,7 @@ import {
   Sheet, SheetContent, SheetTrigger,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { MoneyInput } from "@/components/money-input";
 import type { GiftMethod } from "@connectapp/db";
 import { DateField } from "@/components/date-field";
 import { Picker } from "@/components/picker";
@@ -229,13 +230,12 @@ export function GiftPanel({
               </Field>
             ) : (
               <Field label={t("giving.gift.amount")} required>
-                <Input
+                <MoneyInput
                   value={amount}
-                  onChange={(e) => {
-                    setAmount(e.target.value);
+                  onChange={(next) => {
+                    setAmount(next);
                     setDirty(true);
                   }}
-                  inputMode="decimal"
                   placeholder="0.00"
                   autoComplete="off"
                   autoFocus

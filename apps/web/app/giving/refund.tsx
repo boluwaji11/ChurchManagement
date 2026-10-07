@@ -4,10 +4,11 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Undo2 } from "lucide-react";
 import {
-  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input,
+  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { money, toCents } from "@/lib/money";
+import { MoneyInput } from "@/components/money-input";
 import { giveBack } from "./actions";
 
 /**
@@ -56,12 +57,7 @@ export function RefundGift({
             {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
 
             <Field label={t("giving.gift.amount")} required>
-              <Input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                inputMode="decimal"
-                autoFocus
-              />
+              <MoneyInput value={amount} onChange={setAmount} autoFocus />
             </Field>
 
             <p className="m-0 text-[13px] text-fg-muted">

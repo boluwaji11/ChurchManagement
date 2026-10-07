@@ -11,6 +11,7 @@ import { DateField } from "@/components/date-field";
 import { useFormError } from "@/lib/form-error";
 import { usePanelGuard } from "@/components/panel-guard";
 import { toCents } from "@/lib/money";
+import { MoneyInput } from "@/components/money-input";
 import { startCount } from "./actions";
 
 /**
@@ -107,13 +108,12 @@ export function StartCount({ church, today }: { church: string; today: string })
           </Field>
 
           <Field label={t("giving.count.expected")} required>
-            <Input
+            <MoneyInput
               value={expected}
-              onChange={(e) => {
-                setExpected(e.target.value);
+              onChange={(next) => {
+                setExpected(next);
                 setDirty(true);
               }}
-              inputMode="decimal"
               placeholder="0.00"
               autoComplete="off"
             />
