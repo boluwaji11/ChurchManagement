@@ -187,7 +187,7 @@ export async function MyGiving({ session }: { session: Session }) {
         ) : (
           <Panel className="flex flex-col divide-y divide-line px-5 py-0">
             <span
-              className="grid items-center gap-3 py-2.5 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px]"
+              className="grid items-center gap-3 py-2.5 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:148px_minmax(0,1fr)_80px_110px_120px]"
             >
               <span>{t("giving.col.date")}</span>
               <span>{t("giving.col.fund")}</span>
@@ -199,7 +199,7 @@ export async function MyGiving({ session }: { session: Session }) {
             {giftRows(mine.gifts).map((row) => (
               <span
                 key={row.key}
-                className={`grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px] ${
+                className={`grid items-center gap-3 py-3 [grid-template-columns:148px_minmax(0,1fr)_80px_110px_120px] ${
                   row.kind === "refund"
                     ? "italic pt-2 relative before:absolute before:inset-x-10 before:top-0 before:h-px before:bg-line before:content-['']"
                     : row.tied
@@ -209,7 +209,7 @@ export async function MyGiving({ session }: { session: Session }) {
               >
                 {/* R13.15. The turn marks the refund as belonging to the gift
                     under it, and the rule between them comes out. */}
-                <span className="flex items-center gap-1 text-caption text-fg-subtle">
+                <span className="flex items-center gap-1 whitespace-nowrap text-caption text-fg-subtle">
                   {row.kind === "refund" ? (
                     <CornerDownRight className="size-3.5 shrink-0" aria-hidden />
                   ) : null}

@@ -234,7 +234,7 @@ export default async function GivingPage({
                 {/* The column names, so a treasurer reading down the list
                     knows which cell is which. */}
                 <li
-                  className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
+                  className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:152px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
                 >
                   <span>{t("giving.col.date")}</span>
                   <span>{t("giving.col.giver")}</span>
@@ -252,7 +252,7 @@ export default async function GivingPage({
                   return (
                   <li
                     key={row.key}
-                    className={`grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:110px_minmax(0,1fr)_140px_90px_110px_110px_72px] ${
+                    className={`grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:152px_minmax(0,1fr)_140px_90px_110px_110px_72px] ${
                       back
                         ? "italic pt-2 relative before:absolute before:inset-x-10 before:top-0 before:h-px before:bg-line before:content-['']"
                         : row.tied
@@ -262,7 +262,7 @@ export default async function GivingPage({
                   >
                     {/* R13.15. The turn marks the refund as belonging to the
                         gift under it, and the rule between them comes out. */}
-                    <span className="flex items-center gap-1 text-[13px] text-fg-subtle">
+                    <span className="flex items-center gap-1 whitespace-nowrap text-[13px] text-fg-subtle">
                       {back ? <CornerDownRight className="size-3.5 shrink-0" aria-hidden /> : null}
                       {longDate(row.on)}
                     </span>
