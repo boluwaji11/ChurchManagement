@@ -177,7 +177,7 @@ export function GiveForm({
                 "text-[13px] font-medium whitespace-nowrap",
                 chosen
                   ? "border-primary bg-primary text-primary-fg"
-                  : "border-line-strong bg-surface text-fg hover:bg-sunken",
+                  : "border-line bg-surface text-fg hover:border-line-strong hover:bg-sunken",
               ].join(" ")}
             >
               {t(`give.repeat.${one}` as never)}
