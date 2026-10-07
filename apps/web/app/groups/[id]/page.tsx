@@ -85,7 +85,16 @@ export default async function GroupPage({
     // R9.7. Recording who came is the leader's job, so this is the group's own
     // leader or whoever runs groups. A member reads the dates and nothing else.
     const canRecord = manage || (await canRecordFor(tx, actor, group.id));
-    if (canRecord) {
+    /*
+     * R9.7. A group that has not said when it meets has not met.
+     *
+     * Without this, a group with no day and no pattern had a meeting opened on
+     * whatever day somebody first looked at it, and the page then showed that
+     * day under Past event with a register waiting. The date a register opens
+     * for comes from the pattern, so there has to be one.
+     */
+    const meets = group.dayOfWeek !== null || group.frequency === "daily";
+    if (canRecord && meets) {
       metOn = lastMeetingDay(group.dayOfWeek, today);
       const opened = await openMeeting(tx, actor, { groupId: group.id, metOn });
       meeting = opened.meeting;
@@ -94,6 +103,7 @@ export default async function GroupPage({
 
     return {
       group,
+      meets,
       now,
       today,
       metOn,
@@ -115,7 +125,7 @@ export default async function GroupPage({
   });
 
   if (!data) notFound();
-  const { group, now, today, metOn, meeting, members, types, roster, requests, canRecord } = data;
+  const { group, meets, now, today, metOn, meeting, members, types, roster, requests, canRecord } = data;
 
   // R9.2. The bucket is private, so the picture is served through a link signed
   // for an hour. A leaked path is then a leak with an expiry.
@@ -345,7 +355,9 @@ export default async function GroupPage({
           today,
           3,
         ).map((iso) => tile(iso, false))}
-        past={group.past.slice(0, 3).map((one) => tile(one.metOn, canRecord))}
+        /* R9.7. A group with no pattern has no meetings to show, including any
+           a page view opened for it before that was true. */
+        past={(meets ? group.past : []).slice(0, 3).map((one) => tile(one.metOn, canRecord))}
         categories={categories}
         schedule={schedule}
         leaders={group.leaders.map((one) => one.name)}
