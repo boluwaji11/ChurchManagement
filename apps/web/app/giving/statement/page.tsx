@@ -6,6 +6,8 @@ import { churchNow } from "@/lib/church-now";
 import { longDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
+import { photoUrls } from "@/lib/photos";
+import { Letterhead } from "./letterhead";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +60,10 @@ export default async function MyStatementPage({
   const inKind = statement.lines.filter((line) => line.inKindDescription);
   const cash = statement.lines.filter((line) => !line.inKindDescription);
 
+  /* The bucket is private, so the mark is served through a signed link. */
+  const logoKey = read.profile?.logoKey ?? null;
+  const logoUrl = logoKey ? ((await photoUrls([logoKey]))[logoKey] ?? null) : null;
+
   const address = [
     read.profile?.addressLine1,
     read.profile?.city,
@@ -72,14 +78,11 @@ export default async function MyStatementPage({
       <AutoPrint />
       <style>{"@page { size: auto; margin: 0; }"}</style>
 
-      {/* The church's name leads, with where it is underneath: a statement is
-          a letter from the church before it is a tax document. */}
-      <div className="flex flex-col gap-0.5">
-        <div className="text-[17px] font-semibold text-black">
-          {read.profile?.legalName || session.tenantName}
-        </div>
-        {address ? <div className="text-[13px] text-neutral-500">{address}</div> : null}
-      </div>
+      <Letterhead
+        name={read.profile?.legalName || session.tenantName}
+        address={address}
+        logoUrl={logoUrl}
+      />
 
       <header className="mt-3 border-b-2 border-black pb-3">
         <h1 className="font-display text-[30px] leading-[38px]">
