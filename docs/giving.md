@@ -44,6 +44,17 @@ account creation, the onboarding link, the account session behind the embedded v
 the classic webhook endpoint this product handles today. Gifts themselves are unaffected: a payment
 intent on a connected account is a v1 object either way.
 
+### The nonprofit rate
+
+Stripe charges a registered 501(c)(3) **2.2% + 30¢** a transaction instead of 2.9% + 30¢, on an
+account where more than 80% of the volume is tax-deductible giving. A church asks for it by email
+to `nonprofit@stripe.com` with its EIN or determination letter, and Stripe **does not backdate it**,
+so every gift taken before the church asks is charged at the full rate.
+
+Settings → Money → Online giving says so beside the account, and drafts the email with the church's
+name and Stripe account already in it. Nothing is sent from this product: the church's own mail
+client opens and the church presses send.
+
 ## Who pays the processing fee
 
 The church does, out of its own Stripe balance, at whatever rate Stripe gives it. Stripe discounts

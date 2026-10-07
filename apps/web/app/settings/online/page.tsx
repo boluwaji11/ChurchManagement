@@ -98,6 +98,7 @@ export default async function OnlineGivingPage({
           address={address}
           qr={qr}
           face={face}
+          signedInAs={session.displayName}
         />
       ) : (
         <Denied />

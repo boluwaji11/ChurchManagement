@@ -12,6 +12,7 @@ import { t } from "@connectapp/i18n";
 import type { ChurchStripeAccount } from "@connectapp/db";
 import type { AccountFace } from "./actions";
 import { connectStripe, refreshStripe } from "./actions";
+import { NonprofitRate } from "./nonprofit-rate";
 
 /**
  * Stripe's own mark, drawn rather than fetched.
@@ -121,6 +122,7 @@ export function OnlineGiving({
   address,
   qr,
   face,
+  signedInAs,
 }: {
   church: string;
   account: ChurchStripeAccount | null;
@@ -134,6 +136,8 @@ export function OnlineGiving({
   qr: string | null;
   /** R13.1. What Stripe holds that a church would recognise. */
   face: AccountFace;
+  /** Whoever is reading this, to sign off the email to Stripe. */
+  signedInAs: string;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -195,7 +199,8 @@ export function OnlineGiving({
     });
 
   return (
-    <div className="flex max-w-[720px] flex-col gap-4">
+    <div className="grid items-start gap-5 xl:[grid-template-columns:minmax(0,720px)_minmax(280px,360px)]">
+      <div className="flex min-w-0 flex-col gap-4">
       {error ? <Banner tone="danger" title={t("stripe.title")}>{error}</Banner> : null}
       {configured ? null : (
         <Banner tone="info" title={t("stripe.title")}>{t("stripe.unconfigured")}</Banner>
@@ -345,7 +350,22 @@ export function OnlineGiving({
         </ol>
       </Card>
 
-      <p className="m-0 text-[13px] text-fg-muted">{t("stripe.fees.body")}</p>
+      <p className="m-0 text-[13px] text-fg-muted">
+        {t("stripe.fees.a")} <strong className="font-semibold text-fg">{t("stripe.fees.takes")}</strong>{" "}
+        {t("stripe.fees.b")}
+      </p>
+      </div>
+
+      {/* R13.1. Stripe charges a church less once it has asked, and it does
+          not backdate the answer, so this sits beside the account from the
+          moment there is one. */}
+      {ready && account ? (
+        <NonprofitRate
+          church={face.name || church}
+          accountId={account.accountId}
+          signedInAs={signedInAs}
+        />
+      ) : null}
     </div>
   );
 }
