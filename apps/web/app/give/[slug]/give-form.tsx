@@ -112,7 +112,7 @@ export function GiveForm({
   }
 
   return (
-    <Card className="flex flex-col gap-5">
+    <Card className="flex flex-col gap-5 p-6 pt-7">
       {/* R24.9. What went wrong, with a way to put it away. */}
       {error ? (
         <Banner
