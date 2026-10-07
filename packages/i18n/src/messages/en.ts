@@ -1089,7 +1089,7 @@ export const en = {
   "payouts.connect": "Connect your church's Stripe account to see its balance and payouts here.",
   "stripe.title": "Stripe",
   "stripe.description": "{church} is a church. It receives one-off and recurring donations from its congregation, online by card and bank, and offerings in cash and cheque at its services.",
-  "stripe.missing": "Fill these in first, and Stripe will not ask your church for them again",
+  "stripe.missing": "Fill these in and Stripe will not ask for them",
   "stripe.missing.legalName": "Legal name, exactly as it appears on your IRS documents",
   "stripe.missing.website": "Website",
   "stripe.missing.address": "Address",

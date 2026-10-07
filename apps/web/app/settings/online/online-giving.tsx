@@ -82,26 +82,6 @@ export function OnlineGiving({
         </div>
       ) : null}
 
-      {/* R13.1. Everything on the church's profile is sent to Stripe, so what
-          is blank here is what a volunteer will be asked to type twice. */}
-      {missing.length > 0 ? (
-        <div className="lg:col-span-2">
-          <Banner tone="info" title={t("stripe.missing")}>
-            <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5">
-              {missing.map((one) => (
-                <li key={one}>{t(`stripe.missing.${one}` as never)}</li>
-              ))}
-            </ul>
-            <Link
-              href={`/settings/church?church=${church}`}
-              className="mt-2 inline-block font-medium text-primary"
-            >
-              {t("stripe.missing.go")}
-            </Link>
-          </Banner>
-        </div>
-      ) : null}
-
       {configured ? null : (
         <div className="lg:col-span-2">
           <Banner tone="info" title={t("stripe.title")}>{t("stripe.unconfigured")}</Banner>
@@ -130,6 +110,27 @@ export function OnlineGiving({
             </span>
           ) : null}
         </div>
+
+        {/* R13.1. What the church has not filled in, said where the decision
+            is made rather than as a band across the screen. Everything on its
+            profile is sent to Stripe, so a blank here is a question a
+            volunteer answers twice. */}
+        {missing.length > 0 ? (
+          <div className="flex flex-col gap-1 text-[13px] text-fg-muted">
+            <span>{t("stripe.missing")}</span>
+            <ul className="m-0 flex list-disc flex-col pl-5">
+              {missing.map((one) => (
+                <li key={one}>{t(`stripe.missing.${one}` as never)}</li>
+              ))}
+            </ul>
+            <Link
+              href={`/settings/church?church=${church}`}
+              className="self-start font-medium text-primary"
+            >
+              {t("stripe.missing.go")}
+            </Link>
+          </div>
+        ) : null}
 
         <div className="mt-auto flex flex-wrap items-center gap-2">
           <Button disabled={pending || !configured} loading={pending} onClick={go}>
