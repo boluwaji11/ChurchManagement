@@ -78,6 +78,16 @@ A closed count stops taking lines, because it is now the record of a deposit.
 Without a key, the giving screens still work for cash and cheques, and the online giving screen says
 the platform is not set up for it.
 
+## A gift that repeats
+
+The subscription lives on the church's own account, under the same rule: no application fee, so
+every collection settles to the church and Stripe's fee comes off the church's balance. Each
+collection is written down as its own gift, because that is what a statement is built from.
+
+The giver changes or stops it in **Stripe's billing portal**, which the thank-you page opens for
+them. There is no account on our side to sign in to, so the checkout session Stripe has just handed
+them is what stands in: nobody else has it, and it is spent when they leave the page.
+
 ## Statements
 
 A year-end statement is written to IRS Publication 1771: the church's legal name and address, each

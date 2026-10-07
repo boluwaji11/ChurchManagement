@@ -178,3 +178,39 @@ export const stripeAccounts = pgTable(
     uniqueIndex("stripe_account_id_unique").on(t.accountId),
   ],
 );
+
+/**
+ * R13.3. A gift that repeats.
+ *
+ * The subscription itself lives on the church's own Stripe account. This is
+ * what the church reads, so a treasurer can see what is expected next month
+ * without signing in to Stripe. Each payment still lands in `gifts` as its own
+ * row, because that is what a statement is built from.
+ */
+export const recurringGifts = pgTable(
+  "recurring_gifts",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
+    giverName: text("giver_name"),
+    giverEmail: text("giver_email"),
+    fundId: uuid("fund_id").references(() => funds.id, { onDelete: "set null" }),
+    amountCents: integer("amount_cents").notNull().default(0),
+    currency: text("currency").notNull().default("usd"),
+    /** month or week, as the giver chose. */
+    interval: text("interval").notNull().default("month"),
+    stripeSubscriptionId: text("stripe_subscription_id").notNull(),
+    stripeCustomerId: text("stripe_customer_id"),
+    /** active, past_due, canceled. Stripe's own word for it. */
+    status: text("status").notNull().default("active"),
+    startedOn: date("started_on"),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("recurring_gift_tenant_idx").on(t.tenantId),
+    uniqueIndex("recurring_gift_subscription_unique").on(t.stripeSubscriptionId),
+  ],
+);

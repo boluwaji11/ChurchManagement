@@ -736,6 +736,13 @@
       "when": 1791406000000,
       "tag": "0104_gift_giver_details",
       "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1791407000000,
+      "tag": "0105_recurring_gifts",
+      "breakpoints": true
     }
   ]
 }

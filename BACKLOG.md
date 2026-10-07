@@ -84,6 +84,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-240 | The deposit slip, and the gifts as a spreadsheet | R13.22, R13.23 | Resolved |
 | HRT-241 | Year-end giving statements to Publication 1771, on screen and in print | R13.17, R13.19 | Resolved, waiting on CPA review before 0.3 ships |
 | HRT-242 | The giving report: by month, by fund, who stopped giving, who started | R13.21, R13.24, R13.25 | Resolved |
+| HRT-243 | A gift that repeats, and the giver's own way to change or stop it | R13.3 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -704,6 +705,22 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-243, how to test it
+
+Needs Stripe and `stripe listen --forward-to localhost:4488/api/stripe/webhook`.
+
+1. The giving page offers Once, Monthly and Weekly beside the amount. The button says what it is
+   about to set up.
+2. Monthly sends the giver to Stripe in subscription mode. Pay with 4242 4242 4242 4242.
+3. The thank-you page says it will be collected again, and **Change or stop this gift** opens
+   Stripe's billing portal for that giver. No account on our side, because the checkout session
+   they were just handed is what proves it is them.
+4. The Giving screen lists the repeating gifts with what is expected a month.
+5. The first collection appears as an ordinary gift against the fund, with Stripe's fee on it.
+   Trigger another with `stripe trigger invoice.paid` and a second gift appears; the same event
+   twice still writes one row.
+6. Cancel in the portal and the repeating gift reads Stopped.
 
 ### HRT-242, how to test it
 

@@ -35,6 +35,8 @@ export async function startGift(input: {
   coverFee: boolean;
   name: string;
   email: string;
+  /** R13.3. Every month, every week, or once. */
+  repeat?: "once" | "month" | "week";
 }): Promise<GiveResult> {
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
@@ -54,10 +56,18 @@ export async function startGift(input: {
   const charged = input.coverFee ? withFee(input.amountCents) : input.amountCents;
   const back = await origin();
 
+  const repeat = input.repeat ?? "once";
+  const metadata = {
+    fundId: fund.id,
+    coveredFee: String(input.coverFee),
+    giverName: input.name.trim().slice(0, 120),
+    giverEmail: email,
+  };
+
   try {
     const session = await stripe().checkout.sessions.create(
       {
-        mode: "payment",
+        mode: repeat === "once" ? "payment" : "subscription",
         customer_email: email,
         line_items: [
           {
@@ -66,6 +76,9 @@ export async function startGift(input: {
               currency: "usd",
               unit_amount: charged,
               product_data: { name: `${page.name} · ${fund.name}` },
+              ...(repeat === "once"
+                ? {}
+                : { recurring: { interval: repeat as "month" | "week" } }),
             },
           },
         ],
@@ -73,17 +86,24 @@ export async function startGift(input: {
          * R13.1. No application fee. The platform takes nothing, and this
          * line is here so that a change to it is a change somebody made.
          */
-        payment_intent_data: {
-          ...(PLATFORM_FEE > 0 ? { application_fee_amount: PLATFORM_FEE } : {}),
-          description: `${fund.name}`,
-          metadata: {
-            fundId: fund.id,
-            coveredFee: String(input.coverFee),
-            giverName: input.name.trim().slice(0, 120),
-            giverEmail: email,
-          },
-        },
-        success_url: `${back}/give/${page.slug}/thanks`,
+        ...(repeat === "once"
+          ? {
+              payment_intent_data: {
+                ...(PLATFORM_FEE > 0 ? { application_fee_amount: PLATFORM_FEE } : {}),
+                description: fund.name,
+                metadata,
+              },
+            }
+          : {
+              /*
+               * R13.3. The same rule on a subscription: no application fee, so
+               * every collection settles to the church with Stripe's own fee
+               * taken off the church's balance and nothing taken off ours.
+               */
+              subscription_data: { metadata },
+            }),
+        metadata,
+        success_url: `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
         cancel_url: `${back}/give/${page.slug}`,
       },
       asChurch(page.accountId),
@@ -92,5 +112,59 @@ export async function startGift(input: {
     return { url: session.url ?? undefined };
   } catch {
     return { error: "stripe.failed" };
+  }
+}
+
+/**
+ * R13.3. The giver's own way to change or stop a repeating gift.
+ *
+ * Stripe's billing portal, opened for the customer that this checkout session
+ * belongs to. The session id is the key: the giver has just been handed it by
+ * Stripe and nobody else has it, so it stands in for a sign-in on a page where
+ * there are no accounts. It is spent as soon as they leave the page.
+ */
+export async function manageGiving(slug: string, sessionId: string): Promise<GiveResult> {
+  if (!stripeConfigured()) return { error: "stripe.unconfigured" };
+  if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return { error: "give.error.closed" };
+
+  const page = await givingPage(slug);
+  if (!page) return { error: "give.error.closed" };
+
+  try {
+    const checkout = await stripe().checkout.sessions.retrieve(
+      sessionId,
+      {},
+      asChurch(page.accountId),
+    );
+    const customer =
+      typeof checkout.customer === "string" ? checkout.customer : checkout.customer?.id;
+    if (!customer) return { error: "give.error.closed" };
+
+    const back = await origin();
+    const portal = await stripe().billingPortal.sessions.create(
+      { customer, return_url: `${back}/give/${page.slug}` },
+      asChurch(page.accountId),
+    );
+
+    return { url: portal.url };
+  } catch {
+    return { error: "stripe.failed" };
+  }
+}
+
+/** Whether a checkout session set up a repeating gift, for the page after it. */
+export async function wasRepeating(slug: string, sessionId: string): Promise<boolean> {
+  if (!stripeConfigured() || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return false;
+  const page = await givingPage(slug);
+  if (!page) return false;
+  try {
+    const checkout = await stripe().checkout.sessions.retrieve(
+      sessionId,
+      {},
+      asChurch(page.accountId),
+    );
+    return checkout.mode === "subscription";
+  } catch {
+    return false;
   }
 }

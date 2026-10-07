@@ -1,7 +1,8 @@
 import Link from "next/link";
 import {
   withTenant, getChurch, listFunds, fundTotals, listBatches, listGifts, givingTotals,
-  getStripeAccount, canManageGiving, canReadGivingAmounts,
+  getStripeAccount, listRecurring, recurringMonthly,
+  canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -63,6 +64,9 @@ export default async function GivingPage({
       thisMonth: await givingTotals(tx, { from: `${month}-01`, to: today }),
       counts: await listBatches(tx, 6),
       recent: await listGifts(tx, ctx, { limit: 8 }),
+      // R13.3. What the church is expecting without anybody doing anything.
+      recurring: await listRecurring(tx, ctx, { activeOnly: true }),
+      expected: await recurringMonthly(tx),
       stripe: await getStripeAccount(tx),
     };
   });
@@ -210,7 +214,52 @@ export default async function GivingPage({
             )}
           </section>
 
-          <aside className="flex flex-col gap-3">
+          <aside className="flex flex-col gap-6">
+            {/* R13.3. What repeats, which is the number a church plans on. */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-[13px] font-medium text-fg-subtle">
+                  {t("giving.recurring")}
+                </h2>
+                {read.recurring.length > 0 ? (
+                  <span data-numeric className="text-[13px] text-fg-muted">
+                    {t("giving.recurring.monthly", { amount: money(read.expected) })}
+                  </span>
+                ) : null}
+              </div>
+
+              {read.recurring.length === 0 ? (
+                <p className="text-[13px] text-fg-muted">{t("giving.recurring.none")}</p>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {read.recurring.slice(0, 6).map((one) => (
+                    <li
+                      key={one.id}
+                      className="flex items-center gap-2 rounded-[12px] border border-line bg-surface px-3.5 py-2.5"
+                    >
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate font-medium text-fg">
+                          {one.name || t("giving.gift.anonymous")}
+                        </span>
+                        <span className="text-[12px] text-fg-subtle">
+                          {[
+                            one.fundName,
+                            t(`giving.recurring.every.${one.interval}` as never),
+                          ]
+                            .filter(Boolean)
+                            .join(" \u00b7 ")}
+                        </span>
+                      </span>
+                      <span data-numeric className="shrink-0 font-mono text-[13px] text-fg">
+                        {money(one.amountCents)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-[13px] font-medium text-fg-subtle">{t("giving.funds")}</h2>
               <Link
@@ -243,6 +292,7 @@ export default async function GivingPage({
                 </li>
               ))}
             </ul>
+            </div>
           </aside>
         </div>
       </div>

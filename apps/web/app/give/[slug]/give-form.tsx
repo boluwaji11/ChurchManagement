@@ -34,6 +34,7 @@ export function GiveForm({
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [cover, setCover] = React.useState(false);
+  const [repeat, setRepeat] = React.useState<"once" | "month" | "week">("once");
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
@@ -48,7 +49,7 @@ export function GiveForm({
     }
     startTransition(async () => {
       const result = await startGift({
-        slug, fundId, amountCents: cents, coverFee: cover, name, email,
+        slug, fundId, amountCents: cents, coverFee: cover, name, email, repeat,
       });
       if (result.error) {
         setError(
@@ -91,6 +92,24 @@ export function GiveForm({
           </div>
         </div>
       </Field>
+
+      {/* R13.3. Once or every month, decided beside the amount rather than
+          behind a second page. */}
+      <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
+        {(["once", "month", "week"] as const).map((one) => (
+          <button
+            key={one}
+            type="button"
+            onClick={() => setRepeat(one)}
+            aria-pressed={repeat === one}
+            className={`flex h-9 flex-1 cursor-pointer items-center justify-center rounded-sm px-3 text-[13px] font-medium ${
+              repeat === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
+            }`}
+          >
+            {t(`give.repeat.${one}` as never)}
+          </button>
+        ))}
+      </div>
 
       <Field label={t("give.fund")} required>
         <Select value={fundId} onValueChange={setFundId}>
@@ -136,7 +155,9 @@ export function GiveForm({
         loading={pending}
         onClick={give}
       >
-        {t("give.submit", { amount: money(charged) })}
+        {repeat === "once"
+          ? t("give.submit", { amount: money(charged) })
+          : t(`give.submit.${repeat}` as never, { amount: money(charged) })}
       </Button>
 
       <p className="m-0 flex items-center justify-center gap-1.5 text-[13px] text-fg-muted">
