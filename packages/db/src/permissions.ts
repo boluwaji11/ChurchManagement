@@ -37,8 +37,16 @@ export const PERMISSIONS = [
   "members.households",
   "members.notes.confidential",
 
-  // R13.x. Money. The permission exists now so the rule is not invented later.
+  // R13.x. Money.
   "giving.amounts",
+  /**
+   * R13.1, R13.9, R13.10. Running the giving: the funds, the batches the
+   * counting team enters, and the church's own Stripe connection.
+   *
+   * Separate from reading amounts, because a treasurer records what came in
+   * and a pastor may be allowed to see a total without being able to touch it.
+   */
+  "giving.manage",
 
   // R1.x. The church itself.
   "church.manage",
@@ -104,7 +112,7 @@ export const PERMISSION_GROUPS = [
     ],
   },
   { key: "church", permissions: ["church.manage", "church.fields", "church.tags"] },
-  { key: "money", permissions: ["giving.amounts"] },
+  { key: "money", permissions: ["giving.amounts", "giving.manage"] },
 ] as const satisfies readonly { key: string; permissions: readonly Permission[] }[];
 
 export type PermissionGroup = (typeof PERMISSION_GROUPS)[number]["key"];
@@ -131,7 +139,7 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
     "followups.manage", "groups.manage", "services.manage", "events.manage",
     "teams.manage", "teams.lead",
   ],
-  finance: ["giving.amounts"],
+  finance: ["giving.amounts", "giving.manage"],
   pastoral: [
     "members.notes.confidential",
     "checkin.incidents", "checkin.checks",

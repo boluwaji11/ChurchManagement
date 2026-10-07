@@ -20,3 +20,4 @@ export * from "./events";
 export * from "./notifications";
 export * from "./push";
 export * from "./reports";
+export * from "./giving";

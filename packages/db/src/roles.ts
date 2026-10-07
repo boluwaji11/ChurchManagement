@@ -22,6 +22,11 @@ export const canReadConfidentialNotes = (role: Who): boolean =>
 export const canReadGivingAmounts = (role: Who): boolean =>
   can(role, "giving.amounts");
 
+/** R13.1, R13.9, R13.10. Who runs the giving: the funds, the batches, Stripe. */
+export const CAN_MANAGE_GIVING: readonly TenantRole[] = rolesWith("giving.manage");
+
+export const canManageGiving = (role: Who): boolean => can(role, "giving.manage");
+
 /**
  * R2.x writes. Who may change a person's record.
  *
@@ -73,4 +78,5 @@ export type PermissionAction =
   | "manageEvents"
   | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy"
   | "manageTeams" | "manageTeamRoster" | "schedule" | "managePlans"
-  | "manageForms" | "editRoles" | "manageHouseholds" | "buildReports";
+  | "manageForms" | "editRoles" | "manageHouseholds" | "buildReports"
+  | "manageGiving" | "recordGift";

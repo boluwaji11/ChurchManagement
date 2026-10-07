@@ -715,6 +715,13 @@
       "when": 1791403000000,
       "tag": "0101_item_kinds_seeded_at_signup",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1791404000000,
+      "tag": "0102_giving",
+      "breakpoints": true
     }
   ]
 }
