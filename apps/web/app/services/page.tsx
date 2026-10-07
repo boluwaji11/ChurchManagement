@@ -151,7 +151,14 @@ export default async function ServicesPage({
           past={over.map(card)}
           action={
             canEdit ? (
-              <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+              /* The board draws this beside its view switch, where it lands in
+                 a list of its own, so it carries a key. */
+              <AddService
+                key="add"
+                church={session.tenantSlug}
+                today={now.date}
+                nowTime={now.time}
+              />
             ) : undefined
           }
         />
