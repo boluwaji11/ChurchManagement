@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import {
   withTenant, openBatch, updateBatch, closeBatch, reopenBatch,
   recordGift, removeGift, refundGift, attachGift, giftCharge, getStripeAccount,
-  getChurch, lookupPeople, type GiftMethod,
+  getChurch, lookupPeople, personForUser, giverCustomer, type GiftMethod,
 } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch } from "@/lib/stripe";
 import { explain } from "@/lib/explain";
@@ -219,5 +220,46 @@ export async function findGiver(query: string, church?: string): Promise<GiverHi
     });
   } catch {
     return [];
+  }
+}
+
+/**
+ * R13.3, R13.19. A member changes or stops their own repeating gift.
+ *
+ * Stripe's billing portal, opened against the church's own account for the
+ * customer this church already keeps for them. The card lives at Stripe and
+ * is changed at Stripe, which is what keeps this product out of PCI scope.
+ */
+export async function manageMine(church?: string): Promise<{ url?: string; error?: string }> {
+  if (!stripeConfigured()) return { error: "stripe.unconfigured" };
+
+  const session = await requireSession(church);
+  const ctx = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+
+  try {
+    const self = await withTenant(ctx, (tx) => personForUser(tx, session.userId));
+    if (!self) return { error: "give.error.closed" };
+
+    const customer = await giverCustomer(self);
+    const account = await withTenant(ctx, (tx) => getStripeAccount(tx));
+    if (!customer || !account) return { error: "give.error.closed" };
+
+    const head = await headers();
+    const host = head.get("x-forwarded-host") ?? head.get("host") ?? "localhost:4488";
+    const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+
+    const portal = await stripe().billingPortal.sessions.create(
+      { customer, return_url: `${proto}://${host}/giving?church=${session.tenantSlug}` },
+      asChurch(account.accountId),
+    );
+
+    return { url: portal.url };
+  } catch {
+    return { error: "stripe.failed" };
   }
 }

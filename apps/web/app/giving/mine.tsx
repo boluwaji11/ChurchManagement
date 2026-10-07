@@ -14,6 +14,7 @@ import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
+import { ManageMine } from "./manage-mine";
 
 /**
  * R13.19, R17.4. A member's own giving, and their own statement.
@@ -57,8 +58,13 @@ export async function MyGiving({ session }: { session: Session }) {
       /** R13.6. Whether the church can take a gift online at all. */
       online: (await getStripeAccount(tx))?.chargesEnabled ?? false,
       /** R13.3. What they have set to repeat, if anything. */
-      repeating: (await listRecurring(tx, { ...ctx, permissions: [...(ctx.permissions ?? []), "giving.amounts"] }, { activeOnly: true }))
-        .filter((one) => one.name === session.displayName),
+      /* R1.5. Their own, read as themselves, matched on the record rather
+         than on a name that two people in a household might share. */
+      repeating: await listRecurring(
+        tx,
+        { ...ctx, permissions: [...(ctx.permissions ?? []), "giving.amounts"] },
+        { activeOnly: true, memberId: self },
+      ),
     };
   });
 
@@ -104,6 +110,32 @@ export async function MyGiving({ session }: { session: Session }) {
             </Link>
           ) : null}
         </Panel>
+
+        {/* R13.3, R13.19. What they have set to repeat, and the way to
+            change or stop it without ringing the church. */}
+        {mine.repeating.length > 0 ? (
+          <Panel className="flex flex-wrap items-center justify-between gap-4">
+            <span className="flex min-w-0 flex-col gap-1">
+              <span className="font-medium text-fg">{t("giving.recurring")}</span>
+              {mine.repeating.map((one) => (
+                <span key={one.id} data-numeric className="text-caption text-fg-muted">
+                  {[
+                    money(one.amountCents),
+                    t(
+                      `giving.recurring.every.${one.interval}${
+                        one.intervalCount > 1 ? `.${one.intervalCount}` : ""
+                      }` as never,
+                    ),
+                    one.fundName,
+                  ]
+                    .filter(Boolean)
+                    .join(" \u00b7 ")}
+                </span>
+              ))}
+            </span>
+            <ManageMine church={session.tenantSlug} />
+          </Panel>
+        ) : null}
 
         {mine.gifts.length === 0 ? (
           <p className="text-fg-muted">{t("mine.giving.none")}</p>

@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { owner } from "../client";
 import { funds, recurringGifts } from "../schema/giving";
@@ -17,6 +17,8 @@ import type { WriteActor } from "./members";
 
 export interface Recurring {
   id: string;
+  /** Null where the subscription is on nobody's record yet. */
+  memberId: string | null;
   name: string;
   fundName: string | null;
   amountCents: number;
@@ -31,11 +33,12 @@ export interface Recurring {
 export async function listRecurring(
   db: Tx,
   who: WriteActor,
-  options: { activeOnly?: boolean } = {},
+  options: { activeOnly?: boolean; memberId?: string } = {},
 ): Promise<Recurring[]> {
   const rows = await db
     .select({
       id: recurringGifts.id,
+      memberId: recurringGifts.memberId,
       first: members.firstName,
       last: members.lastName,
       giverName: recurringGifts.giverName,
@@ -54,13 +57,19 @@ export async function listRecurring(
      * the ones that are collecting, because that is where somebody will see
      * it. Only a cancelled one drops off.
      */
-    .where(options.activeOnly ? sql`${recurringGifts.status} <> 'canceled'` : undefined)
+    .where(
+      and(
+        options.activeOnly ? sql`${recurringGifts.status} <> 'canceled'` : undefined,
+        options.memberId ? eq(recurringGifts.memberId, options.memberId) : undefined,
+      ),
+    )
     .orderBy(desc(recurringGifts.amountCents));
 
   const amounts = canReadGivingAmounts(who);
 
   return rows.map((row) => ({
     id: row.id,
+    memberId: row.memberId,
     name: [row.first, row.last].filter(Boolean).join(" ") || row.giverName || "",
     fundName: row.fundName,
     amountCents: amounts ? row.amountCents : 0,
