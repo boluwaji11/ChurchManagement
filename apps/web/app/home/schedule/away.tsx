@@ -27,6 +27,9 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
   const [working, start] = React.useTransition();
   const [adding, setAdding] = React.useState(false);
   const [picked, setPicked] = React.useState<string[]>([]);
+  // R24.6. Five is enough to see what is coming. A fortnight away is fourteen
+  // rows, and the press under them is what everybody wants next.
+  const [all, setAll] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const span = (one: Blockout) =>
@@ -65,18 +68,18 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
         /* R24.6. The connected path the rest of the product draws its lists
            with: a marker a row, the line between them carrying its own dot. */
         <ol className="m-0 flex list-none flex-col p-0">
-          {dates.map((one, i) => (
+          {(all ? dates : dates.slice(0, 5)).map((one, i, shown) => (
             <li key={one.id} className="flex gap-2.5">
               <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                <span className="mt-3 size-2.5 shrink-0 rounded-full bg-primary" />
-                {i === dates.length - 1 ? null : (
-                  <span className="relative my-1 w-px flex-1 bg-primary/35">
+                <span className="mt-2.5 size-2.5 shrink-0 rounded-full bg-primary" />
+                {i === shown.length - 1 ? null : (
+                  <span className="relative my-0.5 w-px flex-1 bg-primary/35">
                     <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/60" />
                   </span>
                 )}
               </span>
 
-              <span className="flex min-w-0 flex-1 items-center gap-2 pb-2">
+              <span className="flex min-w-0 flex-1 items-center gap-2 pb-3">
                 <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
                   {span(one)}
                 </span>
@@ -106,6 +109,16 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
       ) : (
         <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNone")}</p>
       )}
+
+      {dates.length > 5 ? (
+        <button
+          type="button"
+          onClick={() => setAll((was) => !was)}
+          className="-mt-1 cursor-pointer self-start rounded-md px-2 py-1 font-medium text-primary"
+        >
+          {all ? t("list.showLess") : t("list.showMore", { count: dates.length - 5 })}
+        </button>
+      ) : null}
 
       {error ? (
         <p role="status" className="text-[length:var(--d-text-body)] text-danger-text">
