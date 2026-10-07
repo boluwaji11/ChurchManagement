@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  withTenant, getChurch, listOccurrences, listGroups, listEvents,
+  withTenant, getChurch, listOccurrences, listEvents,
   canManageServices,
 } from "@connectapp/db";
-import { upcomingMeetings } from "@connectapp/db/rules";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -14,11 +13,13 @@ import { Denied } from "@/components/denied";
 export const dynamic = "force-dynamic";
 
 /**
- * R15.1. The week, with everything the church has on it.
+ * R15.1. The week, with what the church has on it.
  *
  * Built from what the church already holds rather than from a calendar table:
- * the services it has scheduled and the pattern each group meets on. Room
- * booking and outside requests are the rest of F15 and are not here yet.
+ * the services it has scheduled and the events it has published. A group meets
+ * on a pattern rather than on a date, and thirty of them filled every column
+ * here, so a group's own page is where its meetings read. Room booking and
+ * outside requests are the rest of F15 and are not here yet.
  */
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -89,7 +90,6 @@ export default async function CalendarPage({
       const end = shift(start, SPAN - 1);
 
       const occurrences = await listOccurrences(tx, { from: start, to: end });
-      const groups = await listGroups(tx);
       /*
        * R14.1, R15.1. Published events, so a camp is on the week it runs the
        * moment the church publishes it. Drafts stay off: the calendar is what
@@ -132,26 +132,6 @@ export default async function CalendarPage({
                 .join(" \u00b7 "),
               hue: one.hue,
               href: `/events/${one.slug}`,
-            });
-          }
-
-          for (const group of groups) {
-            // R9.2. Worked out from the pattern rather than stored, which is
-            // why a church that meets "Tuesdays" has to write it only once.
-            const meets = upcomingMeetings(
-              { dayOfWeek: group.dayOfWeek, frequency: group.frequency },
-              date,
-              1,
-            );
-            if (meets[0] !== date) continue;
-            entries.push({
-              id: `${group.id}-${date}`,
-              title: group.name,
-              detail: [group.startsAt ? clock(group.startsAt) : null, group.location]
-                .filter(Boolean)
-                .join(" · "),
-              hue: group.typeHue ?? "fern",
-              href: `/groups/${group.slug}`,
             });
           }
 

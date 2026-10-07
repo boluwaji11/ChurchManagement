@@ -191,13 +191,12 @@ export default function Site() {
           </div>
         </section>
 
-        {/* The product, full width, opening the demo. */}
+        {/* The product, full width. A picture of it, which is all it is: the
+            demo is a button in the hero and another at the foot. */}
         <section id="product" className="mx-auto w-full max-w-[1280px] px-6 py-14">
-          <StartDemoButton className="block h-auto min-h-0 w-full rounded-2xl border-0 bg-transparent p-0 shadow-none hover:bg-transparent active:scale-100">
-            <BrowserFrame>
-              <Shot src="/marketing/office.png" />
-            </BrowserFrame>
-          </StartDemoButton>
+          <BrowserFrame>
+            <Shot src="/marketing/office.png" />
+          </BrowserFrame>
         </section>
 
 
