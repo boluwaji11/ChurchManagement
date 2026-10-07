@@ -10,6 +10,8 @@ import {
 import { t } from "@connectapp/i18n";
 import type { Fund } from "@connectapp/db";
 import { usePanelGuard } from "@/components/panel-guard";
+import { LibraryPicker } from "@/components/library-picker";
+import { FUND_LIBRARY, presetFund } from "./library";
 import { useFormError } from "@/lib/form-error";
 import { saveFund, archiveFund } from "./actions";
 
@@ -170,6 +172,8 @@ function FundPanel({
   const [dirty, setDirty] = React.useState(false);
   const [error, setError] = useFormError(open);
 
+  /* R13.9. What churches already keep comes before the blank form. */
+  const [picking, setPicking] = React.useState(!fund);
   const [name, setName] = React.useState(fund?.name ?? "");
   const [code, setCode] = React.useState(fund?.code ?? "");
   /** Whether the code is this church's own rather than one we offered. */
@@ -179,6 +183,7 @@ function FundPanel({
 
   React.useEffect(() => {
     if (!open) return;
+    setPicking(!fund);
     setName(fund?.name ?? "");
     setCode(fund?.code ?? "");
     setOwnCode(Boolean(fund?.code));
@@ -213,9 +218,16 @@ function FundPanel({
       </SheetTrigger>
 
       <SheetContent
-        title={fund ? t("fund.editTitle", { name: fund.name }) : t("fund.newTitle")}
+        title={
+          fund
+            ? t("fund.editTitle", { name: fund.name })
+            : picking
+              ? t("fund.start")
+              : t("fund.newTitle")
+        }
         closeLabel={t("common.close")}
         footer={
+          picking ? null : (
           <>
             {fund && onArchive ? (
               <IconButton
@@ -240,11 +252,40 @@ function FundPanel({
               {t("action.save")}
             </Button>
           </>
+          )
         }
       >
         {guard}
 
-        <div className="flex flex-col gap-4">
+        {picking ? (
+          <LibraryPicker
+            ownLabel={t("fund.ownFund")}
+            items={FUND_LIBRARY.map((preset) => ({
+              key: preset.key,
+              label: t(preset.label),
+              detail: preset.restricted ? t("giving.restricted") : undefined,
+            }))}
+            onOwn={() => {
+              setName("");
+              setCode("");
+              setOwnCode(false);
+              setRestricted(false);
+              setPicking(false);
+            }}
+            onPick={(item) => {
+              const preset = FUND_LIBRARY.find((one) => one.key === item.key)!;
+              const chosen = presetFund(preset);
+              setName(chosen.name);
+              setCode(suggestCode(chosen.name, codesInUse));
+              setOwnCode(false);
+              setRestricted(chosen.restricted);
+              setPicking(false);
+              setDirty(true);
+            }}
+          />
+        ) : null}
+
+        <div className="flex flex-col gap-4" hidden={picking}>
           {error ? <Banner tone="danger" title={t("fund.failed")}>{error}</Banner> : null}
 
           <Field label={t("fund.name")} required>
