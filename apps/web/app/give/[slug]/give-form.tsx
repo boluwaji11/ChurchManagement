@@ -210,7 +210,7 @@ export function GiveForm({
                 />
               </span>
             ))}
-            <span className="text-center text-[13px] text-fg-muted">
+            <span className="text-center text-[13px] italic text-fg-muted">
               {left >= 0
                 ? t("give.split.left", { amount: money(left) })
                 : t("give.split.over", { amount: money(-left) })}
