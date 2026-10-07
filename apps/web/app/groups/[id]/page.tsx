@@ -289,14 +289,20 @@ export default async function GroupPage({
           </div>
         </div>
 
-        <GroupBanner
-          church={session.tenantSlug}
-          groupId={group.id}
-          groupName={group.name}
-          photoUrl={photoUrl}
-          hue={hue}
-          canEdit={manage}
-        />
+        {/* R9.2. Read here, changed on the edit screen. The group editor already
+            carries the banner with the rest of what a group is, and an upload
+            box on the page a member reads is an invitation to edit a group
+            while standing in it. */}
+        {photoUrl ? (
+          <GroupBanner
+            church={session.tenantSlug}
+            groupId={group.id}
+            groupName={group.name}
+            photoUrl={photoUrl}
+            hue={hue}
+            canEdit={false}
+          />
+        ) : null}
       </div>
 
       <GroupDetail
