@@ -215,7 +215,7 @@ export async function MyGiving({ session }: { session: Session }) {
                   ) : null}
                   {longDate(row.on)}
                 </span>
-                <span className="min-w-0 truncate font-medium text-fg">{row.gift.fundName}</span>
+                <span className="min-w-0 truncate text-fg">{row.gift.fundName}</span>
                 <span className="text-caption text-fg-subtle">
                   {t(`giving.method.${row.gift.method}` as never)}
                 </span>
