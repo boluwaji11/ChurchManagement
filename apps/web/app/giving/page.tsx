@@ -12,7 +12,7 @@ import { churchNow } from "@/lib/church-now";
 import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
 import { Figure } from "@/app/reports/figure";
-import { money, roundMoney } from "@/lib/money";
+import { money } from "@/lib/money";
 import { shortDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
 import { GiftPanel } from "./gift-panel";
@@ -87,13 +87,13 @@ export default async function GivingPage({
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
           <Figure
             label={t("giving.month")}
-            value={roundMoney(read.thisMonth.cents)}
+            value={money(read.thisMonth.cents)}
             sub={plural("giving.givers.sub", read.thisMonth.gifts)}
             hue="fern"
           />
           <Figure
             label={t("giving.year")}
-            value={roundMoney(read.thisYear.cents)}
+            value={money(read.thisYear.cents)}
             sub={plural("giving.givers.sub", read.thisYear.gifts)}
             hue="violet"
           />

@@ -8,7 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
-import { money, roundMoney } from "@/lib/money";
+import { money } from "@/lib/money";
 import { ReportFrame, backBy, windowOf } from "../frame";
 import { Figure } from "../figure";
 import { Line, RowBars } from "../charts";
@@ -68,7 +68,7 @@ export default async function GivingReport({
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
           <Figure
             label={t("reports.giving.total")}
-            value={roundMoney(read.totals.cents)}
+            value={money(read.totals.cents)}
             sub={plural("giving.givers.sub", read.totals.gifts)}
             hue="fern"
           />

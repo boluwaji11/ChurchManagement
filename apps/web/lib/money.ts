@@ -12,15 +12,6 @@ export function money(cents: number, currency = "usd"): string {
   }).format(cents / 100);
 }
 
-/** The same, with nothing after the point, for a figure read at a glance. */
-export function roundMoney(cents: number, currency = "usd"): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: currency.toUpperCase(),
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
-}
-
 /**
  * What somebody typed, as whole cents.
  *
