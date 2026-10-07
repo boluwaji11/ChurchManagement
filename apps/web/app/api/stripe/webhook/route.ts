@@ -245,6 +245,14 @@ export async function POST(request: Request) {
           intervalCount: item?.price.recurring?.interval_count ?? 1,
           status: sub.status,
           startedOn: new Date(sub.created * 1000).toISOString().slice(0, 10),
+          /*
+           * R13.3. Stripe keeps the end of the current period on the
+           * subscription item rather than on the subscription, and the end
+           * of this period is when the next collection comes out.
+           */
+          nextOn: item?.current_period_end
+            ? new Date(item.current_period_end * 1000).toISOString().slice(0, 10)
+            : null,
           fundId: sub.metadata?.fundId || null,
           giverName: sub.metadata?.giverName || null,
           giverEmail: sub.metadata?.giverEmail || null,

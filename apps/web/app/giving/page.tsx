@@ -356,6 +356,9 @@ export default async function GivingPage({
                                 one.intervalCount > 1 ? `.${one.intervalCount}` : ""
                               }` as never,
                             ),
+                            one.nextOn
+                              ? t("giving.recurring.next", { date: shortDate(one.nextOn) })
+                              : null,
                           ]
                             .filter(Boolean)
                             .join(" \u00b7 ")}

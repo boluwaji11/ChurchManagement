@@ -1044,6 +1044,7 @@ export const en = {
   "giving.recurring": "Repeating gifts",
   "giving.recurring.none": "No repeating gifts yet",
   "giving.recurring.mark": "Recurring",
+  "giving.recurring.next": "Next on {date}",
   "giving.recurring.monthly": "{amount} a month expected",
   "giving.recurring.every.week": "weekly",
   "giving.recurring.every.week.2": "every 2 weeks",

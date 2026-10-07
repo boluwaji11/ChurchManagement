@@ -27,6 +27,8 @@ export interface Recurring {
   intervalCount: number;
   status: string;
   startedOn: string | null;
+  /** R13.3. The day the next collection comes out. */
+  nextOn: string | null;
 }
 
 /** R13.3. What this church is expecting, largest first. */
@@ -48,6 +50,7 @@ export async function listRecurring(
       intervalCount: recurringGifts.intervalCount,
       status: recurringGifts.status,
       startedOn: sql<string | null>`${recurringGifts.startedOn}::text`,
+      nextOn: sql<string | null>`${recurringGifts.nextOn}::text`,
     })
     .from(recurringGifts)
     .leftJoin(members, eq(members.id, recurringGifts.memberId))
@@ -77,6 +80,7 @@ export async function listRecurring(
     intervalCount: row.intervalCount,
     status: row.status,
     startedOn: row.startedOn,
+    nextOn: row.nextOn,
   }));
 }
 
@@ -119,6 +123,8 @@ export async function saveRecurring(input: {
   intervalCount?: number;
   status: string;
   startedOn: string;
+  /** R13.3. When Stripe collects it next, where it has said. */
+  nextOn?: string | null;
   fundId?: string | null;
   giverName?: string | null;
   giverEmail?: string | null;
@@ -148,19 +154,20 @@ export async function saveRecurring(input: {
     insert into recurring_gifts (
       tenant_id, member_id, giver_name, giver_email, fund_id, amount_cents,
       currency, interval, interval_count, stripe_subscription_id,
-      stripe_customer_id, status, started_on
+      stripe_customer_id, status, started_on, next_on
     )
     values (
       ${tenantId}, ${memberId}, ${input.giverName ?? null}, ${email},
       ${input.fundId ?? null}::uuid, ${input.amountCents}, ${input.currency},
       ${input.interval}, ${input.intervalCount ?? 1}, ${input.subscriptionId}, ${input.customerId},
-      ${input.status}, ${input.startedOn}::date
+      ${input.status}, ${input.startedOn}::date, ${input.nextOn ?? null}::date
     )
     on conflict (stripe_subscription_id) do update
       set amount_cents = excluded.amount_cents,
           interval = excluded.interval,
           interval_count = excluded.interval_count,
           status = excluded.status,
+          next_on = excluded.next_on,
           updated_at = now()`;
 }
 

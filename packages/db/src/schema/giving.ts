@@ -227,6 +227,8 @@ export const recurringGifts = pgTable(
     /** active, past_due, canceled. Stripe's own word for it. */
     status: text("status").notNull().default("active"),
     startedOn: date("started_on"),
+    /** R13.3. When Stripe collects it next, as Stripe last said. */
+    nextOn: date("next_on"),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     createdAt: created(),
     updatedAt: updated(),

@@ -154,9 +154,14 @@ export async function MyGiving({ session }: { session: Session }) {
                       ),
                     ].join(" \u00b7 ")}
                   </span>
-                  {one.fundName ? (
-                    <span className="text-caption text-fg-subtle">{one.fundName}</span>
-                  ) : null}
+                  <span className="text-caption text-fg-subtle">
+                    {[
+                      one.fundName,
+                      one.nextOn ? t("giving.recurring.next", { date: shortDate(one.nextOn) }) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" \u00b7 ")}
+                  </span>
                 </span>
 
                 <span className="flex items-center gap-3">
