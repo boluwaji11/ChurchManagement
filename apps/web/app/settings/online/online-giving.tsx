@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExternalLink, RefreshCw } from "lucide-react";
 import { Banner, Button, Card, CardTitle, Separator } from "@connectapp/ui";
@@ -33,11 +34,14 @@ function StripeMark() {
 export function OnlineGiving({
   church,
   account,
+  missing,
   configured,
   origin,
 }: {
   church: string;
   account: ChurchStripeAccount | null;
+  /** R13.1. What the church has not filled in, which Stripe will ask for. */
+  missing: string[];
   /** Whether this platform has a Stripe key at all. */
   configured: boolean;
   /** Where this church is reached, for the address it hands its congregation. */
@@ -75,6 +79,26 @@ export function OnlineGiving({
       {error ? (
         <div className="lg:col-span-2">
           <Banner tone="danger" title={t("stripe.title")}>{error}</Banner>
+        </div>
+      ) : null}
+
+      {/* R13.1. Everything on the church's profile is sent to Stripe, so what
+          is blank here is what a volunteer will be asked to type twice. */}
+      {missing.length > 0 ? (
+        <div className="lg:col-span-2">
+          <Banner tone="info" title={t("stripe.missing")}>
+            <ul className="m-0 flex list-disc flex-col gap-0.5 pl-5">
+              {missing.map((one) => (
+                <li key={one}>{t(`stripe.missing.${one}` as never)}</li>
+              ))}
+            </ul>
+            <Link
+              href={`/settings/church?church=${church}`}
+              className="mt-2 inline-block font-medium text-primary"
+            >
+              {t("stripe.missing.go")}
+            </Link>
+          </Banner>
         </div>
       ) : null}
 

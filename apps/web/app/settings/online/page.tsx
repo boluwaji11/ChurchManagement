@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { withTenant, getStripeAccount, canManageGiving } from "@connectapp/db";
+import { withTenant, getChurch, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
@@ -24,12 +24,29 @@ export default async function OnlineGivingPage({
   const session = await requireSession(church);
   const manage = canManageGiving(session);
 
-  const account = manage
+  const read = manage
     ? await withTenant(
         { tenantId: session.tenantId, role: session.role },
-        (tx) => getStripeAccount(tx),
+        async (tx) => ({
+          account: await getStripeAccount(tx),
+          profile: await getChurch(tx, session.tenantId),
+        }),
       )
-    : null;
+    : { account: null, profile: null };
+
+  /*
+   * R13.1. What this church has not told us, which Stripe will therefore ask
+   * it for. Said before the press rather than after it: the legal name in
+   * particular has to match the church's IRS documents, and a mismatch is
+   * what holds verification up for a fortnight.
+   */
+  const missing = read.account
+    ? []
+    : [
+        read.profile?.legalName ? null : "legalName",
+        read.profile?.website ? null : "website",
+        read.profile?.addressLine1 ? null : "address",
+      ].filter((one): one is string => one !== null);
 
   const head = await headers();
   const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
@@ -41,7 +58,8 @@ export default async function OnlineGivingPage({
       {manage ? (
         <OnlineGiving
           church={session.tenantSlug}
-          account={account}
+          account={read.account}
+          missing={missing}
           configured={stripeConfigured()}
           origin={`${proto}://${host}`}
         />

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { withTenant, getChurch, getStripeAccount, saveStripeAccount } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { stripe, stripeConfigured } from "@/lib/stripe";
@@ -76,6 +77,31 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
        * `non_profit` is a first-class entity type here, so a church is
        * described to Stripe as what it is.
        */
+      /*
+       * R13.1, R22.x. Everything the church has already told us goes with it.
+       *
+       * Stripe's form asks for the name, the address, the website, the trade
+       * and a description of what the money is for. A church has answered all
+       * of that on its own profile, and asking a volunteer the same questions
+       * again is how a ten-minute job becomes an abandoned one. What we cannot
+       * know, the EIN, the representative, the bank, Stripe asks for itself.
+       */
+      const address = profile?.addressLine1
+        ? {
+            line1: profile.addressLine1,
+            line2: profile.addressLine2 ?? undefined,
+            city: profile.city ?? undefined,
+            state: profile.region ?? undefined,
+            postal_code: profile.postalCode ?? undefined,
+            country: (profile.country || "US").toUpperCase(),
+          }
+        : undefined;
+
+      const site = profile?.website?.trim();
+      const website = site
+        ? (/^https?:\/\//i.test(site) ? site : `https://${site}`)
+        : undefined;
+
       const account = await stripe().v2.core.accounts.create({
         display_name: name,
         contact_email: profile?.email ?? undefined,
@@ -83,15 +109,35 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
         identity: {
           country: (profile?.country || "US").toLowerCase(),
           entity_type: "non_profit",
-          business_details: { registered_name: name },
+          business_details: {
+            registered_name: name,
+            ...(address ? { address } : {}),
+            ...(profile?.phone ? { phone: profile.phone } : {}),
+          },
         },
         configuration: {
-          merchant: { capabilities: { card_payments: { requested: true } } },
+          merchant: {
+            capabilities: { card_payments: { requested: true } },
+            // 8661 is the merchant category for a religious organisation,
+            // which is what every church on this platform is.
+            mcc: "8661",
+            support: {
+              ...(profile?.email ? { email: profile.email } : {}),
+              ...(profile?.phone ? { phone: profile.phone } : {}),
+              ...(website ? { url: website } : {}),
+              ...(address ? { address } : {}),
+            },
+          },
         },
         defaults: {
           currency: "usd",
           responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
           locales: ["en-US"],
+          profile: {
+            doing_business_as: profile?.name || name,
+            ...(website ? { business_url: website } : {}),
+            product_description: t("stripe.description", { church: profile?.name || name }),
+          },
         },
         metadata: { tenantId: session.tenantId, slug: session.tenantSlug },
       });
