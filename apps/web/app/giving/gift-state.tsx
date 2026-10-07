@@ -25,6 +25,18 @@ export function GiftState({
     return <span className="text-fg-subtle">{t("giving.state.refunded")}</span>;
   }
 
+  if (status === "refund-pending") {
+    return (
+      <Tooltip content={t("giving.state.refundingWhy")}>
+        <Badge tone="warning">{t("giving.state.refunding")}</Badge>
+      </Tooltip>
+    );
+  }
+
+  if (status === "refund-failed") {
+    return <Badge tone="danger">{t("giving.state.refundFailed")}</Badge>;
+  }
+
   if (status === "pending") {
     return (
       <Tooltip content={t("giving.gift.pendingWhy")}>

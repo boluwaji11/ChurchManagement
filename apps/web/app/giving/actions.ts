@@ -160,18 +160,29 @@ export async function giveBack(
     const gift = await withTenant(ctx, (tx) => giftCharge(tx, id));
     if (!gift) return { error: "gift.error.missing" };
 
+    /*
+     * R13.15. A card is answered at once and a bank account is not: Stripe
+     * takes the instruction and moves the money over the following days, so
+     * what it says about the refund is written down with it.
+     */
+    let how: { status?: "settled" | "pending" | "failed"; refundId?: string | null } = {};
+
     if (gift.chargeId) {
       if (!stripeConfigured()) return { error: "stripe.unconfigured" };
       const account = await withTenant(ctx, (tx) => getStripeAccount(tx));
       if (!account) return { error: "stripe.unconfigured" };
 
-      await stripe().refunds.create(
+      const back = await stripe().refunds.create(
         { charge: gift.chargeId, amount: cents },
         asChurch(account.accountId),
       );
+      how = {
+        status: back.status === "succeeded" ? "settled" : back.status === "pending" ? "pending" : "failed",
+        refundId: back.id,
+      };
     }
 
-    await withTenant(ctx, (tx) => refundGift(tx, actor, id, cents));
+    await withTenant(ctx, (tx) => refundGift(tx, actor, id, cents, how));
     revalidatePath("/giving");
     return {};
   } catch (error) {

@@ -153,6 +153,14 @@ export const gifts = pgTable(
     /** R13.15. A refund is recorded against the gift rather than deleting it. */
     refundedCents: integer("refunded_cents").notNull().default(0),
     refundedAt: timestamp("refunded_at", { withTimezone: true }),
+    /**
+     * R13.15. settled, pending or failed, for the money going back.
+     *
+     * A card answers at once. A refund to a bank account is an instruction
+     * Stripe carries out over the following days, and the bank can refuse it.
+     */
+    refundStatus: text("refund_status"),
+    stripeRefundId: text("stripe_refund_id"),
 
     createdAt: created(),
     updatedAt: updated(),

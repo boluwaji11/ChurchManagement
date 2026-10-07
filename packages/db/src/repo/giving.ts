@@ -43,6 +43,8 @@ export interface Gift {
   refundedOn: string | null;
   /** R13.3. Collected by a repeating gift. */
   recurring: boolean;
+  /** R13.15. What the money going back is doing: settled, pending or failed. */
+  refundStatus: string | null;
 }
 
 export interface Batch {
@@ -374,6 +376,7 @@ export async function listGifts(
       failureReason: gifts.failureReason,
       refundedAt: sql<string | null>`${gifts.refundedAt}::text`,
       recurring: gifts.recurring,
+      refundStatus: gifts.refundStatus,
     })
     .from(gifts)
     .innerJoin(funds, eq(funds.id, gifts.fundId))
@@ -410,6 +413,7 @@ export async function listGifts(
     failureReason: row.failureReason,
     refundedOn: row.refundedAt ? row.refundedAt.slice(0, 10) : null,
     recurring: row.recurring,
+    refundStatus: row.refundStatus,
   }));
 }
 
@@ -508,6 +512,8 @@ export async function refundGift(
   actor: WriteActor,
   id: string,
   cents: number,
+  /** R13.15. What Stripe is doing with it, and the refund it is doing it to. */
+  how: { status?: "settled" | "pending" | "failed"; refundId?: string | null } = {},
 ): Promise<void> {
   if (!canManageGiving(actor)) throw new PermissionError(actor.role, "recordGift");
 
@@ -528,6 +534,8 @@ export async function refundGift(
     .set({
       refundedCents: gift.refundedCents + amount,
       refundedAt: new Date(),
+      refundStatus: how.status ?? "settled",
+      ...(how.refundId ? { stripeRefundId: how.refundId } : {}),
       updatedAt: new Date(),
     })
     .where(eq(gifts.id, id));

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import {
-  markStripeAccount, recordOnlineGift, failOnlineGift, saveRecurring, markRecurring,
+  markStripeAccount, recordOnlineGift, failOnlineGift, markRefund,
+  saveRecurring, markRecurring,
 } from "@connectapp/db";
 import { stripe, stripeConfigured } from "@/lib/stripe";
 
@@ -219,6 +220,27 @@ export async function POST(request: Request) {
               ? dispute.payment_intent
               : dispute.payment_intent?.id ?? null,
           reason: dispute.reason ?? null,
+        });
+        break;
+      }
+
+      /*
+       * R13.15. A refund to a bank account, days after it was asked for.
+       *
+       * Stripe says whether the money moved. Where the bank refused it, what
+       * was taken off the gift goes back on, because it never left.
+       */
+      case "refund.updated":
+      case "charge.refund.updated": {
+        if (!account) break;
+        const refund = event.data.object as Stripe.Refund;
+        if (refund.status !== "succeeded" && refund.status !== "failed") break;
+
+        await markRefund({
+          accountId: account,
+          refundId: refund.id,
+          status: refund.status === "succeeded" ? "settled" : "failed",
+          amountCents: refund.amount,
         });
         break;
       }

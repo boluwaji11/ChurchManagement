@@ -51,7 +51,14 @@ export function giftRows(gifts: Gift[]): GiftRow[] {
         kind: "refund",
         on: gift.refundedOn ?? gift.receivedOn,
         amountCents: -gift.refundedCents,
-        status: "refunded",
+        /* R13.15. A refund to a bank account is on its way for a few days,
+           and the bank can still refuse it. */
+        status:
+          gift.refundStatus === "pending"
+            ? "refund-pending"
+            : gift.refundStatus === "failed"
+              ? "refund-failed"
+              : "refunded",
         tied: true,
       });
     }

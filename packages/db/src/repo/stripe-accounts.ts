@@ -261,3 +261,38 @@ export async function failOnlineGift(input: {
          or (${chargeId}::text is not null and stripe_charge_id = ${chargeId})
        )`;
 }
+
+/**
+ * R13.15. What became of a refund, days after it was asked for.
+ *
+ * A refund to a bank account is an instruction, the same as the gift was.
+ * Where the bank refuses it the money never left the church, so what was
+ * taken off the gift goes back on and the line says the refund failed.
+ */
+export async function markRefund(input: {
+  accountId: string;
+  refundId: string;
+  status: "settled" | "failed";
+  amountCents: number;
+}): Promise<void> {
+  const tenantId = await tenantForStripeAccount(input.accountId);
+  if (!tenantId) return;
+
+  if (input.status === "settled") {
+    await owner()`
+      update gifts set refund_status = 'settled', updated_at = now()
+       where tenant_id = ${tenantId}
+         and stripe_refund_id = ${input.refundId}
+         and refund_status = 'pending'`;
+    return;
+  }
+
+  await owner()`
+    update gifts
+       set refund_status = 'failed',
+           refunded_cents = greatest(0, refunded_cents - ${input.amountCents}),
+           updated_at = now()
+     where tenant_id = ${tenantId}
+       and stripe_refund_id = ${input.refundId}
+       and refund_status = 'pending'`;
+}
