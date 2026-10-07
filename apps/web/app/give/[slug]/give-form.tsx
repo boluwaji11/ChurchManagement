@@ -162,7 +162,7 @@ export function GiveForm({
 
       {/* R13.3. How often. Five of its own, the way the amounts above it are
           drawn, and the one in force is filled so it reads at a glance. */}
-      <div className="flex flex-wrap justify-center gap-2 rounded-[14px] border border-line p-2.5">
+      <div className="flex flex-wrap justify-center gap-2 rounded-[var(--d-radius-control)] border border-line-strong bg-surface p-2.5 shadow-sm">
         {REPEATS.map((one) => {
           const chosen = repeat === one;
 
