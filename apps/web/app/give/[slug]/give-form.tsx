@@ -153,22 +153,37 @@ export function GiveForm({
         </div>
       </Field>
 
-      {/* R13.3. Once or every month, decided beside the amount rather than
-          behind a second page. */}
-      <div className="grid grid-cols-6 gap-1 rounded-md bg-sunken p-[3px]">
-        {REPEATS.map((one) => (
-          <button
-            key={one}
-            type="button"
-            onClick={() => setRepeat(one)}
-            aria-pressed={repeat === one}
-            className={`flex h-9 cursor-pointer items-center justify-center rounded-sm px-2 text-[13px] font-medium whitespace-nowrap ${
-              one === "month" || one === "year" ? "col-span-3" : "col-span-2"
-            } ${repeat === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted"}`}
-          >
-            {t(`give.repeat.${one}` as never)}
-          </button>
-        ))}
+      {/* R13.3. How often, as one control rather than five loose words: the
+          hairlines join them, and the one in force is filled so it reads from
+          across a room. */}
+      <div className="grid grid-cols-6 overflow-hidden rounded-[var(--d-radius-control)] border border-line-strong">
+        {REPEATS.map((one, at) => {
+          const chosen = repeat === one;
+          const wide = one === "month" || one === "year";
+
+          return (
+            <button
+              key={one}
+              type="button"
+              onClick={() => setRepeat(one)}
+              aria-pressed={chosen}
+              className={[
+                "flex h-11 cursor-pointer items-center justify-center px-2",
+                "text-[13px] font-medium whitespace-nowrap",
+                wide ? "col-span-3" : "col-span-2",
+                // The first row sits on a hairline, and each button but the
+                // last of its row carries one down its right.
+                at < 3 ? "border-b border-line-strong" : "",
+                at === 0 || at === 1 || at === 3 ? "border-r border-line-strong" : "",
+                chosen
+                  ? "bg-primary text-primary-fg"
+                  : "bg-surface text-fg-muted hover:bg-sunken hover:text-fg",
+              ].join(" ")}
+            >
+              {t(`give.repeat.${one}` as never)}
+            </button>
+          );
+        })}
       </div>
 
       {/* R13.4. One fund, or the gift divided between several. */}
