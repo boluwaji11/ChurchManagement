@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import QRCode from "qrcode";
 import { withTenant, getChurch, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
@@ -71,6 +72,16 @@ export default async function OnlineGivingPage({
   const head = await headers();
   const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
   const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const address = `${proto}://${host}/give/${session.tenantSlug}`;
+
+  /*
+   * R13.7. The code itself, drawn here so the screen can show it and hand it
+   * over as a file. There is nothing secret in it: it is the church's own
+   * public giving address.
+   */
+  const qr = read.account?.chargesEnabled
+    ? await QRCode.toDataURL(address, { errorCorrectionLevel: "M", margin: 1, width: 512 })
+    : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -81,7 +92,8 @@ export default async function OnlineGivingPage({
           account={read.account}
           missing={missing}
           configured={stripeConfigured()}
-          origin={`${proto}://${host}`}
+          address={address}
+          qr={qr}
         />
       ) : (
         <Denied />
