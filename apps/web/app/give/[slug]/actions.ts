@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { givingPage } from "@connectapp/db";
+import { givingPage, giverKnown } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch, PLATFORM_FEE, withFee } from "@/lib/stripe";
 import { EVERY, type Repeat } from "./repeats";
 
@@ -195,19 +195,36 @@ export async function manageGiving(slug: string, sessionId: string): Promise<Giv
   }
 }
 
-/** Whether a checkout session set up a repeating gift, for the page after it. */
-export async function wasRepeating(slug: string, sessionId: string): Promise<boolean> {
-  if (!stripeConfigured() || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return false;
+/**
+ * R13.6. What the giver just did, read from the session Stripe handed them.
+ *
+ * The address comes from Stripe rather than from the page's own query string,
+ * so nobody can ask this about somebody else's.
+ */
+export async function giftSession(
+  slug: string,
+  sessionId: string,
+): Promise<{ repeating: boolean; email: string | null; known: boolean }> {
+  const nothing = { repeating: false, email: null, known: false };
+  if (!stripeConfigured() || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return nothing;
+
   const page = await givingPage(slug);
-  if (!page) return false;
+  if (!page) return nothing;
+
   try {
     const checkout = await stripe().checkout.sessions.retrieve(
       sessionId,
       {},
       asChurch(page.accountId),
     );
-    return checkout.mode === "subscription";
+    const email = checkout.customer_details?.email ?? checkout.customer_email ?? null;
+
+    return {
+      repeating: checkout.mode === "subscription",
+      email,
+      known: email ? await giverKnown(slug, email) : false,
+    };
   } catch {
-    return false;
+    return nothing;
   }
 }

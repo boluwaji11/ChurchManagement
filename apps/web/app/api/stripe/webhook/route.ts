@@ -78,7 +78,17 @@ export async function POST(request: Request) {
        */
       case "payment_intent.succeeded": {
         if (!account) break;
-        const intent = event.data.object as Stripe.PaymentIntent;
+        const intent = event.data.object as Stripe.PaymentIntent & {
+          invoice?: string | { id: string } | null;
+        };
+
+        /*
+         * R13.3. A collection on a repeating gift arrives twice: once as this
+         * payment, and once as the invoice that raised it. The invoice is the
+         * one that knows who gave and what for, because the metadata lives on
+         * the subscription, so this leaves it alone.
+         */
+        if (intent.invoice) break;
         const chargeId =
           typeof intent.latest_charge === "string"
             ? intent.latest_charge

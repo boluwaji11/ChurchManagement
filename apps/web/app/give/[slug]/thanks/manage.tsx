@@ -12,14 +12,24 @@ import { manageGiving } from "../actions";
  * no account on this side to sign in to, so the checkout session the giver was
  * just handed is what proves it is them.
  */
-export function ManageGift({ slug, session }: { slug: string; session: string }) {
+export function ManageGift({
+  slug,
+  session,
+  quiet,
+}: {
+  slug: string;
+  session: string;
+  /** Smaller print, where an account is the louder offer beside it. */
+  quiet?: boolean;
+}) {
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
   return (
     <>
       <Button
-        variant="secondary"
+        variant={quiet ? "ghost" : "secondary"}
+        className={quiet ? "h-auto min-h-0 p-0 text-[13px] font-medium" : undefined}
         disabled={pending}
         loading={pending}
         onClick={() =>
@@ -33,7 +43,7 @@ export function ManageGift({ slug, session }: { slug: string; session: string })
           })
         }
       >
-        {t("give.manage")}
+        {quiet ? t("give.manage.quiet") : t("give.manage")}
       </Button>
       {error ? <p className="m-0 text-[13px] text-danger-text">{error}</p> : null}
     </>

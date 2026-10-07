@@ -15,6 +15,8 @@ export interface GivingPage {
   name: string;
   /** R13.6. The church's own site, where a giver came from and goes back to. */
   website: string | null;
+  /** R1.7. Whether somebody can make an account from the church's own address. */
+  selfSignup: boolean;
   brandHue: string;
   logoKey: string | null;
   /** The church's own Stripe account, which is where the money goes. */
@@ -37,11 +39,13 @@ export async function givingPage(slug: string): Promise<GivingPage | null> {
     slug: string;
     name: string;
     website: string | null;
+    selfSignup: boolean;
     brandHue: string;
     logoKey: string | null;
     accountId: string;
   }[]>`
     select t.id as "tenantId", t.slug, t.name, t.website,
+           t.self_signup as "selfSignup",
            t.brand_hue::text as "brandHue",
            t.logo_key as "logoKey", s.account_id as "accountId"
       from tenants t
@@ -65,6 +69,7 @@ export async function givingPage(slug: string): Promise<GivingPage | null> {
     slug: church.slug,
     name: church.name,
     website: church.website,
+    selfSignup: church.selfSignup,
     brandHue: church.brandHue,
     logoKey: church.logoKey,
     accountId: church.accountId,
@@ -76,4 +81,28 @@ export async function givingPage(slug: string): Promise<GivingPage | null> {
 export async function givingFund(slug: string, fundId: string): Promise<boolean> {
   const page = await givingPage(slug);
   return Boolean(page?.funds.some((one) => one.id === fundId));
+}
+
+/**
+ * R13.6, R17.4. Whether this church already holds a record for that address.
+ *
+ * Asked after a gift, about the address the giver just gave Stripe, so the
+ * thank-you page can offer them an account rather than guessing. It answers
+ * about one address at a time and tells the caller nothing else, and the
+ * caller may only ask about an address it was handed by Stripe.
+ */
+export async function giverKnown(slug: string, email: string): Promise<boolean> {
+  if (!SLUG.test(slug) || !email.includes("@")) return false;
+
+  const rows = await owner()<{ one: number }[]>`
+    select 1 as one
+      from members m
+      join tenants t on t.id = m.tenant_id
+      join contact_methods c on c.member_id = m.id
+     where t.slug = ${slug}
+       and c.kind = 'email'
+       and lower(c.value) = ${email.trim().toLowerCase()}
+       and m.archived_at is null
+     limit 1`;
+  return rows.length > 0;
 }
