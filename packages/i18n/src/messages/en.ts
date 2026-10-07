@@ -1974,7 +1974,7 @@ export const en = {
   "team.roleChanged": "Changed",
   "team.removeTitle": "Put {name} back to Member?",
   "team.removeKeep": "Leave as-is",
-  "team.removed": "They are a member now",
+  "team.removed": "{name} is a member now",
   "team.error.gone": "That account is no longer in this church.",
   "team.error.owner": "An owner cannot be changed by anybody else.",
   "team.error.onlyOwner": "Only an owner can make somebody else an owner.",

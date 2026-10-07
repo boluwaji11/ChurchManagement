@@ -4,6 +4,7 @@ import * as React from "react";
 import { Check, ChevronRight, KeyRound, Mail } from "lucide-react";
 import { Banner, Button, Field, Input } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Said } from "@/components/said";
 import { changeEmail, changePassword, emailMeALink } from "./actions";
 import { useFormError } from "@/lib/form-error";
 
@@ -82,7 +83,7 @@ export function Security({ email }: { email: string }) {
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("settings.tab.security")}>{error}</Banner> : null}
-      {message ? <Banner tone="success" title={message} /> : null}
+      <Said message={message} onClose={() => setMessage(undefined)} />
 
       <Row
         title={t("email.row")}

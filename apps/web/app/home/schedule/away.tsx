@@ -50,15 +50,15 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
 
   return (
     <Panel className="flex flex-col gap-3">
-      {/* R24.6. The calendar sits with the name, where the eye lands first. */}
-      <span className="flex items-start justify-between gap-3">
-        <span className="font-semibold text-fg">{t("home.away")}</span>
+      {/* R24.6. The mark sits with the name, reading as one heading. */}
+      <span className="flex items-center gap-2.5">
         <span
           aria-hidden
-          className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary"
+          className="grid size-8 shrink-0 place-items-center rounded-[9px] bg-primary-soft text-primary"
         >
-          <CalendarOff className="size-[18px]" />
+          <CalendarOff className="size-[17px]" />
         </span>
+        <span className="font-semibold text-fg">{t("home.away")}</span>
       </span>
 
       {dates.length > 0 ? (

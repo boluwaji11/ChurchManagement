@@ -28,7 +28,12 @@ export default async function TeamPage({
     listTeam(session.tenantId, session.userId),
     listInvitations(session.tenantId),
     // R1.6. The built-ins and whatever this church wrote beside them.
-    withTenant(session, (tx) => listRoles(tx, session.tenantId)),
+    /*
+     * R1.6. Including the ones put away: somebody can still be on a role the
+     * church has since taken off its list, and a picker with no row for the
+     * role they hold shows an empty box.
+     */
+    withTenant(session, (tx) => listRoles(tx, session.tenantId, { includeArchived: true })),
     /*
      * R1.1. Invitations open once somebody has looked at the church. The frame
      * around this screen has already read where the church stands, so this is
@@ -49,6 +54,7 @@ export default async function TeamPage({
           key: role.key,
           name: role.name,
           builtin: role.builtin,
+          archived: role.archived,
           permissions: [...role.permissions],
         }))}
         members={members.map((member) => ({

@@ -14,6 +14,7 @@ import { t } from "@connectapp/i18n";
 import { useFormError } from "@/lib/form-error";
 import { usePanelGuard } from "@/components/panel-guard";
 import { Confirm } from "@/components/confirm";
+import { Said } from "@/components/said";
 import {
   invite, invitees, withdraw, changeRole, removeAccess,
 } from "./actions";
@@ -24,6 +25,8 @@ export interface ChurchRoleOption {
   key: string;
   name: string;
   builtin: boolean;
+  /** R1.6. Put away: still held by whoever holds it, never offered again. */
+  archived: boolean;
   permissions: string[];
 }
 
@@ -103,7 +106,7 @@ export function Team({
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("team.failed")}>{error}</Banner> : null}
-      {message ? <Banner tone="success" title={message} /> : null}
+      <Said message={message} onClose={() => setMessage(undefined)} />
 
       {/* R1.4. Both of these change what somebody may do, and neither is
           obvious from the row afterwards, so both are asked and both answer. */}
@@ -166,7 +169,10 @@ export function Team({
                 const who = removing;
                 setRemoving(null);
                 if (who) {
-                  run(() => removeAccess(who.userId, church), t("team.removed"));
+                  run(
+                    () => removeAccess(who.userId, church),
+                    t("team.removed", { name: (who.name ?? who.email).split(" ")[0]! }),
+                  );
                 }
               }}
             >
@@ -246,9 +252,17 @@ export function Team({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem key={role.id} value={role.id}>{titleOf(role)}</SelectItem>
-                        ))}
+                        {/* The church's live roles, and the one this member is
+                            on where the church has since put it away. */}
+                        {roles
+                          .filter(
+                            (role) =>
+                              !role.archived ||
+                              role.id === (member.roleId ?? idFor(roles, member.role)),
+                          )
+                          .map((role) => (
+                            <SelectItem key={role.id} value={role.id}>{titleOf(role)}</SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   )}
@@ -455,7 +469,7 @@ function InviteDialog({
 }) {
   const [open, setOpen] = React.useState(false);
   // Everything but Owner, which is given by handing the church over.
-  const giveable = roles.filter((one) => one.key !== "owner");
+  const giveable = roles.filter((one) => one.key !== "owner" && !one.archived);
   const [role, setRole] = React.useState(giveable[0]?.id ?? "");
   const [failed, setFailed] = React.useState<string>();
   const [saving, startTransition] = React.useTransition();
