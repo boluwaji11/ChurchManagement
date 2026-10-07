@@ -6,6 +6,7 @@ import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { photoUrls } from "@/lib/photos";
 import { GiveForm } from "./give-form";
+import { Mark } from "./mark";
 import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +50,13 @@ export default async function GivePage({
   const signed = church.logoKey ? await photoUrls([church.logoKey]) : {};
   const logoUrl = church.logoKey ? (signed[church.logoKey] ?? null) : null;
 
+  /* R1.1. A church writes "example.com" rather than a scheme, so one is put
+     in front of it. */
+  const site = church.website?.trim();
+  const homepage = site
+    ? /^https?:\/\//i.test(site) ? site : `https://${site}`
+    : null;
+
   return (
     <main className="site-wash grid min-h-dvh place-items-start justify-center px-5 py-10">
       <div className="flex w-full max-w-[460px] flex-col gap-6">
@@ -65,22 +73,17 @@ export default async function GivePage({
         ) : null}
 
         <div className="flex flex-col items-center gap-3 text-center">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoUrl}
-              alt=""
-              className="size-14 rounded-[14px] object-cover"
-            />
-          ) : (
-            <span
-              aria-hidden
-              className="grid size-14 place-items-center rounded-[14px] font-display text-[24px] text-primary-fg"
-              style={{ background: `var(--hue-${church.brandHue}-key)` }}
-            >
-              {church.name.slice(0, 1)}
-            </span>
-          )}
+          {/* R1.1. The mark opens the church's own website where it has given
+              one. Somebody pressing a church's name is reaching for the
+              church, and this page is one of its doors rather than the whole
+              of it. With no website there is nowhere to go, so it is a mark
+              and not a control. */}
+          <Mark
+            name={church.name}
+            logoUrl={logoUrl}
+            hue={church.brandHue}
+            homepage={homepage}
+          />
           <h1 className="font-display text-[28px] leading-[34px] text-fg">
             {t("give.title", { church: church.name })}
           </h1>
