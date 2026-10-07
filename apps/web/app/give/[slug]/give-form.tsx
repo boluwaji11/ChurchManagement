@@ -239,7 +239,7 @@ export function GiveForm({
             setSplitting((was) => !was);
             setSplit({});
           }}
-          className="-mt-2 cursor-pointer self-start font-medium text-primary"
+          className="-mt-2 cursor-pointer self-center font-medium text-primary"
         >
           {splitting ? t("give.split.single") : t("give.split")}
         </button>
