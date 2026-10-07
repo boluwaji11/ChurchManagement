@@ -2323,7 +2323,7 @@ export const en = {
   // Plan templates, configured in settings
   "settings.group.services": "Services",
   "settings.tab.plans": "Plan templates",
-  "settings.lede.plans": "The shapes your services run to, ready to lay onto a plan.",
+  "settings.lede.plans": "The outline your service plans start from.",
   "planTpl.add": "Create a new template",
   "planTpl.newTitle": "New template",
   "planTpl.editTitle": "Edit {name}",
