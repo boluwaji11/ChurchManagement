@@ -78,12 +78,17 @@ export default async function StatementPrintPage({
             key={statement.memberId}
             className="mx-auto max-w-3xl px-10 py-10 break-after-page"
           >
-            <div className="text-[13px] font-medium text-neutral-500">
-              {read.profile?.legalName || session.tenantName}
-              {address ? ` · ${address}` : ""}
+            {/* The church's name leads, with where it is underneath. */}
+            <div className="flex flex-col gap-0.5">
+              <div className="text-[17px] font-semibold text-black">
+                {read.profile?.legalName || session.tenantName}
+              </div>
+              {address ? (
+                <div className="text-[13px] text-neutral-500">{address}</div>
+              ) : null}
             </div>
 
-            <header className="mt-1 border-b-2 border-black pb-3">
+            <header className="mt-3 border-b-2 border-black pb-3">
               <h1 className="font-display text-[30px] leading-[38px]">
                 {t("statement.heading", { year: read.year })}
               </h1>
