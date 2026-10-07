@@ -199,14 +199,17 @@ export function OnlineGiving({
     });
 
   return (
-    <div className="grid items-start gap-5 xl:[grid-template-columns:minmax(0,720px)_minmax(280px,360px)]">
+    <div className="flex max-w-[1120px] flex-col gap-4">
+      {/* R24.6. The account and the rate stand side by side and end level,
+          because neither is a footnote to the other. */}
+      <div className="grid items-stretch gap-5 xl:[grid-template-columns:minmax(0,1fr)_minmax(300px,380px)]">
       <div className="flex min-w-0 flex-col gap-4">
       {error ? <Banner tone="danger" title={t("stripe.title")}>{error}</Banner> : null}
       {configured ? null : (
         <Banner tone="info" title={t("stripe.title")}>{t("stripe.unconfigured")}</Banner>
       )}
 
-      <Card className="flex flex-col gap-5 p-5">
+      <Card className="flex h-full flex-col gap-5 p-5">
         <div className="flex flex-wrap items-center gap-3">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-[10px] text-white [&_svg]:size-[18px]"
@@ -350,10 +353,6 @@ export function OnlineGiving({
         </ol>
       </Card>
 
-      <p className="m-0 text-[13px] text-fg-muted">
-        {t("stripe.fees.a")} <strong className="font-semibold text-fg">{t("stripe.fees.takes")}</strong>{" "}
-        {t("stripe.fees.b")}
-      </p>
       </div>
 
       {/* R13.1. Stripe charges a church less once it has asked, and it does
@@ -366,6 +365,12 @@ export function OnlineGiving({
           signedInAs={signedInAs}
         />
       ) : null}
+      </div>
+
+      <p className="m-0 text-[13px] text-fg-muted">
+        {t("stripe.fees.a")} <strong className="font-semibold text-fg">{t("stripe.fees.takes")}</strong>{" "}
+        {t("stripe.fees.b")}
+      </p>
     </div>
   );
 }

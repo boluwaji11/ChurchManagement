@@ -41,7 +41,7 @@ export function NonprofitRate({
     + `&body=${encodeURIComponent(body)}`;
 
   return (
-    <Card className="flex flex-col gap-4 p-5">
+    <Card className="flex h-full flex-col gap-4 p-5">
       <div className="flex items-center gap-2.5">
         <span
           className="grid size-9 shrink-0 place-items-center rounded-[10px] [&_svg]:size-[18px]"
@@ -79,7 +79,7 @@ export function NonprofitRate({
 
       <p className="m-0 text-[13px] text-fg-muted">{t("stripe.rate.late")}</p>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="mt-auto flex flex-wrap items-center gap-2">
         <Button asChild>
           <a href={mail}>
             <Mail /> {t("stripe.rate.draft")}
