@@ -83,6 +83,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-239 | The giving page a church links to from its own website, with optional fee coverage | R13.5, R13.6 | Resolved |
 | HRT-240 | The deposit slip, and the gifts as a spreadsheet | R13.22, R13.23 | Resolved |
 | HRT-241 | Year-end giving statements to Publication 1771, on screen and in print | R13.17, R13.19 | Resolved, waiting on CPA review before 0.3 ships |
+| HRT-242 | The giving report: by month, by fund, who stopped giving, who started | R13.21, R13.24, R13.25 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -703,6 +704,18 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-242, how to test it
+
+1. **Reports** carries a Giving row for anybody whose role sees giving amounts, and does not for
+   anybody else.
+2. Three figures: what came in over the window, how many gave and what that averages, and how many
+   have stopped.
+3. Month by month, and a bar a fund with the restricted ones marked.
+4. **Stopped giving** is somebody who gave at least twice in the year before the window and nothing
+   inside it. One gift at a wedding collection does not put them on the list.
+5. **First-time givers** is whoever's first gift ever landed inside the window.
+6. Both lists open the person's record.
 
 ### HRT-241, how to test it
 

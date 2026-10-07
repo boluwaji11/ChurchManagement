@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, CalendarCheck, TrendingUp, UserPlus } from "lucide-react";
-import { withTenant, listSavedReports, canEditPeople, canReadIncidents } from "@connectapp/db";
+import { ArrowRight, CalendarCheck, HandCoins, TrendingUp, UserPlus } from "lucide-react";
+import {
+  withTenant, listSavedReports, canEditPeople, canReadIncidents, canReadGivingAmounts,
+} from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -64,6 +66,18 @@ export default async function ReportsPage({
       title: t("reports.growth.title"),
       detail: t("reports.growth.detail"),
     },
+    /* R1.5. Only for somebody whose role carries the giving amounts. */
+    ...(canReadGivingAmounts(session)
+      ? [
+          {
+            href: `/reports/giving${here}`,
+            icon: HandCoins,
+            hue: "teal",
+            title: t("reports.giving.title"),
+            detail: t("reports.giving.detail"),
+          },
+        ]
+      : []),
   ];
 
   return (
