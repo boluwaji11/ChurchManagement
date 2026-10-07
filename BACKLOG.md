@@ -80,6 +80,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-236 | The kinds of plan item are a list the church keeps, in its own words | R11.2 | Resolved |
 | HRT-237 | Giving: the funds, the counting session with dual control, and what came in | R13.9 to R13.15, R13.21 | Resolved |
 | HRT-238 | Stripe Connect at a zero platform fee: the church's own account, direct charges, the webhook | R13.1, R13.2 | Resolved |
+| HRT-239 | The giving page a church links to from its own website, with optional fee coverage | R13.5, R13.6 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -700,6 +701,23 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-239, how to test it
+
+This needs `STRIPE_SECRET_KEY` and a connected account that Stripe will take a payment on.
+
+1. **Settings, Money, Online giving** shows the giving address once Stripe says the account can
+   take a payment. Open it: `/give/<church>`.
+2. The page is the church's name and colour, an amount with four quick figures, the funds it keeps,
+   a name and an email. No account, no sign-in.
+3. Tick the fee line and the button's figure goes up by the fee, with the amount spelled out. It is
+   never ticked for the giver.
+4. Give lands on Stripe's own page. The card is typed there, never on ours.
+5. Pay with 4242 4242 4242 4242 and Stripe returns to the thank-you page.
+6. With the webhook running (`stripe listen --forward-to localhost:4488/api/stripe/webhook`), the
+   gift appears on the Giving screen against the right fund, with Stripe's fee recorded. If the
+   email matches one person in the directory, it lands on their record.
+7. A church that has not connected Stripe, or is not approved, has no giving page at all.
 
 ### HRT-237 and HRT-238, how to test it
 

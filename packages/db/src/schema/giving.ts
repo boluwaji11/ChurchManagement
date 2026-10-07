@@ -96,8 +96,16 @@ export const gifts = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    /** Null where the gift is anonymous. */
+    /** Null where the gift is anonymous, or where the giver has no record yet. */
     memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
+    /**
+     * R13.6. What a giver with no record typed on the church's giving page.
+     *
+     * A statement has to be written for them in January whether or not anybody
+     * has got round to putting them in the directory.
+     */
+    giverName: text("giver_name"),
+    giverEmail: text("giver_email"),
     fundId: uuid("fund_id").notNull().references(() => funds.id, { onDelete: "restrict" }),
     /** Null for anything that did not come through a counting session. */
     batchId: uuid("batch_id").references(() => giftBatches.id, { onDelete: "set null" }),

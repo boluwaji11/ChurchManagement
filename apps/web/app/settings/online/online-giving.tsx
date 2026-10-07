@@ -19,11 +19,14 @@ export function OnlineGiving({
   church,
   account,
   configured,
+  origin,
 }: {
   church: string;
   account: ChurchStripeAccount | null;
   /** Whether this platform has a Stripe key at all. */
   configured: boolean;
+  /** Where this church is reached, for the address it hands its congregation. */
+  origin: string;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -110,7 +113,35 @@ export function OnlineGiving({
       <Card className="flex h-full flex-col gap-4">
         <CardTitle>{t("stripe.fees.title")}</CardTitle>
         <Separator />
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("stripe.fees.body")}</p>
+        <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
+          {t("stripe.fees.body")}
+        </p>
+
+        {/* R13.6. The address the church puts behind "Give" on its own site,
+            which only exists once Stripe will take a payment on the account. */}
+        {account?.chargesEnabled ? (
+          <div className="mt-auto flex flex-col gap-1.5">
+            <span className="text-label text-fg">{t("give.link")}</span>
+            <div className="flex items-center gap-1 rounded-[var(--d-radius-control)] border border-line-strong bg-surface pr-1">
+              <input
+                readOnly
+                value={`${origin}/give/${church}`}
+                aria-label={t("give.link")}
+                onFocus={(e) => e.currentTarget.select()}
+                className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono text-[13px] text-fg outline-none"
+              />
+              <a
+                href={`${origin}/give/${church}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={t("stripe.open")}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-4"
+              >
+                <ExternalLink />
+              </a>
+            </div>
+          </div>
+        ) : null}
       </Card>
     </div>
   );

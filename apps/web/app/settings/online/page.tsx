@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { withTenant, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
@@ -30,6 +31,10 @@ export default async function OnlineGivingPage({
       )
     : null;
 
+  const head = await headers();
+  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
+  const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+
   return (
     <div className="flex flex-col gap-5">
       <SettingsHeading title="settings.tab.online" lede="settings.lede.online" />
@@ -38,6 +43,7 @@ export default async function OnlineGivingPage({
           church={session.tenantSlug}
           account={account}
           configured={stripeConfigured()}
+          origin={`${proto}://${host}`}
         />
       ) : (
         <Denied />

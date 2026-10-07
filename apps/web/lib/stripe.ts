@@ -42,3 +42,5 @@ export const stripeConfigured = (): boolean => Boolean(process.env.STRIPE_SECRET
 export const asChurch = (accountId: string): Stripe.RequestOptions => ({
   stripeAccount: accountId,
 });
+
+export { FEE_RATE, FEE_FIXED, withFee } from "./stripe-fee";

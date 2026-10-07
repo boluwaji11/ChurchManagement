@@ -110,6 +110,9 @@ export async function recordOnlineGift(input: {
   fundId?: string | null;
   memberId?: string | null;
   coveredFee?: boolean;
+  /** R13.6. What the giver typed on the church's own giving page. */
+  giverName?: string | null;
+  giverEmail?: string | null;
 }): Promise<void> {
   const tenantId = await tenantForStripeAccount(input.accountId);
   if (!tenantId) return;
@@ -131,16 +134,42 @@ export async function recordOnlineGift(input: {
   const fundId = funds[0]?.id;
   if (!fundId) return;
 
+  /*
+   * R13.18. Whoever this is, if the church already has them.
+   *
+   * Matched on the address they gave Stripe, which is the one they typed on
+   * the giving page. No match leaves the gift standing in their own name, and
+   * the church can put it against a person later.
+   */
+  let memberId = input.memberId ?? null;
+  const email = input.giverEmail?.trim().toLowerCase() || null;
+  if (!memberId && email) {
+    const people = await sql<{ id: string }[]>`
+      select m.id
+        from members m
+        join contact_methods c on c.member_id = m.id
+       where m.tenant_id = ${tenantId}
+         and c.kind = 'email'
+         and lower(c.value) = ${email}
+         and m.archived_at is null
+       limit 2`;
+    // Two people on one address is a household sharing it, and guessing which
+    // of them gave is worse than leaving it to the church.
+    if (people.length === 1) memberId = people[0]!.id;
+  }
+
   await sql`
     insert into gifts (
       tenant_id, member_id, fund_id, amount_cents, currency, method,
-      received_on, stripe_payment_intent_id, stripe_charge_id, fee_cents, covered_fee
+      received_on, stripe_payment_intent_id, stripe_charge_id, fee_cents, covered_fee,
+      giver_name, giver_email
     )
     values (
-      ${tenantId}, ${input.memberId ?? null}, ${fundId}, ${input.amountCents},
+      ${tenantId}, ${memberId}, ${fundId}, ${input.amountCents},
       ${input.currency}, 'card', ${input.receivedOn}::date,
       ${input.paymentIntentId}, ${input.chargeId}, ${input.feeCents},
-      ${input.coveredFee ?? false}
+      ${input.coveredFee ?? false},
+      ${input.giverName ?? null}, ${email}
     )
     on conflict (tenant_id, stripe_payment_intent_id) do nothing`;
 }

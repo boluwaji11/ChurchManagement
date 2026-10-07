@@ -349,6 +349,7 @@ export async function listGifts(
       memberId: gifts.memberId,
       first: members.firstName,
       last: members.lastName,
+      giverName: gifts.giverName,
       fundId: gifts.fundId,
       fundName: funds.name,
       batchId: gifts.batchId,
@@ -373,7 +374,14 @@ export async function listGifts(
   return rows.map((row) => ({
     id: row.id,
     memberId: row.memberId,
-    memberName: row.memberId ? [row.first, row.last].filter(Boolean).join(" ") : null,
+    /*
+     * R13.6. The name on the gift: the person's where the church holds one,
+     * and otherwise what the giver typed on the giving page. Null is a gift
+     * nobody put a name to, which is what anonymous means.
+     */
+    memberName: row.memberId
+      ? [row.first, row.last].filter(Boolean).join(" ")
+      : row.giverName,
     fundId: row.fundId,
     fundName: row.fundName,
     batchId: row.batchId,

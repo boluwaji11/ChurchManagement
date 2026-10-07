@@ -84,6 +84,8 @@ export async function POST(request: Request) {
           fundId: intent.metadata?.fundId || null,
           memberId: intent.metadata?.memberId || null,
           coveredFee: intent.metadata?.coveredFee === "true",
+          giverName: intent.metadata?.giverName || null,
+          giverEmail: intent.metadata?.giverEmail || null,
         });
         break;
       }
