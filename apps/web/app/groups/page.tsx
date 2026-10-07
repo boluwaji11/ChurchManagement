@@ -169,9 +169,11 @@ export default async function GroupsPage({
           title={only?.name ?? t("find.title")}
           under={
             only?.description ? (
+              /* A size down from body. It is the church's own words about the
+                 kind, read once, over a list that is the reason for the page. */
               <Markdown
                 text={only.description}
-                className="flex flex-col gap-2 text-[length:var(--d-text-body)] text-fg-muted"
+                className="flex max-w-[70ch] flex-col gap-1.5 text-[13px] leading-[20px] text-fg-muted"
               />
             ) : (
               t("find.lede")
