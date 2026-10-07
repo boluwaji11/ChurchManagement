@@ -171,7 +171,9 @@ export function GiveForm({
         ))}
       </div>
 
-      <Field label={t("give.fund")} required>
+      {/* R13.4. One fund, or the gift divided between several. */}
+      {splitting ? (
+        <Field label={t("give.fund")} required>
           <div className="flex flex-col gap-2">
             {funds.map((fund) => (
               <span key={fund.id} className="flex items-center gap-2">
