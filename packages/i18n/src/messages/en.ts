@@ -1085,6 +1085,8 @@ export const en = {
   "fund.keep": "Keep it",
   "fund.failed": "That did not save. Try again.",
   // The church's own Stripe account
+  "payouts.title": "Payouts",
+  "payouts.connect": "Connect your church's Stripe account to see its balance and payouts here.",
   "stripe.title": "Stripe",
   "stripe.connect": "Connect Stripe",
   "stripe.continue": "Finish connecting",

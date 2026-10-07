@@ -42,6 +42,21 @@ the giver the option of adding the processing fee to the gift. It is shown hones
 on by default. The gift records what the giver paid, what Stripe took, and whether the giver chose
 to cover it, so the statement and the deposit both reconcile.
 
+## Reading Stripe without leaving ConnectApp
+
+Giving → Payouts draws Stripe's own **Connect embedded components** against an account session this
+server asks for, so a treasurer reads the balance, the payouts and the payment list without going
+to stripe.com.
+
+Every acting feature on those components is switched **off**: no refunds, no disputes, no payout
+schedule, no changing the bank account. Those stay in the church's own Stripe dashboard, because
+the church is the account holder there and Stripe carries the risk under the Standard model. The
+moment this platform starts performing those actions, it starts taking on the liability that makes
+"never touch the money" true.
+
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is what the browser needs for this. It identifies the
+platform; it authorises nothing.
+
 ## Card data
 
 Never on our servers. The giver types the card into Stripe's own hosted page or an embedded Stripe

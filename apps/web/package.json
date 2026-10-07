@@ -13,6 +13,8 @@
     "@connectapp/db": "workspace:*",
     "@connectapp/i18n": "workspace:*",
     "@connectapp/ui": "workspace:*",
+    "@stripe/connect-js": "^3.4.6",
+    "@stripe/react-connect-js": "^3.4.4",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "lucide-react": "^0.469.0",

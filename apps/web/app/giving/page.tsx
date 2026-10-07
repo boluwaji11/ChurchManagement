@@ -120,6 +120,12 @@ export default async function GivingPage({
                 {t("giving.counts")}
                 {/* R13.17. January's work, a press away from the Monday one. */}
                 <Link
+                  href={`/giving/payouts?church=${session.tenantSlug}`}
+                  className="text-[13px] font-medium text-primary"
+                >
+                  {t("payouts.title")}
+                </Link>
+                <Link
                   href={`/giving/campaigns?church=${session.tenantSlug}`}
                   className="text-[13px] font-medium text-primary"
                 >
