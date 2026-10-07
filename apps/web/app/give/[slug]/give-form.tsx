@@ -29,6 +29,7 @@ export function GiveForm({
   accountId,
   publishableKey,
   giver,
+  inside,
 }: {
   slug: string;
   church: string;
@@ -38,6 +39,12 @@ export function GiveForm({
   publishableKey: string;
   /** R13.6. What we already know, where the giver is signed in. */
   giver: { name: string; email: string };
+  /**
+   * R17.4. Whether this is the member's own screens rather than the church's
+   * public page. Stripe then sends them back to their giving instead of to
+   * the thank-you page a stranger lands on.
+   */
+  inside?: boolean;
 }) {
   const [amount, setAmount] = React.useState("");
   const [fundId, setFundId] = React.useState(funds[0]?.id ?? "");
@@ -78,6 +85,7 @@ export function GiveForm({
         name,
         email,
         repeat,
+        inside,
       });
       if (result.error) {
         setError(

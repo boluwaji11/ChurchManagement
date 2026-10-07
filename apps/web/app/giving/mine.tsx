@@ -3,10 +3,9 @@ import { redirect } from "next/navigation";
 import { CornerDownRight, Download } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
-  getStripeAccount, listRecurring,
+  getStripeAccount, listRecurring, givingPage,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { Button } from "@connectapp/ui";
 import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
 import type { Session } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -16,6 +15,7 @@ import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
 import * as React from "react";
 import { ChangeCard } from "./change-card";
+import { GiveHere } from "./give-here";
 import { CardSaved } from "./card-saved";
 import { StopRepeating } from "./stop-repeating";
 
@@ -73,15 +73,26 @@ export async function MyGiving({ session }: { session: Session }) {
 
   if (!mine) redirect(`/home?church=${session.tenantSlug}`);
 
+  /* R13.6. The church's own giving page, read for the funds it offers. */
+  const page = mine.online ? await givingPage(session.tenantSlug) : null;
+
   return (
     <PortalShell session={session} tab={t("mine.giving.title")}>
       <PortalTitle
         title={t("mine.giving.title")}
         action={
-          mine.online ? (
-            <Button asChild>
-              <Link href={`/give/${session.tenantSlug}`}>{t("home.giveNow")}</Link>
-            </Button>
+          /* R17.4. Giving happens in a panel on this screen: somebody
+             already here came to give, and a page of their own to go to and
+             come back from is two navigations for one press. */
+          mine.online && page ? (
+            <GiveHere
+              slug={page.slug}
+              church={page.name}
+              funds={page.funds}
+              accountId={page.accountId}
+              publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
+              giver={{ name: session.displayName, email: session.email }}
+            />
           ) : undefined
         }
       />

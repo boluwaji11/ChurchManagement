@@ -52,6 +52,8 @@ export async function startGift(input: {
   email: string;
   /** R13.3. Once, or on whatever rhythm the giver keeps. */
   repeat?: Repeat;
+  /** R17.4. Given from the member's own screens, which is where they return. */
+  inside?: boolean;
 }): Promise<GiveResult> {
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
@@ -182,7 +184,9 @@ export async function startGift(input: {
          * done, and a redirect to another domain is where people stop.
          */
         ui_mode: "embedded_page" as never,
-        return_url: `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
+        return_url: input.inside
+          ? `${back}/giving?church=${page.slug}&gift={CHECKOUT_SESSION_ID}`
+          : `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
       },
       asChurch(page.accountId),
     );
