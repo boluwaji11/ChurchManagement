@@ -78,6 +78,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Resolved |
 | HRT-235 | Plan templates are configured in Settings, with ready-made shapes, and the plan screen starts from them | R11.8 | Resolved |
 | HRT-236 | The kinds of plan item are a list the church keeps, in its own words | R11.2 | Resolved |
+| HRT-237 | Giving: the funds, the counting session with dual control, and what came in | R13.9 to R13.15, R13.21 | Resolved |
+| HRT-238 | Stripe Connect at a zero platform fee: the church's own account, direct charges, the webhook | R13.1, R13.2 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -698,6 +700,30 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-237 and HRT-238, how to test it
+
+1. **Giving** is in the sidebar for Owner, Admin and anybody on a role carrying "Record gifts, keep
+   the funds and connect the church's Stripe account". It is not there for anybody else.
+2. **Settings, Money, Funds** starts with General. Add Building and mark it restricted. Archiving
+   the last live fund is refused, because a gift has to go somewhere.
+3. **Start a count** on the Giving screen: name it, date it, declare the total that is in the bag.
+   It opens on its own screen.
+4. **Record a gift** against the count. Save and add another keeps the panel open for the next
+   envelope. Leave the giver empty and the gift is anonymous and still counts to the fund.
+5. The two figures across the top are the declared total and what has been entered, with the
+   difference said in words.
+6. **Close the count** is refused until two counters are named, and refused on a difference until
+   somebody writes down why. The note then reads on the count.
+7. A closed count takes no more lines. Reopen puts it back.
+8. A gift in kind takes a description and no amount, and stays out of the cash totals.
+9. Somebody with "See how much somebody gives" but not the manage permission reads the screen with
+   no actions on it. Somebody with neither is refused.
+10. **Settings, Money, Online giving** says Not connected. With `STRIPE_SECRET_KEY` set, Connect
+    Stripe creates the church's own Standard account and sends you to Stripe's onboarding. Without
+    the key, the screen says the platform is not set up for it.
+11. [docs/giving.md](docs/giving.md) is the money model: direct charges on the church's account,
+    application fee zero, Stripe's fee off the church's balance.
 
 ### HRT-236, how to test it
 

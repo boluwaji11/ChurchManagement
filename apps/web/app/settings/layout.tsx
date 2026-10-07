@@ -1,7 +1,7 @@
 import {
   canManageChurch, canManageCustomFields, canEditPeople, canManageRooms,
   canArchivePeople, canManageHouseholds, canManageGroups, canManageTeams,
-  canManageServices,
+  canManageServices, canManageGiving,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -81,6 +81,15 @@ export default async function SettingsLayout({ children }: { children: React.Rea
           ? [{ href: "/settings/followups", label: t("settings.tab.followups") }]
           : []),
       ],
+    },
+    {
+      title: t("settings.group.money"),
+      items: canManageGiving(session)
+        ? [
+            { href: "/settings/funds", label: t("settings.tab.funds") },
+            { href: "/settings/online", label: t("settings.tab.online") },
+          ]
+        : [],
     },
     {
       title: t("settings.group.you"),

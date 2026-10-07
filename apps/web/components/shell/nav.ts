@@ -1,11 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Users, UserPlus, Baby, Calendar, CalendarHeart, ListMusic, HandHeart, CircleDot,
-  ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn,
+  ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn, HandCoins,
 } from "lucide-react";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
-  canLeadTeams, canManageChurch, canManageEvents, type Who,
+  canLeadTeams, canManageChurch, canManageEvents, canManageGiving,
+  canReadGivingAmounts, type Who,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import type { NavTarget } from "./nav-active";
@@ -113,6 +114,20 @@ export function navFor(role: Who): NavEntry[] {
   // R14.1. What the church is putting on, and who has a place at it.
   if (canManageEvents(role)) {
     out.push({ label: t("nav.events"), href: "/events", icon: CalendarHeart });
+  }
+
+  /*
+   * R13.x. Giving: what came in, the counts the team ran, and the funds it
+   * went to. Its own entry rather than a corner of Reports, because a
+   * treasurer opens the product for this and nothing else.
+   */
+  if (canManageGiving(role) || canReadGivingAmounts(role)) {
+    out.push({
+      label: t("nav.giving"),
+      href: "/giving",
+      icon: HandCoins,
+      owns: ["/giving"],
+    });
   }
 
   // R4.1. A form is a question the church is seen to be asking in public, so

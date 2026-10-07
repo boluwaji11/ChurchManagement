@@ -430,6 +430,15 @@ export async function createChurch(input: {
       select ${tenant.id}, slug, ordinality - 1
       from unnest(${BUILT_IN_KINDS as unknown as string[]}::text[]) with ordinality as k(slug, ordinality)`;
 
+    /*
+     * R13.9. A general fund, because a gift has to go somewhere and the first
+     * thing a treasurer records is the offering. The church renames it, adds
+     * to it, and marks whichever of its funds are restricted.
+     */
+    await tx`
+      insert into funds (tenant_id, name, code, position)
+      values (${tenant.id}, 'General', 'GEN', 0)`;
+
     await writeAccount(tx, input.user);
 
     await tx`

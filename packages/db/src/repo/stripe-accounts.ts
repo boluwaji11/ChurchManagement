@@ -89,3 +89,58 @@ export async function markStripeAccount(input: {
            updated_at = now()
      where account_id = ${input.accountId}`;
 }
+
+/**
+ * R13.1, R13.2. Writing down a gift that came in through Stripe.
+ *
+ * Called from the webhook, which arrives with no session and no tenant set, so
+ * it cannot go through RLS. It is narrow on purpose: it writes one row against
+ * the church the account belongs to, and it is idempotent, because Stripe
+ * delivers an event more than once whenever it is unsure.
+ */
+export async function recordOnlineGift(input: {
+  accountId: string;
+  paymentIntentId: string;
+  chargeId: string | null;
+  amountCents: number;
+  feeCents: number;
+  currency: string;
+  receivedOn: string;
+  /** From the metadata the giving page put on the payment. */
+  fundId?: string | null;
+  memberId?: string | null;
+  coveredFee?: boolean;
+}): Promise<void> {
+  const tenantId = await tenantForStripeAccount(input.accountId);
+  if (!tenantId) return;
+
+  const sql = owner();
+
+  /*
+   * The fund the giver chose, where the page said so and it still belongs to
+   * this church. Anything else lands on the church's first live fund, because
+   * a gift that arrived is a gift that has to be recorded.
+   */
+  const funds = await sql<{ id: string }[]>`
+    select id from funds
+     where tenant_id = ${tenantId}
+       and archived_at is null
+       and (${input.fundId ?? null}::uuid is null or id = ${input.fundId ?? null}::uuid)
+     order by position asc
+     limit 1`;
+  const fundId = funds[0]?.id;
+  if (!fundId) return;
+
+  await sql`
+    insert into gifts (
+      tenant_id, member_id, fund_id, amount_cents, currency, method,
+      received_on, stripe_payment_intent_id, stripe_charge_id, fee_cents, covered_fee
+    )
+    values (
+      ${tenantId}, ${input.memberId ?? null}, ${fundId}, ${input.amountCents},
+      ${input.currency}, 'card', ${input.receivedOn}::date,
+      ${input.paymentIntentId}, ${input.chargeId}, ${input.feeCents},
+      ${input.coveredFee ?? false}
+    )
+    on conflict (tenant_id, stripe_payment_intent_id) do nothing`;
+}

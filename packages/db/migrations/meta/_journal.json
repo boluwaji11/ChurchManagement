@@ -722,6 +722,13 @@
       "when": 1791404000000,
       "tag": "0102_giving",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1791405000000,
+      "tag": "0103_general_fund",
+      "breakpoints": true
     }
   ]
 }

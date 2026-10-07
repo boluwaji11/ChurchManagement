@@ -23,6 +23,7 @@ export function Picker({
   onChange,
   clearable = true,
   create,
+  onQuery,
 }: {
   name: string;
   defaultValue: string | null;
@@ -39,6 +40,13 @@ export function Picker({
    * group type or a room has the way to add one in front of them.
    */
   create?: { href: string; label: string };
+  /**
+   * Told what has been typed, for a list that comes from the server.
+   *
+   * A directory of four hundred people is looked up rather than listed, so the
+   * options arrive already narrowed and are taken as given.
+   */
+  onQuery?: (query: string) => void;
 }) {
   const [value, setValue] = React.useState(defaultValue ?? "");
 
@@ -56,6 +64,7 @@ export function Picker({
         placeholder={label}
         emptyLabel={t("common.noMatch")}
         clearLabel={t("date.clear")}
+        onQueryChange={onQuery}
         footer={create ? <SelectCreate href={create.href}>{create.label}</SelectCreate> : undefined}
       />
     </>
