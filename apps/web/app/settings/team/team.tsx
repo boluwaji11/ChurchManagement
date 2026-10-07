@@ -156,7 +156,6 @@ export function Team({
               : ""
           }
         >
-          <p className="mb-5 text-[length:var(--d-text-body)] text-fg">{t("team.removeBody")}</p>
           <DialogFooter>
             <Button variant="ghost" data-dismiss onClick={() => setRemoving(null)}>
               {t("team.removeKeep")}

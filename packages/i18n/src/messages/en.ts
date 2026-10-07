@@ -1973,7 +1973,6 @@ export const en = {
   "team.roleKeep": "Leave as-is",
   "team.roleChanged": "Changed",
   "team.removeTitle": "Put {name} back to Member?",
-  "team.removeBody": "They keep their account and the portal that comes with it: the directory, their household and their own serving. Everything they were running passes back to whoever holds the role.",
   "team.removeKeep": "Leave as-is",
   "team.removed": "They are a member now",
   "team.error.gone": "That account is no longer in this church.",
