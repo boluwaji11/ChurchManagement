@@ -4,9 +4,14 @@ import { Check } from "lucide-react";
 import { givingPage } from "@connectapp/db";
 import { wasRepeating } from "../actions";
 import { ManageGift } from "./manage";
+import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
+
+/** A church writes its address with or without the scheme; a link needs one. */
+const siteOf = (website: string): string =>
+  /^https?:\/\//i.test(website) ? website : `https://${website}`;
 
 /** R13.6. What a giver reads when Stripe sends them back. */
 export default async function ThanksPage({
@@ -40,12 +45,22 @@ export default async function ThanksPage({
           <p className="m-0 text-fg-muted">{t("give.thanks.repeat")}</p>
         ) : null}
         {repeating && session ? <ManageGift slug={church.slug} session={session} /> : null}
-        {/* R13.6. The way on is back to the giving page. A confirmation is
-            not the place to send somebody off to another website: they came
-            from wherever they came from, and they can go back to it. */}
-        <Link href={`/give/${church.slug}`} className="font-medium text-primary">
-          {t("give.thanks.again")}
-        </Link>
+        {/* R13.6. A giver came from the church's own website, and that is
+            where they are going back to. Giving again is the quieter of the
+            two, because somebody who has just given is done. */}
+        <div className="flex flex-col items-center gap-3">
+          {church.website ? (
+            <Button asChild>
+              <a href={siteOf(church.website)}>
+                {t("give.thanks.home", { church: church.name })}
+              </a>
+            </Button>
+          ) : null}
+
+          <Link href={`/give/${church.slug}`} className="font-medium text-primary">
+            {t("give.thanks.again")}
+          </Link>
+        </div>
       </div>
     </main>
   );
