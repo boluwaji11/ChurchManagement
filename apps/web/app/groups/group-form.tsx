@@ -61,7 +61,6 @@ export function ArchiveDialog({
       </DialogTrigger>
       <DialogContent alert title={t("groups.archiveTitle", { name })}>
         <div className="flex flex-col gap-4">
-          <p className="text-[length:var(--d-text-body)] text-fg">{t("groups.archiveBody")}</p>
           <DialogFooter>
             <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
               {t("groups.keep")}

@@ -1401,7 +1401,6 @@ export const en = {
   "groups.keep": "Keep it",
   "groups.archiveAction": "Archive {name}",
   "groups.archiveTitle": "Archive {name}?",
-  "groups.archiveBody": "The group comes off the lists. Its roster and its attendance stay.",
   "groups.archived": "Archived",
   "groups.unlisted": "Unlisted",
   "groups.restore": "Restore",
