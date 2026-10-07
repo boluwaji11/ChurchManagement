@@ -9,6 +9,20 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
+ * R13.2. How the money actually arrived, in this product's own words.
+ *
+ * Stripe names a dozen ways to pay and a church cares about three: a card, a
+ * bank, and everything else. A bank debit is slower and reconciles
+ * differently, which is why it is worth telling apart.
+ */
+function methodFrom(type: string | undefined): "card" | "ach" | "other" {
+  if (!type) return "card";
+  if (type === "card" || type === "link") return "card";
+  if (type.endsWith("_debit") || type === "us_bank_account") return "ach";
+  return "other";
+}
+
+/**
  * R13.4. "fundId:cents;fundId:cents" as the giving page wrote it.
  *
  * Anything malformed comes back empty, and the gift lands whole on the fund
@@ -94,6 +108,7 @@ export async function POST(request: Request) {
             : intent.latest_charge?.id ?? null;
 
         let feeCents = 0;
+        let method = "card";
         if (chargeId) {
           const charge = await stripe().charges.retrieve(
             chargeId,
@@ -102,6 +117,7 @@ export async function POST(request: Request) {
           );
           const balance = charge.balance_transaction;
           if (balance && typeof balance !== "string") feeCents = balance.fee;
+          method = methodFrom(charge.payment_method_details?.type);
         }
 
         await recordOnlineGift({
@@ -112,6 +128,7 @@ export async function POST(request: Request) {
           feeCents,
           currency: intent.currency,
           receivedOn: new Date(intent.created * 1000).toISOString().slice(0, 10),
+          method,
           fundId: intent.metadata?.fundId || null,
           split: splitFrom(intent.metadata?.split),
           memberId: intent.metadata?.memberId || null,
@@ -213,6 +230,7 @@ export async function POST(request: Request) {
         /* The fee Stripe took, which the church pays and reconciles against. */
         let feeCents = 0;
         let chargeId: string | null = null;
+        let method = "card";
         const intent = await stripe().paymentIntents.retrieve(
           intentId,
           { expand: ["latest_charge.balance_transaction"] },
@@ -223,6 +241,7 @@ export async function POST(request: Request) {
           chargeId = charge.id;
           const balance = charge.balance_transaction;
           if (balance && typeof balance !== "string") feeCents = balance.fee;
+          method = methodFrom(charge.payment_method_details?.type);
         }
 
         await recordOnlineGift({
@@ -233,6 +252,7 @@ export async function POST(request: Request) {
           feeCents,
           currency: paid.currency,
           receivedOn: new Date(paid.created * 1000).toISOString().slice(0, 10),
+          method,
           fundId: metadata.fundId || null,
           split: splitFrom(metadata.split),
           coveredFee: metadata.coveredFee === "true",

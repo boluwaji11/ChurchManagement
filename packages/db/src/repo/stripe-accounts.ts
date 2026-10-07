@@ -112,6 +112,8 @@ export async function recordOnlineGift(input: {
   split?: { fundId: string; cents: number }[];
   memberId?: string | null;
   coveredFee?: boolean;
+  /** R13.2. How it was paid: card, ach or other, as the charge says. */
+  method?: string;
   /** R13.6. What the giver typed on the church's own giving page. */
   giverName?: string | null;
   giverEmail?: string | null;
@@ -184,7 +186,7 @@ export async function recordOnlineGift(input: {
       )
       values (
         ${tenantId}, ${memberId}, ${share.fundId}, ${share.cents},
-        ${input.currency}, 'card', ${input.receivedOn}::date,
+        ${input.currency}, ${input.method ?? "card"}, ${input.receivedOn}::date,
         ${input.paymentIntentId}, ${input.chargeId}, ${at === 0 ? input.feeCents : 0},
         ${input.coveredFee ?? false},
         ${input.giverName ?? null}, ${email}
