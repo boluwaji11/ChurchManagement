@@ -198,16 +198,24 @@ export function GiveForm({
                 <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
                   {fund.name}
                 </span>
-                <Input
-                  className="w-[120px] border-line"
-                  value={split[fund.id] ?? ""}
-                  onChange={(e) =>
-                    setSplit((was) => ({ ...was, [fund.id]: e.target.value }))
-                  }
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  aria-label={fund.name}
-                />
+                {/* The same pairing as the amount above: the mark sits with
+                    the number rather than being remembered. */}
+                <span className="flex w-[130px] shrink-0 items-center gap-0.5 rounded-[var(--d-radius-control)] border border-line bg-surface px-3 shadow-sm focus-within:border-fg-subtle">
+                  <span className="text-[length:var(--d-text-body)] text-fg-subtle">
+                    {currencyMark()}
+                  </span>
+                  <input
+                    value={split[fund.id] ?? ""}
+                    onChange={(e) =>
+                      setSplit((was) => ({ ...was, [fund.id]: groupAmount(e.target.value) }))
+                    }
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    aria-label={fund.name}
+                    autoComplete="off"
+                    className="min-h-[var(--d-tap)] w-full bg-transparent text-[length:var(--d-text-body)] text-fg outline-none placeholder:text-fg-subtle"
+                  />
+                </span>
               </span>
             ))}
             {/* Over the gift is a mistake to put right, so it says so in the
