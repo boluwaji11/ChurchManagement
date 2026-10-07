@@ -2,6 +2,7 @@ import { and, eq, gt, isNull, sql as raw } from "drizzle-orm";
 import { owner } from "../client";
 import type { TenantRole } from "../roles";
 import { PERMISSIONS, type Permission } from "../permissions";
+import { BUILT_IN_KINDS } from "./item-kinds";
 import { InvalidInputError } from "../errors";
 import {
   addressAlreadyClaimed, claimRecord, claimableRecord, nameForRecord, recordForAccount,
@@ -415,6 +416,19 @@ export async function createChurch(input: {
       insert into campuses (tenant_id, name, is_primary)
       values (${tenant.id}, ${name}, true)
       returning id`;
+
+    /*
+     * R11.2. The eight kinds of plan item every church starts with.
+     *
+     * Written here rather than when a screen first reads them, so a church
+     * opening its first service plan already has the vocabulary and the
+     * settings screen shows what it is working with. The list is the church's
+     * from this moment: rename one, add to it, archive what it does not run.
+     */
+    await tx`
+      insert into plan_item_kinds (tenant_id, slug, position)
+      select ${tenant.id}, slug, ordinality - 1
+      from unnest(${BUILT_IN_KINDS as unknown as string[]}::text[]) with ordinality as k(slug, ordinality)`;
 
     await writeAccount(tx, input.user);
 

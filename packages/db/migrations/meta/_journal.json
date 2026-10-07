@@ -708,6 +708,13 @@
       "when": 1791402000000,
       "tag": "0100_item_kinds_start_empty",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1791403000000,
+      "tag": "0101_item_kinds_seeded_at_signup",
+      "breakpoints": true
     }
   ]
 }

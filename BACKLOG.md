@@ -701,12 +701,11 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 
 ### HRT-236, how to test it
 
-1. **Settings, Services, Service type** starts empty. Add a new type opens on the eight the product
-   has words for, with Create your own above them.
-2. Until the church writes one down, a plan and a template offer those eight, so a church that never
-   opens this screen is unaffected.
-3. Write one of your own, call it Testimony, and it appears on the type picker on a plan item and on
-   a service template.
+1. **Settings, Services, Service type** lists the eight every church is signed up with.
+2. Add a new type writes one of your own. Call it Testimony, and it appears on the type picker on a
+   plan item and on a service template. Archive one of the eight and it comes back under Add a new
+   type, where the library offers whatever the church is not keeping.
+3. A type dropdown carries **Add a service type** under its options, which opens this screen.
 3. Tap one of the eight and rename it. Every plan that already used it reads the new word, including
    the printed order of service, because a plan stores the kind rather than its name.
 4. The archive in the panel's footer asks in a box of its own. The kind comes off the picker, and
