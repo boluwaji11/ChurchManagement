@@ -14,7 +14,7 @@ import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
-import { ManageMine } from "./manage-mine";
+import { ChangeCard } from "./change-card";
 import { StopRepeating } from "./stop-repeating";
 
 /**
@@ -140,9 +140,12 @@ export async function MyGiving({ session }: { session: Session }) {
                 </span>
 
                 <span className="flex items-center gap-3">
-                  {/* The card itself is changed at Stripe, because a card
-                      number never enters a page this product draws. */}
-                  <ManageMine church={session.tenantSlug} />
+                  {/* Stripe's own fields, drawn in a panel on this page. */}
+                  <ChangeCard
+                    id={one.id}
+                    church={session.tenantSlug}
+                    publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
+                  />
                   <StopRepeating
                     id={one.id}
                     church={session.tenantSlug}

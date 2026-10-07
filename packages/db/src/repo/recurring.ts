@@ -197,10 +197,16 @@ export async function tenantForSubscription(subscriptionId: string): Promise<str
 export async function recurringSubscription(
   db: Tx,
   id: string,
-): Promise<{ subscriptionId: string; memberId: string | null; status: string } | null> {
+): Promise<{
+  subscriptionId: string;
+  customerId: string | null;
+  memberId: string | null;
+  status: string;
+} | null> {
   const [row] = await db
     .select({
       subscriptionId: recurringGifts.stripeSubscriptionId,
+      customerId: recurringGifts.stripeCustomerId,
       memberId: recurringGifts.memberId,
       status: recurringGifts.status,
     })

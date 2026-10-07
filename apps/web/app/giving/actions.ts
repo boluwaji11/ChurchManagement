@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import {
   withTenant, openBatch, updateBatch, closeBatch, reopenBatch,
   recordGift, removeGift, refundGift, attachGift, giftCharge, getStripeAccount,
-  getChurch, lookupPeople, personForUser, giverCustomer,
+  getChurch, lookupPeople, personForUser,
   recurringSubscription, markRecurring, canManageGiving, PermissionError, type GiftMethod,
 } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch } from "@/lib/stripe";
@@ -225,47 +225,6 @@ export async function findGiver(query: string, church?: string): Promise<GiverHi
 }
 
 /**
- * R13.3, R13.19. A member changes or stops their own repeating gift.
- *
- * Stripe's billing portal, opened against the church's own account for the
- * customer this church already keeps for them. The card lives at Stripe and
- * is changed at Stripe, which is what keeps this product out of PCI scope.
- */
-export async function manageMine(church?: string): Promise<{ url?: string; error?: string }> {
-  if (!stripeConfigured()) return { error: "stripe.unconfigured" };
-
-  const session = await requireSession(church);
-  const ctx = {
-    tenantId: session.tenantId,
-    role: session.role,
-    userId: session.userId,
-    permissions: session.permissions,
-  };
-
-  try {
-    const self = await withTenant(ctx, (tx) => personForUser(tx, session.userId));
-    if (!self) return { error: "give.error.closed" };
-
-    const customer = await giverCustomer(self);
-    const account = await withTenant(ctx, (tx) => getStripeAccount(tx));
-    if (!customer || !account) return { error: "give.error.closed" };
-
-    const head = await headers();
-    const host = head.get("x-forwarded-host") ?? head.get("host") ?? "localhost:4488";
-    const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-
-    const portal = await stripe().billingPortal.sessions.create(
-      { customer, return_url: `${proto}://${host}/giving?church=${session.tenantSlug}` },
-      asChurch(account.accountId),
-    );
-
-    return { url: portal.url };
-  } catch {
-    return { error: "stripe.failed" };
-  }
-}
-
-/**
  * R13.3, R13.19. Stopping a repeating gift, inside this product.
  *
  * Stripe is told to cancel the subscription on the church's own account, and
@@ -308,6 +267,67 @@ export async function stopRepeating(id: string, church?: string): Promise<Giving
 
     revalidatePath("/giving");
     return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R13.3. Changing the card a repeating gift is collected on, in this page.
+ *
+ * Stripe's own fields, in Stripe's frame, inside the church's screen. The
+ * card number goes from the browser to Stripe and never reaches this server,
+ * which is what keeps every church on this product in PCI scope SAQ-A.
+ *
+ * What comes back is a session to draw, and the subscription it belongs to
+ * rides in the session's metadata so that nothing the browser sends decides
+ * which gift is changed.
+ */
+export async function startCardChange(
+  id: string,
+  church?: string,
+): Promise<{ secret?: string; accountId?: string; error?: string }> {
+  if (!stripeConfigured()) return { error: "stripe.unconfigured" };
+
+  const session = await requireSession(church);
+  const ctx = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+
+  try {
+    const read = await withTenant(ctx, async (tx) => ({
+      gift: await recurringSubscription(tx, id),
+      self: await personForUser(tx, session.userId),
+      account: await getStripeAccount(tx),
+    }));
+
+    if (!read.gift?.customerId || !read.account) return { error: "give.error.closed" };
+
+    const mine = read.self !== null && read.gift.memberId === read.self;
+    if (!mine && !canManageGiving(ctx)) throw new PermissionError(ctx.role, "manageGiving");
+
+    const head = await headers();
+    const host = head.get("x-forwarded-host") ?? head.get("host") ?? "localhost:4488";
+    const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+
+    const made = await stripe().checkout.sessions.create(
+      {
+        mode: "setup",
+        customer: read.gift.customerId,
+        currency: "usd",
+        metadata: { subscriptionId: read.gift.subscriptionId },
+        ui_mode: "embedded_page" as never,
+        return_url:
+          `${proto}://${host}/giving/card`
+          + `?church=${session.tenantSlug}&session={CHECKOUT_SESSION_ID}`,
+      },
+      asChurch(read.account.accountId),
+    );
+
+    return { secret: made.client_secret ?? undefined, accountId: read.account.accountId };
   } catch (error) {
     return { error: explain(error) };
   }
