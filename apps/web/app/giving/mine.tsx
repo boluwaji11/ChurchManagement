@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Download } from "lucide-react";
+import { CornerLeftDown, Download } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
   getStripeAccount, listRecurring,
@@ -122,9 +122,18 @@ export async function MyGiving({ session }: { session: Session }) {
             {giftRows(mine.gifts).map((row) => (
               <span
                 key={row.key}
-                className="grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px]"
+                className={`grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px] ${
+                  row.kind === "refund" ? "pb-1" : row.tied ? "border-t-0 pt-1" : ""
+                }`}
               >
-                <span className="text-caption text-fg-subtle">{shortDate(row.on)}</span>
+                {/* R13.15. The turn marks the refund as belonging to the gift
+                    under it, and the rule between them comes out. */}
+                <span className="flex items-center gap-1 text-caption text-fg-subtle">
+                  {row.kind === "refund" ? (
+                    <CornerLeftDown className="size-3.5 shrink-0" aria-hidden />
+                  ) : null}
+                  {shortDate(row.on)}
+                </span>
                 <span className="min-w-0 truncate font-medium text-fg">{row.gift.fundName}</span>
                 <span className="text-caption text-fg-subtle">
                   {t(`giving.method.${row.gift.method}` as never)}

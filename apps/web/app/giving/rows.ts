@@ -21,6 +21,12 @@ export interface GiftRow {
   /** Negative on a refund. */
   amountCents: number;
   status: string;
+  /**
+   * Whether this line is one of a pair. A refund and the gift it came off are
+   * two lines about one payment, so the rule between them comes out and the
+   * refund is marked as belonging to what is under it.
+   */
+  tied: boolean;
 }
 
 export function giftRows(gifts: Gift[]): GiftRow[] {
@@ -37,6 +43,7 @@ export function giftRows(gifts: Gift[]): GiftRow[] {
         on: gift.refundedOn ?? gift.receivedOn,
         amountCents: -gift.refundedCents,
         status: "refunded",
+        tied: true,
       });
     }
 
@@ -47,6 +54,7 @@ export function giftRows(gifts: Gift[]): GiftRow[] {
       on: gift.receivedOn,
       amountCents: gift.amountCents,
       status: gift.status,
+      tied: gift.refundedCents > 0,
     });
   }
 
