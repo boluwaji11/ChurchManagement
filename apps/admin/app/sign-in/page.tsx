@@ -5,6 +5,8 @@ import { SignInForm } from "./form";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Sign in - ConnectApp Admin" };
+
 /** R21.x. The one door into the portal. */
 export default async function SignInPage() {
   if (await operator()) redirect("/");

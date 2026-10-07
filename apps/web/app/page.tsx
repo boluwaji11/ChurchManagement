@@ -33,6 +33,9 @@ import { StartDemoButton } from "./demo/start";
 
 export const dynamic = "force-dynamic";
 
+/** R17.1. The product's own front page. */
+export const metadata = { title: `${t("app.name")} - ${t("site.hero.title")}` };
+
 /**
  * The ConnectApp website: the page somebody reads before they are anybody.
  *

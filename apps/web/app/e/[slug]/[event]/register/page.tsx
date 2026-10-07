@@ -3,8 +3,20 @@ import { publicEvent, publicChurchTimezone } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { EventRegisterPage } from "@/components/event-register-page";
+import { publicTab } from "@/lib/page-metadata";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. The church this page belongs to, in the browser tab. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return publicTab(t("nav.events"), slug);
+}
 
 /**
  * R14.2, R14.6. Taking a place at an event, from the open web.

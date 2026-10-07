@@ -5,6 +5,8 @@ import { Find } from "./find";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Accounts - ConnectApp Admin" };
+
 /**
  * R21.x. The support lookup.
  *

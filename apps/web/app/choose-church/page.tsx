@@ -8,8 +8,14 @@ import { SignedInAs } from "@/components/signed-in-as";
 import { AuthShell, AUTH_BUTTON } from "../auth-shell";
 import type { Piece } from "@/components/site/art";
 import { t } from "@connectapp/i18n";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata() {
+  return publicTab(t("chooseChurch.title"));
+}
 
 const REASONS = ["none", "denied"] as const;
 const isReason = (value: string | undefined): value is (typeof REASONS)[number] =>

@@ -6,8 +6,19 @@ import { requireSession } from "@/lib/session";
 import { LabelSheet } from "../sheet";
 import { LocalLabels } from "../local";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("labels.title"), church);
+}
 
 /**
  * R8.6, R8.11. The label pair, on its own page so it can be printed.

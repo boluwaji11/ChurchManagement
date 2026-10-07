@@ -7,8 +7,14 @@ import { currentUser } from "@/lib/session";
 import { landingFor } from "@/lib/landing";
 import { AuthShell } from "../auth-shell";
 import { SignInForm } from "./form";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata() {
+  return publicTab(t("signIn.title"));
+}
 
 export default async function SignIn({
   searchParams,

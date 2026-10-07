@@ -8,8 +8,19 @@ import { money } from "@/lib/money";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { photoUrls } from "@/lib/photos";
 import { Letterhead } from "./letterhead";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("mine.giving.statement"), church);
+}
 
 /**
  * R13.19. The giver's own statement, whenever they want it.

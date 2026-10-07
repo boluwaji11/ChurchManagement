@@ -8,8 +8,19 @@ import { currentUser } from "@/lib/session";
 import { AuthShell, AUTH_BUTTON } from "../../auth-shell";
 import type { Piece } from "@/components/site/art";
 import { JoinNow } from "./join-now";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. The church this page belongs to, in the browser tab. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ church: string }>;
+}) {
+  const { church } = await params;
+  return publicTab(t("signUp.title"), church);
+}
 
 const ART: Piece[] = [
   { name: "congregation", side: "left", y: 52, size: 230, inset: 24 },

@@ -5,8 +5,14 @@ import { CreateChurchForm } from "./form";
 import { AuthShell } from "../auth-shell";
 import { SignedInAs } from "@/components/signed-in-as";
 import type { Piece } from "@/components/site/art";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata() {
+  return publicTab(t("createChurch.title"));
+}
 
 /** The margins of the second step, drawn as the first step draws them. */
 const ART: Piece[] = [

@@ -6,8 +6,14 @@ import { AuthShell } from "../auth-shell";
 import type { Piece } from "@/components/site/art";
 import { SignUpForm } from "./form";
 import { SignUpSent } from "./sent";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata() {
+  return publicTab(t("signUp.title"));
+}
 
 /** The margins of the sign-up screen, drawn as the website draws them. */
 const ART: Piece[] = [

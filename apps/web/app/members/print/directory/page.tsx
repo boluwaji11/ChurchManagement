@@ -7,8 +7,19 @@ import { churchNow } from "@/lib/church-now";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "../../../checkin/rooms/print/auto-print";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("members.title"), church);
+}
 
 const birthday = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { day: "numeric", month: "long" });

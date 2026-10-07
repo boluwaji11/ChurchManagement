@@ -6,6 +6,8 @@ import { Since } from "@/components/since";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Audit log - ConnectApp Admin" };
+
 /**
  * R21.x. Everything the operators have done, append only.
  *

@@ -8,8 +8,19 @@ import { requireSession } from "@/lib/session";
 import { dayAndMonth, readableTime } from "@/lib/dates";
 import { kindLabel, kindOptions } from "@/lib/kinds";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("order.title"), church);
+}
 
 /**
  * R11.10. The order of service on paper, in two versions.

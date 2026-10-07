@@ -8,6 +8,9 @@ import {
 } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
+/** The gallery is a tool for us, so it names itself plainly. */
+export const metadata = { title: "Design · station" };
+
 /**
  * The station is a kiosk, not a page. Everything below is drawn at station
  * density regardless of the header setting, because that is the only way to

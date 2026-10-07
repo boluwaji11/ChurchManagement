@@ -8,6 +8,8 @@ import { Since, On } from "@/components/since";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Churches - ConnectApp Admin" };
+
 const STANDINGS = [
   { key: "all", label: "All" },
   { key: "provisional", label: "Waiting" },

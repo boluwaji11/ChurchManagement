@@ -9,8 +9,19 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { EventRegisterPage } from "@/components/event-register-page";
 import { registerFromPreview } from "./actions";
 import { churchNow } from "@/lib/church-now";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("nav.events"), church);
+}
 
 /**
  * R14.2, R14.6. The registration page, before anybody else can see it.

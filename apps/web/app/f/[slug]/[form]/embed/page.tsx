@@ -2,8 +2,20 @@ import { notFound } from "next/navigation";
 import { publicForm } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { PublicForm } from "../public-form";
+import { publicTab } from "@/lib/page-metadata";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. The church this page belongs to, in the browser tab. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return publicTab(t("form.title"), slug);
+}
 
 /**
  * R4.3. The same form, for the church's own page.

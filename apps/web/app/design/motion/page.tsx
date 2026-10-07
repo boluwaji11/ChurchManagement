@@ -5,6 +5,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button, Skeleton, Card, CardTitle, Avatar, Banner, IconButton } from "@connectapp/ui";
 import { PageTitle, Section, Row } from "@/components/section";
 
+/** The gallery is a tool for us, so it names itself plainly. */
+export const metadata = { title: "Design · motion" };
+
 const DURATIONS = [
   ["instant", "80ms", "Colour and opacity on hover, focus, press"],
   ["fast", "140ms", "Tooltips, dropdowns, checkbox and toggle"],

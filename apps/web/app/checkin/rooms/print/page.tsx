@@ -7,8 +7,19 @@ import { churchNow } from "@/lib/church-now";
 import { ageLine } from "@/lib/room-ages";
 import { AutoPrint } from "./auto-print";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("rooms.title"), church);
+}
 
 /**
  * R8.18. The class rosters, on paper.

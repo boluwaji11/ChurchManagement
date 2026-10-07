@@ -5,6 +5,9 @@ import {
 } from "lucide-react";
 import { PageTitle, Section } from "@/components/section";
 
+/** The gallery is a tool for us, so it names itself plainly. */
+export const metadata = { title: "Design · icons" };
+
 const CORE: [string, React.ElementType][] = [
   ["People", Users], ["New person", UserPlus], ["Children", Baby], ["Giving", HandCoins],
   ["Calendar", CalendarDays], ["Songs", Music], ["Plans", ClipboardList], ["Church", Church],

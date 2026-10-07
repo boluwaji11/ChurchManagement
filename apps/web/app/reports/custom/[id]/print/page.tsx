@@ -12,8 +12,19 @@ import { BrandRuleFor } from "@/components/brand-rule";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { Answer } from "../../../answer";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("reports.title"), church);
+}
 
 /** What a visual is called when nobody has named it. */
 const nameOf = (tile: ReportTile): string =>

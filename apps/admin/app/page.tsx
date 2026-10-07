@@ -6,6 +6,8 @@ import { Since } from "@/components/since";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Overview - ConnectApp Admin" };
+
 /**
  * R22.x. The numbers the platform is run on.
  *

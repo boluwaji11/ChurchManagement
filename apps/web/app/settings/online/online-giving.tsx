@@ -369,7 +369,9 @@ export function OnlineGiving({
       </div>
 
       <p className="m-0 text-[13px] text-fg-muted">
-        {t("stripe.fees.a")} <strong className="font-semibold text-fg">{t("stripe.fees.takes")}</strong>{" "}
+        {t("stripe.fees.a")} <strong className="font-semibold text-fg underline underline-offset-4">
+          {t("stripe.fees.takes")}
+        </strong>{" "}
         {t("stripe.fees.b")}
       </p>
     </div>

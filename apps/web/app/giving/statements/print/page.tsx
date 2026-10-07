@@ -11,8 +11,19 @@ import { money } from "@/lib/money";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { photoUrls } from "@/lib/photos";
 import { Letterhead } from "../../statement/letterhead";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("giving.statements"), church);
+}
 
 /**
  * R13.17. The statement itself, as it goes in an envelope.

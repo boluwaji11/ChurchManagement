@@ -7,9 +7,19 @@ import { ManageGift } from "./manage";
 import { Button } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
-import { TabTitle } from "@/components/tab-title";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. The church this page belongs to, in the browser tab. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return publicTab(t("nav.giving"), slug);
+}
 
 /** R13.6. What a giver reads when Stripe sends them back. */
 export default async function ThanksPage({
@@ -39,8 +49,7 @@ export default async function ThanksPage({
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-5 py-10">
       <div className="flex w-full max-w-[420px] flex-col items-center gap-4 text-center">
-        <TabTitle page={t("nav.giving")} church={church.name} />
-        <span className="grid size-14 place-items-center rounded-full bg-primary-soft text-primary [&_svg]:size-7">
+          <span className="grid size-14 place-items-center rounded-full bg-primary-soft text-primary [&_svg]:size-7">
           <Check />
         </span>
         <h1 className="font-display text-[28px] leading-[34px] text-fg">

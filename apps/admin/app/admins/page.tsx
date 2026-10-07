@@ -6,6 +6,8 @@ import { Operators } from "./operators";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Admins - ConnectApp Admin" };
+
 /**
  * R21.x. Who operates the platform.
  *

@@ -5,8 +5,19 @@ import { requireSession } from "@/lib/session";
 import { longDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("giving.title"), church);
+}
 
 /**
  * R13.22. The deposit slip, which is what the treasurer takes to the bank.

@@ -1,6 +1,9 @@
 import { CodeDisplay } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
+/** The gallery is a tool for us, so it names itself plainly. */
+export const metadata = { title: "Design · type" };
+
 const SCALE = [
   ["display-lg", "Page hero, empty states", "font-display text-display-lg"],
   ["display", "Page title", "font-display text-display"],

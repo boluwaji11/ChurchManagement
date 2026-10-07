@@ -4,8 +4,14 @@ import { t } from "@connectapp/i18n";
 import { Logo } from "@/components/brand";
 import { currentUser } from "@/lib/session";
 import { ResetForm } from "./form";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata() {
+  return publicTab(t("reset.title"));
+}
 
 /**
  * R1.8. Choosing a password, after a link has proved the address.

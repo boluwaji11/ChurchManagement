@@ -8,8 +8,19 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { StationPicker } from "../station-picker";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("checkin.title"), church);
+}
 
 /** "09:00" as a church says it. */
 const readableTime = (hhmm: string) => {

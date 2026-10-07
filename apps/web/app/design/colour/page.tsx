@@ -1,6 +1,9 @@
 import { HUES, HueTag, Badge } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
+/** The gallery is a tool for us, so it names itself plainly. */
+export const metadata = { title: "Design · colour" };
+
 const RAMPS = {
   stone: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   ink: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900],

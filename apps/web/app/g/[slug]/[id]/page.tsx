@@ -2,8 +2,20 @@ import { notFound } from "next/navigation";
 import { publicChurch, publicGroup } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { GroupPublicPage } from "@/components/group-public-page";
+import { publicTab } from "@/lib/page-metadata";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. The church this page belongs to, in the browser tab. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return publicTab(t("nav.groups"), slug);
+}
 
 /**
  * R9.5. One group, for a church that wants to link straight to it.

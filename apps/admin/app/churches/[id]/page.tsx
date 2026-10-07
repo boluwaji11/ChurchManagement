@@ -10,6 +10,8 @@ import { Standing } from "./standing";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Church - ConnectApp Admin" };
+
 /**
  * R21.x. One church, and the two decisions an operator makes about it.
  *

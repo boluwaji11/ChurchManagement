@@ -1,5 +1,11 @@
 import { WifiOff } from "lucide-react";
 import { t } from "@connectapp/i18n";
+import { publicTab } from "@/lib/page-metadata";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata() {
+  return publicTab(t("offline.title"));
+}
 
 export const dynamic = "force-static";
 

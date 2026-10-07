@@ -6,8 +6,14 @@ import { Logo } from "@/components/brand";
 import { BrandRuleFor } from "@/components/brand-rule";
 import { dayAndMonth, readableTime } from "@/lib/dates";
 import { Respond } from "./respond";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata() {
+  return publicTab(t("serving.title"));
+}
 
 /**
  * R10.6. The screen a volunteer answers on.

@@ -6,9 +6,19 @@ import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { photoUrls } from "@/lib/photos";
 import { GiveForm } from "./give-form";
-import { TabTitle } from "@/components/tab-title";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. The church this page belongs to, in the browser tab. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return publicTab(t("nav.giving"), slug);
+}
 
 /**
  * R13.6. The page a church links to from its own website.
@@ -41,7 +51,6 @@ export default async function GivePage({
 
   return (
     <main className="site-wash grid min-h-dvh place-items-start justify-center px-5 py-10">
-      <TabTitle page={t("nav.giving")} church={church.name} />
       <div className="flex w-full max-w-[460px] flex-col gap-6">
         {/* R17.4. A member came here from their own screens, so the way back
             is to them. A stranger has no back: this page is where they

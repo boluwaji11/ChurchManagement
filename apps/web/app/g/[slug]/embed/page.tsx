@@ -6,8 +6,19 @@ import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { supabaseServer } from "@/lib/supabase/server";
 import { GroupLine } from "../line";
+import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. The church this page belongs to, in the browser tab. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return publicTab(t("nav.groups"), slug);
+}
 
 /**
  * R9.5. The same group finder, inside the church's own page.
