@@ -7,7 +7,7 @@ import {
   Badge, Banner, Button, IconButton, Field, HueDot, HueTag, Input, Separator,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate,
   type Hue,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -312,7 +312,13 @@ function StartDialog({
             <span className="text-label text-fg">{t("followups.start")}</span>
             <Select value={pipelineId} onValueChange={setPipelineId}>
               <SelectTrigger aria-label={t("followups.start")}><SelectValue /></SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                create={
+                  <SelectCreate href={`/settings/followups?church=${church}`}>
+                    {t("followups.create")}
+                  </SelectCreate>
+                }
+              >
                 {pipelines.map((pipeline) => (
                   <SelectItem key={pipeline.id} value={pipeline.id}>
                     <span className="flex items-center gap-2">

@@ -6,7 +6,7 @@ import { Archive, ArrowLeft, GripVertical, Plus, Trash2, Undo2 } from "lucide-re
 import {
   Banner, Button, Field, IconButton, Input, LIFT, cn,
   Dialog, DialogContent, DialogFooter,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate,
   Sheet, SheetContent, SheetTrigger,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -286,7 +286,22 @@ function TemplatePanel({
             onPick={(item) => {
               const picked = library.find((one) => one.key === item.key);
               setName(item.label);
-              setLines(picked?.lines ?? []);
+              /*
+               * R11.2. A ready-made shape is written in our eight, and this
+               * church may keep a shorter list of its own. A line whose type
+               * this church does not have takes the first one it does, so the
+               * form opens with every row answered rather than with half of
+               * them blank.
+               */
+              const live = kinds.filter((one) => !one.archived);
+              const held = new Set(live.map((one) => one.slug));
+              const fallback = live[0]?.slug ?? "custom";
+              setLines(
+                (picked?.lines ?? []).map((line) => ({
+                  ...line,
+                  kind: held.has(line.kind) ? line.kind : fallback,
+                })),
+              );
               setDirty(true);
               setPicking(false);
             }}
@@ -318,7 +333,7 @@ function TemplatePanel({
               />
             </Field>
 
-            <Lines lines={lines} kinds={kinds} onChange={change} />
+            <Lines lines={lines} kinds={kinds} church={church} onChange={change} />
           </div>
         )}
       </SheetContent>
@@ -336,10 +351,12 @@ function TemplatePanel({
 function Lines({
   lines,
   kinds,
+  church,
   onChange,
 }: {
   lines: ShapeLine[];
   kinds: KindOption[];
+  church: string;
   onChange: (next: ShapeLine[]) => void;
 }) {
   const [dragging, setDragging] = React.useState<number | null>(null);
@@ -425,7 +442,13 @@ function Lines({
                   <SelectTrigger className="w-[140px]" aria-label={t("planTpl.item.kind")}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    create={
+                      <SelectCreate href={`/settings/item-kinds?church=${church}`}>
+                        {t("itemKind.create")}
+                      </SelectCreate>
+                    }
+                  >
                     {kinds
                       .filter((kind) => !kind.archived || kind.slug === line.kind)
                       .map((kind) => (

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Combobox } from "@connectapp/ui";
+import { Combobox, SelectCreate } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -22,6 +22,7 @@ export function Picker({
   label,
   onChange,
   clearable = true,
+  create,
 }: {
   name: string;
   defaultValue: string | null;
@@ -31,6 +32,13 @@ export function Picker({
   onChange?: (value: string) => void;
   /** False where the field has to hold one of its answers at all times. */
   clearable?: boolean;
+  /**
+   * R24.6. Where this list is kept, for when the answer is not in it.
+   *
+   * Given on a field whose options a church configures, so somebody short of a
+   * group type or a room has the way to add one in front of them.
+   */
+  create?: { href: string; label: string };
 }) {
   const [value, setValue] = React.useState(defaultValue ?? "");
 
@@ -48,6 +56,7 @@ export function Picker({
         placeholder={label}
         emptyLabel={t("common.noMatch")}
         clearLabel={t("date.clear")}
+        footer={create ? <SelectCreate href={create.href}>{create.label}</SelectCreate> : undefined}
       />
     </>
   );

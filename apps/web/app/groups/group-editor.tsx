@@ -366,6 +366,10 @@ export function GroupEditor({
                   options={types.map((one) => ({ value: one.id, label: one.name }))}
                   label={t("groups.type")}
                   onChange={setTypeId}
+                  create={{
+                    href: `/settings/group-types?church=${church}`,
+                    label: t("groupType.create"),
+                  }}
                 />
               </Field>
 

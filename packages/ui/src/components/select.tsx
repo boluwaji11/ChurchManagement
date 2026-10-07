@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import * as P from "@radix-ui/react-select";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Plus, Search } from "lucide-react";
 import { cn } from "../lib/cn";
 import { useFieldControl } from "./field";
 
@@ -78,8 +78,16 @@ export const SelectContent = React.forwardRef<
      * it out draws a magnifier with nothing beside it.
      */
     searchLabel?: string;
+    /**
+     * R24.6. The way out of the menu to where its options are kept.
+     *
+     * A list of teams, rooms, tags or service types is a list somebody
+     * configured, and the moment it is short of the one wanted, the question is
+     * where to add it. `SelectCreate` goes here, under the options.
+     */
+    create?: React.ReactNode;
   }
->(({ className, children, position = "popper", searchLabel, ...props }, ref) => {
+>(({ className, children, position = "popper", searchLabel, create, ...props }, ref) => {
   const [query, setQuery] = React.useState("");
   const box = React.useRef<HTMLInputElement>(null);
   const items = React.Children.toArray(children);
@@ -148,6 +156,8 @@ export const SelectContent = React.forwardRef<
         ) : null}
 
         <P.Viewport className="flex max-h-[min(18rem,var(--radix-select-content-available-height))] flex-col gap-0.5 overflow-y-auto">{shown}</P.Viewport>
+
+        {create}
       </P.Content>
     </P.Portal>
   );
@@ -190,3 +200,33 @@ export const SelectItem = React.forwardRef<
   </P.Item>
 ));
 SelectItem.displayName = "SelectItem";
+
+/**
+ * R24.6. "Add a room", under the rooms.
+ *
+ * Every list a church configures runs out at some point, and when it does the
+ * reader is standing in the menu wondering where the rest of them live. This is
+ * a link rather than an option: it goes to the screen that keeps the list, and
+ * it is drawn apart from the options so it is never mistaken for one.
+ */
+export function SelectCreate({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      className={cn(
+        "mt-1 flex min-h-[var(--d-tap)] cursor-pointer items-center gap-2 border-t border-line",
+        "px-3 pt-2 text-[length:var(--d-text-body)] font-medium text-primary no-underline",
+        "hover:bg-sunken",
+      )}
+    >
+      <Plus className="size-4 shrink-0" aria-hidden />
+      {children}
+    </a>
+  );
+}

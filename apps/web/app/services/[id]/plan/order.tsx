@@ -11,7 +11,7 @@ import {
   Banner, Button, Field, IconButton, Input, Separator, Textarea, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
@@ -425,7 +425,13 @@ function ItemDialog({
               <span className="text-label text-fg">{t("order.kind")}</span>
               <Select value={kind} onValueChange={setKind}>
                 <SelectTrigger aria-label={t("order.kind")}><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  create={
+                    <SelectCreate href={`/settings/item-kinds?church=${church}`}>
+                      {t("itemKind.create")}
+                    </SelectCreate>
+                  }
+                >
                   {kinds
                     .filter((option) => !option.archived || option.slug === kind)
                     .map((option) => (
