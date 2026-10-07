@@ -116,16 +116,24 @@ export async function startGift(input: {
   const every = repeat === "once" ? null : EVERY[repeat];
 
   /*
-   * R13.3. A start date in the future anchors the subscription there and
-   * takes nothing today. Midday keeps the anchor on the day the giver chose
-   * whichever side of the date line they are standing on, and an anchor that
-   * has already gone past is dropped, so the gift starts now.
+   * R13.3. Starting later.
+   *
+   * Stripe has two ways of it and refuses each outside its own window. An
+   * anchor cannot be later than the next natural collection, so it carries a
+   * start inside one interval. A trial can be any date at all but has to be
+   * at least two days out. Between them they cover every day a giver can
+   * pick, and both take nothing today.
+   *
+   * Midday keeps the date on the day the giver chose whichever side of the
+   * date line they are standing on.
    */
-  const anchor =
-    every && /^\d{4}-\d{2}-\d{2}$/.test(input.startOn ?? "")
-      ? Math.floor(Date.parse(`${input.startOn}T12:00:00Z`) / 1000)
-      : null;
-  const starts = anchor !== null && anchor > Math.floor(Date.now() / 1000) ? anchor : null;
+  const chosen = /^\d{4}-\d{2}-\d{2}$/.test(input.startOn ?? "")
+    ? Math.floor(Date.parse(`${input.startOn}T12:00:00Z`) / 1000)
+    : null;
+  const now = Math.floor(Date.now() / 1000);
+  const later = every && chosen !== null && chosen > now ? chosen : null;
+  const waits = later !== null && later - now >= 2 * 86_400;
+
   const metadata = {
     fundId: fund.id,
     // "fundId:cents;fundId:cents". Short enough for Stripe's 500 characters
@@ -202,9 +210,11 @@ export async function startGift(input: {
                  * the first collection is the whole amount on the day they
                  * asked for.
                  */
-                ...(starts
-                  ? { billing_cycle_anchor: starts, proration_behavior: "none" as const }
-                  : {}),
+                ...(later === null
+                  ? {}
+                  : waits
+                    ? { trial_end: later }
+                    : { billing_cycle_anchor: later, proration_behavior: "none" as const }),
               },
             }),
         metadata,

@@ -1,13 +1,8 @@
-import type { Repeat } from "./repeats";
-
 /**
  * R13.3. When a repeating gift first comes out.
  *
- * Stripe anchors a subscription to its first collection and will not take one
- * more than a single interval ahead, so a weekly gift starts inside the next
- * seven days and a monthly one inside the next month. That is the whole
- * constraint, and the two controls on the form live inside it: pick the day
- * and the date follows, or pick the date and the day follows.
+ * Any day from today on. The two controls keep each other in step: pick the
+ * day and the date follows, or pick the date and the day follows.
  */
 
 const DAY = 86_400_000;
@@ -28,15 +23,6 @@ function iso(year: number, month: number, day: number): string {
 function read(value: string): Date {
   const [y, m, d] = value.split("-").map(Number);
   return new Date(y!, (m ?? 1) - 1, d ?? 1);
-}
-
-/** The furthest ahead Stripe will take a first collection. */
-export function furthest(repeat: Exclude<Repeat, "once">): string {
-  const from = read(today());
-  if (repeat === "week") return isoFrom(new Date(from.getTime() + 7 * DAY));
-  if (repeat === "fortnight") return isoFrom(new Date(from.getTime() + 14 * DAY));
-  if (repeat === "year") return iso(from.getFullYear() + 1, from.getMonth(), from.getDate());
-  return iso(from.getFullYear(), from.getMonth() + 1, from.getDate());
 }
 
 const isoFrom = (at: Date) => iso(at.getFullYear(), at.getMonth(), at.getDate());

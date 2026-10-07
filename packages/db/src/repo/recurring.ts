@@ -102,7 +102,9 @@ export async function recurringMonthly(db: Tx): Promise<number> {
       ), 0)::int`,
     })
     .from(recurringGifts)
-    .where(eq(recurringGifts.status, "active"));
+    /* A gift that has not collected yet is still a gift the church is
+       expecting, so a subscription waiting for its start date counts. */
+    .where(sql`${recurringGifts.status} in ('active', 'trialing')`);
   return row?.cents ?? 0;
 }
 

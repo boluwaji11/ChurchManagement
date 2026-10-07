@@ -12,7 +12,7 @@ import { withFee } from "@/lib/stripe-fee";
 import { startGift } from "./actions";
 import { REPEATS, type Repeat } from "./repeats";
 import {
-  today, furthest, onWeekday, onMonthDay, weekdayOf, monthDayOf, weekdays,
+  today, onWeekday, onMonthDay, weekdayOf, monthDayOf, weekdays,
 } from "./start";
 import { DateField } from "@/components/date-field";
 import { ordinal } from "@/lib/ordinal";
@@ -261,7 +261,6 @@ export function GiveForm({
               defaultValue={startOn}
               onValueChange={(next) => setStartOn(next || today())}
               min={today()}
-              max={furthest(repeat)}
               aria-label={t("give.start")}
             />
           </Field>
