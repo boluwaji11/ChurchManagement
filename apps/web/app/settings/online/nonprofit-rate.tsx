@@ -52,9 +52,14 @@ export function NonprofitRate({
         <span className="font-semibold text-fg">{t("stripe.rate.title")}</span>
       </div>
 
-      <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
-        {t("stripe.rate.body")}
-      </p>
+      <div className="flex flex-col gap-1.5">
+        <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
+          {t("stripe.rate.body")}
+        </p>
+        <p className="m-0 text-[length:var(--d-text-body)] font-medium text-fg">
+          {t("stripe.rate.saved")}
+        </p>
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <span className="text-[13px] font-medium text-fg-subtle">{t("stripe.rate.needs")}</span>
