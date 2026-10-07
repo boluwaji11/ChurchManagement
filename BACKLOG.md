@@ -90,6 +90,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-246 | Campaigns and pledges: a target over a period, and what households committed | R13.16, R13.18 | Resolved |
 | HRT-247 | One statement a household, where the church chooses that | R13.18 | Resolved |
 | HRT-248 | A gift split across funds, written as one gift a fund | R13.4 | Resolved |
+| HRT-249 | A printable QR code for the foyer and the bulletin | R13.7 | Resolved. Text-to-give waits on messaging |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is

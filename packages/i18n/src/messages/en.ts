@@ -1034,6 +1034,7 @@ export const en = {
   "give.thanks.body": "{church} has your gift, and your receipt is on its way from Stripe.",
   "give.thanks.again": "Give again",
   "give.link": "Your giving page",
+  "give.qr": "Print a QR code",
   "giving.gift.add": "Record a gift",
   "action.saveAndAdd": "Save and add another",
   "giving.gift.giver": "Giver",

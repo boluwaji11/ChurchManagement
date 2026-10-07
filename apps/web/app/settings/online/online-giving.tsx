@@ -140,6 +140,16 @@ export function OnlineGiving({
                 <ExternalLink />
               </a>
             </div>
+
+            {/* R13.7. The same address for the foyer and the bulletin. */}
+            <a
+              href={`/giving/qr?church=${church}`}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="self-start font-medium text-primary no-underline"
+            >
+              {t("give.qr")}
+            </a>
           </div>
         ) : null}
       </Card>
