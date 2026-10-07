@@ -12,6 +12,7 @@ import { PublicFooter } from "./public-footer";
 import { readsAs } from "@/lib/spelling";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
+import { tabTitle } from "@/lib/tab-title";
 import type { Session } from "@/lib/session";
 
 export { PortalTitle, PortalSection, Panel };
@@ -31,10 +32,13 @@ export { PortalTitle, PortalSection, Panel };
  */
 export async function PortalShell({
   session,
+  tab,
   tabs,
   children,
 }: {
   session: Session;
+  /** R17.1. The screen's own name, which the browser tab carries. */
+  tab?: string;
   tabs?: PortalTab[];
   children: React.ReactNode;
 }) {
@@ -80,6 +84,7 @@ export async function PortalShell({
       {/* R17.11. What a phone reads when somebody adds this church to their
           home screen, and the worker that keeps it answering with no signal.
           React hoists both into the head. */}
+      <title>{tabTitle(tab, session.tenantName)}</title>
       <link rel="manifest" href={`/manifest.webmanifest?church=${slug}`} />
       <meta name="theme-color" content="#faf8f5" />
       <Installed />

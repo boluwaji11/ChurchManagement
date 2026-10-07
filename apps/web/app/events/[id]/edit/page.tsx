@@ -47,7 +47,7 @@ export default async function EditEventPage({
   }
 
   return (
-    <AppShell session={session}>
+    <AppShell session={session} tab={event.name}>
       <Link
         href={`/events/${event.slug}?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"

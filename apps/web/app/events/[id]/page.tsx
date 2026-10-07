@@ -58,7 +58,7 @@ export default async function EventPage({
   }
 
   return (
-    <AppShell session={session}>
+    <AppShell session={session} tab={result.event.name}>
       <EventView
         church={session.tenantSlug}
         event={result.event}

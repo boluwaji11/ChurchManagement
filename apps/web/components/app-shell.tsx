@@ -19,6 +19,7 @@ import { SpellingProvider } from "./spelling-provider";
 import type { Session } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
+import { tabTitle } from "@/lib/tab-title";
 
 /**
  * R24.6. The frame every staff screen sits in.
@@ -34,6 +35,7 @@ import { photoUrls } from "@/lib/photos";
 export async function AppShell({
   session,
   title,
+  tab,
   action,
   wide,
   density,
@@ -43,6 +45,11 @@ export async function AppShell({
   session: Session;
   /** The page's name, where the page does not already carry one. */
   title?: string;
+  /**
+   * R17.1. What the browser tab says, where the screen draws its own heading.
+   * The title above is used when this is left out.
+   */
+  tab?: string;
   /** The one filled button for this page. Some pages have none. */
   action?: React.ReactNode;
   /** A table-shaped screen that wants the room. */
@@ -87,6 +94,10 @@ export async function AppShell({
 
   return (
     <div className="site-wash flex min-h-dvh">
+      {/* R17.1. The screen and the church it belongs to, in the browser tab.
+          React hoists it into the head. */}
+      <title>{tabTitle(tab ?? title, session.tenantName)}</title>
+
       <Sidebar
         entries={entries}
         churchName={session.tenantName}

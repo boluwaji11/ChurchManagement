@@ -52,7 +52,7 @@ export async function MemberEvents({ session }: { session: Session }) {
   );
 
   return (
-    <PortalShell session={session}>
+    <PortalShell session={session} tab={t("nav.events")}>
       <PortalTitle title={t("nav.events")} />
 
       {events.length === 0 ? (

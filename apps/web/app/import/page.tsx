@@ -25,6 +25,7 @@ export default async function ImportPage({
   return (
     <AppShell
       session={session}
+      tab={t("import.heading")}
       max="max-w-[1180px]"
     >
       <Link

@@ -35,7 +35,7 @@ export default async function EditGroupPage({
   const { group, types } = data;
 
   return (
-    <AppShell session={session} max="max-w-[1080px]">
+    <AppShell session={session} tab={group.name} max="max-w-[1080px]">
       <div className="flex items-center gap-3">
         <Link
           href={`/groups/${group.slug}?church=${session.tenantSlug}`}

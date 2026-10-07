@@ -90,7 +90,7 @@ export default async function GroupsPage({
     /* The kinds are the heading. A title over a list of names that are
        themselves titles says the word twice. */
     return portal ? (
-      <PortalShell session={session}>{landing}</PortalShell>
+      <PortalShell session={session} tab={t("nav.groups")}>{landing}</PortalShell>
     ) : (
       <AppShell session={session} title={t("groups.title")}>{landing}</AppShell>
     );
@@ -163,7 +163,7 @@ export default async function GroupsPage({
 
   if (portal) {
     return (
-      <PortalShell session={session}>
+      <PortalShell session={session} tab={only?.name ?? t("nav.groups")}>
         {back}
         <PortalTitle
           title={only?.name ?? t("find.title")}

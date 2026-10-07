@@ -67,7 +67,7 @@ export default async function MyServingPage({
   );
 
   return (
-    <PortalShell session={session}>
+    <PortalShell session={session} tab={t("home.mySchedule")}>
       <PortalTitle title={t("home.mySchedule")} />
 
       <div className="flex flex-wrap items-start gap-6">

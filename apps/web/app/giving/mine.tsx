@@ -62,7 +62,7 @@ export async function MyGiving({ session }: { session: Session }) {
   if (!mine) redirect(`/home?church=${session.tenantSlug}`);
 
   return (
-    <PortalShell session={session}>
+    <PortalShell session={session} tab={t("mine.giving.title")}>
       <PortalTitle
         title={t("mine.giving.title")}
         action={

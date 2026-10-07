@@ -223,7 +223,7 @@ export default async function GroupPage({
       };
 
   return (
-    <Frame session={session}>
+    <Frame session={session} tab={group.name}>
       {/* The way back on the left, and what this church may do to the group on
           the right, as the icons every other record page carries. */}
       <div className="flex items-center gap-3">

@@ -87,7 +87,7 @@ export default async function MemberHomePage({
   const first = session.displayName.split(" ")[0] ?? session.displayName;
 
   return (
-    <PortalShell session={session}>
+    <PortalShell session={session} tab={t("nav.home")}>
       <PortalTitle title={t("home.hello", { name: first })} />
 
       {/* The week down the main column, the standing facts down the side, with

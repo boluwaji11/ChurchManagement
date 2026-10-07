@@ -73,7 +73,7 @@ export default async function FormPage({
     /* No title and no New form here: the back link below says where this is,
        and a second way to start a different form is noise on the screen where
        one is being written. */
-    <AppShell session={session}>
+    <AppShell session={session} tab={result.form.name}>
       <Link
         href={`/forms?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"

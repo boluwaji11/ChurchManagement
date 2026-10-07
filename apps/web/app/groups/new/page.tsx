@@ -35,7 +35,7 @@ export default async function NewGroupPage({
     : [];
 
   return (
-    <AppShell session={session} max="max-w-[1080px]">
+    <AppShell session={session} tab={t("groups.newTitle")} max="max-w-[1080px]">
       <div className="flex items-center gap-3">
         <Link
           href={`/groups?church=${session.tenantSlug}`}

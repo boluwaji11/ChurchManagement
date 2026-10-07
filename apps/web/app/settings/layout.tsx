@@ -118,7 +118,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
    */
   if (readsAsMember(session)) {
     return (
-      <PortalShell session={session}>
+      <PortalShell session={session} tab={t("nav.settings")}>
         <PortalTitle title={t("nav.settings")} />
         <div className="flex flex-col gap-6 -mt-4">
           <SettingsNav groups={groups} church={session.tenantSlug} />

@@ -36,7 +36,7 @@ export default async function NewEventPage({
   );
 
   return (
-    <AppShell session={session}>
+    <AppShell session={session} tab={t("nav.events")}>
       <Link
         href={`/events?church=${session.tenantSlug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
