@@ -5,7 +5,7 @@ import { givingPage } from "@connectapp/db";
 import { giftSession } from "../actions";
 import { ManageGift } from "./manage";
 import { Button } from "@connectapp/ui";
-import { currentUser } from "@/lib/session";
+import { currentUser, belongsTo } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { publicTab } from "@/lib/page-metadata";
 
@@ -44,7 +44,10 @@ export default async function ThanksPage({
     : { repeating: false, email: null, known: false, pending: false };
 
   /* R17.4. Somebody already signed in has screens of their own to go back to. */
-  const signedIn = Boolean(await currentUser());
+  /* R17.4. Signed in to this church, which is the only sign-in that has
+     screens to go back to from here. */
+  const reader = await currentUser();
+  const signedIn = Boolean(reader && (await belongsTo(reader.id, slug)));
 
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-5 py-10">

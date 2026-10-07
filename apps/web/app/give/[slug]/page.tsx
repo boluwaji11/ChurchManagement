@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { givingPage } from "@connectapp/db";
-import { currentUser } from "@/lib/session";
+import { currentUser, belongsTo } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { photoUrls } from "@/lib/photos";
 import { GiveForm } from "./give-form";
@@ -45,7 +45,14 @@ export default async function GivePage({
    * being known here. Nobody is asked to sign in: this page works for a
    * visitor who has never heard of us, and that is the point of it.
    */
-  const known = await currentUser();
+  /*
+   * R13.6, R17.4. A member of this church is not a stranger: their name and
+   * address fill themselves in and the way back is to their own screens.
+   * Somebody signed in to a different church is a stranger here, because
+   * this church's screens would refuse them.
+   */
+  const reader = await currentUser();
+  const known = reader && (await belongsTo(reader.id, slug)) ? reader : null;
 
   const signed = church.logoKey ? await photoUrls([church.logoKey]) : {};
   const logoUrl = church.logoKey ? (signed[church.logoKey] ?? null) : null;

@@ -126,6 +126,20 @@ const myMembership = cache(async (userId: string, tenantId: string) =>
   verifyMembership(userId, tenantId),
 );
 
+/**
+ * R1.4, R13.6. Whether this reader belongs to this church.
+ *
+ * A public page names its church in the address, and somebody signed in to a
+ * different church is a stranger on it: their own screens are somewhere else
+ * and a link to this church's would refuse them at the door. So the page
+ * asks before it treats them as one of the congregation.
+ */
+export const belongsTo = cache(async (userId: string, slug: string): Promise<boolean> => {
+  const tenant = await tenantBySlug(slug);
+  if (!tenant) return false;
+  return (await myMembership(userId, tenant.id)) !== null;
+});
+
 export const requireSession = cache(async (asked?: string): Promise<Session> => {
   /*
    * The address in the request wins, because a link somebody was sent names
