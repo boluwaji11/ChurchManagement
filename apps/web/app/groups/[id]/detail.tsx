@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, X } from "lucide-react";
+import { Check, Globe, Lock, LockOpen, PencilLine, X } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
   Tabs, TabsList, TabsTrigger, TabsContent,
@@ -122,44 +122,67 @@ export function GroupDetail({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
-      {/* Whether the open web can see it, and whether it is taking members. */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
+      {/* R9.4. Where the group stands, in one line: whether the open web can see
+          it, and whether it is taking members. The state is a mark with its own
+          colour and its own icon, and the two presses that change it sit at the
+          far end, so reading it and changing it are not the same gesture. */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-[18px] py-3">
         <span
-          className="size-2 shrink-0 rounded-full"
+          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-semibold"
           style={{
-            background: status === "draft"
-              ? "var(--hue-amber-500)"
-              : openToJoin ? "var(--hue-fern-500)" : "var(--fg-subtle)",
+            background:
+              status === "draft"
+                ? "color-mix(in oklch, var(--hue-amber-500) 16%, transparent)"
+                : openToJoin
+                  ? "color-mix(in oklch, var(--hue-fern-500) 16%, transparent)"
+                  : "var(--color-sunken)",
+            color:
+              status === "draft"
+                ? "var(--hue-amber-key)"
+                : openToJoin
+                  ? "var(--hue-fern-key)"
+                  : "var(--color-fg-muted)",
           }}
-        />
-        <span className="min-w-[140px] flex-1 font-medium text-fg">
+        >
+          {status === "draft" ? (
+            <PencilLine className="size-4" aria-hidden />
+          ) : openToJoin ? (
+            <Globe className="size-4" aria-hidden />
+          ) : (
+            <Lock className="size-4" aria-hidden />
+          )}
           {status === "draft"
             ? t("group.draftText")
             : openToJoin ? t("group.openText") : t("group.closedText")}
         </span>
+
         {join}
 
         {canManage ? (
-          <Button
-            variant={status === "draft" ? "primary" : "secondary"}
-            disabled={pending}
-            onClick={() =>
-              run(() => publishGroup(groupId, status === "draft" ? "published" : "draft", church))}
-            className="h-[34px] min-h-0 px-3 text-[13px]"
-          >
-            {status === "draft" ? t("group.publish") : t("group.unpublish")}
-          </Button>
-        ) : null}
+          <div className="ml-auto flex flex-wrap items-center gap-1">
+            {status === "published" ? (
+              <Button
+                variant="ghost"
+                disabled={pending}
+                onClick={() => run(() => setOpenToJoin(groupId, !openToJoin, church))}
+                className="h-[34px] min-h-0 px-2.5 text-[13px]"
+              >
+                {openToJoin ? <Lock /> : <LockOpen />}
+                {openToJoin ? t("group.close") : t("group.open")}
+              </Button>
+            ) : null}
 
-        {canManage && status === "published" ? (
-          <Button
-            variant="secondary"
-            disabled={pending}
-            onClick={() => run(() => setOpenToJoin(groupId, !openToJoin, church))}
-            className="h-[34px] min-h-0 px-3 text-[13px]"
-          >
-            {openToJoin ? t("group.close") : t("group.open")}
-          </Button>
+            <Button
+              variant={status === "draft" ? "primary" : "ghost"}
+              disabled={pending}
+              onClick={() =>
+                run(() => publishGroup(groupId, status === "draft" ? "published" : "draft", church))}
+              className="h-[34px] min-h-0 px-2.5 text-[13px]"
+            >
+              {status === "draft" ? <Globe /> : <PencilLine />}
+              {status === "draft" ? t("group.publish") : t("group.unpublish")}
+            </Button>
+          </div>
         ) : null}
       </div>
 
