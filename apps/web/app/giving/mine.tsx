@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CornerDownRight, Download, Repeat } from "lucide-react";
+import { CornerDownRight, Download } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
   getStripeAccount, listRecurring, givingPage,
@@ -13,6 +13,7 @@ import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
+import { RepeatMark } from "./repeat-mark";
 import * as React from "react";
 import { ChangeCard } from "./change-card";
 import { GiveHere } from "./give-here";
@@ -210,14 +211,8 @@ export async function MyGiving({ session }: { session: Session }) {
                   {shortDate(row.on)}
                 </span>
                 <span className="min-w-0 truncate font-medium text-fg">{row.gift.fundName}</span>
-                <span className="flex items-center gap-1.5 text-caption text-fg-subtle">
+                <span className="text-caption text-fg-subtle">
                   {t(`giving.method.${row.gift.method}` as never)}
-                  {row.gift.recurring && row.kind === "gift" ? (
-                    <Repeat
-                      className="size-3.5 shrink-0 text-primary"
-                      aria-label={t("giving.recurring.mark")}
-                    />
-                  ) : null}
                 </span>
                 {/* R13.2, R13.15. Their bank transfer before it arrives, and
                     anything the church gave back, on its own line. */}
@@ -230,9 +225,12 @@ export async function MyGiving({ session }: { session: Session }) {
                     row.status === "settled" ? "text-fg" : "text-fg-subtle"
                   }`}
                 >
-                  {row.gift.inKindDescription && row.kind === "gift"
-                    ? row.gift.inKindDescription
-                    : money(row.amountCents)}
+                  <span className="flex items-center justify-end gap-1.5">
+                    {row.gift.recurring && row.kind === "gift" ? <RepeatMark /> : null}
+                    {row.gift.inKindDescription && row.kind === "gift"
+                      ? row.gift.inKindDescription
+                      : money(row.amountCents)}
+                  </span>
                 </span>
               </span>
             ))}

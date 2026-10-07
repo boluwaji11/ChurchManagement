@@ -1034,7 +1034,7 @@ export const en = {
   "mine.giving.statement": "Download my statement",
   "giving.recurring": "Repeating gifts",
   "giving.recurring.none": "No repeating gifts yet",
-  "giving.recurring.mark": "Repeating gift",
+  "giving.recurring.mark": "Recurring",
   "giving.recurring.monthly": "{amount} a month expected",
   "giving.recurring.every.week": "weekly",
   "giving.recurring.every.week.2": "every 2 weeks",
