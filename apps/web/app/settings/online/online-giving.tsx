@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { Banner, Button, Card, CardTitle, Separator } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ChurchStripeAccount } from "@connectapp/db";
@@ -68,11 +68,45 @@ export function OnlineGiving({
       if (!result.error) router.refresh();
     });
 
+  /*
+   * R13.1. Stripe decides whether the account may take a payment a moment
+   * after the church finishes its form, so there is a gap where the church is
+   * done and Stripe has not said so yet. Rather than leave a button for them
+   * to press, the screen waits with them.
+   */
+  const settling = Boolean(account && !account.chargesEnabled && account.detailsSubmitted);
+
+  React.useEffect(() => {
+    if (!settling) return;
+    let stop = false;
+
+    const timer = window.setInterval(async () => {
+      if (stop) return;
+      const answer = await refreshStripe(church);
+      if (!answer.error) router.refresh();
+    }, 2500);
+
+    // Half a minute is long enough for Stripe to have made its mind up. After
+    // that something is genuinely outstanding and the church has to act.
+    const give = window.setTimeout(() => {
+      stop = true;
+      window.clearInterval(timer);
+    }, 30_000);
+
+    return () => {
+      stop = true;
+      window.clearInterval(timer);
+      window.clearTimeout(give);
+    };
+  }, [settling, church, router]);
+
   const state = !account
     ? t("stripe.state.none")
     : account.chargesEnabled
       ? t("stripe.state.ready")
-      : t("stripe.state.pending");
+      : settling
+        ? t("stripe.state.settling")
+        : t("stripe.state.pending");
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-2">
@@ -102,7 +136,14 @@ export function OnlineGiving({
         <Separator />
 
         <div className="flex flex-col gap-1">
-          <span className="text-[length:var(--d-text-body)] font-medium text-fg">{state}</span>
+          {/* R24.11. Work that takes a moment says so, and keeps saying it
+              until it is done. */}
+          <span className="flex items-center gap-2 text-[length:var(--d-text-body)] font-medium text-fg">
+            {settling ? (
+              <Loader2 className="size-4 shrink-0 animate-spin text-primary" aria-hidden />
+            ) : null}
+            {state}
+          </span>
           {account ? (
             <span className="font-mono text-[12px] text-fg-subtle">
               {t("stripe.account", { id: account.accountId })}
@@ -133,23 +174,34 @@ export function OnlineGiving({
         ) : null}
 
         <div className="mt-auto flex flex-wrap items-center gap-2">
-          <Button disabled={pending || !configured} loading={pending} onClick={go}>
-            {account ? t("stripe.continue") : t("stripe.connect")}
-          </Button>
+          {/* R13.1. One thing to do at a time. An account that is taking
+              gifts has nothing left to connect, so the button comes off and
+              what is left is the way into Stripe itself. */}
+          {account?.chargesEnabled ? null : (
+            <Button
+              disabled={pending || !configured || settling}
+              loading={pending || settling}
+              onClick={go}
+            >
+              {account ? t("stripe.continue") : t("stripe.connect")}
+            </Button>
+          )}
+
+          {account && !account.chargesEnabled && !settling ? (
+            <Button variant="secondary" disabled={pending} onClick={again}>
+              <RefreshCw /> {t("stripe.refresh")}
+            </Button>
+          ) : null}
+
           {account ? (
-            <>
-              <Button variant="secondary" disabled={pending} onClick={again}>
-                <RefreshCw /> {t("stripe.refresh")}
-              </Button>
-              <a
-                href="https://dashboard.stripe.com/"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center gap-1.5 px-2 font-medium text-primary no-underline"
-              >
-                <ExternalLink className="size-4" aria-hidden /> {t("stripe.open")}
-              </a>
-            </>
+            <a
+              href="https://dashboard.stripe.com/"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex items-center gap-1.5 px-2 font-medium text-primary no-underline"
+            >
+              <ExternalLink className="size-4" aria-hidden /> {t("stripe.open")}
+            </a>
           ) : null}
         </div>
       </Card>

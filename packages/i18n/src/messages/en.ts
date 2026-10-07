@@ -1100,6 +1100,7 @@ export const en = {
   "stripe.refresh": "Check again",
   "stripe.state.none": "Not connected",
   "stripe.state.pending": "Stripe still needs details from your church",
+  "stripe.state.settling": "Stripe is checking what your church sent",
   "stripe.state.ready": "Taking gifts",
   "stripe.account": "Account {id}",
   "stripe.test": "Test mode",
