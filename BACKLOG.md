@@ -76,6 +76,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-226 | A church writes its own vocabulary: group types and teams start empty, teams configured in Settings | R9.1, R10.1 | Resolved |
 | HRT-227 | The ConnectApp admin portal: churches, approval, archive, the operators and the log | R21.x, R22.x | Resolved |
 | HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Resolved |
+| HRT-235 | Plan templates are configured in Settings, with ready-made shapes, and the plan screen starts from them | R11.8 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -696,6 +697,24 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-235, how to test it
+
+1. **Settings, Services, Plan templates.** Create a new template opens on the shapes churches
+   already run: a morning service, communion, a midweek gathering, carols. Picking one fills the
+   name and the whole order of service, every line of it yours to rename, retime or throw away.
+2. **Create your own** opens the same form empty. Add an item, choose its kind, name it, give it
+   minutes. The handle drags a line up or down, and the running total reads under the list.
+3. Save is dead until something has been changed, and closing a panel that has been typed in asks.
+4. A blank name is refused, a template with nothing on it is refused, and a name another template
+   already has is refused.
+5. The bin in the panel's footer deletes it, after a confirmation. Plans already built from it keep
+   their items.
+6. **On a service plan, Create from template** lists the same templates. More than five of them and
+   a search box appears over the list. Manage templates at the foot opens the settings screen.
+7. Recent plans are gone from that dialog.
+8. The screen is refused to anybody without "Plan services, keep plan templates and record
+   attendance" on their role, and the Services section does not appear in Settings for them.
 
 ### HRT-16, how to test it
 

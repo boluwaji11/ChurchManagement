@@ -4,7 +4,7 @@ import {
   withTenant, ensurePlan, updatePlan, addItem, updateItem, removeItem, moveItem, reorderItems,
   addItemNote, removeItemNote, detachFromItem,
   templateItems, planItemsFor, type ShapeItem,
-  saveAsTemplate, renameTemplate, removeTemplate, applyTemplate, copyPlan,
+  saveAsTemplate, renameTemplate, removeTemplate, applyTemplate,
   type ItemKind,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
@@ -218,21 +218,6 @@ export async function useTemplate(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => applyTemplate(tx, actor, { planId, templateId }));
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-/** R11.8. Copies the shape of a plan already run onto this one. */
-export async function copyFrom(
-  planId: string,
-  fromOccurrenceId: string,
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
-  try {
-    await withTenant(ctx, (tx) => copyPlan(tx, actor, { planId, fromOccurrenceId }));
     return {};
   } catch (error) {
     return { error: explain(error) };

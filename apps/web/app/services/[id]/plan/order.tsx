@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Plus, Trash2, GripVertical, Pencil, MessageSquare, X, Paperclip,
@@ -17,7 +18,7 @@ import type { ItemKind, ShapeItem } from "@connectapp/db";
 import { useFormError } from "@/lib/form-error";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
-  keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, copyFrom, shapeOf,
+  keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, shapeOf,
 } from "./actions";
 
 const KINDS: ItemKind[] = [
@@ -47,17 +48,10 @@ export interface OrderNote {
   audience: string | null;
 }
 
-/** R11.8. A saved shape, and a plan already run, both offered as a start. */
+/** R11.8. A shape the church keeps, offered as a start. */
 export interface OrderTemplate {
   id: string;
   name: string;
-  items: number;
-  minutes: number;
-}
-
-export interface OrderSource {
-  occurrenceId: string;
-  label: string;
   items: number;
   minutes: number;
 }
@@ -105,7 +99,6 @@ export function Order({
   theme,
   items,
   templates,
-  sources,
 }: {
   church: string;
   occurrenceId: string;
@@ -115,7 +108,6 @@ export function Order({
   theme: string | null;
   items: OrderItem[];
   templates: OrderTemplate[];
-  sources: OrderSource[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -186,7 +178,6 @@ export function Order({
           church={church}
           planId={planId}
           templates={templates}
-          sources={sources}
           disabled={pending}
         />
         <TemplateDialog
@@ -648,13 +639,11 @@ function StartFrom({
   church,
   planId,
   templates,
-  sources,
   disabled,
 }: {
   church: string;
   planId: string;
   templates: OrderTemplate[];
-  sources: OrderSource[];
   disabled: boolean;
 }) {
   const router = useRouter();
@@ -665,7 +654,12 @@ function StartFrom({
     apply: () => Promise<{ error?: string }>;
   } | null>(null);
   const [failed, setFailed] = React.useState<string>();
+  const [term, setTerm] = React.useState("");
   const [pending, startTransition] = React.useTransition();
+
+  const found = templates.filter((one) =>
+    one.name.toLowerCase().includes(term.trim().toLowerCase()),
+  );
 
   const summary = (items: number, minutes: number) =>
     t("order.summary", { items: String(items), minutes: String(minutes) });
@@ -718,6 +712,7 @@ function StartFrom({
         if (!on) {
           setLooking(null);
           setFailed(undefined);
+          setTerm("");
         }
       }}
     >
@@ -766,53 +761,46 @@ function StartFrom({
             </DialogFooter>
           </div>
         ) : (
-          <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
-            <section className="flex flex-col gap-2">
-              <h3 className="text-[13px] font-medium text-fg-subtle">
-                {t("order.start.templates")}
-              </h3>
-              {templates.length === 0 ? (
-                <p className="text-[13px] text-fg-muted">{t("order.template.none")}</p>
-              ) : (
-                templates.map((template) =>
-                  choice(
-                    template.id,
-                    template.name,
-                    summary(template.items, template.minutes),
-                    () =>
-                      look(
-                        template.name,
-                        { kind: "template", id: template.id },
-                        () => useTemplate(planId, template.id, church),
-                      ),
-                  ),
-                )
-              )}
-            </section>
+          <div className="flex max-h-[60vh] flex-col gap-3 overflow-y-auto">
+            {/* R11.8. A church with a dozen shapes reads them by name, so the
+                list is filtered rather than scrolled. */}
+            {templates.length > 5 ? (
+              <Input
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                placeholder={t("planTpl.search")}
+                aria-label={t("planTpl.search")}
+                autoComplete="off"
+              />
+            ) : null}
 
-            {/* R11.8. A plan the church already ran is the other shape to start
-                from, and usually the better one. The last two, because the one
-                before that is a different season. */}
-            <section className="flex flex-col gap-2">
-              <h3 className="text-[13px] font-medium text-fg-subtle">{t("order.recent")}</h3>
-              {sources.length === 0 ? (
-                <p className="text-[13px] text-fg-muted">{t("order.recent.none")}</p>
-              ) : (
-                sources.slice(0, 2).map((source) =>
-                  choice(
-                    source.occurrenceId,
-                    source.label,
-                    summary(source.items, source.minutes),
-                    () =>
-                      look(
-                        source.label,
-                        { kind: "plan", occurrenceId: source.occurrenceId },
-                        () => copyFrom(planId, source.occurrenceId, church),
-                      ),
-                  ),
-                )
-              )}
-            </section>
+            {templates.length === 0 ? (
+              <p className="text-[13px] text-fg-muted">{t("order.template.none")}</p>
+            ) : found.length === 0 ? (
+              <p className="text-[13px] text-fg-muted">{t("planTpl.noMatch", { term })}</p>
+            ) : (
+              found.map((template) =>
+                choice(
+                  template.id,
+                  template.name,
+                  summary(template.items, template.minutes),
+                  () =>
+                    look(
+                      template.name,
+                      { kind: "template", id: template.id },
+                      () => useTemplate(planId, template.id, church),
+                    ),
+                ),
+              )
+            )}
+
+            {/* Where the shapes themselves are written and changed. */}
+            <Link
+              href={`/settings/plan-templates?church=${church}`}
+              className="mt-1 self-start font-medium text-primary"
+            >
+              {t("planTpl.manage")}
+            </Link>
           </div>
         )}
       </DialogContent>

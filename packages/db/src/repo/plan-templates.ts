@@ -7,6 +7,7 @@ import { serviceOccurrences } from "../schema/gatherings";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageServices } from "./services";
+import { ITEM_KINDS, type ItemKind } from "./plans";
 import type { WriteActor } from "./members";
 
 /**
@@ -116,6 +117,121 @@ export async function saveAsTemplate(
   );
 
   return { id };
+}
+
+/** One line of a shape as it is written down. */
+export interface ShapeInput {
+  kind: string;
+  title: string;
+  minutes: number;
+}
+
+/** A shape and everything on it, for a screen that edits the shape itself. */
+export interface TemplateShape extends PlanTemplate {
+  lines: ShapeItem[];
+}
+
+function checkLines(items: ShapeInput[]): { kind: ItemKind; title: string; minutes: number }[] {
+  if (items.length === 0) throw new InvalidInputError("order.error.templateEmpty");
+
+  return items.map((item) => {
+    const title = item.title?.trim();
+    if (!title) throw new InvalidInputError("order.error.title");
+    if (!ITEM_KINDS.includes(item.kind as ItemKind)) throw new InvalidInputError("order.error.kind");
+    if (!Number.isInteger(item.minutes) || item.minutes < 0 || item.minutes > 600) {
+      throw new InvalidInputError("order.error.minutes");
+    }
+    return { kind: item.kind as ItemKind, title: title.slice(0, 200), minutes: item.minutes };
+  });
+}
+
+/**
+ * R11.8. A shape written down on its own, with no plan behind it.
+ *
+ * A church setting up has an order of service in its head before it has a
+ * service in the calendar, so the shape is a record it can write once and reach
+ * from settings, rather than something that only exists as a copy of a week
+ * that already happened.
+ */
+export async function writeTemplate(
+  db: Tx,
+  actor: WriteActor,
+  input: { id?: string; name: string; items: ShapeInput[] },
+): Promise<{ id: string }> {
+  if (!canManageServices(actor)) throw new PermissionError(actor.role, "managePlans");
+  const name = checkName(input.name);
+  const lines = checkLines(input.items);
+
+  const [clash] = await db
+    .select({ id: planTemplates.id })
+    .from(planTemplates)
+    .where(
+      input.id
+        ? and(eq(planTemplates.name, name), ne(planTemplates.id, input.id))
+        : eq(planTemplates.name, name),
+    )
+    .limit(1);
+  if (clash) throw new InvalidInputError("order.error.templateTaken");
+
+  let id = input.id;
+  if (id) {
+    const changed = await db
+      .update(planTemplates)
+      .set({ name, updatedAt: new Date() })
+      .where(eq(planTemplates.id, id))
+      .returning({ id: planTemplates.id });
+    if (changed.length === 0) throw new InvalidInputError("order.error.template");
+    await db.delete(planTemplateItems).where(eq(planTemplateItems.templateId, id));
+  } else {
+    const [created] = await db
+      .insert(planTemplates)
+      .values({ tenantId: actor.tenantId, name })
+      .returning({ id: planTemplates.id });
+    id = created!.id;
+  }
+
+  await db.insert(planTemplateItems).values(
+    lines.map((line, at) => ({
+      tenantId: actor.tenantId,
+      templateId: id!,
+      kind: line.kind,
+      title: line.title,
+      minutes: line.minutes,
+      position: at,
+    })),
+  );
+
+  return { id };
+}
+
+/** R11.8. Every shape this church keeps, with what is on each one. */
+export async function listTemplateShapes(db: Tx): Promise<TemplateShape[]> {
+  const rows = await db
+    .select({
+      id: planTemplates.id,
+      name: planTemplates.name,
+      kind: planTemplateItems.kind,
+      title: planTemplateItems.title,
+      minutes: planTemplateItems.minutes,
+    })
+    .from(planTemplates)
+    .leftJoin(planTemplateItems, eq(planTemplateItems.templateId, planTemplates.id))
+    .orderBy(asc(planTemplates.name), asc(planTemplateItems.position), asc(planTemplateItems.createdAt));
+
+  const held = new Map<string, TemplateShape>();
+  for (const row of rows) {
+    let shape = held.get(row.id);
+    if (!shape) {
+      shape = { id: row.id, name: row.name, items: 0, minutes: 0, lines: [] };
+      held.set(row.id, shape);
+    }
+    if (row.title === null) continue;
+    shape.lines.push({ kind: row.kind!, title: row.title, minutes: row.minutes ?? 0 });
+    shape.items += 1;
+    shape.minutes += row.minutes ?? 0;
+  }
+
+  return [...held.values()];
 }
 
 export async function renameTemplate(

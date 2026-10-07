@@ -11,7 +11,7 @@ import { withTenant, closeConnections, type Tx } from "../src/client";
 import { ensurePlan, addItem, getPlan, addItemNote } from "../src/repo/plans";
 import {
   listTemplates, saveAsTemplate, renameTemplate, removeTemplate,
-  applyTemplate, recentPlans, copyPlan,
+  applyTemplate, recentPlans, copyPlan, writeTemplate, listTemplateShapes,
 } from "../src/repo/plan-templates";
 import { addSpecialService } from "../src/repo/services";
 import { InvalidInputError } from "../src/errors";
@@ -206,12 +206,61 @@ describe("templates", () => {
     expect(await itemsOn(past)).toHaveLength(4);
   });
 
+  it("writes a shape down with no plan behind it, and reads it back", async () => {
+    const { id } = await run((tx) =>
+      writeTemplate(tx, as(), {
+        name: "Carols",
+        items: [
+          { kind: "song", title: "Carol", minutes: 25 },
+          { kind: "scripture", title: "The reading", minutes: 5 },
+        ],
+      }),
+    );
+
+    const shape = (await run((tx) => listTemplateShapes(tx))).find((one) => one.id === id)!;
+    expect(shape.items).toBe(2);
+    expect(shape.minutes).toBe(30);
+    expect(shape.lines.map((line) => line.title)).toEqual(["Carol", "The reading"]);
+
+    // Changing one replaces its lines rather than adding another set.
+    await run((tx) =>
+      writeTemplate(tx, as(), {
+        id,
+        name: "Carol service",
+        items: [{ kind: "song", title: "Carol", minutes: 20 }],
+      }),
+    );
+    const again = (await run((tx) => listTemplateShapes(tx))).find((one) => one.id === id)!;
+    expect(again.name).toBe("Carol service");
+    expect(again.lines).toHaveLength(1);
+
+    await run((tx) => removeTemplate(tx, as(), id));
+  });
+
+  it("refuses a blank name, an empty shape and a name already used", async () => {
+    await expect(
+      run((tx) => writeTemplate(tx, as(), { name: "  ", items: [{ kind: "song", title: "A", minutes: 1 }] })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+    await expect(
+      run((tx) => writeTemplate(tx, as(), { name: "Empty", items: [] })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+    await expect(
+      run((tx) => writeTemplate(tx, as(), { name: "Sunday morning", items: [{ kind: "song", title: "A", minutes: 1 }] })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+
   it("is refused to a volunteer", async () => {
     await expect(
       run((tx) => saveAsTemplate(tx, as("member"), { planId: pastPlan, name: "Nope" }), "member"),
     ).rejects.toBeInstanceOf(PermissionError);
     await expect(
       run((tx) => copyPlan(tx, as("member"), { planId: nextPlan, fromOccurrenceId: past }), "member"),
+    ).rejects.toBeInstanceOf(PermissionError);
+    await expect(
+      run(
+        (tx) => writeTemplate(tx, as("member"), { name: "Nope", items: [] }),
+        "member",
+      ),
     ).rejects.toBeInstanceOf(PermissionError);
   });
 });

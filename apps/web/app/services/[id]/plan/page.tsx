@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
-  listTemplates, recentPlans, rosterFor, listOccurrences, getChurch,
+  listTemplates, rosterFor, listOccurrences, getChurch,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -52,9 +52,8 @@ export default async function PlanPage({
     return {
       occurrence,
       plan,
-      // R11.8. Shapes to start from: what the church has saved, and what it ran.
+      // R11.8. The shapes to start from, as the church keeps them in settings.
       templates: await listTemplates(tx),
-      sources: await recentPlans(tx, occurrenceId),
       // R11.9. Who serves, read from the same schedule the serving pages write.
       roster: await rosterFor(tx, occurrenceId),
       // R11.1. The church's other services, so a leader planning three in a
@@ -67,7 +66,7 @@ export default async function PlanPage({
   });
 
   if (!result?.plan) notFound();
-  const { occurrence, plan, templates, sources, roster, others } = result;
+  const { occurrence, plan, templates, roster, others } = result;
 
   // R11.3. The clock the plan runs on, worked out the same way the order does.
   const [h, m] = occurrence.startsAt.split(":").map(Number);
@@ -149,12 +148,6 @@ export default async function PlanPage({
               })),
             }))}
             templates={templates}
-            sources={sources.map((source) => ({
-              occurrenceId: source.occurrenceId,
-              label: `${source.name}, ${longDate(source.occursOn)}`,
-              items: source.items,
-              minutes: source.minutes,
-            }))}
           />
         </div>
 
