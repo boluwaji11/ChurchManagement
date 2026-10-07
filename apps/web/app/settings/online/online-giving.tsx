@@ -60,7 +60,7 @@ function Step({
         {last ? null : <span className="my-1 w-px flex-1 bg-line" />}
       </span>
 
-      <div className={`flex min-w-0 flex-1 flex-col gap-2 ${last ? "" : "pb-5"}`}>
+      <div className={`flex min-w-0 flex-1 flex-col gap-2.5 ${last ? "pb-1" : "pb-7"}`}>
         <span className="text-[13px] font-medium text-fg-subtle">{title}</span>
         {children}
       </div>
@@ -209,7 +209,7 @@ export function OnlineGiving({
         <Banner tone="info" title={t("stripe.title")}>{t("stripe.unconfigured")}</Banner>
       )}
 
-      <Card className="flex h-full flex-col gap-5 p-5">
+      <Card className="flex h-full flex-col gap-6 p-6">
         <div className="flex flex-wrap items-center gap-3">
           <span
             className="grid size-9 shrink-0 place-items-center rounded-[10px] text-white [&_svg]:size-[18px]"
@@ -321,14 +321,14 @@ export function OnlineGiving({
 
           <Step icon={<QrCode />} title={t("give.qr.title")} done={ready} last>
             {ready && qr ? (
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={qr}
                   alt=""
-                  className="size-[104px] rounded-lg border border-line bg-white p-1.5"
+                  className="size-[150px] rounded-lg border border-line bg-white p-2"
                 />
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   <a
                     href={qr}
                     download={`${church}-giving-qr.png`}

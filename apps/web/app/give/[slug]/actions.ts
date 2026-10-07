@@ -141,14 +141,17 @@ export async function startGift(input: {
          * A giver standing in a car park should answer one question and be
          * done, and a redirect to another domain is where people stop.
          */
-        ui_mode: "embedded",
+        ui_mode: "embedded_page" as never,
         return_url: `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
       },
       asChurch(page.accountId),
     );
 
     return { secret: session.client_secret ?? undefined };
-  } catch {
+  } catch (error) {
+    // The giver is told it did not go through; the reason belongs in the log,
+    // where whoever is running this can read it.
+    console.error("[give] checkout session refused", error);
     return { error: "stripe.failed" };
   }
 }
