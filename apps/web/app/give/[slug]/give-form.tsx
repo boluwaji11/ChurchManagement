@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import {
   Banner, Button, Card, Checkbox, Field, Input,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -16,7 +16,6 @@ import {
 } from "./start";
 import { DateField } from "@/components/date-field";
 import { ordinal } from "@/lib/ordinal";
-import { PoweredByStripe } from "@/components/powered-by-stripe";
 import { Pay } from "./pay";
 
 /** The amounts a church's givers reach for first. */
@@ -379,17 +378,18 @@ export function GiveForm({
           : t(`give.submit.${repeat}` as never, { amount: money(charged) })}
       </Button>
 
-      {/* R13.2. Stripe's own badge, which Stripe asks to be linked back to
-          them. A giver about to type a card number recognises it, and that
-          is the whole job of this line. */}
-      <a
-        href="https://stripe.com"
-        target="_blank"
-        rel="noreferrer noopener"
-        className="mx-auto block w-[150px] text-[#635BFF]"
-      >
-        <PoweredByStripe className="h-[34px] w-full" />
-      </a>
+      <p className="m-0 flex flex-wrap items-center justify-center gap-1.5 text-[13px] text-fg-muted">
+        <Lock className="size-3.5" aria-hidden />
+        {t("give.secure")}
+        <a
+          href="https://stripe.com/docs/security"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="font-medium text-primary"
+        >
+          {t("give.secure.more")}
+        </a>
+      </p>
     </Card>
   );
 }
