@@ -12,8 +12,19 @@ import { PersonForm, PersonFormActions } from "../../person-form";
 import { toAddress } from "@/lib/address";
 import { t } from "@connectapp/i18n";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("members.title"), church);
+}
 
 export default async function EditPersonPage({
   params,

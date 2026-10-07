@@ -21,8 +21,19 @@ import { JoinButton } from "./join-button";
 import { LeaveButton } from "./leave-button";
 import { ManageGroup } from "./manage";
 import { GroupDetail, type DetailMeeting } from "./detail";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("nav.groups"), church);
+}
 
 const dayName = (day: number) =>
   new Date(2024, 0, 7 + day).toLocaleDateString("en-US", { weekday: "long" });

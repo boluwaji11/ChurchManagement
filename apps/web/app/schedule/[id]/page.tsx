@@ -1,8 +1,20 @@
 import { redirect } from "next/navigation";
 import { withTenant, getTeam } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
+import { t } from "@connectapp/i18n";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("serving.title"), church);
+}
 
 /**
  * R10.1. The address a team used to have.

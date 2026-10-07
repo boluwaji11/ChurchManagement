@@ -7,8 +7,19 @@ import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { GroupEditor, GroupFormActions } from "../../group-editor";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("nav.groups"), church);
+}
 
 /** R9.2. Changing a group, on the same page that wrote it down. */
 export default async function EditGroupPage({

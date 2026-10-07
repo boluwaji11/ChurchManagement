@@ -13,9 +13,14 @@ import { tabTitle } from "@/lib/tab-title";
  * it.
  */
 export function TabTitle({ page, church }: { page?: string; church: string }) {
+  /*
+   * No dependency list: the router rewrites the head whenever it refreshes,
+   * and the name has to go back after it. Writing the same string again
+   * costs nothing.
+   */
   React.useEffect(() => {
     document.title = tabTitle(page, church);
-  }, [page, church]);
+  });
 
   return null;
 }

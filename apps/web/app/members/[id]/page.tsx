@@ -23,8 +23,19 @@ import { Places } from "./places";
 import { MessageButton } from "./message";
 import { NoteForm } from "../note-form";
 import { canReadConfidentialNotes } from "@connectapp/db";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("members.title"), church);
+}
 
 /**
  * What a field with nothing in it reads as.

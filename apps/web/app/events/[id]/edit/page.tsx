@@ -7,8 +7,20 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EventEditor } from "../../event-editor";
+import { tabMetadata } from "@/lib/page-metadata";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("event.title"), church);
+}
 
 /** R14.1. Changing an event, on the same page it was written on. */
 export default async function EditEventPage({

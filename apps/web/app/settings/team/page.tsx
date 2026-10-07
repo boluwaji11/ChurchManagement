@@ -8,8 +8,20 @@ import { SettingsHeading } from "../heading";
 import { Team } from "./team";
 import { longDate } from "@/lib/dates";
 import { Denied } from "@/components/denied";
+import { t } from "@connectapp/i18n";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("settings.tab.team"), church);
+}
 
 /** R1.4, R1.7. Who can get into this church, and what they may do. */
 export default async function TeamPage({

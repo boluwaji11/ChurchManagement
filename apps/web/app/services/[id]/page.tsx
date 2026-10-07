@@ -11,8 +11,19 @@ import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Roster } from "./roster";
 import { ServiceActions } from "./service-actions";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("services.title"), church);
+}
 
 const readable = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {

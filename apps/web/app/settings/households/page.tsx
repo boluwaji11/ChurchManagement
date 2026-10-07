@@ -5,8 +5,19 @@ import { Empty } from "@/components/empty";
 import { SettingsHeading } from "../heading";
 import { HouseholdList, NewHousehold } from "./households";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("settings.tab.households"), church);
+}
 
 /** R2.1. The families a church keeps together, as things in their own right. */
 export default async function HouseholdsPage({

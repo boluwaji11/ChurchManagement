@@ -5,8 +5,19 @@ import { FieldManager, NewField } from "./field-manager";
 import { t } from "@connectapp/i18n";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("settings.tab.fields"), church);
+}
 
 export default async function FieldsPage({
   searchParams,

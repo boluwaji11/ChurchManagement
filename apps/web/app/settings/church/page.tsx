@@ -7,8 +7,20 @@ import { ChurchSections } from "./sections";
 import { ChurchLogo } from "../logo";
 import { supabaseServer } from "@/lib/supabase/server";
 import { SettingsHeading } from "../heading";
+import { t } from "@connectapp/i18n";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("settings.tab.church"), church);
+}
 
 export default async function SettingsPage({
   searchParams,

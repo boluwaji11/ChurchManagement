@@ -11,8 +11,19 @@ import { toAddress } from "@/lib/address";
 import { ThemeChoice } from "../theme";
 import type { Theme } from "../theme-actions";
 import { supabaseServer } from "@/lib/supabase/server";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("settings.tab.profile"), church);
+}
 
 /**
  * R17.1. The one screen about the person reading it.

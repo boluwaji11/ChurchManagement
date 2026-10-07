@@ -5,8 +5,19 @@ import { withTenant, getChurch, getStripeAccount, canManageGiving } from "@conne
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("giving.title"), church);
+}
 
 /**
  * R13.7. The code that goes on the bulletin and in the foyer.

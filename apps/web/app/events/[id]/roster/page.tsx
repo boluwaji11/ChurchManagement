@@ -7,8 +7,19 @@ import { requireSession } from "@/lib/session";
 import { longDate, readableTime } from "@/lib/dates";
 import { oneLineAddress } from "@/lib/address";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("event.roster"), church);
+}
 
 /**
  * An answer as one cell. A list of choices reads as a list.

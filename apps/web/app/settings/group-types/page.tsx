@@ -5,8 +5,20 @@ import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { TypeManager } from "./type-manager";
 import { Denied } from "@/components/denied";
+import { t } from "@connectapp/i18n";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("settings.tab.grouptypes"), church);
+}
 
 /**
  * R9.1. The kinds of group this church runs.

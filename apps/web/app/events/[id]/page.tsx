@@ -6,8 +6,20 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EventView } from "./view";
+import { tabMetadata } from "@/lib/page-metadata";
+import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("event.title"), church);
+}
 
 /**
  * R14.1. One event.

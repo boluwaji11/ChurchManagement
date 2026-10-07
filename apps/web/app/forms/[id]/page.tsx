@@ -11,8 +11,19 @@ import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { longDate } from "@/lib/dates";
 import { Builder } from "./builder";
+import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says until the record names itself. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ church?: string }>;
+}) {
+  const { church } = await searchParams;
+  return tabMetadata(t("form.title"), church);
+}
 
 /** Twenty to a page, the same as the directory. */
 const PER_PAGE = 20;
