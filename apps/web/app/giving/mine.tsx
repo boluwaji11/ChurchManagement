@@ -123,7 +123,11 @@ export async function MyGiving({ session }: { session: Session }) {
               <span
                 key={row.key}
                 className={`grid items-center gap-3 py-3 [grid-template-columns:110px_minmax(0,1fr)_80px_110px_120px] ${
-                  row.kind === "refund" ? "border-t-0 pt-1" : row.tied ? "pb-1" : ""
+                  row.kind === "refund"
+                    ? "border-t-0 pt-2 relative before:absolute before:inset-x-10 before:top-0 before:h-px before:bg-line before:content-['']"
+                    : row.tied
+                      ? "pb-2"
+                      : ""
                 }`}
               >
                 {/* R13.15. The turn marks the refund as belonging to the gift
