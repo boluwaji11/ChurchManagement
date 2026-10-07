@@ -8,6 +8,30 @@ import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { stripe, stripeConfigured, asChurch } from "@/lib/stripe";
 
+
+/**
+ * R13.1. A website Stripe will accept, or nothing.
+ *
+ * A church writes "example.com" rather than a scheme, so one is put in front
+ * of it. Anything that is not a plain web address with a real host is left
+ * out: Stripe answers "Invalid URL" and refuses the whole account, and the
+ * church is then stuck on a screen with no way past it.
+ */
+function webAddress(given: string | null | undefined): string | undefined {
+  const site = given?.trim();
+  if (!site) return undefined;
+
+  const full = /^https?:\/\//i.test(site) ? site : `https://${site}`;
+  try {
+    const url = new URL(full);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return undefined;
+    if (!url.hostname.includes(".") || url.hostname.endsWith(".")) return undefined;
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 export interface ConnectResult {
   error?: string;
   /** Where to send the reader to carry on with Stripe. */
@@ -97,18 +121,21 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
           }
         : undefined;
 
-      const site = profile?.website?.trim();
-      const website = site
-        ? (/^https?:\/\//i.test(site) ? site : `https://${site}`)
-        : undefined;
+      /*
+       * R13.1. The church's own website, where it reaches Stripe's standard
+       * for one. Stripe refuses an address it cannot make sense of and
+       * refuses the whole account with it, so a website nobody can reach is
+       * left out rather than taking the church's onboarding down with it.
+       */
+      const website = webAddress(profile?.website);
 
-      const account = await stripe().v2.core.accounts.create({
+      const prefill = {
         display_name: name,
         contact_email: profile?.email ?? undefined,
-        dashboard: "full",
+        dashboard: "full" as const,
         identity: {
           country: (profile?.country || "US").toLowerCase(),
-          entity_type: "non_profit",
+          entity_type: "non_profit" as const,
           business_details: {
             registered_name: name,
             ...(address ? { address } : {}),
@@ -139,8 +166,11 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
           },
         },
         defaults: {
-          currency: "usd",
-          responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
+          currency: "usd" as const,
+          responsibilities: {
+            fees_collector: "stripe" as const,
+            losses_collector: "stripe" as const,
+          },
           locales: ["en-US"],
           profile: {
             doing_business_as: profile?.name || name,
@@ -149,7 +179,38 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
           },
         },
         metadata: { tenantId: session.tenantId, slug: session.tenantSlug },
-      });
+      };
+
+      /*
+       * Everything above is a kindness: it saves a volunteer typing what this
+       * product already holds. Where Stripe will not take one of those
+       * answers, the church still gets its account and fills that one in on
+       * Stripe's own form.
+       */
+      let account;
+      try {
+        account = await stripe().v2.core.accounts.create(prefill);
+      } catch (refused) {
+        console.error("[stripe] account refused with what we filled in", refused);
+        account = await stripe().v2.core.accounts.create({
+          display_name: prefill.display_name,
+          contact_email: prefill.contact_email,
+          dashboard: "full",
+          identity: { country: prefill.identity.country, entity_type: "non_profit" },
+          configuration: {
+            merchant: {
+              capabilities: prefill.configuration.merchant.capabilities,
+              mcc: "8661",
+            },
+          },
+          defaults: {
+            currency: "usd",
+            responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
+            locales: ["en-US"],
+          },
+          metadata: prefill.metadata,
+        });
+      }
       accountId = account.id;
 
       /*
