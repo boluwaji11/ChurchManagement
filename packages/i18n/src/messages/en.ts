@@ -1026,6 +1026,7 @@ export const en = {
   "give.manage": "Change or stop this gift",
   "give.stop": "Stop this gift",
   "give.stop.title": "Stop {gift}?",
+  "give.stop.titleWho": "Stop {name}'s {gift}?",
   "give.stop.body": "This will stop the recurring gift.",
   "give.card": "Change the card",
   "give.card.saved": "Thank you",

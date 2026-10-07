@@ -21,6 +21,7 @@ import { AttachGift } from "./attach";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
 import { RepeatMark } from "./repeat-mark";
+import { StopRepeating } from "./stop-repeating";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -391,6 +392,17 @@ export default async function GivingPage({
                       <span data-numeric className="shrink-0 font-mono text-[13px] text-fg">
                         {money(one.amountCents)}
                       </span>
+                      {/* R13.3. A treasurer is asked to stop one on a giver's
+                          behalf, so it is stopped from here as well. */}
+                      {manage ? (
+                        <StopRepeating
+                          id={one.id}
+                          church={session.tenantSlug}
+                          label={money(one.amountCents)}
+                          who={one.name || null}
+                          compact
+                        />
+                      ) : null}
                     </li>
                   ))}
                 </ul>
