@@ -13,6 +13,7 @@ import {
   cn, type Hue,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
+import { Said } from "@/components/said";
 import { Empty } from "@/components/empty";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
@@ -272,7 +273,10 @@ export function Directory({
 
       {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
       {result && !result.error && result.changed !== undefined ? (
-        <Banner tone="success" title={t("directory.bulkDone", { count: result.changed })} />
+        <Said
+          message={t("directory.bulkDone", { count: result.changed })}
+          onClose={() => setResult(undefined)}
+        />
       ) : null}
 
       {/* R1.14. Which list is being read, and the way back to everybody. */}

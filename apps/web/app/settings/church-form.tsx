@@ -6,6 +6,7 @@ import { Banner, Combobox, Field, IconButton, Input } from "@connectapp/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
 import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@connectapp/i18n";
+import { Said } from "@/components/said";
 import { saveChurch } from "./actions";
 
 export interface ChurchValues {
@@ -77,7 +78,9 @@ export function ChurchForm({
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("church.title")}>{error}</Banner> : null}
-      {saved && !error ? <Banner tone="success" title={t("church.saved")} /> : null}
+      {saved && !error ? (
+        <Said message={t("church.saved")} onClose={() => setSaved(false)} />
+      ) : null}
 
       {/* R1.1. The design lays these out as a grid that fills the room it has
           rather than two fixed columns, so a wide screen reads three across. */}

@@ -6,6 +6,7 @@ import {
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Flash } from "@/components/said";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";
@@ -94,7 +95,7 @@ export default async function PeoplePage({
           about this screen. */}
 
       {params.archived ? (
-        <Banner tone="success" title={t("person.archived.title")} className="mb-8" />
+        <Flash message={t("person.archived.title")} />
       ) : null}
 
       {session.role === "staff" || session.role === "member" ? (

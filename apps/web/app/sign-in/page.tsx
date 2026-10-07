@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Flash } from "@/components/said";
 import { currentUser } from "@/lib/session";
 import { landingFor } from "@/lib/landing";
 import { AuthShell } from "../auth-shell";
@@ -46,7 +47,10 @@ export default async function SignIn({
         </Banner>
       ) : null}
 
-      {params.set ? <Banner tone="success" title={t("signIn.set")} /> : null}
+      {/* R24.9. A confirmation puts itself away. The line above it stays:
+          "check your email" is an instruction, and somebody who loses it has
+          lost the only thing telling them what to do next. */}
+      {params.set ? <Flash message={t("signIn.set")} /> : null}
       {params.taken ? <Banner tone="info" title={t("auth.error.taken")} /> : null}
 
       <SignInForm next={params.next} email={params.taken} />

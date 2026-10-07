@@ -34,3 +34,40 @@ export function Said({ message, onClose }: { message?: string; onClose: () => vo
     />
   );
 }
+
+/**
+ * R24.9. The same, for a screen that has no state of its own.
+ *
+ * A page rendered on the server knows what just happened from its address
+ * rather than from a variable, so this holds the one piece of state the
+ * confirmation needs: whether it has gone yet.
+ */
+export function Flash({ message, children }: { message: string; children?: React.ReactNode }) {
+  const [shown, setShown] = React.useState(true);
+  if (!shown) return null;
+
+  return (
+    <Banner
+      tone="success"
+      title={message}
+      onClose={() => setShown(false)}
+      closeLabel={t("common.close")}
+    >
+      {children}
+      <Away onDone={() => setShown(false)} />
+    </Banner>
+  );
+}
+
+/** Puts the banner above away after five seconds. */
+function Away({ onDone }: { onDone: () => void }) {
+  const done = React.useRef(onDone);
+  done.current = onDone;
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => done.current(), 5000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  return null;
+}

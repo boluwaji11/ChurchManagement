@@ -7,6 +7,7 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Flash } from "@/components/said";
 import { undoImport, type RollbackOutcome } from "./actions";
 
 export interface BatchRow {
@@ -156,13 +157,13 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
       </Dialog>
 
       {outcome && !outcome.error ? (
-        <Banner tone="success" title={t("import.rolledBack")}>
+        <Flash message={t("import.rolledBack")}>
           {t("import.rollback.done", {
             removed: outcome.removed ?? 0,
             restored: outcome.restored ?? 0,
             archived: outcome.archived ?? 0,
           })}
-        </Banner>
+        </Flash>
       ) : null}
     </>
   );
