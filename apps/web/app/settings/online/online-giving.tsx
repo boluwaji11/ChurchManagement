@@ -10,6 +10,7 @@ import {
 import { Banner, Button, Card } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { ChurchStripeAccount } from "@connectapp/db";
+import type { AccountFace } from "./actions";
 import { connectStripe, refreshStripe } from "./actions";
 
 /**
@@ -119,6 +120,7 @@ export function OnlineGiving({
   configured,
   address,
   qr,
+  face,
 }: {
   church: string;
   account: ChurchStripeAccount | null;
@@ -130,6 +132,8 @@ export function OnlineGiving({
   address: string;
   /** The same address as a code, where the account can take a gift. */
   qr: string | null;
+  /** R13.1. What Stripe holds that a church would recognise. */
+  face: AccountFace;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -197,11 +201,18 @@ export function OnlineGiving({
           </span>
 
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="font-semibold text-fg">{t("stripe.title")}</span>
+            <span className="truncate font-semibold text-fg">
+              {face.name || t("stripe.title")}
+            </span>
             {account ? (
-              <span className="truncate font-mono text-[12px] text-fg-subtle">
-                {account.accountId}
-                {account.livemode ? "" : ` · ${t("stripe.test")}`}
+              <span className="truncate text-[12px] text-fg-subtle">
+                {[
+                  face.bank ? t("stripe.payingTo", { bank: face.bank }) : null,
+                  face.payouts ? t(`stripe.payouts.${face.payouts}` as never) : null,
+                  account.livemode ? null : t("stripe.test"),
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </span>
             ) : null}
           </span>
@@ -230,14 +241,21 @@ export function OnlineGiving({
         <ol className="m-0 flex list-none flex-col p-0">
           <Step icon={<StripeMark />} title={t("stripe.step.account")} done={ready}>
             {ready ? (
-              <a
-                href="https://dashboard.stripe.com/"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex w-fit items-center gap-1.5 font-medium text-primary no-underline"
-              >
-                <ExternalLink className="size-4" aria-hidden /> {t("stripe.open")}
-              </a>
+              <div className="flex flex-col gap-1.5">
+                <a
+                  href="https://dashboard.stripe.com/"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex w-fit items-center gap-1.5 font-medium text-primary no-underline"
+                >
+                  <ExternalLink className="size-4" aria-hidden /> {t("stripe.open")}
+                </a>
+                {/* The token Stripe's own support asks for, and nothing a
+                    church needs to read otherwise. */}
+                <span className="font-mono text-[11px] text-fg-subtle">
+                  {t("stripe.account", { id: account!.accountId })}
+                </span>
+              </div>
             ) : (
               <>
                 {missing.length > 0 ? (

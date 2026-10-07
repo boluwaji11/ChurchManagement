@@ -5,7 +5,7 @@ import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
 import { stripeConfigured } from "@/lib/stripe";
-import { syncStripe } from "./actions";
+import { syncStripe, accountFace } from "./actions";
 import { OnlineGiving } from "./online-giving";
 
 export const dynamic = "force-dynamic";
@@ -79,6 +79,9 @@ export default async function OnlineGivingPage({
    * over as a file. There is nothing secret in it: it is the church's own
    * public giving address.
    */
+  // R13.1. What the church recognises: its own name and its own bank.
+  const face = read.account ? await accountFace(church) : { name: null, bank: null, payouts: null };
+
   const qr = read.account?.chargesEnabled
     ? await QRCode.toDataURL(address, { errorCorrectionLevel: "M", margin: 1, width: 512 })
     : null;
@@ -94,6 +97,7 @@ export default async function OnlineGivingPage({
           configured={stripeConfigured()}
           address={address}
           qr={qr}
+          face={face}
         />
       ) : (
         <Denied />
