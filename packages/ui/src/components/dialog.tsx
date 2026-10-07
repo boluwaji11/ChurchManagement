@@ -11,10 +11,11 @@ export const DialogClose = P.Close;
 /**
  * One box, three kinds of thing in it, and they do not dismiss the same way.
  *
- * **A question that cannot be undone** (`alert`): no X, no click outside. The
- * footer carries the way out, named after the safe outcome, and it takes focus
- * when the box opens. Escape is exactly that button. A dangerous action is
- * never what the keyboard lands on.
+ * **A question that cannot be undone** (`alert`): no X. The footer carries the
+ * way out, named after the safe outcome, and it takes focus when the box opens,
+ * so a dangerous action is never what the keyboard lands on. A press outside
+ * closes it like any other box: Escape already did, and a box that ignores the
+ * press reads as frozen rather than as careful.
  *
  * **A form**: the X stays, because a form has a header and that is where people
  * look, and Cancel sits in the footer because that is where they look next.
@@ -39,7 +40,7 @@ export const DialogContent = React.forwardRef<
     description?: string;
     /** Draws the X in the corner. Left out, there is no X. */
     closeLabel?: string;
-    /** A question that cannot be undone: no X, no click outside, safe default. */
+    /** A question that cannot be undone: no X, and the safe answer takes focus. */
     alert?: boolean;
   }
 >(({ className, children, title, description, closeLabel, alert, hideTitle, ...props }, ref) => (
@@ -53,10 +54,6 @@ export const DialogContent = React.forwardRef<
     <P.Content
       ref={ref}
       role={alert ? "alertdialog" : undefined}
-      onPointerDownOutside={(event) => {
-        if (alert) event.preventDefault();
-        props.onPointerDownOutside?.(event);
-      }}
       onOpenAutoFocus={(event) => {
         if (!alert) {
           props.onOpenAutoFocus?.(event);
