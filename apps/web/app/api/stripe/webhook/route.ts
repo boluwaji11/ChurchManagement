@@ -120,6 +120,25 @@ export async function POST(request: Request) {
         break;
       }
 
+      /*
+       * R13.8. A card expired, or the bank said no.
+       *
+       * Stripe retries on its own schedule and tells the giver. What this is
+       * for is the church: a repeating gift that has stopped collecting shows
+       * on the giving screen rather than being noticed in March.
+       */
+      case "invoice.payment_failed": {
+        const failed = event.data.object as Stripe.Invoice & {
+          subscription?: string | { id: string } | null;
+        };
+        const subId =
+          typeof failed.subscription === "string"
+            ? failed.subscription
+            : failed.subscription?.id ?? null;
+        if (subId) await markRecurring({ subscriptionId: subId, status: "past_due" });
+        break;
+      }
+
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         await markRecurring({ subscriptionId: sub.id, status: "canceled" });

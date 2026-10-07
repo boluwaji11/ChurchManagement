@@ -268,6 +268,16 @@ export default async function GivingPage({
                             .filter(Boolean)
                             .join(" \u00b7 ")}
                         </span>
+                        {/* R13.8. A gift that has stopped collecting says so
+                            here, rather than being noticed in March. */}
+                        {one.status === "past_due" ? (
+                          <span
+                            className="text-[12px] font-medium"
+                            style={{ color: "var(--hue-amber-key)" }}
+                          >
+                            {t("giving.recurring.status.past_due")}
+                          </span>
+                        ) : null}
                       </span>
                       <span data-numeric className="shrink-0 font-mono text-[13px] text-fg">
                         {money(one.amountCents)}

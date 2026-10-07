@@ -46,7 +46,12 @@ export async function listRecurring(
     .from(recurringGifts)
     .leftJoin(members, eq(members.id, recurringGifts.memberId))
     .leftJoin(funds, eq(funds.id, recurringGifts.fundId))
-    .where(options.activeOnly ? eq(recurringGifts.status, "active") : undefined)
+    /*
+     * R13.8. A gift that has stopped collecting belongs on the same list as
+     * the ones that are collecting, because that is where somebody will see
+     * it. Only a cancelled one drops off.
+     */
+    .where(options.activeOnly ? sql`${recurringGifts.status} <> 'canceled'` : undefined)
     .orderBy(desc(recurringGifts.amountCents));
 
   const amounts = canReadGivingAmounts(who);

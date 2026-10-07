@@ -86,6 +86,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-242 | The giving report: by month, by fund, who stopped giving, who started | R13.21, R13.24, R13.25 | Resolved |
 | HRT-243 | A gift that repeats, and the giver's own way to change or stop it | R13.3 | Resolved |
 | HRT-244 | A member's own giving, and their own statement, from the portal | R13.19, R17.4 | Resolved |
+| HRT-245 | A repeating gift that has stopped collecting says so on the giving screen | R13.8 | Resolved |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
