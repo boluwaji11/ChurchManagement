@@ -19,6 +19,10 @@ export async function GET(request: NextRequest) {
   const church = params.get("church") ?? undefined;
   const session = await requireSession(church);
   const back = new URL(`/giving?church=${session.tenantSlug}`, request.nextUrl.origin);
+  const saved = new URL(
+    `/giving?church=${session.tenantSlug}&card=done`,
+    request.nextUrl.origin,
+  );
 
   const id = params.get("session");
   if (!stripeConfigured() || !id || !/^cs_[A-Za-z0-9_]+$/.test(id)) {
@@ -57,6 +61,7 @@ export async function GET(request: NextRequest) {
         { default_payment_method: method },
         asChurch(account.accountId),
       );
+      return NextResponse.redirect(saved);
     }
   } catch (error) {
     console.error("[giving] card change could not be finished", error);

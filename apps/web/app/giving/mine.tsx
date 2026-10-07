@@ -14,7 +14,9 @@ import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
+import * as React from "react";
 import { ChangeCard } from "./change-card";
+import { CardSaved } from "./card-saved";
 import { StopRepeating } from "./stop-repeating";
 
 /**
@@ -85,6 +87,10 @@ export async function MyGiving({ session }: { session: Session }) {
       />
 
       <div className="flex flex-col gap-4">
+        {/* R13.3. Said once, when Stripe sends them back with a new card. */}
+        <React.Suspense fallback={null}>
+          <CardSaved />
+        </React.Suspense>
         <Panel className="flex flex-wrap items-end justify-between gap-4">
           <span className="flex flex-col">
             <span data-numeric className="font-display text-[34px] leading-[40px] text-fg">
