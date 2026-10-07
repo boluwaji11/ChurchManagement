@@ -40,9 +40,26 @@ export default async function ThanksPage({
           <p className="m-0 text-fg-muted">{t("give.thanks.repeat")}</p>
         ) : null}
         {repeating && session ? <ManageGift slug={church.slug} session={session} /> : null}
-        <Link href={`/give/${church.slug}`} className="font-medium text-primary">
-          {t("give.thanks.again")}
-        </Link>
+        {/* R13.6. A giver came from somewhere, and the church's own site is
+            where they came from. Where there is none, the way back is the
+            giving page itself. */}
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {church.website ? (
+            <a
+              href={
+                /^https?:\/\//i.test(church.website)
+                  ? church.website
+                  : `https://${church.website}`
+              }
+              className="font-medium text-primary no-underline"
+            >
+              {t("give.thanks.home", { church: church.name })}
+            </a>
+          ) : null}
+          <Link href={`/give/${church.slug}`} className="font-medium text-primary">
+            {t("give.thanks.again")}
+          </Link>
+        </div>
       </div>
     </main>
   );

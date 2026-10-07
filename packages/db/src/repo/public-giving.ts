@@ -13,6 +13,8 @@ const SLUG = /^[a-z0-9][a-z0-9-]{1,62}$/;
 export interface GivingPage {
   slug: string;
   name: string;
+  /** R13.6. The church's own site, where a giver came from and goes back to. */
+  website: string | null;
   brandHue: string;
   logoKey: string | null;
   /** The church's own Stripe account, which is where the money goes. */
@@ -34,11 +36,13 @@ export async function givingPage(slug: string): Promise<GivingPage | null> {
     tenantId: string;
     slug: string;
     name: string;
+    website: string | null;
     brandHue: string;
     logoKey: string | null;
     accountId: string;
   }[]>`
-    select t.id as "tenantId", t.slug, t.name, t.brand_hue::text as "brandHue",
+    select t.id as "tenantId", t.slug, t.name, t.website,
+           t.brand_hue::text as "brandHue",
            t.logo_key as "logoKey", s.account_id as "accountId"
       from tenants t
       join stripe_accounts s on s.tenant_id = t.id
@@ -60,6 +64,7 @@ export async function givingPage(slug: string): Promise<GivingPage | null> {
   return {
     slug: church.slug,
     name: church.name,
+    website: church.website,
     brandHue: church.brandHue,
     logoKey: church.logoKey,
     accountId: church.accountId,
