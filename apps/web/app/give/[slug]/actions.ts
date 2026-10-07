@@ -3,18 +3,7 @@
 import { headers } from "next/headers";
 import { givingPage } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch, PLATFORM_FEE, withFee } from "@/lib/stripe";
-
-/** R13.3. The rhythms a church's givers actually keep. */
-export const REPEATS = ["once", "week", "fortnight", "month", "year"] as const;
-export type Repeat = (typeof REPEATS)[number];
-
-/** The same, as Stripe says it. */
-const EVERY: Record<Exclude<Repeat, "once">, { interval: "week" | "month" | "year"; count: number }> = {
-  week: { interval: "week", count: 1 },
-  fortnight: { interval: "week", count: 2 },
-  month: { interval: "month", count: 1 },
-  year: { interval: "year", count: 1 },
-};
+import { EVERY, type Repeat } from "./repeats";
 
 export interface GiveResult {
   error?: string;

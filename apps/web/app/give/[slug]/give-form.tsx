@@ -9,7 +9,8 @@ import {
 import { t } from "@connectapp/i18n";
 import { money, toCents } from "@/lib/money";
 import { withFee } from "@/lib/stripe-fee";
-import { startGift, REPEATS, type Repeat } from "./actions";
+import { startGift } from "./actions";
+import { REPEATS, type Repeat } from "./repeats";
 import { Pay } from "./pay";
 
 /** The amounts a church's givers reach for first. */
