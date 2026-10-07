@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { givingPage } from "@connectapp/db";
 import { currentUser } from "@/lib/session";
 import { t } from "@connectapp/i18n";
@@ -37,8 +39,20 @@ export default async function GivePage({
   const logoUrl = church.logoKey ? (signed[church.logoKey] ?? null) : null;
 
   return (
-    <main className="site-wash grid min-h-dvh place-items-center px-5 py-10">
+    <main className="site-wash grid min-h-dvh place-items-start justify-center px-5 py-10">
       <div className="flex w-full max-w-[460px] flex-col gap-6">
+        {/* R17.4. A member came here from their own screens, so the way back
+            is to them. A stranger has no back: this page is where they
+            started. */}
+        {known ? (
+          <Link
+            href={`/home/giving?church=${church.slug}`}
+            className="flex w-fit items-center gap-1.5 font-medium text-primary no-underline"
+          >
+            <ArrowLeft className="size-4" aria-hidden /> {t("give.back")}
+          </Link>
+        ) : null}
+
         <div className="flex flex-col items-center gap-3 text-center">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element

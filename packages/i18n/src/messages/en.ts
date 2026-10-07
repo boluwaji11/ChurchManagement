@@ -994,6 +994,7 @@ export const en = {
   "statement.gifts.other": "{count} gifts",
   "giving.statements": "Statements",
   "give.title": "Give to {church}",
+  "give.back": "My giving",
   "give.amount": "Amount",
   "give.fund": "Give to",
   "give.split": "Split this gift",
