@@ -7,7 +7,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { money, toCents } from "@/lib/money";
+import { currencyMark, money, toCents } from "@/lib/money";
 import { withFee } from "@/lib/stripe-fee";
 import { startGift } from "./actions";
 import { REPEATS, type Repeat } from "./repeats";
@@ -129,15 +129,22 @@ export function GiveForm({
 
       <Field label={t("give.amount")} required>
         <div className="flex flex-col gap-2.5">
-          <Input
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            inputMode="decimal"
-            placeholder="0.00"
-            className="h-14 text-center text-[26px]"
-            autoComplete="off"
-            autoFocus
-          />
+          {/* R13.6. The currency is part of the question, so it sits with
+              the number rather than being remembered. The field grows to what
+              is typed, which keeps the pair centred. */}
+          <div className="flex h-14 items-center justify-center gap-0.5 rounded-[var(--d-radius-control)] border border-line-strong bg-surface shadow-sm focus-within:border-fg-subtle">
+            <span className="text-[26px] text-fg-subtle">{currencyMark()}</span>
+            <input
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              inputMode="decimal"
+              placeholder="0.00"
+              aria-label={t("give.amount")}
+              autoComplete="off"
+              autoFocus
+              className="min-w-[4ch] max-w-full bg-transparent text-[26px] text-fg outline-none [field-sizing:content] placeholder:text-fg-subtle"
+            />
+          </div>
           <div className="flex flex-wrap justify-center gap-2">
             {QUICK.map((one) => (
               <button

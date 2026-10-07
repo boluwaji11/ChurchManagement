@@ -35,3 +35,12 @@ export function toCents(typed: string): number | null {
   if (!Number.isFinite(value)) return null;
   return Math.round(value * 100);
 }
+
+/** The mark a currency is written with, for a field somebody types into. */
+export function currencyMark(currency = "usd"): string {
+  const parts = new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).formatToParts(0);
+  return parts.find((part) => part.type === "currency")?.value ?? "$";
+}
