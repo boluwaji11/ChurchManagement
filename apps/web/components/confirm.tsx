@@ -26,8 +26,8 @@ export function Confirm({
   /** The control that opens it, usually the x or the bin on the row. */
   trigger: React.ReactNode;
   title: string;
-  /** What happens, in one sentence. */
-  body: string;
+  /** What happens, in one sentence, where the title does not say it. */
+  body?: string;
   confirmLabel: string;
   /** The way out. Defaults to Cancel. */
   keepLabel?: string;
@@ -41,7 +41,9 @@ export function Confirm({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent alert title={title}>
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{body}</p>
+        {body ? (
+          <p className="text-[length:var(--d-text-body)] text-fg-muted">{body}</p>
+        ) : null}
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>

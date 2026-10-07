@@ -2016,6 +2016,8 @@ export const en = {
   "home.awayNone": "None set",
   "home.awayAdd": "Add blackout dates",
   "home.awayRemove": "Remove {dates}",
+  "home.awayRemoveTitle": "Take {dates} off your blackout dates?",
+  "home.awayRemoveAction": "Take it off",
   "home.awaySpan": "{from} to {to}",
   "home.awaySave": "Add {count}",
   "home.people": "People",

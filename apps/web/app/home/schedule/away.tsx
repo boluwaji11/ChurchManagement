@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
+import { CalendarOff, Plus, X } from "lucide-react";
 import {
   Button, DayGrid, IconButton, Dialog, DialogContent, DialogFooter,
 } from "@connectapp/ui";
 import type { Blockout } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { Panel } from "@/components/portal/panel";
+import { Confirm } from "@/components/confirm";
 import { addAway, removeAway } from "../actions";
 import { onDayLong } from "../when";
 
@@ -49,30 +50,59 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
 
   return (
     <Panel className="flex flex-col gap-3">
-      <span className="font-semibold text-fg">{t("home.away")}</span>
+      {/* R24.6. The calendar sits with the name, where the eye lands first. */}
+      <span className="flex items-start justify-between gap-3">
+        <span className="font-semibold text-fg">{t("home.away")}</span>
+        <span
+          aria-hidden
+          className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary"
+        >
+          <CalendarOff className="size-[18px]" />
+        </span>
+      </span>
 
       {dates.length > 0 ? (
-        <div className="flex flex-col divide-y divide-line">
-          {dates.map((one) => (
-            <span key={one.id} className="flex items-center gap-3 py-2">
-              <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
-                {span(one)}
+        /* R24.6. The connected path the rest of the product draws its lists
+           with: a marker a row, the line between them carrying its own dot. */
+        <ol className="m-0 flex list-none flex-col p-0">
+          {dates.map((one, i) => (
+            <li key={one.id} className="flex gap-2.5">
+              <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                <span className="mt-3 size-2.5 shrink-0 rounded-full bg-primary" />
+                {i === dates.length - 1 ? null : (
+                  <span className="relative my-1 w-px flex-1 bg-primary/35">
+                    <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/60" />
+                  </span>
+                )}
               </span>
-              <IconButton
-                label={t("home.awayRemove", { dates: span(one) })}
-                variant="ghost"
-                disabled={working}
-                className="size-8 min-h-0 shrink-0 [&_svg]:size-4"
-                onClick={() => start(async () => {
-                  const back = await removeAway(one.id, church);
-                  setError(back.error ?? null);
-                })}
-              >
-                <X />
-              </IconButton>
-            </span>
+
+              <span className="flex min-w-0 flex-1 items-center gap-2 pb-2">
+                <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+                  {span(one)}
+                </span>
+                <Confirm
+                  title={t("home.awayRemoveTitle", { dates: span(one) })}
+                  confirmLabel={t("home.awayRemoveAction")}
+                  disabled={working}
+                  onConfirm={() => start(async () => {
+                    const back = await removeAway(one.id, church);
+                    setError(back.error ?? null);
+                  })}
+                  trigger={
+                    <IconButton
+                      label={t("home.awayRemove", { dates: span(one) })}
+                      variant="ghost"
+                      disabled={working}
+                      className="size-8 min-h-0 shrink-0 [&_svg]:size-4"
+                    >
+                      <X />
+                    </IconButton>
+                  }
+                />
+              </span>
+            </li>
           ))}
-        </div>
+        </ol>
       ) : (
         <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNone")}</p>
       )}
@@ -84,11 +114,11 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
       ) : null}
 
       <Button
-        variant="secondary"
-        className="self-start"
+        variant="ghost"
+        className="self-start px-2 font-medium text-primary"
         onClick={() => { setPicked([]); setAdding(true); }}
       >
-        {t("home.awayAdd")}
+        <Plus /> {t("home.awayAdd")}
       </Button>
 
       <Dialog open={adding} onOpenChange={(open) => { if (!open) setAdding(false); }}>
