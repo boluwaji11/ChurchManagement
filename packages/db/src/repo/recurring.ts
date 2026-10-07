@@ -187,3 +187,26 @@ export async function tenantForSubscription(subscriptionId: string): Promise<str
      where stripe_subscription_id = ${subscriptionId} limit 1`;
   return rows[0]?.tenantId ?? null;
 }
+
+/**
+ * R13.3. The subscription behind a repeating gift, and whose it is.
+ *
+ * Read before anything is cancelled, so the request can be checked against
+ * the person making it rather than trusting an id the browser sent.
+ */
+export async function recurringSubscription(
+  db: Tx,
+  id: string,
+): Promise<{ subscriptionId: string; memberId: string | null; status: string } | null> {
+  const [row] = await db
+    .select({
+      subscriptionId: recurringGifts.stripeSubscriptionId,
+      memberId: recurringGifts.memberId,
+      status: recurringGifts.status,
+    })
+    .from(recurringGifts)
+    .where(eq(recurringGifts.id, id))
+    .limit(1);
+
+  return row?.subscriptionId ? { ...row, subscriptionId: row.subscriptionId } : null;
+}

@@ -15,6 +15,7 @@ import { money } from "@/lib/money";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
 import { ManageMine } from "./manage-mine";
+import { StopRepeating } from "./stop-repeating";
 
 /**
  * R13.19, R17.4. A member's own giving, and their own statement.
@@ -112,28 +113,44 @@ export async function MyGiving({ session }: { session: Session }) {
         </Panel>
 
         {/* R13.3, R13.19. What they have set to repeat, and the way to
-            change or stop it without ringing the church. */}
+            stop it without ringing the church. */}
         {mine.repeating.length > 0 ? (
-          <Panel className="flex flex-wrap items-center justify-between gap-4">
-            <span className="flex min-w-0 flex-col gap-1">
-              <span className="font-medium text-fg">{t("giving.recurring")}</span>
-              {mine.repeating.map((one) => (
-                <span key={one.id} data-numeric className="text-caption text-fg-muted">
-                  {[
-                    money(one.amountCents),
-                    t(
-                      `giving.recurring.every.${one.interval}${
-                        one.intervalCount > 1 ? `.${one.intervalCount}` : ""
-                      }` as never,
-                    ),
-                    one.fundName,
-                  ]
-                    .filter(Boolean)
-                    .join(" \u00b7 ")}
+          <Panel className="flex flex-col gap-3">
+            <span className="font-medium text-fg">{t("giving.recurring")}</span>
+
+            {mine.repeating.map((one) => (
+              <div
+                key={one.id}
+                className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3 first-of-type:border-0 first-of-type:pt-0"
+              >
+                <span className="flex min-w-0 flex-col">
+                  <span data-numeric className="font-medium text-fg">
+                    {[
+                      money(one.amountCents),
+                      t(
+                        `giving.recurring.every.${one.interval}${
+                          one.intervalCount > 1 ? `.${one.intervalCount}` : ""
+                        }` as never,
+                      ),
+                    ].join(" \u00b7 ")}
+                  </span>
+                  {one.fundName ? (
+                    <span className="text-caption text-fg-subtle">{one.fundName}</span>
+                  ) : null}
                 </span>
-              ))}
-            </span>
-            <ManageMine church={session.tenantSlug} />
+
+                <span className="flex items-center gap-3">
+                  {/* The card itself is changed at Stripe, because a card
+                      number never enters a page this product draws. */}
+                  <ManageMine church={session.tenantSlug} />
+                  <StopRepeating
+                    id={one.id}
+                    church={session.tenantSlug}
+                    label={money(one.amountCents)}
+                  />
+                </span>
+              </div>
+            ))}
           </Panel>
         ) : null}
 

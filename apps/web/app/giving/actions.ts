@@ -5,7 +5,8 @@ import { headers } from "next/headers";
 import {
   withTenant, openBatch, updateBatch, closeBatch, reopenBatch,
   recordGift, removeGift, refundGift, attachGift, giftCharge, getStripeAccount,
-  getChurch, lookupPeople, personForUser, giverCustomer, type GiftMethod,
+  getChurch, lookupPeople, personForUser, giverCustomer,
+  recurringSubscription, markRecurring, canManageGiving, PermissionError, type GiftMethod,
 } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch } from "@/lib/stripe";
 import { explain } from "@/lib/explain";
@@ -261,5 +262,53 @@ export async function manageMine(church?: string): Promise<{ url?: string; error
     return { url: portal.url };
   } catch {
     return { error: "stripe.failed" };
+  }
+}
+
+/**
+ * R13.3, R13.19. Stopping a repeating gift, inside this product.
+ *
+ * Stripe is told to cancel the subscription on the church's own account, and
+ * the row is marked here at once so the screen is right before the webhook
+ * lands. Stripe sends `customer.subscription.deleted` as well, which writes
+ * the same thing, so the two cannot disagree.
+ *
+ * A member may stop their own. Anybody who runs the church's giving may stop
+ * any of them, because a treasurer is asked to.
+ */
+export async function stopRepeating(id: string, church?: string): Promise<GivingResult> {
+  if (!stripeConfigured()) return { error: "stripe.unconfigured" };
+
+  const session = await requireSession(church);
+  const ctx = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+
+  try {
+    const read = await withTenant(ctx, async (tx) => ({
+      gift: await recurringSubscription(tx, id),
+      self: await personForUser(tx, session.userId),
+      account: await getStripeAccount(tx),
+    }));
+
+    if (!read.gift || !read.account) return { error: "give.error.closed" };
+
+    const mine = read.self !== null && read.gift.memberId === read.self;
+    if (!mine && !canManageGiving(ctx)) throw new PermissionError(ctx.role, "manageGiving");
+
+    await stripe().subscriptions.cancel(
+      read.gift.subscriptionId,
+      undefined,
+      asChurch(read.account.accountId),
+    );
+    await markRecurring({ subscriptionId: read.gift.subscriptionId, status: "canceled" });
+
+    revalidatePath("/giving");
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
   }
 }
