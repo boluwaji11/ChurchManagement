@@ -52,6 +52,13 @@ export async function startGift(input: {
   email: string;
   /** R13.3. Once, or on whatever rhythm the giver keeps. */
   repeat?: Repeat;
+  /**
+   * R13.3. The day the first collection comes out, as a plain date.
+   *
+   * Stripe anchors the rest of them to it and refuses an anchor more than
+   * one interval ahead, which is the limit the form is drawn inside.
+   */
+  startOn?: string;
   /** R17.4. Given from the member's own screens, which is where they return. */
   inside?: boolean;
 }): Promise<GiveResult> {
@@ -107,6 +114,18 @@ export async function startGift(input: {
 
   const repeat: Repeat = input.repeat ?? "once";
   const every = repeat === "once" ? null : EVERY[repeat];
+
+  /*
+   * R13.3. A start date in the future anchors the subscription there and
+   * takes nothing today. Midday keeps the anchor on the day the giver chose
+   * whichever side of the date line they are standing on, and an anchor that
+   * has already gone past is dropped, so the gift starts now.
+   */
+  const anchor =
+    every && /^\d{4}-\d{2}-\d{2}$/.test(input.startOn ?? "")
+      ? Math.floor(Date.parse(`${input.startOn}T12:00:00Z`) / 1000)
+      : null;
+  const starts = anchor !== null && anchor > Math.floor(Date.now() / 1000) ? anchor : null;
   const metadata = {
     fundId: fund.id,
     // "fundId:cents;fundId:cents". Short enough for Stripe's 500 characters
@@ -175,7 +194,18 @@ export async function startGift(input: {
                * every collection settles to the church with Stripe's own fee
                * taken off the church's balance and nothing taken off ours.
                */
-              subscription_data: { metadata },
+              subscription_data: {
+                metadata,
+                /*
+                 * R13.3. Nothing is taken today where the giver picked a
+                 * later day, and nothing is prorated: a gift is a gift, so
+                 * the first collection is the whole amount on the day they
+                 * asked for.
+                 */
+                ...(starts
+                  ? { billing_cycle_anchor: starts, proration_behavior: "none" as const }
+                  : {}),
+              },
             }),
         metadata,
         /*

@@ -11,6 +11,11 @@ import { currencyMark, groupAmount, money, toCents } from "@/lib/money";
 import { withFee } from "@/lib/stripe-fee";
 import { startGift } from "./actions";
 import { REPEATS, type Repeat } from "./repeats";
+import {
+  today, furthest, onWeekday, onMonthDay, weekdayOf, monthDayOf, weekdays,
+} from "./start";
+import { DateField } from "@/components/date-field";
+import { ordinal } from "@/lib/ordinal";
 import { Pay } from "./pay";
 
 /** The amounts a church's givers reach for first. */
@@ -56,6 +61,8 @@ export function GiveForm({
   const [splitting, setSplitting] = React.useState(false);
   /* R13.3. Weekly leads, because that is the rhythm a church gathers on. */
   const [repeat, setRepeat] = React.useState<Repeat>("week");
+  /** R13.3. The day the first collection comes out, which anchors the rest. */
+  const [startOn, setStartOn] = React.useState(today());
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
   /** R13.6. Stripe's fields, once the giver has said what they are giving. */
@@ -85,6 +92,7 @@ export function GiveForm({
         name,
         email,
         repeat,
+        startOn: repeat === "once" ? undefined : startOn,
         inside,
       });
       if (result.error) {
@@ -203,6 +211,62 @@ export function GiveForm({
           );
         })}
       </div>
+
+      {/* R13.3. Which day it comes out, and when it starts. Stripe will not
+          take a first collection more than one interval ahead, so the date
+          stops where the next natural one would be. */}
+      {repeat === "once" ? null : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {repeat === "week" || repeat === "fortnight" ? (
+            <Field label={t(`give.start.${repeat}` as never)}>
+              <Select
+                value={String(weekdayOf(startOn))}
+                onValueChange={(day) => setStartOn(onWeekday(Number(day)))}
+              >
+                <SelectTrigger
+                  aria-label={t(`give.start.${repeat}` as never)}
+                  className="border-line"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {weekdays().map((name, at) => (
+                    <SelectItem key={name} value={String(at)}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          ) : repeat === "month" ? (
+            <Field label={t("give.start.month")}>
+              <Select
+                value={String(monthDayOf(startOn))}
+                onValueChange={(day) => setStartOn(onMonthDay(Number(day)))}
+              >
+                <SelectTrigger aria-label={t("give.start.month")} className="border-line">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* To the 28th, which every month has. */}
+                  {Array.from({ length: 28 }, (_, at) => at + 1).map((day) => (
+                    <SelectItem key={day} value={String(day)}>{ordinal(day)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          ) : null}
+
+          <Field label={t("give.start")}>
+            <DateField
+              name="startOn"
+              defaultValue={startOn}
+              onValueChange={(next) => setStartOn(next || today())}
+              min={today()}
+              max={furthest(repeat)}
+              aria-label={t("give.start")}
+            />
+          </Field>
+        </div>
+      )}
 
       {/* R13.4. One fund, or the gift divided between several. */}
       {splitting ? (
