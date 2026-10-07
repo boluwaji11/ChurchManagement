@@ -99,6 +99,7 @@ export * from "./repo/public-giving";
 export * from "./repo/statements";
 export * from "./repo/giving-reports";
 export * from "./repo/recurring";
+export * from "./repo/campaigns";
 export * from "./repo/plan-templates";
 export * from "./repo/live";
 export * from "./repo/plan-history";

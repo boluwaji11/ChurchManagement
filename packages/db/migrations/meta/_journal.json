@@ -743,6 +743,13 @@
       "when": 1791407000000,
       "tag": "0105_recurring_gifts",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1791408000000,
+      "tag": "0106_campaigns_and_pledges",
+      "breakpoints": true
     }
   ]
 }

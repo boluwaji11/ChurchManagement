@@ -214,3 +214,55 @@ export const recurringGifts = pgTable(
     uniqueIndex("recurring_gift_subscription_unique").on(t.stripeSubscriptionId),
   ],
 );
+
+/**
+ * R13.16. A target over a period, against one fund.
+ *
+ * "The roof, $80,000, by next Easter." The fund is what makes progress
+ * countable without anybody reconciling by hand: every gift to that fund
+ * inside the period counts once, and nothing is counted twice.
+ */
+export const campaigns = pgTable(
+  "campaigns",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    name: text("name").notNull(),
+    description: text("description"),
+    fundId: uuid("fund_id").notNull().references(() => funds.id, { onDelete: "restrict" }),
+    targetCents: integer("target_cents").notNull().default(0),
+    startsOn: date("starts_on").notNull(),
+    endsOn: date("ends_on"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("campaign_tenant_idx").on(t.tenantId),
+    uniqueIndex("campaign_name_unique").on(t.tenantId, t.name),
+  ],
+);
+
+/** R13.16. One household's commitment to a campaign. */
+export const pledges = pgTable(
+  "pledges",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    campaignId: uuid("campaign_id").notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    /**
+     * Whoever made the commitment. Progress is counted across their household,
+     * so a couple who pledged once is not asked for it twice.
+     */
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+    amountCents: integer("amount_cents").notNull().default(0),
+    note: text("note"),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [
+    index("pledge_tenant_idx").on(t.tenantId),
+    uniqueIndex("pledge_once").on(t.campaignId, t.memberId),
+  ],
+);

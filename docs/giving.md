@@ -88,6 +88,15 @@ The giver changes or stops it in **Stripe's billing portal**, which the thank-yo
 them. There is no account on our side to sign in to, so the checkout session Stripe has just handed
 them is what stands in: nobody else has it, and it is spent when they leave the page.
 
+## Campaigns
+
+A campaign is a target over a period against **one fund**, which is what makes progress countable:
+every gift to that fund inside the period counts once, and nothing is reconciled by hand. A church
+raising for a roof makes a Building fund and a campaign against it.
+
+A pledge belongs to the person who made it, and progress against it is read across their
+**household**, so a couple who committed once and gave on one card reads as having kept it.
+
 ## Statements
 
 A year-end statement is written to IRS Publication 1771: the church's legal name and address, each
