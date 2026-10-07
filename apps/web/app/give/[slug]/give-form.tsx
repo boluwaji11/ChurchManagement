@@ -153,13 +153,11 @@ export function GiveForm({
         </div>
       </Field>
 
-      {/* R13.3. How often, as one control rather than five loose words: the
-          hairlines join them, and the one in force is filled so it reads from
-          across a room. */}
-      <div className="grid grid-cols-6 overflow-hidden rounded-[var(--d-radius-control)] border border-line-strong">
-        {REPEATS.map((one, at) => {
+      {/* R13.3. How often. Five of its own, the way the amounts above it are
+          drawn, and the one in force is filled so it reads at a glance. */}
+      <div className="flex flex-wrap justify-center gap-2">
+        {REPEATS.map((one) => {
           const chosen = repeat === one;
-          const wide = one === "month" || one === "year";
 
           return (
             <button
@@ -168,16 +166,11 @@ export function GiveForm({
               onClick={() => setRepeat(one)}
               aria-pressed={chosen}
               className={[
-                "flex h-11 cursor-pointer items-center justify-center px-2",
+                "cursor-pointer rounded-full border px-4 py-2",
                 "text-[13px] font-medium whitespace-nowrap",
-                wide ? "col-span-3" : "col-span-2",
-                // The first row sits on a hairline, and each button but the
-                // last of its row carries one down its right.
-                at < 3 ? "border-b border-line-strong" : "",
-                at === 0 || at === 1 || at === 3 ? "border-r border-line-strong" : "",
                 chosen
-                  ? "bg-primary text-primary-fg"
-                  : "bg-surface text-fg-muted hover:bg-sunken hover:text-fg",
+                  ? "border-primary bg-primary text-primary-fg"
+                  : "border-line-strong bg-surface text-fg hover:bg-sunken",
               ].join(" ")}
             >
               {t(`give.repeat.${one}` as never)}
