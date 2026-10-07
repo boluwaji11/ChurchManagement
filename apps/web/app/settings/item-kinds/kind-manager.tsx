@@ -109,8 +109,6 @@ export function KindManager({ church, kinds }: { church: string; kinds: KindRow[
 
       <Dialog open={asking !== null} onOpenChange={(on) => (on ? null : setAsking(null))}>
         <DialogContent alert title={t("itemKind.archiveTitle", { name: asking?.name ?? "" })}>
-          <p className="text-[length:var(--d-text-body)] text-fg">{t("itemKind.archiveBody")}</p>
-
           <DialogFooter>
             <Button variant="ghost" data-dismiss onClick={() => setAsking(null)}>
               {t("itemKind.keep")}

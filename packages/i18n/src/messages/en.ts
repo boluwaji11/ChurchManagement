@@ -2340,7 +2340,6 @@ export const en = {
   "itemKind.namePlaceholder": "e.g. Testimony",
   "itemKind.archive": "Archive",
   "itemKind.archiveTitle": "Archive {name}?",
-  "itemKind.archiveBody": "It comes off the list an item is filed under. Items already filed under it keep it.",
   "itemKind.restore": "Restore",
   "itemKind.archived": "Archived",
   "itemKind.keep": "Keep it",
