@@ -166,7 +166,7 @@
       }
     }
   },
-  "$semantic": "Components reference these only. Changing a ramp must never require touching a component.",
+  "$semantic": "The names a screen uses. Dark is a lifted purple rather than a near black: the canvas sits at L 0.205 on the ink hue with a little chroma, so the product reads as itself at night instead of as a grey app, and nothing is so dark that a laptop at full brightness in a lit room becomes a mirror. Every pair is held to the thresholds in docs/design-system.md and checked by scripts/contrast.mjs.",
   "semantic": {
     "light": {
       "canvas": "{stone.50}",
@@ -188,23 +188,23 @@
       "overlay": "oklch(0.198 0.009 75 / 0.45)"
     },
     "dark": {
-      "canvas": "{stone.950}",
-      "surface": "{stone.900}",
-      "sunken": "oklch(0.118 0.007 75)",
-      "fg": "{stone.100}",
-      "fg-muted": "{stone.400}",
-      "fg-subtle": "{stone.400}",
-      "line": "{stone.800}",
-      "line-strong": "{stone.500}",
+      "canvas": "oklch(0.208 0.030 286)",
+      "surface": "oklch(0.255 0.032 286)",
+      "sunken": "oklch(0.181 0.027 286)",
+      "fg": "oklch(0.962 0.010 286)",
+      "fg-muted": "oklch(0.762 0.026 286)",
+      "fg-subtle": "oklch(0.722 0.024 286)",
+      "line": "oklch(0.325 0.036 286)",
+      "line-strong": "oklch(0.562 0.040 286)",
       "primary": "{ink.400}",
-      "primary-fg": "{stone.950}",
-      "primary-soft": "oklch(0.262 0.048 285)",
+      "primary-fg": "oklch(0.182 0.030 286)",
+      "primary-soft": "oklch(0.300 0.055 285)",
       "accent": "{ember.400}",
-      "accent-fg": "{stone.950}",
-      "accent-soft": "oklch(0.298 0.060 62)",
+      "accent-fg": "oklch(0.182 0.030 286)",
+      "accent-soft": "oklch(0.318 0.062 62)",
       "ring": "{ink.300}",
-      "selection": "oklch(0.332 0.072 285)",
-      "overlay": "oklch(0.100 0.006 75 / 0.65)"
+      "selection": "oklch(0.352 0.072 285)",
+      "overlay": "oklch(0.122 0.028 286 / 0.65)"
     }
   },
   "$status": "One meaning each, with a dark pair for the tint and the text on it. A soft tint defined only for light mode is a real bug in dark mode: the tint stays pale, the text keeps its own colour, and the content disappears. `base` deliberately does not change, because it is a solid fill under white text and lightening it would weaken that contrast."

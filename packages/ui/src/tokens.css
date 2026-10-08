@@ -212,23 +212,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --canvas: var(--stone-950);
-    --surface: var(--stone-900);
-    --sunken: oklch(0.118 0.007 75);
-    --fg: var(--stone-100);
-    --fg-muted: var(--stone-400);
-    --fg-subtle: var(--stone-400);
-    --line: var(--stone-800);
-    --line-strong: var(--stone-500);
+    --canvas: oklch(0.208 0.030 286);
+    --surface: oklch(0.255 0.032 286);
+    --sunken: oklch(0.181 0.027 286);
+    --fg: oklch(0.962 0.010 286);
+    --fg-muted: oklch(0.762 0.026 286);
+    --fg-subtle: oklch(0.722 0.024 286);
+    --line: oklch(0.325 0.036 286);
+    --line-strong: oklch(0.562 0.040 286);
     --primary: var(--ink-400);
-    --primary-fg: var(--stone-950);
-    --primary-soft: oklch(0.262 0.048 285);
+    --primary-fg: oklch(0.182 0.030 286);
+    --primary-soft: oklch(0.300 0.055 285);
     --accent: var(--ember-400);
-    --accent-fg: var(--stone-950);
-    --accent-soft: oklch(0.298 0.060 62);
+    --accent-fg: oklch(0.182 0.030 286);
+    --accent-soft: oklch(0.318 0.062 62);
     --ring: var(--ink-300);
-    --selection: oklch(0.332 0.072 285);
-    --overlay: oklch(0.100 0.006 75 / 0.65);
+    --selection: oklch(0.352 0.072 285);
+    --overlay: oklch(0.122 0.028 286 / 0.65);
     --success: oklch(0.582 0.132 155);
     --success-soft: oklch(0.268 0.058 155);
     --success-text: oklch(0.828 0.108 155);
@@ -273,23 +273,23 @@
 }
 
 :root[data-theme="dark"] {
-    --canvas: var(--stone-950);
-    --surface: var(--stone-900);
-    --sunken: oklch(0.118 0.007 75);
-    --fg: var(--stone-100);
-    --fg-muted: var(--stone-400);
-    --fg-subtle: var(--stone-400);
-    --line: var(--stone-800);
-    --line-strong: var(--stone-500);
+    --canvas: oklch(0.208 0.030 286);
+    --surface: oklch(0.255 0.032 286);
+    --sunken: oklch(0.181 0.027 286);
+    --fg: oklch(0.962 0.010 286);
+    --fg-muted: oklch(0.762 0.026 286);
+    --fg-subtle: oklch(0.722 0.024 286);
+    --line: oklch(0.325 0.036 286);
+    --line-strong: oklch(0.562 0.040 286);
     --primary: var(--ink-400);
-    --primary-fg: var(--stone-950);
-    --primary-soft: oklch(0.262 0.048 285);
+    --primary-fg: oklch(0.182 0.030 286);
+    --primary-soft: oklch(0.300 0.055 285);
     --accent: var(--ember-400);
-    --accent-fg: var(--stone-950);
-    --accent-soft: oklch(0.298 0.060 62);
+    --accent-fg: oklch(0.182 0.030 286);
+    --accent-soft: oklch(0.318 0.062 62);
     --ring: var(--ink-300);
-    --selection: oklch(0.332 0.072 285);
-    --overlay: oklch(0.100 0.006 75 / 0.65);
+    --selection: oklch(0.352 0.072 285);
+    --overlay: oklch(0.122 0.028 286 / 0.65);
     --success: oklch(0.582 0.132 155);
     --success-soft: oklch(0.268 0.058 155);
     --success-text: oklch(0.828 0.108 155);
