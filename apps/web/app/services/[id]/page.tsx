@@ -68,7 +68,7 @@ export default async function RosterPage({
     >
       <Link
         href={`/services?church=${session.tenantSlug}`}
-        className="mb-6 inline-flex items-center gap-1.5 text-label text-fg-muted hover:text-fg"
+        className="mb-6 inline-flex min-h-9 items-center gap-1.5 self-start py-2 text-label text-fg-muted hover:text-fg"
       >
         <ArrowLeft className="size-4" /> {t("roster.back")}
       </Link>

@@ -50,7 +50,7 @@ export default async function LabelsPage({
     <AppShell session={session} title={t("labels.title")} max="max-w-[880px]">
       <Link
         href={`/checkin?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-my-2 inline-flex min-h-9 items-center gap-1.5 self-start py-2 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("checkin.title")}
       </Link>

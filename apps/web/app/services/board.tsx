@@ -61,7 +61,7 @@ export function ServiceBoard({
               onClick={() => setView(value)}
               aria-pressed={view === value}
               className={cn(
-                "flex h-7 cursor-pointer items-center gap-1.5 rounded-sm px-3 text-[13px] font-medium",
+                "flex h-9 cursor-pointer items-center gap-1.5 rounded-sm px-3 text-[13px] font-medium",
                 view === value ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
               )}
             >
@@ -96,7 +96,7 @@ export function ServiceBoard({
             <button
               type="button"
               onClick={() => setShown((n) => n + PAGE)}
-              className="flex items-center gap-1.5 self-start rounded-sm px-1 py-1 font-medium text-primary hover:underline"
+              className="flex min-h-9 items-center gap-1.5 self-start rounded-sm px-1 font-medium text-primary hover:underline"
             >
               <Plus className="size-4" aria-hidden /> {t("services.showMore")}
             </button>
@@ -106,7 +106,7 @@ export function ServiceBoard({
             <button
               type="button"
               onClick={() => setShown(PAGE)}
-              className="flex items-center gap-1.5 self-start rounded-sm px-1 py-1 font-medium text-primary hover:underline"
+              className="flex min-h-9 items-center gap-1.5 self-start rounded-sm px-1 font-medium text-primary hover:underline"
             >
               <Minus className="size-4" aria-hidden /> {t("services.showLess")}
             </button>

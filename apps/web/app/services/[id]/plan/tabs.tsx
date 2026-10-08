@@ -29,6 +29,8 @@ export function PlanTabs({
   const row = React.useRef<HTMLDivElement>(null);
   const [fits, setFits] = React.useState(LEAST);
   const [all, setAll] = React.useState(false);
+  /* A row too narrow for two of them shows the one being read. */
+  const [narrow, setNarrow] = React.useState(false);
 
   React.useEffect(() => {
     const el = row.current;
@@ -47,6 +49,7 @@ export function PlanTabs({
           .map((child) => child.offsetWidth),
       );
       const room = el.clientWidth * 0.8;
+      setNarrow(room < widest * 2);
       setFits(Math.min(MOST, Math.max(LEAST, Math.floor(room / (widest + 8)))));
     };
 
@@ -68,7 +71,7 @@ export function PlanTabs({
           href={`/services/${one.slug}/plan?church=${church}`}
           aria-current={one.id === current ? "page" : undefined}
           // Measured even when it is not shown, so the count is honest.
-          hidden={i >= shown}
+          hidden={all ? false : narrow ? i !== here : i >= shown}
           className={`flex shrink-0 flex-col rounded-md border px-3.5 py-2 ${
             one.id === current
               ? "border-primary bg-primary-soft"
@@ -83,11 +86,11 @@ export function PlanTabs({
       ))}
 
       {/* Beside the last one shown, so the two read as one list. */}
-      {!all && shown < tabs.length ? (
+      {!all && (narrow ? tabs.length > 1 : shown < tabs.length) ? (
         <button
           type="button"
           onClick={() => setAll(true)}
-          className="flex shrink-0 items-center gap-1.5 rounded-sm px-1 py-1 font-medium text-primary hover:underline"
+          className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-sm px-1 font-medium text-primary hover:underline"
         >
           <Plus className="size-4" aria-hidden /> {t("services.showMore")}
         </button>
@@ -97,7 +100,7 @@ export function PlanTabs({
         <button
           type="button"
           onClick={() => setAll(false)}
-          className="flex shrink-0 items-center gap-1.5 rounded-sm px-1 py-1 font-medium text-primary hover:underline"
+          className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-sm px-1 font-medium text-primary hover:underline"
         >
           <Minus className="size-4" aria-hidden /> {t("services.showLess")}
         </button>

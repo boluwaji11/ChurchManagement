@@ -116,7 +116,7 @@ export default async function PlanPage({
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Link
             href={`/services?church=${session.tenantSlug}`}
-            className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+            className="-my-2 inline-flex min-h-9 items-center gap-1.5 self-start py-2 font-medium text-primary"
           >
             <ArrowLeft className="size-4" /> {t("order.allServices")}
           </Link>

@@ -2678,6 +2678,8 @@ export const en = {
   "order.goLive": "Go live",
   "order.add": "Add an item",
   "order.remove": "Remove",
+  "order.moveUp": "Move up",
+  "order.moveDown": "Move down",
   "order.up": "Move up",
   "order.down": "Move down",
   "order.endsAt": "Ends {time}",
