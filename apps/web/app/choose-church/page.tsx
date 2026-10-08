@@ -49,7 +49,13 @@ export default async function ChooseChurch({
   return (
     <AuthShell
       title={memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
-      step={2}
+      /*
+       * R24.6. The three steps belong to setting up, and somebody already in
+       * a church is not setting one up: they are here because an address
+       * named a church they are not in. Showing them a progress bar through
+       * a signup they finished months ago says they have gone backwards.
+       */
+      step={memberships.length === 0 ? 2 : undefined}
       art={ART}
       width="max-w-[520px]"
       bar={<SignedInAs email={user.email} />}
