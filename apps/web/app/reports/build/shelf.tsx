@@ -86,7 +86,7 @@ export function Shelf({
                 <IconButton
                   label={t("report.removeFromShelf", { field: one.label })}
                   variant="ghost"
-                  className="size-5 min-h-0 [&_svg]:size-3"
+                  className="size-7 min-h-0 sm:size-5 [&_svg]:size-3.5 sm:[&_svg]:size-3"
                   onClick={() => onRemove(one.key)}
                 >
                   <X />

@@ -90,11 +90,17 @@ export function Canvas({
   return (
     <div
       ref={board}
-      className="grid min-h-[420px] gap-3"
-      style={{
-        gridTemplateColumns: `repeat(${GRID_COLUMNS}, minmax(0, 1fr))`,
-        gridAutoRows: `${ROW}px`,
-      }}
+      /* R24.6. One visual to a row on a phone. A twelve-column page at 390px
+         puts a chart in 150 points of width, which is a picture of a chart
+         rather than a chart. The arrangement is kept and read back at the
+         width it was made for. */
+      className="grid min-h-[420px] grid-cols-1 gap-3 sm:[grid-auto-rows:var(--report-row)] sm:[grid-template-columns:repeat(var(--report-cols),minmax(0,1fr))]"
+      style={
+        {
+          "--report-cols": GRID_COLUMNS,
+          "--report-row": `${ROW}px`,
+        } as React.CSSProperties
+      }
     >
       {tiles.map((tile) => {
         const result = results[tile.id];
@@ -103,14 +109,21 @@ export function Canvas({
           <section
             key={tile.id}
             onPointerDown={() => onSelect(tile.id)}
-            style={{
-              gridColumn: `${tile.place.x + 1} / span ${tile.place.w}`,
-              gridRow: `${tile.place.y + 1} / span ${tile.place.h}`,
-            }}
+            style={
+              {
+                "--tile-x": tile.place.x + 1,
+                "--tile-w": tile.place.w,
+                "--tile-y": tile.place.y + 1,
+                "--tile-h": tile.place.h,
+              } as React.CSSProperties
+            }
             className={
-              on
-                ? "relative flex min-w-0 flex-col overflow-hidden rounded-[14px] border-2 border-primary bg-surface p-4"
-                : "relative flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface p-4 hover:border-line-strong"
+              "relative flex min-h-[280px] min-w-0 flex-col overflow-hidden rounded-[14px] bg-surface p-3 sm:min-h-0 sm:p-4"
+              + " sm:[grid-column:var(--tile-x)/span_var(--tile-w)]"
+              + " sm:[grid-row:var(--tile-y)/span_var(--tile-h)]"
+              + (on
+                ? " border-2 border-primary"
+                : " border border-line hover:border-line-strong")
             }
           >
             <div className="mb-2 flex items-center gap-1.5">
@@ -131,7 +144,7 @@ export function Canvas({
                     atY: e.clientY,
                   });
                 }}
-                className="shrink-0 cursor-grab rounded-sm p-0.5 text-fg-subtle hover:text-fg-muted active:cursor-grabbing"
+                className="hidden shrink-0 cursor-grab rounded-sm p-0.5 text-fg-subtle hover:text-fg-muted active:cursor-grabbing sm:block"
               >
                 <GripVertical className="size-4" aria-hidden />
               </button>
@@ -152,7 +165,7 @@ export function Canvas({
                   <IconButton
                     label={t("report.duplicateTile")}
                     variant="ghost"
-                    className="size-7 min-h-0 [&_svg]:size-3.5"
+                    className="size-9 min-h-0 sm:size-7 [&_svg]:size-3.5"
                     onClick={() => onDuplicate(tile.id)}
                   >
                     <Copy />
@@ -160,7 +173,7 @@ export function Canvas({
                   <IconButton
                     label={t("report.removeTile")}
                     variant="ghost"
-                    className="size-7 min-h-0 [&_svg]:size-3.5"
+                    className="size-9 min-h-0 sm:size-7 [&_svg]:size-3.5"
                     onClick={() => onRemove(tile.id)}
                   >
                     <Trash2 />
@@ -204,7 +217,7 @@ export function Canvas({
               }}
               role="separator"
               aria-label={t("report.resizeTile")}
-              className="absolute bottom-0 right-0 size-4 cursor-nwse-resize"
+              className="absolute bottom-0 right-0 hidden size-4 cursor-nwse-resize sm:block"
               style={{
                 background:
                   "linear-gradient(135deg, transparent 50%, var(--line-strong) 50%, var(--line-strong) 62%, transparent 62%)",

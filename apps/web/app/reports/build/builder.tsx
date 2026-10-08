@@ -265,12 +265,12 @@ export function Builder({
                         if (e.key === "ArrowUp") { e.preventDefault(); moveFilter(at, at - 1); }
                         if (e.key === "ArrowDown") { e.preventDefault(); moveFilter(at, at + 1); }
                       }}
-                      className="mt-1 shrink-0 cursor-grab rounded-sm p-0.5 text-fg-subtle hover:text-fg-muted"
+                      className="grid size-9 shrink-0 cursor-grab place-items-center rounded-sm text-fg-subtle hover:text-fg-muted sm:mt-1 sm:size-5"
                     >
                       <GripVertical className="size-3.5" aria-hidden />
                     </button>
 
-                    <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5">
+                    <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5 sm:grid-cols-2">
                       <Select
                         value={one.field}
                         onValueChange={(value) => {
@@ -304,7 +304,7 @@ export function Builder({
                       </Select>
 
                       {BARE_OPERATORS.has(one.op) ? null : (
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                           {field?.kind === "choice" ? (
                             <Select value={one.value} onValueChange={(value) => setFilter(at, { value })}>
                               <SelectTrigger className="min-h-8 w-full text-[13px]" aria-label={t("report.value")}>
@@ -345,7 +345,7 @@ export function Builder({
                     <IconButton
                       label={t("report.removeFilter")}
                       variant="ghost"
-                      className="size-7 min-h-0 shrink-0 [&_svg]:size-3.5"
+                      className="size-9 min-h-0 shrink-0 sm:size-7 [&_svg]:size-3.5"
                       onClick={() => change({ filters: tile.filters.filter((_, i) => i !== at) })}
                     >
                       <X />
@@ -437,13 +437,13 @@ export function Builder({
       </div>
 
       <div className="flex flex-wrap items-stretch">
-        <div className="flex w-full shrink-0 flex-col border-line p-4 lg:w-[240px] lg:border-r">
+        <div className="order-2 flex w-full shrink-0 flex-col border-line p-4 lg:order-1 lg:w-[240px] lg:border-r">
           <FieldsPanel subject={tile.subject} />
         </div>
 
         {/* The workspace, sunken so the page reads as a page and the panes
             beside it read as the tools. */}
-        <div className="min-w-[320px] flex-1 bg-sunken p-5">
+        <div className="order-1 min-w-0 flex-1 bg-sunken p-3 sm:min-w-[320px] sm:p-5 lg:order-2">
           <Canvas
             tiles={page.tiles}
             results={results}
@@ -483,7 +483,7 @@ export function Builder({
           />
         </div>
 
-        <div className="w-full shrink-0 border-line p-4 lg:w-[252px] lg:border-l">
+        <div className="order-3 w-full shrink-0 border-line p-4 lg:w-[252px] lg:border-l">
           <Tabs value={tab} onValueChange={(value) => { setTab(value); setPart(null); }}>
             <TabsList className="mb-4 w-full">
               <TabsTrigger value="build" className="flex-1">{t("report.tab.build")}</TabsTrigger>
