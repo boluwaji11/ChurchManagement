@@ -684,11 +684,22 @@ export async function assignFollowUp(
       .where(eq(members.id, changed.memberId))
       .limit(1);
 
+    /* R24.6. The board opens on one pipeline at a time, so a line about a
+       step lands on the one holding it rather than on whichever the board
+       shows first. */
+    const [where] = await db
+      .select({ key: pipelines.key })
+      .from(followUps)
+      .leftJoin(pipelineEntries, eq(pipelineEntries.id, followUps.entryId))
+      .leftJoin(pipelines, eq(pipelines.id, pipelineEntries.pipelineId))
+      .where(eq(followUps.id, input.id))
+      .limit(1);
+
     await notifyUsers(db, actor.tenantId, [input.assigneeUserId], {
       kind: "followup_assigned",
       messageKey: "bell.followupAssigned",
       params: { name: [person?.first, person?.last].filter(Boolean).join(" ") },
-      href: "/followups",
+      href: where?.key ? `/followups?pipeline=${where.key}` : "/followups",
     });
   }
 }

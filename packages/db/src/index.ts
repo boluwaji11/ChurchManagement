@@ -22,7 +22,7 @@ export {
 } from "./repo/households";
 export {
   feedFor, listAnnouncements, countArchivedAnnouncements, getAnnouncement,
-  writeAnnouncement, updateAnnouncement, setAnnouncementArchived,
+  writeAnnouncement, updateAnnouncement, setAnnouncementArchived, dismissAnnouncement,
   type Announcement, type AnnouncementInput,
 } from "./repo/announcements";
 export { InvalidInputError, NameTakenError } from "./errors";

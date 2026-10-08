@@ -302,7 +302,13 @@ export function GroupDetail({
               ) : null}
 
               {canManage ? (
-                <div className="flex flex-col gap-2 border-t border-line pt-5">
+                /* R24.6. Named, so a notification about somebody asking to
+                   join lands on the part of the page that answers it rather
+                   than at the top of a long record. */
+                <div
+                  id="requests"
+                  className="flex scroll-mt-24 flex-col gap-2 border-t border-line pt-5"
+                >
                   <span className="text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
                     {t("group.requests")}
                   </span>

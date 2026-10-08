@@ -252,7 +252,8 @@ export async function submitPublicForm(input: {
       kind: "form_response",
       messageKey: "bell.formResponse",
       params: { form: row.name },
-      href: `/forms/${row.id}`,
+      // R24.6. The responses, which is what the line is about.
+      href: `/forms/${row.id}?view=responses`,
     });
 
     /*

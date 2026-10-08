@@ -1,6 +1,6 @@
-import { and, desc, eq, isNull, or, gte, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, notInArray, or, gte, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { announcements } from "../schema/announcements";
+import { announcements, announcementDismissals } from "../schema/announcements";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
@@ -71,7 +71,13 @@ const shape = (one: {
  * Published, not archived, and not past its day. Pinned first, then newest,
  * which is the order a noticeboard is read in.
  */
-export async function feedFor(db: Tx, today: string, limit = 10): Promise<Announcement[]> {
+export async function feedFor(
+  db: Tx,
+  today: string,
+  limit = 10,
+  /** R16.11. Whoever is reading, so the ones they have put away stay away. */
+  userId?: string | null,
+): Promise<Announcement[]> {
   const rows = await db
     .select(row)
     .from(announcements)
@@ -79,6 +85,14 @@ export async function feedFor(db: Tx, today: string, limit = 10): Promise<Announ
       isNull(announcements.archivedAt),
       sql`${announcements.publishedAt} is not null`,
       or(isNull(announcements.expiresOn), gte(announcements.expiresOn, today)),
+      userId
+        ? notInArray(
+            announcements.id,
+            db.select({ id: announcementDismissals.announcementId })
+              .from(announcementDismissals)
+              .where(eq(announcementDismissals.userId, userId)),
+          )
+        : undefined,
     ))
     .orderBy(desc(announcements.pinned), desc(announcements.publishedAt))
     .limit(limit);
@@ -195,4 +209,22 @@ export async function setAnnouncementArchived(
     .update(announcements)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
     .where(eq(announcements.id, id));
+}
+
+/**
+ * R16.11. A member takes a notice off their own screen.
+ *
+ * It stays on the board and on everybody else's feed. Pressing it twice is
+ * the same as pressing it once.
+ */
+export async function dismissAnnouncement(
+  db: Tx,
+  actor: { tenantId: string; userId?: string | null },
+  announcementId: string,
+): Promise<void> {
+  if (!actor.userId) return;
+  await db
+    .insert(announcementDismissals)
+    .values({ tenantId: actor.tenantId, announcementId, userId: actor.userId })
+    .onConflictDoNothing();
 }

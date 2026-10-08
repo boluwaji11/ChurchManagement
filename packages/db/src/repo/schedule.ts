@@ -521,6 +521,10 @@ export async function answerMyAssignment(
       first: members.firstName,
       last: members.lastName,
       team: teams.name,
+      /* R24.6. The board is opened on one team in one month, so a line about
+         a gap has to carry both or it lands on whatever the board last
+         showed and the reader goes looking again. */
+      teamSlug: teams.slug,
       day: serviceOccurrences.occursOn,
     })
     .from(servingAssignments)
@@ -538,7 +542,7 @@ export async function answerMyAssignment(
       team: about?.team ?? "",
       date: about?.day ?? "",
     },
-    href: "/schedule",
+    href: `/schedule?at=${(about?.day ?? "").slice(0, 7)}&team=${about?.teamSlug ?? ""}`,
   });
 }
 

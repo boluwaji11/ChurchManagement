@@ -1,4 +1,4 @@
-import { CalendarDays, HandHeart, Megaphone, Users } from "lucide-react";
+import { CalendarDays, HandHeart, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import {
   withTenant, findGroups, personForUser, assignmentsForPerson,
@@ -10,6 +10,7 @@ import {
   PortalShell, PortalTitle, PortalSection,
 } from "@/components/portal-shell";
 import { Block, Through, Thread, Quiet, SideThread, type Stop } from "./timeline";
+import { Notices } from "./notices";
 
 /** R17.7. How many of this member's serving dates the side carries. */
 const SERVING_ROWS = 4;
@@ -121,7 +122,7 @@ export default async function MemberHomePage({
         /* R16.11. What the church has told everybody, which is the only
            thing in communication that reaches a member without the church
            holding anybody's credentials. */
-        notices: await feedFor(tx, now.date, NOTICE_ROWS),
+        notices: await feedFor(tx, now.date, NOTICE_ROWS, session.userId),
         // R14.2. Publishing is the gate, not listing. A draft's public page
         // answers 404 on purpose, so a card for one goes nowhere.
         events: (await listEvents(tx, { from: now.date }))
@@ -204,32 +205,15 @@ export default async function MemberHomePage({
           {/* R16.11. What the church has said, above its diary: a notice is
               written because somebody needs to read it this week, and the
               diary is there whether or not anything was said. */}
-          {mine.notices.length > 0 ? (
-            <Block icon={<Megaphone />} title={t("announce.feed")}>
-              <ul className="m-0 flex list-none flex-col divide-y divide-line p-0">
-                {mine.notices.map((one) => (
-                  <li key={one.id} className="flex min-w-0 gap-3.5 px-5 py-4">
-                    <span
-                      aria-hidden
-                      className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-[10px] [&_svg]:size-[18px]"
-                      style={{
-                        background: `var(--hue-${one.hue}-tint)`,
-                        color: `var(--hue-${one.hue}-key)`,
-                      }}
-                    >
-                      <Megaphone />
-                    </span>
-                    <span className="flex min-w-0 flex-1 flex-col gap-1 leading-5">
-                      <span className="font-semibold text-fg">{one.title}</span>
-                      <span className="whitespace-pre-wrap text-[length:var(--d-text-body)] text-fg-muted">
-                        {one.body}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </Block>
-          ) : null}
+          <Notices
+            church={at}
+            notices={mine.notices.map((one) => ({
+              id: one.id,
+              title: one.title,
+              body: one.body,
+              hue: one.hue,
+            }))}
+          />
 
           <Block
             icon={<CalendarDays />}

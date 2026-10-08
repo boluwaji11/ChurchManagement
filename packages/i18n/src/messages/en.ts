@@ -599,7 +599,9 @@ export const en = {
 
   // HRT-162, R16.11. What a church tells everybody, read in the portal.
   "announce.title": "Announcements",
-  "announce.feed": "From your church",
+  "announce.putAway": "Hide",
+  "announce.putAwayTitle": "Hide \u201c{title}\u201d?",
+  "announce.putAwayBody": "It comes off your screen. Everybody else still sees it.",
   "announce.lede": "What your church tells everybody.",
   "announce.publishedOn": "Published {date}",
   "announce.expiresOn": "Comes down {date}",

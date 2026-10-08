@@ -1,4 +1,6 @@
-import { pgTable, uuid, text, boolean, date, timestamp, index } from "drizzle-orm/pg-core";
+import {
+  pgTable, uuid, text, boolean, date, timestamp, index, uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { tenants, appUsers } from "./tenancy";
 
 /**
@@ -38,5 +40,29 @@ export const announcements = pgTable(
   (t) => [
     index("announcements_tenant_idx").on(t.tenantId),
     index("announcements_feed_idx").on(t.tenantId, t.publishedAt),
+  ],
+);
+
+/**
+ * R16.11. A notice a member has taken off their own screen.
+ *
+ * Theirs alone: the notice stays on the board and on everybody else's feed.
+ * A member who has read that the office moves should not read it for another
+ * fortnight, and a church should not have to take a notice down early because
+ * the people who have read it are tired of it.
+ */
+export const announcementDismissals = pgTable(
+  "announcement_dismissals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    announcementId: uuid("announcement_id").notNull()
+      .references(() => announcements.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => appUsers.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("announcement_dismissal_once").on(t.announcementId, t.userId),
+    index("announcement_dismissal_tenant_idx").on(t.tenantId, t.userId),
   ],
 );

@@ -74,13 +74,28 @@ export function NotificationBell({
       .finally(() => setLoading(false));
   };
 
+  /*
+   * R24.6. The church, added to an address that may already carry a query or
+   * a hash.
+   *
+   * A line now lands where the thing is answered rather than at the top of a
+   * list: the right month and team on the rota board, the responses on a
+   * form, the requests on a group. Pinning "?church=" on the end of those
+   * would have made every one of them a dead address.
+   */
+  const withChurch = (href: string, slug: string) => {
+    const [path, hash] = href.split("#");
+    const join = path!.includes("?") ? "&" : "?";
+    return `${path}${join}church=${slug}${hash ? `#${hash}` : ""}`;
+  };
+
   const open1 = (item: BellItem) => {
     setGoing(item.id);
     startTransition(async () => {
       await readOne(item.id, church);
       setOpen(false);
       setGoing(null);
-      if (item.href) router.push(`${item.href}?church=${church}`);
+      if (item.href) router.push(withChurch(item.href, church));
     });
   };
 

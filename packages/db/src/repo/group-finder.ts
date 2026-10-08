@@ -326,8 +326,8 @@ export async function requestToJoin(
       kind: "join_request",
       messageKey: "bell.joinRequest",
       params: { name: row.personName, group: row.groupName },
-      // R24.6. The group that was asked about, where the request is answered.
-      href: `/groups/${row.groupSlug}`,
+      // R24.6. The part of the group's page that answers the request.
+      href: `/groups/${row.groupSlug}#requests`,
     });
   }
   return row!;
