@@ -64,7 +64,9 @@ export function FormCover({
           />
         ) : (
           <div
-            className="grid aspect-[6/1] w-full place-items-center rounded-[14px]"
+            /* R24.6. A sixth as tall as it is wide is 65 points on a phone,
+               and the button in the corner lands on top of the words. */
+            className="grid aspect-[3/1] w-full place-items-center rounded-[14px] sm:aspect-[6/1]"
             style={{
               background: `var(--hue-${hue}-tint)`,
               color: `var(--hue-${hue}-key)`,
@@ -76,7 +78,7 @@ export function FormCover({
                 <ImagePlus className="size-5" aria-hidden />
                 {t("form.cover")}
               </span>
-              <span className="text-[12px]">{imageLimit("form_cover")}</span>
+              <span className="hidden text-[12px] sm:block">{imageLimit("form_cover")}</span>
             </span>
           </div>
         )}
@@ -135,7 +137,7 @@ export function FormCover({
             onClick={() =>
               void recolourForm(formId, one, church).then(() => router.refresh())}
             className={
-              "grid size-6 cursor-pointer place-items-center rounded-full border-2 transition-colors "
+              "grid size-9 cursor-pointer place-items-center rounded-full border-2 transition-colors sm:size-6 "
               + (hue === one ? "border-fg" : "border-transparent hover:border-line-strong")
             }
             style={{ background: `var(--hue-${one}-500)` }}
@@ -143,7 +145,7 @@ export function FormCover({
             {/* The ring says which one, and the check says it again for anybody
                 who cannot pick the ring out of twelve coloured circles. */}
             {hue === one ? (
-              <Check className="size-3.5 text-white" strokeWidth={3} aria-hidden />
+              <Check className="size-5 text-white sm:size-3.5" strokeWidth={3} aria-hidden />
             ) : null}
           </button>
         ))}

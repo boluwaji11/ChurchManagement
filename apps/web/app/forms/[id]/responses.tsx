@@ -172,7 +172,54 @@ export function Responses({
         </span>
       ) : null}
 
-      <ResizableTable id="form-responses" className="rounded-[14px] border border-line bg-surface">
+      {/* R24.6. A response is a record somebody opens, so on a phone it is a
+          card rather than a row five columns wide. */}
+      <ul className="flex flex-col gap-2 sm:hidden">
+        {rows.map((row) => (
+          <li key={row.id}>
+            <Response row={row} asked={asked} church={church}>
+              <button
+                type="button"
+                aria-label={t("form.responses.open")}
+                className="flex w-full cursor-pointer flex-col gap-2 rounded-lg border border-line bg-surface p-4 text-left hover:bg-sunken"
+              >
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="text-label font-medium text-fg tabular-nums">{row.when}</span>
+                  {row.personName ? (
+                    <span className="text-[length:var(--d-text-body)] text-fg">
+                      {row.personName}
+                    </span>
+                  ) : null}
+                  {!row.personName || row.matchState === "review" ? (
+                    <MatchTag state={row.matchState} />
+                  ) : null}
+                </span>
+
+                {columns.map((field) => {
+                  const answer = row.answers[field.id] ?? null;
+                  const said = field.kind === "file"
+                    ? plural("form.files.count", Array.isArray(answer) ? answer.length : 0)
+                    : spoken(answer);
+                  if (!said) return null;
+                  return (
+                    <span key={field.id} className="flex min-w-0 flex-col">
+                      <span className="text-[12px] font-medium text-fg-subtle">{field.label}</span>
+                      <span className="truncate text-[length:var(--d-text-body)] text-fg">
+                        {said}
+                      </span>
+                    </span>
+                  );
+                })}
+              </button>
+            </Response>
+          </li>
+        ))}
+      </ul>
+
+      <ResizableTable
+        id="form-responses"
+        className="hidden rounded-[14px] border border-line bg-surface sm:block"
+      >
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-line">
@@ -195,114 +242,58 @@ export function Responses({
 
           <tbody>
             {rows.map((row) => (
-              <Dialog key={row.id}>
-                <DialogTrigger asChild>
-                  {/* The whole row opens the response. It stands for one
-                      thing, so pressing anywhere on it means the same. */}
-                  <tr
-                    tabIndex={0}
-                    aria-label={t("form.responses.open")}
-                    className="cursor-pointer border-b border-line last:border-0 hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none"
-                  >
-                    <td className="px-4 py-3 align-top text-label font-medium whitespace-nowrap text-fg tabular-nums">
-                      {row.when}
-                    </td>
-
-                    {columns.map((field) => {
-                      const answer = row.answers[field.id] ?? null;
-                      const said = field.kind === "file"
-                        ? plural("form.files.count", Array.isArray(answer) ? answer.length : 0)
-                        : spoken(answer);
-                      return (
-                        <td
-                          key={field.id}
-                          className="max-w-[260px] truncate px-4 py-3 align-top text-[length:var(--d-text-body)] text-fg"
-                        >
-                          {said || (
-                            <span
-                              aria-hidden
-                              className="inline-block h-px w-3 bg-line-strong align-middle"
-                            />
-                          )}
-                        </td>
-                      );
-                    })}
-
-                    {/* The name reads as text here rather than a link, because
-                        the row already opens the response and a link inside it
-                        would be swallowed by the press. The link is in the
-                        response itself. */}
-                    <td className="px-4 py-3 align-top">
-                      <span className="flex flex-wrap items-center gap-2">
-                        {row.personName ? (
-                          <span className="text-[length:var(--d-text-body)] text-fg">
-                            {row.personName}
-                          </span>
-                        ) : null}
-                        {/* R4.5. Flagged where somebody is already reading,
-                            rather than held in a queue of its own. */}
-                        {!row.personName || row.matchState === "review" ? (
-                          <MatchTag state={row.matchState} />
-                        ) : null}
-                      </span>
-                    </td>
-                  </tr>
-                </DialogTrigger>
-
-                <DialogContent
-                  title={t("form.responses.title", { date: row.when })}
-                  closeLabel={t("common.close")}
+              <Response key={row.id} row={row} asked={asked} church={church}>
+                {/* The whole row opens the response. It stands for one
+                    thing, so pressing anywhere on it means the same. */}
+                <tr
+                  tabIndex={0}
+                  aria-label={t("form.responses.open")}
+                  className="cursor-pointer border-b border-line last:border-0 hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none"
                 >
-                  {/* R4.4. Where this landed on the directory, at the top,
-                      because it is the question a church opens a response to
-                      answer. */}
-                  <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <MatchTag state={row.matchState} />
-                    {row.matchState === "review" ? (
-                      <Link
-                        href={`/duplicates?church=${church}`}
-                        className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
-                      >
-                        {t("form.match.compare")}
-                      </Link>
-                    ) : null}
-                    {row.memberId && row.personName ? (
-                      <Link
-                        href={`/members/${row.personSlug}?church=${church}`}
-                        className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
-                      >
-                        {row.personName}
-                      </Link>
-                    ) : null}
-                  </div>
+                  <td className="px-4 py-3 align-top text-label font-medium whitespace-nowrap text-fg tabular-nums">
+                    {row.when}
+                  </td>
 
-                  <dl className="flex flex-col gap-3">
-                    {asked.map((field) => {
-                      const said = spoken(row.answers[field.id] ?? null);
-                      return (
-                        <div key={field.id} className="flex flex-col gap-0.5">
-                          <dt className="text-[12px] font-semibold text-fg">
-                            {field.label}
-                          </dt>
-                          <dd
-                            className={
-                              said
-                                ? "text-[length:var(--d-text-body)] text-fg"
-                                : "text-[length:var(--d-text-body)] text-fg-subtle"
-                            }
-                          >
-                            {field.kind === "file" ? (
-                              <Files answer={row.answers[field.id] ?? null} church={church} />
-                            ) : (
-                              said || t("form.responses.blank")
-                            )}
-                          </dd>
-                        </div>
-                      );
-                    })}
-                  </dl>
-                </DialogContent>
-              </Dialog>
+                  {columns.map((field) => {
+                    const answer = row.answers[field.id] ?? null;
+                    const said = field.kind === "file"
+                      ? plural("form.files.count", Array.isArray(answer) ? answer.length : 0)
+                      : spoken(answer);
+                    return (
+                      <td
+                        key={field.id}
+                        className="max-w-[260px] truncate px-4 py-3 align-top text-[length:var(--d-text-body)] text-fg"
+                      >
+                        {said || (
+                          <span
+                            aria-hidden
+                            className="inline-block h-px w-3 bg-line-strong align-middle"
+                          />
+                        )}
+                      </td>
+                    );
+                  })}
+
+                  {/* The name reads as text here rather than a link, because
+                      the row already opens the response and a link inside it
+                      would be swallowed by the press. The link is in the
+                      response itself. */}
+                  <td className="px-4 py-3 align-top">
+                    <span className="flex flex-wrap items-center gap-2">
+                      {row.personName ? (
+                        <span className="text-[length:var(--d-text-body)] text-fg">
+                          {row.personName}
+                        </span>
+                      ) : null}
+                      {/* R4.5. Flagged where somebody is already reading,
+                          rather than held in a queue of its own. */}
+                      {!row.personName || row.matchState === "review" ? (
+                        <MatchTag state={row.matchState} />
+                      ) : null}
+                    </span>
+                  </td>
+                </tr>
+              </Response>
             ))}
           </tbody>
         </table>
@@ -322,5 +313,83 @@ export function Responses({
         />
       </div>
     </div>
+  );
+}
+
+
+/**
+ * One response, and the panel it opens.
+ *
+ * The same panel behind a row on a laptop and behind a card on a phone, so
+ * what a church reads when it opens a response does not depend on the screen.
+ */
+function Response({
+  row,
+  asked,
+  church,
+  children,
+}: {
+  row: SubmissionRow;
+  asked: FormFieldDef[];
+  church: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent
+        title={t("form.responses.title", { date: row.when })}
+        closeLabel={t("common.close")}
+      >
+        {/* R4.4. Where this landed on the directory, at the top,
+            because it is the question a church opens a response to
+            answer. */}
+        <div className="mb-1 flex flex-wrap items-center gap-2">
+          <MatchTag state={row.matchState} />
+          {row.matchState === "review" ? (
+            <Link
+              href={`/duplicates?church=${church}`}
+              className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {t("form.match.compare")}
+            </Link>
+          ) : null}
+          {row.memberId && row.personName ? (
+            <Link
+              href={`/members/${row.personSlug}?church=${church}`}
+              className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {row.personName}
+            </Link>
+          ) : null}
+        </div>
+
+        <dl className="flex flex-col gap-3">
+          {asked.map((field) => {
+            const said = spoken(row.answers[field.id] ?? null);
+            return (
+              <div key={field.id} className="flex flex-col gap-0.5">
+                <dt className="text-[12px] font-semibold text-fg">
+                  {field.label}
+                </dt>
+                <dd
+                  className={
+                    said
+                      ? "text-[length:var(--d-text-body)] text-fg"
+                      : "text-[length:var(--d-text-body)] text-fg-subtle"
+                  }
+                >
+                  {field.kind === "file" ? (
+                    <Files answer={row.answers[field.id] ?? null} church={church} />
+                  ) : (
+                    said || t("form.responses.blank")
+                  )}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+      </DialogContent>
+    </Dialog>
   );
 }

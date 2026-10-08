@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Type, AlignLeft, Mail, Phone, CircleDot, SquareCheck, Calendar,
   GripVertical, Trash2, Check, Link2, Hash, ToggleLeft, Paperclip, Heading, Plus, X,
-  Archive, ArchiveRestore, Code, User,
+  Archive, ArchiveRestore, Code, User, ChevronUp, ChevronDown,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, Input, Spinner, cn,
@@ -20,6 +20,7 @@ import {
 } from "@connectapp/db/rules";
 import {
   saveForm, openOrClose, archiveForm, saveQuestion, dropQuestion, orderQuestions,
+  shiftQuestion,
 } from "../actions";
 import { FormCover } from "./cover";
 import { FormViews } from "./views";
@@ -164,6 +165,9 @@ export function Builder({
     ids.splice(to, 0, moved!);
     run(() => orderQuestions(form.id, ids, church));
   };
+
+  const shift = (id: string, direction: "up" | "down") =>
+    run(() => shiftQuestion(form.id, id, direction, church));
 
   /*
    * R4.3. The public link, and the snippet that puts the same form inside the
@@ -327,7 +331,7 @@ export function Builder({
 
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[999_1_440px] flex-col gap-2.5">
-          <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
+          <span className="hidden items-center gap-1.5 text-[12px] text-fg-subtle sm:flex">
             <GripVertical className="size-3.5" aria-hidden />
             {t("form.reorder")}
           </span>
@@ -342,9 +346,12 @@ export function Builder({
               pending={pending}
               held={held === field.id}
               over={over === field.id}
+              first={form.fields[0]?.id === field.id}
+              last={form.fields[form.fields.length - 1]?.id === field.id}
               onHold={() => setHeld(field.id)}
               onOver={() => setOver(field.id)}
               onDrop={() => drop(field.id)}
+              onShift={(direction) => shift(field.id, direction)}
               onDone={() => router.refresh()}
               onError={setError}
             />
@@ -451,7 +458,7 @@ function StatusSwitch({
           aria-pressed={status === one}
           onClick={() => onPick(one)}
           className={cn(
-            "h-[30px] cursor-pointer rounded-[7px] px-3.5 text-label font-medium",
+            "h-9 cursor-pointer rounded-[7px] px-3.5 text-label font-medium sm:h-[30px]",
             status === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg",
           )}
         >
@@ -478,9 +485,12 @@ function Question({
   pending,
   held,
   over,
+  first,
+  last,
   onHold,
   onOver,
   onDrop,
+  onShift,
   onDone,
   onError,
 }: {
@@ -491,9 +501,13 @@ function Question({
   pending: boolean;
   held: boolean;
   over: boolean;
+  /** Where it sits, so the end of the run cannot be moved past. */
+  first: boolean;
+  last: boolean;
   onHold: () => void;
   onOver: () => void;
   onDrop: () => void;
+  onShift: (direction: "up" | "down") => void;
   onDone: () => void;
   onError: (message?: string) => void;
 }) {
@@ -592,10 +606,32 @@ function Question({
         held && "opacity-50",
       )}
     >
-      <GripVertical
-        className="mt-2 size-4 shrink-0 cursor-grab text-fg-subtle"
-        aria-hidden
-      />
+      {/* R4.1, R24.6. The handle is for a mouse. The pair under it is how a
+          question moves on a phone, where nothing can be dragged. */}
+      <span className="flex shrink-0 flex-col items-center">
+        <GripVertical
+          className="mt-2 hidden size-4 cursor-grab text-fg-subtle sm:block"
+          aria-hidden
+        />
+        <IconButton
+          label={t("form.up")}
+          variant="ghost"
+          disabled={busy || first}
+          className="size-8 min-h-0 [&_svg]:size-4"
+          onClick={() => onShift("up")}
+        >
+          <ChevronUp />
+        </IconButton>
+        <IconButton
+          label={t("form.down")}
+          variant="ghost"
+          disabled={busy || last}
+          className="size-8 min-h-0 [&_svg]:size-4"
+          onClick={() => onShift("down")}
+        >
+          <ChevronDown />
+        </IconButton>
+      </span>
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
