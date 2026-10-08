@@ -12,6 +12,7 @@ import { churchNow } from "@/lib/church-now";
 import { Respond } from "./respond";
 import { Away } from "./away";
 import { readableTime } from "../when";
+import { longDate, shortDate } from "@/lib/dates";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -114,7 +115,21 @@ export default async function MyServingPage({
         </div>
 
         <aside className="flex min-w-0 flex-[1_1_300px] flex-col">
-          <Away dates={mine.away} church={session.tenantSlug} />
+          {/* R22.8. Written on the server, in the church's own locale.
+              Formatting a date in a client component reads the locale from a
+              store the browser has not filled on its first render, so the
+              server says 29 October and the browser says October 29, and the
+              page is rebuilt over a mismatch. */}
+          <Away
+            church={session.tenantSlug}
+            dates={mine.away.map((one) => ({
+              id: one.id,
+              startsOn: one.startsOn,
+              endsOn: one.endsOn,
+              from: one.startsOn === one.endsOn ? longDate(one.startsOn) : shortDate(one.startsOn),
+              to: one.startsOn === one.endsOn ? null : shortDate(one.endsOn),
+            }))}
+          />
         </aside>
       </div>
     </PortalShell>

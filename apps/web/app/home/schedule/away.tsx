@@ -5,13 +5,10 @@ import { CalendarOff, Plus, X } from "lucide-react";
 import {
   Button, DayGrid, IconButton, Dialog, DialogContent, DialogFooter,
 } from "@connectapp/ui";
-import type { Blockout } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { Block, Quiet } from "../timeline";
 import { Confirm } from "@/components/confirm";
 import { addAway, removeAway } from "../actions";
-import { onDayLong } from "../when";
-import { shortDate } from "@/lib/dates";
 
 /**
  * R17.7, R10.4. The days this member has said they cannot serve.
@@ -24,24 +21,49 @@ import { shortDate } from "@/lib/dates";
  * a day they have blocked warns, and going ahead anyway is recorded on the
  * assignment.
  */
-export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
+/** A stretch of days off, with its dates already written for the reader. */
+export interface AwaySpan {
+  id: string;
+  startsOn: string;
+  endsOn: string;
+  /** The first day, or the only one, as the church writes a date. */
+  from: string;
+  /** The last day, where it is a stretch rather than a single day. */
+  to: string | null;
+}
+
+export function Away({ dates, church }: { dates: AwaySpan[]; church: string }) {
   const [working, start] = React.useTransition();
   const [adding, setAdding] = React.useState(false);
   const [picked, setPicked] = React.useState<string[]>([]);
-  // R24.6. Five is enough to see what is coming. A fortnight away is fourteen
-  // rows, and the press under them is what everybody wants next.
-  const [all, setAll] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  /** What a stretch is called where it has to go in a sentence. */
+  const span = (one: AwaySpan) =>
+    one.to ? t("home.awaySpan", { from: one.from, to: one.to }) : one.from;
+
   /*
-   * R17.7. "Thursday, October 29 to Thursday, November 5" is two weekdays
-   * nobody reads and a line that wraps. The weekday is on the day itself and
-   * the end of a span is the date alone.
+   * R10.4. Every day already blocked out, so the calendar does not offer one
+   * of them again. A second row for the same day is a row nobody meant.
    */
-  const span = (one: Blockout) =>
-    one.startsOn === one.endsOn
-      ? onDayLong(one.startsOn)
-      : t("home.awaySpan", { from: shortDate(one.startsOn), to: shortDate(one.endsOn) });
+  const already = React.useMemo(() => {
+    const out: string[] = [];
+    for (const one of dates) {
+      const [y, m, d] = one.startsOn.split("-").map(Number) as [number, number, number];
+      const at = new Date(y, m - 1, d);
+      for (let guard = 0; guard < 400; guard += 1) {
+        const day = [
+          at.getFullYear(),
+          String(at.getMonth() + 1).padStart(2, "0"),
+          String(at.getDate()).padStart(2, "0"),
+        ].join("-");
+        if (day > one.endsOn) break;
+        out.push(day);
+        at.setDate(at.getDate() + 1);
+      }
+    }
+    return out;
+  }, [dates]);
 
   const save = () =>
     start(async () => {
@@ -81,8 +103,12 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
       ) : (
         /* R24.4. The same thread the rest of the portal draws a list with,
            in two pieces so the line crosses the gap between rows. */
-        <ol className="m-0 flex list-none flex-col px-5 py-1">
-          {(all ? dates : dates.slice(0, 5)).map((one, i, shown) => (
+        /* R24.6. Seven rows, then the rest is scrolled to. A member who is
+           away a lot has twenty of these, and twenty rows pushes the card
+           past the bottom of the screen; a Show more that doubles the card
+           does the same thing one press later. */
+        <ol className="m-0 flex max-h-[308px] list-none flex-col overflow-y-auto px-5 py-1">
+          {dates.map((one, i, shown) => (
             <li key={one.id} className="flex min-w-0 gap-3">
               <span
                 aria-hidden
@@ -98,10 +124,17 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
               {/* The whole span reads: a date cut to "Thursday, October..."
                   is a date nobody can check. */}
               <span className="flex min-w-0 flex-1 items-center gap-2 py-1.5">
-                {/* A span of dates is long. Read at the caption size it
-                    sits on one line, which is how a list of them is read. */}
+                {/* The two dates carry the line and the word between them
+                    steps back, so a stretch reads as two dates rather than as
+                    a sentence to be parsed. */}
                 <span className="min-w-0 flex-1 truncate text-[13px] text-fg">
-                  {span(one)}
+                  {one.from}
+                  {one.to ? (
+                    <>
+                      <span className="px-1 text-fg-subtle">{t("home.awayTo")}</span>
+                      {one.to}
+                    </>
+                  ) : null}
                 </span>
                 <Confirm
                   title={t("home.awayRemoveTitle", { dates: span(one) })}
@@ -128,16 +161,6 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
         </ol>
       )}
 
-      {dates.length > 5 ? (
-        <button
-          type="button"
-          onClick={() => setAll((was) => !was)}
-          className="flex min-h-[var(--d-tap)] cursor-pointer items-center self-start px-5 font-medium text-primary"
-        >
-          {all ? t("list.showLess") : t("list.showMore", { count: dates.length - 5 })}
-        </button>
-      ) : null}
-
       {error ? (
         <p role="status" className="px-5 pb-3 text-[length:var(--d-text-body)] text-danger-text">
           {error}
@@ -149,6 +172,7 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
           <DayGrid
             value={picked}
             onChange={setPicked}
+            taken={already}
             labels={{
               previousMonth: t("date.previousMonth"),
               nextMonth: t("date.nextMonth"),
@@ -159,7 +183,7 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
               {t("action.cancel")}
             </Button>
             <Button loading={working} disabled={picked.length === 0} onClick={save}>
-              {t("home.awaySave", { count: String(picked.length) })}
+              {t("home.awaySave")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -34,6 +34,7 @@ export function DayGrid({
   value,
   onChange,
   from,
+  taken,
   labels,
   locale,
   className,
@@ -43,6 +44,15 @@ export function DayGrid({
   onChange: (value: string[]) => void;
   /** The earliest day that can be chosen. Defaults to today. */
   from?: string;
+  /**
+   * Days that cannot be chosen, whatever else is true of them.
+   *
+   * A member marking the days they are away should not be offered a day they
+   * have already marked: choosing it again either writes a second row for the
+   * same day or quietly does nothing, and both read as the calendar ignoring
+   * the press.
+   */
+  taken?: string[];
   labels: DayGridLabels;
   locale?: string;
   className?: string;
@@ -53,6 +63,7 @@ export function DayGrid({
   const [cursor, setCursor] = React.useState({ y: y0 ?? 2026, m: (m0 ?? 1) - 1 });
 
   const chosen = React.useMemo(() => new Set(value), [value]);
+  const spoken = React.useMemo(() => new Set(taken ?? []), [taken]);
   const today = todayIso();
 
   // Six weeks from the Sunday on or before the first, which is every month.
@@ -106,7 +117,7 @@ export function DayGrid({
     for (let guard = 0; guard < 400; guard += 1) {
       const day = iso(at.getFullYear(), at.getMonth(), at.getDate());
       if (day > to) break;
-      if (day >= floor) out.push(day);
+      if (day >= floor && !spoken.has(day)) out.push(day);
       at.setDate(at.getDate() + 1);
     }
     return out;
@@ -184,7 +195,7 @@ export function DayGrid({
         {cells.map((cell) => {
           const on = chosen.has(cell.iso);
           const outside = cell.month !== cursor.m;
-          const blocked = cell.iso < floor;
+          const blocked = cell.iso < floor || spoken.has(cell.iso);
           return (
             <button
               key={cell.iso}
@@ -221,11 +232,13 @@ export function DayGrid({
                 "text-[length:var(--d-text-body)] transition-colors duration-instant",
                 on
                   ? "bg-primary font-semibold text-primary-fg"
-                  : blocked
-                    ? "cursor-not-allowed text-fg-subtle opacity-40"
-                    : outside
-                      ? "text-fg-subtle hover:bg-sunken"
-                      : "text-fg hover:bg-sunken",
+                  : spoken.has(cell.iso)
+                    ? "cursor-not-allowed bg-sunken font-medium text-fg-muted"
+                    : blocked
+                      ? "cursor-not-allowed text-fg-subtle opacity-40"
+                      : outside
+                        ? "text-fg-subtle hover:bg-sunken"
+                        : "text-fg hover:bg-sunken",
                 cell.iso === today && !on && "ring-1 ring-primary/50",
               )}
             >
