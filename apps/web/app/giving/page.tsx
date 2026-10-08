@@ -29,7 +29,7 @@ import { giftRows } from "./rows";
 import { RepeatMark } from "./repeat-mark";
 import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
-import { Tooltip } from "@connectapp/ui";
+import { Button, Tooltip } from "@connectapp/ui";
 import { Panel, Nothing, Destination } from "./panel";
 import { GivingFilters } from "./filters";
 import { narrowingFrom, narrowingCount, periodRange } from "./narrowing";
@@ -306,7 +306,18 @@ export default async function GivingPage({
                    cheque, and the screen cannot know which. */
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   <StartCount church={session.tenantSlug} today={read.today} funds={fundList} />
-                  <GiftPanel church={session.tenantSlug} today={read.today} funds={fundList} />
+                  {/* Both filled here. This is the screen's whole content,
+                      so neither of them is the quieter one. */}
+                  <GiftPanel
+                    church={session.tenantSlug}
+                    today={read.today}
+                    funds={fundList}
+                    trigger={
+                      <Button>
+                        <Plus /> {t("giving.gift.add")}
+                      </Button>
+                    }
+                  />
                 </div>
               ) : undefined
             }

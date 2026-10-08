@@ -272,8 +272,7 @@ export async function MyGiving({
                     <th className="w-[120px] px-5 py-2 text-left font-bold">
                       {t("giving.col.date")}
                     </th>
-                    {/* The fund takes whatever the others do not. */}
-                    <th className="w-full px-3 py-2 text-left font-bold">
+                    <th className="w-[160px] px-3 py-2 text-left font-bold">
                       {t("giving.col.fund")}
                     </th>
                     <th className="w-[80px] px-3 py-2 text-left font-bold">
@@ -282,7 +281,12 @@ export async function MyGiving({
                     <th className="w-[100px] px-3 py-2 text-left font-bold">
                       {t("giving.col.status")}
                     </th>
-                    <th className="w-[110px] px-3 py-2 text-right font-bold">
+                    {/* The slack goes here rather than into one of the
+                        columns, so the words stay together on the left and
+                        the money stays on the right edge where it is
+                        compared down the page. */}
+                    <th className="w-full px-0 py-2" />
+                    <th className="w-[120px] px-5 py-2 text-right font-bold">
                       {t("giving.col.amount")}
                     </th>
                   </tr>
@@ -325,9 +329,10 @@ export async function MyGiving({
                         <td className="px-3 py-2.5 text-[13px]">
                           <GiftState status={row.status} audience="giver" />
                         </td>
+                        <td className="px-0" />
                         <td
                           data-numeric
-                          className={`whitespace-nowrap px-3 py-2.5 text-right ${
+                          className={`whitespace-nowrap py-2.5 pr-5 pl-3 text-right ${
                             row.status === "settled" && !back
                               ? "font-semibold text-fg"
                               : "text-fg-subtle"
