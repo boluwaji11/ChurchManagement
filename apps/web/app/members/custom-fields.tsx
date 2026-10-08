@@ -28,8 +28,16 @@ export function CustomFieldInputs({
   values: FieldValues;
   errors: Record<string, string | undefined>;
 }) {
+  /*
+   * R24.6. No wrapper of its own.
+   *
+   * A church's own field is a field on the form like any other, so it takes
+   * its place in whatever grid the form is already laying out. A grid in
+   * here made a second, narrower one inside the first, and the fields read
+   * as a box bolted to the bottom of the screen.
+   */
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <>
       {fields.map((field) => (
         <CustomFieldInput
           key={field.id}
@@ -38,7 +46,7 @@ export function CustomFieldInputs({
           error={errors[`cf_${field.id}`]}
         />
       ))}
-    </div>
+    </>
   );
 }
 
