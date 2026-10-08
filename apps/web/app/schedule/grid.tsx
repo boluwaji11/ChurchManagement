@@ -497,7 +497,12 @@ export function ScheduleGrid({
           <div
             className="grid min-w-[760px]"
             style={{
-              gridTemplateColumns: `150px repeat(${services.length}, minmax(150px, 1fr))`,
+              /* R10.3. A service column is at least 150px and as wide as its
+                 heading needs. "November 8, 11:00 am" is the name of that
+                 service and cutting it to "November 8, 11..." leaves two
+                 columns reading the same. The names in the cells truncate,
+                 so a long one does not drag the column out with it. */
+              gridTemplateColumns: `150px repeat(${services.length}, minmax(auto, 1fr))`,
             }}
           >
             <div className="border-b border-line px-4 py-3 text-[12px] font-medium text-fg-subtle">
@@ -509,13 +514,13 @@ export function ScheduleGrid({
                 <div
                   key={service.id}
                   className={cn(
-                    "flex items-baseline justify-between gap-2 border-b border-line border-l px-3 py-2.5",
+                    "flex min-w-[150px] items-baseline justify-between gap-2 border-b border-line border-l px-3 py-2.5",
                     service.past ? "border-l-line bg-sunken" : "border-l-sunken",
                   )}
                 >
                   <span
                     className={cn(
-                      "min-w-0 truncate font-semibold",
+                      "whitespace-nowrap font-semibold",
                       service.past ? "text-fg-subtle" : "text-fg",
                     )}
                   >
