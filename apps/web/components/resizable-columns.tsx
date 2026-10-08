@@ -38,6 +38,28 @@ const tooWide = (held: number[], measured: number[], room: number) =>
 
 const sum = (set: number[]) => set.reduce((a, b) => a + b, 0);
 
+/**
+ * R24.6. A set of widths stretched to the room it has been opened in.
+ *
+ * The widths are kept as pixels, so a table arranged on a 1280px window and
+ * opened on a 1440px one holds the old total and leaves a band of empty card
+ * down the right of every row. Where the set is narrower than the space it
+ * has, each column grows by its own share of what is going spare, so the
+ * proportions the reader arranged hold and the table still reaches the edge.
+ *
+ * A set wider than the room is left alone: that table is meant to scroll.
+ */
+const fitted = (set: number[], room: number) => {
+  const total = sum(set);
+  const last = set.length - 1;
+  if (room === 0 || total === 0 || last < 0 || total >= room) return set;
+
+  const grown = set.map((one) => Math.floor((one * room) / total));
+  // Whatever the rounding dropped goes on the last column, so the total is exact.
+  grown[last] = room - sum(grown.slice(0, last));
+  return grown;
+};
+
 export function ResizableTable({
   id,
   anchor,
@@ -121,7 +143,7 @@ export function ResizableTable({
     const room = host.current?.clientWidth ?? 0;
     if (held && tooWide(held, measured, room)) held = null;
 
-    setWidths(held ?? measured);
+    setWidths(fitted(held ?? measured, room));
     setHeadHeight(table.tHead?.getBoundingClientRect().height ?? 0);
     setNarrow(isNarrow(room));
     };
