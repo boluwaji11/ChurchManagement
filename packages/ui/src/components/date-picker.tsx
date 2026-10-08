@@ -210,6 +210,23 @@ export function DatePicker({
 
   const outOfRange = (day: string) => (min && day < min) || (max && day > max);
 
+  /*
+   * A floor that rises above what is held takes it with it.
+   *
+   * The end of something is usually floored by its start, and somebody who
+   * types the end first and then moves the start past it would otherwise be
+   * left looking at a date the calendar refuses and the server will too. Only
+   * a change to the range clears it, so a record that already holds an odd
+   * date opens showing it.
+   */
+  const range = React.useRef<[string | undefined, string | undefined]>([min, max]);
+  React.useEffect(() => {
+    const [wasMin, wasMax] = range.current;
+    range.current = [min, max];
+    if (min === wasMin && max === wasMax) return;
+    if (value && outOfRange(value)) onChange("");
+  });
+
   const commit = (raw: string) => {
     const parsed = parseTyped(raw, locale);
     if (parsed === null) {

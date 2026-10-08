@@ -46,6 +46,8 @@ export function Availability({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [adding, setAdding] = React.useState(false);
+  /** The floor under "to": a blockout cannot end before it starts. */
+  const [from, setFrom] = React.useState("");
   const formId = React.useId();
   const full = useAnswered(formId, adding);
   const [pending, startTransition] = React.useTransition();
@@ -141,6 +143,7 @@ export function Availability({
                 setError(result.error);
                 if (!result.error) {
                   setAdding(false);
+                  setFrom("");
                   router.refresh();
                 }
               });
@@ -149,17 +152,17 @@ export function Availability({
           >
             <div className="grid gap-3 sm:grid-cols-3">
               <Field label={t("availability.from")} required>
-                <DateField name="startsOn" />
+                <DateField name="startsOn" onValueChange={setFrom} />
               </Field>
               <Field label={t("availability.to")} required>
-                <DateField name="endsOn" />
+                <DateField name="endsOn" min={from || undefined} />
               </Field>
               <Field label={t("availability.reason")}>
                 <Input name="reason" autoComplete="off" />
               </Field>
             </div>
             <div className="flex flex-wrap items-center justify-end gap-3">
-              <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
+              <Button type="button" variant="ghost" onClick={() => { setAdding(false); setFrom(""); }}>
                 {t("action.cancel")}
               </Button>
               <Button type="submit" disabled={pending || !full}>{t("action.save")}</Button>

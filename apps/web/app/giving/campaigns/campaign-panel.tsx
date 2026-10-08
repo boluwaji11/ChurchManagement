@@ -198,6 +198,8 @@ export function CampaignPanel({
               <DateField
                 name="endsOn"
                 defaultValue={ends}
+                /* A campaign cannot finish before it opens. */
+                min={starts || undefined}
                 onValueChange={(next) => {
                   setEnds(next);
                   setDirty(true);

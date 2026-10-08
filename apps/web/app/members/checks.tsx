@@ -128,6 +128,8 @@ function AddDialog({
 }) {
   const [open, setOpen] = React.useState(false);
   const [status, setStatus] = React.useState("clear");
+  /** The floor under the expiry: a check cannot lapse before it was run. */
+  const [completed, setCompleted] = React.useState("");
   const [saving, startTransition] = React.useTransition();
   const formId = React.useId();
   const full = useAnswered(formId, open);
@@ -138,7 +140,10 @@ function AddDialog({
    */
   const close = (next: boolean) => {
     setOpen(next);
-    if (!next) setStatus("clear");
+    if (!next) {
+      setStatus("clear");
+      setCompleted("");
+    }
   };
 
   return (
@@ -184,11 +189,11 @@ function AddDialog({
           </div>
 
           <Field label={t("checks.completedOn")}>
-            <DateField name="completedOn" />
+            <DateField name="completedOn" onValueChange={setCompleted} />
           </Field>
 
           <Field label={t("checks.expiresOn")}>
-            <DateField name="expiresOn" />
+            <DateField name="expiresOn" min={completed || undefined} />
           </Field>
 
           <div className="flex flex-wrap items-center justify-end gap-3">

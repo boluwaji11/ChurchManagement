@@ -83,7 +83,6 @@ export default async function CampaignsPage({
           <Empty
             icon="calendar"
             title={t("campaigns.none")}
-            body={t("campaigns.add")}
             action={
               manage ? (
                 <CampaignPanel church={session.tenantSlug} today={read.today} funds={funds} />
