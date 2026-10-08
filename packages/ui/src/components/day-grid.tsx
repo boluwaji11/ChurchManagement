@@ -156,7 +156,7 @@ export function DayGrid({
           <ChevronLeft className="size-4" />
         </button>
 
-        <span className="text-[length:var(--d-text-body)] font-medium text-fg">
+        <span className="min-w-0 text-center text-[length:var(--d-text-body)] font-medium text-fg">
           {first.toLocaleDateString(locale, { month: "long", year: "numeric" })}
         </span>
 

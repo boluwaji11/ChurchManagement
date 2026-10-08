@@ -131,13 +131,13 @@ export function BlockingInterrupt({
       aria-modal="true"
       className={cn(
         "flex flex-col items-center justify-center gap-6 rounded-xl bg-critical text-white",
-        "px-8 py-12 text-center shadow-lg",
+        "px-6 py-12 text-center shadow-lg sm:px-8",
         className,
       )}
     >
       <AlertTriangle className="size-16 shrink-0" aria-hidden />
-      <div className="flex flex-col gap-2 max-w-md">
-        <h2 className="font-display text-display-lg leading-tight">{heading}</h2>
+      <div className="flex min-w-0 max-w-md flex-col gap-2">
+        <h2 className="font-display text-display-lg leading-tight break-words">{heading}</h2>
         <p className="text-body-lg text-white/90">{detail}</p>
       </div>
       {action}

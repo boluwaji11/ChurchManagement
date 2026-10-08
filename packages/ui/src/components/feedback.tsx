@@ -90,12 +90,12 @@ export function Working({ open, label }: { open: boolean; label: string }) {
       aria-live="polite"
       className="fixed inset-0 z-[100] grid place-items-center bg-overlay"
     >
-      <span className="flex items-center gap-3 rounded-[14px] border border-line bg-surface px-5 py-4 shadow-lg">
+      <span className="mx-4 flex max-w-[calc(100vw-2rem)] items-center gap-3 rounded-[14px] border border-line bg-surface px-5 py-4 shadow-lg">
         <span
           aria-hidden
           className="size-5 animate-spin rounded-full border-2 border-line-strong border-t-primary motion-reduce:animate-none"
         />
-        <span className="text-[length:var(--d-text-body)] font-medium text-fg">{label}</span>
+        <span className="min-w-0 text-[length:var(--d-text-body)] font-medium text-fg">{label}</span>
       </span>
     </div>,
     document.body,

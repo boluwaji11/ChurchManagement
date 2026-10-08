@@ -14,9 +14,9 @@ export const CardHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDiv
 );
 
 export const CardTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h3 className={cn("text-title text-fg", className)} {...props} />
+  <h3 className={cn("min-w-0 text-title text-fg", className)} {...props} />
 );
 
 export const CardDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-caption text-fg-muted", className)} {...props} />
+  <p className={cn("min-w-0 text-caption text-fg-muted", className)} {...props} />
 );

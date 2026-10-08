@@ -51,7 +51,7 @@ export function StatTile({
     >
       <div className="flex items-center justify-between gap-2">
         <span
-          className="text-label font-medium"
+          className="min-w-0 text-label font-medium"
           style={{ color: tinted ? `var(--hue-${hue}-key)` : undefined }}
         >
           {label}
