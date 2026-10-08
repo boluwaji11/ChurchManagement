@@ -56,41 +56,20 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
    * in front of a door.
    */
   const only = groups.length === 1 ? groups[0]! : null;
-  if (only) {
-    return (
-      <nav
-        aria-label={t("settings.sections")}
-        className="sticky top-[var(--d-topbar)] z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
-      >
-        {only.items.map((item, at) => (
-          <div key={item.href} className="flex items-stretch">
-            {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
-            <Link
-              href={`${item.href}?church=${church}`}
-              aria-current={item.href === pathname ? "page" : undefined}
-              className={cn(
-                "flex items-center px-6 py-3",
-                "text-[length:var(--d-text-label)] no-underline",
-                "border-b-2 -mb-px",
-                item.href === pathname
-                  ? "border-primary font-semibold text-fg"
-                  : "border-transparent font-medium text-fg-muted hover:text-fg",
-              )}
-            >
-              {item.label}
-            </Link>
-          </div>
-        ))}
-      </nav>
-    );
-  }
+  if (only) return <Strip items={only.items} church={church} pathname={pathname} />;
+
+  /* Every screen in every section, which is what a phone shows. */
+  const all = groups.flatMap((group) => group.items);
 
   return (
-    <nav
-      aria-label={t("settings.sections")}
-      className="sticky top-[var(--d-topbar)] z-20 -mt-1 flex flex-wrap items-stretch border-b border-line bg-canvas"
-    >
-      {groups.map((group, at) => {
+    <>
+      <Strip items={all} church={church} pathname={pathname} className="md:hidden" />
+
+      <nav
+        aria-label={t("settings.sections")}
+        className="sticky top-[var(--d-topbar)] z-20 -mt-1 hidden flex-wrap items-stretch border-b border-line bg-canvas md:flex"
+      >
+        {groups.map((group, at) => {
         const open = group.items.find((item) => item.href === pathname);
         const first = group.items[0]!;
 
@@ -160,6 +139,59 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
           </div>
         );
       })}
+      </nav>
+    </>
+  );
+}
+
+/**
+ * R24.6. Every settings screen as one row, scrolling sideways.
+ *
+ * What a phone gets, and what a member gets at any width. The grouped bar
+ * below opens its lists under the pointer, and a phone has no pointer, so on
+ * one the screens inside a section could not be reached at all. Here they are
+ * all on the row.
+ */
+function Strip({
+  items,
+  church,
+  pathname,
+  className,
+}: {
+  items: SettingsLink[];
+  church: string;
+  pathname: string;
+  className?: string;
+}) {
+  return (
+    <nav
+      aria-label={t("settings.sections")}
+      className={cn(
+        "sticky top-[var(--d-topbar)] z-20 -mt-1 flex items-stretch overflow-x-auto",
+        "border-b border-line bg-canvas [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        className,
+      )}
+    >
+      {items.map((item, at) => (
+        <div key={item.href} className="flex shrink-0 items-stretch">
+          {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
+          <Link
+            href={`${item.href}?church=${church}`}
+            aria-current={item.href === pathname ? "page" : undefined}
+            className={cn(
+              "flex items-center whitespace-nowrap px-5 py-3",
+              "text-[length:var(--d-text-label)] no-underline",
+              "border-b-2 -mb-px",
+              item.href === pathname
+                ? "border-primary font-semibold text-fg"
+                : "border-transparent font-medium text-fg-muted hover:text-fg",
+            )}
+          >
+            {item.label}
+          </Link>
+        </div>
+      ))}
     </nav>
   );
 }
+
