@@ -1,4 +1,6 @@
-import { canManageChurch, listRoles, withTenant, PERMISSIONS, PERMISSION_GROUPS } from "@connectapp/db";
+import {
+  canManageChurch, listRoles, withTenant, PERMISSIONS, PERMISSION_GROUPS, can,
+} from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
@@ -29,6 +31,14 @@ export default async function RolesPage({
   if (!canManageChurch(session)) {
     return <Denied role={session.role} action="editRoles" church={session.tenantSlug} />;
   }
+
+  /*
+   * R1.5, R1.6, R21.2. What this reader holds, which is the most they can
+   * hand out. Everything beyond it is drawn locked, because the server
+   * refuses the write and a volunteer should meet the rule on the box rather
+   * than on the save.
+   */
+  const mine = PERMISSIONS.filter((permission) => can(session, permission)) as string[];
 
   // R1.6. The groups the screen reads them in, flattened for the client.
   const groups = PERMISSION_GROUPS.map((group) => ({
@@ -69,6 +79,7 @@ export default async function RolesPage({
             permissions={[...PERMISSIONS]}
             groups={groups}
             shelf={shelf}
+            mine={mine}
           />
         }
       />
@@ -78,6 +89,7 @@ export default async function RolesPage({
         permissions={[...PERMISSIONS]}
         groups={groups}
         roles={rows}
+        mine={mine}
       />
     </>
   );

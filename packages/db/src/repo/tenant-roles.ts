@@ -7,7 +7,7 @@ import {
   PERMISSIONS, ROLE_PERMISSIONS, TENANT_ROLES,
   type Permission, type TenantRole,
 } from "../permissions";
-import { can } from "../permissions";
+import { can, type Who } from "../permissions";
 import type { WriteActor } from "./members";
 
 /**
@@ -49,6 +49,38 @@ function slug(name: string): string {
 /** Drops anything the catalogue does not name, so a stale key cannot grant. */
 function known(raw: readonly string[]): Permission[] {
   return PERMISSIONS.filter((permission) => raw.includes(permission));
+}
+
+/**
+ * R1.5, R1.6, R21.2. Whether a set is one this person could hand out.
+ *
+ * Every permission in it has to be one they hold themselves. An Admin holds
+ * `church.manage` and not `giving.amounts`, so without this they could tick
+ * the money onto their own role and read the giving a moment later, which
+ * makes the field-level restriction on amounts a suggestion. The Owner holds
+ * the whole catalogue, so the Owner is never stopped by it.
+ */
+export function withinReach(actor: Who, permissions: readonly Permission[]): boolean {
+  return permissions.every((permission) => can(actor, permission));
+}
+
+/**
+ * The same rule applied to a change rather than to a set.
+ *
+ * Taking a permission away is held to it too. A permission that is not yours
+ * to grant is not yours to withdraw from the treasurer either, and an Admin
+ * who could strip `giving.amounts` off Finance has locked the church out of
+ * its own money by another route.
+ */
+function onlyWhatTheyHold(
+  actor: WriteActor,
+  before: readonly Permission[],
+  after: readonly Permission[],
+): void {
+  const changed = PERMISSIONS.filter(
+    (permission) => before.includes(permission) !== after.includes(permission),
+  );
+  if (!withinReach(actor, changed)) throw new InvalidInputError("roles.error.beyond");
 }
 
 /**
@@ -246,6 +278,9 @@ export async function createRole(
    */
   if (known(permissions).length === 0) throw new InvalidInputError("roles.error.empty");
 
+  // R1.6. A new role cannot be a way around what its author may not grant.
+  onlyWhatTheyHold(actor, [], known(permissions));
+
   const key = slug(title);
   if (!key) throw new InvalidInputError("roles.error.name");
 
@@ -319,7 +354,12 @@ export async function setPermissions(
   guard(actor, "editRoles");
 
   const [row] = await db
-    .select({ key: tenantRoles.key })
+    .select({
+      key: tenantRoles.key,
+      permissions: tenantRoles.permissions,
+      builtin: tenantRoles.builtin,
+      customised: tenantRoles.customised,
+    })
     .from(tenantRoles)
     .where(and(eq(tenantRoles.id, id), eq(tenantRoles.tenantId, actor.tenantId)))
     .limit(1);
@@ -328,6 +368,16 @@ export async function setPermissions(
   if (row.key === FIXED) throw new InvalidInputError("roles.error.owner");
 
   const kept = known(permissions);
+
+  /*
+   * What the role holds now, read the way everything else reads it: a built-in
+   * the church has left alone answers from the matrix rather than from its
+   * stored row, which may predate a permission the product has since added.
+   */
+  const held = row.builtin && !row.customised && ROLE_PERMISSIONS[row.key as TenantRole]
+    ? [...ROLE_PERMISSIONS[row.key as TenantRole]]
+    : known(row.permissions);
+  onlyWhatTheyHold(actor, held, kept);
   // R1.6. A church's own role that holds nothing is a member with a different
   // word on it. A built-in keeps whatever the product gave it.
   if (kept.length === 0 && row.key.startsWith("custom_")) {

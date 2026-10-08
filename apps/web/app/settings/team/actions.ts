@@ -2,7 +2,7 @@
 
 import {
   createInvitation, revokeInvitation, setMemberRole, canManageChurch,
-  withTenant, peopleToInvite, listRoles, memberRole,
+  withTenant, peopleToInvite, listRoles, memberRole, withinReach, ROLE_PERMISSIONS,
   type TenantRole, PermissionError,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -80,6 +80,35 @@ export async function withdraw(id: string, church?: string): Promise<TeamResult>
 }
 
 /** R1.4. Changing what somebody may do. */
+/**
+ * R1.5, R1.6, R21.2. What a role can do, against what the person handing it
+ * out can do.
+ *
+ * Admin runs the church and does not hold the money permissions, so without
+ * this an Admin could put themselves on Finance and read the giving on the
+ * next page load, which is the field-level restriction on amounts undone in
+ * two clicks. The Owner holds everything, so the Owner can assign anything.
+ */
+async function reachable(
+  session: Awaited<ReturnType<typeof allowed>>,
+  role: TenantRole,
+  roleId?: string | null,
+): Promise<boolean> {
+  const who = { role: session.role, permissions: session.permissions };
+  if (!roleId) return withinReach(who, ROLE_PERMISSIONS[role]);
+
+  const ctx = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+  const roles = await withTenant(ctx, (tx) =>
+    listRoles(tx, session.tenantId, { includeArchived: true }));
+  const target = roles.find((one) => one.id === roleId);
+  return target ? withinReach(who, target.permissions) : false;
+}
+
 export async function changeRole(
   userId: string,
   role: TenantRole,
@@ -100,6 +129,9 @@ export async function changeRole(
     }
     if (role === "owner" && session.role !== "owner") {
       return { error: t("team.error.onlyOwner") };
+    }
+    if (!(await reachable(session, role, roleId))) {
+      return { error: t("team.error.beyond") };
     }
 
     await setMemberRole(session.tenantId, userId, role, roleId ?? null);

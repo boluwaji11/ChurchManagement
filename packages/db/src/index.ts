@@ -11,7 +11,7 @@ export {
 } from "./roles";
 export {
   listRoles, createRole, renameRole, setPermissions, archiveRole,
-  permissionsFor, ensureBuiltIns, type ChurchRole,
+  permissionsFor, ensureBuiltIns, withinReach, type ChurchRole,
 } from "./repo/tenant-roles";
 export {
   listHouseholdRows, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,

@@ -78,6 +78,7 @@ export function Team({
   members,
   invitations,
   approved,
+  mine,
 }: {
   church: string;
   /** R1.6. Every role this church has, built-in and its own. */
@@ -86,6 +87,14 @@ export function Team({
   invitations: Invitation[];
   /** R1.1. Whether a human has looked at this church yet. */
   approved: boolean;
+  /**
+   * R1.5, R1.6, R21.2. What the reader holds themselves.
+   *
+   * A role that can do more than they can is not theirs to hand out. Admin
+   * runs the church and does not hold the money, so an Admin who could put
+   * themselves on Finance would be reading the giving on the next page load.
+   */
+  mine: string[];
 }) {
   const router = useRouter();
   const [message, setMessage] = React.useState<string>();
@@ -95,6 +104,10 @@ export function Team({
   const [pending, startTransition] = React.useTransition();
   /** R1.4. Whether the person reading this holds the church's own keys. */
   const iAmOwner = members.some((one) => one.isSelf && one.role === "owner");
+
+  /** R1.6. Whether every permission this role holds is one the reader holds. */
+  const reachable = (role: ChurchRoleOption) =>
+    role.permissions.every((permission) => mine.includes(permission));
 
   /*
    * Which row's action is running. Both of these are confirmed in a dialog
@@ -272,8 +285,9 @@ export function Team({
                         {roles
                           .filter(
                             (role) =>
-                              !role.archived ||
-                              role.id === (member.roleId ?? idFor(roles, member.role)),
+                              (reachable(role) || role.id === (member.roleId ?? idFor(roles, member.role)))
+                              && (!role.archived
+                                || role.id === (member.roleId ?? idFor(roles, member.role))),
                           )
                           .map((role) => (
                             <SelectItem key={role.id} value={role.id}>{titleOf(role)}</SelectItem>

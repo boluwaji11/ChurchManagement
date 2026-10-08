@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Archive, Check, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
+import { ArrowLeft, Archive, Check, ChevronDown, ChevronRight, Lock, Plus, X } from "lucide-react";
 import {
   Banner, Button, Checkbox, Field, IconButton, Input, Spinner,
-  Sheet, SheetTrigger, SheetContent,
+  Sheet, SheetTrigger, SheetContent, Tooltip, cn,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { addRole, saveRole, putAway } from "./actions";
@@ -53,11 +53,14 @@ export function Matrix({
   roles,
   permissions,
   groups,
+  mine,
 }: {
   church: string;
   roles: RoleRow[];
   permissions: string[];
   groups: PermissionGroupRow[];
+  /** R1.6. What the reader holds, which is the most they can give away. */
+  mine: string[];
 }) {
   const open = roles.filter((role) => !role.archived);
   /*
@@ -92,7 +95,7 @@ export function Matrix({
                 {role.key === "owner" ? (
                   nameOf(role)
                 ) : (
-                  <RoleForm church={church} role={role} permissions={permissions} groups={groups}>
+                  <RoleForm church={church} role={role} permissions={permissions} groups={groups} mine={mine}>
                     <button
                       type="button"
                       className="w-full cursor-pointer rounded-sm px-1 py-0.5 font-medium text-primary underline decoration-primary/35 underline-offset-[3px] hover:bg-sunken hover:decoration-primary"
@@ -178,6 +181,7 @@ export function RoleForm({
   permissions,
   groups,
   shelf = [],
+  mine,
   children,
 }: {
   church: string;
@@ -187,6 +191,14 @@ export function RoleForm({
   groups: PermissionGroupRow[];
   /** R1.6. The ready-made roles this church has not taken up yet. */
   shelf?: RoleRow[];
+  /**
+   * R1.5, R1.6, R21.2. What the reader holds themselves.
+   *
+   * A permission outside it is drawn and locked. An Admin who could tick the
+   * money onto a role would be reading the giving a moment later, and the
+   * server refuses it, so the box has to say so before it is pressed.
+   */
+  mine: string[];
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -233,6 +245,19 @@ export function RoleForm({
     });
   };
 
+  /**
+   * R1.5, R1.6, R21.2. Whether this box is the reader's to move.
+   *
+   * Taking a permission away is held to the same rule as giving it: an Admin
+   * who could strip the money off Finance has locked the church out of its
+   * own giving by the other door.
+   */
+  const locked = (permission: string) => !mine.includes(permission);
+
+  /** Whatever the reader may not touch, exactly as the role already has it. */
+  const keeping = (current: string[]) =>
+    permissions.filter((one) => locked(one) && current.includes(one));
+
   const toggle = (permission: string, on: boolean) =>
     setHeld((current) =>
       on ? [...current, permission] : current.filter((one) => one !== permission),
@@ -241,8 +266,9 @@ export function RoleForm({
   /** Every permission under one heading, on or off together. */
   const setGroup = (group: PermissionGroupRow, on: boolean) =>
     setHeld((current) => {
-      const without = current.filter((one) => !group.permissions.includes(one));
-      return on ? [...without, ...group.permissions] : without;
+      const mineHere = group.permissions.filter((one) => !locked(one));
+      const without = current.filter((one) => !mineHere.includes(one));
+      return on ? [...without, ...mineHere] : without;
     });
 
   return (
@@ -397,8 +423,14 @@ export function RoleForm({
                   so the quickest way in is everything and then two unticks. */}
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-fg-muted">
                 <Checkbox
-                  checked={held.length === permissions.length}
-                  onCheckedChange={(on) => setHeld(on === true ? [...permissions] : [])}
+                  checked={permissions.every((one) => locked(one) || held.includes(one))}
+                  onCheckedChange={(on) =>
+                    setHeld(
+                      on === true
+                        ? permissions.filter((one) => !locked(one) || held.includes(one))
+                        : keeping(held),
+                    )
+                  }
                 />
                 {t("roles.all")}
               </label>
@@ -408,15 +440,18 @@ export function RoleForm({
                 is narrower than twenty rows: what may this role do with our
                 members, and what may it do at check-in. */}
             {groups.map((group) => {
-              const whole = group.permissions.every((one) => held.includes(one));
+              const whole = group.permissions.every((one) => locked(one) || held.includes(one));
               const folded = shut.includes(group.key);
               const count = group.permissions.filter((one) => held.includes(one)).length;
+              /* A heading with nothing in it the reader may move is itself fixed. */
+              const shutOut = group.permissions.every((one) => locked(one));
 
               return (
                 <section key={group.key} className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-2.5 rounded-sm px-1 py-1.5">
                     <Checkbox
                       checked={whole}
+                      disabled={shutOut}
                       onCheckedChange={(on) => setGroup(group, on === true)}
                       aria-label={t(`roles.group.${group.key}` as never)}
                     />
@@ -440,20 +475,39 @@ export function RoleForm({
                     </button>
                   </div>
 
-                  {(folded ? [] : group.permissions).map((permission) => (
-                    <label
-                      key={permission}
-                      className="flex cursor-pointer items-center gap-2.5 rounded-sm px-1 py-1.5 pl-7 hover:bg-sunken"
-                    >
-                      <Checkbox
-                        checked={held.includes(permission)}
-                        onCheckedChange={(on) => toggle(permission, on === true)}
-                      />
-                      <span className="text-[length:var(--d-text-body)] text-fg">
-                        {t(`permission.${permission}` as never)}
-                      </span>
-                    </label>
-                  ))}
+                  {(folded ? [] : group.permissions).map((permission) => {
+                    const fixed = locked(permission);
+                    const row = (
+                      <label
+                        key={permission}
+                        className={cn(
+                          "flex items-center gap-2.5 rounded-sm px-1 py-1.5 pl-7",
+                          fixed ? "cursor-default" : "cursor-pointer hover:bg-sunken",
+                        )}
+                      >
+                        <Checkbox
+                          checked={held.includes(permission)}
+                          disabled={fixed}
+                          onCheckedChange={(on) => toggle(permission, on === true)}
+                        />
+                        <span
+                          className={cn(
+                            "text-[length:var(--d-text-body)]",
+                            fixed ? "text-fg-subtle" : "text-fg",
+                          )}
+                        >
+                          {t(`permission.${permission}` as never)}
+                        </span>
+                        {fixed ? <Lock className="size-3.5 shrink-0 text-fg-subtle" aria-hidden /> : null}
+                      </label>
+                    );
+
+                    return fixed ? (
+                      <Tooltip key={permission} content={t("roles.beyond")}>
+                        <span className="block">{row}</span>
+                      </Tooltip>
+                    ) : row;
+                  })}
                 </section>
               );
             })}
@@ -470,14 +524,16 @@ export function NewRole({
   permissions,
   groups,
   shelf,
+  mine,
 }: {
   church: string;
   permissions: string[];
   groups: PermissionGroupRow[];
   shelf?: RoleRow[];
+  mine: string[];
 }) {
   return (
-    <RoleForm church={church} permissions={permissions} groups={groups} shelf={shelf}>
+    <RoleForm church={church} permissions={permissions} groups={groups} shelf={shelf} mine={mine}>
       <Button>
         <Plus /> {t("roles.add")}
       </Button>

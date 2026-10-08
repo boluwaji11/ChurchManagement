@@ -1,6 +1,6 @@
 import {
   listTeam, listInvitations, canManageChurch, withTenant,
-  listRoles,
+  listRoles, PERMISSIONS, can,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
@@ -61,6 +61,8 @@ export default async function TeamPage({
       <Team
         approved={standing.approved}
         church={session.tenantSlug}
+        /* R1.5, R1.6, R21.2. The most this reader can hand out is what they hold. */
+        mine={PERMISSIONS.filter((permission) => can(session, permission)) as string[]}
         roles={roles.map((role) => ({
           id: role.id,
           key: role.key,
