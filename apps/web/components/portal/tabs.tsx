@@ -54,10 +54,13 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
     <nav
       className={
         /* On a phone the tabs take a line of their own under the church name
-           and scroll sideways. Wrapping them put Serving on top of the avatar. */
-        "-mb-px order-last flex w-full min-w-0 items-stretch overflow-x-auto " +
+           and scroll sideways. Wrapping them put Serving on top of the avatar.
+           It starts under the church name and runs off the right edge of the
+           screen, so a tab that does not fit is cut by the edge and reads as
+           more to come rather than as the end of the row. */
+        "-mb-px order-last -mr-6 flex w-[calc(100%+1.5rem)] min-w-0 items-stretch overflow-x-auto " +
         "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden " +
-        "sm:order-none sm:w-auto sm:flex-1"
+        "sm:order-none sm:mr-0 sm:w-auto sm:flex-1"
       }
     >
       {tabs.map((tab) => (
@@ -67,8 +70,8 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
           aria-current={on(tab) ? "page" : undefined}
           className={
             on(tab)
-              ? "flex min-h-[52px] items-center whitespace-nowrap border-b-2 border-primary px-3 text-[15px] font-semibold text-fg sm:min-h-16"
-              : "flex min-h-[52px] items-center whitespace-nowrap border-b-2 border-transparent px-3 text-[15px] font-medium text-fg-muted hover:text-fg sm:min-h-16"
+              ? "flex min-h-[52px] items-center whitespace-nowrap border-b-2 border-primary px-2.5 text-[15px] font-semibold text-fg sm:min-h-16 sm:px-3"
+              : "flex min-h-[52px] items-center whitespace-nowrap border-b-2 border-transparent px-2.5 text-[15px] font-medium text-fg-muted hover:text-fg sm:min-h-16 sm:px-3"
           }
         >
           {tab.label}

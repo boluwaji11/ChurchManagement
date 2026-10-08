@@ -55,7 +55,9 @@ export function PublicFooter({ church }: { church: PublicChurch }) {
   ].filter(Boolean);
 
   return (
-    <footer className="mt-auto border-t border-line px-5 py-4 sm:px-8">
+    /* The last thing on the page, so it carries the inset at the foot of an
+       installed phone screen as well as its own padding. */
+    <footer className="mt-auto border-t border-line pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-4 sm:pl-[max(2rem,env(safe-area-inset-left))] sm:pr-[max(2rem,env(safe-area-inset-right))]">
       <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-1 text-caption text-fg-muted">
         {parts.map((part, at) => (
           <React.Fragment key={at}>

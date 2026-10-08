@@ -93,8 +93,10 @@ export async function PortalShell({
 
       <DemoBanner info={shell.demo} />
 
-      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
-        <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center gap-x-6 px-6">
+      {/* R17.11. Installed, the page runs edge to edge, so the bar carries the
+          inset iOS draws its own furniture in rather than sitting under it. */}
+      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] pt-[env(safe-area-inset-top)] backdrop-blur-[10px]">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center gap-x-6 pl-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))]">
           {homepage ? (
             <Tooltip content={t("portal.churchSite", { church: session.tenantName })}>
             <a
@@ -134,7 +136,7 @@ export async function PortalShell({
 
       <main
         id="main"
-        className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col gap-7 px-6 pb-16 pt-8"
+        className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col gap-7 pb-16 pl-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))] pt-8"
       >
         <ChurchMarkProvider logoUrl={logoUrl}>
           <SpellingProvider spelling={spelling} locale={locale}>{children}</SpellingProvider>
