@@ -267,7 +267,7 @@ function Reach({ to }: { to: React.RefObject<HTMLDivElement | null> }) {
           type="button"
           aria-label={t("serving.earlierServices")}
           onClick={() => go(-COLUMN)}
-          className="absolute left-[138px] top-1/2 z-10 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-line bg-surface text-fg shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:bg-sunken"
+          className="absolute left-2 top-1/2 z-10 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-line bg-surface text-fg shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:bg-sunken"
         >
           <ChevronLeft className="size-4" aria-hidden />
         </button>
@@ -490,6 +490,10 @@ export function ScheduleGrid({
             ref={scroller}
             className="w-full overflow-x-auto rounded-lg border border-line bg-surface"
           >
+          {/* R24.6. The grid and the row under it are one block as wide as
+              the widest of them, so the footer reaches the far column rather
+              than stopping where the window happens to end. */}
+          <div className="w-max min-w-full">
           <div
             className="grid min-w-[760px]"
             style={{
@@ -588,6 +592,7 @@ export function ScheduleGrid({
 
           {/* R10.2. A position the schedule is missing, added where it is missed. */}
           {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
+          </div>
           </div>
         </section>
 
