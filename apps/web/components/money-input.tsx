@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { currencyMark } from "@/lib/money";
+import { currencyMark, groupAmount } from "@/lib/money";
 
 /**
  * R13.x. An amount, with the currency beside it.
@@ -27,7 +27,9 @@ export function MoneyInput({
       </span>
       <input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        /* R13.x. Grouped as it is typed, because 123290.03 and 123,290.03
+           are the same number and only one of them can be read at a glance. */
+        onChange={(e) => onChange(groupAmount(e.target.value))}
         inputMode="decimal"
         className="min-w-0 flex-1 bg-transparent text-[length:var(--d-text-body)] text-fg outline-none placeholder:text-fg-subtle"
         {...rest}
