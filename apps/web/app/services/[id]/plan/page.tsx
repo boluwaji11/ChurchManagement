@@ -49,7 +49,12 @@ export default async function PlanPage({
   if (!canManageServices(session)) {
     return (
       <AppShell session={session} title={t("order.title")}>
-        <Denied role={session.role} action="manageServices" church={session.tenantSlug} back={{ href: `/services?church=${session.tenantSlug}`, label: t("order.allServices") }} />
+        <Denied
+          role={session.role}
+          action="manageServices"
+          church={session.tenantSlug}
+          back={{ href: `/services?church=${session.tenantSlug}`, label: t("order.allServices") }}
+        />
       </AppShell>
     );
   }

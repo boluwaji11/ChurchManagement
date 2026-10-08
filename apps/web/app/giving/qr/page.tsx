@@ -33,7 +33,11 @@ export default async function GivingQrPage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageGiving(session)) redirect(`/giving?church=${session.tenantSlug}`);
+  /*
+   * A sheet with no shell around it, so the refusal panel has nowhere to
+   * sit. Back to the screen this sheet was asked for from, which says why.
+   */
+  if (!canManageGiving(session)) redirect(`/settings/online?church=${session.tenantSlug}`);
 
   const read = await withTenant(
     { tenantId: session.tenantId, role: session.role },

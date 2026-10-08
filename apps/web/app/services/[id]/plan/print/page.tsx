@@ -42,8 +42,12 @@ export default async function PrintPlanPage({
   const { church, view } = await searchParams;
   const session = await requireSession(church);
 
+  /*
+   * A sheet with no shell around it, so the refusal panel has nowhere to
+   * sit. Back to the screen this sheet was asked for from, which says why.
+   */
   if (!canManageServices(session)) {
-    redirect(`/services/${id}?church=${session.tenantSlug}`);
+    redirect(`/services/${id}/plan?church=${session.tenantSlug}`);
   }
 
   const bulletin = view === "bulletin";

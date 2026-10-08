@@ -40,7 +40,11 @@ export default async function StatementPrintPage({
 }) {
   const { church, year: asked, member } = await searchParams;
   const session = await requireSession(church);
-  if (!canReadGivingAmounts(session)) redirect(`/giving?church=${session.tenantSlug}`);
+  /*
+   * A sheet with no shell around it, so the refusal panel has nowhere to
+   * sit. Back to the screen this sheet was asked for from, which says why.
+   */
+  if (!canReadGivingAmounts(session)) redirect(`/giving/statements?church=${session.tenantSlug}`);
 
   const ctx = {
     tenantId: session.tenantId,

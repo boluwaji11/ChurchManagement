@@ -44,7 +44,12 @@ export default async function GivingReport({
   if (!canReadGivingAmounts(session)) {
     return (
       <AppShell session={session} title={t("reports.title")}>
-        <Denied role={session.role} action="manageGiving" church={session.tenantSlug} back={{ href: `/reports?church=${session.tenantSlug}`, label: t("reports.back") }} />
+        <Denied
+          role={session.role}
+          action="manageGiving"
+          church={session.tenantSlug}
+          back={{ href: `/reports?church=${session.tenantSlug}`, label: t("reports.back") }}
+        />
       </AppShell>
     );
   }

@@ -31,8 +31,12 @@ export default async function PrintPeoplePage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
+  /*
+   * A sheet with no shell around it, so the refusal panel has nowhere to
+   * sit. Back to the screen this sheet was asked for from, which says why.
+   */
   if (!canEditPeople(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    redirect(`/members?church=${session.tenantSlug}`);
   }
 
   const rows = await withTenant(

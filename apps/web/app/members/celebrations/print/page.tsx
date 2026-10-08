@@ -44,8 +44,12 @@ export default async function CardListPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
+  /*
+   * A sheet with no shell around it, so the refusal panel has nowhere to
+   * sit. Back to the screen this sheet was asked for from, which says why.
+   */
   if (!canEditPeople(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    redirect(`/members/celebrations?church=${session.tenantSlug}`);
   }
 
   const view = params.view === "week" ? "week" : "month";

@@ -57,7 +57,11 @@ export default async function EventRosterPage({
   const { id } = await params;
   const { church, columns } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageEvents(session)) redirect(`/?church=${session.tenantSlug}`);
+  /*
+   * A sheet with no shell around it, so the refusal panel has nowhere to
+   * sit. Back to the screen this sheet was asked for from, which says why.
+   */
+  if (!canManageEvents(session)) redirect(`/events/${id}?church=${session.tenantSlug}`);
 
   const found = await withTenant(
     {
