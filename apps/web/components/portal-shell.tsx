@@ -6,6 +6,7 @@ import { ChurchMarkProvider } from "./church-mark";
 import { SpellingProvider } from "./spelling-provider";
 import { DemoBanner } from "./demo-banner";
 import { PortalTabs, PortalAccount, type PortalTab } from "./portal/tabs";
+import { InboxMark } from "./inbox/mark";
 import { Installed } from "./portal/installed";
 import { PortalTitle, PortalSection, Panel } from "./portal/panel";
 import { PublicFooter } from "./public-footer";
@@ -66,8 +67,6 @@ export async function PortalShell({
     { label: t("nav.events"), href: "/events" },
     { label: t("nav.groups"), href: "/groups" },
     { label: t("nav.serving"), href: "/home/schedule" },
-    // R16.9. A member writes to the office and reads what it wrote back.
-    { label: t("inbox.title"), href: "/home/messages" },
     // R13.19, R17.4. Giving is a thing a member comes to do, so it is a
     // place in the portal rather than a card on the way past.
     { label: t("nav.giving"), href: "/giving" },
@@ -127,12 +126,22 @@ export async function PortalShell({
 
           <PortalTabs tabs={theTabs} church={slug} />
 
-          <PortalAccount
+          {/* R16.9. Messages ride the bar rather than the tabs: they are
+              something waiting, like a notification, rather than a place. */}
+          <span className="ml-auto flex items-center gap-2">
+            <InboxMark
+              church={slug}
+              churchName={session.tenantName}
+              office={false}
+              full={`/home/messages?church=${slug}`}
+            />
+            <PortalAccount
             name={session.displayName}
             userId={session.userId}
             church={slug}
             photoUrl={photoUrl}
           />
+          </span>
         </div>
       </header>
 

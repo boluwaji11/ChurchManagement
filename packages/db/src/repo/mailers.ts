@@ -40,6 +40,8 @@ export const MAILER_FONTS = [
 export interface Mailer {
   id: string;
   name: string;
+  /** R24.6. Its readable address. */
+  slug: string;
   recipients: MailerRecipients;
   listId: string | null;
   paper: string;
@@ -67,6 +69,7 @@ const clean = (name: string): string => name.trim().replace(/\s+/g, " ");
 const shape = (row: typeof mailers.$inferSelect): Mailer => ({
   id: row.id,
   name: row.name,
+  slug: row.slug,
   recipients: (MAILER_RECIPIENTS as readonly string[]).includes(row.recipients)
     ? (row.recipients as MailerRecipients)
     : "households",
@@ -105,8 +108,15 @@ export async function countArchivedMailers(db: Tx): Promise<number> {
   return row?.count ?? 0;
 }
 
-export async function getMailer(db: Tx, id: string): Promise<Mailer | null> {
-  const [row] = await db.select().from(mailers).where(eq(mailers.id, id)).limit(1);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** R24.6. By its readable address, or by its id where that is what was given. */
+export async function getMailer(db: Tx, key: string): Promise<Mailer | null> {
+  const [row] = await db
+    .select()
+    .from(mailers)
+    .where(UUID.test(key) ? eq(mailers.id, key) : eq(mailers.slug, key))
+    .limit(1);
   return row ? shape(row) : null;
 }
 
@@ -124,7 +134,12 @@ export async function createMailer(
   try {
     const [row] = await db
       .insert(mailers)
-      .values({ tenantId: actor.tenantId, name, createdByUserId: actor.userId ?? null })
+      .values({
+        tenantId: actor.tenantId,
+        name,
+        slug: sql`hearth_free_mailer_slug(${actor.tenantId}::uuid, ${name})`,
+        createdByUserId: actor.userId ?? null,
+      })
       .returning();
     return shape(row!);
   } catch (error) {
@@ -163,6 +178,8 @@ export async function updateMailer(db: Tx, actor: Actor, input: MailerPatch): Pr
     const name = clean(input.name);
     if (!name) throw new InvalidInputError("post.error.name");
     patch.name = name;
+    // Renaming moves the address, the way it does for a report.
+    patch.slug = sql`hearth_free_mailer_slug(${actor.tenantId}::uuid, ${name}, ${input.id}::uuid)` as never;
   }
   if (input.recipients !== undefined) {
     patch.recipients = (MAILER_RECIPIENTS as readonly string[]).includes(input.recipients)

@@ -13,6 +13,7 @@ import { archiveMailer, startMailer } from "./actions";
 
 export interface MailerCard {
   id: string;
+  slug: string;
   name: string;
   /** When it was last written to, already in the church's own format. */
   when: string;
@@ -66,7 +67,7 @@ export function Shelf({
         return;
       }
       startGoing(() => {
-        router.push(`/members/mailer?church=${church}&id=${back.id}`);
+        router.push(`/members/mailer?church=${church}&open=${back.slug}`);
         setOpen(false);
       });
     });
@@ -132,7 +133,7 @@ export function Shelf({
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 {/* Stretched, so the whole tile opens it. */}
                 <Link
-                  href={`/members/mailer?church=${church}&id=${one.id}`}
+                  href={`/members/mailer?church=${church}&open=${one.slug}`}
                   className="font-semibold text-fg after:absolute after:inset-0 after:content-['']"
                 >
                   {one.name}

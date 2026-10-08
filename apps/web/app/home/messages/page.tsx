@@ -1,13 +1,10 @@
 import { redirect } from "next/navigation";
-import {
-  withTenant, memberForUser, openThread, messagesIn, markThreadRead,
-  getChurch, canEditPeople, canReadIncidents,
-} from "@connectapp/db";
-import { t, localeFor } from "@connectapp/i18n";
+import { canEditPeople, canReadIncidents } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { tabMetadata } from "@/lib/page-metadata";
-import { Thread, type Said } from "./thread";
+import { InboxScreen } from "@/components/inbox/screen";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +19,10 @@ export async function generateMetadata({
 }
 
 /**
- * R16.9, R17.1. A member's conversation with their church.
+ * R16.9, R17.1. A member's messages.
  *
- * One thread, for the life of their membership. A member who wrote in August
- * and writes again in March writes into the same place, and the church reads
- * both without going looking.
+ * The church office, and whoever leads something they are part of. Nothing
+ * here is sent anywhere.
  */
 export default async function MemberMessagesPage({
   searchParams,
@@ -41,47 +37,16 @@ export default async function MemberMessagesPage({
     redirect(`/messages?church=${session.tenantSlug}`);
   }
 
-  const read = await withTenant(
-    {
-      tenantId: session.tenantId,
-      role: session.role,
-      userId: session.userId,
-      permissions: session.permissions,
-    },
-    async (tx) => {
-      const me = await memberForUser(tx, session.userId);
-      if (!me) return { said: [], country: null as string | null };
-
-      const thread = await openThread(tx, session.tenantId, me);
-      const said = await messagesIn(tx, thread);
-      /* Opening it is reading it. */
-      await markThreadRead(tx, thread, "member");
-
-      const profile = await getChurch(tx, session.tenantId);
-      return { said, country: profile?.country ?? null };
-    },
-  );
-
-  const locale = localeFor(read.country);
-  const lines: Said[] = read.said.map((one) => ({
-    id: one.id,
-    side: one.side,
-    body: one.body,
-    when: one.createdAt.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" }),
-    day: one.createdAt.toLocaleDateString(locale, {
-      weekday: "long", day: "numeric", month: "long",
-    }),
-  }));
-
   return (
     <PortalShell session={session} tab={t("inbox.title")}>
       <PortalTitle title={t("inbox.title")} />
-
-      {lines.length === 0 ? (
-        <p className="text-fg-muted">{t("inbox.noneYet")}</p>
-      ) : null}
-
-      <Thread church={session.tenantSlug} churchName={session.tenantName} said={lines} />
+      <InboxScreen
+        church={session.tenantSlug}
+        churchName={session.tenantName}
+        office={false}
+        here="/home/messages"
+        open={null}
+      />
     </PortalShell>
   );
 }

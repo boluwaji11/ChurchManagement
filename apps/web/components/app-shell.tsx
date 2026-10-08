@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cookies } from "next/headers";
-import { NOTIFICATION_LOOK } from "@connectapp/db";
+import { NOTIFICATION_LOOK, canEditPeople } from "@connectapp/db";
 import { t, spellingFor, localeFor } from "@connectapp/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
@@ -8,6 +8,7 @@ import { WatchAccess } from "./watch-access";
 import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";
 import { TopBar } from "./shell/top-bar";
 import { NotificationBell } from "./shell/bell";
+import { InboxMark } from "./inbox/mark";
 import { when } from "@/lib/when";
 import { shortDate } from "@/lib/dates";
 import { navFor } from "./shell/nav";
@@ -149,6 +150,15 @@ export async function AppShell({
           logoUrl={logoUrl}
           churchName={session.tenantName}
           bell={
+            <>
+            {/* R16.9. Messages sit beside the bell: both are something
+                waiting, read where they are noticed. */}
+            <InboxMark
+              church={session.tenantSlug}
+              churchName={session.tenantName}
+              office={canEditPeople(session)}
+              full={`/messages?church=${session.tenantSlug}`}
+            />
             <NotificationBell
               church={session.tenantSlug}
               unread={counts.unread}
@@ -165,6 +175,7 @@ export async function AppShell({
                 more: one.more ?? false,
               }))}
             />
+            </>
           }
         />
 

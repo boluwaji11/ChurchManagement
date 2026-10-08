@@ -19,16 +19,20 @@ export async function generateMetadata({
 }
 
 /**
- * R16.9. The church's own inbox.
+ * R16.9. One conversation, open.
  *
- * Nothing here is sent anywhere: it is written in the product and read in the
- * product, which is why a church pays nothing to run it.
+ * The address is who it is with. A row id never appears in a link in this
+ * product, and "the conversation with Jane Smith" survives whatever the row
+ * holding it is called.
  */
-export default async function MessagesPage({
+export default async function MessageThreadPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ key: string }>;
   searchParams: Promise<{ church?: string }>;
 }) {
+  const { key } = await params;
   const { church } = await searchParams;
   const session = await requireSession(church);
 
@@ -47,7 +51,7 @@ export default async function MessagesPage({
         churchName={session.tenantName}
         office
         here="/messages"
-        open={null}
+        open={key}
       />
     </AppShell>
   );

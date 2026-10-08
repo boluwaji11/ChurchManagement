@@ -54,26 +54,35 @@ one per message.
 
 ## The screens
 
-**The portal.** A Messages tab. The list is threads, newest first, with the
-church's mark, the last line, and when. Opening one is the thread itself: the
-church's words on the left against the canvas, the member's on the right in the
-church's own hue, down a vertical rail with the date breaking it up the way the
-portal's timeline already does. The box to write in is pinned at the bottom.
+**The mark in the bar.** Messages sit beside the bell on the platform and
+beside the account in the portal, because a message is the same kind of thing
+as a notification: something waiting, read where it is noticed. Pressing it
+opens the whole inbox in a panel: Inbox, Sent, Drafts, and the way to write a
+new one.
 
-**The platform.** `/messages`, the same thread list with the member's photo and
-name, their unread count, and the thread beside it on a wide screen. A staff
-member answering ten of these in a sitting should never leave the screen.
+**The screen.** `/messages` and `/home/messages` are the same three pieces with
+room: conversations down the left, the one being read beside them.
 
-## What this is not, in the first build
+**The conversation itself** is a list of blocks, each with who wrote it, when,
+and the words. That is the shape every mail client and support inbox settled
+on, because it stays legible when a line runs to five sentences and it does not
+lean on colour to say who is speaking. Two columns of coloured bubbles is a
+phone chat, and this is a church writing to somebody about a hall booking.
+
+## Addresses
+
+A conversation is addressed by who it is with: `/messages/jane-smith`, or
+`office` from the member's side. A row id never appears in a link.
+
+## Keeping current
+
+The panel asks the server what the inbox says every few seconds while it is
+open, and on every return to the window, so a reply lands on the other side
+without anybody reloading. Realtime is not in this version and a church of 50
+to 500 does not need it.
+
+## What this is not, in this build
 
 No attachments, no read receipts beyond the unread mark, no typing indicator,
 no group threads, no message to several members at once. Each of those is a
 line on the board rather than a thing left out quietly.
-
-## The order it is built in
-
-1. The tables, the repo and its tests.
-2. The portal inbox: list, thread, write.
-3. The platform inbox: list, thread, reply.
-4. The bell line, and the portal's own unread badge.
-5. Group and team threads, on the same tables.

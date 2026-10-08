@@ -47,9 +47,9 @@ const stamp = (at: Date): string =>
 export default async function MailerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; id?: string; archived?: string }>;
+  searchParams: Promise<{ church?: string; open?: string; archived?: string }>;
 }) {
-  const { church, id, archived } = await searchParams;
+  const { church, open: id, archived } = await searchParams;
   /** R24.6. The ones put away, reached from the shelf they came off. */
   const putAway = archived === "1";
   const session = await requireSession(church);
@@ -124,6 +124,7 @@ export default async function MailerPage({
             archivedCount={read.archivedCount}
             mailers={read.mailers.map((one) => ({
               id: one.id,
+              slug: one.slug,
               name: one.name,
               when: stamp(one.updatedAt),
             }))}

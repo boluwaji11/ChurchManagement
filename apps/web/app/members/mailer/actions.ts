@@ -30,11 +30,11 @@ async function context(church?: string) {
 export async function startMailer(
   name: string,
   church?: string,
-): Promise<{ id?: string; error?: string }> {
+): Promise<{ slug?: string; error?: string }> {
   try {
     const ctx = await context(church);
     const made = await withTenant(ctx, (tx) => createMailer(tx, ctx, { name }));
-    return { id: made.id };
+    return { slug: made.slug };
   } catch (error) {
     return { error: explain(error) };
   }

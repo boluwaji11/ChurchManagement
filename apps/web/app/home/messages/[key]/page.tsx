@@ -1,7 +1,7 @@
-import { canEditPeople } from "@connectapp/db";
+import { redirect } from "next/navigation";
+import { canEditPeople, canReadIncidents } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { AppShell } from "@/components/app-shell";
-import { Denied } from "@/components/denied";
+import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { tabMetadata } from "@/lib/page-metadata";
 import { InboxScreen } from "@/components/inbox/screen";
@@ -18,37 +18,32 @@ export async function generateMetadata({
   return tabMetadata(t("inbox.title"), church);
 }
 
-/**
- * R16.9. The church's own inbox.
- *
- * Nothing here is sent anywhere: it is written in the product and read in the
- * product, which is why a church pays nothing to run it.
- */
-export default async function MessagesPage({
+/** R16.9, R17.1. One of a member's conversations, open at its own address. */
+export default async function MemberThreadPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ key: string }>;
   searchParams: Promise<{ church?: string }>;
 }) {
+  const { key } = await params;
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canEditPeople(session)) {
-    return (
-      <AppShell session={session} title={t("inbox.title")}>
-        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
-      </AppShell>
-    );
+  if (canEditPeople(session) || canReadIncidents(session)) {
+    redirect(`/messages/${key}?church=${session.tenantSlug}`);
   }
 
   return (
-    <AppShell session={session} title={t("inbox.title")} wide>
+    <PortalShell session={session} tab={t("inbox.title")}>
+      <PortalTitle title={t("inbox.title")} />
       <InboxScreen
         church={session.tenantSlug}
         churchName={session.tenantName}
-        office
-        here="/messages"
-        open={null}
+        office={false}
+        here="/home/messages"
+        open={key}
       />
-    </AppShell>
+    </PortalShell>
   );
 }

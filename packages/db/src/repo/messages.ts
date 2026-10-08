@@ -1,11 +1,11 @@
-import { and, asc, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import type { Permission } from "../permissions";
-import { conversations, messages } from "../schema/messages";
+import { conversations, conversationPeople, messages, messageDrafts } from "../schema/messages";
 import { members } from "../schema/members";
+import { groupMemberships, groups } from "../schema/groups";
+import { teamMembers, teams } from "../schema/serving";
 import { InvalidInputError } from "../errors";
-import { PermissionError, canEditPeople, type TenantRole } from "../roles";
-import { personForUser } from "./scope";
+import { PermissionError } from "../roles";
 import { notifyRoles } from "./notifications";
 
 /**
@@ -15,49 +15,78 @@ import { notifyRoles } from "./notifications";
  * delivery is paid for, which is why this half of communication can exist in a
  * product given away.
  *
- * One thread between the office and one member. The office is a role rather
- * than a person: whoever is on staff this month answers, and the thread stays
- * with the church.
+ * A conversation has people in it. The office is one of them, as a role rather
+ * than a person, so whoever is on staff this month answers and the thread
+ * belongs to the church. Everybody else is a member, and the read mark is per
+ * person: what one reader has seen is theirs alone.
  */
 
-export const SIDES = ["member", "church"] as const;
-export type Side = (typeof SIDES)[number];
+/** Whoever is reading, from the session. */
+export interface Reader {
+  tenantId: string;
+  userId: string;
+  /** Their own person record, where their account is tied to one. */
+  memberId: string | null;
+  /** Whether they answer for the church. */
+  office: boolean;
+}
+
+/**
+ * Who a message is addressed to.
+ *
+ * "office", or a member's own readable address. A row id never appears in a
+ * link in this product, and a conversation is found by who it is with rather
+ * than by which row holds it.
+ */
+export type Target = { office: true } | { office: false; slug: string };
 
 export interface Message {
   id: string;
-  side: Side;
   body: string;
   createdAt: Date;
-  authorUserId: string | null;
+  /** Written as the church. */
+  fromOffice: boolean;
+  authorMemberId: string | null;
+  /** Who it reads as, already resolved. Empty for the office. */
+  authorName: string;
+  authorPhotoKey: string | null;
+  /** Whether the reader wrote it. */
+  mine: boolean;
 }
 
 export interface Thread {
   id: string;
-  memberId: string;
-  /** Who it is with, for the staff list. */
-  name: string;
-  photoKey: string | null;
-  lastMessageAt: Date;
-  /** The opening of the last message, for the row. */
+  kind: string;
+  /** Its address: "office", or who it is with. */
+  key: string;
+  /** Who it is with, from this reader's side. Null means the church office. */
+  withMemberId: string | null;
+  withName: string;
+  withPhotoKey: string | null;
   lastLine: string;
-  /** How many the reader has not read, from their own side. */
+  lastAt: Date;
+  /** Whether the last line is the reader's own. */
+  lastMine: boolean;
   unread: number;
   archived: boolean;
 }
 
-interface Actor {
-  tenantId: string;
-  role: TenantRole;
-  userId?: string | null;
-  permissions?: readonly Permission[] | null;
+export interface Recipient {
+  /** "office", or a member's own readable address. */
+  value: string;
+  name: string;
+  photoKey: string | null;
+  /** Why they are on the list: the group or team they lead. */
+  through: string | null;
 }
 
-/** Whoever may edit a member may write to one. */
-function guardStaff(actor: Actor): void {
-  if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
+export interface Draft {
+  target: string;
+  name: string;
+  body: string;
+  updatedAt: Date;
 }
 
-/** A message is words. A box of spaces is not one. */
 const clean = (body: string): string => body.trim();
 
 /** The first line of a message, short enough for a row in a list. */
@@ -66,250 +95,539 @@ const opening = (body: string): string => {
   return flat.length > 140 ? `${flat.slice(0, 139)}…` : flat;
 };
 
-const lastLine = sql<string>`coalesce((
-  select m.body from messages m
-  where m.conversation_id = ${conversations.id}
-  order by m.created_at desc
-  limit 1
-), '')`;
-
 /**
- * R16.9. Every thread the office has, newest written to first.
+ * The reader's own row in a conversation, and what is unread against it.
  *
- * Unread counts what members have written since the office last read it, so a
- * thread the office answered is quiet until somebody writes again.
+ * A staff member who is also in a thread as themselves has two rows in it, so
+ * the office row is preferred: answering for the church is the errand they
+ * opened the inbox for.
  */
-export async function threadsForStaff(
+const MINE = sql`coalesce(
+  (p.office and m.from_office)
+  or (not p.office and p.member_id is not null and m.author_member_id = p.member_id)
+, false)`;
+
+interface Row {
+  id: string;
+  kind: string;
+  last_message_at: string | Date;
+  archived_at: Date | null;
+  i_am_office: boolean;
+  last_body: string | null;
+  last_mine: boolean | null;
+  unread: number;
+}
+
+async function readThreads(
   db: Tx,
-  opts: { archivedOnly?: boolean } = {},
+  reader: Reader,
+  opts: { archivedOnly?: boolean; sent?: boolean; limit?: number } = {},
 ): Promise<Thread[]> {
-  const rows = await db
+  const rows = (await db.execute(sql`
+    select distinct on (c.id)
+           c.id, c.kind, c.last_message_at, c.archived_at,
+           p.office as i_am_office,
+           (select m.body from messages m
+             where m.conversation_id = c.id order by m.created_at desc limit 1) as last_body,
+           (select ${MINE} from messages m
+             where m.conversation_id = c.id order by m.created_at desc limit 1) as last_mine,
+           (select count(*)::int from messages m
+             where m.conversation_id = c.id
+               and m.created_at > coalesce(p.last_read_at, timestamptz '-infinity')
+               and not ${MINE}) as unread
+      from conversations c
+      join conversation_people p on p.conversation_id = c.id
+       and ((p.office and ${reader.office}) or (p.member_id = ${reader.memberId ?? null}))
+     where ${opts.archivedOnly ? sql`c.archived_at is not null` : sql`c.archived_at is null`}
+       and exists (select 1 from messages m where m.conversation_id = c.id)
+       ${opts.sent
+          ? sql`and exists (select 1 from messages m where m.conversation_id = c.id and ${MINE})`
+          : sql``}
+     order by c.id, p.office desc
+  `)) as unknown as Row[];
+
+  if (rows.length === 0) return [];
+
+  const ids = rows.map((one) => one.id);
+  const people = await db
     .select({
-      id: conversations.id,
-      memberId: conversations.memberId,
+      conversationId: conversationPeople.conversationId,
+      memberId: conversationPeople.memberId,
+      office: conversationPeople.office,
       first: members.firstName,
       last: members.lastName,
+      slug: members.slug,
       photoKey: members.photoKey,
-      lastMessageAt: conversations.lastMessageAt,
-      archivedAt: conversations.archivedAt,
-      body: lastLine,
-      unread: sql<number>`(
-        select count(*)::int from messages m
-        where m.conversation_id = ${conversations.id}
-          and m.side = 'member'
-          and (${conversations.staffReadAt} is null or m.created_at > ${conversations.staffReadAt})
-      )`,
     })
-    .from(conversations)
-    .innerJoin(members, eq(members.id, conversations.memberId))
-    .where(
-      opts.archivedOnly
-        ? sql`${conversations.archivedAt} is not null`
-        : isNull(conversations.archivedAt),
-    )
-    .orderBy(desc(conversations.lastMessageAt));
+    .from(conversationPeople)
+    .leftJoin(members, eq(members.id, conversationPeople.memberId))
+    .where(inArray(conversationPeople.conversationId, ids));
 
-  return rows.map((one) => ({
-    id: one.id,
-    memberId: one.memberId,
-    name: `${one.first} ${one.last}`.trim(),
-    photoKey: one.photoKey,
-    lastMessageAt: one.lastMessageAt,
-    lastLine: opening(one.body),
-    unread: one.unread,
-    archived: one.archivedAt !== null,
-  }));
+  const out = rows.map((row) => {
+    const here = people.filter((one) => one.conversationId === row.id);
+    /* Who it is with is whoever in it is not the reader. */
+    const other = here.find((one) =>
+      row.i_am_office ? !one.office : one.memberId !== reader.memberId);
+
+    return {
+      id: row.id,
+      kind: row.kind,
+      key: other && !other.office ? other.slug ?? "" : "office",
+      withMemberId: other?.memberId ?? null,
+      withName: other && !other.office ? `${other.first} ${other.last}`.trim() : "",
+      withPhotoKey: other?.photoKey ?? null,
+      lastLine: opening(row.last_body ?? ""),
+      lastAt: new Date(row.last_message_at),
+      lastMine: Boolean(row.last_mine),
+      unread: row.unread,
+      archived: row.archived_at !== null,
+    };
+  });
+
+  out.sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime());
+  return opts.limit ? out.slice(0, opts.limit) : out;
 }
 
-/** R16.9. How many threads are waiting on the office, for the bell. */
-export async function unreadForStaff(db: Tx): Promise<number> {
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(conversations)
-    .where(
-      and(
-        isNull(conversations.archivedAt),
-        sql`exists (
-          select 1 from messages m
-          where m.conversation_id = ${conversations.id}
-            and m.side = 'member'
-            and (${conversations.staffReadAt} is null or m.created_at > ${conversations.staffReadAt})
-        )`,
-      ),
-    );
-  return row?.count ?? 0;
+/** R16.9. Every thread this reader is in, newest written to first. */
+export const inboxFor = (
+  db: Tx,
+  reader: Reader,
+  opts: { archivedOnly?: boolean; limit?: number } = {},
+): Promise<Thread[]> => readThreads(db, reader, opts);
+
+/** R16.9. The threads this reader has written into. */
+export const sentFor = (db: Tx, reader: Reader, limit = 50): Promise<Thread[]> =>
+  readThreads(db, reader, { sent: true, limit });
+
+/** R16.9. How many lines are waiting on this reader, for the mark on the bar. */
+export async function unreadFor(db: Tx, reader: Reader): Promise<number> {
+  const threads = await readThreads(db, reader);
+  return threads.reduce((sum, one) => sum + (one.unread > 0 ? 1 : 0), 0);
 }
 
-/** R17.1. How many a member has not read, for the portal's own mark. */
-export async function unreadForMember(db: Tx, memberId: string): Promise<number> {
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(messages)
-    .innerJoin(conversations, eq(conversations.id, messages.conversationId))
-    .where(
-      and(
-        eq(conversations.memberId, memberId),
-        eq(messages.side, "church"),
-        or(
-          isNull(conversations.memberReadAt),
-          gt(messages.createdAt, conversations.memberReadAt),
-        ),
-      ),
-    );
-  return row?.count ?? 0;
-}
-
-export async function messagesIn(db: Tx, conversationId: string): Promise<Message[]> {
+/** R16.9. Everything said in one thread, oldest first. */
+export async function messagesIn(
+  db: Tx,
+  reader: Reader,
+  conversationId: string,
+): Promise<Message[]> {
   const rows = await db
     .select({
       id: messages.id,
-      side: messages.side,
       body: messages.body,
       createdAt: messages.createdAt,
-      authorUserId: messages.authorUserId,
+      fromOffice: messages.fromOffice,
+      authorMemberId: messages.authorMemberId,
+      first: members.firstName,
+      last: members.lastName,
+      photoKey: members.photoKey,
     })
     .from(messages)
+    .leftJoin(members, eq(members.id, messages.authorMemberId))
     .where(eq(messages.conversationId, conversationId))
     .orderBy(asc(messages.createdAt));
 
-  return rows.map((one) => ({ ...one, side: one.side === "church" ? "church" : "member" }));
+  return rows.map((one) => ({
+    id: one.id,
+    body: one.body,
+    createdAt: one.createdAt,
+    fromOffice: one.fromOffice,
+    authorMemberId: one.authorMemberId,
+    authorName: one.fromOffice ? "" : `${one.first ?? ""} ${one.last ?? ""}`.trim(),
+    authorPhotoKey: one.fromOffice ? null : one.photoKey,
+    mine: one.fromOffice
+      ? reader.office
+      : one.authorMemberId !== null && one.authorMemberId === reader.memberId,
+  }));
 }
 
-/** The thread with one member, whether or not anybody has written yet. */
-export async function threadWithMember(
+/** Whether this reader is in a conversation at all. */
+export async function canRead(
   db: Tx,
-  memberId: string,
-): Promise<{ id: string; memberReadAt: Date | null; staffReadAt: Date | null } | null> {
+  reader: Reader,
+  conversationId: string,
+): Promise<boolean> {
   const [row] = await db
-    .select({
-      id: conversations.id,
-      memberReadAt: conversations.memberReadAt,
-      staffReadAt: conversations.staffReadAt,
-    })
-    .from(conversations)
-    .where(eq(conversations.memberId, memberId))
+    .select({ id: conversationPeople.id })
+    .from(conversationPeople)
+    .where(and(
+      eq(conversationPeople.conversationId, conversationId),
+      reader.office && reader.memberId
+        ? sql`(${conversationPeople.office} or ${conversationPeople.memberId} = ${reader.memberId})`
+        : reader.office
+          ? eq(conversationPeople.office, true)
+          : eq(conversationPeople.memberId, reader.memberId ?? ""),
+    ))
     .limit(1);
-  return row ?? null;
+  return Boolean(row);
 }
 
 /**
- * R16.9. The thread with one member, started if there is not one yet.
+ * R16.9. The thread between these two, started if there is not one yet.
  *
- * One a member, for the life of the church. Somebody who wrote in August and
- * writes again in March is writing into the same thread, so neither side has
- * to go looking for what was said.
+ * One a pair, for the life of the church, so somebody who wrote in August and
+ * writes again in March writes into the same place.
  */
-export async function openThread(db: Tx, tenantId: string, memberId: string): Promise<string> {
-  const held = await threadWithMember(db, memberId);
-  if (held) return held.id;
+export async function openThread(
+  db: Tx,
+  tenantId: string,
+  between: { office: boolean; memberIds: string[] },
+): Promise<string> {
+  const kind = between.office ? "church" : "direct";
+  const people = [...new Set(between.memberIds)].sort();
+
+  const held = (await db.execute(sql`
+    select c.id from conversations c
+     where c.tenant_id = ${tenantId}
+       and c.kind = ${kind}
+       and (select count(*) from conversation_people p where p.conversation_id = c.id)
+           = ${people.length + (between.office ? 1 : 0)}
+       ${between.office
+          ? sql`and exists (select 1 from conversation_people p
+                             where p.conversation_id = c.id and p.office)`
+          : sql``}
+       and not exists (
+         select 1 from conversation_people p
+          where p.conversation_id = c.id
+            and p.member_id is not null
+            and p.member_id not in (${sql.join(people.map((one) => sql`${one}`), sql`, `)})
+       )
+     limit 1
+  `)) as unknown as { id: string }[];
+
+  if (held[0]) return held[0].id;
 
   const [made] = await db
     .insert(conversations)
-    .values({ tenantId, memberId })
-    .onConflictDoNothing()
+    .values({ tenantId, kind })
     .returning({ id: conversations.id });
 
-  if (made) return made.id;
+  const rows = people.map((memberId) => ({
+    tenantId, conversationId: made!.id, memberId, office: false,
+  }));
+  if (between.office) {
+    rows.push({ tenantId, conversationId: made!.id, memberId: null as never, office: true });
+  }
+  await db.insert(conversationPeople).values(rows);
 
-  // Two writers at once, which the unique index settles.
-  const again = await threadWithMember(db, memberId);
-  if (!again) throw new InvalidInputError("inbox.error.thread");
-  return again.id;
+  return made!.id;
 }
 
 /**
- * R16.9. A message into a thread.
+ * R16.9. A message, to whoever it is addressed to.
  *
- * The side is who it reads as rather than who typed it, so a thread stays
- * legible when the volunteer who answered it has left the church.
+ * Writing is reading: the thread does not come back to the writer's own
+ * unread list a second after they sent it.
  */
-export async function writeMessage(
+export async function sendMessage(
   db: Tx,
-  actor: Actor,
-  input: { memberId: string; side: Side; body: string },
-): Promise<string> {
-  if (input.side === "church") guardStaff(actor);
-
+  reader: Reader,
+  input: { to: Target; body: string },
+): Promise<{ threadId: string; id: string }> {
   const body = clean(input.body);
   if (!body) throw new InvalidInputError("inbox.error.empty");
 
-  const threadId = await openThread(db, actor.tenantId, input.memberId);
-  const now = new Date();
+  /* Writing as the church is what the office does; writing to it is what
+     everybody else does. */
+  const asOffice = reader.office && !input.to.office;
+  if (!asOffice && !reader.memberId) throw new InvalidInputError("member.error.noRecord");
+  if (input.to.office && reader.office && !reader.memberId) {
+    throw new InvalidInputError("member.error.noRecord");
+  }
+
+  const them = input.to.office ? null : await memberBySlug(db, input.to.slug);
+  if (!input.to.office && !them) throw new InvalidInputError("member.error.noRecord");
+
+  const threadId = input.to.office
+    ? await openThread(db, reader.tenantId, { office: true, memberIds: [reader.memberId!] })
+    : asOffice
+      ? await openThread(db, reader.tenantId, { office: true, memberIds: [them!] })
+      : await openThread(db, reader.tenantId, {
+          office: false,
+          memberIds: [reader.memberId!, them!],
+        });
 
   const [made] = await db
     .insert(messages)
     .values({
-      tenantId: actor.tenantId,
+      tenantId: reader.tenantId,
       conversationId: threadId,
-      side: input.side,
-      authorUserId: actor.userId ?? null,
+      fromOffice: asOffice,
+      authorMemberId: asOffice ? null : reader.memberId,
+      authorUserId: reader.userId,
       body,
     })
     .returning({ id: messages.id });
 
-  /* Writing is reading: the side that just wrote has nothing unread, and a
-     thread somebody answered should not sit in their own unread list. */
+  const now = new Date();
   await db
     .update(conversations)
-    .set({
-      lastMessageAt: now,
-      updatedAt: now,
-      archivedAt: null,
-      ...(input.side === "church" ? { staffReadAt: now } : { memberReadAt: now }),
-    })
+    .set({ lastMessageAt: now, updatedAt: now, archivedAt: null })
     .where(eq(conversations.id, threadId));
 
+  await db
+    .update(conversationPeople)
+    .set({ lastReadAt: now })
+    .where(and(
+      eq(conversationPeople.conversationId, threadId),
+      asOffice
+        ? eq(conversationPeople.office, true)
+        : eq(conversationPeople.memberId, reader.memberId!),
+    ));
+
+  await dropDraft(db, reader, input.to.office ? "office" : them!);
+
   /*
-   * R24.6. A member writing in rings the bell, once per thread rather than
-   * once per message: somebody writing four lines in a minute is one thing
-   * for the office to answer, not four.
+   * R24.6. A member writing to the office rings the bell, once per thread
+   * rather than once per message: four lines in a minute is one thing for the
+   * office to answer, not four. The line points at the conversation, which is
+   * addressed by who it is with.
    */
-  if (input.side === "member") {
+  if (input.to.office) {
     const [who] = await db
-      .select({ first: members.firstName, last: members.lastName })
+      .select({ first: members.firstName, last: members.lastName, slug: members.slug })
       .from(members)
-      .where(eq(members.id, input.memberId))
+      .where(eq(members.id, reader.memberId!))
       .limit(1);
 
-    await notifyRoles(db, actor.tenantId, ["owner", "admin", "staff"], {
+    await notifyRoles(db, reader.tenantId, ["owner", "admin", "staff"], {
       kind: "message",
       messageKey: "bell.message",
       params: { name: `${who?.first ?? ""} ${who?.last ?? ""}`.trim() },
-      href: `/messages?id=${threadId}`,
+      href: `/messages/${who?.slug ?? ""}`,
     }, { onlyIfUnread: true });
   }
 
-  return made!.id;
+  return { threadId, id: made!.id };
+}
+
+/** The person behind an address, where there is one. */
+export async function memberBySlug(db: Tx, slug: string): Promise<string | null> {
+  const [row] = await db
+    .select({ id: members.id })
+    .from(members)
+    .where(eq(members.slug, slug))
+    .limit(1);
+  return row?.id ?? null;
+}
+
+/**
+ * R16.9. The thread at an address, where this reader has one.
+ *
+ * The address is who it is with, so a link to a conversation is a link to a
+ * person rather than to a row, and it survives whatever the row is called.
+ */
+export async function threadAt(
+  db: Tx,
+  reader: Reader,
+  key: string,
+): Promise<Thread | null> {
+  const all = await readThreads(db, reader);
+  const held = all.find((one) => one.key === key);
+  if (held) return held;
+
+  const away = await readThreads(db, reader, { archivedOnly: true });
+  return away.find((one) => one.key === key) ?? null;
 }
 
 /** R16.9. The reader has seen everything in this thread up to now. */
 export async function markThreadRead(
   db: Tx,
+  reader: Reader,
   conversationId: string,
-  side: Side,
 ): Promise<void> {
-  const now = new Date();
   await db
-    .update(conversations)
-    .set(side === "church" ? { staffReadAt: now } : { memberReadAt: now })
-    .where(eq(conversations.id, conversationId));
+    .update(conversationPeople)
+    .set({ lastReadAt: new Date() })
+    .where(and(
+      eq(conversationPeople.conversationId, conversationId),
+      reader.office
+        ? eq(conversationPeople.office, true)
+        : eq(conversationPeople.memberId, reader.memberId ?? ""),
+    ));
 }
 
-/** R2.13. Off the office's list, kept in the records. A reply brings it back. */
+/** R2.13. Off the list, kept in the records. A reply brings it back. */
 export async function setThreadArchived(
   db: Tx,
-  actor: Actor,
+  reader: Reader,
   conversationId: string,
   archived: boolean,
 ): Promise<void> {
-  guardStaff(actor);
+  if (!(await canRead(db, reader, conversationId))) {
+    throw new PermissionError(reader.office ? "staff" : "member", "editPerson");
+  }
   await db
     .update(conversations)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
     .where(eq(conversations.id, conversationId));
 }
 
-/** R17.1. The member behind an account, for the portal's own screens. */
-export async function memberForUser(db: Tx, userId: string): Promise<string | null> {
-  return personForUser(db, userId);
+/**
+ * R16.9. Who this reader may write to.
+ *
+ * The office, and whoever leads something they are part of. A member with a
+ * question about Tuesday wants their group leader, and a directory of four
+ * hundred people in a To field is how they end up writing to a stranger.
+ */
+export async function recipientsFor(db: Tx, reader: Reader): Promise<Recipient[]> {
+  if (!reader.memberId) return [];
+
+  const mine = db
+    .select({ groupId: groupMemberships.groupId })
+    .from(groupMemberships)
+    .where(eq(groupMemberships.memberId, reader.memberId));
+
+  const groupLeaders = await db
+    .select({
+      id: members.id,
+      slug: members.slug,
+      first: members.firstName,
+      last: members.lastName,
+      photoKey: members.photoKey,
+      through: groups.name,
+    })
+    .from(groupMemberships)
+    .innerJoin(members, eq(members.id, groupMemberships.memberId))
+    .innerJoin(groups, eq(groups.id, groupMemberships.groupId))
+    .where(and(
+      inArray(groupMemberships.groupId, mine),
+      inArray(groupMemberships.role, ["leader", "coleader"]),
+      sql`${members.archivedAt} is null`,
+      sql`${members.id} <> ${reader.memberId}`,
+    ));
+
+  const myTeams = db
+    .select({ teamId: teamMembers.teamId })
+    .from(teamMembers)
+    .where(eq(teamMembers.memberId, reader.memberId));
+
+  const teamLeaders = await db
+    .select({
+      id: members.id,
+      slug: members.slug,
+      first: members.firstName,
+      last: members.lastName,
+      photoKey: members.photoKey,
+      through: teams.name,
+    })
+    .from(teamMembers)
+    .innerJoin(members, eq(members.id, teamMembers.memberId))
+    .innerJoin(teams, eq(teams.id, teamMembers.teamId))
+    .where(and(
+      inArray(teamMembers.teamId, myTeams),
+      eq(teamMembers.role, "leader"),
+      sql`${members.archivedAt} is null`,
+      sql`${members.id} <> ${reader.memberId}`,
+    ));
+
+  const out: Recipient[] = [];
+  for (const one of [...groupLeaders, ...teamLeaders]) {
+    if (out.some((held) => held.value === one.slug)) continue;
+    out.push({
+      value: one.slug,
+      name: `${one.first} ${one.last}`.trim(),
+      photoKey: one.photoKey,
+      through: one.through,
+    });
+  }
+  out.sort((a, b) => a.name.localeCompare(b.name));
+  return out;
+}
+
+/**
+ * R16.9. Whoever in the church answers to this name.
+ *
+ * For the office, which writes to anybody: the To field is a lookup rather
+ * than a list, because a church of four hundred cannot be scrolled.
+ */
+export async function peopleNamed(
+  db: Tx,
+  query: string,
+  limit = 10,
+): Promise<Recipient[]> {
+  const want = `%${query.trim().toLowerCase()}%`;
+  if (query.trim().length < 2) return [];
+
+  const rows = await db
+    .select({
+      slug: members.slug,
+      first: members.firstName,
+      last: members.lastName,
+      preferred: members.preferredName,
+      photoKey: members.photoKey,
+    })
+    .from(members)
+    .where(and(
+      sql`${members.archivedAt} is null`,
+      sql`(
+        lower(${members.firstName}) like ${want}
+        or lower(${members.lastName}) like ${want}
+        or lower(coalesce(${members.preferredName}, '')) like ${want}
+        or lower(${members.firstName} || ' ' || ${members.lastName}) like ${want}
+      )`,
+    ))
+    .orderBy(asc(members.lastName), asc(members.firstName))
+    .limit(limit);
+
+  return rows.map((one) => ({
+    value: one.slug,
+    name: `${one.preferred ?? one.first} ${one.last}`.trim(),
+    photoKey: one.photoKey,
+    through: null,
+  }));
+}
+
+/** R16.9. What this reader has started and not sent. */
+export async function draftsFor(db: Tx, reader: Reader): Promise<Draft[]> {
+  const rows = await db
+    .select({
+      target: messageDrafts.target,
+      body: messageDrafts.body,
+      updatedAt: messageDrafts.updatedAt,
+      first: members.firstName,
+      last: members.lastName,
+      slug: members.slug,
+    })
+    .from(messageDrafts)
+    .leftJoin(members, sql`${members.id}::text = ${messageDrafts.target}`)
+    .where(eq(messageDrafts.userId, reader.userId));
+
+  return rows
+    .filter((one) => one.body.trim().length > 0)
+    .map((one) => ({
+      target: one.target === "office" ? "office" : one.slug ?? one.target,
+      name: one.target === "office" ? "" : `${one.first ?? ""} ${one.last ?? ""}`.trim(),
+      body: one.body,
+      updatedAt: one.updatedAt,
+    }))
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+}
+
+/** R16.9. A draft, kept as it is typed. */
+export async function saveDraft(
+  db: Tx,
+  reader: Reader,
+  /** "office", or whoever it is addressed to. */
+  key: string,
+  body: string,
+): Promise<void> {
+  const target = key === "office" ? "office" : (await memberBySlug(db, key)) ?? key;
+  if (!body.trim()) {
+    await dropDraft(db, reader, target);
+    return;
+  }
+  await db
+    .insert(messageDrafts)
+    .values({ tenantId: reader.tenantId, userId: reader.userId, target, body })
+    .onConflictDoUpdate({
+      target: [messageDrafts.tenantId, messageDrafts.userId, messageDrafts.target],
+      set: { body, updatedAt: new Date() },
+    });
+}
+
+export async function dropDraft(db: Tx, reader: Reader, target: string): Promise<void> {
+  await db
+    .delete(messageDrafts)
+    .where(and(eq(messageDrafts.userId, reader.userId), eq(messageDrafts.target, target)));
 }

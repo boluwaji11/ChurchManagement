@@ -16,6 +16,8 @@ export const mailers = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    /** R24.6. The readable part of its address, unique within the church. */
+    slug: text("slug").notNull(),
     /** "households", "people", or "list" with the list named below. */
     recipients: text("recipients").notNull().default("households"),
     listId: uuid("list_id").references(() => savedLists.id, { onDelete: "set null" }),
@@ -38,5 +40,6 @@ export const mailers = pgTable(
   (t) => [
     index("mailers_tenant_idx").on(t.tenantId),
     uniqueIndex("mailers_name_unique").on(t.tenantId, t.name),
+    uniqueIndex("mailers_slug_unique").on(t.tenantId, t.slug),
   ],
 );
