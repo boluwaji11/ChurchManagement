@@ -157,7 +157,7 @@ export async function setArchived(data: FormData): Promise<SaveResult> {
   revalidatePath("/members");
   redirect(
     archived
-      ? `/members?church=${session.tenantSlug}&archived=1`
+      ? `/members?church=${session.tenantSlug}&show=archived&archived=1`
       : `/members/${back}?church=${session.tenantSlug}&restored=1`,
   );
 }

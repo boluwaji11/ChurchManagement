@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, or, sql, count, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, isNotNull, or, sql, count, type SQL } from "drizzle-orm";
 import type { Tx } from "../client";
 import { freeSlug } from "./slugs";
 import { isUuid } from "./form-rules";
@@ -37,6 +37,8 @@ export interface PersonRow {
 /** How a directory query can be narrowed and ordered. */
 export interface DirectoryQuery {
   includeArchived?: boolean;
+  /** Only the people who have been put away, which is the archived view. */
+  archivedOnly?: boolean;
   /** Matches a name, an email, or a phone number. */
   q?: string;
   status?: string;
@@ -102,7 +104,8 @@ const ORDERS = {
 export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   const where: (SQL | undefined)[] = [];
 
-  if (!opts.includeArchived) where.push(isNull(members.archivedAt));
+  if (opts.archivedOnly) where.push(isNotNull(members.archivedAt));
+  else if (!opts.includeArchived) where.push(isNull(members.archivedAt));
 
   const q = (opts.q ?? "").trim();
   if (q) {
@@ -937,6 +940,15 @@ export async function countPeople(db: Tx, opts: DirectoryQuery = {}): Promise<nu
     .select({ n: count() })
     .from(members)
     .where(where.length > 0 ? and(...where) : undefined);
+  return Number(rows[0]?.n ?? 0);
+}
+
+/** R2.4. How many people have been put away, for the link to them. */
+export async function countArchivedPeople(db: Tx): Promise<number> {
+  const rows = await db
+    .select({ n: count() })
+    .from(members)
+    .where(isNotNull(members.archivedAt));
   return Number(rows[0]?.n ?? 0);
 }
 

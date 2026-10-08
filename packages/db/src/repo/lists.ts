@@ -9,7 +9,7 @@
  * thing to learn. A query builder is where free church software usually stops
  * being usable by the person who actually has to use it.
  */
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, isNotNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { savedLists, savedListMembers } from "../schema/lists";
 import { members } from "../schema/members";
@@ -52,9 +52,18 @@ export function cleanRule(input: Record<string, string | undefined>): ListRule {
   return rule;
 }
 
+/** R1.14. How many saved lists have been put away, for the link to them. */
+export async function countArchivedSavedLists(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(savedLists)
+    .where(isNotNull(savedLists.archivedAt));
+  return row?.count ?? 0;
+}
+
 export async function listSavedLists(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<SavedList[]> {
   const rows = await db
     .select({
@@ -74,7 +83,13 @@ export async function listSavedLists(
       )`,
     })
     .from(savedLists)
-    .where(opts.includeArchived ? undefined : isNull(savedLists.archivedAt))
+    .where(
+      opts.archivedOnly
+        ? isNotNull(savedLists.archivedAt)
+        : opts.includeArchived
+          ? undefined
+          : isNull(savedLists.archivedAt),
+    )
     .orderBy(asc(savedLists.name));
 
   return rows.map((row) => ({

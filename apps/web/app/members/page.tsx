@@ -1,15 +1,19 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
+  withTenant, listPeople, countPeople, countArchivedPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents,
-  listSavedLists, resolveList, countPeopleByStatus, listGroups, PER_PAGE,
+  listSavedLists, countArchivedSavedLists, resolveList, countPeopleByStatus, listGroups,
+  PER_PAGE,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { Flash } from "@/components/said";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";
+import { ArchivedLists } from "./archived-lists";
 import { photoUrls } from "@/lib/photos";
 import {
   queryFromParams, pageFromParams, paramsFromRule, type DirectoryParams,
@@ -38,6 +42,12 @@ export default async function PeoplePage({
 
   const page = pageFromParams(params);
 
+  /* R2.4, R1.14. Two things on this screen can be put away: a person, and a
+     saved list. Each has its own view of the same screen rather than a second
+     section under the directory. */
+  const putAway = params.show === "archived";
+  const putAwayLists = params.lists === "archived";
+
   /*
    * R3.1. A member on this screen sees themselves and a banner about notes they
    * cannot read. The directory their church publishes is the one that holds
@@ -52,7 +62,33 @@ export default async function PeoplePage({
 
   const viewer = { role: session.role, userId: session.userId };
 
-  const { members, tags, groups, counts, duplicates, matching, lists, viewing } = await withTenant(
+  if (putAwayLists && canEditPeople(session)) {
+    const lists = await withTenant(
+      { tenantId: session.tenantId, role: session.role },
+      (tx) => listSavedLists(tx, { archivedOnly: true }),
+    );
+
+    return (
+      <AppShell session={session} title={t("members.title")}>
+        <Link
+          href={`/members?church=${session.tenantSlug}`}
+          className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" /> {t("lists.archived.back")}
+        </Link>
+
+        <ArchivedLists
+          church={session.tenantSlug}
+          lists={lists.map((one) => ({ id: one.id, name: one.name, kind: one.kind }))}
+        />
+      </AppShell>
+    );
+  }
+
+  const {
+    members, tags, groups, counts, duplicates, matching, lists, viewing,
+    archivedPeople, archivedLists,
+  } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // R1.14. A saved list is either a set of members or the filters it was
@@ -68,7 +104,10 @@ export default async function PeoplePage({
        * connection together. Waiting on each one in turn spent a round trip
        * apiece, and the round trip is the expensive part.
        */
-      const [lists, members, matching, tags, groups, counts, pairs] = await Promise.all([
+      const [
+        lists, members, matching, tags, groups, counts, pairs,
+        archivedPeople, archivedLists,
+      ] = await Promise.all([
         canEditPeople(session) ? listSavedLists(tx) : [],
         // R9.3. Who is asking goes to the query layer, which decides what they
         // may see. A group leader gets their own group and nobody else.
@@ -79,6 +118,9 @@ export default async function PeoplePage({
         // R2.14. The numbers beside each status in the filter drawer.
         countPeopleByStatus(tx),
         canArchivePeople(session) ? findDuplicatePairs(tx) : [],
+        // R2.4, R1.14. What is behind each of the two links at the foot.
+        canArchivePeople(session) ? countArchivedPeople(tx) : 0,
+        canEditPeople(session) ? countArchivedSavedLists(tx) : 0,
       ]);
 
       return {
@@ -90,6 +132,8 @@ export default async function PeoplePage({
         groups,
         counts,
         duplicates: pairs.length,
+        archivedPeople,
+        archivedLists,
       };
     },
   );
@@ -112,12 +156,23 @@ export default async function PeoplePage({
         <Flash message={t("person.archived.title")} />
       ) : null}
 
+      {/* R2.4. The way back to the live directory, on the archived view. */}
+      {putAway ? (
+        <Link
+          href={`/members?church=${session.tenantSlug}`}
+          className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" /> {t("members.archived.back")}
+        </Link>
+      ) : null}
+
       {session.role === "staff" || session.role === "member" ? (
         <Banner tone="info" title={t("members.restricted.title")} className="mb-8" />
       ) : null}
 
       <Directory
         church={session.tenantSlug}
+        putAway={putAway}
         canEdit={canEdit}
         canArchive={canArchivePeople(session)}
         page={page}
@@ -142,6 +197,25 @@ export default async function PeoplePage({
           archived: Boolean(p.archivedAt),
         }))}
       />
+
+      {!putAway && archivedPeople > 0 ? (
+        <Link
+          href={`/members?church=${session.tenantSlug}&show=archived`}
+          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {plural("members.archived", archivedPeople)}
+        </Link>
+      ) : null}
+
+      {/* R1.14. A saved list could be put away and then reached by nothing. */}
+      {!putAway && archivedLists > 0 ? (
+        <Link
+          href={`/members?church=${session.tenantSlug}&lists=archived`}
+          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {plural("lists.archived", archivedLists)}
+        </Link>
+      ) : null}
     </AppShell>
   );
 }

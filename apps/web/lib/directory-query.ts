@@ -16,6 +16,8 @@ export interface DirectoryParams {
   dir?: string;
   show?: string;
   archived?: string;
+  /** R1.14. "archived" opens the saved lists that have been put away. */
+  lists?: string;
   welcome?: string;
   /** R1.14. A saved list, which supplies either a set of members or its filters. */
   list?: string;
@@ -50,7 +52,9 @@ export function queryFromParams(params: DirectoryParams): DirectoryQuery {
     allowed.includes((value ?? "") as T) ? (value as T) : undefined;
 
   return {
-    includeArchived: params.show === "archived",
+    /* R2.4. The archived view is its own list rather than archived people
+       mixed into the live one, so the same URL exports the same rows. */
+    archivedOnly: params.show === "archived",
     q: params.q,
     status: params.status,
     tagId: params.tag,

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FilterDrawer, FilterGroup, ChipButton } from "@/components/filter-drawer";
 import { ResizableTable } from "@/components/resizable-columns";
-import { X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Check, Tag, CheckCircle2 } from "lucide-react";
+import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Check, Tag, CheckCircle2 } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
   IconButton,
@@ -18,7 +18,7 @@ import { t, plural } from "@connectapp/i18n";
 import { Said } from "@/components/said";
 import { Empty } from "@/components/empty";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
-import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
+import { bulkArchive, bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
 import { Pages } from "@/components/pages";
 import { useAnswered } from "@/components/form-actions";
 import { rename, archiveList } from "./list-actions";
@@ -95,6 +95,7 @@ const ANY = "__any";
  */
 export function Directory({
   church,
+  putAway = false,
   rows,
   tags,
   groups,
@@ -109,6 +110,8 @@ export function Directory({
   viewing,
 }: {
   church: string;
+  /** R2.4. The archived view: the same list, holding the people put away. */
+  putAway?: boolean;
   rows: Row[];
   tags: TagOption[];
   /** R9.4. The groups the selection can be put into. */
@@ -191,7 +194,36 @@ export function Directory({
     });
   };
 
-  const filtersOn = ["q", "status", "tag", "has", "show"].some((k) => params.get(k));
+  /*
+   * R2.4. Putting one person back, from the row they are on.
+   *
+   * The archived view is where somebody goes to undo an archive, so the action
+   * is on the row rather than three clicks away on each person's own page.
+   */
+  const restore = (id: string) => {
+    const data = new FormData();
+    data.set("church", church);
+    data.set("archived", "0");
+    data.append("ids", id);
+
+    setResult(undefined);
+    startTransition(async () => {
+      const outcome = await bulkArchive(data);
+      setResult(outcome);
+      if (!outcome.error) router.refresh();
+    });
+  };
+
+  /* The checkboxes and the bar they feed are about the live directory: every
+     action on that bar reads as something done to a person the church is still
+     in touch with. */
+  const picking = canEdit && !putAway;
+
+  /* The archived view is reached through `show`, so that one does not count as
+     narrowing while it is on. */
+  const filtersOn =
+    ["q", "status", "tag", "has"].some((k) => params.get(k)) ||
+    (!putAway && Boolean(params.get("show")));
   const exportHref = `/api/export?church=${church}&${params.toString()}`;
 
   const statusNow = params.get("status") ?? "all";
@@ -215,7 +247,13 @@ export function Directory({
       <div className="flex flex-col gap-3">
         {/* What you can do to the list, then the box that narrows it. The
             tools read from the left, and the thing this screen is for sits at
-            the far end where the eye finishes. */}
+            the far end where the eye finishes.
+
+            None of it is on the archived view: the filter counts are counts of
+            the live directory, and importing, printing and adding somebody are
+            things done to it. The search box stays, because an archived
+            directory is still looked up by name. */}
+        {putAway ? null : (
         <div className="flex flex-wrap items-center gap-2">
         <DirectoryFilters
           tags={tags}
@@ -268,6 +306,7 @@ export function Directory({
           </Button>
         ) : null}
         </div>
+        )}
 
         <SearchField
           value={search}
@@ -287,7 +326,7 @@ export function Directory({
       {/* R1.14. Which list is being read, and the way back to everybody. */}
       {viewing ? <ListBar church={church} list={viewing} canEdit={canEdit} /> : null}
 
-      {selected.length > 0 && canEdit ? (
+      {selected.length > 0 && picking ? (
         <SelectionBar
           church={church}
           lists={lists}
@@ -312,14 +351,26 @@ export function Directory({
       {rows.length === 0 ? (
         <Empty
           icon={filtersOn ? "noResults" : "members"}
-          title={filtersOn ? t("directory.noResults.title") : t("members.empty.title")}
-          body={filtersOn ? t("directory.noResults.body") : t("members.empty.body")}
+          title={
+            filtersOn
+              ? t("directory.noResults.title")
+              : putAway
+                ? t("members.archived.none")
+                : t("members.empty.title")
+          }
+          body={
+            filtersOn
+              ? t("directory.noResults.body")
+              : putAway
+                ? undefined
+                : t("members.empty.body")
+          }
           action={
             filtersOn ? (
               <Button variant="secondary" onClick={() => router.replace(pathname, { scroll: false })}>
                 <X /> {t("directory.clear")}
               </Button>
-            ) : canEdit ? (
+            ) : canEdit && !putAway ? (
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button asChild>
                   <Link href={`/members/new?church=${church}`}>
@@ -347,7 +398,7 @@ export function Directory({
               className="relative flex items-center gap-3 rounded-lg border border-line bg-surface p-3 data-[selected]:bg-primary-soft"
               data-selected={selected.includes(p.id) || undefined}
             >
-              {canEdit ? (
+              {picking ? (
                 <Checkbox
                   checked={selected.includes(p.id)}
                   onCheckedChange={() => toggle(p.id)}
@@ -385,18 +436,33 @@ export function Directory({
                   <span className="min-w-0 truncate text-[13px] text-fg-muted">{reachOn(p)}</span>
                 ) : null}
               </span>
+
+              {putAway && canArchive ? (
+                <IconButton
+                  label={t("person.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => restore(p.id)}
+                  className="relative z-10 shrink-0"
+                >
+                  <ArchiveRestore />
+                </IconButton>
+              ) : null}
             </li>
           ))}
         </ul>
 
         <ResizableTable
-          id="directory"
+          /* Its own remembered widths: the archived view trades the checkbox
+             column for the one that puts somebody back, and a set of widths
+             held against a different run of columns lands on the wrong ones. */
+          id={putAway ? "directory.archived" : "directory"}
           className="hidden rounded-lg border border-line bg-surface sm:block"
         >
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
               <tr className="text-left text-[12px] font-semibold text-fg">
-                {canEdit ? (
+                {picking ? (
                   <th className="w-10 border-b border-line px-4 py-3 font-medium">
                     <Checkbox
                       checked={allSelected ? true : someSelected ? "indeterminate" : false}
@@ -411,6 +477,11 @@ export function Directory({
                 <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.tags")}</th>
                 <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.email")}</th>
                 <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.phone")}</th>
+                {putAway && canArchive ? (
+                  <th className="w-12 border-b border-line px-4 py-3 font-medium">
+                    <span className="sr-only">{t("person.restore")}</span>
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
@@ -427,7 +498,7 @@ export function Directory({
                   className="cursor-pointer hover:bg-canvas data-[selected]:bg-primary-soft"
                   data-selected={selected.includes(p.id) || undefined}
                 >
-                  {canEdit ? (
+                  {picking ? (
                     <td
                       className="border-b border-sunken px-4 py-2.5"
                       onClick={(e) => e.stopPropagation()}
@@ -463,6 +534,21 @@ export function Directory({
                   <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted tabular-nums">
                     {p.primaryPhone ?? EMPTY}
                   </td>
+                  {putAway && canArchive ? (
+                    <td
+                      className="border-b border-sunken px-4 py-2.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <IconButton
+                        label={t("person.restore")}
+                        variant="ghost"
+                        disabled={pending}
+                        onClick={() => restore(p.id)}
+                      >
+                        <ArchiveRestore />
+                      </IconButton>
+                    </td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>
