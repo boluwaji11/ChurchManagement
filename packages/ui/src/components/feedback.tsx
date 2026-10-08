@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../lib/cn";
 
 /** Skeletons, never spinners, for anything over 300ms. Under 300ms, show nothing. */
@@ -69,15 +72,23 @@ export function Progress({
  * work runs.
  *
  * Under prefers-reduced-motion the ring stops turning and the words carry it.
+ *
+ * It is drawn on the body rather than where it is written, because a panel
+ * written inside a sticky header or a transformed pane is trapped in that
+ * pane's own stacking context: the screen dims under it and the bar it was
+ * written in stays bright, which reads as the bar still being live.
  */
 export function Working({ open, label }: { open: boolean; label: string }) {
-  if (!open) return null;
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
 
-  return (
+  if (!open || !mounted) return null;
+
+  return createPortal(
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-0 z-[60] grid place-items-center bg-overlay"
+      className="fixed inset-0 z-[100] grid place-items-center bg-overlay"
     >
       <span className="flex items-center gap-3 rounded-[14px] border border-line bg-surface px-5 py-4 shadow-lg">
         <span
@@ -86,6 +97,7 @@ export function Working({ open, label }: { open: boolean; label: string }) {
         />
         <span className="text-[length:var(--d-text-body)] font-medium text-fg">{label}</span>
       </span>
-    </div>
+    </div>,
+    document.body,
   );
 }
