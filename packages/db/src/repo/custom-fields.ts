@@ -32,6 +32,8 @@ export interface CustomFieldDef {
   label: string;
   type: string;
   options: string[] | null;
+  /** R17.1. Whether the person may change it on their own profile. */
+  memberEditable: boolean;
 }
 
 /** A value as the form holds it, before it is shaped for storage. */
@@ -64,6 +66,7 @@ export async function listCustomFields(db: Tx, entity: CustomFieldEntity): Promi
       label: customFields.label,
       type: customFields.type,
       options: customFields.options,
+      memberEditable: customFields.memberEditable,
     })
     .from(customFields)
     .where(eq(customFields.entity, entity))
@@ -87,7 +90,10 @@ function cleanOptions(type: CustomFieldType, raw: string[] | undefined | null): 
 export async function createCustomField(
   db: Tx,
   actor: WriteActor,
-  input: { entity: CustomFieldEntity; label: string; type: CustomFieldType; options?: string[] },
+  input: {
+    entity: CustomFieldEntity; label: string; type: CustomFieldType;
+    options?: string[]; memberEditable?: boolean;
+  },
 ): Promise<CustomFieldDef> {
   if (!canManageCustomFields(actor)) throw new PermissionError(actor.role, "addField");
 
@@ -123,6 +129,7 @@ export async function createCustomField(
       label,
       type: input.type,
       options: cleanOptions(input.type, input.options),
+      memberEditable: input.memberEditable ?? false,
     })
     .returning({
       id: customFields.id,
@@ -131,6 +138,7 @@ export async function createCustomField(
       label: customFields.label,
       type: customFields.type,
       options: customFields.options,
+      memberEditable: customFields.memberEditable,
     });
 
   if (!row) throw new Error("Field insert returned no row.");
@@ -148,7 +156,7 @@ export async function updateCustomField(
   db: Tx,
   actor: WriteActor,
   id: string,
-  input: { label: string; options?: string[]; type?: CustomFieldType },
+  input: { label: string; options?: string[]; type?: CustomFieldType; memberEditable?: boolean },
 ): Promise<void> {
   if (!canManageCustomFields(actor)) throw new PermissionError(actor.role, "editField");
 
@@ -194,7 +202,12 @@ export async function updateCustomField(
 
   await db
     .update(customFields)
-    .set({ label, type, options: cleanOptions(type, input.options) })
+    .set({
+      label,
+      type,
+      options: cleanOptions(type, input.options),
+      ...(input.memberEditable === undefined ? {} : { memberEditable: input.memberEditable }),
+    })
     .where(eq(customFields.id, id));
 }
 
@@ -295,6 +308,45 @@ export async function getCustomValues(
  * Only fields present in the map are touched, so a form that renders a subset
  * cannot wipe what it did not show. A null clears the field by removing the row.
  */
+/**
+ * R1.10, R17.1. A person setting their own custom fields on their own record.
+ *
+ * It cannot go through setCustomValues, which asks for "members.edit": a
+ * member has no business editing anybody's record including, as far as that
+ * permission is concerned, their own. The two guards here are different and
+ * narrower. The record has to be the one this account is attached to, and
+ * only a field the church marked as the member's to change is written, so a
+ * church that keeps a safeguarding note in a custom field keeps it.
+ */
+export async function setOwnCustomValues(
+  db: Tx,
+  tenantId: string,
+  memberId: string,
+  values: Record<string, CustomValue>,
+): Promise<void> {
+  const ids = Object.keys(values);
+  if (ids.length === 0) return;
+
+  const theirs = await db
+    .select({ id: customFields.id })
+    .from(customFields)
+    .where(
+      and(
+        eq(customFields.entity, "person"),
+        eq(customFields.memberEditable, true),
+        inArray(customFields.id, ids),
+      ),
+    );
+
+  const allowed = new Set(theirs.map((one) => one.id));
+  const mine = Object.fromEntries(
+    Object.entries(values).filter(([id]) => allowed.has(id)),
+  );
+  if (Object.keys(mine).length === 0) return;
+
+  await writeValues(db, tenantId, memberId, mine);
+}
+
 export async function setCustomValues(
   db: Tx,
   actor: WriteActor,
@@ -312,14 +364,31 @@ export async function setCustomValues(
     .from(customFields)
     .where(and(eq(customFields.entity, entity), inArray(customFields.id, ids)));
 
+  // A field id from another church is simply not in this church's list, so
+  // it is ignored rather than reported. There is nothing to tell the user.
   const known = new Set(fields.map((f) => f.id));
+  const mine = Object.fromEntries(
+    Object.entries(values).filter(([id]) => known.has(id)),
+  );
+
+  await writeValues(db, actor.tenantId, entityId, mine);
+}
+
+/**
+ * The write itself, once somebody has decided which fields may be written.
+ *
+ * Both ways in share it, so the church's form and the member's own profile
+ * cannot drift apart about what a blank means or how a value is stored.
+ */
+async function writeValues(
+  db: Tx,
+  tenantId: string,
+  entityId: string,
+  values: Record<string, CustomValue>,
+): Promise<void> {
   const clear: string[] = [];
 
   for (const [fieldId, value] of Object.entries(values)) {
-    // A field id from another church is simply not in this church's list, so it
-    // is ignored rather than reported. There is nothing to tell the user.
-    if (!known.has(fieldId)) continue;
-
     if (value === null) {
       clear.push(fieldId);
       continue;
@@ -327,7 +396,7 @@ export async function setCustomValues(
 
     await db.execute(sql`
       insert into custom_field_values (tenant_id, field_id, entity_id, value)
-      values (${actor.tenantId}::uuid, ${fieldId}::uuid, ${entityId}::uuid, ${JSON.stringify(value)}::jsonb)
+      values (${tenantId}::uuid, ${fieldId}::uuid, ${entityId}::uuid, ${JSON.stringify(value)}::jsonb)
       on conflict (field_id, entity_id) do update set value = excluded.value`);
   }
 

@@ -23,7 +23,7 @@ import { Contacts } from "./contacts";
 import { Places } from "./places";
 import { MessageButton } from "./message";
 import { NoteForm } from "../note-form";
-import { customFieldValue } from "../custom-fields";
+import { customFieldValue } from "../field-values";
 import { canReadConfidentialNotes } from "@connectapp/db";
 import { tabMetadata } from "@/lib/page-metadata";
 

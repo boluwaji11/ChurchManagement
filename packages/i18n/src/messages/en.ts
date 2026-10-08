@@ -1357,6 +1357,7 @@ export const en = {
   "fields.new": "New field",
   "fields.newPlaceholder": "Dietary notes",
   "fields.name": "Name",
+  "fields.memberEditable": "The member can change this on their own profile",
   "fields.type": "Type",
   "fields.start": "What are you keeping?",
   "fields.ownField": "Create your own",

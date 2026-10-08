@@ -180,6 +180,7 @@ describe("values", () => {
 describe("checking a value against its field", () => {
   const def = (type: string, options: string[] | null = null) => ({
     id: "x", entity: "person", key: "k", label: "Field", type, options,
+    memberEditable: false,
   });
 
   it("refuses text where a number belongs", () => {

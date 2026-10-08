@@ -1,6 +1,10 @@
 "use server";
 
-import { withTenant, updateOwnProfile, setOwnPhoto, setAccountName } from "@connectapp/db";
+import {
+  withTenant, updateOwnProfile, setOwnPhoto, setAccountName,
+  listCustomFields, setOwnCustomValues, coerceCustomValue,
+  type CustomValue,
+} from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
@@ -55,6 +59,33 @@ export async function saveProfile(data: FormData): Promise<ProfileResult> {
       ),
     );
     if (!person) return { error: t("settings.profile.noRecord") };
+
+    /*
+     * R1.10, R17.1. The church's own fields, where it said the member keeps
+     * them. The repository checks that again, so a field the church did not
+     * open is not written even if the form carried it.
+     */
+    await withTenant(ctx, async (tx) => {
+      const fields = (await listCustomFields(tx, "person"))
+        .filter((one) => one.memberEditable);
+      if (fields.length === 0) return;
+
+      const values: Record<string, CustomValue> = {};
+      for (const one of fields) {
+        const name = `cf_${one.id}`;
+        const raw: CustomValue =
+          one.type === "boolean"
+            ? data.get(name) !== null
+            : one.type === "multi_select"
+              ? data.getAll(name).map(String)
+              : (data.get(name) as string | null);
+        const read = coerceCustomValue(one, raw);
+        // A bad value is left as it was. The church's own form reports these
+        // against the field; here there is nowhere on screen to put it.
+        if (!("error" in read)) values[one.id] = read.value;
+      }
+      await setOwnCustomValues(tx, session.tenantId, person, values);
+    });
 
     /*
      * The name on the account follows the name on the record, so the sidebar

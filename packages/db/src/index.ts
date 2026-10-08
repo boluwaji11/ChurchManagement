@@ -49,7 +49,8 @@ export {
 } from "./repo/tags";
 export {
   listCustomFields, createCustomField, updateCustomField, deleteCustomField,
-  getCustomValues, setCustomValues, coerceCustomValue, canManageCustomFields, keyFor,
+  getCustomValues, setCustomValues, setOwnCustomValues, coerceCustomValue,
+  canManageCustomFields, keyFor,
   CAN_MANAGE_CUSTOM_FIELDS, CUSTOM_FIELD_TYPES, CUSTOM_FIELD_ENTITIES,
   type CustomFieldDef, type CustomFieldType, type CustomFieldEntity, type CustomValue,
 } from "./repo/custom-fields";

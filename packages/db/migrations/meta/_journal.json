@@ -876,6 +876,13 @@
       "when": 1791423000001,
       "tag": "0124_school_year_custom",
       "breakpoints": true
+    },
+    {
+      "idx": 125,
+      "version": "7",
+      "when": 1791423000002,
+      "tag": "0125_field_member_editable",
+      "breakpoints": true
     }
   ]
 }

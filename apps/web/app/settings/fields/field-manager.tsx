@@ -8,6 +8,7 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Checkbox,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { addField, saveField, removeField } from "../../fields/actions";
@@ -21,6 +22,7 @@ export interface FieldItem {
   label: string;
   type: string;
   options: string[] | null;
+  memberEditable?: boolean;
 }
 
 const TYPES = [
@@ -198,6 +200,7 @@ function FieldSheet({
   const [type, setType] = React.useState(field?.type ?? "text");
   const [label, setLabel] = React.useState(field?.label ?? "");
   const [choices, setChoices] = React.useState((field?.options ?? []).join("\n"));
+  const [ownIt, setOwnIt] = React.useState(field?.memberEditable ?? false);
   // R1.10. Adding opens on the library. Editing opens on the field itself.
   const [picking, setPicking] = React.useState(!field);
   const [all, setAll] = React.useState(false);
@@ -212,6 +215,7 @@ function FieldSheet({
     setType(field?.type ?? "text");
     setLabel(field?.label ?? "");
     setChoices((field?.options ?? []).join("\n"));
+    setOwnIt(field?.memberEditable ?? false);
     setPicking(!field);
     setAll(false);
     setError(undefined);
@@ -451,6 +455,21 @@ function FieldSheet({
           {hasChoices(type) ? (
             <Choices value={choices} onChange={setChoices} />
           ) : null}
+
+          {/* R1.10, R17.1. Some custom fields are the person's own details
+              and some are the church's notes about them, and only the
+              church knows which. Off unless it says otherwise. */}
+          <label className="flex cursor-pointer items-center gap-3 border-t border-line pt-4">
+            <Checkbox
+              name="memberEditable"
+              value="1"
+              checked={ownIt}
+              onCheckedChange={(on) => setOwnIt(on === true)}
+            />
+            <span className="text-[length:var(--d-text-body)] text-fg">
+              {t("fields.memberEditable")}
+            </span>
+          </label>
         </form>
       </SheetContent>
     </Sheet>

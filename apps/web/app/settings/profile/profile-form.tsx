@@ -16,6 +16,9 @@ import { AddressFields } from "@/components/address-fields";
 import { Picker } from "@/components/picker";
 import { oneLineAddress, type AddressValues } from "@/lib/address";
 import { maritalOptions } from "@/lib/person-input";
+import { CustomFieldInputs } from "@/app/members/custom-fields";
+import { customFieldValue, type FieldDef } from "@/app/members/field-values";
+import type { FieldValues } from "@/app/members/custom-fields";
 import { saveProfile, clearPhoto } from "./actions";
 import { useFormError } from "@/lib/form-error";
 import { Details, Detail } from "../card";
@@ -65,6 +68,8 @@ export function ProfileForm({
   signedInAs,
   photoUrl,
   values,
+  customFields = [],
+  customValues = {},
   campuses,
 }: {
   church: string;
@@ -72,6 +77,9 @@ export function ProfileForm({
   signedInAs: string;
   photoUrl: string | null;
   values: ProfileValues;
+  /** R1.10. The church's own fields, and which are theirs to change. */
+  customFields?: (FieldDef & { memberEditable?: boolean })[];
+  customValues?: FieldValues;
   /** R1.2. Offered only where this church has more than one. */
   campuses: CampusChoice[];
 }) {
@@ -302,6 +310,12 @@ export function ProfileForm({
             ...(values.anniversary
               ? [[t("person.anniversary"), longDate(values.anniversary)] as [string, string]]
               : []),
+            ...customFields
+              .map((one) => [
+                one.label,
+                customFieldValue(one, customValues[one.id], longDate),
+              ] as [string, string])
+              .filter(([, value]) => value !== ""),
             ...(campuses.length > 1
               ? [[
                   t("person.campus"),
@@ -374,6 +388,17 @@ export function ProfileForm({
                 labels={DATE_LABELS()}
               />
             </Field>
+          ) : null}
+
+          {/* R1.10, R17.1. A church keeps two kinds of custom field on a
+              person: their own details and its notes about them. Only the
+              first kind is drawn here, and the server holds to that too. */}
+          {customFields.filter((one) => one.memberEditable).length > 0 ? (
+            <CustomFieldInputs
+              fields={customFields.filter((one) => one.memberEditable)}
+              values={customValues}
+              errors={{}}
+            />
           ) : null}
 
           {campuses.length > 1 ? (

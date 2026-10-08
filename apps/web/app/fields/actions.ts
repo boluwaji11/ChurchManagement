@@ -53,7 +53,13 @@ export async function addField(data: FormData): Promise<FieldResult> {
   const { actor, ctx } = await context(slug);
   try {
     const made = await withTenant(ctx, (tx) =>
-      createCustomField(tx, actor, { entity: "person", label, type, options: choices(data) }),
+      createCustomField(tx, actor, {
+        entity: "person",
+        label,
+        type,
+        options: choices(data),
+        memberEditable: data.get("memberEditable") !== null,
+      }),
     );
     done();
     return { id: made.id };
@@ -78,6 +84,7 @@ export async function saveField(data: FormData): Promise<FieldResult> {
         options: choices(data),
         // R1.10. Only honoured while nothing has been answered against it.
         type: (type || undefined) as CustomFieldType | undefined,
+        memberEditable: data.get("memberEditable") !== null,
       }),
     );
     done();

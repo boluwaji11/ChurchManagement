@@ -1,5 +1,6 @@
 import {
   withTenant, personForUser, getPerson, getPersonForEdit, listCampuses, anniversaryOf,
+  listCustomFields, getCustomValues,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -56,6 +57,10 @@ export default async function ProfilePage({
         contact,
         campuses: await listCampuses(tx),
         anniversary: await anniversaryOf(tx, self),
+        /* R1.10, R17.1. Whatever this church asks about its people. The
+           ones it marked as theirs to change are theirs to change here. */
+        customFields: await listCustomFields(tx, "person"),
+        customValues: await getCustomValues(tx, "person", self),
         photoKey: person?.photoKey ?? null,
       };
     },
@@ -95,6 +100,14 @@ export default async function ProfilePage({
               anniversary: result.anniversary ?? "",
               campusId: result.person.campusId,
             }}
+            customFields={result.customFields.map((one) => ({
+              id: one.id,
+              label: one.label,
+              type: one.type,
+              options: one.options,
+              memberEditable: one.memberEditable,
+            }))}
+            customValues={result.customValues}
           />
         </section>
       ) : (
