@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   Banner, Button, Field, Input, Sheet, SheetContent, SheetTrigger,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
@@ -141,7 +141,13 @@ export function StartCount({
               <SelectTrigger aria-label={t("giving.gift.fund")}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent create={`/settings/funds?church=${church}`}>
+              <SelectContent
+                create={
+                  <SelectCreate href={`/settings/funds?church=${church}`}>
+                    {t("fund.add")}
+                  </SelectCreate>
+                }
+              >
                 {funds.map((fund) => (
                   <SelectItem key={fund.id} value={fund.id}>{fund.name}</SelectItem>
                 ))}

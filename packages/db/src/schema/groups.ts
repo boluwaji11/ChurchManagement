@@ -26,6 +26,13 @@ export const groupTypes = pgTable(
     tenantId: tenantId(),
     name: text("name").notNull(),
     /**
+     * R9.1. What the type is called in an address.
+     *
+     * The group list filters by type, and the filter was a raw id, which is
+     * what a leader saw when they copied the address to send to somebody else.
+     */
+    slug: text("slug"),
+    /**
      * R9.5. What this kind of group is, in the church's words, shown at the top
      * of its section in the finder. This is where a church says "Life Groups
      * exist to help you grow" and when the next term starts.
@@ -40,6 +47,7 @@ export const groupTypes = pgTable(
   (t) => [
     index("group_type_tenant_idx").on(t.tenantId),
     uniqueIndex("group_type_name_unique").on(t.tenantId, t.name),
+    uniqueIndex("group_type_slug_unique").on(t.tenantId, t.slug),
   ],
 );
 
