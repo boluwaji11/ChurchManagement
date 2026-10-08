@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Baby } from "lucide-react";
 import { Banner, Button } from "@connectapp/ui";
 import type { MyChild } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { Panel } from "@/components/portal/panel";
+import { Block } from "./timeline";
 import { checkInMine } from "./actions";
 
 /**
@@ -34,24 +34,34 @@ export function CheckinCard({
   const waiting = kids.filter((one) => !one.code);
   const inAlready = kids.filter((one) => one.code);
 
+  const room = kids[0]?.roomHue ?? "violet";
+
   return (
-    <Panel className="flex flex-wrap items-center gap-4">
+    <Block
+      icon={<Baby />}
+      title={
+        waiting.length > 0
+          ? t("checkin.mine.ask", { names: waiting.map((one) => one.name).join(", ") })
+          : t("checkin.mine.done")
+      }
+      className="shadow-sm"
+    >
+    <div className="flex flex-wrap items-center gap-4 px-5 py-4">
+      {/* R8.14. The room's own colour, the same one printed on the label a
+          volunteer hands back, so a parent can be pointed by it. */}
       <span
         aria-hidden
         className="min-h-11 w-1.5 shrink-0 self-stretch rounded-full"
-        style={{ background: `var(--hue-${kids[0]?.roomHue ?? "violet"}-500)` }}
+        style={{ background: `var(--hue-${room}-500)` }}
       />
 
-      <span className="flex min-w-[220px] flex-1 flex-col gap-0.5">
-        <span className="text-[17px] font-semibold leading-6 text-fg">
-          {waiting.length > 0
-            ? t("checkin.mine.ask", { names: waiting.map((one) => one.name).join(", ") })
-            : t("checkin.mine.done")}
-        </span>
-        <span className="text-[length:var(--d-text-body)] text-fg-muted">
+      <span className="flex min-w-[200px] flex-1 flex-col gap-0.5">
+        <span className="text-[length:var(--d-text-body)] font-medium text-fg">
           {serviceName}
-          {kids[0]?.roomName ? ` ${kids[0].roomName}` : ""}
         </span>
+        {kids[0]?.roomName ? (
+          <span className="text-caption text-fg-muted">{kids[0].roomName}</span>
+        ) : null}
 
         {/* R8.10. What the room has to know, said before anybody leaves home. */}
         {kids.some((one) => one.allergy) ? (
@@ -105,6 +115,7 @@ export function CheckinCard({
       {error ? (
         <Banner tone="danger" title={t("checkin.mine.failed")}>{error}</Banner>
       ) : null}
-    </Panel>
+    </div>
+    </Block>
   );
 }

@@ -183,13 +183,21 @@ export async function assignmentsForPerson(
   db: Tx,
   memberId: string,
   options: { from?: string; limit?: number } = {},
-): Promise<(Assignment & { teamName: string; occursOn: string; startsAt: string; serviceName: string })[]> {
+): Promise<(Assignment & {
+  teamName: string;
+  /** R24.4. The team's own colour, which marks its dates on a member's screen. */
+  teamHue: string;
+  occursOn: string;
+  startsAt: string;
+  serviceName: string;
+})[]> {
   const rows = await db
     .select({
       id: servingAssignments.id,
       occurrenceId: servingAssignments.occurrenceId,
       teamId: servingAssignments.teamId,
       teamName: teams.name,
+      teamHue: teams.hue,
       positionId: servingAssignments.positionId,
       positionName: teamPositions.name,
       memberId: servingAssignments.memberId,
@@ -221,6 +229,7 @@ export async function assignmentsForPerson(
     occurrenceId: r.occurrenceId,
     teamId: r.teamId,
     teamName: r.teamName,
+    teamHue: r.teamHue,
     positionId: r.positionId,
     positionName: r.positionName,
     memberId: r.memberId,
