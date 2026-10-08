@@ -7,6 +7,7 @@ import {
   Banner, Button, Dialog, DialogContent, DialogFooter, IconButton,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { useFormError } from "@/lib/form-error";
 import { stopRepeating } from "./actions";
 
 /**
@@ -34,7 +35,7 @@ export function StopRepeating({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   return (

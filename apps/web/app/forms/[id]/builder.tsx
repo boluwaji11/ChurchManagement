@@ -527,7 +527,20 @@ function Question({
       ];
 
   React.useEffect(() => setLabel(field.label), [field.label]);
+  React.useEffect(() => setHelp(field.help ?? ""), [field.help]);
   React.useEffect(() => setOptions(field.options ?? []), [field.options]);
+
+  /*
+   * "Saved" answers a press that already worked, so it goes the way the
+   * confirmation banner in components/said.tsx goes: five seconds, then off
+   * the row. Left up, it reads as a label on the question rather than an
+   * answer to something the writer just did.
+   */
+  React.useEffect(() => {
+    if (!kept) return;
+    const timer = window.setTimeout(() => setKept(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [kept]);
 
   const save = (changes: {
     label?: string;
@@ -539,6 +552,9 @@ function Question({
     help?: string | null;
   }) =>
     startWriting(async () => {
+      // Cleared first, so a second write that works gets its own five seconds
+      // rather than inheriting what is left of the last one's.
+      setKept(false);
       const result = await saveQuestion(
         formId,
         field.id,

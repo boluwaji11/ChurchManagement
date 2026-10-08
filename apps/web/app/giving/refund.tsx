@@ -9,6 +9,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { groupAmount, money, toCents } from "@/lib/money";
 import { MoneyInput } from "@/components/money-input";
+import { useFormError } from "@/lib/form-error";
 import { giveBack } from "./actions";
 
 /**
@@ -36,7 +37,7 @@ export function RefundGift({
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [amount, setAmount] = React.useState("");
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
   const left = gift.amountCents - gift.refundedCents;

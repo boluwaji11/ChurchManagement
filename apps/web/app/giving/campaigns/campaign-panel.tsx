@@ -86,8 +86,7 @@ export function CampaignPanel({
       );
       setError(result.error);
       if (!result.error) {
-        setDirty(false);
-        setOpen(false);
+        close(false);
         router.refresh();
       }
     });
@@ -113,7 +112,7 @@ export function CampaignPanel({
                 className="mr-auto"
                 disabled={saving}
                 onClick={() => {
-                  setOpen(false);
+                  close(false);
                   onClose();
                 }}
               >

@@ -268,8 +268,7 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
                 );
                 setError(result.error);
                 if (!result.error) {
-                  setDirty(false);
-                  setOpen(false);
+                  close(false);
                   router.refresh();
                 }
               });

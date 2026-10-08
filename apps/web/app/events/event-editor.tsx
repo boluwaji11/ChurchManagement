@@ -108,6 +108,16 @@ export function EventEditor({
   const [formId, setFormId] = React.useState(event?.formId ?? "");
   const [asking, setAsking] = React.useState(false);
   const [linking, startLinking] = React.useTransition();
+  // The form the event was on when the box opened, so closing the box without
+  // choosing leaves the screen saying what the server holds.
+  const held = React.useRef(formId);
+  // The last form chosen, kept across the tick going off and on again.
+  const lastForm = React.useRef(event?.formId ?? "");
+
+  const ask = () => {
+    held.current = formId;
+    setAsking(true);
+  };
 
   /*
    * R14.5. Turning registration on asks which form members answer.
@@ -119,15 +129,23 @@ export function EventEditor({
   const wantsRegistrations = (on: boolean) => {
     setTakes(on);
     if (!on) {
+      // Un-ticking is often a second thought about something else on the
+      // screen, so the form that was chosen is held and put back on the way in
+      // rather than asked for again.
+      lastForm.current = formId;
       setFormId("");
       return;
     }
     if (formId) return;
+    if (lastForm.current) {
+      setFormId(lastForm.current);
+      return;
+    }
     if (forms.length === 0) {
       router.push(`/forms?church=${church}`);
       return;
     }
-    setAsking(true);
+    ask();
   };
   // Carried through untouched, so saving the designer never reopens or closes
   // registration behind the church's back.
@@ -220,6 +238,7 @@ export function EventEditor({
            * behind it. Plenty of events only need to know who is coming: a
            * work day, a prayer meeting. Those take names and ask nothing.
            */
+          if (!next) setFormId(held.current);
           setAsking(next);
         }}
       >
@@ -302,13 +321,22 @@ export function EventEditor({
                 // being created there is no record to write it to yet, so it
                 // rides the designer's hidden field and is saved with the rest.
                 if (!event) {
+                  held.current = formId;
+                  lastForm.current = formId;
                   setAsking(false);
                   return;
                 }
                 startLinking(async () => {
                   const result = await useFormForEvent(event.id, formId || null, church);
-                  if (result.error) setError(result.error);
-                  else setAsking(false);
+                  if (result.error) {
+                    setError(result.error);
+                  } else {
+                    // Written down, so this is now what closing the box
+                    // without choosing goes back to.
+                    held.current = formId;
+                    lastForm.current = formId;
+                    setAsking(false);
+                  }
                   router.refresh();
                 });
               }}
@@ -460,7 +488,7 @@ export function EventEditor({
             {t("event.formNamed")}{" "}
             <button
               type="button"
-              onClick={() => setAsking(true)}
+              onClick={ask}
               className="cursor-pointer font-bold text-primary underline underline-offset-4"
             >
               {formId

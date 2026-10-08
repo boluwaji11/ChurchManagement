@@ -8,6 +8,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Picker } from "@/components/picker";
+import { useFormError } from "@/lib/form-error";
 import { findGiver, nameGiver, type GiverHit } from "./actions";
 
 /**
@@ -31,20 +32,37 @@ export function AttachGift({
   const [searching, setSearching] = React.useState(false);
   // An answer that arrives after a newer one was asked for is dropped.
   const ticket = React.useRef(0);
-  const [error, setError] = React.useState<string>();
+  const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
+
+  /*
+   * Back to a blank dialog. The Picker draws itself empty on the next open
+   * whatever this holds, so a chosen person left behind here is a person the
+   * next press would attach the next gift to.
+   */
+  const clear = () => {
+    setMemberId("");
+    setHits([]);
+    setSearching(false);
+    ticket.current++;
+  };
+
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) clear();
+  };
 
   return (
     <>
       <IconButton
         label={t("giving.gift.attach")}
         variant="ghost"
-        onClick={() => setOpen(true)}
+        onClick={() => close(true)}
       >
         <UserPlus />
       </IconButton>
 
-      <Dialog open={open} onOpenChange={(on) => (on ? null : setOpen(false))}>
+      <Dialog open={open} onOpenChange={(on) => (on ? null : close(false))}>
         <DialogContent title={t("giving.gift.attachTitle")} closeLabel={t("common.close")}>
           <div className="flex flex-col gap-4">
             {/* What the giver typed, where they typed anything. */}
@@ -83,7 +101,7 @@ export function AttachGift({
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+            <Button variant="ghost" data-dismiss onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
             <Button
@@ -94,7 +112,7 @@ export function AttachGift({
                   const result = await nameGiver(gift.id, memberId, church);
                   setError(result.error);
                   if (!result.error) {
-                    setOpen(false);
+                    close(false);
                     router.refresh();
                   }
                 })
