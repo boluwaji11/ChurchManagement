@@ -38,7 +38,7 @@ export function Shell({
     <div className="site-wash flex min-h-dvh">
       <nav
         aria-label="Sections"
-        className="sticky top-0 flex h-dvh w-[232px] shrink-0 flex-col gap-1 border-r border-line bg-surface/70 px-3 py-4 backdrop-blur-[8px]"
+        className="sticky top-0 hidden h-dvh w-[232px] shrink-0 flex-col gap-1 border-r border-line bg-surface/70 px-3 py-4 backdrop-blur-[8px] md:flex"
       >
         <Link href="/" className="mb-4 flex items-center gap-2.5 px-2 no-underline">
           <Brand />
@@ -74,11 +74,46 @@ export function Shell({
         </div>
       </nav>
 
-      <main className="min-w-0 flex-1 px-8 py-7">
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* R21.x, R24.6. The same sections across the top of a phone. The
+            rail is 232px of a 390px screen, which leaves nothing to read
+            the operator's own screens in. */}
+        <nav
+          aria-label="Sections"
+          className="sticky top-0 z-20 flex items-center gap-1 overflow-x-auto border-b border-line bg-surface px-3 py-2 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden"
+        >
+          <Link href="/" className="mr-2 flex shrink-0 items-center no-underline">
+            <Brand />
+          </Link>
+
+          {SECTIONS.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex min-h-9 shrink-0 items-center gap-2 rounded-sm px-2.5 text-[length:var(--d-text-label)] font-medium whitespace-nowrap text-fg-muted no-underline hover:bg-line hover:text-fg"
+            >
+              <Icon className="size-4 shrink-0 opacity-70" aria-hidden />
+              {label}
+            </Link>
+          ))}
+
+          {/* The way out, which otherwise lives only in the rail. */}
+          <form action={signOut} className="ml-auto shrink-0 pl-2">
+            <button
+              type="submit"
+              className="flex min-h-9 cursor-pointer items-center gap-2 rounded-sm px-2.5 text-[13px] font-medium whitespace-nowrap text-fg-muted hover:bg-line hover:text-fg"
+            >
+              <Avatar name={who.name} id={who.id} size="sm" className="size-6 text-[11px]" />
+              Sign out
+            </button>
+          </form>
+        </nav>
+
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-7">
         <div className="mx-auto flex max-w-[1180px] flex-col gap-6">
           <header className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
             <div className="flex flex-col gap-1">
-              <h1 className="font-display text-[30px] leading-9 text-fg">{title}</h1>
+              <h1 className="font-display text-[26px] leading-8 text-fg sm:text-[30px] sm:leading-9">{title}</h1>
               {lede ? <p className="text-[length:var(--d-text-body)] text-fg-muted">{lede}</p> : null}
             </div>
             {action}
@@ -86,7 +121,8 @@ export function Shell({
 
           {children}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
