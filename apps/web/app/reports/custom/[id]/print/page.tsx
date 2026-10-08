@@ -9,6 +9,7 @@ import { churchNow } from "@/lib/church-now";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { getChurch } from "@connectapp/db";
 import { BrandRuleFor } from "@/components/brand-rule";
+import { brandOf } from "@/lib/brand";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { Answer } from "../../../answer";
 import { Denied } from "@/components/denied";
@@ -74,7 +75,7 @@ export default async function PrintReportPage({
         saved,
         answers,
         when: churchNow(profile?.timezone ?? "America/Chicago"),
-        hue: profile?.brandHue ?? "indigo",
+        hue: brandOf(profile)["500"],
       };
     },
   );
@@ -91,7 +92,7 @@ export default async function PrintReportPage({
           puts the white space back where it belongs. */}
       <style>{"@page { size: landscape; margin: 0; }"}</style>
 
-      <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
+      <BrandRuleFor colour={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
       <header className="mb-6 flex items-center justify-between gap-4 border-b border-black pb-3">
         <div className="flex min-w-0 items-center gap-3">

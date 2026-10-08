@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { HUES } from "@connectapp/ui";
+import { isHex } from "@connectapp/ui";
 import { headers } from "next/headers";
 import {
   withTenant, updateChurch, addServiceTime, removeServiceTime, setChurchLogo,
@@ -52,11 +52,14 @@ export async function saveChurch(data: FormData): Promise<SettingsResult> {
         phone: text(data, "phone"),
         email: text(data, "email"),
         website: text(data, "website"),
-        /* R1.1, R24.4. The colour its public pages wear. Checked against the
-           eight the product has, so nothing else reaches the column. */
-        brandHue: (HUES as readonly string[]).includes(text(data, "brandHue"))
-          ? text(data, "brandHue")
-          : undefined,
+        /*
+         * R1.1, R24.4. The colour its public pages wear.
+         *
+         * Checked here as well as by the column's own constraint, so a church
+         * meets a sentence rather than a database error. An empty box puts it
+         * back to the hue the church was given.
+         */
+        brandColor: isHex(text(data, "brandColor")) ? text(data, "brandColor") : "",
       }),
     );
   } catch (error) {

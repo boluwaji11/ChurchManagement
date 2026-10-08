@@ -41,6 +41,14 @@ export interface ChurchProfile {
   email: string | null;
   website: string | null;
   brandHue: string;
+  /**
+   * R1.1, R24.4. The colour this church actually uses, as it wrote it.
+   *
+   * Null until somebody picks one, when the hue above stands in. What is
+   * drawn is never this value directly: `brandRamp` keeps its hue and rebuilds
+   * the lightness, so a pale brand cannot put unreadable words on a page.
+   */
+  brandColor: string | null;
   logoKey: string | null;
   /** R1.7. Null when the church has switched joining off. */
   selfSignup: boolean;
@@ -64,6 +72,8 @@ export interface ChurchInput {
   email?: string | null;
   website?: string | null;
   brandHue?: string;
+  /** R1.1. A `#rrggbb`, or an empty string to go back to the spectrum hue. */
+  brandColor?: string | null;
 }
 
 export async function getChurch(db: Tx, tenantId: string): Promise<ChurchProfile | null> {
@@ -73,7 +83,8 @@ export async function getChurch(db: Tx, tenantId: string): Promise<ChurchProfile
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
-      website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      website: tenants.website, brandHue: tenants.brandHue,
+      brandColor: tenants.brandColor, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain,
     })
@@ -129,6 +140,7 @@ export async function updateChurch(
       email,
       website: trim(input.website),
       ...(input.brandHue ? { brandHue: input.brandHue as never } : {}),
+      ...(input.brandColor === undefined ? {} : { brandColor: input.brandColor || null }),
       updatedAt: new Date(),
     })
     .where(eq(tenants.id, actor.tenantId))
@@ -137,7 +149,8 @@ export async function updateChurch(
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
-      website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      website: tenants.website, brandHue: tenants.brandHue,
+      brandColor: tenants.brandColor, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain,
     });

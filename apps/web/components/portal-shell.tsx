@@ -149,6 +149,7 @@ export async function PortalShell({
           slug,
           name: session.tenantName,
           brandHue: church?.brandHue ?? "indigo",
+          brandColor: church?.brandColor ?? null,
           phone: church?.phone ?? null,
           email: church?.email ?? null,
           website: church?.website ?? null,

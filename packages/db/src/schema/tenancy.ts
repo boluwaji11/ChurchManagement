@@ -35,6 +35,13 @@ export const tenants = pgTable(
     absenceThreshold: integer("absence_threshold").notNull().default(3),
     /** R1.1. One of the twelve hues, used wherever the church brands a page. */
     brandHue: hue("brand_hue").notNull().default("indigo"),
+    /**
+     * R1.1, R24.4. The colour this church actually uses, as it wrote it.
+     *
+     * Null until somebody picks one, when the hue above stands in. The column
+     * refuses anything that is not a `#rrggbb`.
+     */
+    brandColor: text("brand_color"),
     /** R1.1. The key of the logo in the church bucket. */
     logoKey: text("logo_key"),
     /**

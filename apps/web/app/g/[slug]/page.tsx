@@ -5,6 +5,7 @@ import { Card } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { BrandRuleFor } from "@/components/brand-rule";
+import { brandOf } from "@/lib/brand";
 import { photoUrls } from "@/lib/photos";
 import { GroupLine } from "./line";
 import { publicTab } from "@/lib/page-metadata";
@@ -58,7 +59,7 @@ export default async function PublicGroupsPage({
 
   return (
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      <BrandRuleFor hue={church.brandHue} className="h-1.5 w-full" />
+      <BrandRuleFor colour={brandOf(church)["500"]} className="h-1.5 w-full" />
 
       <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
         <h1 className="mb-8 font-display text-display text-fg">

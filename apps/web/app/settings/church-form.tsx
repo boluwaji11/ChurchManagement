@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Pencil } from "lucide-react";
 import {
-  Banner, Combobox, Field, HueDot, HUES, IconButton, Input, type Hue,
+  Banner, ColourPicker, Combobox, Field, IconButton, Input,
 } from "@connectapp/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
@@ -27,7 +27,22 @@ export interface ChurchValues {
   email: string | null;
   website: string | null;
   brandHue: string;
+  /** R1.1. The colour the church picked, where it has picked one. */
+  brandColor: string | null;
 }
+
+/**
+ * R1.1. The eight the product ships, as colours.
+ *
+ * A church that has never opened this still has a hue against it, and the
+ * picker works in colours, so the hue is turned into the colour it stands for
+ * rather than the control opening on something nobody chose.
+ */
+const SPECTRUM: Record<string, string> = {
+  rose: "#d4374f", amber: "#c87a0a", citron: "#8a8f12", fern: "#1e8a4c",
+  teal: "#0d8694", sky: "#1877c4", indigo: "#4f46e5", violet: "#8339d9",
+  coral: "#d05a2a", jade: "#118a72", orchid: "#b63a9e", clay: "#8a6248",
+};
 
 /** Every zone the browser knows, which is the list the server checks against. */
 function timezones(): string[] {
@@ -52,7 +67,9 @@ export function ChurchForm({
   onEditing: (next: boolean) => void;
 }) {
   const [timezone, setTimezone] = React.useState(values.timezone);
-  const [brandHue, setBrandHue] = React.useState<Hue>((values.brandHue as Hue) ?? HUES[0]);
+  const [brandColor, setBrandColor] = React.useState(
+    values.brandColor || SPECTRUM[values.brandHue] || "#4f46e5",
+  );
   const [country, setCountry] = React.useState(values.country || "US");
   const [region, setRegion] = React.useState(values.region ?? "");
   const [error, setError] = React.useState<string>();
@@ -204,31 +221,25 @@ export function ChurchForm({
             </Field>
 
             {/* R1.1, R24.4. The colour the church wears wherever somebody
-                outside it meets the church: its giving page, the form it
-                hands out, the page a group is published on, the directory it
-                prints, and its members' own screens. */}
-            <div className="flex flex-col gap-1.5 [grid-column:1/-1]">
+                outside it meets it: its giving page, the form it hands out,
+                the page a group is published on, and the directory it prints.
+                Any colour, because a church has one and it is rarely one of
+                eight. What is drawn from it is its hue at the product's own
+                lightness, so a brand cannot cost a church its contrast. */}
+            <div className="flex flex-col gap-2 [grid-column:1/-1]">
               <span className="text-label text-fg">{t("church.colour")}</span>
-              <input type="hidden" name="brandHue" value={brandHue} />
-              <div className="flex flex-wrap gap-1.5">
-                {HUES.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    aria-label={t(`hue.${option}` as never)}
-                    aria-pressed={brandHue === option}
-                    disabled={!canEdit}
-                    onClick={() => setBrandHue(option)}
-                    className={
-                      brandHue === option
-                        ? "cursor-pointer rounded-full p-1 ring-2 ring-primary"
-                        : "cursor-pointer rounded-full p-1 ring-2 ring-transparent hover:ring-line-strong disabled:cursor-default"
-                    }
-                  >
-                    <HueDot hue={option} />
-                  </button>
-                ))}
-              </div>
+              <input type="hidden" name="brandColor" value={brandColor} />
+              <ColourPicker
+                value={brandColor}
+                onChange={setBrandColor}
+                disabled={!canEdit}
+                labels={{
+                  hue: t("church.colour.hue"),
+                  strength: t("church.colour.strength"),
+                  hex: t("church.colour.hex"),
+                  invalid: t("church.colour.invalid"),
+                }}
+              />
             </div>
           </div>
 

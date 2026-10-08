@@ -17,7 +17,7 @@ export {
   listHouseholdRows, countArchivedHouseholds,
   createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
   peopleWithoutHousehold, addToHousehold, removeFromHousehold, setHouseholdRole,
-  householdAddress, setHouseholdAddress,
+  householdAddress, setHouseholdAddress, addressesOfMembers,
   type HouseholdRow, type HouseholdAddress,
 } from "./repo/households";
 export { InvalidInputError, NameTakenError } from "./errors";

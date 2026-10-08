@@ -8,7 +8,8 @@ export interface WeekEntry {
   day: string;
   title: string;
   time: string;
-  hue: string;
+  /** R1.1, R24.4. The colour this one is marked in, already resolved. */
+  colour: string;
   href?: string;
 }
 
@@ -40,7 +41,7 @@ export function ThisWeek({ church, entries }: { church: string; entries: WeekEnt
                 <span
                   aria-hidden
                   className="size-2 shrink-0 rounded-full"
-                  style={{ background: `var(--hue-${one.hue}-500)` }}
+                  style={{ background: one.colour }}
                 />
                 <span className="min-w-0 flex-1 truncate font-medium text-fg">{one.title}</span>
                 <span className="shrink-0 text-[13px] text-fg-subtle tabular-nums">

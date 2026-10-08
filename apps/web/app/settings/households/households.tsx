@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, Merge, Plus, Undo2, X } from "lucide-react";
+import { Archive, Copy, Merge, Plus, Undo2, X } from "lucide-react";
 import {
   Avatar, Banner, Button, Field, IconButton, Input, Spinner,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -28,6 +28,8 @@ export interface HouseholdItem {
   archived: boolean;
   /** R2.4. Where the church writes to, when it holds one. */
   address: HouseholdAddress | null;
+  /** R2.4. The addresses the people in it hold of their own. */
+  memberAddresses: { memberId: string; name: string; address: HouseholdAddress }[];
 }
 
 /**
@@ -274,50 +276,7 @@ function EditHousehold({
             />
           </Field>
 
-          {/* R2.4. The one fact a family holds in common. It was written by
-              an import or not at all. */}
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
-            <Field label={t("address.line1")} className="[grid-column:1/-1]">
-              <Input
-                value={where.line1}
-                onChange={(e) => setWhere({ ...where, line1: e.target.value })}
-                onBlur={keep}
-                autoComplete="off"
-                              />
-            </Field>
-            <Field label={t("address.line2")} className="[grid-column:1/-1]">
-              <Input
-                value={where.line2}
-                onChange={(e) => setWhere({ ...where, line2: e.target.value })}
-                onBlur={keep}
-                autoComplete="off"
-              />
-            </Field>
-            <Field label={t("address.city")}>
-              <Input
-                value={where.city}
-                onChange={(e) => setWhere({ ...where, city: e.target.value })}
-                onBlur={keep}
-                autoComplete="off"
-              />
-            </Field>
-            <Field label={t("address.region")}>
-              <Input
-                value={where.region}
-                onChange={(e) => setWhere({ ...where, region: e.target.value })}
-                onBlur={keep}
-                autoComplete="off"
-              />
-            </Field>
-            <Field label={t("address.postalCode")}>
-              <Input
-                value={where.postalCode}
-                onChange={(e) => setWhere({ ...where, postalCode: e.target.value })}
-                onBlur={keep}
-                autoComplete="off"
-              />
-            </Field>
-          </div>
+          <hr className="border-0 border-t border-line" />
 
           <Members
             church={church}
@@ -326,6 +285,87 @@ function EditHousehold({
             doing={doing}
             run={run}
           />
+
+          <hr className="border-0 border-t border-line" />
+
+          {/* R2.4. The one fact a family holds in common, under the people it
+              belongs to, since who is in a household is settled before where
+              it lives is worth asking. */}
+          <div className="flex flex-col gap-4">
+            <span className="text-[15px] font-semibold text-fg">{t("households.address")}</span>
+
+            {/* A family is entered one person at a time, so the address the
+                church already holds is usually on somebody's own record. */}
+            {household.memberAddresses.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {household.memberAddresses.map((one) => (
+                  <button
+                    key={one.memberId}
+                    type="button"
+                    onClick={() => {
+                      const next = {
+                        line1: one.address.line1 ?? "",
+                        line2: one.address.line2 ?? "",
+                        city: one.address.city ?? "",
+                        region: one.address.region ?? "",
+                        postalCode: one.address.postalCode ?? "",
+                      };
+                      setWhere(next);
+                      run(`address:${household.id}`, () =>
+                        setAddress(household.id, next, church));
+                    }}
+                    className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-3.5"
+                  >
+                    <Copy aria-hidden />
+                    {t("households.sameAs", { name: one.name })}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
+              <Field label={t("address.line1")} className="[grid-column:1/-1]">
+                <Input
+                  value={where.line1}
+                  onChange={(e) => setWhere({ ...where, line1: e.target.value })}
+                  onBlur={keep}
+                  autoComplete="off"
+                />
+              </Field>
+              <Field label={t("address.line2")} className="[grid-column:1/-1]">
+                <Input
+                  value={where.line2}
+                  onChange={(e) => setWhere({ ...where, line2: e.target.value })}
+                  onBlur={keep}
+                  autoComplete="off"
+                />
+              </Field>
+              <Field label={t("address.city")}>
+                <Input
+                  value={where.city}
+                  onChange={(e) => setWhere({ ...where, city: e.target.value })}
+                  onBlur={keep}
+                  autoComplete="off"
+                />
+              </Field>
+              <Field label={t("address.region")}>
+                <Input
+                  value={where.region}
+                  onChange={(e) => setWhere({ ...where, region: e.target.value })}
+                  onBlur={keep}
+                  autoComplete="off"
+                />
+              </Field>
+              <Field label={t("address.postalCode")}>
+                <Input
+                  value={where.postalCode}
+                  onChange={(e) => setWhere({ ...where, postalCode: e.target.value })}
+                  onBlur={keep}
+                  autoComplete="off"
+                />
+              </Field>
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

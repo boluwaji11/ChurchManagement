@@ -26,6 +26,8 @@ export interface HouseholdAddress {
 export interface HouseholdRow {
   id: string;
   name: string;
+  /** R2.4. The addresses the people in it hold of their own. */
+  memberAddresses: { memberId: string; name: string; address: HouseholdAddress }[];
   members: { id: string; slug: string; name: string; role: string }[];
   archived: boolean;
   /** R2.4. Where the church writes to, when it holds one. */
@@ -65,6 +67,30 @@ export async function listHouseholdRows(
         ),
         '[]'::json
       )`,
+      /* R2.4. The addresses the people in it hold of their own, so the panel
+         can offer one rather than asking a volunteer to retype it. */
+      memberAddresses: sql<{ memberId: string; name: string; address: HouseholdAddress }[]>`coalesce(
+        (
+          select json_agg(x)
+            from (
+              select distinct on (p.id)
+                     p.id as "memberId",
+                     coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as name,
+                     json_build_object(
+                       'line1', a.line1, 'line2', a.line2, 'city', a.city,
+                       'region', a.region, 'postalCode', a.postal_code,
+                       'country', a.country) as address
+                from household_memberships hm
+                join members p on p.id = hm.member_id
+                join addresses a on a.member_id = p.id
+               where hm.household_id = households.id
+                 and hm.ended_on is null
+                 and p.archived_at is null
+               order by p.id, a.is_primary desc, a.created_at desc
+            ) x
+        ),
+        '[]'::json
+      )`,
       /* R2.4. The one the church writes to, read with the list so the panel
          opens filled rather than fetching a second time per household. */
       address: sql<HouseholdAddress | null>`(
@@ -90,6 +116,7 @@ export async function listHouseholdRows(
   return rows.map(({ archivedAt, ...row }) => ({
     ...row,
     members: row.members ?? [],
+    memberAddresses: row.memberAddresses ?? [],
     archived: archivedAt !== null,
   }));
 }
@@ -327,6 +354,61 @@ export async function mergeHouseholds(
     .where(and(eq(households.id, fromId), isNull(households.archivedAt)));
 
   return { moved };
+}
+
+/**
+ * R2.4. The addresses the people in a household hold of their own.
+ *
+ * A family is usually entered one person at a time, so the address a church
+ * already holds is on somebody's own record rather than on the household. The
+ * panel offers those rather than asking a volunteer to retype one of them.
+ */
+export async function addressesOfMembers(
+  db: Tx,
+  householdId: string,
+): Promise<{ memberId: string; name: string; address: HouseholdAddress }[]> {
+  const rows = await db
+    .select({
+      memberId: members.id,
+      first: members.preferredName,
+      given: members.firstName,
+      last: members.lastName,
+      line1: addresses.line1,
+      line2: addresses.line2,
+      city: addresses.city,
+      region: addresses.region,
+      postalCode: addresses.postalCode,
+      country: addresses.country,
+    })
+    .from(householdMemberships)
+    .innerJoin(members, eq(members.id, householdMemberships.memberId))
+    .innerJoin(addresses, eq(addresses.memberId, members.id))
+    .where(and(
+      eq(householdMemberships.householdId, householdId),
+      isNull(householdMemberships.endedOn),
+      isNull(members.archivedAt),
+    ))
+    .orderBy(desc(addresses.isPrimary), asc(members.lastName), asc(members.firstName));
+
+  const seen = new Set<string>();
+  const out: { memberId: string; name: string; address: HouseholdAddress }[] = [];
+  for (const row of rows) {
+    if (seen.has(row.memberId)) continue;
+    seen.add(row.memberId);
+    out.push({
+      memberId: row.memberId,
+      name: `${row.first ?? row.given} ${row.last}`,
+      address: {
+        line1: row.line1,
+        line2: row.line2,
+        city: row.city,
+        region: row.region,
+        postalCode: row.postalCode,
+        country: row.country,
+      },
+    });
+  }
+  return out;
 }
 
 /**

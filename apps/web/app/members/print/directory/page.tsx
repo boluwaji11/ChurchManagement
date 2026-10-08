@@ -5,6 +5,7 @@ import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { BrandRuleFor } from "@/components/brand-rule";
+import { brandOf } from "@/lib/brand";
 import { AutoPrint } from "../../../checkin/rooms/print/auto-print";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -60,7 +61,7 @@ export default async function PrintDirectoryPage({
         households: await memberDirectory(tx, { asOf: now.date }),
         when: now,
         // R1.1. The church's own colour on the sheet it hands out.
-        hue: profile?.brandHue ?? "indigo",
+        hue: brandOf(profile)["500"],
       };
     },
   );
@@ -73,7 +74,7 @@ export default async function PrintDirectoryPage({
           puts the white space back where it belongs. */}
       <style>{"@page { size: auto; margin: 0; }"}</style>
 
-      <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
+      <BrandRuleFor colour={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
       <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-black pb-3">
         <h1 className="font-display text-display">{t("printDirectory.title")}</h1>
