@@ -128,6 +128,7 @@ and a design file does not move it.
 | HRT-255 | The controls that make a saved list, and the ones that read it | R1.14, R2.14 | Resolved |
 | HRT-256 | Every press that goes to the server says so, on every screen | R24.6 | Resolved |
 | HRT-257 | The bell rings for all seven kinds, not the two that had writers | R24.6, R4.6, R5.3, R10.5 | Resolved |
+| HRT-258 | A church picks the colour a kind of group wears | R9.1, R24.4 | Resolved |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
