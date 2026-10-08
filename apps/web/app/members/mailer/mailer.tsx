@@ -5,7 +5,8 @@ import { Download as DownloadIcon, FileText, Mail, Printer } from "lucide-react"
 import {
   Banner, Button, Combobox, Field, Input, Tooltip,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  PAPER, PAPERS, perPage, unknownMarks, faceOf, type PaperStock, type LetterFont,
+  PAPER, PAPERS, perPage, unknownMarks, faceOf, sizeOf,
+  type PaperStock, type LetterFont, type LetterSize,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Download } from "@/components/download";
@@ -58,6 +59,7 @@ export interface SavedMailer {
   paper: string;
   skip: number;
   font: string;
+  fontSize: number;
   body: string;
 }
 
@@ -99,6 +101,7 @@ export function Mailer({
   const [paper, setPaper] = React.useState<PaperStock>(saved.paper as PaperStock);
   const [skip, setSkip] = React.useState(String(saved.skip));
   const [font, setFont] = React.useState<LetterFont>(faceOf(saved.font));
+  const [size, setSize] = React.useState<LetterSize>(sizeOf(saved.fontSize));
   const [letter, setLetter] = React.useState(saved.body);
   const [saving, setSaving] = React.useState(false);
   const [savedAt, setSavedAt] = React.useState<number | null>(null);
@@ -121,10 +124,15 @@ export function Mailer({
     + (used > 0 ? `&skip=${used}` : "");
 
   const lettersHref = `/members/print/letters?church=${church}${who}`
-    + `&font=${font}&body=${encodeURIComponent(letter)}`;
+    + `&font=${font}&size=${size}&body=${encodeURIComponent(letter)}`;
 
   const fileHref = `/api/letters?church=${church}${who}`
-    + `&font=${font}&body=${encodeURIComponent(letter)}`;
+    + `&font=${font}&size=${size}&name=${encodeURIComponent(name)}`
+    + `&body=${encodeURIComponent(letter)}`;
+
+  /* The file is named after the mailer, so a church with four of them can
+     tell the carol service from the gift day in its downloads folder. */
+  const fileName = `${name.trim().replace(/[^\p{L}\p{N} _-]/gu, "").replace(/\s+/g, "-") || "letters"}.docx`;
 
   /*
    * R16.12. It saves itself.
@@ -153,6 +161,7 @@ export function Mailer({
           paper,
           skip: Number(skip) || 0,
           font,
+          fontSize: size,
           body: letter,
         },
         church,
@@ -174,7 +183,7 @@ export function Mailer({
     };
     // The names of the two sentinels never change, so they are left out.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saved.id, name, list, paper, skip, font, letter, church]);
+  }, [saved.id, name, list, paper, skip, font, size, letter, church]);
 
   const put = (mark: string) => {
     if (write.current) write.current(`{${mark}}`);
@@ -212,7 +221,7 @@ export function Mailer({
         <Tooltip content={t("post.download")}>
           <Download
             href={fileHref}
-            file="letters.docx"
+            file={fileName}
             label={t("post.writing")}
             title={t("post.writeFailed")}
             className="grid size-9 cursor-pointer place-items-center rounded-[var(--d-radius-control)] text-fg hover:bg-sunken [&_svg]:size-[18px]"
@@ -336,6 +345,8 @@ export function Mailer({
               insert={(put) => { write.current = put; }}
               font={font}
               onFont={setFont}
+              size={size}
+              onSize={setSize}
             />
           </Field>
 

@@ -4,7 +4,8 @@ export {
   PAPER, PAPERS, perPage, paperCss, type PaperStock, type PaperShape,
 } from "./lib/sheet-stock";
 export {
-  LETTER_FONTS, LETTER_FACE, faceOf, type LetterFont, type LetterFace,
+  LETTER_FONTS, LETTER_FACE, faceOf, LETTER_SIZES, sizeOf,
+  type LetterFont, type LetterFace, type LetterSize,
 } from "./lib/letter-fonts";
 export {
   MERGE_FIELDS, merge, marksIn, unknownMarks,

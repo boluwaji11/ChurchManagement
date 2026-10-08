@@ -66,6 +66,8 @@ export async function PortalShell({
     { label: t("nav.events"), href: "/events" },
     { label: t("nav.groups"), href: "/groups" },
     { label: t("nav.serving"), href: "/home/schedule" },
+    // R16.9. A member writes to the office and reads what it wrote back.
+    { label: t("inbox.title"), href: "/home/messages" },
     // R13.19, R17.4. Giving is a thing a member comes to do, so it is a
     // place in the portal rather than a card on the way past.
     { label: t("nav.giving"), href: "/giving" },

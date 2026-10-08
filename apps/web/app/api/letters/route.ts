@@ -5,7 +5,7 @@ import {
 import {
   withTenant, postalRows, resolveList, listPeople, getChurch, canEditPeople,
 } from "@connectapp/db";
-import { merge, LETTER_FACE, faceOf } from "@connectapp/ui";
+import { merge, LETTER_FACE, faceOf, sizeOf } from "@connectapp/ui";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -39,6 +39,20 @@ export async function GET(request: Request) {
   /* R16.12. The typeface the church chose, named so the file and the paper
      are set the same way. */
   const face = LETTER_FACE[faceOf(url.searchParams.get("font"))].name;
+  /* Word counts in half points, so eleven point is twenty two. */
+  const point = sizeOf(url.searchParams.get("size")) * 2;
+
+  /*
+   * R16.12. The file is named after the mailer, because a church that writes
+   * four of these a year ends up with letters.docx, letters (1).docx and no
+   * way to tell the carol service from the gift day.
+   */
+  const named = (url.searchParams.get("name") ?? "")
+    .replace(/[^\p{L}\p{N} _-]/gu, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 60);
+  const filename = `${named || "letters"}.docx`;
 
   const read = await withTenant(
     {
@@ -94,7 +108,7 @@ export async function GET(request: Request) {
     new Paragraph({
       alignment: options.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
       spacing: { after: options.after ?? 0 },
-      children: [new TextRun({ text, bold: options.bold, size: options.size ?? 22 })],
+      children: [new TextRun({ text, bold: options.bold, size: options.size ?? point })],
     });
 
   /*
@@ -112,14 +126,14 @@ export async function GET(request: Request) {
     let at = 0;
     for (const m of text.matchAll(INLINE)) {
       const start = m.index!;
-      if (start > at) out.push(new TextRun({ text: text.slice(at, start), size: 22 }));
-      if (m[2] !== undefined) out.push(new TextRun({ text: m[2], bold: true, size: 22 }));
-      else if (m[4] !== undefined) out.push(new TextRun({ text: m[4], italics: true, size: 22 }));
-      else if (m[6] !== undefined) out.push(new TextRun({ text: m[6], size: 22 }));
+      if (start > at) out.push(new TextRun({ text: text.slice(at, start), size: point }));
+      if (m[2] !== undefined) out.push(new TextRun({ text: m[2], bold: true, size: point }));
+      else if (m[4] !== undefined) out.push(new TextRun({ text: m[4], italics: true, size: point }));
+      else if (m[6] !== undefined) out.push(new TextRun({ text: m[6], size: point }));
       at = start + m[0].length;
     }
-    if (at < text.length) out.push(new TextRun({ text: text.slice(at), size: 22 }));
-    return out.length > 0 ? out : [new TextRun({ text: "", size: 22 })];
+    if (at < text.length) out.push(new TextRun({ text: text.slice(at), size: point }));
+    return out.length > 0 ? out : [new TextRun({ text: "", size: point })];
   };
 
   const written = (markdown: string) =>
@@ -225,7 +239,7 @@ export async function GET(request: Request) {
   const file = await Packer.toBuffer(
     new Document({
       // Said once for the whole document rather than on every run in it.
-      styles: { default: { document: { run: { font: face, size: 22 } } } },
+      styles: { default: { document: { run: { font: face, size: point } } } },
       sections: [{ properties: {}, children }],
     }),
   );
@@ -234,7 +248,7 @@ export async function GET(request: Request) {
     headers: {
       "content-type":
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "content-disposition": 'attachment; filename="letters.docx"',
+      "content-disposition": `attachment; filename="${filename}"`,
     },
   });
 }

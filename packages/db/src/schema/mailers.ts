@@ -25,6 +25,8 @@ export const mailers = pgTable(
     skip: integer("skip").notNull().default(0),
     /** Which typeface the letter is set in. The words carry none. */
     font: text("font").notNull().default("inter"),
+    /** How big it is set, in points. */
+    fontSize: integer("font_size").notNull().default(11),
     /** The words, as markdown, exactly as the editor round-trips them. */
     body: text("body").notNull().default(""),
     createdByUserId: uuid("created_by_user_id").references(() => appUsers.id, { onDelete: "set null" }),

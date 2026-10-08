@@ -467,7 +467,8 @@ behind them were dropped in migration 0058.
 | HRT-146 | Avery labels and envelopes | R16.12 | Resolved. Mail-merge letters are HRT-267 |
 | HRT-267 | Mail-merge letters, one page a household | R16.12 | Resolved |
 | HRT-268 | A mailer is kept, and saves itself as it is written | R16.12 | Resolved |
-| HRT-269 | In-app messages, and an inbox in the portal and on the platform | R16.9, R17.1 | New |
+| HRT-269 | In-app messages, and an inbox in the portal and on the platform | R16.9, R17.1 | Resolved |
+| HRT-270 | Group and team threads, on the same tables | R16.9, R9.7 | New |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms

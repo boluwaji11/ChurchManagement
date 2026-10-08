@@ -1,4 +1,4 @@
-import { merge, LETTER_FACE, faceOf } from "@connectapp/ui";
+import { merge, LETTER_FACE, faceOf, sizeOf } from "@connectapp/ui";
 import type { PostalRow } from "@connectapp/db";
 import { Markdown } from "@/components/markdown";
 
@@ -31,6 +31,7 @@ export function LetterSheet({
   today,
   from,
   font,
+  size,
 }: {
   rows: PostalRow[];
   head: LetterHead;
@@ -39,6 +40,8 @@ export function LetterSheet({
   from: string;
   /** R16.12. The typeface the church chose for this letter. */
   font?: string;
+  /** How big it is set, in points. */
+  size?: string | number;
 }) {
   return (
     <>
@@ -91,7 +94,10 @@ export function LetterSheet({
           <p className="m-0 mb-[10mm] text-[11pt]">{today}</p>
 
           {/* The words, as the writer laid them out. */}
-          <div className="text-[11pt] leading-[1.65] [&_p]:mb-[4mm]">
+          <div
+            className="leading-[1.65] [&_p]:mb-[4mm]"
+            style={{ fontSize: `${sizeOf(size)}pt` }}
+          >
             <Markdown
               text={merge(body, {
                 first: one.first,

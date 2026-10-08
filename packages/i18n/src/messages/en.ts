@@ -35,6 +35,7 @@ export const en = {
   "bell.joinRequest": "{name} asked to join {group}",
   "bell.servingDeclined": "{name} cannot make {team} on {date}",
   "bell.servingAccepted": "{name} accepted {team} on {date}",
+  "bell.message": "{name} sent a message",
   "bell.incident": "An incident was filed in {room}",
   "bell.followupAssigned": "{name} was assigned to you",
   "bell.duplicate": "{name} may already be in your members",
@@ -299,6 +300,26 @@ export const en = {
 
   // Directory
   "members.title": "Members",
+
+  // HRT-269, R16.9, R17.1. Messages written here and read here.
+  "inbox.title": "Messages",
+  "inbox.you": "You",
+  "inbox.write": "Write a message",
+  "inbox.writePlaceholder": "e.g. Could somebody call me about the hall booking?",
+  "inbox.send": "Send",
+  "inbox.noneYet": "Nothing has been said yet. Write the first line.",
+  "inbox.church": "The church",
+  "inbox.find": "Find a member",
+  "inbox.reply": "Write a reply",
+  "inbox.replyPlaceholder": "e.g. The hall is free on Tuesday evening.",
+  "inbox.noThreads": "Nobody has written yet.",
+  "inbox.pickOne": "Choose a conversation.",
+  "inbox.archiveDo": "Archive",
+  "inbox.restore": "Restore",
+  "inbox.archived.title": "Archived conversations",
+  "inbox.archived.none": "Nothing has been archived.",
+  "inbox.error.empty": "Write something first",
+  "inbox.error.thread": "That conversation could not be opened",
 
   // HRT-146, R16.12. What a church posts, on the sheets it already owns.
   "post.title": "Mailer",
@@ -1878,6 +1899,8 @@ export const en = {
   "person.campus": "Campus",
   "person.anniversary": "Wedding date",
   "rich.font": "Typeface",
+  "rich.size": "Size",
+  "rich.points": "{size} pt",
   "rich.bold": "Bold",
   "rich.undo": "Undo",
   "rich.redo": "Redo",

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Sql, TransactionSql } from "postgres";
 import type { Tx } from "../client";
 import { notifications } from "../schema/notifications";
@@ -29,7 +29,7 @@ export const NOTIFICATION_PAGE = 10;
 
 export const NOTIFICATION_KINDS = [
   "join_request", "serving_declined", "serving_accepted",
-  "incident", "followup_assigned", "duplicate", "form_response",
+  "incident", "followup_assigned", "duplicate", "form_response", "message",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
@@ -42,6 +42,7 @@ export const NOTIFICATION_LOOK: Record<NotificationKind, { hue: string; icon: st
   followup_assigned: { hue: "sky", icon: "user-plus" },
   duplicate: { hue: "violet", icon: "copy" },
   form_response: { hue: "sky", icon: "clipboard-list" },
+  message: { hue: "indigo", icon: "message-square" },
 };
 
 export interface Notification {
@@ -86,9 +87,32 @@ export async function notifyUsers(
   tenantId: string,
   userIds: string[],
   input: NotifyInput,
+  /**
+   * R24.6. One unread line stands for however many times the thing happened.
+   *
+   * A member writing four lines in a minute is one thing for the office to
+   * answer, so a reader who has not read the first line is not told again.
+   */
+  options: { onlyIfUnread?: boolean } = {},
 ): Promise<void> {
-  const to = [...new Set(userIds.filter(Boolean))];
+  let to = [...new Set(userIds.filter(Boolean))];
   if (to.length === 0) return;
+
+  if (options.onlyIfUnread) {
+    const held = await db
+      .select({ userId: notifications.userId })
+      .from(notifications)
+      .where(and(
+        eq(notifications.tenantId, tenantId),
+        eq(notifications.kind, input.kind),
+        eq(notifications.messageKey, input.messageKey),
+        isNull(notifications.readAt),
+        inArray(notifications.userId, to),
+      ));
+    const already = new Set(held.map((one) => one.userId));
+    to = to.filter((one) => !already.has(one));
+    if (to.length === 0) return;
+  }
 
   await db.insert(notifications).values(
     to.map((userId) => ({
@@ -115,6 +139,7 @@ export async function notifyRoles(
   tenantId: string,
   roles: TenantRole[],
   input: NotifyInput,
+  options: { onlyIfUnread?: boolean } = {},
 ): Promise<void> {
   if (roles.length === 0) return;
 
@@ -128,7 +153,7 @@ export async function notifyRoles(
       inArray(tenantMembers.role, roles as never[]),
     ));
 
-  await notifyUsers(db, tenantId, rows.map((r) => r.userId), input);
+  await notifyUsers(db, tenantId, rows.map((r) => r.userId), input, options);
 }
 
 /**

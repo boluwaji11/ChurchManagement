@@ -14,6 +14,7 @@ export * from "./followups";
 export * from "./directory";
 export * from "./lists";
 export * from "./mailers";
+export * from "./messages";
 export * from "./serving";
 export * from "./plans";
 export * from "./forms";

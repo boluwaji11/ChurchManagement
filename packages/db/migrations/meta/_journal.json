@@ -918,6 +918,20 @@
       "when": 1791423000008,
       "tag": "0131_mailer_font",
       "breakpoints": true
+    },
+    {
+      "idx": 132,
+      "version": "7",
+      "when": 1791423000009,
+      "tag": "0132_messages",
+      "breakpoints": true
+    },
+    {
+      "idx": 133,
+      "version": "7",
+      "when": 1791423000010,
+      "tag": "0133_mailer_font_size",
+      "breakpoints": true
     }
   ]
 }

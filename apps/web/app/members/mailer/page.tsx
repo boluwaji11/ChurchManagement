@@ -113,6 +113,7 @@ export default async function MailerPage({
               paper: read.open.paper,
               skip: read.open.skip,
               font: read.open.font,
+              fontSize: read.open.fontSize,
               body: read.open.body,
             }}
           />

@@ -42,7 +42,7 @@ export default async function PrintLettersPage({
 }: {
   searchParams: Promise<{
     church?: string; list?: string; ids?: string; each?: string; body?: string;
-    font?: string;
+    font?: string; size?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -128,6 +128,7 @@ export default async function PrintLettersPage({
           today={today}
           from={session.displayName}
           font={params.font}
+          size={params.size}
           head={{
             church: session.tenantName,
             address: where,

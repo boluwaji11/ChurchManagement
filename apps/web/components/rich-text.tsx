@@ -8,7 +8,8 @@ import {
 import {
   Button, Field, IconButton, Input, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  LETTER_FACE, LETTER_FONTS, faceOf, type LetterFont,
+  LETTER_FACE, LETTER_FONTS, faceOf, LETTER_SIZES, sizeOf,
+  type LetterFont, type LetterSize,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/rich-text";
@@ -35,6 +36,8 @@ export function RichText({
   insert,
   font,
   onFont,
+  size,
+  onSize,
 }: {
   /** Left out where the value is read through onChange rather than a form. */
   name?: string;
@@ -67,6 +70,9 @@ export function RichText({
    */
   font?: LetterFont;
   onFont?: (next: LetterFont) => void;
+  /** R16.12. How big the whole box is set, in points, on the same terms. */
+  size?: LetterSize;
+  onSize?: (next: LetterSize) => void;
 }) {
   const box = React.useRef<HTMLDivElement>(null);
   const [markdown, setMarkdown] = React.useState(defaultValue);
@@ -173,6 +179,27 @@ export function RichText({
                 ))}
               </SelectContent>
             </Select>
+            {onSize ? (
+              <Select
+                value={String(size ?? 11)}
+                onValueChange={(next) => onSize(sizeOf(next))}
+              >
+                <SelectTrigger
+                  aria-label={t("rich.size")}
+                  className="h-8 min-h-8 w-[88px] border-transparent bg-transparent px-2 text-[13px] shadow-none hover:bg-sunken"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LETTER_SIZES.map((one) => (
+                    <SelectItem key={one} value={String(one)}>
+                      {t("rich.points", { size: one })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : null}
+
             <span aria-hidden className="mx-1 h-5 w-px bg-line" />
           </>
         ) : null}
@@ -263,6 +290,7 @@ export function RichText({
           minHeight,
           maxHeight,
           fontFamily: font ? LETTER_FACE[faceOf(font)].css : undefined,
+          fontSize: size ? `${size}pt` : undefined,
         }}
       />
 

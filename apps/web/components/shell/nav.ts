@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Users, UserPlus, Baby, Calendar, CalendarHeart, ListMusic, HandHeart, CircleDot,
   ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn, HandCoins,
+  MessageSquare,
 } from "lucide-react";
 import {
   canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
@@ -72,6 +73,15 @@ export function navFor(role: Who): NavEntry[] {
         }
       : { label: t("nav.directory"), href: "/directory", icon: Users },
   );
+
+  /*
+   * R16.9. What members have written to the office. It sits beside the
+   * directory because it is the same errand: somebody in the church, and what
+   * is going on with them.
+   */
+  if (canEditPeople(role)) {
+    out.push({ label: t("inbox.title"), href: "/messages", icon: MessageSquare });
+  }
 
   // R5.5. The Monday morning screen, for the roles that work it.
   if (canFollowUp(role)) {
