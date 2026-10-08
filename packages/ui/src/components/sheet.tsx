@@ -55,8 +55,10 @@ export function SheetContent({
         )}
         style={{ width: `min(${width}, 100%)` }}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-line px-6 py-5">
-          <P.Title className="font-display text-[22px] text-fg">{title}</P.Title>
+        <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-5 sm:px-6">
+          {/* min-w-0 so a long title wraps inside the panel rather than
+              pushing the close square off a phone's right edge. */}
+          <P.Title className="min-w-0 font-display text-[22px] break-words text-fg">{title}</P.Title>
           <P.Close
             aria-label={closeLabel}
             className="grid size-8 place-items-center rounded-sm bg-line text-fg hover:brightness-95"
@@ -65,10 +67,22 @@ export function SheetContent({
           </P.Close>
         </div>
 
-        <div className="flex flex-1 flex-col gap-4 overflow-auto p-6">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:p-6">{children}</div>
 
         {footer ? (
-          <div className="flex items-center justify-end gap-2 border-t border-line bg-surface px-6 py-4">
+          /*
+           * R24.6. Three buttons do not fit one line at 390px, so the row
+           * wraps, and the bottom padding clears the phone's own inset: the
+           * panel runs to the glass and Save would otherwise sit under the
+           * home indicator.
+           */
+          <div
+            className={cn(
+              "flex flex-wrap items-center justify-end gap-2",
+              "border-t border-line bg-surface px-4 py-4 sm:px-6",
+              "pb-[calc(1rem+env(safe-area-inset-bottom))]",
+            )}
+          >
             {footer}
           </div>
         ) : null}

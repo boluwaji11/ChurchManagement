@@ -9,7 +9,21 @@ export const TabsList = React.forwardRef<
   React.ComponentRef<typeof P.List>,
   React.ComponentPropsWithoutRef<typeof P.List>
 >(({ className, ...props }, ref) => (
-  <P.List ref={ref} className={cn("flex items-center gap-1 border-b border-line", className)} {...props} />
+  <P.List
+    ref={ref}
+    /*
+     * R24.6. Five tabs are wider than a phone, so the row scrolls inside
+     * itself. Squashing them stacks each label two words deep and the row
+     * stops reading as a row; spilling them takes the page off the side.
+     * The bar is hidden because the tabs themselves show there is more.
+     */
+    className={cn(
+      "flex items-center gap-1 border-b border-line",
+      "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+      className,
+    )}
+    {...props}
+  />
 ));
 TabsList.displayName = "TabsList";
 
@@ -20,7 +34,7 @@ export const TabsTrigger = React.forwardRef<
   <P.Trigger
     ref={ref}
     className={cn(
-      "relative cursor-pointer px-3 py-2 text-label text-fg-muted -mb-px border-b-2 border-transparent",
+      "relative shrink-0 cursor-pointer whitespace-nowrap px-3 py-2 text-label text-fg-muted -mb-px border-b-2 border-transparent",
       "transition-colors duration-fast ease-out hover:text-fg",
       "data-[state=active]:text-fg data-[state=active]:border-accent",
       className,

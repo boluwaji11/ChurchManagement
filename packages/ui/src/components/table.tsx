@@ -14,7 +14,13 @@ export const Thead = ({ className, ...props }: React.HTMLAttributes<HTMLTableSec
 
 export const Th = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
   <th
-    className={cn("px-3 text-left text-label font-semibold text-fg h-[var(--d-row-h)]", className)}
+    /* The heading stays on one line. The table scrolls sideways on a phone
+       anyway, and "Last attended" stacked two words deep in an 80px column
+       makes the heading row twice the height of the rows under it. */
+    className={cn(
+      "px-3 text-left text-label font-semibold text-fg h-[var(--d-row-h)] whitespace-nowrap",
+      className,
+    )}
     {...props}
   />
 );

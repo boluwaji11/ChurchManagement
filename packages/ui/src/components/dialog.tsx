@@ -65,7 +65,13 @@ export const DialogContent = React.forwardRef<
         }
         props.onPointerDownOutside?.(event);
       }}
-      role={alert ? "alertdialog" : undefined}
+      /*
+       * Spread rather than passed, because `role={undefined}` is still a role
+       * prop: it landed on the element and took Radix's own `role="dialog"`
+       * off with it, so every box in the product that was not a question was
+       * a plain div to a screen reader.
+       */
+      {...(alert ? { role: "alertdialog" as const } : null)}
       onOpenAutoFocus={(event) => {
         if (!alert) {
           props.onOpenAutoFocus?.(event);
@@ -84,18 +90,23 @@ export const DialogContent = React.forwardRef<
         // Centred by margins rather than a translate. A transform on this box
         // would become the containing block for anything positioned inside it,
         // and a date field's calendar has to be placed against the window.
-        "fixed inset-0 z-50 m-auto h-fit w-[calc(100vw-2rem)] max-w-lg",
+        // R24.6. The box is centred inside the window minus the phone's own
+        // bottom inset, so its last row never sits under the home indicator.
+        "fixed inset-x-0 top-0 bottom-[env(safe-area-inset-bottom)] z-50",
+        "m-auto h-fit w-[calc(100vw-2rem)] max-w-lg",
         // A form with six steps has to be reachable on a phone. Without this it
         // runs off the bottom and the submit button cannot be got to at all.
-        "max-h-[calc(100dvh-2rem)] overflow-y-auto",
-        "rounded-xl border border-line bg-surface shadow-lg p-6",
+        "max-h-[calc(100dvh-2rem-env(safe-area-inset-bottom))] overflow-y-auto",
+        "rounded-xl border border-line bg-surface shadow-lg p-4 sm:p-6",
         "data-[state=open]:animate-[connectapp-pop_var(--duration-base)_var(--ease-out)]",
         className,
       )}
       {...props}
     >
       <div className={cn("flex items-start justify-between gap-4", hideTitle ? "" : "mb-4")}>
-        <div className={cn("flex flex-col gap-1", hideTitle && "sr-only")}>
+        {/* min-w-0 so a long title wraps rather than pushing the X off a
+            phone's right edge. */}
+        <div className={cn("flex min-w-0 flex-col gap-1", hideTitle && "sr-only")}>
           <P.Title className="text-heading font-display text-fg">{title}</P.Title>
           {description ? (
             <P.Description className="text-caption text-fg-muted">{description}</P.Description>
@@ -130,7 +141,12 @@ export function DialogFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("mt-5 flex flex-wrap items-center justify-end gap-3", className)}
+      className={cn(
+        // Wraps rather than squashing: three buttons do not fit one line at
+        // 390px, and a button narrower than its own words is not a button.
+        "mt-5 flex flex-wrap items-center justify-end gap-3",
+        className,
+      )}
       {...props}
     >
       {children}

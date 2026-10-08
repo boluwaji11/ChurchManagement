@@ -26,8 +26,11 @@ export const DropdownMenuContent = React.forwardRef<
       ref={ref}
       align={align}
       sideOffset={sideOffset}
+      /* R24.6. A row action at the right edge of a phone opens its menu
+         inside the screen rather than half off it. */
+      collisionPadding={8}
       className={cn(
-        "z-50 min-w-[8.5rem] overflow-hidden rounded-lg border border-line bg-surface shadow-lg p-1",
+        "z-50 min-w-[8.5rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-line bg-surface shadow-lg p-1",
         "data-[state=open]:animate-[connectapp-rise_var(--duration-fast)_var(--ease-out)]",
         className,
       )}

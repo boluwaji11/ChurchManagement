@@ -115,13 +115,15 @@ export const SelectContent = React.forwardRef<
         side="bottom"
         align="start"
         sideOffset={6}
+        /* R24.6. The list is kept off both edges of a phone. */
+        collisionPadding={8}
         // Shrink to the room under the field rather than flipping over whatever
         // is above it. Radix measures the space and hands it over in this
         // variable; without it a long list jumps the panel to the other side.
         style={{ maxHeight: "var(--radix-select-content-available-height)" }}
         onCloseAutoFocus={() => setQuery("")}
         className={cn(
-          "z-50 min-w-[11rem] overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg p-1.5",
+          "z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg p-1.5",
           "data-[state=open]:animate-[connectapp-rise_var(--duration-fast)_var(--ease-out)]",
           className,
         )}

@@ -34,7 +34,12 @@ export function useDrop(
 
       const gap = 4;
       const edge = 8;
-      const width = wanted.width ?? box.width;
+      /*
+       * R24.6. A calendar asks for 304px, which is wider than the room a
+       * narrow phone has once both edges are kept clear. Narrowed to what
+       * there is, so the last column is reachable rather than off the glass.
+       */
+      const width = Math.min(wanted.width ?? box.width, window.innerWidth - edge * 2);
       const height = Math.min(wanted.height, window.innerHeight - edge * 2);
 
       const below = window.innerHeight - box.bottom - gap - edge;
