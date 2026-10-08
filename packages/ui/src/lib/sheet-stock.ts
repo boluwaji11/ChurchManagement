@@ -13,7 +13,10 @@
  * Measurements are the manufacturer's own, in millimetres.
  */
 
-export const PAPERS = ["avery5160", "averyL7160", "avery5162", "envelope"] as const;
+/* R16.12. The envelope leads: a church posting ten things writes ten
+   envelopes, and a sheet of thirty labels is what it reaches for when it is
+   posting to everybody. */
+export const PAPERS = ["envelope", "avery5160", "averyL7160", "avery5162"] as const;
 export type PaperStock = (typeof PAPERS)[number];
 
 export interface PaperShape {

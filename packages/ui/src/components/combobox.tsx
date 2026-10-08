@@ -359,8 +359,14 @@ export function Combobox({
               }}
               className={cn(
                 "flex cursor-pointer items-center gap-2 rounded-md px-2 py-2",
-                "text-[length:var(--d-text-body)] text-fg",
-                i === active && "bg-sunken",
+                "text-[length:var(--d-text-body)]",
+                /* R24.6. The one that is chosen is marked the way the Select
+                   beside it marks its own, so two pickers on one screen do
+                   not disagree about what chosen looks like. */
+                option.value === value
+                  ? "bg-primary-soft font-semibold text-primary"
+                  : "text-fg",
+                i === active && option.value !== value && "bg-sunken",
               )}
             >
               <Check

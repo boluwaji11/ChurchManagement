@@ -3,6 +3,10 @@ export { STOCK, STOCKS, stockOf, printCss, type Stock, type StockShape } from ".
 export {
   PAPER, PAPERS, perPage, paperCss, type PaperStock, type PaperShape,
 } from "./lib/sheet-stock";
+export {
+  MERGE_FIELDS, merge, marksIn, unknownMarks,
+  type MergeField, type MergeValues,
+} from "./lib/merge-fields";
 
 export { Button, type ButtonProps } from "./components/button";
 export { IconButton, type IconButtonProps } from "./components/icon-button";

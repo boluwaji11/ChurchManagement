@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { households, householdMemberships, members, addresses } from "../schema/members";
+import { alias } from "drizzle-orm/pg-core";
 import { PermissionError, canManageHouseholds } from "../roles";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./members";
@@ -41,6 +42,9 @@ function guard(actor: WriteActor): void {
 }
 
 const clean = (raw: string): string => raw.trim().replace(/\s+/g, " ");
+
+/** R16.12. The household's own address, beside the person's own. */
+const houseAddress = alias(addresses, "house_address");
 
 export async function listHouseholdRows(
   db: Tx,
@@ -523,10 +527,12 @@ export interface PostalRow {
  */
 export async function postalRows(
   db: Tx,
-  options: { memberIds?: string[] } = {},
+  options: { memberIds?: string[]; each?: "household" | "person" } = {},
 ): Promise<PostalRow[]> {
   const narrowed = options.memberIds !== undefined;
   if (narrowed && options.memberIds!.length === 0) return [];
+
+  if (options.each === "person") return postalPeople(db, options.memberIds);
 
   const rows = await db
     .select({
@@ -573,6 +579,74 @@ export async function postalRows(
         row.line2,
         [town, row.postalCode].filter(Boolean).join(" "),
       ].filter((one): one is string => Boolean(one && one.trim())),
+    });
+  }
+  return out;
+}
+
+/**
+ * R16.12. One label a person rather than one a household.
+ *
+ * A church writing to every adult about a members' meeting wants a label
+ * each, not one for the family. The address is their own where they have one
+ * and their household's where they do not, which is the same rule the rest of
+ * the product reads an address by.
+ */
+async function postalPeople(db: Tx, memberIds?: string[]): Promise<PostalRow[]> {
+  const rows = await db
+    .select({
+      memberId: members.id,
+      first: members.preferredName,
+      given: members.firstName,
+      last: members.lastName,
+      ownLine1: addresses.line1,
+      ownLine2: addresses.line2,
+      ownCity: addresses.city,
+      ownRegion: addresses.region,
+      ownPostal: addresses.postalCode,
+      houseLine1: houseAddress.line1,
+      houseLine2: houseAddress.line2,
+      houseCity: houseAddress.city,
+      houseRegion: houseAddress.region,
+      housePostal: houseAddress.postalCode,
+    })
+    .from(members)
+    .leftJoin(addresses, eq(addresses.memberId, members.id))
+    .leftJoin(
+      householdMemberships,
+      and(
+        eq(householdMemberships.memberId, members.id),
+        isNull(householdMemberships.endedOn),
+      ),
+    )
+    .leftJoin(houseAddress, eq(houseAddress.householdId, householdMemberships.householdId))
+    .where(and(
+      isNull(members.archivedAt),
+      memberIds ? inArray(members.id, memberIds) : undefined,
+    ))
+    .orderBy(asc(members.lastName), asc(members.firstName));
+
+  const seen = new Set<string>();
+  const out: PostalRow[] = [];
+  for (const row of rows) {
+    if (seen.has(row.memberId)) continue;
+
+    const own = Boolean(row.ownLine1);
+    const line1 = own ? row.ownLine1 : row.houseLine1;
+    if (!line1) continue;
+
+    seen.add(row.memberId);
+    const line2 = own ? row.ownLine2 : row.houseLine2;
+    const city = own ? row.ownCity : row.houseCity;
+    const region = own ? row.ownRegion : row.houseRegion;
+    const postal = own ? row.ownPostal : row.housePostal;
+    const town = [city, region].filter(Boolean).join(" ");
+
+    out.push({
+      householdId: row.memberId,
+      name: `${row.first ?? row.given} ${row.last}`,
+      lines: [line1, line2, [town, postal].filter(Boolean).join(" ")]
+        .filter((one): one is string => Boolean(one && one.trim())),
     });
   }
   return out;

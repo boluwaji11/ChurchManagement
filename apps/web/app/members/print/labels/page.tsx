@@ -47,6 +47,7 @@ export default async function PrintLabelsPage({
 }: {
   searchParams: Promise<{
     church?: string; sheet?: string; list?: string; skip?: string; ids?: string;
+    each?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -60,7 +61,7 @@ export default async function PrintLabelsPage({
 
   const sheet: PaperStock = (PAPERS as readonly string[]).includes(params.sheet ?? "")
     ? (params.sheet as PaperStock)
-    : "avery5160";
+    : "envelope";
   const shape = PAPER[sheet];
 
   const rows = await withTenant(
@@ -74,12 +75,14 @@ export default async function PrintLabelsPage({
       /* R16.12. Whoever was ticked in the directory, which is where the
          search and the filters already are. A long selection goes on a list
          first; this carries the handful somebody picked off a screen. */
+      const each = params.each === "person" ? "person" : "household";
+
       if (params.ids) {
         const ids = params.ids.split(",").filter(Boolean).slice(0, PICKED_CAP);
-        return postalRows(tx, { memberIds: ids });
+        return postalRows(tx, { memberIds: ids, each });
       }
 
-      if (!params.list) return postalRows(tx);
+      if (!params.list) return postalRows(tx, { each });
 
       /* R1.14. A saved list, which is how a church posts to the people it
          narrowed down rather than to everybody. */
@@ -90,7 +93,7 @@ export default async function PrintLabelsPage({
         ? held.ids ?? []
         : (await listPeople(tx, { ...(held.rule ?? {}) } as never)).map((one) => one.id);
 
-      return postalRows(tx, { memberIds: ids });
+      return postalRows(tx, { memberIds: ids, each });
     },
   );
 
