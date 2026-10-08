@@ -26,6 +26,8 @@ import { RefundGift } from "./refund";
 import { AttachGift } from "./attach";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
+import { GiftCards } from "./gift-cards";
+import { CountCards } from "./count-cards";
 import { RepeatMark } from "./repeat-mark";
 import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
@@ -337,7 +339,20 @@ export default async function GivingPage({
                 <Nothing>{t("giving.counts.none")}</Nothing>
               ) : (
                 <>
-                  <ResizableTable id="giving-counts">
+                  {/* R24.6. Six columns do not read on a phone, so the
+                      same sessions stack instead. */}
+                  <div className="sm:hidden">
+                    <CountCards
+                      counts={read.counts}
+                      church={session.tenantSlug}
+                      today={read.today}
+                      funds={fundList}
+                      firstFundId={read.funds[0]?.id ?? ""}
+                      manage={manage}
+                    />
+                  </div>
+
+                  <ResizableTable id="giving-counts" className="hidden sm:block">
                     <table className="w-full min-w-[640px] border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
@@ -474,7 +489,17 @@ export default async function GivingPage({
                 <Nothing>{t("giving.recent.none")}</Nothing>
               ) : (
                 <>
-                  <ResizableTable id="giving-gifts">
+                  {/* R24.6. Seven columns do not read on a phone, so the
+                      same rows stack instead. */}
+                  <div className="sm:hidden">
+                    <GiftCards
+                      rows={giftRows(read.recent)}
+                      church={session.tenantSlug}
+                      manage={manage}
+                    />
+                  </div>
+
+                  <ResizableTable id="giving-gifts" className="hidden sm:block">
                     <table className="w-full min-w-[760px] border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">

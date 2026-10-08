@@ -16,6 +16,7 @@ import { money } from "@/lib/money";
 import { Progress, PaceChip, standingOf } from "./campaigns/progress";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
+import { MyGiftCards } from "./gift-cards";
 import { RepeatMark } from "./repeat-mark";
 import * as React from "react";
 import { ChangeCard } from "./change-card";
@@ -190,7 +191,14 @@ export async function MyGiving({
           {mine.gifts.length === 0 ? (
             <Nothing>{t("mine.giving.none")}</Nothing>
           ) : (
-            <ResizableTable id="my-giving">
+            <>
+            {/* R24.6. Five columns do not read on a phone, so the same
+                gifts stack instead. */}
+            <div className="sm:hidden">
+              <MyGiftCards rows={giftRows(mine.gifts)} />
+            </div>
+
+            <ResizableTable id="my-giving" className="hidden sm:block">
               <table className="w-full min-w-[500px] border-collapse">
                 <thead>
                   <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
@@ -276,6 +284,7 @@ export async function MyGiving({
                 </tbody>
               </table>
             </ResizableTable>
+            </>
           )}
 
           <Pager
