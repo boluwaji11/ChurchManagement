@@ -1,10 +1,14 @@
 import Link from "next/link";
 import {
-  withTenant, getChurch, listFunds, fundTotals, listBatches, listGifts, givingTotals, onTheWay,
+  withTenant, getChurch, listFunds, fundTotals, listBatches, countBatches,
+  listGifts, countGifts, givingTotals, onTheWay, listCampaigns,
   getStripeAccount, listRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
-import { CornerDownRight, Printer } from "lucide-react";
+import {
+  Banknote, CalendarCheck, FileText, Landmark, Printer, Repeat, Target,
+  TrendingUp, Users, Wallet,
+} from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -12,6 +16,7 @@ import { churchNow } from "@/lib/church-now";
 import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
 import { Figure } from "@/app/reports/figure";
+import { Pager } from "@/components/pager";
 import { money, groupAmount } from "@/lib/money";
 import { longDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
@@ -24,9 +29,14 @@ import { RepeatMark } from "./repeat-mark";
 import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
 import { Tooltip } from "@connectapp/ui";
+import { Panel, Nothing, Destination, Rail } from "./panel";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** How much of each list is on one page. */
+const COUNTS_PER_PAGE = 8;
+const GIFTS_PER_PAGE = 12;
 
 /** R17.1. Giving to whoever runs it, My giving to everybody else. */
 export async function generateMetadata({
@@ -40,20 +50,28 @@ export async function generateMetadata({
   return tabMetadata(t(theirs ? "mine.giving.title" : "giving.title"), church);
 }
 
+/** A page number out of the address, which may hold anything at all. */
+const pageFrom = (raw?: string) => {
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : 1;
+};
+
 /**
  * R13.21. What has come in, and what is still being counted.
  *
- * The screen a treasurer opens on a Monday: the two totals they are asked for,
- * the funds those totals are made of, the counts the team has run, and the last
- * few gifts so a mistake is caught the day it is made.
+ * The screen a treasurer opens on a Monday, read top to bottom in the order
+ * the questions arrive: what came in, where the rest of the month's work
+ * lives, did the count get entered, is that gift right, and what the church
+ * is holding. Each of those is its own panel, because the two tables and a
+ * column of loose cards this replaced read as one wall of figures.
  */
 export default async function GivingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; counts?: string; gifts?: string }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const asked = await searchParams;
+  const session = await requireSession(asked.church);
   const manage = canManageGiving(session);
   const amounts = canReadGivingAmounts(session);
 
@@ -73,6 +91,9 @@ export default async function GivingPage({
     permissions: session.permissions,
   };
 
+  const countsPage = pageFrom(asked.counts);
+  const giftsPage = pageFrom(asked.gifts);
+
   const read = await withTenant(ctx, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
     const today = churchNow(profile?.timezone ?? "America/Chicago").date;
@@ -85,456 +106,553 @@ export default async function GivingPage({
       byFund: await fundTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
       thisYear: await givingTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
       thisMonth: await givingTotals(tx, { from: `${month}-01`, to: today }),
-      counts: await listBatches(tx, 6),
-      recent: await listGifts(tx, ctx, { limit: 8 }),
+      counts: await listBatches(tx, COUNTS_PER_PAGE, (countsPage - 1) * COUNTS_PER_PAGE),
+      allCounts: await countBatches(tx),
+      recent: await listGifts(tx, ctx, {
+        limit: GIFTS_PER_PAGE,
+        offset: (giftsPage - 1) * GIFTS_PER_PAGE,
+      }),
+      allGifts: await countGifts(tx),
       /* R13.2. Bank transfers authorised and not yet arrived. */
       coming: await onTheWay(tx),
       // R13.3. What the church is expecting without anybody doing anything.
       recurring: await listRecurring(tx, ctx, { activeOnly: true }),
       expected: await recurringMonthly(tx),
+      campaigns: await listCampaigns(tx),
       stripe: await getStripeAccount(tx),
     };
   });
 
-  const nothing = read.counts.length === 0 && read.recent.length === 0;
+  const fundList = read.funds.map((one) => ({ id: one.id, name: one.name }));
+  const nothing = read.allCounts === 0 && read.allGifts === 0;
+  const page = (name: "counts" | "gifts", to: number) =>
+    `/giving?church=${session.tenantSlug}&counts=${name === "counts" ? to : countsPage}`
+    + `&gifts=${name === "gifts" ? to : giftsPage}`;
+
+  const record = manage ? (
+    <GiftPanel church={session.tenantSlug} today={read.today} funds={fundList} />
+  ) : null;
+  const startCount = manage ? (
+    <StartCount church={session.tenantSlug} today={read.today} funds={fundList} />
+  ) : null;
 
   return (
     <AppShell session={session} title={t("giving.title")} wide>
-      <div className="flex flex-col gap-7">
-        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+      <div className="flex flex-col gap-6">
+        {/* R13.21. The two totals a treasurer is asked for, what the church
+            can plan on, and whether the online door is open. */}
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(215px,1fr))]">
           <Figure
+            icon={<Banknote />}
             label={t("giving.month")}
             value={money(read.thisMonth.cents)}
             sub={plural("giving.givers.sub", read.thisMonth.gifts)}
             hue="fern"
+            /* R13.2. Authorised and not yet moved by the bank, so it is in
+               none of these figures and says so where they are read. */
+            note={
+              read.coming.cents > 0
+                ? t("giving.onTheWay", { amount: money(read.coming.cents) })
+                : undefined
+            }
           />
           <Figure
+            icon={<TrendingUp />}
             label={t("giving.year")}
             value={money(read.thisYear.cents)}
             sub={plural("giving.givers.sub", read.thisYear.gifts)}
             hue="violet"
           />
           <Figure
+            icon={<Users />}
             label={t("giving.givers")}
             value={String(read.thisYear.givers)}
-            sub={
-              read.stripe?.chargesEnabled ? t("stripe.state.ready") : t("stripe.state.none")
-            }
+            sub={t("giving.givers.average", {
+              amount: money(
+                read.thisYear.givers > 0
+                  ? Math.round(read.thisYear.cents / read.thisYear.givers)
+                  : 0,
+              ),
+            })}
             hue="sky"
+          />
+          <Figure
+            icon={<Repeat />}
+            label={t("giving.recurring")}
+            value={money(read.expected)}
+            sub={plural("giving.repeating.count", read.recurring.length)}
+            hue="amber"
           />
         </div>
 
-        {/* R13.2. Money a giver has authorised that the bank has not moved
-            yet. It is in none of the figures above, so it says so here. */}
-        {read.coming.cents > 0 ? (
-          <p className="-mt-4 m-0 text-[13px] text-warning-text">
-            {t("giving.onTheWay", { amount: money(read.coming.cents) })}
-          </p>
-        ) : null}
+        {/* R13.17, R13.16. The rest of a treasurer's year. These were three
+            small links wedged into the side of a heading about something
+            else, each now carrying a figure that earns it the room. */}
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+          <Destination
+            icon={<Landmark />}
+            title={t("payouts.title")}
+            detail={
+              read.stripe?.chargesEnabled ? t("stripe.state.ready") : t("stripe.state.none")
+            }
+            href={`/giving/payouts?church=${session.tenantSlug}`}
+          />
+          <Destination
+            icon={<Target />}
+            title={t("campaigns.title")}
+            detail={plural("giving.campaigns.count", read.campaigns.length)}
+            href={`/giving/campaigns?church=${session.tenantSlug}`}
+          />
+          <Destination
+            icon={<FileText />}
+            title={t("giving.statements")}
+            detail={t("giving.statements.for", { count: read.thisYear.givers })}
+            href={`/giving/statements?church=${session.tenantSlug}`}
+          />
+        </div>
 
         {nothing ? (
           <Empty
             icon="calendar"
             title={t("giving.empty.title")}
             body={t("giving.empty.body")}
-            action={
-              manage ? (
-                <StartCount
-                    church={session.tenantSlug}
-                    today={read.today}
-                    funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
-                  />
-              ) : undefined
-            }
+            action={startCount ?? undefined}
           />
-        ) : null}
+        ) : (
+          <>
+            {/* R13.10. A session is what was counted at one service: the day,
+                what the church called it, the fund it went to and how much
+                there was, with the slip for the bank on the end. */}
+            <Panel
+              icon={<CalendarCheck />}
+              title={t("giving.counts")}
+              count={plural("giving.counts.count", read.allCounts)}
+              action={startCount}
+            >
+              {read.counts.length === 0 ? (
+                <Nothing>{t("giving.counts.none")}</Nothing>
+              ) : (
+                <>
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full min-w-[720px] border-collapse">
+                      <thead>
+                        <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
+                          <th className="px-5 py-2 text-left font-bold">{t("giving.col.date")}</th>
+                          <th className="px-3 py-2 text-left font-bold">{t("giving.count.name")}</th>
+                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.fund")}</th>
+                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.method")}</th>
+                          <th className="px-3 py-2 text-right font-bold">
+                            {t("giving.count.counted")}
+                          </th>
+                          <th className="w-[60px] px-3 py-2" />
+                        </tr>
+                      </thead>
 
-        <div className="grid items-start gap-6 lg:[grid-template-columns:minmax(0,1fr)_minmax(260px,320px)]">
-          <section className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="flex flex-wrap items-baseline gap-3 font-display text-[22px] leading-[28px] text-fg">
-                {t("giving.counts")}
-                {/* R13.17. January's work, a press away from the Monday one. */}
-                <Link
-                  href={`/giving/payouts?church=${session.tenantSlug}`}
-                  className="text-[13px] font-medium text-primary"
-                >
-                  {t("payouts.title")}
-                </Link>
-                <Link
-                  href={`/giving/campaigns?church=${session.tenantSlug}`}
-                  className="text-[13px] font-medium text-primary"
-                >
-                  {t("campaigns.title")}
-                </Link>
-                <Link
-                  href={`/giving/statements?church=${session.tenantSlug}`}
-                  className="text-[13px] font-medium text-primary"
-                >
-                  {t("giving.statements")}
-                </Link>
-              </h2>
-              {manage ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <GiftPanel
-                    church={session.tenantSlug}
-                    today={read.today}
-                    funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
-                  />
-                  <StartCount
-                    church={session.tenantSlug}
-                    today={read.today}
-                    funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
-                  />
-                </div>
-              ) : null}
-            </div>
+                      <tbody>
+                        {read.counts.map((count) => (
+                          <tr
+                            key={count.id}
+                            className="relative border-t border-line hover:bg-sunken"
+                          >
+                            <td className="whitespace-nowrap px-5 py-3 text-[13px] text-fg-subtle">
+                              {longDate(count.receivedOn)}
+                            </td>
 
-            {read.counts.length === 0 ? (
-              <p className="text-fg-muted">{t("giving.counts.none")}</p>
-            ) : (
-              <ul className="overflow-hidden rounded-lg border border-line bg-surface">
-                {/* R13.10. A session is what was counted at one service: the
-                    day, what the church called it, the fund it went to and
-                    how much there was, with the slip for the bank on it. */}
-                <li className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:152px_minmax(0,1fr)_140px_90px_120px_44px]">
-                  <span>{t("giving.col.date")}</span>
-                  <span>{t("giving.count.name")}</span>
-                  <span>{t("giving.col.fund")}</span>
-                  <span>{t("giving.col.method")}</span>
-                  <span className="text-right">{t("giving.count.counted")}</span>
-                  <span />
-                </li>
+                            {/* R24.x. The whole row opens the session, so a
+                                count entered wrong is put right where it is
+                                read. The slip sits above the link. */}
+                            <td className="min-w-0 px-3 py-3 font-medium text-fg">
+                              {manage ? (
+                                <StartCount
+                                  church={session.tenantSlug}
+                                  today={read.today}
+                                  funds={fundList}
+                                  count={{
+                                    id: count.id,
+                                    name: count.name,
+                                    receivedOn: count.receivedOn,
+                                    fundId: count.fundId ?? read.funds[0]?.id ?? "",
+                                    method: count.method,
+                                    amount: groupAmount((count.enteredCents / 100).toFixed(2)),
+                                  }}
+                                  trigger={
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer text-left after:absolute after:inset-0 after:content-['']"
+                                    >
+                                      {count.name}
+                                    </button>
+                                  }
+                                />
+                              ) : (
+                                count.name
+                              )}
+                            </td>
 
-                {read.counts.map((count) => (
-                  <li
-                    key={count.id}
-                    className="relative grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-sunken [grid-template-columns:152px_minmax(0,1fr)_140px_90px_120px_44px]"
-                  >
-                    <span className="whitespace-nowrap text-[13px] text-fg-subtle">
-                      {longDate(count.receivedOn)}
-                    </span>
-
-                    {/* R24.x. The whole row opens the session, so a count
-                        entered wrong is put right where it is read. The slip
-                        sits above the link. */}
-                    <span className="min-w-0 truncate font-medium text-fg">
-                      {manage ? (
-                        <StartCount
-                          church={session.tenantSlug}
-                          today={read.today}
-                          funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
-                          count={{
-                            id: count.id,
-                            name: count.name,
-                            receivedOn: count.receivedOn,
-                            fundId: count.fundId ?? read.funds[0]?.id ?? "",
-                            method: count.method,
-                            amount: groupAmount((count.enteredCents / 100).toFixed(2)),
-                          }}
-                          trigger={
-                            <button
-                              type="button"
-                              className="cursor-pointer text-left after:absolute after:inset-0 after:content-['']"
+                            <td className="px-3 py-3 text-[13px] text-fg-muted">{count.funds}</td>
+                            <td className="px-3 py-3 text-[13px] text-fg-muted">
+                              {count.methods
+                                .split(",")
+                                .filter(Boolean)
+                                .map((one) => t(`giving.method.${one}` as never))
+                                .join(", ")}
+                            </td>
+                            <td
+                              data-numeric
+                              className="whitespace-nowrap px-3 py-3 text-right font-semibold text-fg"
                             >
-                              {count.name}
-                            </button>
+                              {money(count.enteredCents)}
+                            </td>
+                            <td className="relative z-10 px-3 py-3">
+                              <span className="flex justify-end">
+                                <Tooltip content={t("giving.count.slip")}>
+                                  <a
+                                    href={`/giving/counts/${count.slug}/slip?church=${session.tenantSlug}`}
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    aria-label={t("giving.count.slip")}
+                                    className="inline-flex size-9 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-surface hover:text-fg [&_svg]:size-4"
+                                  >
+                                    <Printer />
+                                  </a>
+                                </Tooltip>
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <Pager
+                    page={countsPage}
+                    size={COUNTS_PER_PAGE}
+                    total={read.allCounts}
+                    href={(to) => page("counts", to)}
+                  />
+                </>
+              )}
+            </Panel>
+
+            {/* R13.21. The last gifts recorded, so a mistake is caught the
+                day it is made. */}
+            <Panel
+              icon={<Banknote />}
+              title={t("giving.recent")}
+              count={plural("giving.gifts.count", read.allGifts)}
+              action={
+                <>
+                  {record}
+                  {/* R13.23. Everything recorded, as a spreadsheet. */}
+                  <Download
+                    href={`/api/giving?church=${session.tenantSlug}`}
+                    file={`giving-${session.tenantSlug}.csv`}
+                    label={t("download.building")}
+                    title={t("giving.export")}
+                    className="inline-flex min-h-9 items-center rounded-[var(--d-radius-control)] px-3 text-[13px] font-medium text-primary hover:bg-sunken"
+                  >
+                    {t("giving.export")}
+                  </Download>
+                </>
+              }
+            >
+              {read.recent.length === 0 ? (
+                <Nothing>{t("giving.recent.none")}</Nothing>
+              ) : (
+                <>
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full min-w-[820px] border-collapse">
+                      <thead>
+                        <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
+                          <th className="px-5 py-2 text-left font-bold">{t("giving.col.date")}</th>
+                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.giver")}</th>
+                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.fund")}</th>
+                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.method")}</th>
+                          <th className="px-3 py-2 text-right font-bold">
+                            {t("giving.col.amount")}
+                          </th>
+                          <th className="px-3 py-2 text-left font-bold">
+                            {t("giving.col.status")}
+                          </th>
+                          <th className="w-[88px] px-3 py-2" />
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {giftRows(read.recent).map((row) => {
+                          const gift = row.gift;
+                          const back = row.kind === "refund";
+
+                          return (
+                            <tr
+                              key={row.key}
+                              className={
+                                back
+                                  ? "italic text-fg-muted"
+                                  : "border-t border-line hover:bg-sunken"
+                              }
+                            >
+                              {/* R13.15. A refund hangs off the gift it came
+                                  off, on the same rail the rest of the
+                                  product hangs a child from its parent. */}
+                              <td className="relative whitespace-nowrap py-3 pr-3 pl-5 text-[13px] text-fg-subtle">
+                                {row.tied ? (
+                                  <Rail role={back ? "child" : "parent"} />
+                                ) : null}
+                                <span className={row.tied ? "pl-5" : undefined}>
+                                  {longDate(row.on)}
+                                </span>
+                              </td>
+
+                              <td className="min-w-0 px-3 py-3">
+                                <span className="flex min-w-0 flex-col leading-5">
+                                  <span className="truncate text-fg">
+                                    {gift.memberName ?? t("giving.gift.anonymous")}
+                                  </span>
+                                  {/* R13.18. A gift on nobody's record is on
+                                      nobody's statement either. */}
+                                  {gift.memberId === null && !back ? (
+                                    <span className="text-[12px] text-fg-subtle">
+                                      {t("giving.gift.unattached")}
+                                    </span>
+                                  ) : null}
+                                </span>
+                              </td>
+
+                              <td className="px-3 py-3 text-[13px] text-fg-muted">
+                                {gift.fundName}
+                              </td>
+
+                              <td className="px-3 py-3 text-[13px] text-fg-muted">
+                                {t(`giving.method.${gift.method}` as never)}
+                              </td>
+
+                              <td
+                                data-numeric
+                                className={`whitespace-nowrap px-3 py-3 text-right ${
+                                  gift.status === "settled" && !back
+                                    ? "font-semibold text-fg"
+                                    : "text-fg-subtle"
+                                }`}
+                              >
+                                <span className="flex items-center justify-end gap-1.5">
+                                  {/* R13.3. Collected by a repeating gift,
+                                      which is money the church can plan on. */}
+                                  {gift.recurring && !back ? <RepeatMark /> : null}
+                                  {gift.inKindDescription && !back
+                                    ? ""
+                                    : money(row.amountCents)}
+                                </span>
+                              </td>
+
+                              {/* R13.2, R13.15. Where the money has got to. */}
+                              <td className="px-3 py-3 text-[13px]">
+                                <GiftState status={row.status} reason={gift.failureReason} />
+                              </td>
+
+                              {/* R13.15, R13.18. The two things done to a
+                                  gift, in the same place on every row. */}
+                              <td className="px-3 py-3">
+                                <span className="flex items-center justify-end gap-1">
+                                  {manage && gift.memberId === null && !back ? (
+                                    <AttachGift
+                                      church={session.tenantSlug}
+                                      gift={{ id: gift.id, typed: gift.memberName }}
+                                    />
+                                  ) : null}
+                                  {manage && !back && !gift.inKindDescription
+                                    && gift.status === "settled"
+                                    && gift.amountCents > gift.refundedCents ? (
+                                    <RefundGift
+                                      church={session.tenantSlug}
+                                      gift={{
+                                        id: gift.id,
+                                        amountCents: gift.amountCents,
+                                        refundedCents: gift.refundedCents,
+                                        method: gift.method,
+                                        giver: gift.memberName,
+                                      }}
+                                    />
+                                  ) : null}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <Pager
+                    page={giftsPage}
+                    size={GIFTS_PER_PAGE}
+                    total={read.allGifts}
+                    href={(to) => page("gifts", to)}
+                  />
+                </>
+              )}
+            </Panel>
+          </>
+        )}
+
+        <div className="grid items-start gap-6 lg:grid-cols-2">
+          {/* R13.9. The board's question is what the church can spend, so
+              the funds are read in two groups with a total on each. Money
+              given for a building is in the bank and is not available. */}
+          <Panel
+            icon={<Wallet />}
+            title={t("giving.funds")}
+            count={plural("giving.funds.count", read.funds.length)}
+            action={
+              <Link
+                href={`/settings/funds?church=${session.tenantSlug}`}
+                className="inline-flex min-h-9 items-center rounded-[var(--d-radius-control)] px-3 text-[13px] font-medium text-primary no-underline hover:bg-sunken"
+              >
+                {t("giving.funds.manage")}
+              </Link>
+            }
+          >
+            {read.funds.length === 0 ? (
+              <Nothing>{t("giving.funds.none")}</Nothing>
+            ) : (
+              <div className="flex flex-col gap-5 px-5 py-4">
+                {([true, false] as const).map((restricted) => {
+                  const group = read.funds.filter((one) => one.restricted === restricted);
+                  if (group.length === 0) return null;
+                  const held = group.reduce(
+                    (sum, one) => sum + (read.byFund[one.id]?.cents ?? 0),
+                    0,
+                  );
+
+                  return (
+                    <div key={String(restricted)} className="flex flex-col">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <Tooltip
+                          content={
+                            restricted
+                              ? t("giving.funds.restrictedWhy")
+                              : t("giving.funds.availableWhy")
                           }
-                        />
-                      ) : (
-                        count.name
-                      )}
+                        >
+                          <span className="text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
+                            {restricted
+                              ? t("giving.funds.restricted")
+                              : t("giving.funds.available")}
+                          </span>
+                        </Tooltip>
+                        <span data-numeric className="text-[15px] font-semibold text-fg">
+                          {money(held)}
+                        </span>
+                      </div>
+
+                      {/* The funds hang off their group's total on the rail
+                          the rest of the product uses for a thing inside a
+                          thing, so the two groups read apart at a glance. */}
+                      <ul className="m-0 mt-1 flex list-none flex-col p-0">
+                        {group.map((fund, at) => (
+                          <li key={fund.id} className="flex min-w-0 gap-3">
+                            <span
+                              aria-hidden
+                              className="flex w-2.5 shrink-0 flex-col items-center"
+                            >
+                              <span className="h-[18px] w-px bg-line-strong" />
+                              <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+                              {/* The rail stops at the last one, so it reads
+                                  as a group closing rather than a line
+                                  running off the bottom of the card. */}
+                              {at === group.length - 1 ? null : (
+                                <span className="w-px flex-1 bg-line-strong" />
+                              )}
+                            </span>
+
+                            <span className="flex min-w-0 flex-1 items-baseline justify-between gap-3 py-2">
+                              <span className="min-w-0 truncate text-[length:var(--d-text-body)] text-fg">
+                                {fund.name}
+                              </span>
+                              <span data-numeric className="shrink-0 text-fg">
+                                {money(read.byFund[fund.id]?.cents ?? 0)}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Panel>
+
+          {/* R13.3. What repeats, which is the number a church plans on. */}
+          <Panel
+            icon={<Repeat />}
+            title={t("giving.recurring")}
+            count={
+              read.recurring.length > 0
+                ? t("giving.recurring.monthly", { amount: money(read.expected) })
+                : undefined
+            }
+          >
+            {read.recurring.length === 0 ? (
+              <Nothing>{t("giving.recurring.none")}</Nothing>
+            ) : (
+              <ul className="m-0 flex list-none flex-col p-0">
+                {read.recurring.slice(0, 8).map((one) => (
+                  <li
+                    key={one.id}
+                    className="flex items-center gap-3 border-t border-sunken px-5 py-3 first:border-0"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col leading-5">
+                      <span className="truncate font-medium text-fg">
+                        {one.name || t("giving.gift.anonymous")}
+                      </span>
+                      <span className="truncate text-[12px] text-fg-subtle">
+                        {[
+                          one.fundName,
+                          t(
+                            `giving.recurring.every.${one.interval}${
+                              one.intervalCount > 1 ? `.${one.intervalCount}` : ""
+                            }` as never,
+                          ),
+                          one.nextOn
+                            ? t("giving.recurring.next", { date: longDate(one.nextOn) })
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                      {/* R13.8. A gift that has stopped collecting says so
+                          here, rather than being noticed in March. */}
+                      {one.status === "past_due" ? (
+                        <span
+                          className="text-[12px] font-medium"
+                          style={{ color: "var(--warning-text)" }}
+                        >
+                          {t("giving.recurring.status.past_due")}
+                        </span>
+                      ) : null}
                     </span>
 
-                    <span className="truncate text-[13px] text-fg-muted">{count.funds}</span>
-                    <span className="truncate text-[13px] text-fg-muted">
-                      {count.methods
-                        .split(",")
-                        .filter(Boolean)
-                        .map((one) => t(`giving.method.${one}` as never))
-                        .join(", ")}
+                    <span data-numeric className="shrink-0 font-semibold text-fg">
+                      {money(one.amountCents)}
                     </span>
-                    <span data-numeric className="text-right text-fg">
-                      {money(count.enteredCents)}
-                    </span>
-                    <span className="relative z-10 flex justify-end">
-                      <Tooltip content={t("giving.count.slip")}>
-                        <a
-                          href={`/giving/counts/${count.slug}/slip?church=${session.tenantSlug}`}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          aria-label={t("giving.count.slip")}
-                          className="inline-flex size-[var(--d-tap)] items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-surface hover:text-fg [&_svg]:size-[var(--d-icon)]"
-                        >
-                          <Printer />
-                        </a>
-                      </Tooltip>
-                    </span>
+
+                    {/* R13.3. A treasurer is asked to stop one on a giver's
+                        behalf, so it is stopped from here as well. */}
+                    {manage ? (
+                      <StopRepeating
+                        id={one.id}
+                        church={session.tenantSlug}
+                        label={money(one.amountCents)}
+                        who={one.name || null}
+                        compact
+                      />
+                    ) : null}
                   </li>
                 ))}
               </ul>
             )}
-
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-[22px] leading-[28px] text-fg">
-                {t("giving.recent")}
-              </h2>
-              {/* R13.23. Everything recorded, as a spreadsheet. */}
-              <Download
-                href={`/api/giving?church=${session.tenantSlug}`}
-                file={`giving-${session.tenantSlug}.csv`}
-                label={t("download.building")}
-                title={t("giving.export")}
-                className="font-medium text-primary"
-              >
-                {t("giving.export")}
-              </Download>
-            </div>
-            {read.recent.length === 0 ? (
-              <p className="text-fg-muted">{t("giving.recent.none")}</p>
-            ) : (
-              <ul className="overflow-hidden rounded-lg border border-line bg-surface">
-                {/* The column names, so a treasurer reading down the list
-                    knows which cell is which. */}
-                <li
-                  className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:152px_minmax(0,1fr)_140px_90px_110px_110px_72px]"
-                >
-                  <span>{t("giving.col.date")}</span>
-                  <span>{t("giving.col.giver")}</span>
-                  <span>{t("giving.col.fund")}</span>
-                  <span>{t("giving.col.method")}</span>
-                  <span className="text-right">{t("giving.col.amount")}</span>
-                  <span>{t("giving.col.status")}</span>
-                  <span />
-                </li>
-
-                {giftRows(read.recent).map((row) => {
-                  const gift = row.gift;
-                  const back = row.kind === "refund";
-
-                  return (
-                  <li
-                    key={row.key}
-                    className={`grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:152px_minmax(0,1fr)_140px_90px_110px_110px_72px] ${
-                      back
-                        ? "italic pt-2 relative before:absolute before:inset-x-10 before:top-0 before:h-px before:bg-line before:content-['']"
-                        : row.tied
-                          ? "border-b-0 pb-2"
-                          : ""
-                    }`}
-                  >
-                    {/* R13.15. The turn marks the refund as belonging to the
-                        gift under it, and the rule between them comes out. */}
-                    <span className="flex items-center gap-1 whitespace-nowrap text-[13px] text-fg-subtle">
-                      {back ? <CornerDownRight className="size-3.5 shrink-0" aria-hidden /> : null}
-                      {longDate(row.on)}
-                    </span>
-
-                    <span className="flex min-w-0 flex-col">
-                      <span className="truncate text-fg">
-                        {gift.memberName ?? t("giving.gift.anonymous")}
-                      </span>
-                      {/* R13.18. A gift on nobody's record is on nobody's
-                          statement either, so it says so here. */}
-                      {gift.memberId === null && !back ? (
-                        <span className="text-[12px] text-fg-subtle">
-                          {t("giving.gift.unattached")}
-                        </span>
-                      ) : null}
-                    </span>
-
-                    <span className="truncate text-[13px] text-fg-muted">{gift.fundName}</span>
-
-                    <span className="text-[13px] text-fg-muted">
-                      {t(`giving.method.${gift.method}` as never)}
-                    </span>
-
-                    <span
-                      data-numeric
-                      className={`text-right ${
-                        gift.status === "settled" && !back ? "text-fg" : "text-fg-subtle"
-                      }`}
-                    >
-                      <span className="flex items-center justify-end gap-1.5">
-                        {/* R13.3. Collected by a repeating gift, which is
-                            money the church can plan on. */}
-                        {gift.recurring && !back ? <RepeatMark /> : null}
-                        {gift.inKindDescription && !back ? "" : money(row.amountCents)}
-                      </span>
-                    </span>
-
-                    {/* R13.2, R13.15. Where the money has got to: on its way,
-                        returned by the bank, or given back by the church. */}
-                    <span className="flex text-[13px]">
-                      <GiftState status={row.status} reason={gift.failureReason} />
-                    </span>
-
-                    {/* R13.15, R13.18. The two things done to a gift, in the
-                        same place on every row whether or not they apply. */}
-                    <span className="flex items-center justify-end gap-1">
-                      {manage && gift.memberId === null && !back ? (
-                        <AttachGift
-                          church={session.tenantSlug}
-                          gift={{ id: gift.id, typed: gift.memberName }}
-                        />
-                      ) : null}
-                      {manage && !back && !gift.inKindDescription && gift.status === "settled"
-                        && gift.amountCents > gift.refundedCents ? (
-                        <RefundGift
-                          church={session.tenantSlug}
-                          gift={{
-                            id: gift.id,
-                            amountCents: gift.amountCents,
-                            refundedCents: gift.refundedCents,
-                            method: gift.method,
-                            giver: gift.memberName,
-                          }}
-                        />
-                      ) : null}
-                    </span>
-                  </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
-
-          <aside className="flex flex-col gap-6">
-            {/* R13.3. What repeats, which is the number a church plans on. */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-[13px] font-medium text-fg-subtle">
-                  {t("giving.recurring")}
-                </h2>
-                {read.recurring.length > 0 ? (
-                  <span data-numeric className="text-[13px] text-fg-muted">
-                    {t("giving.recurring.monthly", { amount: money(read.expected) })}
-                  </span>
-                ) : null}
-              </div>
-
-              {read.recurring.length === 0 ? (
-                <p className="text-[13px] text-fg-muted">{t("giving.recurring.none")}</p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {read.recurring.slice(0, 6).map((one) => (
-                    <li
-                      key={one.id}
-                      className="flex items-center gap-2 rounded-[12px] border border-line bg-surface px-3.5 py-2.5"
-                    >
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate font-medium text-fg">
-                          {one.name || t("giving.gift.anonymous")}
-                        </span>
-                        <span className="text-[12px] text-fg-subtle">
-                          {[
-                            one.fundName,
-                            t(
-                              `giving.recurring.every.${one.interval}${
-                                one.intervalCount > 1 ? `.${one.intervalCount}` : ""
-                              }` as never,
-                            ),
-                            one.nextOn
-                              ? t("giving.recurring.next", { date: longDate(one.nextOn) })
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" \u00b7 ")}
-                        </span>
-                        {/* R13.8. A gift that has stopped collecting says so
-                            here, rather than being noticed in March. */}
-                        {one.status === "past_due" ? (
-                          <span
-                            className="text-[12px] font-medium"
-                            style={{ color: "var(--hue-amber-key)" }}
-                          >
-                            {t("giving.recurring.status.past_due")}
-                          </span>
-                        ) : null}
-                      </span>
-                      <span data-numeric className="shrink-0 text-[13px] text-fg">
-                        {money(one.amountCents)}
-                      </span>
-                      {/* R13.3. A treasurer is asked to stop one on a giver's
-                          behalf, so it is stopped from here as well. */}
-                      {manage ? (
-                        <StopRepeating
-                          id={one.id}
-                          church={session.tenantSlug}
-                          label={money(one.amountCents)}
-                          who={one.name || null}
-                          compact
-                        />
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-[13px] font-medium text-fg-subtle">{t("giving.funds")}</h2>
-              <Link
-                href={`/settings/funds?church=${session.tenantSlug}`}
-                className="text-[13px] font-medium text-primary"
-              >
-                {t("giving.funds.manage")}
-              </Link>
-            </div>
-
-            {/* R13.9. The board's question is what the church can spend, so
-                the funds are read in two groups with a total on each. Money
-                given for a building is in the bank and is not available. */}
-            {([true, false] as const).map((restricted) => {
-              const group = read.funds.filter((one) => one.restricted === restricted);
-              if (group.length === 0) return null;
-              const held = group.reduce(
-                (sum, one) => sum + (read.byFund[one.id]?.cents ?? 0),
-                0,
-              );
-
-              return (
-                <div key={String(restricted)} className="flex flex-col gap-2">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <Tooltip
-                      content={
-                        restricted
-                          ? t("giving.funds.restrictedWhy")
-                          : t("giving.funds.availableWhy")
-                      }
-                    >
-                      <span className="text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                        {restricted
-                          ? t("giving.funds.restricted")
-                          : t("giving.funds.available")}
-                      </span>
-                    </Tooltip>
-                    <span data-numeric className="text-[13px] text-fg-muted">
-                      {money(held)}
-                    </span>
-                  </div>
-
-                  <ul className="flex flex-col gap-2">
-                    {group.map((fund) => (
-                      <li
-                        key={fund.id}
-                        className="flex items-center gap-3 rounded-[12px] border border-line bg-surface px-3.5 py-3"
-                      >
-                        <span className="min-w-0 flex-1 truncate font-medium text-fg">
-                          {fund.name}
-                        </span>
-                        <span data-numeric className="shrink-0 text-[15px] text-fg">
-                          {money(read.byFund[fund.id]?.cents ?? 0)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-            </div>
-          </aside>
+          </Panel>
         </div>
       </div>
     </AppShell>

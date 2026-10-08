@@ -296,8 +296,16 @@ export async function reopenBatch(db: Tx, actor: WriteActor, id: string): Promis
   if (changed.length === 0) throw new InvalidInputError("gift.error.batchMissing");
 }
 
+/** R13.10. How many counting sessions this church has run. */
+export async function countBatches(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(giftBatches);
+  return row?.n ?? 0;
+}
+
 /** R13.10. The counts this church has run, newest first. */
-export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
+export async function listBatches(db: Tx, limit = 30, offset = 0): Promise<Batch[]> {
   const rows = await db
     .select({
       id: giftBatches.id,
@@ -319,7 +327,8 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
     .leftJoin(funds, eq(funds.id, gifts.fundId))
     .groupBy(giftBatches.id)
     .orderBy(desc(giftBatches.receivedOn), desc(giftBatches.createdAt))
-    .limit(limit);
+    .limit(limit)
+    .offset(offset);
 
   return rows.map((row) => ({
     id: row.id,
@@ -439,10 +448,32 @@ export async function removeGift(db: Tx, actor: WriteActor, id: string): Promise
  * records with the amount zeroed rather than a different query somewhere else
  * deciding to hide a column.
  */
+/** R13.21. How many gifts the same filter matches, for the pager under it. */
+export async function countGifts(
+  db: Tx,
+  filter: { batchId?: string; memberId?: string; from?: string; to?: string } = {},
+): Promise<number> {
+  const where = [
+    filter.batchId ? eq(gifts.batchId, filter.batchId) : undefined,
+    filter.memberId ? eq(gifts.memberId, filter.memberId) : undefined,
+    filter.from ? sql`${gifts.receivedOn} >= ${filter.from}::date` : undefined,
+    filter.to ? sql`${gifts.receivedOn} <= ${filter.to}::date` : undefined,
+  ].filter(Boolean);
+
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(gifts)
+    .where(where.length > 0 ? and(...where) : undefined);
+  return row?.n ?? 0;
+}
+
 export async function listGifts(
   db: Tx,
   who: WriteActor,
-  filter: { batchId?: string; memberId?: string; from?: string; to?: string; limit?: number } = {},
+  filter: {
+    batchId?: string; memberId?: string; from?: string; to?: string;
+    limit?: number; offset?: number;
+  } = {},
 ): Promise<Gift[]> {
   const where = [
     filter.batchId ? eq(gifts.batchId, filter.batchId) : undefined,
@@ -481,7 +512,8 @@ export async function listGifts(
     .leftJoin(members, eq(members.id, gifts.memberId))
     .where(where.length > 0 ? and(...where) : undefined)
     .orderBy(desc(gifts.receivedOn), desc(gifts.createdAt))
-    .limit(filter.limit ?? 200);
+    .limit(filter.limit ?? 200)
+    .offset(filter.offset ?? 0);
 
   const amounts = canReadGivingAmounts(who);
 

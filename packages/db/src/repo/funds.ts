@@ -8,7 +8,7 @@ import { canManageGiving } from "../roles";
 import type { WriteActor } from "./members";
 
 /**
- * R13.9. What a gift can be given to.
+ * R13.9. The causes a church takes gifts for.
  *
  * A church runs a general fund and a handful of others, and the one thing the
  * product must get right is which of them are restricted: money given for a
@@ -116,7 +116,7 @@ export async function writeFund(
 }
 
 /**
- * R13.9. Takes a fund off the list a gift can be given to, or puts it back.
+ * R13.9. Takes a fund off the list of causes, or puts it back.
  *
  * Never deleted: every gift already given to it still has to read and still has
  * to appear on a statement.

@@ -19,7 +19,7 @@ export async function generateMetadata({
 }
 
 /**
- * R13.9. What a gift can be given to.
+ * R13.9. The causes a church takes gifts for.
  *
  * The one thing this screen has to get right is which funds are restricted:
  * money given for a building is reported apart from the rest, because it

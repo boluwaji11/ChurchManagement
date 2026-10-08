@@ -21,7 +21,7 @@ const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow
  * What is written here is a record of what happened, never a claim on it.
  */
 
-/** R13.9. What a gift can be given to. */
+/** R13.9. The causes a church takes gifts for. */
 export const funds = pgTable(
   "funds",
   {

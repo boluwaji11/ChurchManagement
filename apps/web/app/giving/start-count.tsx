@@ -32,7 +32,7 @@ export function StartCount({
 }: {
   church: string;
   today: string;
-  /** R13.9. What the money can be given to, so a session says which. */
+  /** R13.9. The causes the money can go to, so a session says which. */
   funds: { id: string; name: string }[];
   /**
    * R13.10. The session being put right, where one is. Somebody counts

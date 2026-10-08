@@ -36,7 +36,7 @@ export async function saveFund(
   }
 }
 
-/** R13.9. Taking a fund off the list a gift can be given to, or putting it back. */
+/** R13.9. Taking a fund off the list of causes, or putting it back. */
 export async function archiveFund(
   id: string,
   archived: boolean,
