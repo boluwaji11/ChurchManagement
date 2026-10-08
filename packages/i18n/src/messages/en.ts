@@ -974,6 +974,7 @@ export const en = {
   "giving.funds": "Funds",
   "giving.funds.none": "No funds yet",
   "giving.funds.manage": "Manage funds",
+  "giving.funds.archivedMark": "Archived",
   "giving.restricted": "Restricted",
   "giving.counts": "Counting sessions",
   "giving.counts.none": "No counting sessions yet",

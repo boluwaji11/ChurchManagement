@@ -6,7 +6,7 @@ import {
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
 import {
-  Banknote, CalendarCheck, CornerDownRight, FileText, Landmark, Plus, Printer,
+  Archive, Banknote, CalendarCheck, CornerDownRight, FileText, Landmark, Plus, Printer,
   Repeat, Target, TrendingUp, Users, Wallet,
 } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
@@ -124,6 +124,10 @@ export default async function GivingPage({
     return {
       today,
       funds: await listFunds(tx),
+      /* R13.9. Archiving a fund takes it off the pickers, and the money
+         given to it is still the church's. Read here so the board's two
+         totals stay true and the fund it came from can still be named. */
+      everyFund: await listFunds(tx, { includeArchived: true }),
       byFund: await fundTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
       thisYear: await givingTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
       thisMonth: await givingTotals(tx, { from: `${month}-01`, to: today }),
@@ -670,12 +674,19 @@ export default async function GivingPage({
               </Link>
             }
           >
-            {read.funds.length === 0 ? (
+            {read.everyFund.length === 0 ? (
               <Nothing>{t("giving.funds.none")}</Nothing>
             ) : (
               <div className="flex flex-col gap-5 px-5 py-4">
                 {([false, true] as const).map((restricted) => {
-                  const all = read.funds.filter((one) => one.restricted === restricted);
+                  /* An archived fund stays on the board while it still holds
+                     money, after the live ones, so a treasurer reading the
+                     total can see where the rest of it sits. One emptied and
+                     then archived has nothing left to say and comes off. */
+                  const all = read.everyFund
+                    .filter((one) => one.restricted === restricted)
+                    .filter((one) => !one.archived || (read.byFund[one.id]?.cents ?? 0) !== 0)
+                    .sort((a, b) => Number(a.archived) - Number(b.archived));
                   if (all.length === 0) return null;
                   /* The total is of every one of them. The list under it is
                      the first few, because a column of twenty funds beside a
@@ -729,8 +740,24 @@ export default async function GivingPage({
                             </span>
 
                             <span className="flex min-w-0 flex-1 items-baseline justify-between gap-3 py-2">
-                              <span className="min-w-0 truncate text-[length:var(--d-text-body)] text-fg">
-                                {fund.name}
+                              <span className="flex min-w-0 items-center gap-1.5">
+                                <span
+                                  className={`min-w-0 truncate text-[length:var(--d-text-body)] ${
+                                    fund.archived ? "text-fg-muted" : "text-fg"
+                                  }`}
+                                >
+                                  {fund.name}
+                                </span>
+                                {fund.archived ? (
+                                  <Tooltip content={t("giving.funds.archivedMark")}>
+                                    <span
+                                      aria-label={t("giving.funds.archivedMark")}
+                                      className="inline-flex shrink-0 text-fg-subtle [&_svg]:size-3.5"
+                                    >
+                                      <Archive aria-hidden />
+                                    </span>
+                                  </Tooltip>
+                                ) : null}
                               </span>
                               <span data-numeric className="shrink-0 text-fg">
                                 {money(read.byFund[fund.id]?.cents ?? 0)}
