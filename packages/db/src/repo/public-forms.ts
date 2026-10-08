@@ -247,14 +247,30 @@ export async function submitPublicForm(input: {
      * The bell is the only place a church hears about this: a form is
      * answered by a visitor at eleven at night and read by a volunteer on
      * Tuesday, and without a mark the response sits in a list nobody opens.
+     *
+     * Not for a place at an event. Eighty people taking eighty seats is
+     * eighty lines about a thing the event's own roster and seat count
+     * already say, and a bell filled with those is a bell the one line that
+     * mattered gets lost in.
+     *
+     * And one line per form while it is unread, because "has new responses"
+     * is as true of the ninth answer as it was of the first.
      */
-    await notifyRolesRaw(tx, row.tenantId, ["owner", "admin"], {
-      kind: "form_response",
-      messageKey: "bell.formResponse",
-      params: { form: row.name },
-      // R24.6. The responses, which is what the line is about.
-      href: `/forms/${row.id}?view=responses`,
-    });
+    if (!input.eventSlug) {
+      await notifyRolesRaw(
+        tx,
+        row.tenantId,
+        ["owner", "admin"],
+        {
+          kind: "form_response",
+          messageKey: "bell.formResponse",
+          params: { form: row.name },
+          // R24.6. The responses, which is what the line is about.
+          href: `/forms/${row.id}?view=responses`,
+        },
+        { onlyIfUnread: true },
+      );
+    }
 
     /*
      * R4.5, R2.8. Somebody fitted and not certainly enough to attach to. The
@@ -262,12 +278,20 @@ export async function submitPublicForm(input: {
      * person, and the only honest thing is to say so while it is fresh.
      */
     if (placed.state === "review") {
-      await notifyRolesRaw(tx, row.tenantId, ["owner", "admin"], {
-        kind: "duplicate",
-        messageKey: "bell.duplicate",
-        params: { name: nameFrom(fields, answers).name },
-        href: "/duplicates",
-      });
+      /* The same rule: the duplicate finder holds every pair, so one unread
+         line about it stands for all of them. */
+      await notifyRolesRaw(
+        tx,
+        row.tenantId,
+        ["owner", "admin"],
+        {
+          kind: "duplicate",
+          messageKey: "bell.duplicate",
+          params: { name: nameFrom(fields, answers).name },
+          href: "/duplicates",
+        },
+        { onlyIfUnread: true },
+      );
     }
 
     if (input.eventSlug) {

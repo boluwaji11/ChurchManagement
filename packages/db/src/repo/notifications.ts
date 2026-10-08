@@ -144,16 +144,32 @@ export async function notifyRolesRaw(
   tenantId: string,
   roles: TenantRole[],
   input: NotifyInput,
+  options: { onlyIfUnread?: boolean } = {},
 ): Promise<void> {
   if (roles.length === 0) return;
 
+  /*
+   * R24.6. One line per thing, not one per answer.
+   *
+   * A form is answered by everybody who sees it, and a bell with eighty lines
+   * saying the same form has answers is a bell nobody opens. Where the line
+   * already says "has new responses", a second one adds nothing: it is
+   * written only while nobody has read the first.
+   */
   await tx`
     insert into notifications (tenant_id, user_id, kind, message_key, params, href)
-    select ${tenantId}, user_id, ${input.kind}, ${input.messageKey},
+    select ${tenantId}, m.user_id, ${input.kind}, ${input.messageKey},
            ${JSON.stringify(input.params ?? {})}::jsonb, ${input.href ?? null}
-      from tenant_members
-     where tenant_id = ${tenantId}
-       and role::text = any(${roles as string[]})`;
+      from tenant_members m
+     where m.tenant_id = ${tenantId}
+       and m.role::text = any(${roles as string[]})
+       and (${!options.onlyIfUnread} or not exists (
+             select 1 from notifications n
+              where n.tenant_id = ${tenantId}
+                and n.user_id = m.user_id
+                and n.kind = ${input.kind}
+                and n.href is not distinct from ${input.href ?? null}
+                and n.read_at is null))`;
 
   await tx`
     delete from notifications

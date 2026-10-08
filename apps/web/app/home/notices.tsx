@@ -75,7 +75,6 @@ export function Notices({ church, notices }: { church: string; notices: Notice[]
                     as every other x in the product. */}
                 <Confirm
                   title={t("announce.putAwayTitle", { title: one.title })}
-                  body={t("announce.putAwayBody")}
                   confirmLabel={t("announce.putAway")}
                   disabled={working}
                   onConfirm={() => new Promise<void>((done) => {
