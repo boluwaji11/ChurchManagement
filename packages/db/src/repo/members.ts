@@ -41,13 +41,25 @@ export interface DirectoryQuery {
   archivedOnly?: boolean;
   /** Matches a name, an email, or a phone number. */
   q?: string;
-  status?: string;
-  /** R1.13. The tag's readable name or its id. */
-  tagId?: string;
+  /**
+   * R2.14. Any of these lifecycle statuses, since "members and regulars" is
+   * one question rather than two searches.
+   */
+  status?: string | string[];
+  /** R1.13. Any of these tags, by readable name or by id. */
+  tagId?: string | string[];
   /** "any" means no filter. */
   has?: "email" | "phone" | "noEmail" | "noPhone";
-  /** R2.4. When they became a member, in the buckets a church asks in. */
-  joined?: "year" | "five" | "earlier";
+  /**
+   * R2.4. When they became a member.
+   *
+   * The ranges run from today backwards and each one contains the one before
+   * it, which is how somebody asks the question: "in the last five years"
+   * means everybody who joined since then, this year's arrivals included.
+   * `none` is the people with no date on their record, who otherwise fall out
+   * of every answer without saying so.
+   */
+  joined?: "year" | "months" | "five" | "earlier" | "none";
   /** R2.4. No email and no phone, which is a person nobody can reach. */
   missing?: boolean;
   /** R9.x. In a group, or in none. */
@@ -81,6 +93,11 @@ const ORDERS = {
   status: [members.lifecycleStatus, members.lastName],
   added: [members.createdAt],
 } as const;
+
+/** One value or several, as one list. An empty string is no filter at all. */
+const many = (value: string | string[] | undefined): string[] =>
+  (Array.isArray(value) ? value : value ? [value] : []).map((one) => one.trim()).filter(Boolean);
+
 
 /**
  * The directory query.
@@ -154,18 +171,27 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
     )`);
   }
 
-  if (opts.status) where.push(eq(members.lifecycleStatus, opts.status as never));
+  const statuses = many(opts.status);
+  if (statuses.length > 0) {
+    where.push(inArray(members.lifecycleStatus, statuses as never));
+  }
 
-  if (opts.tagId) {
+  const tagKeys = many(opts.tagId);
+  if (tagKeys.length > 0) {
+    // Each one its own placeholder. A JS array handed to the driver here
+    // arrives as a string rather than as a list.
+    const keys = sql.join(tagKeys.map((one) => sql`${one}`), sql`, `);
     // R1.13. Matched by the tag's readable name or by its id, so an address
     // somebody saved before a tag had a name in its address goes on working.
     // The id is compared as text, because a slug is not castable to a uuid.
+    // Any of them is a match: two tags chosen is a wider list, not a narrower
+    // one, which is what somebody ticking a second box is asking for.
     where.push(sql`exists (
       select 1
         from member_tags pt
         join tags tg on tg.id = pt.tag_id
        where pt.member_id = ${members.id}
-         and (tg.slug = ${opts.tagId} or tg.id::text = ${opts.tagId})
+         and (tg.slug in (${keys}) or tg.id::text in (${keys}))
     )`);
   }
 
@@ -184,10 +210,14 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
    */
   if (opts.joined === "year") {
     where.push(sql`${members.membershipDate} >= date_trunc('year', current_date)`);
+  } else if (opts.joined === "months") {
+    where.push(sql`${members.membershipDate} >= (current_date - interval '12 months')`);
   } else if (opts.joined === "five") {
     where.push(sql`${members.membershipDate} >= (current_date - interval '5 years')`);
   } else if (opts.joined === "earlier") {
     where.push(sql`${members.membershipDate} < (current_date - interval '5 years')`);
+  } else if (opts.joined === "none") {
+    where.push(isNull(members.membershipDate));
   }
 
   /*

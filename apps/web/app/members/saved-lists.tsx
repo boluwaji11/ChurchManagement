@@ -4,8 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ListFilter, ListPlus } from "lucide-react";
 import {
-  Button, Field, Input, Sheet, SheetContent, Banner,
-  Select, SelectTrigger, SelectContent, SelectItem,
+  Button, Field, Input, Sheet, SheetContent, Banner, Combobox,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { saveView, saveSelection } from "./list-actions";
@@ -136,24 +135,24 @@ export function OpenList({
   if (lists.length === 0) return null;
 
   return (
-    <Select value="" onValueChange={(id) => router.push(`/members?church=${church}&list=${id}`)}>
-      <SelectTrigger
+    <div className="w-[220px]">
+      {/* Typing finds one. A church that keeps twenty of these should not
+          have to read the list to reach the one it opens every Monday. */}
+      <Combobox
+        options={lists.map((one) => ({ value: one.id, label: one.name }))}
+        value=""
+        onChange={(id) => {
+          if (id) router.push(`/members?church=${church}&list=${id}`);
+        }}
+        clearable={false}
+        placeholder={t("lists.title")}
+        icon={<ListFilter />}
+        emptyLabel={t("lists.noneFound")}
+        clearLabel={t("common.close")}
         aria-label={t("lists.which")}
-        /* The trigger carries its own words, so the placeholder grey a Select
-           uses for "nothing chosen" would read as disabled here. */
-        className="h-[34px] min-h-0 w-auto gap-1.5 rounded-md border-line-strong bg-surface px-3 text-[13px] font-medium text-fg shadow-none hover:bg-sunken data-[placeholder]:text-fg [&_svg]:size-4"
-      >
-        <ListFilter aria-hidden />
-        {t("lists.title")}
-      </SelectTrigger>
-      <SelectContent>
-        {lists.map((one) => (
-          <SelectItem key={one.id} value={one.id}>
-            {one.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+        className="h-[34px] min-h-0 text-[13px]"
+      />
+    </div>
   );
 }
 

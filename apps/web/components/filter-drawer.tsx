@@ -20,6 +20,9 @@ export function FilterDrawer({
   title,
   narrowing,
   onClear,
+  onOpen,
+  onApply,
+  busy = false,
   done,
   children,
 }: {
@@ -27,17 +30,50 @@ export function FilterDrawer({
   /** How many filters are on, which the button carries. */
   narrowing: number;
   onClear: () => void;
+  /**
+   * R24.6. Given by a screen that holds its answers until Show is pressed.
+   *
+   * `onOpen` is the moment to seed the draft from what is actually in force,
+   * so the panel never opens on something somebody half chose last time and
+   * walked away from. `onApply` is the press.
+   */
+  onOpen?: () => void;
+  onApply?: () => void;
+  /**
+   * R24.6. Whether the list behind the panel is still being fetched.
+   *
+   * Narrowing a directory of two hundred people is a round trip, and a
+   * button that looks untouched for a second reads as a button that did not
+   * work. The panel stays open with its controls dead until the rows land,
+   * then puts itself away.
+   */
+  busy?: boolean;
   /** What the foot's own button says, usually how much is left. */
   done: string;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
+  /* Pressed, and waiting on the rows. The panel closes when they arrive. */
+  const [leaving, setLeaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (leaving && !busy) {
+      setLeaving(false);
+      setOpen(false);
+    }
+  }, [leaving, busy]);
+
+  const show = (next: boolean) => {
+    if (next) onOpen?.();
+    setLeaving(false);
+    setOpen(next);
+  };
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => show(true)}
         aria-expanded={open}
         className={cn(
           "flex h-[34px] cursor-pointer items-center gap-1.5 rounded-md border px-3",
@@ -54,7 +90,7 @@ export function FilterDrawer({
       {open ? (
         <div
           className="fixed inset-0 z-40 flex justify-end bg-overlay"
-          onClick={() => setOpen(false)}
+          onClick={() => show(false)}
         >
           <aside
             onClick={(e) => e.stopPropagation()}
@@ -62,12 +98,20 @@ export function FilterDrawer({
           >
             <div className="flex items-center gap-3 border-b border-line px-4 py-[18px] sm:px-6">
               <span className="min-w-0 flex-1 truncate font-display text-[22px] text-fg">{title}</span>
-              <IconButton label={t("common.close")} onClick={() => setOpen(false)}>
+              <IconButton label={t("common.close")} onClick={() => show(false)}>
                 <X />
               </IconButton>
             </div>
 
-            <div className="flex flex-1 flex-col gap-6 overflow-auto px-4 py-5 sm:px-6">{children}</div>
+            <div
+              aria-busy={busy}
+              className={cn(
+                "flex flex-1 flex-col gap-6 overflow-auto px-4 py-5 sm:px-6",
+                busy && "pointer-events-none opacity-60",
+              )}
+            >
+              {children}
+            </div>
 
             {/* R24.6. The panel runs to the glass on a phone, so the foot
                 clears the inset the home indicator sits in, and the pair
@@ -78,8 +122,19 @@ export function FilterDrawer({
                 "pb-[calc(1rem+env(safe-area-inset-bottom))]",
               )}
             >
-              <Button variant="secondary" onClick={onClear}>{t("directory.clear")}</Button>
-              <Button className="min-w-0 flex-1" onClick={() => setOpen(false)}>{done}</Button>
+              <Button variant="secondary" disabled={busy} onClick={onClear}>
+                {t("directory.clear")}
+              </Button>
+              <Button
+                className="min-w-0 flex-1"
+                loading={busy}
+                onClick={() => {
+                  onApply?.();
+                  setLeaving(true);
+                }}
+              >
+                {done}
+              </Button>
             </div>
           </aside>
         </div>

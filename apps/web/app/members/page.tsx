@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, countArchivedPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents,
-  listSavedLists, countArchivedSavedLists, resolveList, countPeopleByStatus, listGroups,
+  listSavedLists, countArchivedSavedLists, resolveList, listGroups,
   PER_PAGE,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
@@ -86,7 +86,7 @@ export default async function PeoplePage({
   }
 
   const {
-    members, tags, groups, counts, duplicates, matching, lists, viewing,
+    members, tags, groups, duplicates, matching, lists, viewing,
     archivedPeople, archivedLists,
   } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
@@ -105,7 +105,7 @@ export default async function PeoplePage({
        * apiece, and the round trip is the expensive part.
        */
       const [
-        lists, members, matching, tags, groups, counts, pairs,
+        lists, members, matching, tags, groups, pairs,
         archivedPeople, archivedLists,
       ] = await Promise.all([
         canEditPeople(session) ? listSavedLists(tx) : [],
@@ -115,8 +115,6 @@ export default async function PeoplePage({
         countPeople(tx, { ...query, viewer }),
         listTagsWithCounts(tx),
         listGroups(tx),
-        // R2.14. The numbers beside each status in the filter drawer.
-        countPeopleByStatus(tx),
         canArchivePeople(session) ? findDuplicatePairs(tx) : [],
         // R2.4, R1.14. What is behind each of the two links at the foot.
         canArchivePeople(session) ? countArchivedPeople(tx) : 0,
@@ -130,7 +128,6 @@ export default async function PeoplePage({
         matching,
         tags,
         groups,
-        counts,
         duplicates: pairs.length,
         archivedPeople,
         archivedLists,
@@ -178,7 +175,6 @@ export default async function PeoplePage({
         page={page}
         perPage={PER_PAGE}
         matching={matching}
-        counts={counts}
         duplicates={duplicates}
         lists={lists}
         viewing={viewing}

@@ -1,4 +1,5 @@
 import type { DirectoryQuery } from "@connectapp/db";
+import { LIFECYCLE_VALUES } from "./person-input";
 
 export interface DirectoryParams {
   page?: string;
@@ -51,16 +52,25 @@ export function queryFromParams(params: DirectoryParams): DirectoryQuery {
   const one = <T extends string>(value: string | undefined, allowed: readonly T[]) =>
     allowed.includes((value ?? "") as T) ? (value as T) : undefined;
 
+  /* R2.14. A comma separated list, which is how the address carries a filter
+     somebody answered more than once. Unknown values are dropped, so a
+     hand-edited address cannot reach a status that was never offered. */
+  const some = <T extends string>(value: string | undefined, allowed?: readonly T[]) => {
+    const parts = (value ?? "").split(",").map((part) => part.trim()).filter(Boolean);
+    const kept = allowed ? parts.filter((part) => allowed.includes(part as T)) : parts;
+    return kept.length > 0 ? kept : undefined;
+  };
+
   return {
     /* R2.4. The archived view is its own list rather than archived people
        mixed into the live one, so the same URL exports the same rows. */
     archivedOnly: params.show === "archived",
     q: params.q,
-    status: params.status,
-    tagId: params.tag,
+    status: some(params.status, LIFECYCLE_VALUES),
+    tagId: some(params.tag),
     has,
     missing: params.missing === "1",
-    joined: one(params.joined, ["year", "five", "earlier"] as const),
+    joined: one(params.joined, ["year", "months", "five", "earlier", "none"] as const),
     group: one(params.group, ["any", "none"] as const),
     serving: one(params.serving, ["any", "none"] as const),
     seen: one(params.seen, ["recent", "absent"] as const),

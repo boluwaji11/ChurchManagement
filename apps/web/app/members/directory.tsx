@@ -3,13 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FilterDrawer, FilterGroup, ChipButton } from "@/components/filter-drawer";
+import { FilterDrawer } from "@/components/filter-drawer";
+import { MultiSelect } from "@/components/multi-select";
 import { ResizableTable } from "@/components/resizable-columns";
-import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Check, Tag, CheckCircle2, ListMinus } from "lucide-react";
+import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus } from "lucide-react";
 import {
-  Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
+  Avatar, Button, Field, Input, Textarea, Checkbox, Banner, HueDot, Tooltip,
   IconButton,
-  Select, SelectTrigger, SelectContent, SelectItem,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Switch,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   Tabs, TabsList, TabsTrigger,
   cn, type Hue,
@@ -81,6 +82,9 @@ const STATUS_HUE: Record<string, string> = {
 
 const ANY = "__any";
 
+/** Where this browser remembers whether the list follows each answer. */
+const LIVE_FILTER = "directory:live-filter";
+
 /** Radix needs a value, and an empty string is not one. */
 
 /**
@@ -105,7 +109,6 @@ export function Directory({
   page,
   perPage,
   matching,
-  counts,
   duplicates,
   lists,
   viewing,
@@ -121,8 +124,6 @@ export function Directory({
   canArchive: boolean;
   page: number;
   perPage: number;
-  /** R2.14. How many members are at each status, for the filter drawer. */
-  counts: Record<string, number>;
   /** R2.8. How many pairs are waiting, for the badge on Duplicates. */
   duplicates: number;
   /** How many members match the filters, across every page. */
@@ -139,6 +140,14 @@ export function Directory({
   const [selected, setSelected] = React.useState<string[]>([]);
   const [result, setResult] = React.useState<BulkResult>();
   const [pending, startTransition] = React.useTransition();
+  /*
+   * R24.6. Narrowing the list is a round trip, so it says so.
+   *
+   * Its own transition rather than the one the bulk actions use: a filter
+   * being applied should not grey out a selection somebody is still building,
+   * and a tag being written should not make the filter panel look busy.
+   */
+  const [narrowingNow, startNarrowing] = React.useTransition();
 
   // The selection only ever held rows on screen, so leaving the page drops it.
   React.useEffect(() => setSelected([]), [page]);
@@ -158,7 +167,9 @@ export function Directory({
       // Narrowing the list while standing on page four would otherwise show
       // nothing, which reads as "no results" rather than "you moved".
       if (!("page" in changes)) next.delete("page");
-      router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+      startNarrowing(() => {
+        router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+      });
     },
     [params, pathname, router],
   );
@@ -222,23 +233,26 @@ export function Directory({
 
   /* The archived view is reached through `show`, so that one does not count as
      narrowing while it is on. */
+  /*
+   * Whether anything is narrowing the list, which decides whether an empty
+   * screen reads "nobody matches" or "no one here yet". Four of the nine
+   * were counted, so filtering by a joined date down to nothing told a
+   * church with two hundred members that it had none.
+   */
   const filtersOn =
-    ["q", "status", "tag", "has"].some((k) => params.get(k)) ||
-    (!putAway && Boolean(params.get("show")));
+    ["q", "status", "tag", "has", "joined", "group", "serving", "seen", "missing", "list"]
+      .some((key) => params.get(key))
+    || (!putAway && Boolean(params.get("show")));
   const exportHref = `/api/export?church=${church}&${params.toString()}`;
 
-  const statusNow = params.get("status") ?? "all";
-  const joinedNow = params.get("joined") ?? "any";
-  const tagNow = params.get("tag");
-  const missingNow = params.get("missing") === "1";
-
   // What the Filter button counts, so "Filter · 2" says how much is narrowing
-  // the list. Search sits outside it, in its own box.
+  // the list. Search sits outside it, in its own box. Status and tags each
+  // count once however many answers they hold: it is one question.
   const narrowing =
-    (statusNow !== "all" ? 1 : 0) + (tagNow ? 1 : 0) +
-    (joinedNow !== "any" ? 1 : 0) + (missingNow ? 1 : 0) +
-    (params.get("group") ? 1 : 0) + (params.get("serving") ? 1 : 0) +
-    (params.get("seen") ? 1 : 0);
+    (params.get("status") ? 1 : 0) + (params.get("tag") ? 1 : 0)
+    + (params.get("joined") ? 1 : 0) + (params.get("missing") === "1" ? 1 : 0)
+    + (params.get("group") ? 1 : 0) + (params.get("serving") ? 1 : 0)
+    + (params.get("seen") ? 1 : 0) + (params.get("has") ? 1 : 0);
 
   const first = (page - 1) * perPage + 1;
   const upto = Math.min(page * perPage, matching);
@@ -258,12 +272,13 @@ export function Directory({
         <div className="flex flex-wrap items-center gap-2">
         <DirectoryFilters
           tags={tags}
-          counts={counts}
-          matching={matching}
           params={params}
           setParam={setParam}
-          onClear={() => router.replace(pathname, { scroll: false })}
+          onClear={() =>
+            startNarrowing(() => router.replace(pathname, { scroll: false }))
+          }
           narrowing={narrowing}
+          busy={narrowingNow}
         />
 
         {/* R1.14. The lists this church keeps, and the way to keep this one.
@@ -402,7 +417,16 @@ export function Directory({
           }
         />
       ) : (
-        <div id="directory-rows" className="scroll-mt-20">
+        /* R24.6. The rows go quiet while the next set is on its way, so a
+           press that takes a moment is never a screen that looks untouched. */
+        <div
+          id="directory-rows"
+          aria-busy={narrowingNow}
+          className={cn(
+            "scroll-mt-20 transition-opacity duration-instant",
+            narrowingNow && "pointer-events-none opacity-55",
+          )}
+        >
         {/* R24.6. A phone reads the same rows as a list of people to tap into.
             Seven columns inside a sideways scroller is a comparison tool, and
             nobody compares columns on a 390px screen: they look somebody up. */}
@@ -630,158 +654,215 @@ function StatusPill({ status }: { status: string }) {
 
 
 /**
- * R2.14. The filter drawer.
+ * R2.14. The filter panel.
  *
- * 380px in from the right over a dim, which keeps the list behind it in view
- * while you narrow it. Status, tags, when they joined, and whether we are
- * missing a way to reach them. The footer says how many come back.
+ * The same shape as the one on giving, on events and on the group finder: a
+ * question to a row, a dropdown where the answer is one of a set and a multi
+ * select where it is any of them. Rows of chips grew past the panel as the
+ * filters grew, and nothing on the row said whether two of them narrowed the
+ * list or widened it.
+ *
+ * Status and tags take several answers, because "members and regulars" and
+ * "choir or welcome team" are each one question. The rest are answers that
+ * exclude each other, so they are dropdowns.
  */
 function DirectoryFilters({
   tags,
-  counts,
-  matching,
   params,
   setParam,
   onClear,
   narrowing,
+  busy,
 }: {
   tags: TagOption[];
-  counts: Record<string, number>;
-  matching: number;
   params: URLSearchParams;
   setParam: (changes: Record<string, string | undefined>) => void;
   onClear: () => void;
   narrowing: number;
+  /** R24.6. Whether the rows behind the panel are still on their way. */
+  busy: boolean;
 }) {
-  const status = params.get("status") ?? "all";
-  const joined = params.get("joined") ?? "any";
-  const tag = params.get("tag");
-  const missing = params.get("missing") === "1";
+  /** What the address is asking for, as the panel's own fields. */
+  const asFields = React.useCallback(
+    () => ({
+      status: params.get("status") ?? "",
+      tag: params.get("tag") ?? "",
+      joined: params.get("joined") ?? "",
+      group: params.get("group") ?? "",
+      serving: params.get("serving") ?? "",
+      seen: params.get("seen") ?? "",
+      has: params.get("has") ?? "",
+      missing: params.get("missing") ?? "",
+    }),
+    [params],
+  );
 
-  const everyone = Object.values(counts).reduce((a, b) => a + b, 0);
-  const statuses: Array<[string, number]> = [
-    ["all", everyone],
-    ["member", counts.member ?? 0],
-    ["regular_attender", counts.regular_attender ?? 0],
-    ["visitor", counts.visitor ?? 0],
-  ];
-  const joins = ["any", "year", "five", "earlier"] as const;
+  /*
+   * R24.6. Nothing moves until Show is pressed.
+   *
+   * The same rule the giving filter follows, and here it is also the only
+   * correct one: every answer used to be worked out from the address, and the
+   * address lags a press behind, so ticking a second status replaced the
+   * first instead of joining it.
+   */
+  const [draft, setDraft] = React.useState(asFields);
+
+  /*
+   * R24.6. Whether each answer goes straight to the list behind the panel.
+   *
+   * Off by default: a list that re-sorts itself under somebody halfway
+   * through choosing is a list they have to find their place in again. It is
+   * remembered per browser, because somebody who prefers watching the list
+   * move prefers it every time.
+   */
+  const [live, setLive] = React.useState(false);
+  React.useEffect(() => {
+    try {
+      setLive(window.localStorage.getItem(LIVE_FILTER) === "1");
+    } catch {
+      // A private window refuses. The panel holds its answers, which is the
+      // behaviour somebody who has never chosen would expect anyway.
+    }
+  }, []);
+
+  const apply = (fields: ReturnType<typeof asFields>) =>
+    setParam({
+      status: fields.status || undefined,
+      tag: fields.tag || undefined,
+      joined: fields.joined || undefined,
+      group: fields.group || undefined,
+      serving: fields.serving || undefined,
+      seen: fields.seen || undefined,
+      has: fields.has || undefined,
+      missing: fields.missing || undefined,
+    });
+
+  const set = (key: keyof ReturnType<typeof asFields>, value: string) =>
+    setDraft((was) => {
+      const next = { ...was, [key]: value };
+      if (live) apply(next);
+      return next;
+    });
+
+  const list = (key: "status" | "tag") =>
+    draft[key].split(",").map((one) => one.trim()).filter(Boolean);
+
+  /**
+   * One of a set, with "Any" standing for no filter.
+   *
+   * The sentinel is a word rather than an empty string: a Select item with no
+   * value is not a value, so the control came up blank instead of saying Any.
+   */
+  const choice = (
+    key: "joined" | "group" | "serving" | "seen" | "has",
+    label: string,
+    values: readonly string[],
+    labelOf: (value: string) => string,
+  ) => (
+    <div key={key} className="flex flex-col gap-1.5">
+      <span className="text-label text-fg">{label}</span>
+      <Select value={draft[key] || ANY} onValueChange={(next) => set(key, next === ANY ? "" : next)}>
+        <SelectTrigger aria-label={label}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {values.map((one) => (
+            <SelectItem key={one} value={one}>{labelOf(one)}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const summary = (picks: { label: string }[]) =>
+    picks.length > 2
+      ? t("find.chosen", { count: picks.length })
+      : picks.map((one) => one.label).join(", ");
 
   return (
     <FilterDrawer
       title={t("directory.filterTitle")}
       narrowing={narrowing}
-      onClear={onClear}
-      done={plural("directory.show", matching)}
+      busy={busy}
+      onClear={() => {
+        setDraft({
+          status: "", tag: "", joined: "", group: "",
+          serving: "", seen: "", has: "", missing: "",
+        });
+        onClear();
+      }}
+      onOpen={() => setDraft(asFields())}
+      onApply={() => apply(draft)}
+      /* No count on it. The server narrows the list, so a figure here is the
+         one from before the last answer. */
+      done={t("directory.showThem")}
     >
-      <FilterGroup label={t("directory.filterStatus")}>
-                {statuses.map(([value, n]) => (
-                  <ChipButton
-                    key={value}
-                    tone="ink"
-                    on={status === value}
-                    onClick={() => setParam({ status: value === "all" ? undefined : value })}
-                  >
-                    {t(`directory.status.${value}` as never)}
-                    <span className="ml-1 opacity-60">{n}</span>
-                  </ChipButton>
-                ))}
-              </FilterGroup>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-label text-fg">{t("directory.filterStatus")}</span>
+        <MultiSelect
+          label={t("directory.filterStatus")}
+          options={LIFECYCLE_VALUES.map((one) => ({ value: one, label: lifecycleLabel(one) }))}
+          value={list("status")}
+          onChange={(next) => set("status", next.join(","))}
+          summary={summary}
+        />
+      </div>
 
-              {tags.length > 0 ? (
-                <FilterGroup label={t("directory.filterTag")}>
-                  {tags.map((one) => (
-                    <ChipButton
-                      key={one.id}
-                      on={tag === (one.slug ?? one.id)}
-                      onClick={() =>
-                        setParam({
-                          tag: tag === (one.slug ?? one.id) ? undefined : (one.slug ?? one.id),
-                        })
-                      }
-                    >
-                      {one.name}
-                    </ChipButton>
-                  ))}
-                </FilterGroup>
-              ) : null}
+      {tags.length > 0 ? (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-label text-fg">{t("directory.filterTag")}</span>
+          <MultiSelect
+            label={t("directory.filterTag")}
+            options={tags.map((one) => ({ value: one.slug ?? one.id, label: one.name }))}
+            value={list("tag")}
+            onChange={(next) => set("tag", next.join(","))}
+            summary={summary}
+          />
+        </div>
+      ) : null}
 
-              <FilterGroup label={t("directory.filterJoined")}>
-                <div className="flex flex-wrap gap-0.5 self-start rounded-md bg-sunken p-[3px]">
-                  {joins.map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setParam({ joined: value === "any" ? undefined : value })}
-                      className={cn(
-                        "h-8 cursor-pointer rounded-sm px-3 text-[13px] font-medium",
-                        joined === value ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
-                      )}
-                    >
-                      {t(`directory.joined.${value}` as never)}
-                    </button>
-                  ))}
-                </div>
-              </FilterGroup>
+      {choice("joined", t("directory.filterJoined"), [ANY, "year", "months", "five", "earlier", "none"],
+        (one) => (one === ANY ? t("directory.anyOf") : t(`directory.joined.${one}` as never)))}
 
-              {/* What somebody does, which is the half of a directory that
-                  starts a conversation: who comes and belongs to nothing, who
-                  serves, who has not been seen for a month. */}
-              <FilterGroup label={t("directory.filterGroup")}>
-                {(["any", "none"] as const).map((value) => (
-                  <ChipButton
-                    key={value}
-                    on={params.get("group") === value}
-                    onClick={() =>
-                      setParam({ group: params.get("group") === value ? undefined : value })
-                    }
-                  >
-                    {t(`directory.group.${value}` as never)}
-                  </ChipButton>
-                ))}
-              </FilterGroup>
+      {choice("group", t("directory.filterGroup"), [ANY, "any", "none"],
+        (one) => (one === ANY ? t("directory.anyOf") : t(`directory.group.${one}` as never)))}
 
-              <FilterGroup label={t("directory.filterServing")}>
-                {(["any", "none"] as const).map((value) => (
-                  <ChipButton
-                    key={value}
-                    on={params.get("serving") === value}
-                    onClick={() =>
-                      setParam({ serving: params.get("serving") === value ? undefined : value })
-                    }
-                  >
-                    {t(`directory.serving.${value}` as never)}
-                  </ChipButton>
-                ))}
-              </FilterGroup>
+      {choice("serving", t("directory.filterServing"), [ANY, "any", "none"],
+        (one) => (one === ANY ? t("directory.anyOf") : t(`directory.serving.${one}` as never)))}
 
-              <FilterGroup label={t("directory.filterSeen")}>
-                {(["recent", "absent"] as const).map((value) => (
-                  <ChipButton
-                    key={value}
-                    on={params.get("seen") === value}
-                    onClick={() =>
-                      setParam({ seen: params.get("seen") === value ? undefined : value })
-                    }
-                  >
-                    {t(`directory.seen.${value}` as never)}
-                  </ChipButton>
-                ))}
-              </FilterGroup>
+      {choice("seen", t("directory.filterSeen"), [ANY, "recent", "absent"],
+        (one) => (one === ANY ? t("directory.anyOf") : t(`directory.seen.${one}` as never)))}
 
-              <FilterGroup label={t("directory.filterContact")}>
-                <ChipButton on={missing} onClick={() => setParam({ missing: missing ? undefined : "1" })}>
-                  <span
-                    className={cn(
-                      "grid size-4 place-items-center rounded-[4px] [&_svg]:size-[11px]",
-                      missing ? "bg-primary text-white" : "border border-line-strong text-transparent",
-                    )}
-                  >
-                    <Check />
-                  </span>
-                  {t("directory.missing")}
-                </ChipButton>
-              </FilterGroup>
+      {/* R2.4. How a church can reach them, which is the half of a directory
+          that starts a conversation. */}
+      {choice("has", t("directory.filterContact"), [ANY, "email", "noEmail", "phone", "noPhone"],
+        (one) => (one === ANY ? t("directory.anyOf") : t(`directory.has.${one}` as never)))}
+
+      <label className="flex min-h-[var(--d-tap)] cursor-pointer items-center gap-2.5">
+        <Checkbox
+          checked={draft.missing === "1"}
+          onCheckedChange={(on) => set("missing", on ? "1" : "")}
+        />
+        <span className="text-[length:var(--d-text-body)] text-fg">{t("directory.missing")}</span>
+      </label>
+
+      <label className="flex min-h-[var(--d-tap)] cursor-pointer items-center gap-2.5 border-t border-line pt-4">
+        <Switch
+          checked={live}
+          onCheckedChange={(on) => {
+            setLive(on);
+            try {
+              window.localStorage.setItem(LIVE_FILTER, on ? "1" : "0");
+            } catch {
+              // It holds for this sitting either way.
+            }
+            if (on) apply(draft);
+          }}
+        />
+        <span className="text-[length:var(--d-text-body)] text-fg">
+          {t("directory.liveUpdate")}
+        </span>
+      </label>
     </FilterDrawer>
   );
 }
@@ -1041,28 +1122,34 @@ function ListBar({
       {failed ? <Banner tone="danger" title={t("import.failed")}>{failed}</Banner> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="flex items-center gap-2">
-          <ListFilter className="size-4 text-fg-muted" aria-hidden />
-          <span className="text-title text-fg">{list.name}</span>
-          <Badge tone="neutral">{t(`lists.kind.${list.kind}`)}</Badge>
+        <span className="flex min-w-0 items-center gap-2">
+          <ListFilter className="size-4 shrink-0 text-fg-muted" aria-hidden />
+          <span className="truncate text-title text-fg">{list.name}</span>
         </span>
 
-        <span className="flex flex-wrap items-center gap-1">
+        {/* R24.11. The three things done to a list, as marks. Each carries its
+            words through the label, which is the tooltip and the accessible
+            name both. */}
+        <span className="flex shrink-0 items-center gap-1">
           {canEdit ? (
             <>
-              <Button variant="ghost" onClick={() => setRenaming(true)}>
-                <Pencil /> {t("lists.rename")}
-              </Button>
-              <Button variant="ghost" onClick={() => setArchiving(true)}>
-                <Archive /> {t("lists.archive")}
-              </Button>
+              <IconButton label={t("lists.rename")} onClick={() => setRenaming(true)}>
+                <Pencil />
+              </IconButton>
+              <IconButton label={t("lists.archive")} onClick={() => setArchiving(true)}>
+                <Archive />
+              </IconButton>
             </>
           ) : null}
-          <Button variant="ghost" asChild>
-            <Link href={`/members?church=${church}`}>
-              <X /> {t("directory.clear")}
+          <Tooltip content={t("directory.clear")}>
+            <Link
+              href={`/members?church=${church}`}
+              aria-label={t("directory.clear")}
+              className="inline-flex size-[var(--d-tap)] items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+            >
+              <X />
             </Link>
-          </Button>
+          </Tooltip>
         </span>
       </div>
 

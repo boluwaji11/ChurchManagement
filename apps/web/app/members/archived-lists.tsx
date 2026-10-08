@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArchiveRestore, ListFilter } from "lucide-react";
-import { Badge, IconButton } from "@connectapp/ui";
+import { IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { archiveList } from "./list-actions";
 
@@ -58,7 +58,6 @@ export function ArchivedLists({
             >
               <ListFilter className="size-4 text-fg-muted" aria-hidden />
               <span className="min-w-0 flex-1 truncate font-medium text-fg">{one.name}</span>
-              <Badge tone="neutral">{t(`lists.kind.${one.kind}`)}</Badge>
               <IconButton
                 label={t("lists.restore")}
                 variant="ghost"
