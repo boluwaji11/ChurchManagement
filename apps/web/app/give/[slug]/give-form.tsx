@@ -188,7 +188,10 @@ export function GiveForm({
 
       {/* R13.3. How often. Five of its own, the way the amounts above it are
           drawn, and the one in force is filled so it reads at a glance. */}
-      <div className="flex flex-wrap justify-center gap-2 rounded-[var(--d-radius-control)] border border-line bg-surface p-2.5 shadow-sm">
+      {/* R24.6. Two to a row on a phone, where five centred chips wrapped
+          into three ragged lines that read as a jumble rather than a set of
+          five choices. They sit on one line from the small breakpoint. */}
+      <div className="grid grid-cols-2 gap-2 rounded-[var(--d-radius-control)] border border-line bg-surface p-2.5 shadow-sm sm:flex sm:flex-wrap sm:justify-center">
         {REPEATS.map((one) => {
           const chosen = repeat === one;
 
@@ -201,6 +204,8 @@ export function GiveForm({
               className={[
                 "cursor-pointer rounded-full border px-4 py-2",
                 "text-[13px] font-medium whitespace-nowrap",
+                /* The fifth has no partner, so it takes the whole row. */
+                "last:odd:col-span-2 sm:last:odd:col-span-1",
                 chosen
                   ? "border-primary bg-primary text-primary-fg"
                   : "border-transparent bg-sunken text-fg hover:bg-line",
