@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, ShieldCheck, Undo2 } from "lucide-react";
-import { Badge, Banner, Button, LIFT } from "@connectapp/ui";
+import { Banner, Button, LIFT } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { TeamPanel, type PositionDraft, type MemberDraft } from "../../schedule/team-panel";
@@ -20,13 +20,19 @@ export interface TeamItem {
 }
 
 /** R10.1. The one place a team is written down, renamed or put away. */
-export function TeamList({ church, teams }: { church: string; teams: TeamItem[] }) {
+export function TeamList({
+  church,
+  teams,
+  putAway = false,
+}: {
+  church: string;
+  teams: TeamItem[];
+  /** R10.1. The teams that have been put away, rather than the ones in use. */
+  putAway?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
-
-  const live = teams.filter((one) => !one.archived);
-  const archived = teams.filter((one) => one.archived);
 
   const setArchived = (id: string, archive: boolean) => {
     const data = new FormData();
@@ -44,16 +50,39 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
 
-      {live.length === 0 ? (
+      {teams.length === 0 ? (
         <Empty
           icon="serving"
-          title={t("settings.teams.none.title")}
-          body={t("settings.teams.none.body")}
-          action={<AddTeam church={church} taken={teams.map((one) => one.name)} />}
+          title={putAway ? t("serving.archived.none") : t("settings.teams.none.title")}
+          body={putAway ? undefined : t("settings.teams.none.body")}
+          action={
+            putAway
+              ? undefined
+              : <AddTeam church={church} taken={teams.map((one) => one.name)} />
+          }
         />
+      ) : putAway ? (
+        <ul className="flex flex-col rounded-[14px] border border-line bg-surface px-5 py-1">
+          {teams.map((team) => (
+            <li
+              key={team.id}
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-sunken py-2.5 last:border-0"
+            >
+              <span className="text-[length:var(--d-text-body)] text-fg-muted">{team.name}</span>
+              <Button
+                variant="ghost"
+                disabled={pending}
+                className="h-8 min-h-0 px-2.5 text-[13px]"
+                onClick={() => setArchived(team.id, false)}
+              >
+                <Undo2 className="size-4" aria-hidden /> {t("serving.restore")}
+              </Button>
+            </li>
+          ))}
+        </ul>
       ) : (
         <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))]">
-          {live.map((team) => (
+          {teams.map((team) => (
             <li key={team.id}>
               {/* R24.6. The whole tile opens the team's panel: its name, its
                   positions and who serves on it are all in there. */}
@@ -107,28 +136,6 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
           ))}
         </ul>
       )}
-
-      {archived.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-label text-fg-muted">{t("serving.archived")}</h2>
-          {archived.map((team) => (
-            <div key={team.id} className="flex flex-wrap items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-[length:var(--d-text-body)] text-fg-muted">
-                {team.name}
-                <Badge tone="neutral">{t("serving.archived")}</Badge>
-              </span>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                className="h-8 min-h-0 px-2.5 text-[13px]"
-                onClick={() => setArchived(team.id, false)}
-              >
-                <Undo2 className="size-4" aria-hidden /> {t("serving.restore")}
-              </Button>
-            </div>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }

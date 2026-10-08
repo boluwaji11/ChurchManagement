@@ -54,10 +54,13 @@ export function Pipelines({
   church,
   rows,
   team,
+  putAway = false,
 }: {
   church: string;
   rows: PipelineRow[];
   team: TeamMember[];
+  /** R5.2. The stages that have been turned off, rather than the ones running. */
+  putAway?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -93,9 +96,13 @@ export function Pipelines({
     return (
       <Empty
         icon="order"
-        title={t("pipelines.none.title")}
-        body={t("pipelines.none.body")}
-        action={<NewPipeline church={church} team={team} taken={rows.map((one) => one.name)} />}
+        title={putAway ? t("pipelines.archived.none") : t("pipelines.none.title")}
+        body={putAway ? undefined : t("pipelines.none.body")}
+        action={
+          putAway
+            ? undefined
+            : <NewPipeline church={church} team={team} taken={rows.map((one) => one.name)} />
+        }
       />
     );
   }

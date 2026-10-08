@@ -30,7 +30,7 @@ const clean = (raw: string): string => raw.trim().replace(/\s+/g, " ");
 
 export async function listHouseholdRows(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<HouseholdRow[]> {
   const rows = await db
     .select({
@@ -55,7 +55,13 @@ export async function listHouseholdRows(
       )`,
     })
     .from(households)
-    .where(opts.includeArchived ? undefined : isNull(households.archivedAt))
+    .where(
+      opts.archivedOnly
+        ? sql`${households.archivedAt} is not null`
+        : opts.includeArchived
+          ? undefined
+          : isNull(households.archivedAt),
+    )
     .orderBy(asc(households.name));
 
   return rows.map(({ archivedAt, ...row }) => ({
@@ -63,6 +69,15 @@ export async function listHouseholdRows(
     members: row.members ?? [],
     archived: archivedAt !== null,
   }));
+}
+
+/** R2.1. How many households have been put away, for the link that goes to them. */
+export async function countArchivedHouseholds(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(households)
+    .where(sql`${households.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 /** R2.1. A family named before anybody is put in it. */

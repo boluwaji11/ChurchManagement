@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Archive, Check, ChevronDown, ChevronRight, Lock, Plus, X } from "lucide-react";
+import {
+  ArrowLeft, Archive, Check, ChevronDown, ChevronRight, Lock, Plus, Undo2, X,
+} from "lucide-react";
 import {
   Banner, Button, Checkbox, Field, IconButton, Input, Spinner,
   Sheet, SheetTrigger, SheetContent, Tooltip, cn,
@@ -169,6 +171,98 @@ export function Matrix({
       </table>
       </ResizableTable>
 
+    </div>
+  );
+}
+
+/**
+ * R1.6. The roles this church wrote and later put away.
+ *
+ * A role off the list grants nobody anything, so bringing one back is held to
+ * the same reach as writing one: every permission it holds has to be one the
+ * reader holds themselves. The server refuses the rest, and the row says so
+ * before anybody presses it.
+ */
+export function ArchivedRoles({
+  church,
+  roles,
+  permissions,
+  mine,
+}: {
+  church: string;
+  roles: RoleRow[];
+  permissions: string[];
+  /** R1.6. What the reader holds, which is the most they can give away. */
+  mine: string[];
+}) {
+  const router = useRouter();
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+  /* Which role is being brought back, so one control spins rather than all. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const bringBack = (id: string) => {
+    setDoing(id);
+    startTransition(async () => {
+      const result = await putAway(id, false, church);
+      setError(result.error);
+      if (!result.error) router.refresh();
+    });
+  };
+
+  if (roles.length === 0) {
+    return <p className="text-fg-muted">{t("roles.archived.none")}</p>;
+  }
+
+  return (
+    <div className="flex flex-col gap-5" aria-busy={pending}>
+      {error ? <Banner tone="danger" title={t("roles.failed")}>{error}</Banner> : null}
+
+      <ul className="flex flex-col rounded-[14px] border border-line bg-surface px-5 py-1">
+        {roles.map((role) => {
+          const beyond = !role.permissions.every((one) => mine.includes(one));
+
+          return (
+            <li
+              key={role.id}
+              className="flex flex-wrap items-center gap-3 border-b border-sunken py-2.5 last:border-0"
+            >
+              <span className="min-w-0 flex-1 truncate text-fg">{nameOf(role)}</span>
+
+              <span className="text-[12px] text-fg-subtle tabular-nums">
+                {t("roles.heldCount", {
+                  count: role.permissions.length,
+                  total: permissions.length,
+                })}
+              </span>
+
+              {beyond ? (
+                <span className="flex items-center gap-1.5 text-[13px] text-fg-subtle">
+                  <Lock className="size-3.5 shrink-0" aria-hidden />
+                  {t("roles.restoreBeyond")}
+                </span>
+              ) : (
+                <IconButton
+                  label={t("roles.restore", { name: nameOf(role) })}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => bringBack(role.id)}
+                >
+                  {doing === role.id ? (
+                    <Spinner label={t("roles.restore", { name: nameOf(role) })} />
+                  ) : (
+                    <Undo2 />
+                  )}
+                </IconButton>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -373,6 +467,23 @@ export function RoleForm({
                     <span className="my-1 w-px flex-1 bg-primary/35" />
                   </span>
 
+                  {/*
+                    * R1.5, R1.6, R21.2. A ready-made role holding more than
+                    * the reader does is drawn locked. Taking it up puts it
+                    * back on the grid and makes it assignable, which the
+                    * server holds to the same reach as writing one.
+                    */}
+                  {one.permissions.some(locked) ? (
+                    <div className="mb-1 flex min-w-0 flex-1 items-center gap-3 px-2 py-2.5">
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="font-medium text-fg-muted">{nameOf(one)}</span>
+                        <span className="truncate text-[12px] text-fg-subtle">
+                          {t("roles.restoreBeyond")}
+                        </span>
+                      </span>
+                      <Lock className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                    </div>
+                  ) : (
                   <button
                     type="button"
                     onClick={() => {
@@ -394,6 +505,7 @@ export function RoleForm({
                     </span>
                     <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
                   </button>
+                  )}
                 </li>
               ))}
             </ol>

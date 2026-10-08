@@ -35,9 +35,12 @@ export interface HouseholdItem {
 export function HouseholdList({
   church,
   households,
+  onlyArchived = false,
 }: {
   church: string;
   households: HouseholdItem[];
+  /** R2.1. The families that have been put away, rather than the ones in use. */
+  onlyArchived?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -67,8 +70,7 @@ export function HouseholdList({
     one.name.toLowerCase().includes(needle) ||
     one.members.some((m) => m.name.toLowerCase().includes(needle));
 
-  const open = households.filter((one) => !one.archived && matches(one));
-  const archived = households.filter((one) => one.archived && matches(one));
+  const shown = households.filter(matches);
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
@@ -80,13 +82,13 @@ export function HouseholdList({
         placeholder={t("households.search")}
       />
 
-      {open.length === 0 && archived.length === 0 ? (
+      {shown.length === 0 ? (
         <Empty icon="noResults" title={t("households.noResults")} />
       ) : null}
 
-      {open.length > 0 ? (
+      {shown.length > 0 && !onlyArchived ? (
         <section className="flex flex-col gap-3">
-          {open.map((household) => (
+          {shown.map((household) => (
             <article
               key={household.id}
               className={`relative flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 ${LIFT}`}
@@ -162,14 +164,10 @@ export function HouseholdList({
         </section>
       ) : null}
 
-      {archived.length === 0 ? null : (
+      {shown.length > 0 && onlyArchived ? (
         <section className="flex flex-col gap-2">
-          <span className="text-[12px] font-semibold text-fg-subtle">
-            {t("households.archived")}
-          </span>
-
           <div className="rounded-[14px] border border-line bg-surface px-5 py-1">
-            {archived.map((household) => (
+            {shown.map((household) => (
               <div
                 key={household.id}
                 className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
@@ -193,7 +191,7 @@ export function HouseholdList({
             ))}
           </div>
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

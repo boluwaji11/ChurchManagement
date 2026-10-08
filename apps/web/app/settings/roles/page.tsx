@@ -1,11 +1,14 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
-  canManageChurch, listRoles, withTenant, PERMISSIONS, PERMISSION_GROUPS, can,
+  canManageChurch, listRoles, countArchivedRoles, withTenant,
+  PERMISSIONS, PERMISSION_GROUPS, can,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
-import { Matrix, NewRole } from "./matrix";
-import { t } from "@connectapp/i18n";
+import { Matrix, NewRole, ArchivedRoles } from "./matrix";
+import { t, plural } from "@connectapp/i18n";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +27,9 @@ export async function generateMetadata({
 export default async function RolesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; archived?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, archived } = await searchParams;
   const session = await requireSession(church);
   if (!canManageChurch(session)) {
     return <Denied role={session.role} action="editRoles" church={session.tenantSlug} />;
@@ -46,9 +49,14 @@ export default async function RolesPage({
     permissions: [...group.permissions] as string[],
   }));
 
-  const roles = await withTenant(
+  const putAway = archived === "1";
+
+  const { roles, archivedCount } = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
-    (tx) => listRoles(tx, session.tenantId, { includeArchived: true }),
+    async (tx) => ({
+      roles: await listRoles(tx, session.tenantId, { includeArchived: true }),
+      archivedCount: await countArchivedRoles(tx, session.tenantId),
+    }),
   );
 
   const rows = roles.map((role) => ({
@@ -61,36 +69,71 @@ export default async function RolesPage({
     members: role.members,
   }));
 
-  // R1.6. The ready-made roles this church has not taken up yet.
   /*
-   * R1.6. Member is where everybody starts, so it is not something to take up.
-   * It stays in the list of roles, which is what the grid reads.
+   * R1.6. The ready-made roles this church has not taken up yet.
+   *
+   * Member is where everybody starts, so it is not something to take up. It
+   * stays in the list of roles, which is what the grid reads. A role the church
+   * wrote itself is not on this shelf either: it is a record of theirs, and it
+   * is reached from the link under the matrix.
    */
-  const shelf = rows.filter((role) => role.archived && role.key !== "member");
+  const shelf = rows.filter((role) => role.archived && role.builtin && role.key !== "member");
+
+  // R1.6. The roles this church wrote and later put away.
+  const away = rows.filter((role) => role.archived && !role.builtin);
 
   return (
     <>
+      {putAway ? (
+        <Link
+          href={`/settings/roles?church=${session.tenantSlug}`}
+          className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" /> {t("roles.archived.back")}
+        </Link>
+      ) : null}
+
       <SettingsHeading
-        title="settings.tab.roles"
-        lede="settings.lede.roles"
+        title={putAway ? "roles.archived.title" : "settings.tab.roles"}
+        lede={putAway ? undefined : "settings.lede.roles"}
         action={
-          <NewRole
-            church={session.tenantSlug}
-            permissions={[...PERMISSIONS]}
-            groups={groups}
-            shelf={shelf}
-            mine={mine}
-          />
+          putAway ? undefined : (
+            <NewRole
+              church={session.tenantSlug}
+              permissions={[...PERMISSIONS]}
+              groups={groups}
+              shelf={shelf}
+              mine={mine}
+            />
+          )
         }
       />
 
-      <Matrix
-        church={session.tenantSlug}
-        permissions={[...PERMISSIONS]}
-        groups={groups}
-        roles={rows}
-        mine={mine}
-      />
+      {putAway ? (
+        <ArchivedRoles
+          church={session.tenantSlug}
+          roles={away}
+          permissions={[...PERMISSIONS]}
+          mine={mine}
+        />
+      ) : (
+        <Matrix
+          church={session.tenantSlug}
+          permissions={[...PERMISSIONS]}
+          groups={groups}
+          roles={rows}
+          mine={mine}
+        />
+      )}
+
+      {!putAway && archivedCount > 0 ? (
+        <Link
+          href={`/settings/roles?church=${session.tenantSlug}&archived=1`}
+          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {plural("roles.archived", archivedCount)}
+        </Link>
+      ) : null}
     </>
   );
 }

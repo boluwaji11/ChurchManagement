@@ -1,12 +1,14 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, listTeams, positionsForTeams, getTeam, canManageTeams,
+  withTenant, listTeams, countArchivedTeams, positionsForTeams, getTeam, canManageTeams,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
 import { photoUrls } from "@/lib/photos";
 import { TeamList, AddTeam } from "./team-list";
 import { Denied } from "@/components/denied";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -31,24 +33,27 @@ export async function generateMetadata({
 export default async function TeamsSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; archived?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, archived } = await searchParams;
   const session = await requireSession(church);
 
   if (!canManageTeams(session)) {
     return <Denied role={session.role} action="manageTeams" church={session.tenantSlug} />;
   }
 
-  const { teams, positions, rosters } = await withTenant(
+  const putAway = archived === "1";
+
+  const { teams, positions, rosters, archivedCount } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
-      const found = await listTeams(tx, { includeArchived: true });
+      const found = await listTeams(tx, putAway ? { archivedOnly: true } : {});
       // R10.1. Each team's roster, because the panel writes a team and its
       // people in one press and cannot go back for them once it is open.
       const held = await Promise.all(found.map((one) => getTeam(tx, one.id)));
       return {
         teams: found,
+        archivedCount: await countArchivedTeams(tx),
         positions: await positionsForTeams(tx, found.map((one) => one.id)),
         rosters: Object.fromEntries(
           held.filter((one) => one !== null).map((one) => [one.id, one.members]),
@@ -64,11 +69,20 @@ export default async function TeamsSettingsPage({
 
   return (
     <>
+      {putAway ? (
+        <Link
+          href={`/settings/teams?church=${session.tenantSlug}`}
+          className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" /> {t("serving.archived.back")}
+        </Link>
+      ) : null}
+
       <SettingsHeading
-        title="settings.tab.teams"
-        lede="settings.lede.teams"
+        title={putAway ? "serving.archived.title" : "settings.tab.teams"}
+        lede={putAway ? undefined : "settings.lede.teams"}
         action={
-          teams.length > 0
+          !putAway && teams.length > 0
             ? <AddTeam church={session.tenantSlug} taken={teams.map((one) => one.name)} />
             : undefined
         }
@@ -76,6 +90,7 @@ export default async function TeamsSettingsPage({
 
       <TeamList
         church={session.tenantSlug}
+        putAway={putAway}
         teams={teams.map((team) => {
           const of = positions[team.id] ?? [];
           return {
@@ -100,6 +115,15 @@ export default async function TeamsSettingsPage({
           };
         })}
       />
+
+      {!putAway && archivedCount > 0 ? (
+        <Link
+          href={`/settings/teams?church=${session.tenantSlug}&archived=1`}
+          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {plural("serving.archived", archivedCount)}
+        </Link>
+      ) : null}
     </>
   );
 }

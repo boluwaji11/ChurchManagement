@@ -224,12 +224,18 @@ export async function seedPipelines(
 
 export async function listPipelines(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<Pipeline[]> {
   const rows = await db
     .select()
     .from(pipelines)
-    .where(opts.includeArchived ? undefined : isNull(pipelines.archivedAt))
+    .where(
+      opts.archivedOnly
+        ? sql`${pipelines.archivedAt} is not null`
+        : opts.includeArchived
+          ? undefined
+          : isNull(pipelines.archivedAt),
+    )
     .orderBy(asc(pipelines.position), asc(pipelines.name));
   if (rows.length === 0) return [];
 
@@ -254,6 +260,15 @@ export async function listPipelines(
         id: step.id, name: step.name, dueDays: step.dueDays, position: step.position,
       })),
   }));
+}
+
+/** R5.2. How many stages have been turned off, for the link that goes to them. */
+export async function countArchivedPipelines(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(pipelines)
+    .where(sql`${pipelines.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 /**

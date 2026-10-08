@@ -10,11 +10,12 @@ export {
   type PermissionAction,
 } from "./roles";
 export {
-  listRoles, createRole, renameRole, setPermissions, archiveRole,
+  listRoles, createRole, renameRole, setPermissions, archiveRole, countArchivedRoles,
   permissionsFor, ensureBuiltIns, withinReach, type ChurchRole,
 } from "./repo/tenant-roles";
 export {
-  listHouseholdRows, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
+  listHouseholdRows, countArchivedHouseholds,
+  createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
   peopleWithoutHousehold, addToHousehold, removeFromHousehold, setHouseholdRole,
   type HouseholdRow,
 } from "./repo/households";
@@ -25,7 +26,7 @@ export {
   resolveTenantBySlug, listChurches, type PersonRow,
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listHouseholds,
   type HouseholdOption,
-  bulkSetArchived, bulkSetStatus, countPeople, householdFor, addressFor, addressesFor, PER_PAGE,
+  bulkSetArchived, bulkSetStatus, countPeople, countArchivedPeople, householdFor, addressFor, addressesFor, PER_PAGE,
   peopleToInvite, updateOwnProfile, setOwnPhoto, setAnniversary, anniversaryOf, addressPartsFor,
   type AddressInput,
   type DirectoryQuery, type HouseholdCard,
@@ -128,7 +129,7 @@ export {
   type TimelineEntry, type TimelineKind,
 } from "./repo/timeline";
 export {
-  listSavedLists, getSavedList, createStaticList, createRuleList, renameList,
+  listSavedLists, countArchivedSavedLists, getSavedList, createStaticList, createRuleList, renameList,
   setListArchived, addToList, removeFromList, resolveList, listsForPerson,
   cleanRule, RULE_KEYS,
   type SavedList, type ListRule, type RuleKey,

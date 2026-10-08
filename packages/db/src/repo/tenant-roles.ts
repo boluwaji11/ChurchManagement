@@ -156,6 +156,26 @@ export async function listRoles(
 }
 
 /**
+ * R1.6. How many of the church's own roles have been put away.
+ *
+ * The built-ins a church has not taken up are archived too, because the shelf
+ * in the roles panel is where they are offered. They are the product's list, so
+ * they are not counted here: this answers how many roles this church wrote and
+ * later put away, which is what the link under the matrix goes to.
+ */
+export async function countArchivedRoles(db: Tx, tenantId: string): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(tenantRoles)
+    .where(and(
+      eq(tenantRoles.tenantId, tenantId),
+      eq(tenantRoles.builtin, false),
+      sql`${tenantRoles.archivedAt} is not null`,
+    ));
+  return row?.count ?? 0;
+}
+
+/**
  * Whether the stored built-ins still say what the product says.
  *
  * A church that has edited one owns it from then on, so a customised row is
@@ -410,6 +430,37 @@ export async function archiveRole(
   archived: boolean,
 ): Promise<void> {
   guard(actor, "editRoles");
+
+  /*
+   * R1.5, R1.6, R21.2. Bringing a role back is held to the same reach as
+   * writing one.
+   *
+   * A role off the list grants nobody anything. Putting it back on the list
+   * makes it assignable, so an Admin who could restore Finance has handed out
+   * `giving.amounts` by the other door, which is the rule in
+   * `onlyWhatTheyHold` with an extra step in front of it.
+   */
+  if (!archived) {
+    const [row] = await db
+      .select({
+        key: tenantRoles.key,
+        permissions: tenantRoles.permissions,
+        builtin: tenantRoles.builtin,
+        customised: tenantRoles.customised,
+      })
+      .from(tenantRoles)
+      .where(and(eq(tenantRoles.id, id), eq(tenantRoles.tenantId, actor.tenantId)))
+      .limit(1);
+
+    if (!row) throw new InvalidInputError("roles.error.missing");
+
+    const key = row.key as TenantRole;
+    const held = row.builtin && !row.customised && ROLE_PERMISSIONS[key]
+      ? [...ROLE_PERMISSIONS[key]]
+      : known(row.permissions);
+
+    if (!withinReach(actor, held)) throw new InvalidInputError("roles.error.beyond");
+  }
 
   const changed = await db
     .update(tenantRoles)

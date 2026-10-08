@@ -135,7 +135,7 @@ const live = isNull(teams.archivedAt);
 /** R10.1. Every team, with what a list of them needs to say. */
 export async function listTeams(
   db: Tx,
-  options: { includeArchived?: boolean } = {},
+  options: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<TeamSummary[]> {
   const rows = await db
     .select({
@@ -163,10 +163,25 @@ export async function listTeams(
       )`,
     })
     .from(teams)
-    .where(options.includeArchived ? undefined : live)
+    .where(
+      options.archivedOnly
+        ? sql`${teams.archivedAt} is not null`
+        : options.includeArchived
+          ? undefined
+          : live,
+    )
     .orderBy(asc(teams.position), asc(teams.name));
 
   return rows.map((r) => ({ ...r, hue: r.hue as TagHue }));
+}
+
+/** R10.1. How many teams have been put away, for the link that goes to them. */
+export async function countArchivedTeams(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(teams)
+    .where(sql`${teams.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 async function positionsFor(db: Tx, teamId: string): Promise<Position[]> {
