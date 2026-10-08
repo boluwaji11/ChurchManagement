@@ -237,7 +237,7 @@ export default async function CalendarPage({
       </div>
 
       {/* R15.1. The fortnight, seven columns a week. */}
-      <div className="hidden overflow-auto rounded-lg border border-line md:grid [grid-template-columns:repeat(7,minmax(120px,1fr))]">
+      <div className="hidden overflow-auto rounded-lg border border-line lg:grid [grid-template-columns:repeat(7,minmax(120px,1fr))]">
         {days.map((day, at) => (
           <section
             key={day.date}
@@ -263,9 +263,9 @@ export default async function CalendarPage({
           phone reads the same fortnight down the page: the days that have
           something on, in the order they come. */}
       {busy.length === 0 ? (
-        <p className="text-fg-muted md:hidden">{t("calendar.nothing")}</p>
+        <p className="text-fg-muted lg:hidden">{t("calendar.nothing")}</p>
       ) : (
-        <ol className="flex flex-col gap-5 md:hidden">
+        <ol className="flex flex-col gap-5 lg:hidden">
           {busy.map((day) => (
             <li key={day.date} className="flex flex-col gap-2">
               <h3

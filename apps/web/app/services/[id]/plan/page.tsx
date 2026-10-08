@@ -112,7 +112,7 @@ export default async function PlanPage({
     <AppShell session={session} title={t("order.title")} wide>
       {/* The heading block runs the width, and the sidebar starts level with
           the first item rather than with the back link. */}
-      <div className="grid gap-x-6 gap-y-6 lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
+      <div className="grid gap-x-6 gap-y-6 [grid-template-columns:minmax(0,1fr)] lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Link
             href={`/services?church=${session.tenantSlug}`}

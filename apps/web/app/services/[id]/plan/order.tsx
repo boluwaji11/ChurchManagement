@@ -185,7 +185,7 @@ export function Order({
   };
 
   return (
-    <div className="flex flex-col gap-4" aria-busy={pending}>
+    <div className="@container flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
 
       {/* R11.8. Above the plan and to the right, where a table's own actions
@@ -196,7 +196,7 @@ export function Order({
         {/* What the handles down the left are for, beside them. */}
         {/* Dragging is a pointer's way of reordering. A phone gets the two
             arrows on each row instead. */}
-        <span className="hidden flex-1 items-center gap-1.5 text-[12px] text-fg-subtle sm:flex">
+        <span className="hidden flex-1 items-center gap-1.5 text-[12px] text-fg-subtle @xl:flex">
           <GripVertical className="size-3.5" aria-hidden /> {t("order.dragHint")}
         </span>
         <StartFrom
@@ -258,9 +258,9 @@ export function Order({
                     over?.id === item.id && over.after && "shadow-[inset_0_-2px_0_0_var(--color-primary)]",
                   )}
                 >
-                  <div className="flex flex-wrap items-center gap-2.5 px-4 py-3 sm:flex-nowrap">
+                  <div className="flex flex-wrap items-center gap-2.5 px-4 py-3 @xl:flex-nowrap">
                     <GripVertical
-                      className="hidden size-4 shrink-0 cursor-grab text-line-strong sm:block"
+                      className="hidden size-4 shrink-0 cursor-grab text-line-strong @xl:block"
                       aria-hidden
                     />
 
@@ -276,7 +276,7 @@ export function Order({
                           type="button"
                           // The tappable part says so: the hand, and the row
                           // lifting under it.
-                          className="-mx-2 flex w-full min-w-0 cursor-pointer flex-wrap items-center gap-x-2.5 gap-y-1 rounded-md px-2 py-1 text-left transition-colors duration-instant hover:bg-sunken sm:w-auto sm:flex-1 sm:flex-nowrap"
+                          className="-mx-2 flex w-full min-w-0 cursor-pointer flex-wrap items-center gap-x-2.5 gap-y-1 rounded-md px-2 py-1 text-left transition-colors duration-instant hover:bg-sunken @xl:w-auto @xl:flex-1 @xl:flex-nowrap"
                         >
                           <span
                             data-numeric
@@ -287,7 +287,7 @@ export function Order({
 
                           {/* A column of its own, so every title starts at the
                               same place however long the kind's word is. */}
-                          <span className="shrink-0 sm:w-[118px]">
+                          <span className="shrink-0 @xl:w-[118px]">
                             <span
                               className="inline-flex rounded-full px-2 py-0.5 text-[12px] font-medium"
                               style={{
@@ -299,7 +299,7 @@ export function Order({
                             </span>
                           </span>
 
-                          <span className="flex w-full min-w-0 flex-col sm:w-auto sm:flex-1">
+                          <span className="flex w-full min-w-0 flex-col @xl:w-auto @xl:flex-1">
                             <span className="truncate font-medium text-fg">{item.title}</span>
                             {item.description ? (
                               <span className="truncate text-[12px] text-fg-subtle">
@@ -314,7 +314,7 @@ export function Order({
                     {/* R11.6, R11.7. On the item's own line: a chart and an
                         instruction belong beside the song they are for. */}
                     {item.files.length > 0 || item.notes.length > 0 ? (
-                      <span className="flex w-full min-w-0 shrink items-center gap-1 sm:w-auto sm:max-w-[260px]">
+                      <span className="flex w-full min-w-0 shrink items-center gap-1 @xl:w-auto @xl:max-w-[260px]">
                         {item.files.map((file) => (
                           <Attachment
                             key={file.id}
@@ -361,7 +361,7 @@ export function Order({
                       {/* R11.2. Moving an item without a mouse. */}
                       <IconButton
                         label={t("order.moveUp")}
-                        className="sm:hidden"
+                        className="@xl:hidden"
                         disabled={pending || i === 0}
                         onClick={() => moveBy(`up:${item.id}`, item.id, -1)}
                       >
@@ -373,7 +373,7 @@ export function Order({
                       </IconButton>
                       <IconButton
                         label={t("order.moveDown")}
-                        className="sm:hidden"
+                        className="@xl:hidden"
                         disabled={pending || i === timed.length - 1}
                         onClick={() => moveBy(`down:${item.id}`, item.id, 1)}
                       >

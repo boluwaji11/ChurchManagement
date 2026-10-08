@@ -352,7 +352,7 @@ export function ScheduleGrid({
       </div>
 
       <div className="flex flex-wrap items-start gap-5">
-        <section className="hidden flex-[999_1_560px] overflow-auto rounded-lg border border-line bg-surface md:block">
+        <section className="hidden flex-[999_1_560px] overflow-auto rounded-lg border border-line bg-surface lg:block">
           <div
             className="grid min-w-[760px]"
             style={{
@@ -449,7 +449,7 @@ export function ScheduleGrid({
 
         {/* R10.3. The same month on a phone: one service, its positions down
             the page, and the service picked at the top. */}
-        <section className="w-full overflow-hidden rounded-lg border border-line bg-surface md:hidden">
+        <section className="w-full overflow-hidden rounded-lg border border-line bg-surface lg:hidden">
           <div className="flex flex-col gap-2.5 border-b border-line p-4">
             <Combobox
               aria-label={t("serving.service")}
@@ -520,7 +520,7 @@ export function ScheduleGrid({
             </span>
             {/* Dragging is the month grid's way of filling a slot, and the
                 month grid is not on a phone. */}
-            <span className="hidden shrink-0 whitespace-nowrap text-[12px] text-fg-subtle md:inline">
+            <span className="hidden shrink-0 whitespace-nowrap text-[12px] text-fg-subtle lg:inline">
               {t("serving.dragOnto")}
             </span>
           </div>
