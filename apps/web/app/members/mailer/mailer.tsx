@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Download as DownloadIcon, FileText, Mail, Printer } from "lucide-react";
+import { Archive, Download as DownloadIcon, FileText, Mail, Printer } from "lucide-react";
 import {
-  Banner, Button, Combobox, Field, Input, Tooltip,
+  Banner, Button, Combobox, Dialog, DialogContent, DialogFooter, Field, IconButton, Input,
+  Tooltip,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   PAPER, PAPERS, perPage, unknownMarks, faceOf, sizeOf,
   type PaperStock, type LetterFont, type LetterSize,
@@ -11,7 +12,8 @@ import {
 import { t } from "@connectapp/i18n";
 import { Download } from "@/components/download";
 import { RichText } from "@/components/rich-text";
-import { saveMailer } from "./actions";
+import { useRouter } from "next/navigation";
+import { archiveMailer, saveMailer } from "./actions";
 
 export interface PostList {
   id: string;
@@ -106,6 +108,11 @@ export function Mailer({
   const [saving, setSaving] = React.useState(false);
   const [savedAt, setSavedAt] = React.useState<number | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [asking, setAsking] = React.useState(false);
+  const [putting, setPutting] = React.useState(false);
+  const [going, startGoing] = React.useTransition();
+  const router = useRouter();
+  const away = putting || going;
 
   /** R16.12. Writes a field's mark where the writer's caret is. */
   const write = React.useRef<((text: string) => void) | null>(null);
@@ -241,17 +248,54 @@ export function Mailer({
         <Field label={t("post.name")} required className="min-w-[240px] flex-1">
           <Input value={name} onChange={(event) => setName(event.target.value)} />
         </Field>
-        <span
-          role="status"
-          className="flex min-h-9 items-center text-caption text-fg-subtle tabular-nums"
-        >
-          {saving
-            ? t("post.saving")
-            : savedAt
-              ? t("post.savedAt", { when: stamp(savedAt) })
-              : ""}
+        <span className="flex min-h-9 items-center gap-2">
+          <span role="status" className="text-caption text-fg-subtle tabular-nums">
+            {saving
+              ? t("post.saving")
+              : savedAt
+                ? t("post.savedAt", { when: stamp(savedAt) })
+                : ""}
+          </span>
+
+          {/* R2.13. The one thing done to a whole mailer, on the mailer. */}
+          <IconButton
+            label={t("post.archiveDo")}
+            variant="ghost"
+            disabled={away}
+            className="size-9 min-h-0 [&_svg]:size-[18px]"
+            onClick={() => setAsking(true)}
+          >
+            <Archive />
+          </IconButton>
         </span>
       </div>
+
+      <Dialog open={asking} onOpenChange={(next) => { if (!away) setAsking(next); }}>
+        <DialogContent title={t("post.archiveAsk", { name })}>
+          <DialogFooter>
+            <Button variant="secondary" disabled={away} onClick={() => setAsking(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              loading={away}
+              onClick={() => {
+                setPutting(true);
+                void archiveMailer(saved.id, true, church).then((back) => {
+                  setPutting(false);
+                  if (back.error) {
+                    setAsking(false);
+                    setError(back.error);
+                    return;
+                  }
+                  startGoing(() => router.push(`/members/mailer?church=${church}`));
+                });
+              }}
+            >
+              {t("post.archiveDo")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
 

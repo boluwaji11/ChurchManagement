@@ -3,10 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, ArchiveRestore, FileText, Plus } from "lucide-react";
+import { ArchiveRestore, FileText, Plus } from "lucide-react";
 import {
-  Button, Dialog, DialogContent, DialogFooter, EmptyState, Field, IconButton, Input,
-  Sheet, SheetContent,
+  Button, EmptyState, Field, IconButton, Input, Sheet, SheetContent,
 } from "@connectapp/ui";
 import { plural, t } from "@connectapp/i18n";
 import { SearchField } from "@/components/search-field";
@@ -46,7 +45,6 @@ export function Shelf({
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [find, setFind] = React.useState("");
-  const [asking, setAsking] = React.useState<MailerCard | null>(null);
   const [working, setWorking] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [going, startGoing] = React.useTransition();
@@ -76,7 +74,7 @@ export function Shelf({
 
   const start = (
     <Button
-      loading={busy && !asking}
+      loading={busy}
       onClick={() => { setName(""); setError(null); setOpen(true); }}
     >
       <Plus /> {t("post.new")}
@@ -96,7 +94,7 @@ export function Shelf({
         </div>
       ) : null}
 
-      {error && !open ? (
+      {error && !open ?  (
         <p role="status" className="text-[13px] text-danger-text">{error}</p>
       ) : null}
 
@@ -144,8 +142,8 @@ export function Shelf({
                 </span>
               </span>
 
-              <span className="relative z-10 shrink-0">
-                {putAway ? (
+              {putAway ? (
+                <span className="relative z-10 shrink-0">
                   <IconButton
                     label={t("post.restore")}
                     variant="ghost"
@@ -165,18 +163,8 @@ export function Shelf({
                   >
                     <ArchiveRestore />
                   </IconButton>
-                ) : (
-                  <IconButton
-                    label={t("post.archiveDo")}
-                    variant="ghost"
-                    disabled={busy}
-                    className="size-8 min-h-0 [&_svg]:size-4"
-                    onClick={() => setAsking(one)}
-                  >
-                    <Archive />
-                  </IconButton>
-                )}
-              </span>
+                </span>
+              ) : null}
             </div>
           ))}
         </div>
@@ -229,39 +217,6 @@ export function Shelf({
         </SheetContent>
       </Sheet>
 
-      <Dialog
-        open={asking !== null}
-        onOpenChange={(next) => { if (!next && !busy) setAsking(null); }}
-      >
-        <DialogContent title={asking ? t("post.archiveAsk", { name: asking.name }) : ""}>
-          <DialogFooter>
-            <Button variant="secondary" disabled={busy} onClick={() => setAsking(null)}>
-              {t("action.cancel")}
-            </Button>
-            <Button
-              loading={busy}
-              onClick={() => {
-                if (!asking) return;
-                setWorking(true);
-                void archiveMailer(asking.id, true, church).then((back) => {
-                  setWorking(false);
-                  if (back.error) {
-                    setAsking(null);
-                    setError(back.error);
-                    return;
-                  }
-                  startGoing(() => {
-                    router.refresh();
-                    setAsking(null);
-                  });
-                });
-              }}
-            >
-              {t("post.archiveDo")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
