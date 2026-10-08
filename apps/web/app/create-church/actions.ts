@@ -22,12 +22,14 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
 
   const name = String(data.get("name") ?? "");
   const timezone = String(data.get("timezone") ?? "");
+  const country = String(data.get("country") ?? "");
 
   let slug: string;
   try {
     const church = await createChurch({
       name,
       timezone,
+      country,
       user: {
         id: user.id,
         email: user.email,

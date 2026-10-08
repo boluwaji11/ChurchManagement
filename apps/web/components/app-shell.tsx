@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cookies } from "next/headers";
 import { NOTIFICATION_LOOK } from "@connectapp/db";
-import { t, spellingFor } from "@connectapp/i18n";
+import { t, spellingFor, localeFor } from "@connectapp/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
 import { WatchAccess } from "./watch-access";
@@ -73,6 +73,7 @@ export async function AppShell({
    * reads a string and handed to the browser so both sides say the same words.
    */
   const spelling = spellingFor(counts.church?.country);
+  const locale = localeFor(counts.church?.country);
   readsAs(counts.church?.country);
 
   /*
@@ -157,7 +158,7 @@ export async function AppShell({
           {/* Every screen in the design is a column with 28px between its
               blocks. */}
           <ChurchMarkProvider logoUrl={logoUrl}>
-            <SpellingProvider spelling={spelling}>
+            <SpellingProvider spelling={spelling} locale={locale}>
             <div className="flex flex-col gap-7">
               {/* R24.6. The screen's one action sits with the screen rather
                   than in the bar, which belongs to the product. Beside the

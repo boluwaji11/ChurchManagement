@@ -827,6 +827,13 @@
       "when": 1791419000000,
       "tag": "0117_offering_fund",
       "breakpoints": true
+    },
+    {
+      "idx": 118,
+      "version": "7",
+      "when": 1791420000000,
+      "tag": "0118_church_country",
+      "breakpoints": true
     }
   ]
 }

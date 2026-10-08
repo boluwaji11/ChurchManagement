@@ -3,6 +3,7 @@
 import * as React from "react";
 import { DatePicker } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { readingLocale } from "@/lib/reading-locale";
 
 const LABELS = {
   open: t("date.open"),
@@ -52,6 +53,8 @@ export function DateField({
       onChange={set}
       placeholder={t("date.placeholder")}
       labels={LABELS}
+      /* R22.8. The church's own, so 7 October is not read as 10 July. */
+      locale={readingLocale()}
       {...rest}
     />
   );

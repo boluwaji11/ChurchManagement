@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { t, spellingFor } from "@connectapp/i18n";
+import { t, spellingFor, localeFor } from "@connectapp/i18n";
 import { FlameMark } from "./brand";
 import { ChurchMarkProvider } from "./church-mark";
 import { SpellingProvider } from "./spelling-provider";
@@ -47,6 +47,7 @@ export async function PortalShell({
   const church = shell.church;
 
   const spelling = spellingFor(church?.country);
+  const locale = localeFor(church?.country);
   readsAs(church?.country);
 
   /*
@@ -136,7 +137,7 @@ export async function PortalShell({
         className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col gap-7 px-6 pb-16 pt-8"
       >
         <ChurchMarkProvider logoUrl={logoUrl}>
-          <SpellingProvider spelling={spelling}>{children}</SpellingProvider>
+          <SpellingProvider spelling={spelling} locale={locale}>{children}</SpellingProvider>
         </ChurchMarkProvider>
       </main>
 

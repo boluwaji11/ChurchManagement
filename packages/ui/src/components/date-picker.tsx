@@ -39,6 +39,14 @@ export interface DatePickerProps {
   disabled?: boolean;
   required?: boolean;
   placeholder?: string;
+  /**
+   * R22.8. Whose dates these are, as a BCP-47 tag.
+   *
+   * Given one, it decides the order a date is written and read in. Left out,
+   * the browser's own is used after mount, which is right for a page with no
+   * church behind it and wrong for every page that has one.
+   */
+  locale?: string;
   labels: DatePickerLabels;
   className?: string;
   "aria-label"?: string;
@@ -148,21 +156,28 @@ export function DatePicker({
   disabled,
   required,
   placeholder,
+  locale: given,
   labels,
   className,
   ...rest
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const [typed, setTyped] = React.useState<string | null>(null);
-  const [locale, setLocale] = React.useState<string | undefined>(undefined);
+  const [locale, setLocale] = React.useState<string | undefined>(given);
   const root = React.useRef<HTMLDivElement>(null);
   const panel = React.useRef<HTMLDivElement>(null);
   const [mode, setMode] = React.useState<"days" | "months" | "years">("days");
   const grid = React.useRef<HTMLDivElement>(null);
 
-  // Resolved after mount. Reading it during render would make the server and
-  // the browser disagree about the format and React would throw out the markup.
-  React.useEffect(() => setLocale(navigator.language), []);
+  /*
+   * The church's own where it was given one, which the server and the
+   * browser both render the same. Otherwise the browser's, resolved after
+   * mount: reading it during the render would make the two disagree about
+   * the format and React would throw the markup out.
+   */
+  React.useEffect(() => {
+    if (!given) setLocale(navigator.language);
+  }, [given]);
 
   const chosen = parts(value);
   const [cursor, setCursor] = React.useState(() => {
@@ -324,6 +339,14 @@ export function DatePicker({
           required={required}
           placeholder={placeholder}
           value={shown}
+          /*
+           * R24.x. Pressing the field opens the calendar. A date box that
+           * answers a press with a cursor asks somebody to know the order
+           * their church writes a date in, and the whole point of drawing a
+           * calendar is that nobody has to. Typing still works on top of it.
+           */
+          onPointerDown={() => setOpen(true)}
+          onFocus={() => setOpen(true)}
           onChange={(e) => setTyped(e.target.value)}
           onBlur={(e) => { if (typed !== null) commit(e.target.value); }}
           onKeyDown={(e) => {

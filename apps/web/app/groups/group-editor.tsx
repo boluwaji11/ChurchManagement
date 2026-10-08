@@ -17,6 +17,7 @@ import { toAddress } from "@/lib/address";
 import { FormActions, useReportBusy } from "@/components/form-actions";
 import { create, save, findPerson, join, leave, type PersonHit } from "./actions";
 import type { GroupDraft, GroupTypeOption } from "./group-form";
+import { readingLocale } from "@/lib/reading-locale";
 
 const DAYS = [0, 1, 2, 3, 4, 5, 6] as const;
 const FREQUENCIES = ["daily", "weekly", "fortnightly", "monthly"] as const;
@@ -331,6 +332,7 @@ export function GroupEditor({
                   empty and run until they do not. */}
               <Field label={t("groups.endsOn")}>
                 <DatePicker
+              locale={readingLocale()}
                   name="endsOn"
                   value={endsOn}
                   onChange={setEndsOn}

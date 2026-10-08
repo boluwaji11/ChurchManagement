@@ -19,6 +19,7 @@ import { maritalOptions, schoolOptions } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
 import { useFormError } from "@/lib/form-error";
 import { Details, Detail } from "../card";
+import { readingLocale } from "@/lib/reading-locale";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -334,6 +335,7 @@ export function ProfileForm({
           </Field>
           <Field label={t("settings.profile.birthday")}>
             <DatePicker
+              locale={readingLocale()}
               name="dateOfBirth"
               value={birthday}
               onChange={setBirthday}
@@ -355,6 +357,7 @@ export function ProfileForm({
 
           <Field label={t("person.anniversary")}>
             <DatePicker
+              locale={readingLocale()}
               name="anniversary"
               value={anniversary}
               onChange={setAnniversary}

@@ -4,10 +4,10 @@ import * as React from "react";
 import { Church } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import {
-  Button, Input, Field, Banner, Working,
+  Button, Input, Field, Banner, Working, Combobox,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { t, countryList } from "@connectapp/i18n";
 import { createChurchAccount } from "./actions";
 
 /**
@@ -104,11 +104,14 @@ function Submit() {
 export function CreateChurchForm() {
   const [name, setName] = React.useState("");
   const [zone, setZone] = React.useState(FALLBACK);
+  const [country, setCountry] = React.useState("US");
   const [nameError, setNameError] = React.useState<string>();
   const [error, setError] = React.useState<string>();
 
   // Runs after hydration, so the server and the client render the same thing.
   React.useEffect(() => setZone(detect()), []);
+
+  const countries = React.useMemo(() => countryList(), []);
 
   /*
    * The seven a church in the United States reads by name first, then the world
@@ -156,6 +159,21 @@ export function CreateChurchForm() {
           autoComplete="organization"
           autoFocus
         />
+      </Field>
+
+      {/* R1.1, R22.8. The country decides how this church reads a date, how
+          it spells a word and what its address form asks for, so it is asked
+          at the start rather than left to a default nobody sees. */}
+      <Field label={t("church.country")} required>
+        <Combobox
+          options={countries.map((c) => ({ value: c.code, label: c.name, keywords: c.code }))}
+          value={country}
+          onChange={setCountry}
+          placeholder={t("church.chooseCountry")}
+          emptyLabel={t("church.noCountry")}
+          clearLabel={t("date.clear")}
+        />
+        <input type="hidden" name="country" value={country} />
       </Field>
 
       <Field label={t("createChurch.timezone")}>

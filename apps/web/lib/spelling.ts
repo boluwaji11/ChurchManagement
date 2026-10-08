@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { setSpellingResolver, spellingFor, type Spelling } from "@connectapp/i18n";
+import { setSpellingResolver, spellingFor, localeFor, type Spelling } from "@connectapp/i18n";
+import { setReadingLocale } from "./reading-locale";
 
 /**
  * R22.8. Which spelling this request reads, held for the length of it.
@@ -12,12 +13,22 @@ import { setSpellingResolver, spellingFor, type Spelling } from "@connectapp/i18
  * Read lazily, inside the resolver, because the value is set while the page
  * loads its session and the strings are read afterwards.
  */
-const store = cache((): { spelling: Spelling } => ({ spelling: "british" }));
+const store = cache((): { spelling: Spelling; locale: string } => ({
+  spelling: "british",
+  locale: "en-GB",
+}));
 
 /** Called once a request knows whose church it is. */
 export function readsAs(country: string | null | undefined): void {
   store().spelling = spellingFor(country);
+  store().locale = localeFor(country);
 }
+
+/*
+ * R22.8. The same arrangement for the locale, registered at import so a date
+ * written anywhere on the server reads the church it belongs to.
+ */
+setReadingLocale(() => store().locale);
 
 /*
  * Registered at import. Every server render reaches this module through the

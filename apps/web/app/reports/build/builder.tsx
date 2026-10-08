@@ -22,6 +22,7 @@ import { Format } from "./format";
 import { Canvas } from "./canvas";
 import type { Part } from "../plot";
 import { read } from "../read";
+import { readingLocale } from "@/lib/reading-locale";
 
 /** The date picker's words, said once rather than at every call. */
 const DATE_LABELS = () => ({
@@ -319,6 +320,7 @@ export function Builder({
                             </Select>
                           ) : field?.kind === "date" && one.op !== "lastDays" ? (
                             <DatePicker
+              locale={readingLocale()}
                               value={one.value}
                               onChange={(value) => setFilter(at, { value: value ?? "" })}
                               aria-label={t("report.value")}

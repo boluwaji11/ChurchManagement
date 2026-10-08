@@ -366,6 +366,14 @@ export function slugify(name: string): string {
 export async function createChurch(input: {
   name: string;
   timezone: string;
+  /**
+   * R22.8. Which country this church is in, as a two-letter code.
+   *
+   * It decides how the church reads a date, how the product spells a word to
+   * it, and what its address form asks for, so it is answered at signup
+   * rather than defaulted and discovered months later.
+   */
+  country?: string;
   user: {
     id: string;
     email: string;
@@ -388,6 +396,9 @@ export async function createChurch(input: {
   }
 
   const timezone = isKnownTimezone(input.timezone) ? input.timezone : "America/Chicago";
+  const country = /^[A-Za-z]{2}$/.test(input.country ?? "")
+    ? input.country!.toUpperCase()
+    : "US";
 
   const base = slugify(name) || "church";
   const sql = owner();
@@ -405,8 +416,8 @@ export async function createChurch(input: {
     }
 
     const [tenant] = await tx<{ id: string }[]>`
-      insert into tenants (slug, name, timezone)
-      values (${slug}, ${name}, ${timezone})
+      insert into tenants (slug, name, timezone, country)
+      values (${slug}, ${name}, ${timezone}, ${country})
       returning id`;
     if (!tenant) throw new Error("Tenant insert returned no row.");
 

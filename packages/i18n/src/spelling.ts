@@ -183,3 +183,20 @@ const AMERICAN: ReadonlySet<string> = new Set(["US", "PH", "LR", "PR", "GU", "VI
 export function spellingFor(country: string | null | undefined): Spelling {
   return country && AMERICAN.has(country.trim().toUpperCase()) ? "american" : "british";
 }
+
+/**
+ * R22.8. Which locale a church's dates and numbers are written in.
+ *
+ * The country on the church's record, not the browser's settings. A church in
+ * Missouri whose treasurer has a British laptop was reading 07/10/2026 for the
+ * seventh of October, which is the eleventh week of the year away from what it
+ * meant.
+ *
+ * English everywhere, because the product is English in v1. The region is what
+ * decides the order of a date, the grouping of a number and the first day of a
+ * week, and an unknown region falls back to plain English on its own.
+ */
+export function localeFor(country: string | null | undefined): string {
+  const code = country?.trim().toUpperCase();
+  return code && /^[A-Z]{2}$/.test(code) ? `en-${code}` : "en-GB";
+}
