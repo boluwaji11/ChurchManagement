@@ -453,7 +453,6 @@ export function RowBars({
                   ? "group relative flex min-h-0 flex-1 items-center gap-3"
                   : "group relative flex items-center gap-3"
               }
-              tabIndex={0}
             >
               <Tooltip content={one.label}>
                 <span className="w-24 shrink-0 truncate text-[13px] text-fg-muted">

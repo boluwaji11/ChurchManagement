@@ -1,12 +1,11 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getChurch, getCampaign, listPledges, listFunds,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
+import { BackLink } from "@/components/back-link";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
@@ -67,12 +66,7 @@ export default async function CampaignPage({
   return (
     <AppShell session={session} title={read.campaign.name} wide>
       <div className="flex flex-col gap-5">
-        <Link
-          href={`/giving/campaigns?church=${session.tenantSlug}`}
-          className="flex w-fit items-center gap-1.5 font-medium text-primary"
-        >
-          <ArrowLeft className="size-4" aria-hidden /> {t("campaigns.back")}
-        </Link>
+        <BackLink href={`/giving/campaigns?church=${session.tenantSlug}`} label={t("campaigns.back")} />
 
         <CampaignScreen
           church={session.tenantSlug}

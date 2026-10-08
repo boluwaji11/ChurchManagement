@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { ArrowLeft, Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import {
   withTenant, getChurch, statementGivers, givingYears, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
+import { BackLink } from "@/components/back-link";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
@@ -82,12 +82,7 @@ export default async function StatementsPage({
       {/* Four short columns do not want the whole of a wide screen: the
           name and the total ended up a hand's width apart. */}
       <div className="flex max-w-3xl flex-col gap-5">
-        <Link
-          href={`/giving?church=${session.tenantSlug}`}
-          className="flex w-fit items-center gap-1.5 font-medium text-primary"
-        >
-          <ArrowLeft className="size-4" aria-hidden /> {t("giving.count.back")}
-        </Link>
+        <BackLink href={`/giving?church=${session.tenantSlug}`} label={t("giving.count.back")} />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <YearPicker church={session.tenantSlug} year={read.year} years={read.years} />

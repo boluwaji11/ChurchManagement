@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { withTenant, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
+import { BackLink } from "@/components/back-link";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { Empty } from "@/components/empty";
@@ -54,12 +55,7 @@ export default async function PayoutsPage({
     <AppShell session={session} title={t("payouts.title")} wide>
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link
-            href={`/giving?church=${session.tenantSlug}`}
-            className="flex w-fit items-center gap-1.5 font-medium text-primary"
-          >
-            <ArrowLeft className="size-4" aria-hidden /> {t("giving.count.back")}
-          </Link>
+          <BackLink href={`/giving?church=${session.tenantSlug}`} label={t("giving.count.back")} />
 
           {account ? (
             <a

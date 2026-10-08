@@ -146,7 +146,7 @@ export function HouseholdList({
                         <Avatar
                           name={member.name}
                           id={member.id}
-                          className="size-6 text-[10px] font-semibold"
+                          className="size-6 text-[12px] font-semibold"
                         />
                         <span className="text-[13px] font-medium text-fg">{member.name}</span>
                         <span className="text-[12px] text-fg-subtle">
