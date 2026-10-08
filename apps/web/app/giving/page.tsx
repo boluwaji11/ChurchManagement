@@ -30,7 +30,8 @@ import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
 import { Tooltip } from "@connectapp/ui";
 import { Panel, Nothing, Destination } from "./panel";
-import { GivingFilters, narrowingFrom, narrowingCount, periodRange } from "./filters";
+import { GivingFilters } from "./filters";
+import { narrowingFrom, narrowingCount, periodRange } from "./narrowing";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
