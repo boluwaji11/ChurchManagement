@@ -71,7 +71,7 @@ export function EventRegisterPage({
       <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-7 px-5 pt-4 pb-10 sm:px-8 sm:pt-5 sm:pb-12">
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+          className="inline-flex min-h-11 items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" aria-hidden /> {t("publicEvent.backToEvent")}
         </Link>
@@ -92,17 +92,21 @@ export function EventRegisterPage({
               style={{ background: `var(--hue-${event.hue}-tint)` }}
             />
           )}
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="truncate font-display text-[19px] leading-6 text-fg">
-              {event.name}
-            </span>
-            <span className="text-caption text-fg-muted">{when}</span>
+          {/* On a phone the count drops under the date rather than taking a
+              third of the row and breaking the date across two lines. */}
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
+            <div className="flex min-w-0 flex-col gap-0.5 sm:flex-1">
+              <span className="truncate font-display text-[19px] leading-6 text-fg">
+                {event.name}
+              </span>
+              <span className="text-caption text-fg-muted">{when}</span>
+            </div>
+            {left !== null && event.state === "open" ? (
+              <span className="shrink-0 text-caption text-fg-subtle tabular-nums">
+                {plural("publicEvent.placesLeft", left)}
+              </span>
+            ) : null}
           </div>
-          {left !== null && event.state === "open" ? (
-            <span className="shrink-0 text-caption text-fg-subtle tabular-nums">
-              {plural("publicEvent.placesLeft", left)}
-            </span>
-          ) : null}
         </div>
 
         <Register

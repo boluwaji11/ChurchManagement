@@ -37,7 +37,9 @@ export function Answer({
   if (field.kind === "checkbox") {
     return (
       <div className="flex flex-col gap-1.5">
-        <label className="flex cursor-pointer items-center gap-2.5 text-[length:var(--d-text-body)] text-fg">
+        {/* A row somebody taps, so it stands a finger tall rather than the
+            height of its own tick. */}
+        <label className="flex min-h-[var(--d-tap)] cursor-pointer items-center gap-2.5 text-[length:var(--d-text-body)] text-fg">
           <Checkbox
             checked={value === true}
             onCheckedChange={(next) => onChange(next === true)}
@@ -69,11 +71,11 @@ export function Answer({
     const chosen = Array.isArray(value) ? value : [];
     return (
       <Field label={field.label} hint={field.help ?? undefined} error={error} required={field.required}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
           {(field.options ?? []).map((option) => (
             <label
               key={option}
-              className="flex cursor-pointer items-center gap-2.5 text-[length:var(--d-text-body)] text-fg"
+              className="flex min-h-[var(--d-tap)] cursor-pointer items-center gap-2.5 text-[length:var(--d-text-body)] text-fg"
             >
               <Checkbox
                 checked={chosen.includes(option)}

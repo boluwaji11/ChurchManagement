@@ -27,7 +27,7 @@ export function PublicFooter({ church }: { church: PublicChurch }) {
         href={href}
         target="_blank"
         rel="noreferrer noopener"
-        className="font-medium underline-offset-4 hover:text-fg hover:underline"
+        className="flex min-h-11 items-center font-medium underline-offset-4 hover:text-fg hover:underline sm:min-h-0"
       >
         {church.name}
       </a>
@@ -38,7 +38,7 @@ export function PublicFooter({ church }: { church: PublicChurch }) {
       <a
         key="email"
         href={`mailto:${church.email}`}
-        className="underline-offset-4 hover:text-fg hover:underline"
+        className="flex min-h-11 items-center underline-offset-4 hover:text-fg hover:underline sm:min-h-0"
       >
         {church.email}
       </a>
@@ -47,7 +47,7 @@ export function PublicFooter({ church }: { church: PublicChurch }) {
       <a
         key="phone"
         href={`tel:${church.phone.replace(/[^+\d]/g, "")}`}
-        className="underline-offset-4 hover:text-fg hover:underline"
+        className="flex min-h-11 items-center underline-offset-4 hover:text-fg hover:underline sm:min-h-0"
       >
         {church.phone}
       </a>

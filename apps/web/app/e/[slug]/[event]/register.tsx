@@ -254,29 +254,35 @@ export function Register({
       {/* Where they are, and how much is left. Numbered, because a step the
           reader cannot count is a step they cannot judge the length of. */}
       {steps.length > 1 ? (
-        <ol className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-caption">
+        /* On a phone only the step being filled in is named. Three names and
+           two rules wrapped onto two lines with a rule hanging off the front
+           of the second, and a reader cannot count a row that ragged. The
+           names stay in the accessibility tree. */
+        <ol className="flex items-center gap-x-2.5 text-caption sm:flex-wrap sm:gap-y-1.5">
           {steps.map((one, index) => (
             <li key={one} className="flex items-center gap-2.5">
               {index > 0 ? (
-                <span aria-hidden className="h-px w-5 bg-line-strong" />
+                <span aria-hidden className="h-px w-5 shrink-0 bg-line-strong" />
               ) : null}
               <span
                 aria-current={one === step ? "step" : undefined}
                 className={
                   one === step
-                    ? "font-semibold text-fg"
+                    ? "whitespace-nowrap font-semibold text-fg"
                     : index < at
-                      ? "text-fg-muted"
-                      : "text-fg-subtle"
+                      ? "whitespace-nowrap text-fg-muted"
+                      : "whitespace-nowrap text-fg-subtle"
                 }
               >
                 {index + 1}
-                {". "}
-                {one === "who"
-                  ? t("publicEvent.who")
-                  : one === "questions"
-                    ? t("publicEvent.stepQuestions")
-                    : t("publicEvent.stepConfirm")}
+                <span className={one === step ? undefined : "sr-only sm:not-sr-only"}>
+                  {". "}
+                  {one === "who"
+                    ? t("publicEvent.who")
+                    : one === "questions"
+                      ? t("publicEvent.stepQuestions")
+                      : t("publicEvent.stepConfirm")}
+                </span>
               </span>
             </li>
           ))}

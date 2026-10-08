@@ -132,7 +132,7 @@ export function EventPage({
                   href={directions}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="self-start font-medium text-primary underline-offset-4 hover:underline"
+                  className="inline-flex min-h-11 items-center self-start font-medium text-primary underline-offset-4 hover:underline"
                 >
                   {t("common.directions")}
                 </a>
@@ -145,7 +145,10 @@ export function EventPage({
             </div>
 
             {event.state === "none" ? null : (
-              <div className="flex flex-col items-end gap-2">
+              /* The way in runs the width of a phone, where it is the one
+                 thing on the screen to press, and sits at the end of the line
+                 on anything wider. */
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
                 {event.state === "open" || event.state === "waitlist" ? (
                   <>
                     {event.state === "waitlist" ? (
@@ -153,7 +156,7 @@ export function EventPage({
                         {t("publicEvent.waitlistOpen")}
                       </p>
                     ) : null}
-                    <Button asChild className="min-w-[180px]">
+                    <Button asChild className="w-full sm:w-auto sm:min-w-[180px]">
                       <Link href={registerHref}>{t("publicEvent.registerNow")}</Link>
                     </Button>
                   </>

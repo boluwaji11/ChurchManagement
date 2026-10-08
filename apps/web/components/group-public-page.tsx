@@ -77,7 +77,7 @@ export function GroupPublicPage({
                 href={mapsHref(group.address)}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="self-start font-medium text-primary underline-offset-4 hover:underline"
+                className="inline-flex min-h-11 items-center self-start font-medium text-primary underline-offset-4 hover:underline"
               >
                 {t("common.directions")}
               </a>

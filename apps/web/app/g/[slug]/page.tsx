@@ -104,7 +104,7 @@ export default async function PublicGroupsPage({
           <p className="mt-2">
             <a
               href={church.website}
-              className="text-label text-fg-muted underline hover:text-fg"
+              className="inline-flex min-h-11 items-center text-label text-fg-muted underline hover:text-fg"
             >
               {church.name}
             </a>
