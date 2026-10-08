@@ -478,7 +478,7 @@ export function ScheduleGrid({
         />
       </div>
 
-      <div className="flex flex-wrap items-start gap-5">
+      <div className="flex flex-wrap items-start gap-5 lg:items-stretch">
         <section className="relative hidden min-w-0 flex-[999_1_560px] lg:block">
           {/* R10.3. A month with more than six services reaches the rest of
               them sideways. The arrows sit over the grid's own edges, so a
@@ -673,7 +673,10 @@ export function ScheduleGrid({
 
         {/* R10.3. Who is on this team, with what they are already doing, so a
             leader spreads the load rather than asking the same four members. */}
-        <aside className="flex flex-[1_1_240px] flex-col gap-2 rounded-lg border border-line bg-surface p-4 lg:sticky lg:top-[84px]">
+        {/* R10.2. The list stands as tall as the board beside it and scrolls
+            inside itself, so a team of thirty does not leave the grid sitting
+            against four feet of white. */}
+        <aside className="flex max-h-[70vh] flex-[1_1_240px] flex-col gap-2 rounded-lg border border-line bg-surface p-4 lg:max-h-none lg:min-h-0">
           <div className="flex items-baseline justify-between gap-2">
             <span className="min-w-0 truncate font-semibold text-fg">
               {t("serving.volunteers", { team: team.name })}
@@ -685,6 +688,7 @@ export function ScheduleGrid({
             </span>
           </div>
 
+          <div className="-mr-1 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
           {volunteers.length === 0 ? (
             <p className="text-[13px] text-fg-muted">{t("serving.roster.empty")}</p>
           ) : (
@@ -725,6 +729,7 @@ export function ScheduleGrid({
               </div>
             ))
           )}
+          </div>
         </aside>
       </div>
     </div>

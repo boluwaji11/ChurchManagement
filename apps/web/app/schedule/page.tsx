@@ -348,7 +348,12 @@ export default async function ServingPage({
                     };
                   }),
                 ),
-                volunteers: data.team.members.map((one) => {
+                /* R10.2. By name. A leader looking for Ruth Whitfield in a
+                   team of thirty reads down the list, and the order the rows
+                   came back in means nothing to them. */
+                volunteers: [...data.team.members]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((one) => {
                   const off = data.away.filter((x) => x.memberId === one.memberId);
                   return {
                     memberId: one.memberId,
