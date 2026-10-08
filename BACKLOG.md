@@ -69,6 +69,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
 | HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Resolved |
 | HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Resolved. The check-in desk and the supervisor board need a service on today's date to exercise |
+| HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Active |
 | HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Active |
 | HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Resolved |
 | HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Resolved |
