@@ -159,6 +159,7 @@ export function Stage({
               <>
                 <Button
                   variant="secondary"
+                  className="flex-1 justify-center sm:flex-none"
                   loading={doing === "back"}
                   disabled={pending || at <= 0}
                   onClick={() => run("back", () => move(occurrenceId, "back", church))}
@@ -166,6 +167,7 @@ export function Stage({
                   <ChevronLeft /> {t("live.back")}
                 </Button>
                 <Button
+                  className="flex-1 justify-center sm:flex-none"
                   loading={doing === "next"}
                   disabled={pending}
                   onClick={() => run("next", () => move(occurrenceId, "next", church))}
@@ -174,6 +176,7 @@ export function Stage({
                 </Button>
                 <Button
                   variant="ghost"
+                  className="basis-full justify-center sm:basis-auto"
                   loading={doing === "stop"}
                   disabled={pending}
                   onClick={() => run("stop", () => end(occurrenceId, church))}
