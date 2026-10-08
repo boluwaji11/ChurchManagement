@@ -47,7 +47,7 @@ export default async function ReportsPage({
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <AppShell session={session} title={t("reports.title")}>
-        <Denied role={session.role} action="buildReports" church={session.tenantSlug} />
+        <Denied role={session.role} action="readReports" church={session.tenantSlug} />
       </AppShell>
     );
   }

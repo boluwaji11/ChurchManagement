@@ -46,7 +46,7 @@ export default async function PeoplePage({
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <AppShell session={session} title={t("members.title")}>
-        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
+        <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
       </AppShell>
     );
   }

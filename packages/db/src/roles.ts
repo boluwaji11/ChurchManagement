@@ -79,4 +79,5 @@ export type PermissionAction =
   | "manageFollowUps" | "editPipelines" | "seeChecks" | "editDirectoryPrivacy"
   | "manageTeams" | "manageTeamRoster" | "schedule" | "managePlans"
   | "manageForms" | "editRoles" | "manageHouseholds" | "buildReports"
-  | "manageGiving" | "recordGift";
+  | "manageGiving" | "recordGift" | "readGivingAmounts"
+  | "readPeople" | "readReports";
