@@ -56,15 +56,15 @@ function MonthStep({
 
 /** How many services the grid shows. A month of weekends, as the design draws. */
 /*
- * R10.3. How many services fit across the grid before it scrolls.
+ * R10.3. The most services one month's grid will draw.
  *
- * The position column is 150px and each service asks for 150 more, so six
- * of them need 1050px: what the board has at a desk with the navigation
- * open. Below that the grid scrolls sideways rather than squeezing, and a
- * phone reads one service at a time. Six is also three dates for a church
- * that holds two services on a day.
+ * Six fit across the board at a desk, and a month with more than six scrolls
+ * sideways to reach them rather than hiding them: a church with a Wednesday
+ * meeting has ten in a month and all ten are its rota. The cap is only there
+ * so a church that has filled a month with occurrences cannot ask the
+ * browser for a hundred columns.
  */
-const COLUMNS = 6;
+const COLUMNS = 31;
 
 /**
  * R10.1, R10.3. Serving: the schedule, and the teams that fill it.

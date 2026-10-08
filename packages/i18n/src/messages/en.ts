@@ -2579,6 +2579,8 @@ export const en = {
   "serving.legend.waiting": "Waiting for reply",
   "serving.legend.declined": "Declined",
   "serving.position": "Position",
+  "serving.earlierServices": "Earlier services",
+  "serving.laterServices": "Later services",
   "serving.openSlot": "Open",
   "serving.teamCount.one": "{count} team",
   "serving.teamCount.other": "{count} teams",

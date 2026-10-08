@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, XCircle, X, AlertTriangle, Plus } from "lucide-react";
+import {
+  CheckCircle2, Clock, XCircle, X, AlertTriangle, Plus, ChevronLeft, ChevronRight,
+} from "lucide-react";
 import { Avatar, Banner, Button, Combobox, Input, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { schedule, unschedule, whoCouldFill, savePosition } from "./actions";
@@ -218,6 +220,73 @@ function FillSlot({
   );
 }
 
+/** One column's worth of travel, which is what a press moves. */
+const COLUMN = 150;
+
+/**
+ * R10.3, R24.6. Reaching the services that do not fit across the board.
+ *
+ * Six columns fit at a desk and a church with a weeknight meeting has ten in
+ * a month, so the grid scrolls. A trackpad does it by itself and a mouse
+ * does not, which is most of the churches this is built for, so the arrows
+ * are there to be pressed. Each one appears only while there is something
+ * that way, so a month that fits shows neither.
+ */
+function Reach({ to }: { to: React.RefObject<HTMLDivElement | null> }) {
+  const [canGo, setCanGo] = React.useState({ back: false, on: false });
+
+  React.useEffect(() => {
+    const box = to.current;
+    if (!box) return;
+
+    const read = () => {
+      const over = box.scrollWidth - box.clientWidth;
+      setCanGo({ back: box.scrollLeft > 1, on: box.scrollLeft < over - 1 });
+    };
+
+    read();
+    box.addEventListener("scroll", read, { passive: true });
+    window.addEventListener("resize", read);
+    /* A team with more positions, or a month with more services, changes the
+       width without anybody scrolling or resizing anything. */
+    const watch = new ResizeObserver(read);
+    watch.observe(box);
+    return () => {
+      box.removeEventListener("scroll", read);
+      window.removeEventListener("resize", read);
+      watch.disconnect();
+    };
+  }, [to]);
+
+  const go = (by: number) => to.current?.scrollBy({ left: by, behavior: "smooth" });
+
+  return (
+    <>
+      {canGo.back ? (
+        <button
+          type="button"
+          aria-label={t("serving.earlierServices")}
+          onClick={() => go(-COLUMN)}
+          className="absolute left-[138px] top-1/2 z-10 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-line bg-surface text-fg shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:bg-sunken"
+        >
+          <ChevronLeft className="size-4" aria-hidden />
+        </button>
+      ) : null}
+
+      {canGo.on ? (
+        <button
+          type="button"
+          aria-label={t("serving.laterServices")}
+          onClick={() => go(COLUMN)}
+          className="absolute right-2 top-1/2 z-10 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-line bg-surface text-fg shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:bg-sunken"
+        >
+          <ChevronRight className="size-4" aria-hidden />
+        </button>
+      ) : null}
+    </>
+  );
+}
+
 /** R10.6. What a reply looks like in a cell. */
 const LOOK = {
   accepted: { icon: CheckCircle2, hue: "fern" },
@@ -385,6 +454,8 @@ export function ScheduleGrid({
   }, [ids]);
 
   const needed = positions.reduce((n, position) => n + position.needed, 0);
+  /** R10.3. The box the month grid scrolls inside, which the arrows move. */
+  const scroller = React.useRef<HTMLDivElement>(null);
   /** R10.3. Whether the service the narrow view is showing has gone. */
   const gone = Boolean(services.find((service) => service.id === one)?.past);
   const filledFor = (occurrenceId: string) =>
@@ -408,7 +479,17 @@ export function ScheduleGrid({
       </div>
 
       <div className="flex flex-wrap items-start gap-5">
-        <section className="hidden flex-[999_1_560px] overflow-auto rounded-lg border border-line bg-surface lg:block">
+        <section className="relative hidden flex-[999_1_560px] lg:block">
+          {/* R10.3. A month with more than six services reaches the rest of
+              them sideways. The arrows sit over the grid's own edges, so a
+              reader who has not noticed the columns continue still has
+              something to press. */}
+          <Reach to={scroller} />
+
+          <div
+            ref={scroller}
+            className="overflow-x-auto rounded-lg border border-line bg-surface"
+          >
           <div
             className="grid min-w-[760px]"
             style={{
@@ -420,11 +501,6 @@ export function ScheduleGrid({
             </div>
 
             {services.map((service) => {
-              const filled = slots.filter(
-                (slot) => slot.occurrenceId === service.id && slot.assignmentId,
-              ).length;
-              const needed = positions.reduce((n, position) => n + position.needed, 0);
-
               return (
                 <div
                   key={service.id}
@@ -440,23 +516,6 @@ export function ScheduleGrid({
                     )}
                   >
                     {service.label}
-                  </span>
-                  {/* R10.3. A date that has gone is not short of anybody. It
-                      says what it had, in the same grey as its heading. */}
-                  <span
-                    className="shrink-0 text-[12px] font-medium"
-                    style={
-                      service.past
-                        ? { color: "var(--color-fg-subtle)" }
-                        : {
-                            color:
-                              filled >= needed
-                                ? "var(--hue-fern-key)"
-                                : "var(--color-danger-text)",
-                          }
-                    }
-                  >
-                    {filled} / {needed}
                   </span>
                 </div>
               );
@@ -529,6 +588,7 @@ export function ScheduleGrid({
 
           {/* R10.2. A position the schedule is missing, added where it is missed. */}
           {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
+          </div>
         </section>
 
         {/* R10.3. The same month on a phone: one service, its positions down
