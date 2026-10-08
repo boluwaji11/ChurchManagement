@@ -9,11 +9,15 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
 import { money } from "@/lib/money";
+import { Pager } from "@/components/pager";
 import { StatementsBy } from "./by";
 import { YearPicker } from "./year-picker";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** How many givers are read at once. */
+const PER_PAGE = 25;
 
 /** R17.1. What the browser tab says. */
 export async function generateMetadata({
@@ -35,9 +39,9 @@ export async function generateMetadata({
 export default async function StatementsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; year?: string }>;
+  searchParams: Promise<{ church?: string; year?: string; page?: string }>;
 }) {
-  const { church, year: asked } = await searchParams;
+  const { church, year: asked, page: at } = await searchParams;
   const session = await requireSession(church);
 
   if (!canReadGivingAmounts(session)) {
@@ -67,6 +71,11 @@ export default async function StatementsPage({
     const years = seen.includes(year) ? seen : [year, ...seen].sort().reverse();
     return { year, by, years, givers: await statementGivers(tx, ctx, year, by) };
   });
+
+  /* One screen of names at a time. A church of four hundred givers is four
+     hundred rows otherwise, and January is when somebody reads all of it. */
+  const page = Number.isInteger(Number(at)) && Number(at) > 0 ? Number(at) : 1;
+  const shown = read.givers.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return (
     <AppShell session={session} title={t("statement.title")} wide>
@@ -102,30 +111,46 @@ export default async function StatementsPage({
         {read.givers.length === 0 ? (
           <p className="text-fg-muted">{t("statement.none")}</p>
         ) : (
-          <ul className="overflow-hidden rounded-lg border border-line bg-surface">
-            {read.givers.map((giver) => (
-              <li
-                key={giver.memberId}
-                className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-0"
-              >
-                <span className="min-w-0 flex-1 font-medium text-fg">{giver.name}</span>
-                <span className="w-[120px] shrink-0 text-[13px] text-fg-muted">
-                  {plural("statement.gifts", giver.gifts)}
-                </span>
-                <span data-numeric className="w-[120px] shrink-0 text-right text-fg">
-                  {money(giver.totalCents)}
-                </span>
-                <a
-                  href={`/giving/statements/print?church=${session.tenantSlug}&year=${read.year}&member=${giver.memberId}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="shrink-0 font-medium text-primary no-underline"
+          <div className="overflow-hidden rounded-lg border border-line bg-surface">
+            <ul className="m-0 flex list-none flex-col p-0">
+              {shown.map((giver) => (
+                <li
+                  key={giver.memberId}
+                  className="flex flex-wrap items-center gap-4 border-b border-line px-4 py-3 last:border-0"
                 >
-                  {t("statement.printOne")}
-                </a>
-              </li>
-            ))}
-          </ul>
+                  <span className="min-w-0 flex-1 font-medium text-fg">{giver.name}</span>
+                  {/* Both figures end on the same edge, so two rows can be
+                      compared by looking down rather than across. */}
+                  <span
+                    data-numeric
+                    className="w-[90px] shrink-0 text-right text-[13px] text-fg-muted"
+                  >
+                    {plural("statement.gifts", giver.gifts)}
+                  </span>
+                  <span data-numeric className="w-[130px] shrink-0 text-right font-semibold text-fg">
+                    {money(giver.totalCents)}
+                  </span>
+                  <a
+                    href={`/giving/statements/print?church=${session.tenantSlug}&year=${read.year}&member=${giver.memberId}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="w-[52px] shrink-0 text-right font-medium text-primary underline underline-offset-4"
+                  >
+                    {t("statement.printOne")}
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            <Pager
+              page={page}
+              size={PER_PAGE}
+              total={read.givers.length}
+              href={(to) =>
+                `/giving/statements?church=${session.tenantSlug}&year=${read.year}&page=${to}`
+              }
+            />
+          </div>
         )}
       </div>
     </AppShell>

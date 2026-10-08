@@ -30,6 +30,7 @@ import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
 import { Tooltip } from "@connectapp/ui";
 import { Panel, Nothing, Destination } from "./panel";
+import { GivingFilters, narrowingFrom, narrowingCount, periodRange } from "./filters";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +69,10 @@ const pageFrom = (raw?: string) => {
 export default async function GivingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; counts?: string; gifts?: string }>;
+  searchParams: Promise<{
+    church?: string; counts?: string; gifts?: string;
+    period?: string; fund?: string; how?: string; state?: string;
+  }>;
 }) {
   const asked = await searchParams;
   const session = await requireSession(asked.church);
@@ -93,12 +97,22 @@ export default async function GivingPage({
 
   const countsPage = pageFrom(asked.counts);
   const giftsPage = pageFrom(asked.gifts);
+  const narrowing = narrowingFrom(asked);
 
   const read = await withTenant(ctx, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
     const today = churchNow(profile?.timezone ?? "America/Chicago").date;
     const year = today.slice(0, 4);
     const month = today.slice(0, 7);
+
+    /* R13.21. What the filter is asking for, as dates and as a clause. */
+    const span = periodRange(narrowing.period, today);
+    const narrowed = {
+      ...span,
+      fundId: narrowing.fundId,
+      method: narrowing.method,
+      status: narrowing.status,
+    };
 
     return {
       today,
@@ -109,10 +123,11 @@ export default async function GivingPage({
       counts: await listBatches(tx, COUNTS_PER_PAGE, (countsPage - 1) * COUNTS_PER_PAGE),
       allCounts: await countBatches(tx),
       recent: await listGifts(tx, ctx, {
+        ...narrowed,
         limit: GIFTS_PER_PAGE,
         offset: (giftsPage - 1) * GIFTS_PER_PAGE,
       }),
-      allGifts: await countGifts(tx),
+      allGifts: await countGifts(tx, narrowed),
       /* R13.2. Bank transfers authorised and not yet arrived. */
       coming: await onTheWay(tx),
       // R13.3. What the church is expecting without anybody doing anything.
@@ -124,10 +139,23 @@ export default async function GivingPage({
   });
 
   const fundList = read.funds.map((one) => ({ id: one.id, name: one.name }));
-  const nothing = read.allCounts === 0 && read.allGifts === 0;
-  const page = (name: "counts" | "gifts", to: number) =>
-    `/giving?church=${session.tenantSlug}&counts=${name === "counts" ? to : countsPage}`
-    + `&gifts=${name === "gifts" ? to : giftsPage}`;
+  /* A church with nothing in it yet, rather than a filter that matched
+     nothing: the big empty state is an invitation to start, and showing it
+     to somebody who narrowed to "failed bank gifts" reads as data loss. */
+  const nothing =
+    narrowingCount(narrowing) === 0 && read.allCounts === 0 && read.allGifts === 0;
+  /* The pager keeps whatever the filter is set to, so paging a narrowed
+     list does not quietly hand back the whole of it. */
+  const page = (name: "counts" | "gifts", to: number) => {
+    const at = new URLSearchParams({ church: session.tenantSlug });
+    if (asked.period) at.set("period", asked.period);
+    if (asked.fund) at.set("fund", asked.fund);
+    if (asked.how) at.set("how", asked.how);
+    if (asked.state) at.set("state", asked.state);
+    at.set("counts", String(name === "counts" ? to : countsPage));
+    at.set("gifts", String(name === "gifts" ? to : giftsPage));
+    return `/giving?${at.toString()}`;
+  };
 
   /*
    * R24.x. Recording a gift and exporting read as the two things done to
@@ -238,6 +266,23 @@ export default async function GivingPage({
           />
         </div>
 
+        {/* R13.21. What is narrowing the gifts below, on the left where a
+            reader looks for it. The figures above are the month and the
+            year by definition and are not narrowed by it. */}
+        <div className="flex flex-wrap items-center gap-3">
+          <GivingFilters
+            church={session.tenantSlug}
+            now={narrowing}
+            funds={fundList}
+            matching={read.allGifts}
+          />
+          {narrowingCount(narrowing) > 0 ? (
+            <span className="text-[13px] text-fg-muted">
+              {plural("giving.gifts.count", read.allGifts)}
+            </span>
+          ) : null}
+        </div>
+
         {nothing ? (
           <Empty
             icon="calendar"
@@ -267,14 +312,23 @@ export default async function GivingPage({
                     <table className="w-full min-w-[720px] border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="px-5 py-2 text-left font-bold">{t("giving.col.date")}</th>
-                          <th className="px-3 py-2 text-left font-bold">{t("giving.count.name")}</th>
-                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.fund")}</th>
-                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.method")}</th>
-                          <th className="px-3 py-2 text-right font-bold">
+                          <th className="w-[150px] px-5 py-2 text-left font-bold">
+                            {t("giving.col.date")}
+                          </th>
+                          {/* The name takes whatever the others do not. */}
+                          <th className="w-full px-3 py-2 text-left font-bold">
+                            {t("giving.count.name")}
+                          </th>
+                          <th className="w-[170px] px-3 py-2 text-left font-bold">
+                            {t("giving.col.fund")}
+                          </th>
+                          <th className="w-[100px] px-3 py-2 text-left font-bold">
+                            {t("giving.col.method")}
+                          </th>
+                          <th className="w-[150px] px-3 py-2 text-right font-bold">
                             {t("giving.count.counted")}
                           </th>
-                          <th className="w-[60px] px-3 py-2" />
+                          <th className="w-[56px] px-3 py-2" />
                         </tr>
                       </thead>
 
@@ -393,17 +447,26 @@ export default async function GivingPage({
                     <table className="w-full min-w-[820px] border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="px-5 py-2 text-left font-bold">{t("giving.col.date")}</th>
-                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.giver")}</th>
-                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.fund")}</th>
-                          <th className="px-3 py-2 text-left font-bold">{t("giving.col.method")}</th>
-                          <th className="px-3 py-2 text-right font-bold">
+                          <th className="w-[150px] px-5 py-2 text-left font-bold">
+                            {t("giving.col.date")}
+                          </th>
+                          {/* The giver takes whatever the others do not. */}
+                          <th className="w-full px-3 py-2 text-left font-bold">
+                            {t("giving.col.giver")}
+                          </th>
+                          <th className="w-[160px] px-3 py-2 text-left font-bold">
+                            {t("giving.col.fund")}
+                          </th>
+                          <th className="w-[100px] px-3 py-2 text-left font-bold">
+                            {t("giving.col.method")}
+                          </th>
+                          <th className="w-[140px] px-3 py-2 text-right font-bold">
                             {t("giving.col.amount")}
                           </th>
-                          <th className="px-3 py-2 text-left font-bold">
+                          <th className="w-[120px] px-3 py-2 text-left font-bold">
                             {t("giving.col.status")}
                           </th>
-                          <th className="w-[88px] px-3 py-2" />
+                          <th className="w-[84px] px-3 py-2" />
                         </tr>
                       </thead>
 

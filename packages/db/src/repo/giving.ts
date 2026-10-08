@@ -448,39 +448,54 @@ export async function removeGift(db: Tx, actor: WriteActor, id: string): Promise
  * records with the amount zeroed rather than a different query somewhere else
  * deciding to hide a column.
  */
-/** R13.21. How many gifts the same filter matches, for the pager under it. */
-export async function countGifts(
-  db: Tx,
-  filter: { batchId?: string; memberId?: string; from?: string; to?: string } = {},
-): Promise<number> {
-  const where = [
+/** R13.21. What narrows a list of gifts, wherever one is read. */
+export interface GiftFilter {
+  batchId?: string;
+  memberId?: string;
+  fundId?: string;
+  /** cash, cheque, card, ach, in_kind, other. */
+  method?: string;
+  /** settled, pending, failed, or "refunded" for anything given back. */
+  status?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+  offset?: number;
+}
+
+/** The one place the filter turns into a clause, so two reads cannot drift. */
+function giftWhere(filter: GiftFilter) {
+  return and(
     filter.batchId ? eq(gifts.batchId, filter.batchId) : undefined,
     filter.memberId ? eq(gifts.memberId, filter.memberId) : undefined,
+    filter.fundId ? eq(gifts.fundId, filter.fundId) : undefined,
+    filter.method ? eq(gifts.method, filter.method) : undefined,
+    /* R13.15. Given back is a thing that happened to a gift rather than a
+       status it carries, so it is asked of the refund instead. */
+    filter.status === "refunded"
+      ? sql`${gifts.refundedCents} > 0`
+      : filter.status
+        ? eq(gifts.status, filter.status)
+        : undefined,
     filter.from ? sql`${gifts.receivedOn} >= ${filter.from}::date` : undefined,
     filter.to ? sql`${gifts.receivedOn} <= ${filter.to}::date` : undefined,
-  ].filter(Boolean);
+  );
+}
 
+/** R13.21. How many gifts the same filter matches, for the pager under it. */
+export async function countGifts(db: Tx, filter: GiftFilter = {}): Promise<number> {
   const [row] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(gifts)
-    .where(where.length > 0 ? and(...where) : undefined);
+    .where(giftWhere(filter));
   return row?.n ?? 0;
 }
 
 export async function listGifts(
   db: Tx,
   who: WriteActor,
-  filter: {
-    batchId?: string; memberId?: string; from?: string; to?: string;
-    limit?: number; offset?: number;
-  } = {},
+  filter: GiftFilter = {},
 ): Promise<Gift[]> {
-  const where = [
-    filter.batchId ? eq(gifts.batchId, filter.batchId) : undefined,
-    filter.memberId ? eq(gifts.memberId, filter.memberId) : undefined,
-    filter.from ? sql`${gifts.receivedOn} >= ${filter.from}::date` : undefined,
-    filter.to ? sql`${gifts.receivedOn} <= ${filter.to}::date` : undefined,
-  ].filter(Boolean);
 
   const rows = await db
     .select({
@@ -510,7 +525,7 @@ export async function listGifts(
     .from(gifts)
     .innerJoin(funds, eq(funds.id, gifts.fundId))
     .leftJoin(members, eq(members.id, gifts.memberId))
-    .where(where.length > 0 ? and(...where) : undefined)
+    .where(giftWhere(filter))
     .orderBy(desc(gifts.receivedOn), desc(gifts.createdAt))
     .limit(filter.limit ?? 200)
     .offset(filter.offset ?? 0);

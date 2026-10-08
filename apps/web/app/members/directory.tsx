@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, SlidersHorizontal, Check, Tag, CheckCircle2 } from "lucide-react";
+import { FilterDrawer, FilterGroup, ChipButton } from "@/components/filter-drawer";
+import { X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Check, Tag, CheckCircle2 } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
   IconButton,
@@ -215,7 +216,7 @@ export function Directory({
             tools read from the left, and the thing this screen is for sits at
             the far end where the eye finishes. */}
         <div className="flex flex-wrap items-center gap-2">
-        <FilterDrawer
+        <DirectoryFilters
           tags={tags}
           counts={counts}
           matching={matching}
@@ -472,7 +473,7 @@ function StatusPill({ status }: { status: string }) {
  * while you narrow it. Status, tags, when they joined, and whether we are
  * missing a way to reach them. The footer says how many come back.
  */
-function FilterDrawer({
+function DirectoryFilters({
   tags,
   counts,
   matching,
@@ -489,8 +490,6 @@ function FilterDrawer({
   onClear: () => void;
   narrowing: number;
 }) {
-  const [open, setOpen] = React.useState(false);
-
   const status = params.get("status") ?? "all";
   const joined = params.get("joined") ?? "any";
   const tag = params.get("tag");
@@ -506,39 +505,13 @@ function FilterDrawer({
   const joins = ["any", "year", "five", "earlier"] as const;
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
-        className={cn(
-          "flex h-[34px] items-center gap-1.5 rounded-md border px-3 text-[13px] font-medium [&_svg]:size-4",
-          narrowing > 0
-            ? "border-primary bg-primary-soft text-primary"
-            : "border-line-strong bg-surface text-fg hover:bg-sunken",
-        )}
-      >
-        <SlidersHorizontal />
-        {narrowing > 0 ? t("directory.filterOn", { count: narrowing }) : t("directory.filter")}
-      </button>
-
-      {open ? (
-        <div className="fixed inset-0 z-40 flex justify-end bg-overlay" onClick={() => setOpen(false)}>
-          <aside
-            onClick={(e) => e.stopPropagation()}
-            className="flex h-full w-[min(380px,100%)] flex-col bg-canvas shadow-[-8px_0_24px_oklch(0_0_0/0.12)]"
-          >
-            <div className="flex items-center gap-3 border-b border-line px-6 py-[18px]">
-              <span className="flex-1 font-display text-[22px] text-fg">
-                {t("directory.filterTitle")}
-              </span>
-              <IconButton label={t("common.close")} onClick={() => setOpen(false)}>
-                <X />
-              </IconButton>
-            </div>
-
-            <div className="flex flex-1 flex-col gap-6 overflow-auto px-6 py-5">
-              <FilterGroup label={t("directory.filterStatus")}>
+    <FilterDrawer
+      title={t("directory.filterTitle")}
+      narrowing={narrowing}
+      onClear={onClear}
+      done={plural("directory.show", matching)}
+    >
+      <FilterGroup label={t("directory.filterStatus")}>
                 {statuses.map(([value, n]) => (
                   <ChipButton
                     key={value}
@@ -646,62 +619,7 @@ function FilterDrawer({
                   {t("directory.missing")}
                 </ChipButton>
               </FilterGroup>
-            </div>
-
-            <div className="flex items-center gap-3 border-t border-line px-6 py-4">
-              <Button variant="secondary" onClick={onClear}>{t("directory.clear")}</Button>
-              <Button className="flex-1" onClick={() => setOpen(false)}>
-                {plural("directory.show", matching)}
-              </Button>
-            </div>
-          </aside>
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2.5">
-      <span className="text-[13px] font-semibold text-fg">{label}</span>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </div>
-  );
-}
-
-/**
- * A 34px pill. Two kinds, as the design has them.
- *
- * A status is one of a set, so the chosen one is filled in ink and reads white:
- * it is answering "which of these". A tag is a thing you switch on, so it takes
- * the accent and a heavier edge and leaves the rest alone.
- */
-function ChipButton({
-  on,
-  onClick,
-  tone = "accent",
-  children,
-}: {
-  on: boolean;
-  onClick: () => void;
-  tone?: "ink" | "accent";
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={on}
-      className={cn(
-        "flex h-[34px] cursor-pointer items-center gap-2 rounded-full px-3.5 text-[13px] font-medium",
-        !on && "border border-line-strong bg-surface text-fg hover:bg-sunken",
-        on && tone === "ink" && "border border-fg bg-fg text-canvas",
-        on && tone === "accent" && "border-[1.5px] border-primary bg-primary-soft text-primary",
-      )}
-    >
-      {children}
-    </button>
+    </FilterDrawer>
   );
 }
 
