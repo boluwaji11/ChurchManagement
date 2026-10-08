@@ -94,9 +94,20 @@ const connect = (url: string, max: number) => {
 };
 
 /**
- * The owner connection. Migrations, seeding, and genuinely cross-tenant platform
- * work only. The owner is not subject to the isolation policies, which is exactly
- * why it never appears in a request path.
+ * The owner connection, which the isolation policies do not constrain.
+ *
+ * Migrations and seeding, and the work inside this package that has no tenant
+ * to be scoped by: resolving which church an address belongs to before anybody
+ * has signed in, a church's own public pages, an account that belongs to no
+ * church, and platform-wide work. Each of those runs before or outside a
+ * tenant context, so there is nothing for RLS to apply.
+ *
+ * The rule that actually holds the guarantee up is narrower than "never in a
+ * request path", and it is the one `tests/request-path.test.ts` enforces: the
+ * web app never imports this. It calls the functions here, each of which names
+ * the rows it may touch and filters to them itself, and reaches a church's own
+ * data through `withTenant` so the policies apply. A screen that reached for
+ * the owner directly would be one filter away from reading another church.
  */
 export function owner(): postgres.Sql {
   loadEnv();

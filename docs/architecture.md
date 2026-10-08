@@ -90,10 +90,19 @@ row, and one membership naming the caller. There is no input that redirects it a
 data. It is also the only path in the product that grants a membership without an invitation, which
 is why it refuses an unverified email address.
 
-The guarantee we ship is about `hearth_app`, because `hearth_app` is what every request uses. It is
-not the owner, it owns no table, and it is `NOBYPASSRLS`. All three are asserted by the test suite,
-and a further test asserts that the owner connection is never imported by the web app, so the rule is
-a build failure rather than a review habit.
+The guarantee we ship is about `hearth_app`, because `hearth_app` is what reaches a church's data. It
+is not the owner, it owns no table, and it is `NOBYPASSRLS`. All three are asserted by the test
+suite, and a further test asserts that the owner connection is never imported by the web app, so the
+rule is a build failure rather than a review habit.
+
+Some work inside `@connectapp/db` runs on the owner during a request, and it is worth naming rather
+than leaving to be discovered: working out which church an address belongs to before anybody has
+signed in, a church's own public pages, an account row, which belongs to a person rather than to a
+church, and platform-wide work. Each of those happens before or outside a tenant context, so there is
+no `app.tenant_id` for a policy to read and nothing for RLS to apply. What keeps them safe is not the
+connection but the query: every one names the rows it may touch and filters to them itself, and none
+takes a tenant from the caller. The boundary that is enforced mechanically is the import, which is
+why the test is written against the web app rather than against this package.
 
 ### The connection rule
 
