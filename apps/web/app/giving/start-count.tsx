@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
-  Banner, Button, Field, Input, Sheet, SheetContent, SheetTrigger,
+  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input,
+  Sheet, SheetContent, SheetTrigger,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -13,7 +14,7 @@ import { useFormError } from "@/lib/form-error";
 import { usePanelGuard } from "@/components/panel-guard";
 import { toCents } from "@/lib/money";
 import { MoneyInput } from "@/components/money-input";
-import { startCount } from "./actions";
+import { startCount, amendCount, removeCount } from "./actions";
 
 /**
  * R13.10. Opening a count.
@@ -26,33 +27,58 @@ export function StartCount({
   church,
   today,
   funds,
+  count,
+  trigger,
 }: {
   church: string;
   today: string;
   /** R13.9. What the money can be given to, so a session says which. */
   funds: { id: string; name: string }[];
+  /**
+   * R13.10. The session being put right, where one is. Somebody counts
+   * wrong, or names the wrong day, and the row they pressed opens here
+   * holding what it holds.
+   */
+  count?: {
+    id: string;
+    name: string;
+    receivedOn: string;
+    fundId: string;
+    method: string;
+    amount: string;
+  };
+  /** What opens it. The Start button where there is none. */
+  trigger?: React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
   const [error, setError] = useFormError(open);
-  const [name, setName] = React.useState("");
-  const [date, setDate] = React.useState(today);
-  const [fundId, setFundId] = React.useState(funds[0]?.id ?? "");
+  const [name, setName] = React.useState(count?.name ?? "");
+  const [date, setDate] = React.useState(count?.receivedOn ?? today);
+  const [fundId, setFundId] = React.useState(count?.fundId ?? funds[0]?.id ?? "");
   /* R13.12. Cash or cheques: the two things a session is counting. */
-  const [method, setMethod] = React.useState<"cash" | "cheque">("cash");
-  const [amount, setAmount] = React.useState("");
+  const [method, setMethod] = React.useState<"cash" | "cheque">(
+    count?.method === "cheque" ? "cheque" : "cash",
+  );
+  const [amount, setAmount] = React.useState(count?.amount ?? "");
+  const [asking, setAsking] = React.useState(false);
   const [saving, startTransition] = React.useTransition();
 
   const close = (next: boolean) => {
     setOpen(next);
     if (!next) {
+      /*
+       * Back to what it opened on: blank for a new session, and the
+       * session's own values where one is being put right, so reopening a
+       * row after a change of mind shows the row as it stands.
+       */
       setDirty(false);
-      setName("");
-      setAmount("");
-      setFundId(funds[0]?.id ?? "");
-      setMethod("cash");
-      setDate(today);
+      setName(count?.name ?? "");
+      setAmount(count?.amount ?? "");
+      setFundId(count?.fundId ?? funds[0]?.id ?? "");
+      setMethod(count?.method === "cheque" ? "cheque" : "cash");
+      setDate(count?.receivedOn ?? today);
     }
   };
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
@@ -64,10 +90,10 @@ export function StartCount({
       return;
     }
     startTransition(async () => {
-      const result = await startCount(
-        { name, receivedOn: date, fundId, amountCents: cents, method },
-        church,
-      );
+      const input = { name, receivedOn: date, fundId, amountCents: cents, method } as const;
+      const result = count
+        ? await amendCount(count.id, input, church)
+        : await startCount(input, church);
       setError(result.error);
       if (!result.error) {
         /*
@@ -84,21 +110,36 @@ export function StartCount({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button><Plus /> {t("giving.count.start")}</Button>
+        {trigger ?? <Button><Plus /> {t("giving.count.start")}</Button>}
       </SheetTrigger>
 
       <SheetContent
-        title={t("giving.count.start")}
+        title={count ? t("giving.count.editTitle", { name: count.name }) : t("giving.count.start")}
         closeLabel={t("common.close")}
         footer={
-          <Button
-            type="button"
-            disabled={saving || !dirty || !name.trim() || !date || !fundId || !amount.trim()}
-            loading={saving}
-            onClick={save}
-          >
-            {t("action.save")}
-          </Button>
+          <>
+            {/* R13.10. Counted twice, or named the wrong day. What it held
+                goes with it. */}
+            {count ? (
+              <IconButton
+                label={t("giving.count.remove")}
+                variant="ghost"
+                className="mr-auto"
+                disabled={saving}
+                onClick={() => setAsking(true)}
+              >
+                <Trash2 />
+              </IconButton>
+            ) : null}
+            <Button
+              type="button"
+              disabled={saving || !dirty || !name.trim() || !date || !fundId || !amount.trim()}
+              loading={saving}
+              onClick={save}
+            >
+              {t("action.save")}
+            </Button>
+          </>
         }
       >
         {guard}
@@ -187,6 +228,38 @@ export function StartCount({
           </div>
         </div>
       </SheetContent>
+
+      {/* R13.10. Taking a session off the record takes what it held. */}
+      <Dialog open={asking} onOpenChange={(on) => (on ? null : setAsking(false))}>
+        <DialogContent alert title={t("giving.count.removeTitle", { name: count?.name ?? "" })}>
+          <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
+            {t("giving.count.removeBody")}
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => setAsking(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={saving}
+              loading={saving}
+              onClick={() =>
+                startTransition(async () => {
+                  const result = await removeCount(count!.id, church);
+                  setError(result.error);
+                  if (!result.error) {
+                    setAsking(false);
+                    close(false);
+                    router.refresh();
+                  }
+                })
+              }
+            >
+              {t("giving.count.remove")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 }

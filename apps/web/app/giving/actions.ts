@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, openBatch, updateBatch,
+  withTenant, openBatch, updateBatch, amendBatch, removeBatch,
   recordGift, removeGift, refundGift, attachGift, giftCharge, getStripeAccount,
   getChurch, lookupPeople, personForUser,
   recurringSubscription, markRecurring, canManageGiving, PermissionError, type GiftMethod,
@@ -327,6 +327,40 @@ export async function startCardChange(
     );
 
     return { secret: made.client_secret ?? undefined, accountId: read.account.accountId };
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R13.10. Putting right a counting session that was entered wrong. */
+export async function amendCount(
+  id: string,
+  input: {
+    name: string;
+    receivedOn: string;
+    fundId: string;
+    amountCents: number;
+    method: GiftMethod;
+  },
+  church?: string,
+): Promise<GivingResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => amendBatch(tx, actor, id, input));
+    revalidatePath("/giving");
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R13.10. Taking a counting session off the record, with what it held. */
+export async function removeCount(id: string, church?: string): Promise<GivingResult> {
+  const { actor, ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => removeBatch(tx, actor, id));
+    revalidatePath("/giving");
+    return {};
   } catch (error) {
     return { error: explain(error) };
   }

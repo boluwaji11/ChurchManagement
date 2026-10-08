@@ -12,7 +12,7 @@ import { churchNow } from "@/lib/church-now";
 import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
 import { Figure } from "@/app/reports/figure";
-import { money } from "@/lib/money";
+import { money, groupAmount } from "@/lib/money";
 import { longDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
 import { GiftPanel } from "./gift-panel";
@@ -209,12 +209,43 @@ export default async function GivingPage({
                 {read.counts.map((count) => (
                   <li
                     key={count.id}
-                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:152px_minmax(0,1fr)_140px_90px_120px_44px]"
+                    className="relative grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-sunken [grid-template-columns:152px_minmax(0,1fr)_140px_90px_120px_44px]"
                   >
                     <span className="whitespace-nowrap text-[13px] text-fg-subtle">
                       {longDate(count.receivedOn)}
                     </span>
-                    <span className="min-w-0 truncate font-medium text-fg">{count.name}</span>
+
+                    {/* R24.x. The whole row opens the session, so a count
+                        entered wrong is put right where it is read. The slip
+                        sits above the link. */}
+                    <span className="min-w-0 truncate font-medium text-fg">
+                      {manage ? (
+                        <StartCount
+                          church={session.tenantSlug}
+                          today={read.today}
+                          funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
+                          count={{
+                            id: count.id,
+                            name: count.name,
+                            receivedOn: count.receivedOn,
+                            fundId: count.fundId ?? read.funds[0]?.id ?? "",
+                            method: count.method,
+                            amount: groupAmount((count.enteredCents / 100).toFixed(2)),
+                          }}
+                          trigger={
+                            <button
+                              type="button"
+                              className="cursor-pointer text-left after:absolute after:inset-0 after:content-['']"
+                            >
+                              {count.name}
+                            </button>
+                          }
+                        />
+                      ) : (
+                        count.name
+                      )}
+                    </span>
+
                     <span className="truncate text-[13px] text-fg-muted">{count.funds}</span>
                     <span className="truncate text-[13px] text-fg-muted">
                       {count.methods
@@ -226,14 +257,14 @@ export default async function GivingPage({
                     <span data-numeric className="text-right text-fg">
                       {money(count.enteredCents)}
                     </span>
-                    <span className="flex justify-end">
+                    <span className="relative z-10 flex justify-end">
                       <Tooltip content={t("giving.count.slip")}>
                         <a
                           href={`/giving/counts/${count.slug}/slip?church=${session.tenantSlug}`}
                           target="_blank"
                           rel="noreferrer noopener"
                           aria-label={t("giving.count.slip")}
-                          className="inline-flex size-[var(--d-tap)] items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+                          className="inline-flex size-[var(--d-tap)] items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-surface hover:text-fg [&_svg]:size-[var(--d-icon)]"
                         >
                           <Printer />
                         </a>

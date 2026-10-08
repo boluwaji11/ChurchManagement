@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { funds, giftBatches, gifts } from "../schema/giving";
 import { members } from "../schema/members";
@@ -65,6 +65,9 @@ export interface Batch {
   funds: string;
   /** R13.12. Cash, cheques, or both. */
   methods: string;
+  /** R13.10. The first line's own fund and method, for putting it right. */
+  fundId: string | null;
+  method: string;
 }
 
 const money = (value: unknown): number => {
@@ -198,6 +201,90 @@ export async function closeBatch(db: Tx, actor: WriteActor, id: string): Promise
     .where(eq(giftBatches.id, id));
 }
 
+/**
+ * R13.10. Putting right a counting session that was entered wrong.
+ *
+ * A session is the day, its name, and the one thing that was counted, so
+ * changing it changes both: the batch keeps the name and the date, and its
+ * line keeps the fund, the method and the amount. A session with several
+ * lines has the first of them changed, because that is the one the panel
+ * was showing.
+ */
+export async function amendBatch(
+  db: Tx,
+  actor: WriteActor,
+  id: string,
+  input: {
+    name: string;
+    receivedOn: string;
+    fundId: string;
+    amountCents: number;
+    method: GiftMethod;
+  },
+): Promise<void> {
+  if (!canManageGiving(actor)) throw new PermissionError(actor.role, "recordGift");
+  if (!GIFT_METHODS.includes(input.method)) throw new InvalidInputError("gift.error.method");
+
+  const amount = money(input.amountCents);
+  if (amount <= 0) throw new InvalidInputError("gift.error.amount");
+
+  const [fund] = await db
+    .select({ id: funds.id })
+    .from(funds)
+    .where(and(eq(funds.id, input.fundId), isNull(funds.archivedAt)))
+    .limit(1);
+  if (!fund) throw new InvalidInputError("gift.error.fund");
+
+  await updateBatch(db, actor, id, { name: input.name, receivedOn: input.receivedOn });
+
+  const [line] = await db
+    .select({ id: gifts.id })
+    .from(gifts)
+    .where(eq(gifts.batchId, id))
+    .orderBy(asc(gifts.createdAt))
+    .limit(1);
+
+  if (!line) {
+    await recordGift(db, actor, {
+      fundId: input.fundId,
+      batchId: id,
+      amountCents: amount,
+      method: input.method,
+      receivedOn: input.receivedOn,
+    });
+    return;
+  }
+
+  await db
+    .update(gifts)
+    .set({
+      fundId: input.fundId,
+      amountCents: amount,
+      method: input.method,
+      receivedOn: day(input.receivedOn),
+      updatedAt: new Date(),
+    })
+    .where(eq(gifts.id, line.id));
+}
+
+/**
+ * R13.10. Taking a counting session off the record.
+ *
+ * Somebody counted twice, or named the wrong day. What it held goes with
+ * it, because a line of a session that never happened is money the church
+ * did not receive.
+ */
+export async function removeBatch(db: Tx, actor: WriteActor, id: string): Promise<void> {
+  if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
+
+  await db.delete(gifts).where(eq(gifts.batchId, id));
+  const gone = await db
+    .delete(giftBatches)
+    .where(eq(giftBatches.id, id))
+    .returning({ id: giftBatches.id });
+  if (gone.length === 0) throw new InvalidInputError("gift.error.batchMissing");
+}
+
 /** R13.10. Reopening a count, while the deposit is still being put right. */
 export async function reopenBatch(db: Tx, actor: WriteActor, id: string): Promise<void> {
   if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
@@ -224,6 +311,8 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
       lines: sql<number>`count(${gifts.id})::int`,
       funds: sql<string>`coalesce(string_agg(distinct ${funds.name}, ', '), '')`,
       methods: sql<string>`coalesce(string_agg(distinct ${gifts.method}, ','), '')`,
+      fundId: sql<string | null>`(array_agg(${gifts.fundId} order by ${gifts.createdAt}))[1]`,
+      method: sql<string | null>`(array_agg(${gifts.method} order by ${gifts.createdAt}))[1]`,
     })
     .from(giftBatches)
     .leftJoin(gifts, eq(gifts.batchId, giftBatches.id))
@@ -244,6 +333,8 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
     lines: row.lines,
     funds: row.funds,
     methods: row.methods,
+    fundId: row.fundId,
+    method: row.method ?? "cash",
   }));
 }
 
