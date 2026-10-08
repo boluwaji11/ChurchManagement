@@ -176,7 +176,6 @@ export function PersonForm({
   const [errors, setErrors] = React.useState<PersonErrors>({});
   const [formError, setFormError] = React.useState<string>();
   const [submitted, setSubmitted] = React.useState(false);
-  const [, setPending] = React.useState(false);
 
   const [household, setHousehold] = React.useState(values?.householdId ?? HOUSEHOLD_NONE);
   const [status, setStatus] = React.useState(values?.lifecycleStatus ?? "visitor");
@@ -200,15 +199,15 @@ export function PersonForm({
       return;
     }
 
-    setPending(true);
-    try {
-      // On success this redirects and never returns.
-      const result = await savePerson(data);
-      if (result?.errors) setErrors(result.errors);
-      if (result?.formError) setFormError(result.formError);
-    } finally {
-      setPending(false);
-    }
+    /*
+     * R24.6. The save button is drawn by `FormActions` in the page header and
+     * reads `useFormStatus` through the `FormBusy` inside this form, so for as
+     * long as this runs it says it is working and refuses a second press.
+     * On success this redirects and never returns.
+     */
+    const result = await savePerson(data);
+    if (result?.errors) setErrors(result.errors);
+    if (result?.formError) setFormError(result.formError);
   };
 
   const editing = Boolean(values?.id);

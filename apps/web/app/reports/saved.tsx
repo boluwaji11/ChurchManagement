@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EllipsisVertical, Table2 } from "lucide-react";
 import {
-  Button, Field, IconButton, Input, Dialog, DialogContent, DialogFooter,
+  Button, Field, IconButton, Input, Spinner, Dialog, DialogContent, DialogFooter,
   Sheet, SheetContent,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
@@ -43,6 +43,19 @@ export function SavedReports({
   const [name, setName] = React.useState("");
   const [working, setWorking] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  /*
+   * R24.6. Everything on this screen writes and then redraws the grid, so the
+   * press is held for the whole round trip: the panel and the confirmation stay
+   * where they are with the button spinning, and a card acted on from its own
+   * menu carries the spinner on that menu.
+   */
+  const [redrawing, startRedraw] = React.useTransition();
+  const [onCard, setOnCard] = React.useState<string | null>(null);
+  const busy = working || redrawing;
+
+  React.useEffect(() => {
+    if (!busy) setOnCard(null);
+  }, [busy]);
 
   return (
     <section className="flex flex-col gap-3">
@@ -86,9 +99,10 @@ export function SavedReports({
                   <IconButton
                     label={t("report.more", { name: one.name })}
                     variant="ghost"
+                    disabled={busy}
                     className="size-8 min-h-0 [&_svg]:size-4"
                   >
-                    <EllipsisVertical />
+                    {onCard === one.id ? <Spinner /> : <EllipsisVertical />}
                   </IconButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -97,6 +111,7 @@ export function SavedReports({
                        that can be done to it. */
                     <DropdownMenuItem
                       onSelect={() => {
+                        setOnCard(one.id);
                         setWorking(true);
                         void archiveReport(one.id, false, church).then((result) => {
                           setWorking(false);
@@ -104,7 +119,7 @@ export function SavedReports({
                             setError(result.error);
                             return;
                           }
-                          router.refresh();
+                          startRedraw(() => router.refresh());
                         });
                       }}
                     >
@@ -113,7 +128,12 @@ export function SavedReports({
                   ) : (
                     <>
                       <DropdownMenuItem
-                        onSelect={() => router.push(`/reports/build?church=${church}&id=${one.slug}`)}
+                        onSelect={() => {
+                          setOnCard(one.id);
+                          startRedraw(() => {
+                            router.push(`/reports/build?church=${church}&id=${one.slug}`);
+                          });
+                        }}
                       >
                         {t("report.edit")}
                       </DropdownMenuItem>
@@ -135,29 +155,37 @@ export function SavedReports({
         ))}
       </div>
 
-      <Sheet open={naming !== null} onOpenChange={(open) => { if (!open) setNaming(null); }}>
+      <Sheet
+        open={naming !== null}
+        onOpenChange={(open) => { if (!open && !busy) setNaming(null); }}
+      >
         <SheetContent
           title={t("report.rename")}
           closeLabel={t("action.cancel")}
           footer={
             <>
-            <Button variant="secondary" onClick={() => setNaming(null)}>
+            <Button variant="secondary" disabled={busy} onClick={() => setNaming(null)}>
               {t("action.cancel")}
             </Button>
             <Button
-              loading={working}
-              disabled={!name.trim()}
+              loading={busy}
+              /* `Button` reads an explicit `disabled` ahead of `loading`, so
+                 the two conditions are given as one. */
+              disabled={busy || !name.trim()}
               onClick={() => {
                 if (!naming) return;
                 setWorking(true);
                 void renameReport(naming.id, name, church).then((result) => {
                   setWorking(false);
-                  setNaming(null);
                   if (result.error) {
+                    setNaming(null);
                     setError(result.error);
                     return;
                   }
-                  router.refresh();
+                  startRedraw(() => {
+                    router.refresh();
+                    setNaming(null);
+                  });
                 });
               }}
             >
@@ -166,35 +194,46 @@ export function SavedReports({
             </>
           }
         >
-          <Field label={t("report.name")} required>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
-          </Field>
+          <div
+            aria-busy={busy}
+            className={busy ? "pointer-events-none opacity-60" : undefined}
+          >
+            <Field label={t("report.name")} required>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+            </Field>
+          </div>
         </SheetContent>
       </Sheet>
 
-      <Dialog open={asking !== null} onOpenChange={(open) => { if (!open) setAsking(null); }}>
+      <Dialog
+        open={asking !== null}
+        onOpenChange={(open) => { if (!open && !busy) setAsking(null); }}
+      >
         <DialogContent title={asking ? t("report.archiveAsk", { name: asking.name }) : ""}>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setAsking(null)}>
+            <Button variant="secondary" disabled={busy} onClick={() => setAsking(null)}>
               {t("action.cancel")}
             </Button>
             <Button
-              loading={working}
+              loading={busy}
               onClick={() => {
                 if (!asking) return;
                 setWorking(true);
                 void archiveReport(asking.id, true, church).then((result) => {
                   setWorking(false);
-                  setAsking(null);
                   if (result.error) {
+                    setAsking(null);
                     setError(result.error);
                     return;
                   }
-                  router.refresh();
+                  startRedraw(() => {
+                    router.refresh();
+                    setAsking(null);
+                  });
                 });
               }}
             >

@@ -152,7 +152,7 @@ export function Responses({
         <Button
           type="button"
           variant="secondary"
-          disabled={matching}
+          loading={matching}
           className="self-start"
           onClick={() =>
             startMatching(async () => {

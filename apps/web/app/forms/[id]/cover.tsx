@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Trash2, Upload } from "lucide-react";
-import { Button, IconButton, Working, ALL_HUES } from "@connectapp/ui";
+import { Button, IconButton, Spinner, Working, ALL_HUES } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { clearFormCover, recolourForm } from "../actions";
@@ -29,13 +29,25 @@ export function FormCover({
 }) {
   const router = useRouter();
   const file = React.useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = React.useState(false);
+  const [uploading, setUploading] = React.useState(false);
   const [local, setLocal] = React.useState<string | null>(null);
+  /*
+   * R24.6. Taking the picture off and changing the colour both write and then
+   * redraw the page, so the control that was pressed holds the press: it goes
+   * dead and carries a spinner until the new page lands.
+   */
+  const [working, startWorking] = React.useTransition();
+  const [awaiting, setAwaiting] = React.useState<string | null>(null);
+  const busy = uploading || working;
+
+  React.useEffect(() => {
+    if (!working) setAwaiting(null);
+  }, [working]);
 
   const shown = local ?? coverUrl;
 
   const upload = async (picked: File) => {
-    setBusy(true);
+    setUploading(true);
     // Shown straight away from the file in hand, so the band does not sit empty
     // while the bytes go up.
     setLocal(URL.createObjectURL(picked));
@@ -47,13 +59,22 @@ export function FormCover({
     body.set("file", picked);
     await fetch("/api/upload", { method: "POST", body });
 
-    setBusy(false);
-    router.refresh();
+    setUploading(false);
+    startWorking(() => router.refresh());
+  };
+
+  /** A write on one of the controls, held until the page has redrawn. */
+  const run = (which: string, write: () => Promise<unknown>) => {
+    setAwaiting(which);
+    startWorking(async () => {
+      await write();
+      router.refresh();
+    });
   };
 
   return (
     <div className="flex flex-col gap-3" aria-busy={busy}>
-      <Working open={busy} label={t("image.uploading")} />
+      <Working open={uploading} label={t("image.uploading")} />
 
       <div className="relative">
         {shown ? (
@@ -97,6 +118,7 @@ export function FormCover({
         <Button
           type="button"
           variant="secondary"
+          loading={uploading}
           disabled={busy}
           onClick={() => file.current?.click()}
           className="absolute right-3 bottom-3 h-[34px] min-h-0 gap-1.5 px-3 text-[13px] shadow-sm"
@@ -113,11 +135,11 @@ export function FormCover({
             onClick={() => {
               setLocal(null);
               if (file.current) file.current.value = "";
-              void clearFormCover(formId, church).then(() => router.refresh());
+              run("cover", () => clearFormCover(formId, church));
             }}
             className="absolute top-3 right-3 size-8 min-h-0 shadow-sm"
           >
-            <Trash2 />
+            {awaiting === "cover" ? <Spinner /> : <Trash2 />}
           </IconButton>
         ) : null}
       </div>
@@ -134,8 +156,7 @@ export function FormCover({
             aria-label={one}
             aria-pressed={hue === one}
             disabled={busy}
-            onClick={() =>
-              void recolourForm(formId, one, church).then(() => router.refresh())}
+            onClick={() => run(one, () => recolourForm(formId, one, church))}
             className={
               "grid size-9 cursor-pointer place-items-center rounded-full border-2 transition-colors sm:size-6 "
               + (hue === one ? "border-fg" : "border-transparent hover:border-line-strong")
@@ -144,7 +165,9 @@ export function FormCover({
           >
             {/* The ring says which one, and the check says it again for anybody
                 who cannot pick the ring out of twelve coloured circles. */}
-            {hue === one ? (
+            {awaiting === one ? (
+              <Spinner className="text-white [&>span]:size-3.5" />
+            ) : hue === one ? (
               <Check className="size-5 text-white sm:size-3.5" strokeWidth={3} aria-hidden />
             ) : null}
           </button>

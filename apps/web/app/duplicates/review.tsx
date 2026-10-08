@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useFormStatus } from "react-dom";
 import { Check, ArrowRight } from "lucide-react";
-import { Badge, Button, Banner, cn } from "@connectapp/ui";
+import { Badge, Button, Banner, Working, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { merge, undo, type MergeOutcome } from "./actions";
 
@@ -89,7 +90,20 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
   const [keepA, setKeepA] = React.useState(true);
   const [take, setTake] = React.useState<Partial<Record<FieldKey, "winner" | "loser">>>({});
   const [outcome, setOutcome] = React.useState<MergeOutcome>();
-  const [pending, setPending] = React.useState(false);
+  /*
+   * R2.8, R24.6. A merge moves every record off one person and onto another and
+   * then redraws the page, which is long enough that the reader waits through
+   * it. The panel sits over the screen for the whole of it, so the choices
+   * cannot be changed under a merge that is already running.
+   *
+   * The flag comes from the form rather than from a `setPending` at the top of
+   * the action. React runs a form action inside a transition, so state set in
+   * there is held back until the action has finished and the spinner arrives
+   * after the work it was meant to cover.
+   */
+  const [sending, setSending] = React.useState(false);
+  const [redrawing, startRedraw] = React.useTransition();
+  const busy = sending || redrawing;
   const formId = React.useId();
 
   const winner = keepA ? pair.a : pair.b;
@@ -100,15 +114,15 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
   React.useEffect(() => setTake({}), [keepA]);
 
   const submit = async (data: FormData) => {
-    setPending(true);
-    try {
-      const result = await merge(data);
-      setOutcome(result);
-      if (!result.error) router.refresh();
-    } finally {
-      setPending(false);
-    }
+    setOutcome(await merge(data));
   };
+
+  /* Asked for once the merge has landed, so the panel stays up until the page
+     this card is leaving has redrawn without it. */
+  React.useEffect(() => {
+    if (!outcome || outcome.error) return;
+    startRedraw(() => router.refresh());
+  }, [outcome, router]);
 
   /** Which side a field is currently taking its value from. */
   const sideOf = (f: FieldKey): "a" | "b" => {
@@ -137,6 +151,8 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
 
   return (
     <section className="overflow-hidden rounded-lg border border-line bg-surface">
+      <Working open={busy} label={t("merge.working")} />
+
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3.5">
         <span className="font-semibold text-fg">
           {t("merge.pairTitle", { a: pair.a.name, b: pair.b.name })}
@@ -155,7 +171,13 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
         </Banner>
       ) : null}
 
-      <div className="grid grid-cols-2 sm:[grid-template-columns:110px_minmax(0,1fr)_minmax(0,1fr)]">
+      <div
+        aria-busy={busy}
+        className={cn(
+          "grid grid-cols-2 sm:[grid-template-columns:110px_minmax(0,1fr)_minmax(0,1fr)]",
+          busy && "pointer-events-none opacity-60",
+        )}
+      >
         {rows.map((row) => {
           const chosen = row.key === "name" ? (keepA ? "a" : "b") : sideOf(row.key as FieldKey);
           const choose = (side: "a" | "b") =>
@@ -188,7 +210,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
                 <button
                   key={side}
                   type="button"
-                  disabled={fixed}
+                  disabled={fixed || busy}
                   onClick={() => choose(side)}
                   aria-pressed={!fixed && chosen === side}
                   className={cn(
@@ -216,10 +238,12 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
           <input key={f} type="hidden" name={`take.${f}`} value={take[f] ?? "winner"} />
         ))}
 
-        <Button type="button" variant="secondary" disabled={pending}>
+        <Submitting onChange={setSending} />
+
+        <Button type="button" variant="secondary" disabled={busy}>
           {t("merge.notSame")}
         </Button>
-        <Button type="submit" loading={pending}>
+        <Button type="submit" loading={busy} disabled={busy}>
           {t("merge.mergeInto", { name: winner.name })}
         </Button>
       </form>
@@ -230,18 +254,16 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
 function History({ church, history }: { church: string; history: PastMerge[] }) {
   const router = useRouter();
   const [outcome, setOutcome] = React.useState<MergeOutcome>();
-  const [pending, setPending] = React.useState(false);
+  const [, startRedraw] = React.useTransition();
 
   const submit = async (data: FormData) => {
-    setPending(true);
-    try {
-      const result = await undo(data);
-      setOutcome(result);
-      if (!result.error) router.refresh();
-    } finally {
-      setPending(false);
-    }
+    setOutcome(await undo(data));
   };
+
+  React.useEffect(() => {
+    if (!outcome || outcome.error) return;
+    startRedraw(() => router.refresh());
+  }, [outcome, router]);
 
   return (
     <section className="rounded-lg border border-line bg-surface px-5 py-2">
@@ -266,18 +288,48 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
             <form action={submit}>
               <input type="hidden" name="church" value={church} />
               <input type="hidden" name="mergeId" value={m.id} />
-              <Button
-                type="submit"
-                variant="secondary"
-                loading={pending}
-                className="min-h-8 px-2.5 text-[13px]"
-              >
-                {t("merge.undo")}
-              </Button>
+              {/* R24.6. Each row is a form of its own, so the one that was
+                  pressed is the one that spins. */}
+              <UndoButton />
             </form>
           ) : null}
         </div>
       ))}
     </section>
+  );
+}
+
+
+/**
+ * R24.6. Reports the form it sits in up to the card around it.
+ *
+ * `useFormStatus` is the only honest reading of whether a form action is still
+ * running: it is set by React as the submit begins, where a `setState` written
+ * at the top of the action is held back until the action has already finished.
+ */
+function Submitting({ onChange }: { onChange: (on: boolean) => void }) {
+  const { pending } = useFormStatus();
+
+  React.useEffect(() => {
+    onChange(pending);
+  }, [pending, onChange]);
+
+  return null;
+}
+
+/** R24.6. The Undo on one past merge, busy for as long as its own form is. */
+function UndoButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="submit"
+      variant="secondary"
+      loading={pending}
+      disabled={pending}
+      className="min-h-8 px-2.5 text-[13px]"
+    >
+      {t("merge.undo")}
+    </Button>
   );
 }

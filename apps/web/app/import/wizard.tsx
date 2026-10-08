@@ -634,7 +634,9 @@ function PreviewStep({
         <Button variant="secondary" onClick={onBack}>
           {t("import.back")}
         </Button>
-        <Button onClick={onConfirm} loading={busy} disabled={willWrite === 0}>
+        {/* R24.6. `Button` reads an explicit `disabled` ahead of `loading`,
+            so a button carrying both says so in one condition. */}
+        <Button onClick={onConfirm} loading={busy} disabled={busy || willWrite === 0}>
           {totals.skip + totals.fail > 0
             ? t("import.commitSkipping", {
                 count: willWrite,
