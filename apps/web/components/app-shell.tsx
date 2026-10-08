@@ -153,7 +153,12 @@ export async function AppShell({
         <main
           id="main"
           {...(density ? { "data-density": density } : {})}
-          className={`w-full flex-1 px-6 pt-7 pb-24 ${wide ? "" : max ?? "max-w-[1280px]"}`}
+          /* The sides take the greater of the gutter and whatever a rounded
+             screen keeps for itself. */
+          className={
+            "w-full flex-1 px-[max(1.5rem,env(safe-area-inset-left))] pt-7 pb-24 "
+            + (wide ? "" : max ?? "max-w-[1280px]")
+          }
         >
           {/* Every screen in the design is a column with 28px between its
               blocks. */}

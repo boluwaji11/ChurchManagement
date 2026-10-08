@@ -20,6 +20,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  /*
+   * R17.5, R24.6. The member portal installs to a home screen and runs
+   * without browser chrome, so the page has to say it will handle the
+   * notch and the home indicator itself. Without this every
+   * env(safe-area-inset-*) in the product resolves to zero and the tab
+   * bar sits under the bar iOS draws at the bottom of the screen.
+   */
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fbfaf9" },
     { media: "(prefers-color-scheme: dark)", color: "#232120" },

@@ -43,7 +43,11 @@ export function TopBar({
   children?: React.ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-canvas px-6 py-3.5">
+    <header
+      /* Clear of the notch when the portal is running without browser
+         chrome, and clear of a rounded corner at the sides. */
+      className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-canvas px-[max(1.5rem,env(safe-area-inset-left))] pt-[calc(0.875rem+env(safe-area-inset-top))] pb-3.5"
+    >
       <span className="md:hidden">
         <FlameMark size={28} logoUrl={logoUrl} churchName={churchName} />
       </span>
