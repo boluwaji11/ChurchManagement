@@ -2364,7 +2364,7 @@ export const en = {
   "team.until": "until {day}",
   "team.error.email": "Enter an email address.",
   "team.error.role": "Choose what they may do.",
-  "settings.tab.access": "Access",
+  "settings.tab.access": "Manage accesses",
   "team.person": "Member",
   "team.roleColumn": "Role",
   "team.lastSignedIn": "Last signed in",
@@ -2702,9 +2702,9 @@ export const en = {
 
   // Plan templates, configured in settings
   "settings.group.services": "Services",
-  "settings.tab.plans": "Service templates",
+  "settings.tab.plans": "Service template",
   "settings.lede.plans": "The outline your service plans start from.",
-  "settings.tab.kinds": "Plan items",
+  "settings.tab.kinds": "Service type",
   "settings.lede.kinds": "What your church puts on a plan.",
   "itemKind.add": "Add a new type",
   "itemKind.create": "Add a service type",

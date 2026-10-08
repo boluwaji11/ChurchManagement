@@ -33,7 +33,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
               { href: "/settings/church", label: t("settings.tab.church") },
               { href: "/settings/website", label: t("settings.tab.website") },
               { href: "/settings/roles", label: t("settings.tab.roles") },
-              { href: "/settings/access", label: t("settings.tab.access") },
+              { href: "/settings/manage-accesses", label: t("settings.tab.access") },
             ]
           : []),
       ],
@@ -51,8 +51,8 @@ export default async function SettingsLayout({ children }: { children: React.Rea
       title: t("settings.group.services"),
       items: canManageServices(session)
         ? [
-            { href: "/settings/service-templates", label: t("settings.tab.plans") },
-            { href: "/settings/plan-items", label: t("settings.tab.kinds") },
+            { href: "/settings/service-template", label: t("settings.tab.plans") },
+            { href: "/settings/service-type", label: t("settings.tab.kinds") },
           ]
         : [],
     },
