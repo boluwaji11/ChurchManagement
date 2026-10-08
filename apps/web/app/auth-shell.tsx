@@ -45,7 +45,7 @@ export function AuthShell({
   width?: string;
 }) {
   return (
-    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
+    <div className="site-wash flex min-h-dvh flex-col">
       <SiteBar>{bar}</SiteBar>
 
       <main
@@ -103,19 +103,19 @@ export function AuthSteps({ at }: { at: 1 | 2 | 3 }) {
           <li key={label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
             <span className="flex w-full items-center">
               <span
-                className={cn("h-0.5 flex-1 rounded-full", i === 0 ? "bg-transparent" : done || here ? "bg-primary" : "bg-stone-300")}
+                className={cn("h-0.5 flex-1 rounded-full", i === 0 ? "bg-transparent" : done || here ? "bg-primary" : "bg-line")}
               />
               <span
                 aria-hidden
                 className={cn(
                   "mx-1 size-3 shrink-0 rounded-full",
-                  here ? "bg-primary ring-4 ring-primary/20" : done ? "bg-primary" : "bg-stone-300",
+                  here ? "bg-primary ring-4 ring-primary/20" : done ? "bg-primary" : "bg-line",
                 )}
               />
               <span
                 className={cn(
                   "h-0.5 flex-1 rounded-full",
-                  i === labels.length - 1 ? "bg-transparent" : done ? "bg-primary" : "bg-stone-300",
+                  i === labels.length - 1 ? "bg-transparent" : done ? "bg-primary" : "bg-line",
                 )}
               />
             </span>
@@ -135,5 +135,3 @@ export function AuthSteps({ at }: { at: 1 | 2 | 3 }) {
 }
 
 /** The fields on these screens stand taller than the ones inside the app. */
-export const AUTH_INPUT = "min-h-[52px] rounded-xl text-[16px]";
-export const AUTH_BUTTON = "min-h-[52px] rounded-xl text-[16px]";

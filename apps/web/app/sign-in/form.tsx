@@ -9,7 +9,7 @@ import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
 import Link from "next/link";
 import { sendMagicLink, signInWithPassword } from "./actions";
 import { sendReset } from "../sign-up/actions";
-import { AUTH_INPUT, AUTH_BUTTON } from "../auth-shell";
+import { AUTH_INPUT, AUTH_BUTTON } from "../auth-chrome";
 
 /**
  * R17.1. Signing in, with a password or with a link.

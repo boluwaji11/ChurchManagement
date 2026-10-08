@@ -8,7 +8,7 @@ import { t } from "@connectapp/i18n";
 import { check, email as validEmail, minLength, requiredValue } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
 import { signUp } from "./actions";
-import { AUTH_INPUT, AUTH_BUTTON } from "../auth-shell";
+import { AUTH_INPUT, AUTH_BUTTON } from "../auth-chrome";
 
 export const PASSWORD_LENGTH = 10;
 

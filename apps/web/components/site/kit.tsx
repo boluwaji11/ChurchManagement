@@ -86,11 +86,11 @@ const LIFT =
  */
 export function BrowserFrame({ children }: { children?: React.ReactNode }) {
   return (
-    <div className={cn("overflow-hidden rounded-2xl border border-stone-300 bg-surface", LIFT)}>
+    <div className={cn("overflow-hidden rounded-2xl border border-line-strong bg-surface", LIFT)}>
       <div className="flex h-[34px] items-center gap-[7px] border-b border-line bg-sunken px-3.5">
-        <span className="size-2.5 rounded-full bg-stone-300" />
-        <span className="size-2.5 rounded-full bg-stone-300" />
-        <span className="size-2.5 rounded-full bg-stone-300" />
+        <span className="size-2.5 rounded-full bg-line-strong" />
+        <span className="size-2.5 rounded-full bg-line-strong" />
+        <span className="size-2.5 rounded-full bg-line-strong" />
       </div>
       <div className="relative aspect-[1440/900] w-full overflow-hidden bg-sunken">{children}</div>
     </div>
@@ -101,7 +101,7 @@ export function BrowserFrame({ children }: { children?: React.ReactNode }) {
 export function PhoneFrame({ children }: { children?: React.ReactNode }) {
   return (
     <div className="flex justify-center rounded-[20px] bg-sunken py-8">
-      <div className="w-[min(300px,80%)] overflow-hidden rounded-[36px] border-8 border-stone-900 bg-canvas">
+      <div className="w-[min(300px,80%)] overflow-hidden rounded-[36px] border-8 border-line-strong bg-canvas">
         <div className="relative aspect-[390/844] w-full overflow-hidden bg-sunken">{children}</div>
       </div>
     </div>

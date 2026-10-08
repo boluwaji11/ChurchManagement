@@ -47,14 +47,25 @@ select:-webkit-autofill {
  */
 .site-wash {
   background-color: var(--canvas);
+  /*
+   * R24.4. The church's own purple through the page rather than a grey field
+   * with a tinted corner. Three washes: one over the top where a screen
+   * begins, one at the far corner, and a long one down the middle so a tall
+   * screen does not run out of colour halfway.
+   */
   background-image:
     radial-gradient(
-      60rem 34rem at 50% -6rem,
-      color-mix(in oklch, var(--primary) 24%, transparent),
-      transparent 70%
+      62rem 36rem at 50% -8rem,
+      color-mix(in oklch, var(--primary) 34%, transparent),
+      transparent 72%
     ),
     radial-gradient(
-      46rem 30rem at 108% 104%,
+      48rem 32rem at 108% 104%,
+      color-mix(in oklch, var(--primary) 24%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      80rem 60rem at -10% 45%,
       color-mix(in oklch, var(--primary) 16%, transparent),
       transparent 70%
     );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { cookies } from "next/headers";
+import { documentTheme } from "@/lib/theme";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { TooltipProvider } from "@connectapp/ui";
 import "./globals.css";
@@ -30,25 +30,27 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#fbfaf9" },
-    { media: "(prefers-color-scheme: dark)", color: "#161620" },
+    { media: "(prefers-color-scheme: dark)", color: "#1d1d2d" },
   ],
 };
 
 /**
  * R24.x. Light, dark, or whatever the device is set to.
  *
- * Read from a cookie on the server, so the first paint is already the right one
- * and nobody gets a white flash at 7am in a dark building. Leaving it off means
- * the device decides, which is what most members want and nobody has to choose.
+ * Read from a cookie on the server, so the first paint is already the right
+ * one and nobody gets a white flash at 7am in a dark building. A church that
+ * has chosen nothing works in light: an office is lit, and a working screen
+ * that arrives dark because somebody's laptop is set that way is a surprise.
+ * ConnectApp's own website opens dark instead, which `lib/theme.ts` holds.
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = (await cookies()).get("connectapp-theme")?.value;
+  const { attr } = await documentTheme();
 
   return (
     <html
       lang="en"
       data-density="office"
-      {...(theme === "light" || theme === "dark" ? { "data-theme": theme } : {})}
+      {...(attr ? { "data-theme": attr } : {})}
       suppressHydrationWarning
     >
       <body className={`${display.variable} ${sans.variable} ${mono.variable} font-sans`}>

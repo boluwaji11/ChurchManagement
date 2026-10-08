@@ -1,3 +1,4 @@
+import { siteTheme } from "@/lib/theme";
 import { Card, Separator } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { SiteBar, SiteFooter } from "@/components/site/chrome";
@@ -9,7 +10,9 @@ export async function generateMetadata() {
   return publicTab(t("trust.title"));
 }
 
-export const dynamic = "force-static";
+/* The root layout reads the cookie and the address to decide the palette,
+   so nothing under it was ever truly static. */
+export const dynamic = "force-dynamic";
 
 /**
  * R21.12, R21.13. The promises, where a church can read them before signing up.
@@ -33,9 +36,11 @@ const ART: Piece[] = [
   { name: "connecting", side: "right", y: 48, size: 220, inset: 28 },
 ];
 
-export default function TrustPage() {
+export default async function TrustPage() {
+  const { chosen } = await siteTheme();
+
   return (
-    <div data-theme="light" className="site-wash relative flex min-h-dvh flex-col">
+    <div className="site-wash relative flex min-h-dvh flex-col">
       <Art pieces={ART} />
       <SiteBar />
 
@@ -72,7 +77,7 @@ export default function TrustPage() {
 
       </main>
 
-      <SiteFooter />
+      <SiteFooter theme={chosen} />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Mail } from "lucide-react";
 import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { resendSignUp } from "./actions";
-import { AUTH_BUTTON } from "../auth-shell";
+import { AUTH_BUTTON } from "../auth-chrome";
 
 /**
  * R1.7. The stop between making an account and starting a church.

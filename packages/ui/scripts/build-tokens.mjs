@@ -106,7 +106,11 @@ darkSpectrum.forEach(w);
 w(`  }`);
 w(`}`);
 w();
-w(`:root[data-theme="dark"] {`);
+/* The dark palette on any element rather than the root alone, which is what
+   the light block above has always done. ConnectApp's own website opens dark
+   while a church's screens follow the reader, and that is a subtree holding
+   itself to a theme, so the two have to be written the same way. */
+w(`[data-theme="dark"] {`);
 darkBody.forEach(w);
 darkStatus.forEach(w);
 darkSpectrum.forEach(w);

@@ -39,79 +39,79 @@
       "900": "oklch(0.362 0.082 45)"
     }
   },
-  "$spectrum": "Hue ramps. Twelve are defined so any stored value always renders, but only eight ship as the palette: rose, amber, citron, fern, teal, sky, indigo, violet. Those eight are evenly spread and are what auto-assignment draws from. Twelve read as a paint chart, and the four held back sat too close to their neighbours to tell apart at a glance, which is the only thing a hue is for here. The October 2026 redesign came back with amber, citron and fern text a little lighter than these; see docs/redesign/README.md. The values here are darker and clear 4.5:1 on white with room, so they stay. 100 tints an area, 500 is the identity, 700 is text-safe, 900 pairs for dark.",
+  "$spectrum": "Hue ramps. Twelve are defined so any stored value always renders, but only eight ship as the palette: rose, amber, citron, fern, teal, sky, indigo, violet. Those eight are evenly spread and are what auto-assignment draws from. Twelve read as a paint chart, and the four held back sat too close to their neighbours to tell apart at a glance, which is the only thing a hue is for here. The October 2026 redesign came back with amber, citron and fern text a little lighter than these; see docs/redesign/README.md. The values here are darker and clear 4.5:1 on white with room, so they stay. 100 tints an area, 500 is the identity, 700 is text-safe, 900 pairs for dark, and sits above the dark card rather than under it: a tint darker than the surface it is drawn on is a bar nobody can see.",
   "spectrum": {
     "rose": {
       "100": "oklch(0.938 0.042 10)",
       "500": "oklch(0.635 0.168 12)",
       "700": "oklch(0.505 0.152 14)",
-      "900": "oklch(0.288 0.092 14)"
+      "900": "oklch(0.383 0.104 14)"
     },
     "coral": {
       "100": "oklch(0.938 0.042 35)",
       "500": "oklch(0.648 0.162 38)",
       "700": "oklch(0.512 0.146 40)",
-      "900": "oklch(0.292 0.088 40)"
+      "900": "oklch(0.387 0.100 40)"
     },
     "amber": {
       "100": "oklch(0.942 0.048 72)",
       "500": "oklch(0.732 0.156 70)",
       "700": "oklch(0.524 0.132 62)",
-      "900": "oklch(0.312 0.078 62)"
+      "900": "oklch(0.407 0.090 62)"
     },
     "citron": {
       "100": "oklch(0.944 0.050 105)",
       "500": "oklch(0.742 0.148 110)",
       "700": "oklch(0.518 0.126 108)",
-      "900": "oklch(0.318 0.074 108)"
+      "900": "oklch(0.413 0.086 108)"
     },
     "fern": {
       "100": "oklch(0.938 0.044 142)",
       "500": "oklch(0.662 0.148 145)",
       "700": "oklch(0.508 0.128 147)",
-      "900": "oklch(0.288 0.078 147)"
+      "900": "oklch(0.383 0.090 147)"
     },
     "jade": {
       "100": "oklch(0.938 0.042 168)",
       "500": "oklch(0.652 0.128 172)",
       "700": "oklch(0.498 0.112 174)",
-      "900": "oklch(0.282 0.068 174)"
+      "900": "oklch(0.377 0.080 174)"
     },
     "teal": {
       "100": "oklch(0.936 0.040 196)",
       "500": "oklch(0.648 0.118 200)",
       "700": "oklch(0.508 0.104 202)",
-      "900": "oklch(0.278 0.062 202)"
+      "900": "oklch(0.373 0.074 202)"
     },
     "sky": {
       "100": "oklch(0.936 0.042 232)",
       "500": "oklch(0.642 0.138 238)",
       "700": "oklch(0.505 0.128 240)",
-      "900": "oklch(0.278 0.078 240)"
+      "900": "oklch(0.373 0.090 240)"
     },
     "indigo": {
       "100": "oklch(0.934 0.044 268)",
       "500": "oklch(0.612 0.156 272)",
       "700": "oklch(0.478 0.142 274)",
-      "900": "oklch(0.268 0.086 274)"
+      "900": "oklch(0.363 0.098 274)"
     },
     "violet": {
       "100": "oklch(0.936 0.046 296)",
       "500": "oklch(0.622 0.168 300)",
       "700": "oklch(0.488 0.152 302)",
-      "900": "oklch(0.272 0.092 302)"
+      "900": "oklch(0.367 0.104 302)"
     },
     "orchid": {
       "100": "oklch(0.938 0.044 322)",
       "500": "oklch(0.632 0.162 326)",
       "700": "oklch(0.498 0.146 328)",
-      "900": "oklch(0.278 0.088 328)"
+      "900": "oklch(0.373 0.100 328)"
     },
     "clay": {
       "100": "oklch(0.934 0.032 52)",
       "500": "oklch(0.598 0.098 50)",
       "700": "oklch(0.468 0.086 50)",
-      "900": "oklch(0.262 0.052 50)"
+      "900": "oklch(0.357 0.064 50)"
     }
   },
   "status": {
@@ -169,14 +169,14 @@
   "$semantic": "The names a screen uses. Dark is a lifted purple rather than a near black: the canvas sits at L 0.205 on the ink hue with a little chroma, so the product reads as itself at night instead of as a grey app, and nothing is so dark that a laptop at full brightness in a lit room becomes a mirror. Every pair is held to the thresholds in docs/design-system.md and checked by scripts/contrast.mjs.",
   "semantic": {
     "light": {
-      "canvas": "{stone.50}",
+      "canvas": "oklch(0.977 0.010 286)",
       "surface": "#ffffff",
-      "sunken": "{stone.100}",
+      "sunken": "oklch(0.961 0.013 286)",
       "fg": "{stone.900}",
       "fg-muted": "{stone.600}",
-      "fg-subtle": "{stone.500}",
-      "line": "{stone.200}",
-      "line-strong": "{stone.500}",
+      "fg-subtle": "oklch(0.540 0.018 286)",
+      "line": "oklch(0.916 0.014 286)",
+      "line-strong": "oklch(0.556 0.018 286)",
       "primary": "{ink.600}",
       "primary-fg": "#ffffff",
       "primary-soft": "{ink.50}",
@@ -188,23 +188,23 @@
       "overlay": "oklch(0.198 0.009 75 / 0.45)"
     },
     "dark": {
-      "canvas": "oklch(0.208 0.030 286)",
-      "surface": "oklch(0.255 0.032 286)",
-      "sunken": "oklch(0.181 0.027 286)",
-      "fg": "oklch(0.962 0.010 286)",
-      "fg-muted": "oklch(0.762 0.026 286)",
-      "fg-subtle": "oklch(0.722 0.024 286)",
-      "line": "oklch(0.325 0.036 286)",
-      "line-strong": "oklch(0.562 0.040 286)",
+      "canvas": "oklch(0.238 0.032 286)",
+      "surface": "oklch(0.288 0.034 286)",
+      "sunken": "oklch(0.210 0.029 286)",
+      "fg": "oklch(0.968 0.010 286)",
+      "fg-muted": "oklch(0.790 0.026 286)",
+      "fg-subtle": "oklch(0.752 0.024 286)",
+      "line": "oklch(0.358 0.038 286)",
+      "line-strong": "oklch(0.600 0.042 286)",
       "primary": "{ink.400}",
       "primary-fg": "oklch(0.182 0.030 286)",
-      "primary-soft": "oklch(0.300 0.055 285)",
+      "primary-soft": "oklch(0.330 0.058 286)",
       "accent": "{ember.400}",
       "accent-fg": "oklch(0.182 0.030 286)",
-      "accent-soft": "oklch(0.318 0.062 62)",
+      "accent-soft": "oklch(0.346 0.064 62)",
       "ring": "{ink.300}",
-      "selection": "oklch(0.352 0.072 285)",
-      "overlay": "oklch(0.122 0.028 286 / 0.65)"
+      "selection": "oklch(0.380 0.074 286)",
+      "overlay": "oklch(0.140 0.028 286 / 0.65)"
     }
   },
   "$status": "One meaning each, with a dark pair for the tint and the text on it. A soft tint defined only for light mode is a real bug in dark mode: the tint stays pale, the text keeps its own colour, and the content disappears. `base` deliberately does not change, because it is a solid fill under white text and lightening it would weaken that contrast."

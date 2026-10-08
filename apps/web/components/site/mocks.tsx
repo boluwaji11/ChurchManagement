@@ -16,18 +16,18 @@ export function GiveCard() {
       <span className="font-display text-[22px] text-fg">{t("site.giving.card.title")}</span>
 
       <div className="grid grid-cols-3 gap-2">
-        <span className="grid h-12 place-items-center rounded-xl border border-stone-300 bg-surface text-[17px] font-semibold text-fg">
+        <span className="grid h-12 place-items-center rounded-xl border border-line-strong bg-surface text-[17px] font-semibold text-fg">
           $25
         </span>
         <span className="grid h-12 place-items-center rounded-xl bg-primary text-[17px] font-semibold text-primary-fg">
           $50
         </span>
-        <span className="grid h-12 place-items-center rounded-xl border border-stone-300 bg-surface text-[17px] font-semibold text-fg">
+        <span className="grid h-12 place-items-center rounded-xl border border-line-strong bg-surface text-[17px] font-semibold text-fg">
           $100
         </span>
       </div>
 
-      <div className="flex h-11 items-center justify-between rounded-xl border border-stone-300 px-3.5">
+      <div className="flex h-11 items-center justify-between rounded-xl border border-line-strong px-3.5">
         <span className="text-fg-muted">{t("site.giving.card.fund")}</span>
         <span className="font-medium text-fg">{t("site.giving.card.general")}</span>
       </div>

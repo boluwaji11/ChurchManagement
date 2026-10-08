@@ -1,3 +1,5 @@
+import { ThemeDock } from "./theme-dock";
+import type { Theme } from "@/app/settings/theme-actions";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@connectapp/ui";
@@ -115,7 +117,7 @@ const FOOT = [
 ] as const;
 
 /** R21.12. The promises and the source, where somebody deciding can reach them. */
-export function SiteFooter() {
+export function SiteFooter({ theme }: { theme?: Theme }) {
   return (
     <footer className="border-t border-line">
       <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-x-10 gap-y-2 px-6 py-5">
@@ -136,6 +138,10 @@ export function SiteFooter() {
             </Link>
           ))}
         </nav>
+
+        {/* R24.x. Light, dark, or whatever the device is set to. It sits with
+            the rest of the small print rather than riding over the page. */}
+        {theme ? <ThemeDock current={theme} /> : null}
       </div>
     </footer>
   );
