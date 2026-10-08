@@ -2,7 +2,7 @@
  * R16.12. The marks a church writes into a letter that become each
  * household's own words.
  *
- * Six of them, not a field browser. A church writing to its congregation says
+ * Five of them, not a field browser. A church writing to its congregation says
  * the family's name, where they live and who it is from, and every merge
  * system that offered more than that ended up with volunteers pasting a field
  * name into a sentence and posting it.
@@ -17,7 +17,6 @@ export const MERGE_FIELDS = [
   "name",
   "address",
   "church",
-  "date",
   "today",
   "from",
 ] as const;

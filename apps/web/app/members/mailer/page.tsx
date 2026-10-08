@@ -7,7 +7,7 @@ import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { Denied } from "@/components/denied";
 import { requireSession } from "@/lib/session";
-import { Labels } from "./labels";
+import { Mailer } from "./mailer";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -69,7 +69,7 @@ export default async function PostPage({
           <ArrowLeft aria-hidden /> {t("members.title")}
         </Link>
 
-        <Labels
+        <Mailer
           church={session.tenantSlug}
           households={read.households}
           lists={read.lists.map((one) => ({ id: one.id, name: one.name }))}

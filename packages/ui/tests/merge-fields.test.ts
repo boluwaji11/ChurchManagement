@@ -56,8 +56,8 @@ describe("what a template asks for", () => {
   });
 
   it("names the ones this product cannot fill", () => {
-    expect(unknownMarks("Dear {name}, your {nickname} and {balance}"))
-      .toEqual(["nickname", "balance"]);
+    expect(unknownMarks("Dear {name}, your {nickname} and {date}"))
+      .toEqual(["nickname", "date"]);
     expect(unknownMarks("Dear {name},")).toEqual([]);
   });
 

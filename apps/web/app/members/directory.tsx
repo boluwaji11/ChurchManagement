@@ -312,7 +312,7 @@ export function Directory({
 
         {/* R16.12. The other half of communication: the half that needs no
             provider and sends nothing. */}
-        <ToolButton href={`/members/post?church=${church}`}>
+        <ToolButton href={`/members/mailer?church=${church}`}>
           <Mail /> {t("post.title")}
         </ToolButton>
 

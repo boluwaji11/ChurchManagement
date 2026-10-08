@@ -2,13 +2,14 @@ import { redirect } from "next/navigation";
 import {
   withTenant, postalRows, resolveList, listPeople, getChurch, canEditPeople,
 } from "@connectapp/db";
-import { merge } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { longDate } from "@/lib/dates";
 import { AutoPrint } from "../../../checkin/rooms/print/auto-print";
 import { tabMetadata } from "@/lib/page-metadata";
+import { supabaseServer } from "@/lib/supabase/server";
+import { LetterSheet } from "./letter-sheet";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function generateMetadata({
   searchParams: Promise<{ church?: string }>;
 }) {
   const { church } = await searchParams;
-  return tabMetadata(t("letter.title"), church);
+  return tabMetadata(t("post.tab.letters"), church);
 }
 
 /**
@@ -82,59 +83,52 @@ export default async function PrintLettersPage({
     },
   );
 
-  const today = churchNow(read.profile?.timezone ?? "America/Chicago").date;
-  const body = params.body ?? "";
+  /* The bucket is private, so the church's mark is served through a signed
+     link the browser can read for the minute it takes to print. */
+  const logoUrl = await (async () => {
+    if (!read.profile?.logoKey) return null;
+    const supabase = await supabaseServer();
+    const signed = await supabase.storage
+      .from("church")
+      .createSignedUrl(read.profile.logoKey, 3600);
+    return signed.data?.signedUrl ?? null;
+  })();
+
+  const today = longDate(churchNow(read.profile?.timezone ?? "America/Chicago").date);
 
   const where = [
     read.profile?.addressLine1,
+    read.profile?.addressLine2,
     read.profile?.city,
     [read.profile?.region, read.profile?.postalCode].filter(Boolean).join(" "),
-  ].filter(Boolean).join(", ");
+  ].filter(Boolean).join(", ") || null;
 
   return (
     <main className="min-h-dvh bg-white text-black">
       <AutoPrint />
-      <style>{"@page { size: auto; margin: 18mm 20mm; }"}</style>
+      {/* Nothing in the page's own margin, so the browser prints no header and
+          no footer of its own: a letter from a church with an address bar
+          across the bottom of it is not a letter anybody posts. The margin is
+          on each letter instead. */}
+      <style>{"@page { size: auto; margin: 0; }"}</style>
 
       {read.rows.length === 0 ? (
         <p className="px-10 py-9 text-[13pt]">{t("post.none")}</p>
-      ) : null}
-
-      {read.rows.map((one, at) => (
-        <article
-          key={one.householdId}
-          className={at === read.rows.length - 1 ? "" : "break-after-page"}
-        >
-          {/* The church's own name and address at the head, the way a letter
-              from an office is written. */}
-          <header className="mb-10">
-            <p className="m-0 text-[13pt] font-semibold">{session.tenantName}</p>
-            {where ? <p className="m-0 text-[10pt]">{where}</p> : null}
-          </header>
-
-          {/* Who it is to, where a window envelope shows it. */}
-          <div className="mb-8 text-[11pt] leading-[1.45]">
-            <p className="m-0 font-semibold">{one.name}</p>
-            {one.lines.map((line) => <p key={line} className="m-0">{line}</p>)}
-          </div>
-
-          <p className="mb-8 text-[11pt]">{longDate(today)}</p>
-
-          {/* R16.12. The letter itself, with this household's own words in
-              place of the marks. The lines a church typed are the lines it
-              gets: a letter is not markdown and a blank line is a paragraph. */}
-          <div className="whitespace-pre-wrap text-[11pt] leading-[1.6]">
-            {merge(body, {
-              name: one.name,
-              address: one.lines.join(", "),
-              church: session.tenantName,
-              date: longDate(today),
-              today: longDate(today),
-              from: session.displayName,
-            })}
-          </div>
-        </article>
-      ))}
+      ) : (
+        <LetterSheet
+          rows={read.rows}
+          body={params.body ?? ""}
+          today={today}
+          from={session.displayName}
+          head={{
+            church: session.tenantName,
+            address: where,
+            phone: read.profile?.phone ?? null,
+            email: read.profile?.email ?? null,
+            logoUrl,
+          }}
+        />
+      )}
     </main>
   );
 }
