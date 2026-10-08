@@ -126,6 +126,7 @@ and a design file does not move it.
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
 | HRT-110 | Saved lists, static and rule-based | R1.14 | Resolved. The repository and the actions only; nothing rendered a control, so no list could be made. Finished in HRT-255 |
 | HRT-255 | The controls that make a saved list, and the ones that read it | R1.14, R2.14 | Resolved |
+| HRT-256 | Every press that goes to the server says so, on every screen | R24.6 | Active |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
