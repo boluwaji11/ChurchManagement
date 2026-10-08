@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import {
-  Input, Field, Checkbox,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@connectapp/ui";
+import { Input, Field, Checkbox } from "@connectapp/ui";
+import { Picker } from "@/components/picker";
+import { MultiSelect } from "@/components/multi-select";
 import { DateField } from "@/components/date-field";
 import { t } from "@connectapp/i18n";
 import type { FieldDef } from "./field-values";
@@ -78,41 +77,39 @@ function CustomFieldInput({
         </Field>
       );
 
+    /*
+     * R1.10, R24.6. The same control a field the product ships with uses.
+     *
+     * A church's own field is a field like any other, so it opens the way
+     * marital status opens and carries the same cross for taking an answer
+     * back off. A bare select had no empty value, so a choice made by
+     * mistake could not be undone.
+     */
     case "select":
       return (
         <Field label={field.label} error={error}>
-          <Select name={name} defaultValue={typeof value === "string" ? value : ""}>
-            <SelectTrigger>
-              <SelectValue placeholder={t("value.notSet")} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((o) => (
-                <SelectItem key={o} value={o}>{o}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Picker
+            name={name}
+            defaultValue={typeof value === "string" ? value : null}
+            options={options.map((one) => ({ value: one, label: one }))}
+            label={field.label}
+          />
         </Field>
       );
 
-    case "multi_select": {
-      const chosen = new Set(Array.isArray(value) ? (value as string[]) : []);
+    /* R1.10, R24.6. The control the rest of the product uses for "any of
+       these", rather than a row of loose boxes that grows off the form. */
+    case "multi_select":
       return (
-        <fieldset className="flex flex-col gap-1.5 sm:col-span-2">
-          <legend className="text-label text-fg">{field.label}</legend>
-          <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
-            {options.map((o) => (
-              <label key={o} className="flex items-center gap-2">
-                <Checkbox name={name} value={o} defaultChecked={chosen.has(o)} />
-                <span className="text-[length:var(--d-text-body)] text-fg">{o}</span>
-              </label>
-            ))}
-          </div>
-          {error ? (
-            <p role="alert" className="text-caption text-danger-text">{error}</p>
-          ) : null}
-        </fieldset>
+        <Field label={field.label} error={error}>
+          <ManyOf
+            name={name}
+            label={field.label}
+            options={options}
+            chosen={Array.isArray(value) ? (value as string[]) : []}
+          />
+        </Field>
       );
-    }
 
     default:
       return (
@@ -121,4 +118,43 @@ function CustomFieldInput({
         </Field>
       );
   }
+}
+
+/**
+ * Several of a field's choices, with the answers riding hidden inputs.
+ *
+ * The form reads them with `getAll`, the same way it read the row of
+ * checkboxes this replaced, so nothing on the server had to change.
+ */
+function ManyOf({
+  name,
+  label,
+  options,
+  chosen,
+}: {
+  name: string;
+  label: string;
+  options: string[];
+  chosen: string[];
+}) {
+  const [picked, setPicked] = React.useState(chosen);
+
+  return (
+    <>
+      {picked.map((one) => (
+        <input key={one} type="hidden" name={name} value={one} />
+      ))}
+      <MultiSelect
+        label={label}
+        options={options.map((one) => ({ value: one, label: one }))}
+        value={picked}
+        onChange={setPicked}
+        summary={(picks) =>
+          picks.length > 2
+            ? t("find.chosen", { count: picks.length })
+            : picks.map((one) => one.label).join(", ")
+        }
+      />
+    </>
+  );
 }
