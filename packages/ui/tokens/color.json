@@ -169,13 +169,13 @@
   "$semantic": "The names a screen uses. Dark is a lifted purple rather than a near black: the canvas sits at L 0.205 on the ink hue with a little chroma, so the product reads as itself at night instead of as a grey app, and nothing is so dark that a laptop at full brightness in a lit room becomes a mirror. Every pair is held to the thresholds in docs/design-system.md and checked by scripts/contrast.mjs.",
   "semantic": {
     "light": {
-      "canvas": "oklch(0.977 0.010 286)",
+      "canvas": "oklch(0.962 0.006 288)",
       "surface": "#ffffff",
-      "sunken": "oklch(0.961 0.013 286)",
+      "sunken": "oklch(0.944 0.008 288)",
       "fg": "{stone.900}",
       "fg-muted": "{stone.600}",
       "fg-subtle": "oklch(0.540 0.018 286)",
-      "line": "oklch(0.916 0.014 286)",
+      "line": "oklch(0.902 0.010 288)",
       "line-strong": "oklch(0.556 0.018 286)",
       "primary": "{ink.600}",
       "primary-fg": "#ffffff",

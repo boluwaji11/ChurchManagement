@@ -51,22 +51,24 @@ select:-webkit-autofill {
    * R24.4. The church's own purple through the page rather than a grey field
    * with a tinted corner. Three washes: one over the top where a screen
    * begins, one at the far corner, and a long one down the middle so a tall
-   * screen does not run out of colour halfway.
+   * screen does not run out of colour halfway. Each one is a hint: the ground
+   * is meant to be read across, and a page that announces its own background
+   * is a page competing with what somebody opened it for.
    */
   background-image:
     radial-gradient(
       62rem 36rem at 50% -8rem,
-      color-mix(in oklch, var(--primary) 34%, transparent),
+      color-mix(in oklch, var(--primary) 17%, transparent),
       transparent 72%
     ),
     radial-gradient(
       48rem 32rem at 108% 104%,
-      color-mix(in oklch, var(--primary) 24%, transparent),
+      color-mix(in oklch, var(--primary) 12%, transparent),
       transparent 72%
     ),
     radial-gradient(
       80rem 60rem at -10% 45%,
-      color-mix(in oklch, var(--primary) 16%, transparent),
+      color-mix(in oklch, var(--primary) 8%, transparent),
       transparent 70%
     );
   background-attachment: fixed;

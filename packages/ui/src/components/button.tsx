@@ -51,7 +51,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref}
         data-loading={loading || undefined}
-        disabled={disabled ?? loading}
+        /*
+         * R24.6. Either reason is enough. It was `disabled ?? loading`, so a
+         * button written as `loading={busy} disabled={!name.trim()}` stayed
+         * pressable for the whole round trip once the name was filled in: the
+         * explicit false answered the question before loading was asked.
+         */
+        disabled={disabled || loading}
         className={cn(button({ variant, full }), className)}
         {...props}
       >
