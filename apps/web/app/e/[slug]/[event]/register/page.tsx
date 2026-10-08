@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { EventRegisterPage } from "@/components/event-register-page";
 import { publicTab } from "@/lib/page-metadata";
+import { knownRegistrant } from "@/lib/registrant";
 import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,9 @@ export default async function RegisterPage({
       coverUrl={await sign(found.coverKey)}
       logoUrl={await sign(found.church.logoKey)}
       backHref={`/e/${slug}/${event}`}
+      /* R14.3. A member signed in to their own church does not type their own
+         name in: the church already holds it. Null for anybody else. */
+      me={await knownRegistrant(slug)}
     />
   );
 }

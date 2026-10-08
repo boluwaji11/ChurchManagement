@@ -26,6 +26,7 @@ export function EventRegisterPage({
   backHref,
   banner,
   onTrial,
+  me,
 }: {
   event: PublicEvent;
   churchSlug: string;
@@ -38,6 +39,8 @@ export function EventRegisterPage({
   banner?: React.ReactNode;
   /** R14.2. Where the church's own preview sends its places instead. */
   onTrial?: React.ComponentProps<typeof Register>["onTrial"];
+  /** R14.3. Who is reading, where they are a member of this church. */
+  me?: React.ComponentProps<typeof Register>["me"];
 }) {
   const when = [
     longDate(event.startsOn),
@@ -110,6 +113,7 @@ export function EventRegisterPage({
         </div>
 
         <Register
+          me={me}
           churchSlug={churchSlug}
           eventSlug={eventSlug}
           today={today}

@@ -73,6 +73,7 @@ export function Register({
   questions,
   formSlug,
   onTrial,
+  me,
 }: {
   churchSlug: string;
   eventSlug: string;
@@ -89,8 +90,17 @@ export function Register({
    * whole path rather than a drawing of it.
    */
   onTrial?: (party: Registrant[]) => Promise<SendResult>;
+  /**
+   * R14.3, R17.1. Who is reading, where they are a member of this church.
+   *
+   * The first place is theirs, filled in. Every box stays editable, because
+   * somebody books for a neighbour as often as for themselves.
+   */
+  me?: { firstName: string; lastName: string; email: string; phone: string } | null;
 }) {
-  const [party, setParty] = React.useState<Person[]>([blank()]);
+  const [party, setParty] = React.useState<Person[]>([
+    me ? { ...blank(), ...me } : blank(),
+  ]);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   // R4.1. What each person attached, keyed by person and question, so the
   // summary reads back names rather than the keys the answer carries.
