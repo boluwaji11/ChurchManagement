@@ -96,7 +96,7 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
                       label={t("home.awayRemove", { dates: span(one) })}
                       variant="ghost"
                       disabled={working}
-                      className="size-8 min-h-0 shrink-0 [&_svg]:size-4"
+                      className="size-[var(--d-tap)] min-h-0 shrink-0 [&_svg]:size-4"
                     >
                       <X />
                     </IconButton>
@@ -114,7 +114,7 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
         <button
           type="button"
           onClick={() => setAll((was) => !was)}
-          className="-mt-1 cursor-pointer self-start rounded-md px-2 py-1 font-medium text-primary"
+          className="-mt-1 flex min-h-[var(--d-tap)] cursor-pointer items-center self-start rounded-md px-2 font-medium text-primary"
         >
           {all ? t("list.showLess") : t("list.showMore", { count: dates.length - 5 })}
         </button>

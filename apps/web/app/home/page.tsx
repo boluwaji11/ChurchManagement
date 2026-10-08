@@ -175,7 +175,7 @@ export default async function MemberHomePage({
 
             <Link
               href={`/home/schedule?church=${session.tenantSlug}`}
-              className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
+              className="flex min-h-[var(--d-tap)] items-center self-start text-[length:var(--d-text-body)] font-medium text-primary"
             >
               {t("home.seeAll")}
             </Link>
@@ -222,7 +222,7 @@ export default async function MemberHomePage({
                 <Link
                   key={group.id}
                   href={`/groups/${group.slug}?church=${session.tenantSlug}`}
-                  className="flex items-center gap-2.5"
+                  className="flex min-h-[var(--d-tap)] items-center gap-2.5"
                 >
                   <span
                     aria-hidden
@@ -238,7 +238,7 @@ export default async function MemberHomePage({
             ) : null}
             <Link
               href={`/groups?church=${session.tenantSlug}`}
-              className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
+              className="flex min-h-[var(--d-tap)] items-center self-start text-[length:var(--d-text-body)] font-medium text-primary"
             >
               {mine.groups.length > 0 ? t("home.findAnother") : t("find.title")}
             </Link>
@@ -259,7 +259,7 @@ export default async function MemberHomePage({
               ))}
               <Link
                 href={`/settings/household?church=${session.tenantSlug}`}
-                className="self-start text-[length:var(--d-text-body)] font-medium text-primary"
+                className="flex min-h-[var(--d-tap)] items-center self-start text-[length:var(--d-text-body)] font-medium text-primary"
               >
                 {t("home.seeAll")}
               </Link>

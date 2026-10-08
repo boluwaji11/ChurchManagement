@@ -33,7 +33,7 @@ export function SignInForm({ next, email }: { next?: string; email?: string }) {
         <button
           type="button"
           onClick={() => setByLink((was) => !was)}
-          className="cursor-pointer font-medium text-primary"
+          className="min-h-[var(--d-tap)] cursor-pointer font-medium text-primary"
         >
           {byLink ? t("signIn.tab.password") : t("signIn.tab.link")}
         </button>
@@ -119,7 +119,7 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
       <button
         type="submit"
         formAction={sendReset}
-        className="text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+        className="min-h-[var(--d-tap)] text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
       >
         {t("signIn.forgot")}
       </button>
