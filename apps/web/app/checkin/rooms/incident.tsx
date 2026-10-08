@@ -42,11 +42,22 @@ export function IncidentDialog({
   const [error, setError] = useFormError(open);
   const [notified, setNotified] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
+  /*
+   * R8.22. The tick is the one thing here React holds, so it is the one
+   * thing that survives a close: every other field is read off the form and
+   * goes with the panel. Left set, the next child's report says a guardian
+   * was told when nobody was.
+   */
+  const shut = (next: boolean) => {
+    setOpen(next);
+    if (!next) setNotified(false);
+  };
+
   const formId = React.useId();
   const full = useAnswered(formId, open);
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={shut}>
       <SheetTrigger asChild>
         <IconButton
           label={t("incident.add")}
@@ -80,8 +91,7 @@ export function IncidentDialog({
               );
               setError(result.error);
               if (!result.error) {
-                setNotified(false);
-                setOpen(false);
+                shut(false);
               }
             });
           }}
@@ -116,7 +126,7 @@ export function IncidentDialog({
 
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => shut(false)}>
               {t("action.cancel")}
             </Button>
               <Button type="submit" disabled={pending || !full}>{t("action.save")}</Button>

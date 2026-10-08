@@ -46,6 +46,23 @@ export function CheckInSheet({
   const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
+  /*
+   * R8.x. Blank on every close, including Cancel and Escape.
+   *
+   * One sheet serves the whole board, so whatever is left in it is waiting
+   * for the next child. A volunteer who picks a child, changes their mind
+   * and presses Cancel would otherwise reopen it holding that child and a
+   * room, with Check already live: one press and the wrong child is checked
+   * into the wrong room.
+   */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setWho("");
+      setRoomId("");
+    }
+  };
+
   const submit = () => {
     if (!who || !roomId) return;
     const [kind, id] = [who.slice(0, 1), who.slice(2)];
@@ -58,16 +75,14 @@ export function CheckInSheet({
 
       setError(result.error);
       if (!result.error) {
-        setOpen(false);
-        setWho("");
-        setRoomId("");
+        close(false);
         router.refresh();
       }
     });
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
 
       <SheetContent
@@ -75,7 +90,7 @@ export function CheckInSheet({
         closeLabel={t("common.close")}
         footer={
           <>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
             <Button onClick={submit} disabled={pending || !who || !roomId}>
