@@ -3864,6 +3864,8 @@ export const en = {
   "form.search": "Search forms",
   "common.chooseOne": "Choose one",
   "common.opening": "Opening",
+  "download.failed": "That file could not be built. Try again.",
+  "download.building": "Building the file",
   "common.none": "None",
   "common.saved": "Saved",
   "common.searching": "Searching",

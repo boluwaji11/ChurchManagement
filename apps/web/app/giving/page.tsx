@@ -21,6 +21,7 @@ import { AttachGift } from "./attach";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
 import { RepeatMark } from "./repeat-mark";
+import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
 import { Tooltip } from "@connectapp/ui";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -221,12 +222,15 @@ export default async function GivingPage({
                 {t("giving.recent")}
               </h2>
               {/* R13.23. Everything recorded, as a spreadsheet. */}
-              <a
+              <Download
                 href={`/api/giving?church=${session.tenantSlug}`}
+                file={`giving-${session.tenantSlug}.csv`}
+                label={t("download.building")}
+                title={t("giving.export")}
                 className="font-medium text-primary"
               >
                 {t("giving.export")}
-              </a>
+              </Download>
             </div>
             {read.recent.length === 0 ? (
               <p className="text-fg-muted">{t("giving.recent.none")}</p>
