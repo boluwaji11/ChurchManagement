@@ -429,8 +429,8 @@ export function ScheduleGrid({
                 <div
                   key={service.id}
                   className={cn(
-                    "flex items-baseline justify-between gap-2 border-b border-line border-l border-l-sunken px-3 py-2.5",
-                    service.past && "bg-sunken",
+                    "flex items-baseline justify-between gap-2 border-b border-line border-l px-3 py-2.5",
+                    service.past ? "border-l-line bg-sunken" : "border-l-sunken",
                   )}
                 >
                   <span
@@ -493,8 +493,13 @@ export function ScheduleGrid({
                         drop(position.id, service.id);
                       }}
                       className={cn(
-                        "flex flex-col gap-1 border-b border-sunken border-l border-l-sunken p-2",
-                        service.past && "bg-sunken",
+                        "flex flex-col gap-1 border-b border-l p-2",
+                        /* The rules are drawn in the ground's own colour, so a
+                           past column on that ground needs the darker line or
+                           the grid vanishes under it. */
+                        service.past
+                          ? "border-line border-l-line bg-sunken"
+                          : "border-sunken border-l-sunken",
                         over === spot && "bg-primary-soft",
                       )}
                     >
