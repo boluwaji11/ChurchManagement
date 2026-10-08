@@ -32,10 +32,10 @@ export default async function CampaignPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ church?: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
   const { church } = await searchParams;
   const session = await requireSession(church);
 
@@ -57,8 +57,8 @@ export default async function CampaignPage({
     today: churchNow(
       (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
     ).date,
-    campaign: await getCampaign(tx, id),
-    pledges: await listPledges(tx, ctx, id),
+    campaign: await getCampaign(tx, slug),
+    pledges: await listPledges(tx, ctx, slug),
     funds: await listFunds(tx),
   }));
 

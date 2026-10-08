@@ -70,7 +70,7 @@ export async function savePledge(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => writePledge(tx, actor, input));
-    revalidatePath(`/giving/campaigns/${input.campaignId}`);
+    revalidatePath("/giving/campaigns/[slug]", "page");
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -85,7 +85,7 @@ export async function dropPledge(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => removePledge(tx, actor, id));
-    revalidatePath(`/giving/campaigns/${campaignId}`);
+    revalidatePath("/giving/campaigns/[slug]", "page");
     return {};
   } catch (error) {
     return { error: explain(error) };

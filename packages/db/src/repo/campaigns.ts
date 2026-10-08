@@ -264,7 +264,7 @@ export async function listPledges(
     })
     .from(pledges)
     .innerJoin(members, eq(members.id, pledges.memberId))
-    .where(eq(pledges.campaignId, campaignId))
+    .where(eq(pledges.campaignId, campaign.id))
     .orderBy(desc(pledges.amountCents), asc(members.lastName));
 
   return rows.map((row) => ({
