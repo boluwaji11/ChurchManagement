@@ -384,6 +384,20 @@ export interface AssignInput {
  * Refuses once where they are away or due a break, then records that it was
  * told to go ahead.
  */
+/**
+ * The last date that is past wherever the church is.
+ *
+ * The grid draws its line against the church's own clock, and the server
+ * does not hold a timezone at this point in the call. Rather than query for
+ * one, it gives a day's grace: a church fourteen hours behind the server is
+ * never refused a date its own screen still shows as today.
+ */
+const longGone = () => {
+  const day = new Date();
+  day.setUTCDate(day.getUTCDate() - 1);
+  return day.toISOString().slice(0, 10);
+};
+
 export async function assign(
   db: Tx,
   actor: WriteActor,
@@ -401,6 +415,21 @@ export async function assign(
     ))
     .limit(1);
   if (!position) throw new InvalidInputError("schedule.error.position");
+
+  /*
+   * R10.3. Nobody is put on a date that has gone.
+   *
+   * A rota is a plan. Asking somebody to serve last Tuesday sends a request
+   * they cannot answer and puts a name against a service that has already
+   * happened. The grid closes those columns against the church's own clock,
+   * and this is the backstop under it, since a screen is never the guard.
+   */
+  const [when] = await db
+    .select({ day: serviceOccurrences.occursOn })
+    .from(serviceOccurrences)
+    .where(eq(serviceOccurrences.id, input.occurrenceId))
+    .limit(1);
+  if (when && when.day < longGone()) throw new InvalidInputError("schedule.error.past");
 
   const warning = await checkFor(db, {
     memberId: input.memberId,

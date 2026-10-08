@@ -13,6 +13,14 @@ export interface GridService {
   id: string;
   /** "Sun 5 Oct", as the column head reads. */
   label: string;
+  /**
+   * R10.3. Whether this service has already happened.
+   *
+   * A rota is a plan, and a plan for last Tuesday is a record. Nobody is put
+   * on a date that has gone: the column stays on the board so a leader can
+   * read who served, and it takes nobody new.
+   */
+  past?: boolean;
 }
 
 export interface GridTeam {
@@ -123,6 +131,7 @@ function FillSlot({
   positionId,
   occurrenceId,
   onFilled,
+  closed,
   className,
 }: {
   church: string;
@@ -130,6 +139,8 @@ function FillSlot({
   positionId: string;
   occurrenceId: string;
   onFilled: () => void;
+  /** R10.3. A date that has gone. The slot reads as closed and takes nobody. */
+  closed?: boolean;
   /** How the empty slot reads where it is a row rather than a cell. */
   className?: string;
 }) {
@@ -158,6 +169,19 @@ function FillSlot({
       }
     });
   };
+
+  if (closed) {
+    return (
+      <span
+        className={cn(
+          "flex min-h-9 w-full items-center px-2 text-[12px] text-fg-subtle",
+          className,
+        )}
+      >
+        {t("serving.closedSlot")}
+      </span>
+    );
+  }
 
   if (!open) {
     return (
@@ -331,6 +355,8 @@ export function ScheduleGrid({
   }, [ids]);
 
   const needed = positions.reduce((n, position) => n + position.needed, 0);
+  /** R10.3. Whether the service the narrow view is showing has gone. */
+  const gone = Boolean(services.find((service) => service.id === one)?.past);
   const filledFor = (occurrenceId: string) =>
     slots.filter((slot) => slot.occurrenceId === occurrenceId && slot.assignmentId).length;
 
@@ -372,15 +398,33 @@ export function ScheduleGrid({
               return (
                 <div
                   key={service.id}
-                  className="flex items-baseline justify-between gap-2 border-b border-line border-l border-l-sunken px-3 py-2.5"
+                  className={cn(
+                    "flex items-baseline justify-between gap-2 border-b border-line border-l border-l-sunken px-3 py-2.5",
+                    service.past && "bg-sunken",
+                  )}
                 >
-                  <span className="min-w-0 truncate font-semibold text-fg">{service.label}</span>
+                  <span
+                    className={cn(
+                      "min-w-0 truncate font-semibold",
+                      service.past ? "text-fg-subtle" : "text-fg",
+                    )}
+                  >
+                    {service.label}
+                  </span>
+                  {/* R10.3. A date that has gone is not short of anybody. It
+                      says what it had, in the same grey as its heading. */}
                   <span
                     className="shrink-0 text-[12px] font-medium"
-                    style={{
-                      color:
-                        filled >= needed ? "var(--hue-fern-key)" : "var(--color-danger-text)",
-                    }}
+                    style={
+                      service.past
+                        ? { color: "var(--color-fg-subtle)" }
+                        : {
+                            color:
+                              filled >= needed
+                                ? "var(--hue-fern-key)"
+                                : "var(--color-danger-text)",
+                          }
+                    }
                   >
                     {filled} / {needed}
                   </span>
@@ -401,7 +445,9 @@ export function ScheduleGrid({
                   // A slot that already has somebody in it takes no drop. The
                   // way to put a different person there is to take this one
                   // out first, which is the same thing a church would say.
-                  const taken = Boolean(slot?.assignmentId);
+                  // A slot that has somebody in it takes no drop, and neither
+                  // does a date that has gone.
+                  const taken = Boolean(slot?.assignmentId) || Boolean(service.past);
 
                   return (
                     <div
@@ -418,6 +464,7 @@ export function ScheduleGrid({
                       }}
                       className={cn(
                         "flex flex-col gap-1 border-b border-sunken border-l border-l-sunken p-2",
+                        service.past && "bg-sunken",
                         over === spot && "bg-primary-soft",
                       )}
                     >
@@ -433,6 +480,7 @@ export function ScheduleGrid({
                           teamId={team.id}
                           positionId={position.id}
                           occurrenceId={service.id}
+                          closed={service.past}
                           onFilled={() => router.refresh()}
                         />
                       )}
@@ -466,12 +514,16 @@ export function ScheduleGrid({
             <span
               data-numeric
               className="text-[13px] font-medium"
-              style={{
-                color:
-                  filledFor(one) >= needed
-                    ? "var(--hue-fern-key)"
-                    : "var(--color-danger-text)",
-              }}
+              style={
+                gone
+                  ? { color: "var(--color-fg-subtle)" }
+                  : {
+                      color:
+                        filledFor(one) >= needed
+                          ? "var(--hue-fern-key)"
+                          : "var(--color-danger-text)",
+                    }
+              }
             >
               {t("serving.filledOf", { filled: filledFor(one), needed })}
             </span>
@@ -499,6 +551,7 @@ export function ScheduleGrid({
                       teamId={team.id}
                       positionId={position.id}
                       occurrenceId={one}
+                      closed={gone}
                       onFilled={() => router.refresh()}
                       className="rounded-md border border-dashed border-line-strong text-[13px] text-fg-muted"
                     />

@@ -276,6 +276,11 @@ export default async function ServingPage({
                     label: twice
                       ? `${shortDate(one.occursOn)}, ${readableTime(one.startsAt)}`
                       : shortDate(one.occursOn),
+                    /* R10.3. A service that has already happened. Read against
+                       the church's own clock, so a leader in Hawaii opening
+                       this at ten at night is not told their evening service
+                       is over because a server in Virginia has seen tomorrow. */
+                    past: one.occursOn < data.clock.date,
                   };
                 }),
                 slots: data.services.flatMap((service) =>
