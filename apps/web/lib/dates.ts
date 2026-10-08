@@ -32,6 +32,20 @@ export const dayAndMonth = (iso: string): string =>
 export const shortDate = (iso: string): string =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(readingLocale(), { day: "numeric", month: "long" });
 
+/**
+ * "8 Nov 2026". For a line that has to share its row with other facts.
+ *
+ * The month in full is four to eight more characters than the line has,
+ * and a date that has been cut off at "Next on November 8, ..." has lost
+ * the only part somebody was looking for.
+ */
+export const briefDate = (iso: string): string =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString(readingLocale(), {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
 /** "7:30pm", from HH:MM. */
 export const readableTime = (hhmm: string): string => {
   const [h, m] = hhmm.split(":").map(Number);

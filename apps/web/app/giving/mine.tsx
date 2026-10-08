@@ -11,7 +11,7 @@ import { t, plural } from "@connectapp/i18n";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import type { Session } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { longDate } from "@/lib/dates";
+import { briefDate, longDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { Progress, PaceChip, standingOf } from "./campaigns/progress";
 import { GiftState } from "./gift-state";
@@ -178,86 +178,11 @@ export async function MyGiving({
           ) : null}
         </div>
 
-        {/* R13.19. January's errand, for whichever year they are asked for. */}
-        {mine.total.gifts > 0 || mine.years.length > 0 ? (
-          <Block
-            icon={<FileText />}
-            title={t("giving.statements")}
-            action={
-              <MyStatement
-                church={session.tenantSlug}
-                years={mine.years.length > 0 ? mine.years : [mine.year]}
-                thisYear={mine.year}
-              />
-            }
-          />
-        ) : null}
-
-        {/* R13.16, R17.4. Their own pledges, so somebody who promised in
-            October can see in March what is left of it without asking. */}
-        {mine.pledges.length > 0 ? (
-          <Block icon={<Target />} title={t("pledge.mine")}>
-            <ul className="m-0 flex list-none flex-col p-0">
-              {mine.pledges.map((one) => {
-                const kept = one.givenCents >= one.amountCents;
-                const standing = standingOf({
-                  receivedCents: one.givenCents,
-                  targetCents: one.amountCents,
-                  startsOn: one.startsOn,
-                  endsOn: one.endsOn,
-                  today: mine.today,
-                  archived: one.archived,
-                });
-
-                return (
-                  <li
-                    key={one.id}
-                    className="flex flex-col gap-2 border-t border-sunken px-5 py-3.5 first:border-0"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span className="truncate font-medium text-fg">{one.campaignName}</span>
-                        {kept ? (
-                          <span
-                            className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-semibold"
-                            style={{
-                              background: "var(--success-soft)", color: "var(--success-text)",
-                            }}
-                          >
-                            <CheckCircle2 className="size-3" aria-hidden />
-                            {t("pledge.kept")}
-                          </span>
-                        ) : (
-                          <PaceChip standing={standing} />
-                        )}
-                      </span>
-
-                      <span data-numeric className="shrink-0 text-[13px] text-fg-muted">
-                        {t("pledge.given", { amount: money(one.givenCents) })}
-                        {" \u00b7 "}
-                        {t("pledge.mine.of", { amount: money(one.amountCents) })}
-                      </span>
-                    </div>
-
-                    <Progress standing={standing} height={6} />
-
-                    {kept ? null : (
-                      <span data-numeric className="text-[12px] text-fg-subtle">
-                        {t("pledge.toGo", {
-                          amount: money(Math.max(0, one.amountCents - one.givenCents)),
-                        })}
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </Block>
-        ) : null}
-
-        {/* R13.19. Their giving on the left, what repeats on the right. The
-            table had the whole of a wide screen for five short columns. */}
-        <div className="grid items-start gap-5 lg:[grid-template-columns:minmax(0,1fr)_minmax(280px,340px)]">
+        {/* The table wants about six hundred pixels and no more: five short
+            columns given the whole of a wide screen put the amount a hand's
+            width from the state it belongs to. What is left goes to the
+            panel beside it, which has a date to fit on one line. */}
+        <div className="grid items-start gap-5 lg:[grid-template-columns:minmax(0,620px)_minmax(300px,1fr)]">
           <div className="flex min-w-0 flex-col gap-5">
 
         {/* R13.19. Everything, in the order it happened. */}
@@ -266,7 +191,7 @@ export async function MyGiving({
             <Nothing>{t("mine.giving.none")}</Nothing>
           ) : (
             <ResizableTable id="my-giving">
-              <table className="w-full min-w-[520px] border-collapse">
+              <table className="w-full min-w-[500px] border-collapse">
                 <thead>
                   <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
                     <th className="w-[120px] px-5 py-2 text-left font-bold">
@@ -388,7 +313,7 @@ export async function MyGiving({
                       {[
                         one.fundName,
                         one.nextOn
-                          ? t("giving.recurring.next", { date: longDate(one.nextOn) })
+                          ? t("giving.recurring.next", { date: briefDate(one.nextOn) })
                           : null,
                       ]
                         .filter(Boolean)
@@ -413,6 +338,83 @@ export async function MyGiving({
               ))}
             </ul>
           </Block>
+        ) : null}
+
+        {/* R13.16, R17.4. Their own pledges, so somebody who promised in
+            October can see in March what is left of it without asking. */}
+        {mine.pledges.length > 0 ? (
+          <Block icon={<Target />} title={t("pledge.mine")}>
+            <ul className="m-0 flex list-none flex-col p-0">
+              {mine.pledges.map((one) => {
+                const kept = one.givenCents >= one.amountCents;
+                const standing = standingOf({
+                  receivedCents: one.givenCents,
+                  targetCents: one.amountCents,
+                  startsOn: one.startsOn,
+                  endsOn: one.endsOn,
+                  today: mine.today,
+                  archived: one.archived,
+                });
+
+                return (
+                  <li
+                    key={one.id}
+                    className="flex flex-col gap-2 border-t border-sunken px-5 py-3.5 first:border-0"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate font-medium text-fg">{one.campaignName}</span>
+                        {kept ? (
+                          <span
+                            className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-semibold"
+                            style={{
+                              background: "var(--success-soft)", color: "var(--success-text)",
+                            }}
+                          >
+                            <CheckCircle2 className="size-3" aria-hidden />
+                            {t("pledge.kept")}
+                          </span>
+                        ) : (
+                          <PaceChip standing={standing} />
+                        )}
+                      </span>
+
+                      <span data-numeric className="shrink-0 text-[13px] text-fg-muted">
+                        {t("pledge.given", { amount: money(one.givenCents) })}
+                        {" \u00b7 "}
+                        {t("pledge.mine.of", { amount: money(one.amountCents) })}
+                      </span>
+                    </div>
+
+                    <Progress standing={standing} height={6} />
+
+                    {kept ? null : (
+                      <span data-numeric className="text-[12px] text-fg-subtle">
+                        {t("pledge.toGo", {
+                          amount: money(Math.max(0, one.amountCents - one.givenCents)),
+                        })}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Block>
+        ) : null}
+
+        {/* R13.19. January's errand, for whichever year they are asked for. */}
+        {mine.total.gifts > 0 || mine.years.length > 0 ? (
+          <Block
+            icon={<FileText />}
+            title={t("giving.statements")}
+            action={
+              <MyStatement
+                church={session.tenantSlug}
+                years={mine.years.length > 0 ? mine.years : [mine.year]}
+                thisYear={mine.year}
+              />
+            }
+          />
         ) : null}
           </div>
         </div>

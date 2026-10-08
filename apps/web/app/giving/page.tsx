@@ -19,7 +19,7 @@ import { Figure } from "@/app/reports/figure";
 import { Pager } from "@/components/pager";
 import { ResizableTable } from "@/components/resizable-columns";
 import { money, groupAmount } from "@/lib/money";
-import { longDate } from "@/lib/dates";
+import { briefDate, longDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
 import { GiftPanel } from "./gift-panel";
 import { RefundGift } from "./refund";
@@ -758,7 +758,7 @@ export default async function GivingPage({
                             }` as never,
                           ),
                           one.nextOn
-                            ? t("giving.recurring.next", { date: longDate(one.nextOn) })
+                            ? t("giving.recurring.next", { date: briefDate(one.nextOn) })
                             : null,
                         ]
                           .filter(Boolean)
