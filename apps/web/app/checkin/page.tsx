@@ -229,7 +229,7 @@ export default async function CheckinPage({
               key={one.id}
               href={`/checkin?church=${session.tenantSlug}&service=${one.slug}`}
               aria-current={one.id === data.chosen ? "page" : undefined}
-              className={`flex h-[34px] items-center rounded-full px-3.5 text-[13px] font-medium ${
+              className={`flex h-9 items-center rounded-full px-3.5 text-[13px] font-medium ${
                 one.id === data.chosen
                   ? "border border-fg bg-fg text-canvas"
                   : "border border-line-strong bg-surface text-fg hover:bg-sunken"
@@ -275,7 +275,7 @@ function ToolLink({
     <Link
       href={href}
       target={target}
-      className="flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
+      className="flex h-9 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
     >
       {children}
     </Link>

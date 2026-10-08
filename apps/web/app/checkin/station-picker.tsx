@@ -104,7 +104,16 @@ export function StationPicker({
       <div
         data-theme="light"
         data-density="station"
-        className="fixed inset-0 z-50 overflow-auto bg-canvas px-4 py-8 sm:px-6"
+        className="fixed inset-0 z-50 overflow-auto bg-canvas"
+        /* The screen is the whole device, so it pads itself off the notch and
+           the home indicator rather than putting a volunteer's last control
+           under either of them. */
+        style={{
+          paddingTop: "max(2rem, env(safe-area-inset-top))",
+          paddingBottom: "max(2rem, env(safe-area-inset-bottom))",
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+        }}
       >
         <div className="mx-auto w-full max-w-3xl">{content}</div>
       </div>

@@ -3784,7 +3784,7 @@ export const en = {
   "board.checkIn.title": "Check a child in",
   "board.child": "Child",
   "board.goToDesk": "Open the check-in desk",
-  "board.dragChild": "Drag a child to a room",
+  "board.dragChild": "Press a child, then the room they go to",
   "board.childOf": "Age {age} · {household} family",
   "board.childAge": "Age {age}",
   "board.ratio": "ratio 1:{n}",

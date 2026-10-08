@@ -100,6 +100,7 @@ export function Floor({
           }}
           onDragLeave={() => setOver((was) => (was === "" ? null : was))}
           onDrop={() => drop(dragging, null)}
+          onClick={() => { if (dragging) drop(dragging, null); }}
           className="flex min-h-[200px] flex-col gap-2.5 rounded-xl border border-dashed border-line-strong bg-sunken p-4"
           style={over === "" ? { borderColor: "var(--color-fg-subtle)" } : undefined}
         >
@@ -125,17 +126,24 @@ export function Floor({
               aria-pressed={dragging === child.visitId}
               onDragStart={() => setDragging(child.visitId)}
               onDragEnd={() => setDragging(null)}
+              /* R8.18, R24.6. Picked up with a press or a key and put down on
+                 a class the same way, so the board works for a finger and for
+                 somebody who cannot drag at all. */
+              onClick={(e) => {
+                e.stopPropagation();
+                setDragging((was) => (was === child.visitId ? null : child.visitId));
+              }}
               onKeyDown={(e) => {
-                // Picked up with a key, put down on a class with a key, so the
-                // screen works for somebody who cannot drag.
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   setDragging((was) => (was === child.visitId ? null : child.visitId));
                 }
               }}
-              className="flex cursor-grab items-center gap-2.5 rounded-md border border-line bg-surface px-3 py-2.5"
+              className="flex min-h-[var(--d-tap)] cursor-grab items-center gap-2.5 rounded-md border border-line bg-surface px-3 py-2.5"
               style={
-                dragging === child.visitId ? { borderColor: "var(--color-fg-subtle)" } : undefined
+                dragging === child.visitId
+                  ? { borderColor: "var(--color-primary)", background: "var(--color-primary-soft)" }
+                  : undefined
               }
             >
               <div className="min-w-0 flex-1">
@@ -178,6 +186,7 @@ export function Floor({
                 }}
                 onDragLeave={() => setOver((was) => (was === room.roomId ? null : was))}
                 onDrop={() => drop(dragging, room.roomId)}
+                onClick={() => { if (dragging) drop(dragging, room.roomId); }}
                 onKeyDown={(e) => {
                   if (dragging && (e.key === "Enter" || e.key === " ")) {
                     e.preventDefault();
@@ -240,6 +249,10 @@ export function Floor({
                       aria-pressed={dragging === child.visitId}
                       onDragStart={() => setDragging(child.visitId)}
                       onDragEnd={() => setDragging(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDragging((was) => (was === child.visitId ? null : child.visitId));
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
@@ -247,7 +260,12 @@ export function Floor({
                           setDragging((was) => (was === child.visitId ? null : child.visitId));
                         }
                       }}
-                      className="flex cursor-grab items-center gap-2 rounded-sm bg-surface px-2.5 py-[7px] text-[13px]"
+                      className="flex min-h-[var(--d-tap)] cursor-grab items-center gap-2 rounded-sm bg-surface px-2.5 py-[7px] text-[13px]"
+                      style={
+                        dragging === child.visitId
+                          ? { outline: "2px solid var(--color-primary)" }
+                          : undefined
+                      }
                     >
                       <span className="min-w-0 flex-1 truncate font-medium text-fg">
                         {child.name}
