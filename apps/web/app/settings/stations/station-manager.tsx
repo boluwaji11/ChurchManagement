@@ -144,7 +144,7 @@ export function StationManager({
                     disabled={pending}
                     onClick={() => setMode(station, mode)}
                     className={cn(
-                      "h-7.5 cursor-pointer rounded-[7px] px-3 text-label font-medium",
+                      "h-8 cursor-pointer rounded-[7px] px-3 text-label font-medium",
                       station.mode === mode
                         ? "bg-surface text-fg shadow-sm"
                         : "text-fg-muted hover:text-fg",

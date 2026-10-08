@@ -103,7 +103,7 @@ export function Matrix({
                   <RoleForm church={church} role={role} permissions={permissions} groups={groups} mine={mine}>
                     <button
                       type="button"
-                      className="w-full cursor-pointer rounded-sm px-1 py-0.5 font-medium text-primary underline decoration-primary/35 underline-offset-[3px] hover:bg-sunken hover:decoration-primary"
+                      className="min-h-8 w-full cursor-pointer rounded-sm px-1 py-1.5 font-medium text-primary underline decoration-primary/35 underline-offset-[3px] hover:bg-sunken hover:decoration-primary"
                     >
                       {nameOf(role)}
                     </button>

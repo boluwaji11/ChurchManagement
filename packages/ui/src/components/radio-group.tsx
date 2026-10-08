@@ -35,12 +35,20 @@ export const RadioItem = React.forwardRef<
   React.ComponentRef<typeof P.Item>,
   React.ComponentPropsWithoutRef<typeof P.Item> & { children?: React.ReactNode }
 >(({ className, children, id, ...props }, ref) => (
-  <label className="flex items-center gap-2.5 text-[length:var(--d-text-body)] cursor-pointer">
+  <label className="flex min-h-[var(--d-tap)] cursor-pointer items-center gap-2.5 text-[length:var(--d-text-body)]">
     <P.Item
       ref={ref}
       id={id}
       className={cn(
-        "size-5 shrink-0 rounded-full border border-line-strong bg-surface shadow-sm",
+        "relative size-5 shrink-0 rounded-full border border-line-strong bg-surface shadow-sm",
+        /*
+         * R24.6. The same reach the checkbox has. A 20px circle is a 20px
+         * target, which on a phone is a press somebody with a tremor
+         * misses. The circle keeps its size and the thing pressed is the
+         * density's own target, centred on it.
+         */
+        "before:absolute before:top-1/2 before:left-1/2 before:size-[var(--d-tap)]",
+        "before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']",
         "data-[state=checked]:border-primary data-[state=checked]:border-[6px]",
         "transition-[border-color,border-width] duration-instant ease-out",
         "disabled:opacity-45 disabled:pointer-events-none",
