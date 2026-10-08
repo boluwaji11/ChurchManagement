@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, Copy, Merge, Plus, Undo2, X } from "lucide-react";
+import { Archive, ChevronRight, Merge, Plus, Undo2, X } from "lucide-react";
 import {
   Avatar, Banner, Button, Field, IconButton, Input, Spinner,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -12,7 +12,7 @@ import {
   LIFT,
 } from "@connectapp/ui";
 import type { HouseholdAddress } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
@@ -39,6 +39,50 @@ export interface HouseholdItem {
  * left a church with no way to see a family, rename it, or put two halves of
  * the same one back together.
  */
+/**
+ * R24.6. A part of the panel that folds away.
+ *
+ * A household panel carries three things that have nothing to say to each
+ * other: what it is called, who is in it, and where it is. A church changing
+ * a surname should not have to scroll past six people to reach Save, so each
+ * part folds, and it is the summary line that opens it rather than a mark
+ * beside the heading.
+ */
+function Part({
+  title,
+  count,
+  open,
+  onOpen,
+  children,
+}: {
+  title: string;
+  /** What is inside, read before opening it. */
+  count?: string;
+  open: boolean;
+  onOpen: (next: boolean) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => onOpen(!open)}
+        className="flex min-h-[var(--d-tap)] cursor-pointer items-center gap-2 rounded-md text-left hover:text-primary"
+      >
+        <ChevronRight
+          aria-hidden
+          className={`size-4 shrink-0 text-fg-subtle transition-transform duration-instant ${open ? "rotate-90" : ""}`}
+        />
+        <span className="text-[15px] font-semibold text-fg">{title}</span>
+        {count ? <span className="text-[13px] text-fg-muted">{count}</span> : null}
+      </button>
+
+      {open ? <div className="flex flex-col gap-4 pt-2">{children}</div> : null}
+    </div>
+  );
+}
+
 /** R2.4. An address, as the five boxes the panel types into. */
 const parts = (held: HouseholdItem["address"]) => ({
   line1: held?.line1 ?? "",
@@ -240,6 +284,9 @@ function EditHousehold({
   const [where, setWhere] = React.useState(() => parts(household.address));
   /** Where the cursor goes when a pick has nothing to copy. */
   const street = React.useRef<HTMLInputElement>(null);
+  /* One part open at a time. Two long lists in one panel is a panel nobody
+     can see the bottom of. */
+  const [showing, setShowing] = React.useState<"members" | "address" | "none">("members");
 
   React.useEffect(() => {
     if (open) {
@@ -264,123 +311,129 @@ function EditHousehold({
       <SheetTrigger asChild>{trigger}</SheetTrigger>
 
       <SheetContent title={household.name} closeLabel={t("common.close")} width="560px">
-        <div className="flex flex-col gap-5">
-          <Field label={t("households.name")} required>
-            <Input
-              value={name}
-              onChange={(e) => setName_(e.target.value)}
-              onBlur={() => {
-                if (name.trim() && name.trim() !== household.name) {
-                  run(`name:${household.id}`, () => setName(household.id, name, church));
-                }
-              }}
-              autoComplete="off"
-            />
-          </Field>
+        <div className="flex flex-col divide-y divide-line">
+          <div className="pb-4">
+            <Field label={t("households.name")} required>
+              <Input
+                value={name}
+                onChange={(e) => setName_(e.target.value)}
+                onBlur={() => {
+                  if (name.trim() && name.trim() !== household.name) {
+                    run(`name:${household.id}`, () => setName(household.id, name, church));
+                  }
+                }}
+                autoComplete="off"
+              />
+            </Field>
+          </div>
 
-          <hr className="border-0 border-t border-line" />
+          <div className="py-4">
+            <Part
+              title={t("households.members")}
+              count={plural("households.memberCount", household.members.length)}
+              open={showing !== "address"}
+              onOpen={(next) => setShowing(next ? "members" : "none")}
+            >
+              <Members
+                church={church}
+                household={household}
+                pending={pending}
+                doing={doing}
+                run={run}
+              />
+            </Part>
+          </div>
 
-          <Members
-            church={church}
-            household={household}
-            pending={pending}
-            doing={doing}
-            run={run}
-          />
+          <div className="pt-4">
+            <Part
+              title={t("households.address")}
+              count={household.address?.line1 ?? undefined}
+              open={showing === "address"}
+              onOpen={(next) => setShowing(next ? "address" : "none")}
+            >
+              {/* R2.4. A family is entered one person at a time, so the
+                  address the church already holds is usually on somebody's
+                  own record. Picking somebody who has one copies it; picking
+                  somebody who has not leaves the boxes to type theirs in. */}
+              {household.members.length > 0 ? (
+                <Field label={t("households.sameAs")}>
+                  <Select
+                    value=""
+                    onValueChange={(id) => {
+                      const theirs = household.memberAddresses
+                        .find((one) => one.memberId === id)?.address;
+                      const next = {
+                        line1: theirs?.line1 ?? "",
+                        line2: theirs?.line2 ?? "",
+                        city: theirs?.city ?? "",
+                        region: theirs?.region ?? "",
+                        postalCode: theirs?.postalCode ?? "",
+                      };
+                      setWhere(next);
+                      if (theirs) {
+                        run(`address:${household.id}`, () =>
+                          setAddress(household.id, next, church));
+                      } else {
+                        street.current?.focus();
+                      }
+                    }}
+                  >
+                    <SelectTrigger aria-label={t("households.sameAs")}>
+                      <SelectValue placeholder={t("households.sameAsWho")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {household.members.map((who) => (
+                        <SelectItem key={who.id} value={who.id}>{who.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              ) : null}
 
-          <hr className="border-0 border-t border-line" />
-
-          {/* R2.4. The one fact a family holds in common, under the people it
-              belongs to, since who is in a household is settled before where
-              it lives is worth asking. */}
-          <div className="flex flex-col gap-4">
-            <span className="text-[15px] font-semibold text-fg">{t("households.address")}</span>
-
-            {/* R2.4. A family is entered one person at a time, so the address
-                the church holds is usually on somebody's own record. Every
-                member is offered, so the row says what it can do whether or
-                not anybody has one yet. Picking somebody who has one copies
-                it; picking somebody who has not clears the boxes to type
-                theirs in. */}
-            {household.members.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-1.5">
-                {household.members.map((who) => {
-                  const theirs = household.memberAddresses
-                    .find((one) => one.memberId === who.id)?.address;
-
-                  return (
-                    <button
-                      key={who.id}
-                      type="button"
-                      onClick={() => {
-                        const next = {
-                          line1: theirs?.line1 ?? "",
-                          line2: theirs?.line2 ?? "",
-                          city: theirs?.city ?? "",
-                          region: theirs?.region ?? "",
-                          postalCode: theirs?.postalCode ?? "",
-                        };
-                        setWhere(next);
-                        if (theirs) {
-                          run(`address:${household.id}`, () =>
-                            setAddress(household.id, next, church));
-                        } else {
-                          street.current?.focus();
-                        }
-                      }}
-                      className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-3.5"
-                    >
-                      {theirs ? <Copy aria-hidden /> : null}
-                      {t("households.sameAs", { name: who.name })}
-                    </button>
-                  );
-                })}
+              <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
+                <Field label={t("address.line1")} className="[grid-column:1/-1]">
+                  <Input
+                    ref={street}
+                    value={where.line1}
+                    onChange={(e) => setWhere({ ...where, line1: e.target.value })}
+                    onBlur={keep}
+                    autoComplete="off"
+                  />
+                </Field>
+                <Field label={t("address.line2")} className="[grid-column:1/-1]">
+                  <Input
+                    value={where.line2}
+                    onChange={(e) => setWhere({ ...where, line2: e.target.value })}
+                    onBlur={keep}
+                    autoComplete="off"
+                  />
+                </Field>
+                <Field label={t("address.city")}>
+                  <Input
+                    value={where.city}
+                    onChange={(e) => setWhere({ ...where, city: e.target.value })}
+                    onBlur={keep}
+                    autoComplete="off"
+                  />
+                </Field>
+                <Field label={t("address.region")}>
+                  <Input
+                    value={where.region}
+                    onChange={(e) => setWhere({ ...where, region: e.target.value })}
+                    onBlur={keep}
+                    autoComplete="off"
+                  />
+                </Field>
+                <Field label={t("address.postalCode")}>
+                  <Input
+                    value={where.postalCode}
+                    onChange={(e) => setWhere({ ...where, postalCode: e.target.value })}
+                    onBlur={keep}
+                    autoComplete="off"
+                  />
+                </Field>
               </div>
-            ) : null}
-
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
-              <Field label={t("address.line1")} className="[grid-column:1/-1]">
-                <Input
-                  ref={street}
-                  value={where.line1}
-                  onChange={(e) => setWhere({ ...where, line1: e.target.value })}
-                  onBlur={keep}
-                  autoComplete="off"
-                />
-              </Field>
-              <Field label={t("address.line2")} className="[grid-column:1/-1]">
-                <Input
-                  value={where.line2}
-                  onChange={(e) => setWhere({ ...where, line2: e.target.value })}
-                  onBlur={keep}
-                  autoComplete="off"
-                />
-              </Field>
-              <Field label={t("address.city")}>
-                <Input
-                  value={where.city}
-                  onChange={(e) => setWhere({ ...where, city: e.target.value })}
-                  onBlur={keep}
-                  autoComplete="off"
-                />
-              </Field>
-              <Field label={t("address.region")}>
-                <Input
-                  value={where.region}
-                  onChange={(e) => setWhere({ ...where, region: e.target.value })}
-                  onBlur={keep}
-                  autoComplete="off"
-                />
-              </Field>
-              <Field label={t("address.postalCode")}>
-                <Input
-                  value={where.postalCode}
-                  onChange={(e) => setWhere({ ...where, postalCode: e.target.value })}
-                  onBlur={keep}
-                  autoComplete="off"
-                />
-              </Field>
-            </div>
+            </Part>
           </div>
         </div>
       </SheetContent>
@@ -447,62 +500,8 @@ function Members({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <span className="text-label text-fg">{t("households.members")}</span>
-
-        {household.members.length === 0 ? (
-          <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
-        ) : (
-          <ul className="flex flex-col">
-            {household.members.map((member) => (
-              <li
-                key={member.id}
-                className="flex items-center gap-2.5 border-b border-sunken py-2 last:border-0"
-              >
-                <Avatar
-                  name={member.name}
-                  id={member.id}
-                  className="size-7 text-[11px] font-semibold"
-                />
-                <span className="min-w-0 flex-1 truncate font-medium text-fg">{member.name}</span>
-
-                <Select
-                  value={member.role}
-                  onValueChange={(next) => {
-                    onRole?.(member.id, next);
-                    run(`role:${member.id}`, () =>
-                      setRole(household.id, member.id, next, church),
-                    );
-                  }}
-                >
-                  <SelectTrigger
-                    aria-label={t("personForm.householdRole")}
-                    className="w-36 shrink-0"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {householdRoleOptions().map((one) => (
-                      <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <TakeOut
-                  church={church}
-                  household={household}
-                  member={member}
-                  pending={pending}
-                  doing={doing}
-                  run={run}
-                  onRemoved={onRemoved}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
+      {/* R2.1. Adding comes first. A household is opened to put somebody in
+          it far more often than to read who is already there. */}
       <div className="flex flex-col gap-2">
         <span className="text-label text-fg">{t("households.addPerson")}</span>
 
@@ -541,6 +540,76 @@ function Members({
           </ul>
         )}
       </div>
+
+      {household.members.length === 0 ? (
+        <p className="text-[13px] text-fg-subtle">{t("households.nobody")}</p>
+      ) : (
+        /* R24.4. The thread the rest of the product uses for a thing inside a
+           thing, drawn in two pieces so the line crosses the gap between
+           rows. */
+        <ul className="m-0 flex list-none flex-col p-0">
+          {household.members.map((member, at) => {
+            const last = at === household.members.length - 1;
+
+            return (
+              <li key={member.id} className="flex min-w-0 gap-3">
+                <span
+                  aria-hidden
+                  className="flex w-7 shrink-0 flex-col items-center self-stretch"
+                >
+                  {/* The darker hairline: a 1px rule in the line colour
+                      disappears between two coloured faces. */}
+                  <span className={`h-2.5 w-px ${at === 0 ? "" : "bg-line-strong"}`} />
+                  <Avatar
+                    name={member.name}
+                    id={member.id}
+                    className="size-7 shrink-0 text-[11px] font-semibold"
+                  />
+                  <span className={`w-px flex-1 ${last ? "" : "bg-line-strong"}`} />
+                </span>
+
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5 py-2.5">
+                  <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                    {member.name}
+                  </span>
+
+                  <Select
+                    value={member.role}
+                    onValueChange={(next) => {
+                      onRole?.(member.id, next);
+                      run(`role:${member.id}`, () =>
+                        setRole(household.id, member.id, next, church),
+                      );
+                    }}
+                  >
+                    <SelectTrigger
+                      aria-label={t("personForm.householdRole")}
+                      className="w-36 shrink-0"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {householdRoleOptions().map((one) => (
+                        <SelectItem key={one.value} value={one.value}>{one.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <TakeOut
+                    church={church}
+                    household={household}
+                    member={member}
+                    pending={pending}
+                    doing={doing}
+                    run={run}
+                    onRemoved={onRemoved}
+                  />
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
