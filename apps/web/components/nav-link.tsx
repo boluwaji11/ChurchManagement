@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@connectapp/ui";
+import { Opening } from "./opening";
 
 /**
  * One link in the header, and whether it is the screen you are on.
@@ -28,11 +29,12 @@ export function NavLink({
       href={`${href}?church=${church}`}
       aria-current={here ? "page" : undefined}
       className={cn(
-        "rounded-md px-2.5 py-1 text-label transition-colors duration-instant",
+        "inline-flex items-center rounded-md px-2.5 py-1 text-label transition-colors duration-instant",
         here ? "bg-sunken font-medium text-fg" : "text-fg-muted hover:bg-sunken hover:text-fg",
       )}
     >
       {label}
+      <Opening />
     </Link>
   );
 }

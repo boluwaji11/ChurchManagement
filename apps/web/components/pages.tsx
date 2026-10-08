@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@connectapp/ui";
+import { cn, Spinner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -37,6 +37,23 @@ export function Pages({
     tokens.push(last);
   }
 
+  /*
+   * R24.6. Every caller of this navigates, and a server-rendered page can
+   * take a moment, so the pager holds the press: the page being opened is
+   * marked and the whole row stops taking presses until it lands.
+   */
+  const [going, setGoing] = React.useState<number>();
+  const [pending, start] = React.useTransition();
+
+  React.useEffect(() => {
+    if (!pending) setGoing(undefined);
+  }, [pending]);
+
+  const go = (to: number) => {
+    setGoing(to);
+    start(() => onPage(to));
+  };
+
   const arrow =
     "grid size-8 cursor-pointer place-items-center rounded-sm border border-line-strong bg-surface disabled:cursor-default disabled:opacity-40";
 
@@ -45,8 +62,8 @@ export function Pages({
       <button
         type="button"
         aria-label={t("pages.previous")}
-        disabled={page <= 1}
-        onClick={() => onPage(page - 1)}
+        disabled={page <= 1 || pending}
+        onClick={() => go(page - 1)}
         className={arrow}
       >
         <ChevronLeft className="size-4" />
@@ -62,7 +79,8 @@ export function Pages({
             key={token}
             type="button"
             aria-current={token === page ? "page" : undefined}
-            onClick={() => onPage(token)}
+            disabled={pending}
+            onClick={() => go(token)}
             className={cn(
               "h-8 min-w-8 cursor-pointer rounded-sm border px-2 text-[13px]",
               token === page
@@ -70,7 +88,7 @@ export function Pages({
                 : "border-transparent font-medium text-fg-muted hover:bg-sunken",
             )}
           >
-            {token}
+            {going === token ? <Spinner className="align-middle" /> : token}
           </button>
         ),
       )}
@@ -78,8 +96,8 @@ export function Pages({
       <button
         type="button"
         aria-label={t("pages.next")}
-        disabled={page >= last}
-        onClick={() => onPage(page + 1)}
+        disabled={page >= last || pending}
+        onClick={() => go(page + 1)}
         className={arrow}
       >
         <ChevronRight className="size-4" />

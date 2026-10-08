@@ -10,6 +10,7 @@ import { FlameMark } from "../brand";
 import { activeHref, type NavTarget } from "./nav-active";
 import { useSectionMemory, forgetSection, clearSectionMemory } from "./section-memory";
 import { setSidebarCollapsed } from "./sidebar-actions";
+import { Opening } from "../opening";
 
 /** A nav entry with its icon already drawn, so this file holds no database. */
 export interface ShellEntry extends NavTarget {
@@ -173,6 +174,9 @@ export function Sidebar({
               {collapsed ? null : (
                 <span className="truncate whitespace-nowrap">{entry.label}</span>
               )}
+              {/* R24.6. The section being opened, while the server builds
+                  it. Collapsed, the mark stands in for the icon's row. */}
+              <Opening className="ml-auto" />
             </Link>
           );
 

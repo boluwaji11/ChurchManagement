@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { useInstall, usePush } from "./installed";
+import { Opening } from "../opening";
 
 export interface PortalTab {
   label: string;
@@ -71,6 +72,7 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
           }
         >
           {tab.label}
+          <Opening />
         </Link>
       ))}
     </nav>

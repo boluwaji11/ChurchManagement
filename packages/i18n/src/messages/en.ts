@@ -3863,6 +3863,7 @@ export const en = {
   "event.search": "Search events",
   "form.search": "Search forms",
   "common.chooseOne": "Choose one",
+  "common.opening": "Opening",
   "common.none": "None",
   "common.saved": "Saved",
   "common.searching": "Searching",
