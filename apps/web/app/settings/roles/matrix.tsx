@@ -78,7 +78,11 @@ export function Matrix({
       <table className="w-full border-collapse text-left">
         <thead>
           <tr className="border-b border-line">
-            <th className="sticky left-0 bg-surface px-5 py-3 align-bottom text-[12px] font-semibold text-fg">
+            {/* R24.6. Pinned, and held to 190px on a phone. The names run
+                to half a sentence, so left to size itself the column took
+                the whole screen and every role sat off the right edge with
+                nothing to say so. */}
+            <th className="sticky left-0 z-10 w-[190px] border-r border-line bg-surface px-4 py-3 align-bottom text-[12px] font-semibold text-fg sm:w-auto sm:border-r-0 sm:px-5">
               {t("roles.permission")}
             </th>
 
@@ -136,7 +140,7 @@ export function Matrix({
 
               {(shut.includes(group.key) ? [] : group.permissions).map((permission) => (
             <tr key={permission} className="border-b border-sunken last:border-0">
-              <td className="sticky left-0 bg-surface px-5 py-2.5 text-[length:var(--d-text-body)] text-fg">
+              <td className="sticky left-0 z-10 border-r border-line bg-surface px-4 py-2.5 text-[length:var(--d-text-body)] text-fg sm:border-r-0 sm:px-5">
                 {t(`permission.${permission}` as never)}
               </td>
 
