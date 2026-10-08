@@ -1167,7 +1167,6 @@ export const en = {
   "giving.method.in_kind": "In kind",
   "giving.method.other": "Other",
   "giving.empty.title": "No giving recorded yet",
-  "giving.empty.body": "Start a counting session to enter what came in, or connect Stripe to take gifts online.",
   // Funds, kept in settings
   "settings.group.money": "Money",
   "settings.tab.funds": "Funds",

@@ -292,10 +292,15 @@ export default async function GivingPage({
           <Empty
             icon="calendar"
             title={t("giving.empty.title")}
-            body={t("giving.empty.body")}
             action={
               manage ? (
-                <StartCount church={session.tenantSlug} today={read.today} funds={fundList} />
+                /* Both ways in, because a church with nothing recorded is
+                   either about to count a plate or about to type in a
+                   cheque, and the screen cannot know which. */
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <StartCount church={session.tenantSlug} today={read.today} funds={fundList} />
+                  <GiftPanel church={session.tenantSlug} today={read.today} funds={fundList} />
+                </div>
               ) : undefined
             }
           />
