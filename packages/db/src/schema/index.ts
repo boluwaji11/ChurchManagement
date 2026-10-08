@@ -13,6 +13,7 @@ export * from "./groups";
 export * from "./followups";
 export * from "./directory";
 export * from "./lists";
+export * from "./mailers";
 export * from "./serving";
 export * from "./plans";
 export * from "./forms";

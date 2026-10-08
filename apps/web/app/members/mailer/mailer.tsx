@@ -10,6 +10,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { Download } from "@/components/download";
 import { RichText } from "@/components/rich-text";
+import { saveMailer } from "./actions";
 
 export interface PostList {
   id: string;
@@ -43,16 +44,41 @@ const FIELDS = [
  * once and the two jobs sit behind it. Asking it twice on two screens is how
  * a church ends up posting a letter to one list and labels for another.
  */
+/**
+ * R16.12. The mailer being written, as it was last saved.
+ *
+ * Everything the screen holds, so a refresh halfway through a letter opens on
+ * the same words, the same list and the same stock.
+ */
+export interface SavedMailer {
+  id: string;
+  name: string;
+  recipients: string;
+  listId: string | null;
+  paper: string;
+  skip: number;
+  body: string;
+}
+
+/** When it last saved, short enough to sit in a header. */
+const stamp = (at: number): string =>
+  new Date(at).toLocaleString(undefined, {
+    day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
+  });
+
 export function Mailer({
   church,
   lists,
   households,
+  saved,
 }: {
   church: string;
   /** R1.14. The saved lists a church keeps, so post can go to one of them. */
   lists: PostList[];
   /** How many households hold an address at all. */
   households: number;
+  /** R16.12. The record this screen is editing. */
+  saved: SavedMailer;
 }) {
   /* R16.12. One a family, or one a person. A church writing about a members'
      meeting wants a label each; one posting a newsletter wants one through
@@ -61,10 +87,20 @@ export function Mailer({
   const PEOPLE = "__people";
 
   const [doing, setDoing] = React.useState<"letters" | "labels">("letters");
-  const [list, setList] = React.useState(HOUSEHOLDS);
-  const [paper, setPaper] = React.useState<PaperStock>("envelope");
-  const [skip, setSkip] = React.useState("0");
-  const [letter, setLetter] = React.useState("");
+  const [name, setName] = React.useState(saved.name);
+  const [list, setList] = React.useState(
+    saved.recipients === "people"
+      ? PEOPLE
+      : saved.recipients === "list" && saved.listId
+        ? saved.listId
+        : HOUSEHOLDS,
+  );
+  const [paper, setPaper] = React.useState<PaperStock>(saved.paper as PaperStock);
+  const [skip, setSkip] = React.useState(String(saved.skip));
+  const [letter, setLetter] = React.useState(saved.body);
+  const [saving, setSaving] = React.useState(false);
+  const [savedAt, setSavedAt] = React.useState<number | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   /** R16.12. Writes a field's mark where the writer's caret is. */
   const write = React.useRef<((text: string) => void) | null>(null);
@@ -87,6 +123,55 @@ export function Mailer({
 
   const fileHref = `/api/letters?church=${church}${who}`
     + `&body=${encodeURIComponent(letter)}`;
+
+  /*
+   * R16.12. It saves itself.
+   *
+   * A letter to a congregation is typed over a week in four-minute gaps, and
+   * a Save button is a thing somebody closes the laptop without pressing. A
+   * beat behind the last keystroke rather than on every one, so a sentence is
+   * one write instead of forty.
+   */
+  const first = React.useRef(true);
+  React.useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+
+    let live = true;
+    const timer = setTimeout(() => {
+      setSaving(true);
+      void saveMailer(
+        {
+          id: saved.id,
+          name,
+          recipients: list === PEOPLE ? "people" : list === HOUSEHOLDS ? "households" : "list",
+          listId: list === PEOPLE || list === HOUSEHOLDS ? null : list,
+          paper,
+          skip: Number(skip) || 0,
+          body: letter,
+        },
+        church,
+      ).then((back) => {
+        if (!live) return;
+        setSaving(false);
+        if (back.error) {
+          setError(back.error);
+          return;
+        }
+        setError(null);
+        setSavedAt(Date.now());
+      });
+    }, 900);
+
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+    // The names of the two sentinels never change, so they are left out.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saved.id, name, list, paper, skip, letter, church]);
 
   const put = (mark: string) => {
     if (write.current) write.current(`{${mark}}`);
@@ -138,6 +223,26 @@ export function Mailer({
 
   return (
     <div className="flex flex-col gap-5">
+      {/* R16.12. The name of the thing being written, and when it last wrote
+          itself down. Nothing here is pressed to save it. */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <Field label={t("post.name")} required className="min-w-[240px] flex-1">
+          <Input value={name} onChange={(event) => setName(event.target.value)} />
+        </Field>
+        <span
+          role="status"
+          className="flex min-h-9 items-center text-caption text-fg-subtle tabular-nums"
+        >
+          {saving
+            ? t("post.saving")
+            : savedAt
+              ? t("post.savedAt", { when: stamp(savedAt) })
+              : ""}
+        </span>
+      </div>
+
+      {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
+
       {/* R24.6. Two jobs, named, rather than two buttons at the bottom of one
           screen with a sheet picker between them that only one of them uses. */}
       <div
@@ -221,7 +326,7 @@ export function Mailer({
         <>
           <Field label={t("post.letter")} required action={letterActions}>
             <RichText
-              defaultValue=""
+              defaultValue={saved.body}
               minHeight={260}
               maxHeight={420}
               onChange={setLetter}

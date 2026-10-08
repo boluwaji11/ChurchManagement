@@ -42,6 +42,7 @@ export {
 export * from "./repo/reports";
 export * from "./repo/report-spec";
 export * from "./repo/report-compiler";
+export * from "./repo/mailers";
 export * from "./repo/saved-reports";
 export * from "./repo/accounts";
 export {
