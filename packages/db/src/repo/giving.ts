@@ -63,6 +63,8 @@ export interface Batch {
   lines: number;
   /** R13.9. The fund it was given to, or the funds where it was split. */
   funds: string;
+  /** R13.12. Cash, cheques, or both. */
+  methods: string;
 }
 
 const money = (value: unknown): number => {
@@ -221,6 +223,7 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
       enteredCents: sql<number>`coalesce(sum(${gifts.amountCents}), 0)::int`,
       lines: sql<number>`count(${gifts.id})::int`,
       funds: sql<string>`coalesce(string_agg(distinct ${funds.name}, ', '), '')`,
+      methods: sql<string>`coalesce(string_agg(distinct ${gifts.method}, ','), '')`,
     })
     .from(giftBatches)
     .leftJoin(gifts, eq(gifts.batchId, giftBatches.id))
@@ -240,6 +243,7 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
     enteredCents: row.enteredCents,
     lines: row.lines,
     funds: row.funds,
+    methods: row.methods,
   }));
 }
 

@@ -37,6 +37,8 @@ export async function startCount(
     /** R13.9, R13.10. What was counted, and which fund it was given to. */
     fundId: string;
     amountCents: number;
+    /** R13.12. Cash or cheques, which is what a session is counting. */
+    method?: GiftMethod;
     counterOneId?: string | null;
     counterTwoId?: string | null;
   },
@@ -51,7 +53,7 @@ export async function startCount(
         fundId: input.fundId,
         batchId: batch.id,
         amountCents: input.amountCents,
-        method: "cash",
+        method: input.method ?? "cash",
         receivedOn: input.receivedOn,
       });
       return batch;

@@ -197,10 +197,11 @@ export default async function GivingPage({
                 {/* R13.10. A session is what was counted at one service: the
                     day, what the church called it, the fund it went to and
                     how much there was, with the slip for the bank on it. */}
-                <li className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:152px_minmax(0,1fr)_140px_120px_44px]">
+                <li className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:152px_minmax(0,1fr)_140px_90px_120px_44px]">
                   <span>{t("giving.col.date")}</span>
                   <span>{t("giving.count.name")}</span>
                   <span>{t("giving.col.fund")}</span>
+                  <span>{t("giving.col.method")}</span>
                   <span className="text-right">{t("giving.count.counted")}</span>
                   <span />
                 </li>
@@ -208,13 +209,20 @@ export default async function GivingPage({
                 {read.counts.map((count) => (
                   <li
                     key={count.id}
-                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:152px_minmax(0,1fr)_140px_120px_44px]"
+                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:152px_minmax(0,1fr)_140px_90px_120px_44px]"
                   >
                     <span className="whitespace-nowrap text-[13px] text-fg-subtle">
                       {longDate(count.receivedOn)}
                     </span>
                     <span className="min-w-0 truncate font-medium text-fg">{count.name}</span>
                     <span className="truncate text-[13px] text-fg-muted">{count.funds}</span>
+                    <span className="truncate text-[13px] text-fg-muted">
+                      {count.methods
+                        .split(",")
+                        .filter(Boolean)
+                        .map((one) => t(`giving.method.${one}` as never))
+                        .join(", ")}
+                    </span>
                     <span data-numeric className="text-right text-fg">
                       {money(count.enteredCents)}
                     </span>

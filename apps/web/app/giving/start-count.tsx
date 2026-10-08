@@ -39,6 +39,8 @@ export function StartCount({
   const [name, setName] = React.useState("");
   const [date, setDate] = React.useState(today);
   const [fundId, setFundId] = React.useState(funds[0]?.id ?? "");
+  /* R13.12. Cash or cheques: the two things a session is counting. */
+  const [method, setMethod] = React.useState<"cash" | "cheque">("cash");
   const [amount, setAmount] = React.useState("");
   const [saving, startTransition] = React.useTransition();
 
@@ -49,6 +51,7 @@ export function StartCount({
       setName("");
       setAmount("");
       setFundId(funds[0]?.id ?? "");
+      setMethod("cash");
       setDate(today);
     }
   };
@@ -62,7 +65,7 @@ export function StartCount({
     }
     startTransition(async () => {
       const result = await startCount(
-        { name, receivedOn: date, fundId, amountCents: cents },
+        { name, receivedOn: date, fundId, amountCents: cents, method },
         church,
       );
       setError(result.error);
@@ -154,7 +157,23 @@ export function StartCount({
             </Select>
           </Field>
 
-          <Field label={t("giving.count.counted")} required>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t("giving.gift.method")} required>
+              <Select value={method} onValueChange={(next) => {
+                setMethod(next as "cash" | "cheque");
+                setDirty(true);
+              }}>
+                <SelectTrigger aria-label={t("giving.gift.method")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">{t("giving.method.cash")}</SelectItem>
+                  <SelectItem value="cheque">{t("giving.method.cheque")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field label={t("giving.count.counted")} required>
             <MoneyInput
               value={amount}
               onChange={(next) => {
@@ -164,7 +183,8 @@ export function StartCount({
               placeholder="0.00"
               autoComplete="off"
             />
-          </Field>
+            </Field>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
