@@ -99,12 +99,16 @@ export function NewTag({
   const library = React.useMemo(() => tagLibrary(taken), [taken.join("|")]);
   const [picking, setPicking] = React.useState(library.length > 0);
   const [error, setError] = useFormError(open && !picking);
-  const [pending, setPending] = React.useState(false);
+  const [pending, startSaving] = React.useTransition();
 
-  const save = async () => {
-    setError(undefined);
-    setPending(true);
-    try {
+  /*
+   * R24.6. The panel stays open, and Add stays busy, until the chip is on the
+   * row behind it. Closing on the answer from the server left a volunteer
+   * looking at a list that did not yet hold the tag they had just written.
+   */
+  const save = () =>
+    startSaving(async () => {
+      setError(undefined);
       const data = new FormData();
       data.set("church", church);
       data.set("name", name);
@@ -113,12 +117,9 @@ export function NewTag({
         setError(result.error);
         return;
       }
-      close(false);
       router.refresh();
-    } finally {
-      setPending(false);
-    }
-  };
+      close(false);
+    });
 
   const close = (next: boolean) => {
     setOpen(next);
@@ -177,7 +178,10 @@ export function NewTag({
             }}
           />
         ) : (
-          <div className="flex flex-col gap-4">
+          <div
+            aria-busy={pending}
+            className={`flex flex-col gap-4 ${pending ? "pointer-events-none opacity-60" : ""}`}
+          >
             {library.length === 0 ? null : (
               <button
                 type="button"
@@ -212,25 +216,44 @@ export function NewTag({
  * opens a dialog means the flow is wrong.
  */
 function EditTag({ church, tag, others }: { church: string; tag: TagItem; others: TagItem[] }) {
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [hue, setHue] = React.useState(tag.hue);
   const [error, setError] = useFormError(open);
-  const [pending, setPending] = React.useState(false);
+  /*
+   * R24.6. One flag for each of the three writes. A single shared flag spun the
+   * spinner on Save, on Merge and on Delete at the same time, so one press read
+   * as all three going off at once. Each flag comes from its own transition,
+   * which is true from the moment of the press. A piece of state set inside a
+   * form action commits with the writing it was meant to announce, so it leaves
+   * the control looking untouched for the whole of the wait.
+   */
+  const [saving, startSaving] = React.useTransition();
+  const [merging, startMerging] = React.useTransition();
+  const [deleting, startDeleting] = React.useTransition();
+  const pending = saving || merging || deleting;
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [mergeInto, setMergeInto] = React.useState<string>();
   const formId = React.useId();
   const full = useAnswered(formId, open);
 
-  const run = async (fn: (d: FormData) => Promise<{ error?: string }>, data: FormData) => {
+  const run = (
+    start: React.TransitionStartFunction,
+    fn: (d: FormData) => Promise<{ error?: string }>,
+    data: FormData,
+  ) => {
     setError(undefined);
-    setPending(true);
-    try {
+    start(async () => {
       const result = await fn(data);
-      if (result.error) setError(result.error);
-      else reset(false);
-    } finally {
-      setPending(false);
-    }
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      /* The chips are on a settings screen these actions do not revalidate, so
+         the panel holds until this one has them again. */
+      router.refresh();
+      reset(false);
+    });
   };
 
   const reset = (next: boolean) => {
@@ -258,7 +281,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
       <SheetContent title={tag.name} closeLabel={t("common.close")}>
         {error ? <Banner tone="danger" title={t("tags.failed")} className="mb-4">{error}</Banner> : null}
 
-        <form id={formId} action={(d) => run(saveTag, d)} className="flex flex-col gap-4">
+        <form id={formId} action={(d) => run(startSaving, saveTag, d)} className="flex flex-col gap-4">
           <input type="hidden" name="church" value={church} />
           <input type="hidden" name="id" value={tag.id} />
           <input type="hidden" name="hue" value={hue} />
@@ -291,7 +314,9 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
           </fieldset>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" loading={pending} disabled={!full}>{t("action.save")}</Button>
+            <Button type="submit" loading={saving} disabled={pending || !full}>
+              {t("action.save")}
+            </Button>
             <SheetClose asChild>
               <Button type="button" variant="ghost">{t("action.cancel")}</Button>
             </SheetClose>
@@ -301,7 +326,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
         {others.length > 0 ? (
           <>
             <Separator className="my-5" />
-            <form action={(d) => run(foldTag, d)} className="flex flex-col gap-3">
+            <form action={(d) => run(startMerging, foldTag, d)} className="flex flex-col gap-3">
               <input type="hidden" name="church" value={church} />
               <input type="hidden" name="fromId" value={tag.id} />
               <Field label={t("tags.mergeInto")}>
@@ -316,7 +341,12 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
                   </SelectContent>
                 </Select>
               </Field>
-              <Button type="submit" variant="secondary" disabled={!mergeInto} loading={pending}>
+              <Button
+                type="submit"
+                variant="secondary"
+                disabled={pending || !mergeInto}
+                loading={merging}
+              >
                 <Merge /> {t("tags.mergeAction", { name: tag.name })}
               </Button>
             </form>
@@ -326,17 +356,22 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
         <Separator className="my-5" />
 
         {confirmingDelete ? (
-          <form action={(d) => run(removeTag, d)} className="flex flex-col gap-3">
+          <form action={(d) => run(startDeleting, removeTag, d)} className="flex flex-col gap-3">
             <input type="hidden" name="church" value={church} />
             <input type="hidden" name="id" value={tag.id} />
             <p className="text-[length:var(--d-text-body)] text-fg">
               {plural("tags.deleteBody", tag.members)}
             </p>
             <div className="flex items-center gap-3">
-              <Button type="submit" variant="danger" loading={pending}>
+              <Button type="submit" variant="danger" loading={deleting}>
                 <Trash2 /> {t("tags.deleteAction", { name: tag.name })}
               </Button>
-              <Button type="button" variant="ghost" onClick={() => setConfirmingDelete(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={pending}
+                onClick={() => setConfirmingDelete(false)}
+              >
                 {t("tags.keep")}
               </Button>
             </div>

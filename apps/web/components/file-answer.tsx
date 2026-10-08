@@ -121,9 +121,12 @@ export function FileAnswer({
         className="hidden"
       />
 
+      {/* R24.6. The bytes go up as the file is chosen, so the control that
+          opened the picker carries the wait. */}
       <Button
         type="button"
         variant="secondary"
+        loading={busy}
         disabled={busy || full}
         onClick={() => input.current?.click()}
         className="self-start"

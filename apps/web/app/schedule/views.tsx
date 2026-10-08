@@ -40,6 +40,7 @@ export function ServingViews({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const [busy, startFilling] = React.useTransition();
 
   const go = (next: Record<string, string | undefined>) => {
     const query = new URLSearchParams(params.toString());
@@ -47,7 +48,9 @@ export function ServingViews({
       if (value === undefined) query.delete(key);
       else query.set(key, value);
     }
-    router.push(`${pathname}?${query.toString()}`, { scroll: false });
+    startFilling(() => {
+      router.push(`${pathname}?${query.toString()}`, { scroll: false });
+    });
   };
 
   if (!schedule) {
@@ -70,7 +73,18 @@ export function ServingViews({
   }
 
   return (
-    <>
+    /*
+     * R24.6. A month for another team is a month fetched from the server, and
+     * the picker that asks for it sits inside the grid. The grid itself goes
+     * quiet for the round trip, which marks the wait and holds the picker off
+     * a second choice until the new month lands.
+     */
+    <div
+      aria-busy={busy}
+      className={`flex flex-col gap-7 transition-opacity duration-fast ${
+        busy ? "pointer-events-none opacity-60" : ""
+      }`}
+    >
       {heading}
 
       <ScheduleGrid
@@ -84,6 +98,6 @@ export function ServingViews({
         canManage={canManage}
         onTeam={(slug) => go({ team: slug })}
       />
-    </>
+    </div>
   );
 }
