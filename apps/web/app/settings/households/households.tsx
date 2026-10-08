@@ -284,14 +284,18 @@ function EditHousehold({
   const [where, setWhere] = React.useState(() => parts(household.address));
   /** Where the cursor goes when a pick has nothing to copy. */
   const street = React.useRef<HTMLInputElement>(null);
-  /* One part open at a time. Two long lists in one panel is a panel nobody
-     can see the bottom of. */
-  const [showing, setShowing] = React.useState<"members" | "address" | "none">("members");
+  /* Both folded when it opens, and each opens on its own. The panel's first
+     screen is then the household's name and what it holds, which is what
+     somebody arriving at it is looking at. */
+  const [openMembers, setOpenMembers] = React.useState(false);
+  const [openAddress, setOpenAddress] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
       setName_(household.name);
       setWhere(parts(household.address));
+      setOpenMembers(false);
+      setOpenAddress(false);
     }
   }, [open, household.name, household.address]);
 
@@ -331,8 +335,8 @@ function EditHousehold({
             <Part
               title={t("households.members")}
               count={plural("households.memberCount", household.members.length)}
-              open={showing !== "address"}
-              onOpen={(next) => setShowing(next ? "members" : "none")}
+              open={openMembers}
+              onOpen={setOpenMembers}
             >
               <Members
                 church={church}
@@ -348,8 +352,8 @@ function EditHousehold({
             <Part
               title={t("households.address")}
               count={household.address?.line1 ?? undefined}
-              open={showing === "address"}
-              onOpen={(next) => setShowing(next ? "address" : "none")}
+              open={openAddress}
+              onOpen={setOpenAddress}
             >
               {/* R2.4. A family is entered one person at a time, so the
                   address the church already holds is usually on somebody's
