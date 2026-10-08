@@ -3,7 +3,7 @@
 import {
   withTenant, createGroup, updateGroup, setGroupArchived,
   addToGroup, removeFromGroup, leaveGroup, lookupPeople, getChurch,
-  requestToJoin, decideRequest, setGroupPhoto, setGroupOpen, setGroupStatus,
+  requestToJoin, withdrawRequest, decideRequest, setGroupPhoto, setGroupOpen, setGroupStatus,
   type GroupRole,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
@@ -189,6 +189,22 @@ export async function ask(
   const { ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => requestToJoin(tx, ctx, { groupId, message }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R9.5. Taking a request back.
+ *
+ * Pressing Join on the wrong group left the asker with nothing to do but
+ * wait for a leader to answer a question they no longer wanted asked.
+ */
+export async function unask(groupId: string, church?: string): Promise<AskResult> {
+  const { ctx } = await context(church);
+  try {
+    await withTenant(ctx, (tx) => withdrawRequest(tx, ctx, groupId));
     return {};
   } catch (error) {
     return { error: explain(error) };

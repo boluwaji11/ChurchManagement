@@ -2021,6 +2021,8 @@ export const en = {
   "find.open.other": "{count} open",
   "find.join": "Request to join",
   "find.asked": "Requested",
+  "find.unask": "Cancel request",
+  "find.unaskTitle": "Cancel your request to join?",
   "find.declined": "Not this time",
   "find.member": "You are in this group",
   "find.full": "Full",

@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, isNull, isNotNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { notifyRoles } from "./notifications";
+import { notifications } from "../schema/notifications";
 import {
   groups, groupTypes, groupMemberships, groupJoinRequests, groupMeetings,
 } from "../schema/groups";
@@ -378,6 +379,55 @@ async function requestsWhere(db: Tx, where: ReturnType<typeof eq>): Promise<Join
  * somebody has to notice the request sitting under a leader who stopped
  * checking.
  */
+/**
+ * R9.5. Taking back a request to join.
+ *
+ * Somebody who pressed Join on the wrong group, or who has since joined
+ * another, had no way out of it: the request sat on the leader's page until
+ * they answered a question nobody wanted asked.
+ *
+ * Only their own, and only while it is still pending. An answered request is
+ * a thing that happened, and the notification the leader already holds is
+ * tidied up with it, because a line about a question that has been withdrawn
+ * sends them to a page with nothing on it.
+ */
+export async function withdrawRequest(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole; userId?: string | null },
+  groupId: string,
+): Promise<void> {
+  const self = actor.userId ? await personForUser(db, actor.userId) : null;
+  if (!self) throw new InvalidInputError("join.error.noPerson");
+
+  const [gone] = await db
+    .delete(groupJoinRequests)
+    .where(and(
+      eq(groupJoinRequests.groupId, groupId),
+      eq(groupJoinRequests.memberId, self),
+      eq(groupJoinRequests.status, "pending"),
+    ))
+    .returning({ id: groupJoinRequests.id });
+
+  if (!gone) return;
+
+  const [group] = await db
+    .select({ slug: groups.slug })
+    .from(groups)
+    .where(eq(groups.id, groupId))
+    .limit(1);
+
+  if (group) {
+    await db
+      .delete(notifications)
+      .where(and(
+        eq(notifications.tenantId, actor.tenantId),
+        eq(notifications.kind, "join_request"),
+        eq(notifications.href, `/groups/${group.slug}#requests`),
+        isNull(notifications.readAt),
+      ));
+  }
+}
+
 export async function pendingRequests(
   db: Tx,
   actor: { role: TenantRole; userId?: string | null },

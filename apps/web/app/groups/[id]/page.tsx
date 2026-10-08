@@ -18,6 +18,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow, hasHappened } from "@/lib/church-now";
 import { toAddress, oneLineAddress, directionsLink } from "@/lib/address";
 import { JoinButton } from "./join-button";
+import { AskedButton } from "./asked-button";
 import { LeaveButton } from "./leave-button";
 import { ManageGroup } from "./manage";
 import { GroupDetail, type DetailMeeting } from "./detail";
@@ -351,7 +352,7 @@ export default async function GroupPage({
               />
             </span>
           ) : group.requested === "pending" ? (
-            <Badge tone="neutral"><Check aria-hidden /> {t("find.asked")}</Badge>
+            <AskedButton church={session.tenantSlug} groupId={group.id} />
           ) : group.requested === "declined" ? (
             <Badge tone="neutral">{t("find.declined")}</Badge>
           ) : group.full ? (
