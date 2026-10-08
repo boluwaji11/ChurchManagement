@@ -152,6 +152,7 @@ export function Finder({
   types,
   requests,
   canManage,
+  putAway = false,
 }: {
   church: string;
   /**
@@ -164,6 +165,8 @@ export function Finder({
   types: FinderType[];
   requests: FinderRequest[];
   canManage: boolean;
+  /** R9.2. The archived view: the same list, holding the groups put away. */
+  putAway?: boolean;
 }) {
   const router = useRouter();
   const [query, setQuery] = React.useState("");
@@ -201,7 +204,7 @@ export function Finder({
 
   const waiting = requests.filter((one) => !dismissed.includes(one.id));
 
-  const putAway = () => {
+  const dismissRequests = () => {
     // Only the ids still asking, so the list cannot grow forever.
     const next = requests.map((one) => one.id);
     setDismissed(next);
@@ -213,8 +216,7 @@ export function Finder({
   };
 
   const text = query.trim().toLowerCase();
-  const archivedGroups = groups.filter((group) => group.archived);
-  const all = groups.filter((group) => !group.archived);
+  const all = groups.filter((group) => (putAway ? group.archived : !group.archived));
 
   const matches = (group: FinderGroup, by: Chosen) =>
     (by.type.length === 0 || by.type.includes(group.typeId ?? "")) &&
@@ -354,7 +356,7 @@ export function Finder({
               label={t("find.dismiss")}
               variant="ghost"
               className="size-7"
-              onClick={putAway}
+              onClick={dismissRequests}
             >
               <X />
             </IconButton>
@@ -491,7 +493,7 @@ export function Finder({
             </SheetContent>
           </Sheet>
 
-          {canManage ? (
+          {canManage && !putAway ? (
             <Button asChild className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
               <Link href={`/groups/new?church=${church}`}>
                 <Plus className="size-4" aria-hidden /> {t("groups.add")}
@@ -508,6 +510,9 @@ export function Finder({
          * whose filters match nothing is offered the way back.
          */
         all.length === 0 ? (
+          putAway ? (
+            <Empty icon="group" title={t("groups.archived.none")} />
+          ) : (
           <Empty
             icon="group"
             title={t("groups.none.title")}
@@ -524,6 +529,7 @@ export function Finder({
               ) : undefined
             }
           />
+          )
         ) : (
           <Empty
             icon="noResults"
@@ -560,29 +566,16 @@ export function Finder({
               rows={band.rows}
               view={view}
               rule={at > 0}
+              onRestore={
+                putAway
+                  ? (id) => run(() => restore(id, church))
+                  : undefined
+              }
+              pending={pending}
             />
           ))
       )}
 
-      {/* R9.2. Archived groups, for whoever runs them. */}
-      {canManage && archivedGroups.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-label text-fg-muted">{t("groups.archived")}</h2>
-          {archivedGroups.map((group) => (
-            <div key={group.id} className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">{group.name}</span>
-              <IconButton
-                label={t("groups.restore")}
-                variant="ghost"
-                disabled={pending}
-                onClick={() => run(() => restore(group.id, church))}
-              >
-                <Undo2 />
-              </IconButton>
-            </div>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -596,8 +589,15 @@ export function Finder({
  * carrying a click handler.
  */
 function GroupCard({
-  church, group, from,
-}: { church: string; group: FinderGroup; from: string }) {
+  church, group, from, onRestore, pending,
+}: {
+  church: string;
+  group: FinderGroup;
+  from: string;
+  /** R9.2. Set on the archived view, where a card has one thing to do. */
+  onRestore?: (id: string) => void;
+  pending?: boolean;
+}) {
   const hue = group.typeHue ?? "sky";
   // Every leader, the same as the group's own page. A card naming one of two
   // leaders reads as a correction the moment the page is opened.
@@ -639,6 +639,20 @@ function GroupCard({
           >
             {group.full ? t("find.full") : group.openToJoin ? t("find.open") : t("find.closed")}
           </span>
+
+          {onRestore ? (
+            /* Above the stretched link, so the card still opens the group and
+               this stays a button. */
+            <IconButton
+              label={t("groups.restore")}
+              variant="ghost"
+              disabled={pending}
+              onClick={() => onRestore(group.id)}
+              className="relative z-10 -my-1 shrink-0"
+            >
+              <Undo2 />
+            </IconButton>
+          ) : null}
         </div>
 
         <Link
@@ -670,8 +684,14 @@ function GroupCard({
  * days rather than look at forty pictures.
  */
 function GroupRow({
-  church, group, from,
-}: { church: string; group: FinderGroup; from: string }) {
+  church, group, from, onRestore, pending,
+}: {
+  church: string;
+  group: FinderGroup;
+  from: string;
+  onRestore?: (id: string) => void;
+  pending?: boolean;
+}) {
   const hue = group.typeHue ?? "sky";
   const leader = group.leaderNames.join(", ");
 
@@ -723,6 +743,18 @@ function GroupRow({
         >
           {group.full ? t("find.full") : group.openToJoin ? t("find.open") : t("find.closed")}
         </span>
+
+        {onRestore ? (
+          <IconButton
+            label={t("groups.restore")}
+            variant="ghost"
+            disabled={pending}
+            onClick={() => onRestore(group.id)}
+            className="relative z-10 shrink-0"
+          >
+            <Undo2 />
+          </IconButton>
+        ) : null}
       </span>
     </div>
   );
@@ -736,6 +768,8 @@ function GroupBand({
   rows,
   view,
   rule,
+  onRestore,
+  pending,
 }: {
   church: string;
   from: string;
@@ -744,6 +778,9 @@ function GroupBand({
   view: ListView;
   /** A hairline above, for every band after the first. */
   rule: boolean;
+  /** R9.2. Set on the archived view, which carries the way back. */
+  onRestore?: (id: string) => void;
+  pending?: boolean;
 }) {
   const { limit, hidden, more } = useShowMore(rows.length);
   const shown = rows.slice(0, limit);
@@ -761,14 +798,27 @@ function GroupBand({
       {view === "tiles" ? (
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
           {shown.map((group) => (
-            <GroupCard key={group.id} church={church} group={group} from={from} />
+            <GroupCard
+              key={group.id}
+              church={church}
+              group={group}
+              from={from}
+              onRestore={onRestore}
+              pending={pending}
+            />
           ))}
         </div>
       ) : (
         <div className="flex flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
           {shown.map((group) => (
             <div key={group.id} className="border-b border-line last:border-b-0">
-              <GroupRow church={church} group={group} from={from} />
+              <GroupRow
+                church={church}
+                group={group}
+                from={from}
+                onRestore={onRestore}
+                pending={pending}
+              />
             </div>
           ))}
         </div>

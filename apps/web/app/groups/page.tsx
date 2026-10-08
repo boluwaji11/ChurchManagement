@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, findGroups, listGroupTypes, pendingRequests, personForUser, canManageGroups,
+  withTenant, findGroups, countArchivedGroups, listGroupTypes, pendingRequests, personForUser,
+  canManageGroups,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { readsAsMember } from "@/lib/reads-as-member";
@@ -37,9 +38,9 @@ export async function generateMetadata({
 export default async function GroupsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; type?: string }>;
+  searchParams: Promise<{ church?: string; type?: string; archived?: string }>;
 }) {
-  const { church, type } = await searchParams;
+  const { church, type, archived } = await searchParams;
   const session = await requireSession(church);
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   const manage = canManageGroups(session);
@@ -47,12 +48,17 @@ export default async function GroupsPage({
   // same list inside the app.
   const portal = readsAsMember(session);
 
-  const { groups, types, requests } = await withTenant(actor, async (tx) => {
+  /* R9.2. A group that has been put away comes off this screen and sits behind
+     the one link under it, which is also the way back to bringing it out. */
+  const putAway = manage && archived === "1";
+
+  const { groups, types, requests, archivedCount } = await withTenant(actor, async (tx) => {
     const self = await personForUser(tx, session.userId);
     return {
-      groups: await findGroups(tx, { memberId: self, manage }),
+      groups: await findGroups(tx, { memberId: self, manage, archivedOnly: putAway }),
       types: await listGroupTypes(tx),
       requests: await pendingRequests(tx, actor),
+      archivedCount: manage ? await countArchivedGroups(tx) : 0,
     };
   });
 
@@ -90,12 +96,23 @@ export default async function GroupsPage({
     };
   }).filter((one) => one.all > 0 || manage);
 
+  /* R9.2. One link, under whichever list this church reads: the kinds, or the
+     groups themselves. */
+  const archivedLink = !putAway && manage && archivedCount > 0 ? (
+    <Link
+      href={`/groups?church=${session.tenantSlug}&archived=1`}
+      className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+    >
+      {plural("groups.archived", archivedCount)}
+    </Link>
+  ) : null;
+
   /*
    * R9.5. The kinds lead, for everybody. A member arriving at the groups screen
    * and a leader arriving at it are choosing between the same three or four
    * things the church calls by name, so they meet the same screen.
    */
-  if (!type && kinds.length > 0) {
+  if (!putAway && !type && kinds.length > 0) {
     const landing = (
       <TypesLanding church={session.tenantSlug} types={kinds} canManage={manage} />
     );
@@ -104,7 +121,10 @@ export default async function GroupsPage({
     return portal ? (
       <PortalShell session={session} tab={t("nav.groups")}>{landing}</PortalShell>
     ) : (
-      <AppShell session={session} title={t("groups.title")}>{landing}</AppShell>
+      <AppShell session={session} title={t("groups.title")}>
+        {landing}
+        {archivedLink}
+      </AppShell>
     );
   }
 
@@ -120,6 +140,7 @@ export default async function GroupsPage({
         church={session.tenantSlug}
         from={type ? `&type=${encodeURIComponent(type)}` : ""}
         canManage={manage}
+        putAway={putAway}
         types={types.map((type) => ({
           id: type.id,
           name: type.name,
@@ -166,9 +187,16 @@ export default async function GroupsPage({
     />
   );
 
-  // The way back to the kinds. Offered wherever the kinds screen exists, which
-  // is the same test that decided to show it.
-  const back = kinds.length > 0 ? (
+  // R9.2. The way back out of the archived view, then the way back to the
+  // kinds, which is offered wherever the kinds screen exists.
+  const back = putAway ? (
+    <Link
+      href={`/groups?church=${session.tenantSlug}`}
+      className="-mb-2 inline-flex items-center gap-1.5 self-start font-medium text-primary"
+    >
+      <ArrowLeft className="size-4" aria-hidden /> {t("groups.archived.back")}
+    </Link>
+  ) : kinds.length > 0 ? (
     <Link
       href={`/groups?church=${session.tenantSlug}`}
       className="-mb-2 inline-flex items-center gap-1.5 self-start font-medium text-primary"
@@ -216,6 +244,8 @@ export default async function GroupsPage({
       ) : null}
 
       {finder}
+
+      {archivedLink}
     </AppShell>
   );
 }

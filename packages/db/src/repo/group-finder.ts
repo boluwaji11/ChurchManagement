@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, isNotNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { notifyRoles } from "./notifications";
 import {
@@ -91,6 +91,15 @@ export interface JoinRequest {
 const called = (row: { firstName: string; lastName: string; preferredName: string | null }) =>
   `${row.preferredName?.trim() || row.firstName} ${row.lastName}`;
 
+/** R9.2. How many groups have been put away, for the link to them. */
+export async function countArchivedGroups(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(groups)
+    .where(isNotNull(groups.archivedAt));
+  return row?.count ?? 0;
+}
+
 /**
  * R9.5. The groups a member may browse.
  *
@@ -116,9 +125,15 @@ export async function findGroups(
      * the archived ones on it. Everybody else sees the church's finder.
      */
     manage?: boolean;
+    /**
+     * R9.2. Only the groups that have been put away, which is the archived
+     * view. Read with `manage`, since nobody else is shown an archived group.
+     */
+    archivedOnly?: boolean;
   } = {},
 ): Promise<FoundGroup[]> {
   const wheres = [
+    opts.manage && opts.archivedOnly ? isNotNull(groups.archivedAt) : undefined,
     opts.manage ? undefined : isNull(groups.archivedAt),
     opts.manage ? undefined : eq(groups.listed, true),
     /*
