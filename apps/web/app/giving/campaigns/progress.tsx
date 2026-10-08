@@ -76,11 +76,16 @@ export function standingOf({
   // R13.16. No end date is no deadline, so there is no pace to be behind.
   if (!endsOn) return done("open");
 
-  const whole = Math.max(1, dayCount(startsOn, endsOn));
-  const gone = Math.min(whole, Math.max(0, dayCount(startsOn, today)));
+  /*
+   * Both ends counted in. A campaign running the 7th to the 10th has four
+   * days, and the first of them is already under way, so the day it opens is
+   * one day gone rather than none. Counting from zero made the opening day
+   * expect nothing, which read as on pace whatever had come in.
+   */
+  const whole = dayCount(startsOn, endsOn) + 1;
+  const gone = Math.min(whole, dayCount(startsOn, today) + 1);
   const expected = gone / whole;
 
-  if (expected <= 0) return done("onTrack", expected);
   const against = share / expected;
   if (against >= 1) return done("ahead", expected);
   if (against >= 0.9) return done("onTrack", expected);

@@ -124,7 +124,7 @@ export function CampaignScreen({
                 campaign={campaign}
                 onClose={() => setAsking(true)}
                 trigger={
-                  <IconButton label={t("action.edit")} variant="secondary">
+                  <IconButton label={t("action.edit")} variant="ghost">
                     <Pencil />
                   </IconButton>
                 }
