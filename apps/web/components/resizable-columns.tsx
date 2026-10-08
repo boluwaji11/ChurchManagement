@@ -28,11 +28,14 @@ const FLOOR = 56;
 
 export function ResizableTable({
   id,
+  anchor,
   children,
   className,
 }: {
   /** Where the widths are remembered. Unique to this table. */
   id: string;
+  /** R24.6. Named, so a pager under it can bring the reader back to it. */
+  anchor?: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -134,7 +137,7 @@ export function ResizableTable({
   }
 
   return (
-    <div ref={host} className={`w-full overflow-x-auto ${className ?? ""}`}>
+    <div id={anchor} ref={host} className={`w-full overflow-x-auto ${className ?? ""}`}>
       <div className="relative w-max min-w-full">
         {children}
 

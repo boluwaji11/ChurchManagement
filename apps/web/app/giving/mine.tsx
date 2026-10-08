@@ -186,7 +186,7 @@ export async function MyGiving({
           <div className="flex min-w-0 flex-col gap-5">
 
         {/* R13.19. Everything, in the order it happened. */}
-        <Block icon={<Banknote />} title={t("mine.giving.history")}>
+        <Block id="my-gifts" icon={<Banknote />} title={t("mine.giving.history")}>
           {mine.gifts.length === 0 ? (
             <Nothing>{t("mine.giving.none")}</Nothing>
           ) : (
@@ -283,6 +283,7 @@ export async function MyGiving({
             size={PER_PAGE}
             total={mine.allGifts}
             href={(to) => `/giving?church=${session.tenantSlug}&gifts=${to}`}
+            anchor="my-gifts"
           />
         </Block>
           </div>
@@ -310,15 +311,15 @@ export async function MyGiving({
                       ].join(" \u00b7 ")}
                     </span>
                     <span className="truncate text-[12px] text-fg-subtle">
-                      {[
-                        one.fundName,
-                        one.nextOn
-                          ? t("giving.recurring.next", { date: briefDate(one.nextOn) })
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" \u00b7 ")}
+                      {one.fundName}
                     </span>
+                    {/* When it collects next, on its own line, because it is
+                        the one date a giver opens this screen for. */}
+                    {one.nextOn ? (
+                      <span className="text-[12px] text-fg-subtle">
+                        {t("giving.recurring.next", { date: briefDate(one.nextOn) })}
+                      </span>
+                    ) : null}
                   </span>
 
                   <span className="flex shrink-0 items-center gap-2">

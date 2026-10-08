@@ -34,6 +34,9 @@ export function Rows({
   const first = (at - 1) * size;
   const shown = perPage === null ? rows : rows.slice(first, first + size);
 
+  // R24.6. Named, so turning a page brings the reader back to its head.
+  const anchor = React.useId();
+
   // The tallest number in each column, so a cell can be drawn against it.
   const tallest = columns.map((column, c) =>
     column.kind === "number"
@@ -42,7 +45,14 @@ export function Rows({
   );
 
   return (
-    <div className={fill ? "flex min-h-0 flex-1 flex-col gap-2" : "flex flex-col gap-2"}>
+    <div
+      id={anchor}
+      className={
+        fill
+          ? "flex min-h-0 flex-1 scroll-mt-20 flex-col gap-2"
+          : "flex scroll-mt-20 flex-col gap-2"
+      }
+    >
       <div className={fill ? "min-h-0 flex-1 overflow-auto" : "overflow-x-auto"}>
         <ResizableTable id="report-list" className="rounded-lg border border-line bg-surface">
           <table className="w-full text-[length:var(--d-text-body)]">
@@ -93,7 +103,7 @@ export function Rows({
               matching: String(rows.length),
             })}
           </span>
-          <Pages page={at} last={last} onPage={setPage} />
+          <Pages page={at} last={last} onPage={setPage} anchor={anchor} />
         </div>
       ) : null}
     </div>

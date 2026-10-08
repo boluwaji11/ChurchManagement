@@ -44,6 +44,8 @@ export function PagedTable({
   rows: Row[];
 }) {
   const [page, setPage] = React.useState(1);
+  // R24.6. Named, so turning a page brings the reader back to its head.
+  const anchor = React.useId();
 
   const last = Math.max(1, Math.ceil(rows.length / PER_PAGE));
   const at = Math.min(page, last);
@@ -51,7 +53,10 @@ export function PagedTable({
   const shown = rows.slice(first, first + PER_PAGE);
 
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5">
+    <section
+      id={anchor}
+      className="flex scroll-mt-20 flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
+    >
       <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
 
       <div className="overflow-x-auto">
@@ -124,7 +129,7 @@ export function PagedTable({
               }),
             })}
           </span>
-          <Pages page={at} last={last} onPage={setPage} />
+          <Pages page={at} last={last} onPage={setPage} anchor={anchor} />
         </div>
       ) : null}
     </section>

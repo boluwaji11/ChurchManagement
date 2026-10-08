@@ -143,9 +143,11 @@ export function Responses({
 
   const first = (page - 1) * perPage + 1;
   const upto = Math.min(page * perPage, total);
+  // R24.6. Named, so turning a page brings the reader back to its head.
+  const anchor = React.useId();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div id={anchor} className="flex scroll-mt-20 flex-col gap-4">
       {canCatchUp ? (
         <Button
           type="button"
@@ -312,7 +314,12 @@ export function Responses({
             range: t("pages.range", { shown: upto - first + 1, matching: total }),
           })}
         </span>
-        <Pages page={page} last={Math.max(1, Math.ceil(total / perPage))} onPage={go} />
+        <Pages
+          page={page}
+          last={Math.max(1, Math.ceil(total / perPage))}
+          onPage={go}
+          anchor={anchor}
+        />
       </div>
     </div>
   );

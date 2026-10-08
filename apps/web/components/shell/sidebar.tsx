@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
-import { Avatar, Tooltip, Working, cn } from "@connectapp/ui";
+import { PanelLeftClose, PanelLeftOpen, LogOut, Menu } from "lucide-react";
+import { Avatar, Sheet, SheetContent, Tooltip, Working, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { FlameMark } from "../brand";
 import { activeHref, type NavTarget } from "./nav-active";
@@ -248,49 +248,148 @@ export function Sidebar({
 /**
  * R24.6. The same list across the bottom of a phone.
  *
- * Five fit. 6px of padding with the safe area under it, 22px icons over an 11px
- * label, the current one in the accent at 600 and the rest subtle at 500.
+ * Four sections sit across the bar with More at the end, because a church
+ * with giving, reports, forms and events has fourteen of them and the five
+ * that fit were the only five a phone could reach. 6px of padding with the
+ * safe area under it, 22px icons over an 11px label, the current one in the
+ * accent at 600 and the rest subtle at 500.
  */
+/** How many sections sit on the bar itself. The last place is More. */
+const ON_BAR = 4;
+
 export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const reopen = useSectionMemory(entries);
   const forget = forgetSection;
   const active = activeHref(entries, pathname);
+  const [open, setOpen] = React.useState(false);
+
+  /* Everything fits when there is nothing to put away. */
+  const shown = entries.length <= ON_BAR + 1 ? entries : entries.slice(0, ON_BAR);
+  const rest = entries.slice(shown.length);
+  const inRest = rest.some((one) => one.href === active);
+
+  const go = (entry: ShellEntry) => (event: React.MouseEvent) => {
+    setOpen(false);
+    // The same rule on a phone: the tab you are on goes to the top.
+    if (entry.href === active) {
+      forget(entry.href);
+      return;
+    }
+    const back = reopen(entry.href);
+    if (!back) return;
+    event.preventDefault();
+    router.push(back);
+  };
 
   return (
-    <nav
-      aria-label={t("nav.sections")}
-      className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-canvas px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:hidden"
-    >
-      {entries.slice(0, 5).map((entry) => {
-        const on = active === entry.href;
-        return (
-          <Link
+    <>
+      <nav
+        aria-label={t("nav.sections")}
+        className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-canvas px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:hidden"
+      >
+        {shown.map((entry) => (
+          <Tab
             key={entry.href}
             href={`${entry.href}?church=${church}`}
-            onClick={(event) => {
-              // The same rule on a phone: the tab you are on goes to the top.
-              if (on) {
-                forget(entry.href);
-                return;
-              }
-              const back = reopen(entry.href);
-              if (!back) return;
-              event.preventDefault();
-              router.push(back);
-            }}
-            aria-current={on ? "page" : undefined}
-            className={cn(
-              "flex min-h-11 flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px]",
-              on ? "font-semibold text-primary" : "font-medium text-fg-subtle",
-            )}
-          >
-            <span className="grid place-items-center [&_svg]:size-[22px]">{entry.icon}</span>
-            <span className="truncate">{entry.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
+            icon={entry.icon}
+            label={entry.label}
+            on={active === entry.href}
+            onClick={go(entry)}
+          />
+        ))}
+
+        {rest.length > 0 ? (
+          <Tab
+            icon={<Menu aria-hidden />}
+            label={t("nav.more")}
+            on={inRest}
+            onClick={() => setOpen(true)}
+          />
+        ) : null}
+      </nav>
+
+      {/* R24.6. The sections that did not fit, which on a phone is most of
+          them. Nothing a church paid nothing for should be unreachable
+          because somebody opened it on their phone. */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          title={t("nav.allSections")}
+          closeLabel={t("common.close")}
+          width="320px"
+          className="md:hidden"
+        >
+          <ul className="m-0 flex list-none flex-col gap-1 p-0">
+            {entries.map((entry) => (
+              <li key={entry.href}>
+                <Link
+                  href={`${entry.href}?church=${church}`}
+                  onClick={go(entry)}
+                  aria-current={active === entry.href ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-11 items-center gap-3 rounded-sm px-3 text-[15px] no-underline",
+                    "[&_svg]:size-[20px] [&_svg]:shrink-0",
+                    active === entry.href
+                      ? "bg-primary-soft font-semibold text-primary"
+                      : "font-medium text-fg hover:bg-sunken",
+                  )}
+                >
+                  {entry.icon}
+                  <span className="truncate">{entry.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
+
+/**
+ * One place on the bar.
+ *
+ * `min-w-0` is what makes the label truncate rather than push the bar wider
+ * than the screen, which is what "Celebrations" next to "Check-in" did.
+ */
+function Tab({
+  href,
+  icon,
+  label,
+  on,
+  onClick,
+}: {
+  /** Left out by More, which opens a panel rather than going anywhere. */
+  href?: string;
+  icon: React.ReactNode;
+  label: string;
+  on: boolean;
+  onClick: (event: React.MouseEvent) => void;
+}) {
+  const shape = cn(
+    "flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col items-center gap-0.5 px-0.5 py-1.5",
+    "text-[11px] no-underline",
+    on ? "font-semibold text-primary" : "font-medium text-fg-subtle",
+  );
+  const inside = (
+    <>
+      <span className="grid place-items-center [&_svg]:size-[22px]">{icon}</span>
+      <span className="w-full truncate text-center">{label}</span>
+    </>
+  );
+
+  if (!href) {
+    return (
+      <button type="button" onClick={onClick} aria-expanded={on} className={shape}>
+        {inside}
+      </button>
+    );
+  }
+
+  return (
+    <Link href={href} onClick={onClick} aria-current={on ? "page" : undefined} className={shape}>
+      {inside}
+    </Link>
   );
 }

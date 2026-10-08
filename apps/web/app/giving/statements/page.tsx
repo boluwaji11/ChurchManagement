@@ -111,7 +111,10 @@ export default async function StatementsPage({
         {read.givers.length === 0 ? (
           <p className="text-fg-muted">{t("statement.none")}</p>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-line bg-surface">
+          <div
+            id="givers"
+            className="scroll-mt-20 overflow-hidden rounded-lg border border-line bg-surface"
+          >
             <ul className="m-0 flex list-none flex-col p-0">
               {shown.map((giver) => (
                 <li
@@ -149,6 +152,7 @@ export default async function StatementsPage({
               href={(to) =>
                 `/giving/statements?church=${session.tenantSlug}&year=${read.year}&page=${to}`
               }
+              anchor="givers"
             />
           </div>
         )}

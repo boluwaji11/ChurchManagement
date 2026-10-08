@@ -328,6 +328,7 @@ export default async function GivingPage({
                 what the church called it, the fund it went to and how much
                 there was, with the slip for the bank on the end. */}
             <Panel
+              id="counts"
               icon={<CalendarCheck />}
               title={t("giving.counts")}
               action={startCount}
@@ -441,6 +442,7 @@ export default async function GivingPage({
                     size={COUNTS_PER_PAGE}
                     total={read.allCounts}
                     href={(to) => page("counts", to)}
+                    anchor="counts"
                   />
                 </>
               )}
@@ -449,6 +451,7 @@ export default async function GivingPage({
             {/* R13.21. The last gifts recorded, so a mistake is caught the
                 day it is made. */}
             <Panel
+              id="gifts"
               icon={<Banknote />}
               title={t("giving.recent")}
               action={
@@ -616,6 +619,7 @@ export default async function GivingPage({
                     size={GIFTS_PER_PAGE}
                     total={read.allGifts}
                     href={(to) => page("gifts", to)}
+                    anchor="gifts"
                   />
                 </>
               )}
@@ -635,7 +639,7 @@ export default async function GivingPage({
             action={
               <Link
                 href={`/settings/funds?church=${session.tenantSlug}`}
-                className="inline-flex min-h-9 items-center rounded-[var(--d-radius-control)] px-3 text-[13px] font-medium text-primary no-underline hover:bg-sunken"
+                className="inline-flex min-h-9 items-center rounded-[var(--d-radius-control)] px-3 text-[13px] font-medium text-primary underline underline-offset-4 hover:bg-sunken"
               >
                 {t("giving.funds.manage")}
               </Link>
@@ -645,7 +649,7 @@ export default async function GivingPage({
               <Nothing>{t("giving.funds.none")}</Nothing>
             ) : (
               <div className="flex flex-col gap-5 px-5 py-4">
-                {([true, false] as const).map((restricted) => {
+                {([false, true] as const).map((restricted) => {
                   const all = read.funds.filter((one) => one.restricted === restricted);
                   if (all.length === 0) return null;
                   /* The total is of every one of them. The list under it is
@@ -728,6 +732,7 @@ export default async function GivingPage({
 
           {/* R13.3. What repeats, which is the number a church plans on. */}
           <Panel
+            id="repeats"
             icon={<Repeat />}
             title={t("giving.recurring")}
             count={
@@ -757,13 +762,19 @@ export default async function GivingPage({
                               one.intervalCount > 1 ? `.${one.intervalCount}` : ""
                             }` as never,
                           ),
-                          one.nextOn
-                            ? t("giving.recurring.next", { date: briefDate(one.nextOn) })
-                            : null,
                         ]
                           .filter(Boolean)
-                          .join(" · ")}
+                          .join(" \u00b7 ")}
                       </span>
+                      {/* R13.8. When it collects next, on its own line. On
+                          the end of the one above it was the first thing a
+                          narrow column cut, and it is the one date a
+                          treasurer is looking for. */}
+                      {one.nextOn ? (
+                        <span className="text-[12px] text-fg-subtle">
+                          {t("giving.recurring.next", { date: briefDate(one.nextOn) })}
+                        </span>
+                      ) : null}
                       {/* R13.8. A gift that has stopped collecting says so
                           here, rather than being noticed in March. */}
                       {one.status === "past_due" ? (
@@ -800,6 +811,7 @@ export default async function GivingPage({
               size={ASIDE_ROWS}
               total={read.allRecurring}
               href={(to) => page("repeats", to)}
+              anchor="repeats"
             />
           </Panel>
           </div>

@@ -338,7 +338,8 @@ export function Directory({
       ) : (
         <ResizableTable
           id="directory"
-          className="rounded-lg border border-line bg-surface"
+          className="scroll-mt-20 rounded-lg border border-line bg-surface"
+          anchor="directory-rows"
         >
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
@@ -429,6 +430,7 @@ export function Directory({
           page={page}
           last={Math.max(1, Math.ceil(matching / perPage))}
           onPage={(n) => setParam({ page: n <= 1 ? undefined : String(n) })}
+          anchor="directory-rows"
         />
       </div>
     </>

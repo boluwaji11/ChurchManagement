@@ -21,6 +21,8 @@ export const en = {
   "app.name": "ConnectApp",
   "nav.skip": "Skip to the page",
   "nav.sections": "Sections",
+  "nav.more": "More",
+  "nav.allSections": "All sections",
   "nav.home": "Home",
   "nav.myHousehold": "My household",
   "portal.churchSite": "{church} website",

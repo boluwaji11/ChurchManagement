@@ -442,7 +442,11 @@ export function EventView({
             </div>
 
             <div className="overflow-x-auto">
-              <ResizableTable id="event-registrations" className="rounded-lg border border-line bg-surface">
+              <ResizableTable
+                id="event-registrations"
+                anchor="event-registrations-rows"
+                className="scroll-mt-20 rounded-lg border border-line bg-surface"
+              >
                 <table className="w-full text-[length:var(--d-text-body)]">
                 <Thead>
                   <Tr>
@@ -524,7 +528,12 @@ export function EventView({
               </ResizableTable>
             </div>
 
-            <Pages page={at} last={lastPage} onPage={setPage} />
+            <Pages
+              page={at}
+              last={lastPage}
+              onPage={setPage}
+              anchor="event-registrations-rows"
+            />
           </div>
         )
       ) : null}

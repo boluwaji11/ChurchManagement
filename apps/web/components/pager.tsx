@@ -15,6 +15,7 @@ export function Pager({
   size,
   total,
   href,
+  anchor,
 }: {
   /** One-based, as the address writes it. */
   page: number;
@@ -22,11 +23,21 @@ export function Pager({
   total: number;
   /** Builds the address of a page. */
   href: (page: number) => string;
+  /**
+   * R24.6. The id of the block this pager belongs to.
+   *
+   * Turning a page is a navigation, and a navigation lands at the top of the
+   * screen. Somebody reading the fourth table down then has to find their
+   * way back to it every time they press Next. Naming the block puts the
+   * page they asked for under their thumb instead.
+   */
+  anchor?: string;
 }) {
   const pages = Math.max(1, Math.ceil(total / size));
   if (total <= size) return null;
 
   const shown = Math.min(total, page * size) - (page - 1) * size;
+  const to = (at: number) => `${href(at)}${anchor ? `#${anchor}` : ""}`;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-2.5">
@@ -35,10 +46,10 @@ export function Pager({
       </span>
 
       <span className="flex items-center gap-1">
-        <Step href={href(page - 1)} enabled={page > 1} label={t("pager.previous")}>
+        <Step href={to(page - 1)} enabled={page > 1} label={t("pager.previous")}>
           <ChevronLeft aria-hidden />
         </Step>
-        <Step href={href(page + 1)} enabled={page < pages} label={t("pager.next")}>
+        <Step href={to(page + 1)} enabled={page < pages} label={t("pager.next")}>
           <ChevronRight aria-hidden />
         </Step>
       </span>

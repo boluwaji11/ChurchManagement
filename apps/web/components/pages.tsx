@@ -16,11 +16,21 @@ export function Pages({
   page,
   last,
   onPage,
+  anchor,
 }: {
   page: number;
   last: number;
   /** Given the page wanted, 1 meaning the parameter comes off the URL. */
   onPage: (page: number) => void;
+  /**
+   * R24.6. The id of the block this belongs to.
+   *
+   * Turning a page is a navigation, and a navigation lands at the top of
+   * the screen. Somebody reading the third table down then has to scroll
+   * back to it after every press. Naming the block brings them to its head
+   * instead, which is where the new rows are.
+   */
+  anchor?: string;
 }) {
   if (last <= 1) return null;
 
@@ -46,12 +56,25 @@ export function Pages({
   const [pending, start] = React.useTransition();
 
   React.useEffect(() => {
-    if (!pending) setGoing(undefined);
+    if (pending) return;
+    setGoing(undefined);
   }, [pending]);
 
   const go = (to: number) => {
     setGoing(to);
-    start(() => onPage(to));
+    start(() => {
+      onPage(to);
+      /*
+       * After the rows, not before: scrolling first and navigating second
+       * puts the reader at the head of the old page and then the router
+       * takes them back to the top anyway.
+       */
+      if (anchor) {
+        requestAnimationFrame(() => {
+          document.getElementById(anchor)?.scrollIntoView({ block: "start" });
+        });
+      }
+    });
   };
 
   const arrow =

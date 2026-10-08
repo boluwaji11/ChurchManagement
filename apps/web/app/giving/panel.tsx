@@ -11,6 +11,7 @@ import * as React from "react";
  * find the counting sessions without reading the gifts first.
  */
 export function Panel({
+  id,
   icon,
   title,
   count,
@@ -18,6 +19,8 @@ export function Panel({
   children,
   className,
 }: {
+  /** R24.6. Named, so its own pager can bring the reader back to it. */
+  id?: string;
   icon: React.ReactNode;
   title: string;
   /** What is in it, read before opening anything. */
@@ -29,7 +32,10 @@ export function Panel({
 }) {
   return (
     <section
-      className={`flex min-w-0 flex-col rounded-[14px] border border-line bg-surface shadow-sm ${className ?? ""}`}
+      id={id}
+      /* Clear of the bar pinned across the top, which would otherwise sit
+         over the heading somebody was sent to. */
+      className={`flex min-w-0 scroll-mt-20 flex-col rounded-[14px] border border-line bg-surface shadow-sm ${className ?? ""}`}
     >
       <header className="flex flex-wrap items-center gap-3 px-4 py-3.5 sm:px-5">
         <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&_svg]:size-[18px]">
