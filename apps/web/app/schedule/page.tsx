@@ -68,7 +68,7 @@ export default async function ServingPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; archived?: string; team?: string; at?: string;
+    church?: string; team?: string; at?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -82,7 +82,6 @@ export default async function ServingPage({
   }
 
   const canManage = canManageTeams(session);
-  const showArchived = canManage && params.archived === "1";
   const asked = /^\d{4}-\d{2}$/.test(params.at ?? "") ? params.at! : null;
 
   const data = await withTenant(
@@ -90,7 +89,9 @@ export default async function ServingPage({
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const clock = churchNow(profile?.timezone ?? "America/Chicago");
-      const found = await listTeams(tx, { includeArchived: showArchived });
+      /* R10.1. The live teams. A team that has been put away is read in
+         Settings, where it is written down and where it is brought back. */
+      const found = await listTeams(tx);
       const live = found.filter((one) => one.archivedAt === null);
 
       // R10.1. Found by its readable name or by its id, so a link somebody sent
