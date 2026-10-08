@@ -1,5 +1,6 @@
 "use server";
 
+import { adoptTheme } from "@/lib/theme";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { syncUserAndAcceptInvitations } from "@connectapp/db";
@@ -79,6 +80,10 @@ export async function signUp(data: FormData) {
       fullName: fullName || null,
       emailVerified: true,
     });
+
+    // R24.x. Their own palette, brought onto this device.
+    await adoptTheme(created.user!.id);
+
     redirect(next);
   }
 

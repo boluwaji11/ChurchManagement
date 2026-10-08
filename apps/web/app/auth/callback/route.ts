@@ -1,3 +1,4 @@
+import { adoptTheme } from "@/lib/theme";
 import { NextResponse, type NextRequest } from "next/server";
 import { syncUserAndAcceptInvitations } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -40,6 +41,9 @@ export async function GET(request: NextRequest) {
     fullName: (user.user_metadata?.["full_name"] as string | undefined) ?? null,
     emailVerified: Boolean(user.email_confirmed_at),
   });
+
+  // R24.x. Their own palette, brought onto this device.
+  await adoptTheme(user.id);
 
   return NextResponse.redirect(`${origin}${next || (await landingFor(user.id))}`);
 }

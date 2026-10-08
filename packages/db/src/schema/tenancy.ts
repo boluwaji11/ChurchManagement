@@ -224,6 +224,14 @@ export const appUsers = pgTable(
     id: uuid("id").primaryKey(),
     email: text("email").notNull(),
     fullName: text("full_name"),
+    /**
+     * R24.x. Which palette they read in: system, light or dark.
+     *
+     * Null until they choose. It belongs to the person rather than to a
+     * browser, so a choice made on the church laptop is waiting on their
+     * phone.
+     */
+    theme: text("theme"),
     createdAt: created(),
   },
   (t) => [uniqueIndex("app_users_email_key").on(t.email)],

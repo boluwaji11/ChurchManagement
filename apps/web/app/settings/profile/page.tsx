@@ -1,10 +1,10 @@
+import { themeFor } from "@connectapp/db";
 import {
   withTenant, personForUser, getPerson, getPersonForEdit, listCampuses, anniversaryOf,
   listCustomFields, getCustomValues,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { cookies } from "next/headers";
 import { requireSession } from "@/lib/session";
 import { Church, SunMoon } from "lucide-react";
 import { SettingsHeading } from "../heading";
@@ -42,7 +42,9 @@ export default async function ProfilePage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  const theme = ((await cookies()).get("connectapp-theme")?.value ?? "system") as Theme;
+  /* R24.x. What they chose, from their account rather than from this
+     browser, so the card answers the same on every device they sign in on. */
+  const theme = ((await themeFor(session.userId)) ?? "system") as Theme;
 
   const result = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },

@@ -1,5 +1,6 @@
 "use server";
 
+import { adoptTheme } from "@/lib/theme";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { syncUserAndAcceptInvitations } from "@connectapp/db";
@@ -55,6 +56,9 @@ export async function signInWithPassword(data: FormData) {
     fullName: (result.user.user_metadata?.["full_name"] as string | undefined) ?? null,
     emailVerified: Boolean(result.user.email_confirmed_at),
   });
+
+  // R24.x. Their own palette, brought onto this device.
+  await adoptTheme(result.user.id);
 
   // R5.5. A pastoral account lands on its queue. It is the one role whose job
   // is the follow-ups rather than the records, and the directory is a click

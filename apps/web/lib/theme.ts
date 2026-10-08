@@ -1,4 +1,5 @@
 import { cookies, headers } from "next/headers";
+import { themeFor } from "@connectapp/db";
 import type { Theme } from "@/app/settings/theme-actions";
 
 /**
@@ -60,4 +61,25 @@ export async function documentTheme() {
   const path = (await headers()).get("x-pathname") ?? "";
   const ours = OURS.includes(path);
   return settled(await held(), ours ? "dark" : "light");
+}
+
+/**
+ * R24.x, R17.2. Brings the person's own choice onto this device.
+ *
+ * Called on the way in. The palette lives on their account so it follows them
+ * between the church laptop and their phone, and the cookie is what the
+ * server paints the first screen from, so signing in on a new device has to
+ * copy one to the other. Somebody who has never chosen is left alone, and
+ * each surface keeps its own default for them.
+ */
+export async function adoptTheme(userId: string): Promise<void> {
+  const held = await themeFor(userId);
+  if (!held) return;
+
+  (await cookies()).set("connectapp-theme", held, {
+    httpOnly: false,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
 }
