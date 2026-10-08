@@ -407,14 +407,13 @@ export async function MyGiving({
           <Block
             icon={<FileText />}
             title={t("giving.statements")}
-            action={
-              <MyStatement
-                church={session.tenantSlug}
-                years={mine.years.length > 0 ? mine.years : [mine.year]}
-                thisYear={mine.year}
-              />
-            }
-          />
+          >
+            <MyStatement
+              church={session.tenantSlug}
+              years={mine.years.length > 0 ? mine.years : [mine.year]}
+              thisYear={mine.year}
+            />
+          </Block>
         ) : null}
           </div>
         </div>

@@ -37,11 +37,13 @@ export function Panel({
         </span>
 
         <span className="flex min-w-0 flex-1 flex-col leading-5">
-          <span className="text-[15px] font-bold text-fg">{title}</span>
+          <span className="truncate text-[15px] font-bold text-fg">{title}</span>
           {count ? <span className="truncate text-[13px] text-fg-muted">{count}</span> : null}
         </span>
 
-        {action ? <span className="flex flex-wrap items-center gap-2">{action}</span> : null}
+        {action ? (
+          <span className="flex shrink-0 flex-wrap items-center gap-2">{action}</span>
+        ) : null}
       </header>
 
       {/* No rule under a head with nothing beneath it. */}

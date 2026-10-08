@@ -25,7 +25,7 @@ export function MyStatement({
   const [year, setYear] = React.useState(years.includes(thisYear) ? thisYear : years[0] ?? thisYear);
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
       <Select value={year} onValueChange={setYear}>
         <SelectTrigger aria-label={t("statement.year")} className="w-[120px]">
           <SelectValue />
