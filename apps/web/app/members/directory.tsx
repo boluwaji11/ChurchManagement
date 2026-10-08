@@ -231,7 +231,7 @@ export function Directory({
           <ToolButton href={`/duplicates?church=${church}`}>
             <Copy /> {t("merge.title")}
             {duplicates > 0 ? (
-              <span className="rounded-full bg-danger px-1.5 text-[11px] font-semibold text-white">
+              <span className="rounded-full bg-danger px-1.5 text-[12px] font-semibold text-white">
                 {duplicates}
               </span>
             ) : null}
@@ -336,10 +336,62 @@ export function Directory({
           }
         />
       ) : (
+        <div id="directory-rows" className="scroll-mt-20">
+        {/* R24.6. A phone reads the same rows as a list of people to tap into.
+            Seven columns inside a sideways scroller is a comparison tool, and
+            nobody compares columns on a 390px screen: they look somebody up. */}
+        <ul className="flex flex-col gap-2 sm:hidden">
+          {rows.map((p) => (
+            <li
+              key={p.id}
+              className="relative flex items-center gap-3 rounded-lg border border-line bg-surface p-3 data-[selected]:bg-primary-soft"
+              data-selected={selected.includes(p.id) || undefined}
+            >
+              {canEdit ? (
+                <Checkbox
+                  checked={selected.includes(p.id)}
+                  onCheckedChange={() => toggle(p.id)}
+                  aria-label={t("directory.select", { name: p.displayName })}
+                  /* The box stays 20px to the eye and 40px to a thumb, and it
+                     sits over the stretched link rather than under it. */
+                  className="relative z-10 before:absolute before:-inset-2.5 before:content-['']"
+                />
+              ) : null}
+
+              <Avatar
+                name={p.displayName}
+                src={p.photoUrl}
+                id={p.id}
+                className="size-10 text-[13px] font-semibold"
+              />
+
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                {/* The whole card opens them. The name is the link under it. */}
+                <Link
+                  href={`/members/${p.slug}?church=${church}`}
+                  className="truncate font-medium text-fg after:absolute after:inset-0 after:content-['']"
+                >
+                  {p.displayName}
+                </Link>
+                <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                  <StatusPill status={p.lifecycleStatus} />
+                  {p.householdName ? (
+                    <span className="min-w-0 truncate text-[13px] text-fg-muted">
+                      {p.householdName}
+                    </span>
+                  ) : null}
+                </span>
+                {reachOn(p) ? (
+                  <span className="min-w-0 truncate text-[13px] text-fg-muted">{reachOn(p)}</span>
+                ) : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+
         <ResizableTable
           id="directory"
-          className="scroll-mt-20 rounded-lg border border-line bg-surface"
-          anchor="directory-rows"
+          className="hidden rounded-lg border border-line bg-surface sm:block"
         >
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
@@ -392,7 +444,7 @@ export function Directory({
                       href={`/members/${p.slug}?church=${church}`}
                       className="flex items-center gap-2.5 font-medium text-fg"
                     >
-                      <Avatar name={p.displayName} src={p.photoUrl} id={p.id} size="sm" className="size-7 text-[11px] font-semibold" />
+                      <Avatar name={p.displayName} src={p.photoUrl} id={p.id} size="sm" className="size-7 text-[12px] font-semibold" />
                       <span className="truncate">{p.displayName}</span>
                     </Link>
                   </td>
@@ -416,6 +468,7 @@ export function Directory({
             </tbody>
           </table>
         </ResizableTable>
+        </div>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -457,6 +510,9 @@ function ToolButton({
     </Link>
   );
 }
+
+/** The one way to reach somebody, for the card a phone reads. */
+const reachOn = (row: Row): string | null => row.primaryEmail ?? row.primaryPhone ?? null;
 
 function StatusPill({ status }: { status: string }) {
   const hue = STATUS_HUE[status] ?? "clay";
@@ -557,7 +613,7 @@ function DirectoryFilters({
                       type="button"
                       onClick={() => setParam({ joined: value === "any" ? undefined : value })}
                       className={cn(
-                        "h-7 cursor-pointer rounded-sm px-3 text-[13px] font-medium",
+                        "h-8 cursor-pointer rounded-sm px-3 text-[13px] font-medium",
                         joined === value ? "bg-surface text-fg shadow-sm" : "text-fg-muted",
                       )}
                     >
@@ -664,7 +720,10 @@ function SelectionBar({
       className={cn(
         // Over the table rather than above it, so the rows somebody is picking
         // from stay where they were while they pick.
-        "fixed bottom-6 left-1/2 z-30 flex max-w-[calc(100vw-2rem)] -translate-x-1/2",
+        // Above the phone tab bar, and 24px off the floor once there is none.
+        "fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-1/2 z-30 md:bottom-6",
+        // Nothing on the bar is squeezed: it scrolls instead.
+        "flex max-w-[calc(100vw-2rem)] -translate-x-1/2 [&>*]:shrink-0",
         "items-center gap-1 overflow-x-auto whitespace-nowrap rounded-full",
         "border border-line-strong bg-surface px-4 py-2 shadow-lg",
         pending && "opacity-60",
