@@ -3,16 +3,16 @@ import { redirect } from "next/navigation";
 import {
   withTenant, findGroups, personForUser, householdFor, assignmentsForPerson,
   listEvents, listOccurrences, myChildren, canEditPeople, canReadIncidents,
+  getChurch,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import {
-  PortalShell, PortalTitle, PortalSection, Panel,
-} from "@/components/portal-shell";
+import { PortalShell, PortalSection, Panel } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./schedule/respond";
 import { CheckinCard } from "./checkin-card";
 import { onDay, dayName, readableTime } from "./when";
+import { Welcome, Doors } from "./welcome";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +60,10 @@ export default async function MemberHomePage({
     },
     async (tx) => {
       const self = await personForUser(tx, session.userId);
-      const now = churchNow("America/Chicago");
+      // R17.1. The church's own clock. A member in another state opening this
+      // at eleven at night should not be told the morning service is over.
+      const profile = await getChurch(tx, session.tenantId);
+      const now = churchNow(profile?.timezone ?? "America/Chicago");
 
       /*
        * R17.8. The next service today, which is the only one a parent is
@@ -69,6 +72,18 @@ export default async function MemberHomePage({
        */
       const today = await listOccurrences(tx, { from: now.date, to: now.date });
       const next = today.find((one) => one.status !== "cancelled") ?? null;
+
+      /*
+       * R17.1. The next service the church holds, today's or the one after.
+       * The first question a member arrives with, and the screen answered it
+       * nowhere.
+       */
+      const coming = (await listOccurrences(tx, { from: now.date }))
+        .filter((one) => one.status !== "cancelled")
+        .sort(
+          (a, b) =>
+            a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
+        )[0] ?? null;
       const actor = {
         tenantId: session.tenantId,
         role: session.role,
@@ -76,6 +91,8 @@ export default async function MemberHomePage({
       };
 
       return {
+        profile,
+        coming,
         service: next,
         children: next ? await myChildren(tx, actor, next.id) : [],
         today: now.date,
@@ -97,9 +114,38 @@ export default async function MemberHomePage({
   const ahead = mine.serving.filter((one) => one.status !== "pending").slice(0, 3);
   const first = session.displayName.split(" ")[0] ?? session.displayName;
 
+  /* R1.1. The church's address on one line, for the band at the top. */
+  const where = [
+    mine.profile?.addressLine1,
+    mine.profile?.city,
+    mine.profile?.region,
+  ].filter(Boolean).join(", ") || null;
+
   return (
     <PortalShell session={session} tab={t("nav.home")}>
-      <PortalTitle title={t("home.hello", { name: first })} />
+      <Welcome
+        name={first}
+        church={session.tenantName}
+        hue={mine.profile?.brandHue ?? "indigo"}
+        service={mine.coming}
+        where={where}
+        today={mine.today}
+        action={
+          /* R17.8. The children, in the band: a parent leaving the house has
+             this on their mind and it is not the welcome desk. */
+          mine.service && mine.children.length > 0 ? (
+            <CheckinCard
+              church={session.tenantSlug}
+              occurrenceId={mine.service.id}
+              serviceName={mine.service.name}
+            >
+              {mine.children}
+            </CheckinCard>
+          ) : undefined
+        }
+      />
+
+      <Doors church={session.tenantSlug} hasGroups={mine.groups.length > 0} />
 
       {/* The week down the main column, the standing facts down the side, with
           a rule between them. The aside is pushed down by the height of the
@@ -108,23 +154,14 @@ export default async function MemberHomePage({
       <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-8">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <PortalSection title={t("home.thisWeek")}>
-            {/* R17.8. The children, before the schedule: a parent leaving the house
-                has one of these on their mind and it is not the welcome desk. */}
-            {mine.service && mine.children.length > 0 ? (
-              <CheckinCard
-                church={session.tenantSlug}
-                occurrenceId={mine.service.id}
-                serviceName={mine.service.name}
-              >
-                {mine.children}
-              </CheckinCard>
-            ) : null}
-
             {asked.length === 0 && ahead.length === 0 ? (
-              <Panel>
-                <p className="text-[length:var(--d-text-body)] text-fg-muted">
+              <Panel className="flex flex-col gap-1">
+                <span className="text-[length:var(--d-text-body)] font-medium text-fg">
                   {t("home.noSchedule")}
-                </p>
+                </span>
+                <span className="text-[length:var(--d-text-body)] text-fg-muted">
+                  {t("home.noSchedule.body")}
+                </span>
               </Panel>
             ) : null}
 
@@ -180,8 +217,21 @@ export default async function MemberHomePage({
               {t("home.seeAll")}
             </Link>
 
-            {/* What the church has on, each row opening its own page. */}
-            {mine.events.length > 0 ? (
+          </PortalSection>
+
+          {/* R14.1. What the church has on, each row opening its own page. */}
+          {mine.events.length > 0 ? (
+            <PortalSection
+              title={t("home.whatsOn")}
+              aside={
+                <Link
+                  href={`/events?church=${session.tenantSlug}`}
+                  className="text-[length:var(--d-text-body)] font-medium text-primary"
+                >
+                  {t("home.seeAll")}
+                </Link>
+              }
+            >
               <Panel className="flex flex-col divide-y divide-line px-5 py-0">
                 {mine.events.map((one) => {
                   const when = new Date(`${one.startsOn}T00:00:00`);
@@ -210,8 +260,8 @@ export default async function MemberHomePage({
                   );
                 })}
               </Panel>
-            ) : null}
-          </PortalSection>
+            </PortalSection>
+          ) : null}
         </div>
 
         <aside className="flex w-full flex-col gap-4 lg:w-[320px] lg:shrink-0 lg:border-l lg:border-line lg:pl-8 lg:pt-11">
