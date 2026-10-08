@@ -124,7 +124,7 @@ export default async function PlanPage({
           {tabs.length > 1 ? (
             <PlanTabs
               church={session.tenantSlug}
-              current={id}
+              current={occurrence.id}
               tabs={tabs.map((one) => ({
                 id: one.id,
                 slug: one.slug,

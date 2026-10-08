@@ -62,7 +62,10 @@ export default async function LivePage({
 
       <Stage
         church={session.tenantSlug}
-        occurrenceId={id}
+        /* The record's own id. Every control on this screen writes through an
+           action that takes one, and what was in the address may be the
+           readable address instead. */
+        occurrenceId={live.occurrenceId}
         initial={live}
         canRun={canManageServices(session)}
       />
