@@ -299,6 +299,20 @@ export const en = {
 
   // Directory
   "members.title": "Members",
+
+  // HRT-146, R16.12. What a church posts, on the sheets it already owns.
+  "post.title": "Mailing labels",
+  "post.lede": "One label a household, on the sheets in your cupboard.",
+  "post.sheet": "Sheet",
+  "post.who": "Who to post to",
+  "post.everyone": "Every household with an address",
+  "post.skip": "Labels already used on the first sheet",
+  "post.print": "Print labels",
+  "post.none": "No household on this list has an address.",
+  "post.count.one": "{count} label",
+  "post.count.other": "{count} labels",
+  "post.sheets.one": "{count} sheet",
+  "post.sheets.other": "{count} sheets",
   "members.printAll": "Print all",
   "members.add": "Add a member",
   "members.archived.one": "{count} archived member",

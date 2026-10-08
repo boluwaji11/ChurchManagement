@@ -17,8 +17,8 @@ export {
   listHouseholdRows, countArchivedHouseholds,
   createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
   peopleWithoutHousehold, addToHousehold, removeFromHousehold, setHouseholdRole,
-  householdAddress, setHouseholdAddress, addressesOfMembers,
-  type HouseholdRow, type HouseholdAddress,
+  householdAddress, setHouseholdAddress, addressesOfMembers, postalRows,
+  type HouseholdRow, type HouseholdAddress, type PostalRow,
 } from "./repo/households";
 export {
   feedFor, listAnnouncements, countArchivedAnnouncements, getAnnouncement,

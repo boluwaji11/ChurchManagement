@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { households, householdMemberships, members, addresses } from "../schema/members";
 import { PermissionError, canManageHouseholds } from "../roles";
@@ -496,4 +496,84 @@ export async function setHouseholdAddress(
   }
 
   await db.insert(addresses).values({ tenantId: actor.tenantId, householdId, ...values });
+}
+
+/** R16.12. One household, as it goes on an envelope. */
+export interface PostalRow {
+  householdId: string;
+  /** What the church calls them, which is what the label is addressed to. */
+  name: string;
+  /** The address, already in the order it is written on an envelope. */
+  lines: string[];
+}
+
+/**
+ * R16.12. Who a church can post to.
+ *
+ * One row per household, because an address belongs to a family and four
+ * labels for four people at one address is three wasted labels and a family
+ * wondering why the church wrote to them four times.
+ *
+ * A household with no address is left out rather than printed blank: a label
+ * with a name and no street is a label somebody has to throw away after it has
+ * gone through the printer.
+ *
+ * `members` narrows it to the households those people belong to, which is how
+ * a saved list or a group becomes a stack of labels.
+ */
+export async function postalRows(
+  db: Tx,
+  options: { memberIds?: string[] } = {},
+): Promise<PostalRow[]> {
+  const narrowed = options.memberIds !== undefined;
+  if (narrowed && options.memberIds!.length === 0) return [];
+
+  const rows = await db
+    .select({
+      householdId: households.id,
+      name: households.name,
+      line1: addresses.line1,
+      line2: addresses.line2,
+      city: addresses.city,
+      region: addresses.region,
+      postalCode: addresses.postalCode,
+    })
+    .from(households)
+    .innerJoin(addresses, eq(addresses.householdId, households.id))
+    .where(and(
+      isNull(households.archivedAt),
+      narrowed
+        ? inArray(
+            households.id,
+            db.select({ id: householdMemberships.householdId })
+              .from(householdMemberships)
+              .where(and(
+                isNull(householdMemberships.endedOn),
+                inArray(householdMemberships.memberId, options.memberIds!),
+              )),
+          )
+        : undefined,
+    ))
+    .orderBy(asc(households.name));
+
+  const seen = new Set<string>();
+  const out: PostalRow[] = [];
+  for (const row of rows) {
+    // A household carrying two addresses gets one label, the first by the
+    // same rule the rest of the product reads them by.
+    if (seen.has(row.householdId)) continue;
+    seen.add(row.householdId);
+
+    const town = [row.city, row.region].filter(Boolean).join(" ");
+    out.push({
+      householdId: row.householdId,
+      name: row.name,
+      lines: [
+        row.line1,
+        row.line2,
+        [town, row.postalCode].filter(Boolean).join(" "),
+      ].filter((one): one is string => Boolean(one && one.trim())),
+    });
+  }
+  return out;
 }

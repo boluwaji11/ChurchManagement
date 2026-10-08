@@ -310,6 +310,12 @@ export function Directory({
           <Printer /> {t("members.printAll")}
         </ToolButton>
 
+        {/* R16.12. The other half of communication: the half that needs no
+            provider and sends nothing. */}
+        <ToolButton href={`/members/post?church=${church}`}>
+          <Mail /> {t("post.title")}
+        </ToolButton>
+
         {/* R19.x, R24.6. The server builds this one, which takes a moment on
             a directory of any size, so it is asked for in the page and the
             Working panel holds the screen until the file lands. */}
