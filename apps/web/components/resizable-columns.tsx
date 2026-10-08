@@ -26,6 +26,18 @@ import { t } from "@connectapp/i18n";
 /** Nothing is ever dragged narrower than this. */
 const FLOOR = 56;
 
+/** Under this, the screen is a phone and the handles come off. */
+const DESK_FROM = 640;
+
+/** A screen too narrow to arrange a table on. Named, so the test can read it. */
+const isNarrow = (room: number) => room !== 0 && DESK_FROM > room;
+
+/** Remembered widths that do not fit the screen they have been opened on. */
+const tooWide = (held: number[], measured: number[], room: number) =>
+  room !== 0 && sum(held) > room && room + 1 >= sum(measured);
+
+const sum = (set: number[]) => set.reduce((a, b) => a + b, 0);
+
 export function ResizableTable({
   id,
   anchor,
@@ -42,6 +54,13 @@ export function ResizableTable({
   const host = React.useRef<HTMLDivElement>(null);
   const [widths, setWidths] = React.useState<number[] | null>(null);
   const [headHeight, setHeadHeight] = React.useState(0);
+  /*
+   * R24.6. No handles on a phone. The grab area is eleven pixels wide, which
+   * is a target nobody hits with a thumb, and it sits over the heading text it
+   * would be dragging. A reader on a phone scrolls the table sideways instead,
+   * and finds their own widths again at a desk.
+   */
+  const [narrow, setNarrow] = React.useState(false);
 
   const tableOf = () => host.current?.querySelector("table") ?? null;
 
@@ -55,11 +74,23 @@ export function ResizableTable({
    * than stretched to fit and misaligning every row.
    */
   React.useLayoutEffect(() => {
+    const read = () => {
     const table = tableOf();
     const heads = table?.querySelectorAll<HTMLTableCellElement>("thead th");
     if (!table || !heads || heads.length === 0) return;
 
     const measured = [...heads].map((th) => th.getBoundingClientRect().width);
+
+    /*
+     * R24.6. Nothing is pinned from a table nobody laid out.
+     *
+     * A screen that draws its rows as cards on a phone and as a table at a
+     * desk has the table there and hidden, and a hidden table measures zero
+     * across. Pinning that gives the table a width of nothing, so when the
+     * window widens the rows are drawn one pixel across and the screen reads
+     * as broken. Left alone until there is something to measure.
+     */
+    if (measured.some((one) => one === 0)) return;
 
     let held: number[] | null = null;
     try {
@@ -76,8 +107,32 @@ export function ResizableTable({
       // Private windows and blocked site data both throw. The measurement stands.
     }
 
+    /*
+     * R24.6. A set measured at a desk does not open on a phone.
+     *
+     * One table, one remembered set, every screen the reader opens it on. A
+     * set that came off a 1440px window pins eleven hundred pixels of table
+     * into a 358px scroller, and the reader arrives at a first column with
+     * nothing in it and ten screens of sideways scrolling behind it. Where
+     * the remembered widths are wider than the screen in front of them, and
+     * what this screen laid out does fit, the layout wins. The set stays in
+     * the browser, so the desk finds it again.
+     */
+    const room = host.current?.clientWidth ?? 0;
+    if (held && tooWide(held, measured, room)) held = null;
+
     setWidths(held ?? measured);
     setHeadHeight(table.tHead?.getBoundingClientRect().height ?? 0);
+    setNarrow(isNarrow(room));
+    };
+
+    read();
+    /*
+     * A phone turned on its side, or a table that was hidden at this width
+     * and is not at the next one, gets measured again.
+     */
+    window.addEventListener("resize", read);
+    return () => window.removeEventListener("resize", read);
   }, [id]);
 
   /** Pins them, so the browser stops deciding and the handles mean something. */
@@ -87,7 +142,7 @@ export function ResizableTable({
 
     table.style.tableLayout = "fixed";
     table.style.minWidth = "0px";
-    table.style.width = `${widths.reduce((a, b) => a + b, 0)}px`;
+    table.style.width = `${sum(widths)}px`;
 
     const heads = table.querySelectorAll<HTMLTableCellElement>("thead th");
     heads.forEach((th, at) => {
@@ -143,7 +198,7 @@ export function ResizableTable({
 
         {/* Drawn over the heading row, inside the scroller, so they travel
             with the columns when a narrow screen scrolls sideways. */}
-        {headHeight > 0
+        {headHeight > 0 && !narrow
           ? edges.map((along, at) => (
               <Handle
                 key={at}
