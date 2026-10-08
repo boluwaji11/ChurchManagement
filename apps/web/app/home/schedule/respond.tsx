@@ -18,11 +18,17 @@ export function Respond({ id, church }: { id: string; church: string }) {
   const [reason, setReason] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
+  /* The reason is about this decline, so an abandoned one does not come back. */
+  const close = () => {
+    setAsking(false);
+    setReason("");
+  };
+
   const send = (accept: boolean, why: string | null) =>
     start(async () => {
       const back = await answerMine(id, accept, why, church);
       setError(back.error ?? null);
-      if (!back.error) setAsking(false);
+      if (!back.error) close();
     });
 
   return (
@@ -42,7 +48,7 @@ export function Respond({ id, church }: { id: string; church: string }) {
         </p>
       ) : null}
 
-      <Dialog open={asking} onOpenChange={(open) => { if (!open) setAsking(false); }}>
+      <Dialog open={asking} onOpenChange={(open) => { if (!open) close(); }}>
         <DialogContent title={t("home.decline")} closeLabel={t("action.cancel")}>
           <Field label={t("home.declineWhy")}>
             <Input
@@ -53,7 +59,7 @@ export function Respond({ id, church }: { id: string; church: string }) {
             />
           </Field>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setAsking(false)}>
+            <Button variant="secondary" onClick={close}>
               {t("action.cancel")}
             </Button>
             <Button loading={working} onClick={() => send(false, reason.trim() || null)}>

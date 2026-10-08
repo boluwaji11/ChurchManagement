@@ -71,6 +71,9 @@ export function ImportWizard({
     setFile({ filename: "" });
     setInspection(undefined);
     setMapping({});
+    // The duplicate policy is chosen per file, and the radio is off screen by
+    // the preview step, so a carried-over choice would be applied unseen.
+    setStrategy("skip");
     setPreview(undefined);
     setResult(undefined);
   };

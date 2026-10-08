@@ -328,8 +328,14 @@ function StartDialog({
   const [pipelineId, setPipelineId] = React.useState("");
   const [saving, startTransition] = React.useTransition();
 
+  /* The chosen pipeline belongs to this start, so the next one asks again. */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setPipelineId("");
+  };
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
         <Button><Plus /> {t("followups.startAction")}</Button>
       </SheetTrigger>
@@ -359,7 +365,7 @@ function StartDialog({
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+            <Button variant="ghost" onClick={() => close(false)}>{t("action.cancel")}</Button>
               <Button
               loading={saving}
               disabled={pending || saving || !pipelineId}
@@ -372,8 +378,7 @@ function StartDialog({
                   const result = await startFollowUp(data);
                   onError(result.error);
                   if (!result.error) {
-                    setOpen(false);
-                    setPipelineId("");
+                    close(false);
                     onDone();
                   }
                 });
@@ -485,8 +490,14 @@ function DoneDialog({
   const [open, setOpen] = React.useState(false);
   const [outcome, setOutcome] = React.useState("");
 
+  /* The outcome describes the step just finished. */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setOutcome("");
+  };
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
         <IconButton
           label={t("followups.doneAction")}
@@ -501,13 +512,12 @@ function DoneDialog({
             <Input value={outcome} onChange={(e) => setOutcome(e.target.value)} autoFocus />
           </Field>
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+            <Button variant="ghost" onClick={() => close(false)}>{t("action.cancel")}</Button>
               <Button
               disabled={pending}
               onClick={() => {
-                setOpen(false);
                 onConfirm(outcome.trim() || null);
-                setOutcome("");
+                close(false);
               }}
             >
               {t("followups.doneAction")}
@@ -534,8 +544,14 @@ function LeaveDialog({
   const [open, setOpen] = React.useState(false);
   const [reason, setReason] = React.useState("");
 
+  /* The reason is about this exit, so an abandoned one does not come back. */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setReason("");
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
         <IconButton
           label={t("followups.leave")}
@@ -551,16 +567,15 @@ function LeaveDialog({
           </Field>
 
           <DialogFooter>
-            <Button variant="ghost" data-dismiss onClick={() => setOpen(false)}>
+            <Button variant="ghost" data-dismiss onClick={() => close(false)}>
               {t("followups.exitKeep")}
             </Button>
             <Button
               variant="danger"
               disabled={pending || reason.trim() === ""}
               onClick={() => {
-                setOpen(false);
                 onConfirm(reason.trim());
-                setReason("");
+                close(false);
               }}
             >
               {t("followups.exitAction")}

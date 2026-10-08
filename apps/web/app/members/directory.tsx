@@ -822,10 +822,17 @@ function SelectionBar({
  * the person screen already carries the same shell.
  */
 function BulkMessage({ count }: { count: number }) {
+  const [open, setOpen] = React.useState(false);
   const [channel, setChannel] = React.useState("email");
 
+  /* The channel is chosen for this selection, so a different one starts fresh. */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setChannel("email");
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
         <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]">
           <Mail /> {t("directory.bulkMessage")}

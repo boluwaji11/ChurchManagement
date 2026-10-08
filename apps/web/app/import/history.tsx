@@ -8,6 +8,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Flash } from "@/components/said";
+import { useFormError } from "@/lib/form-error";
 import { undoImport, type RollbackOutcome } from "./actions";
 
 export interface BatchRow {
@@ -93,14 +94,19 @@ export function ImportHistory({
 function Undo({ church, batch }: { church: string; batch: BatchRow }) {
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
+  const [error, setError] = useFormError(open);
+  /* Kept for the flash afterwards, which is about the undo that succeeded. */
   const [outcome, setOutcome] = React.useState<RollbackOutcome>();
 
   const submit = async (data: FormData) => {
     setPending(true);
     try {
       const result = await undoImport(data);
-      setOutcome(result);
-      if (!result.error) setOpen(false);
+      setError(result.error);
+      if (!result.error) {
+        setOutcome(result);
+        setOpen(false);
+      }
     } finally {
       setPending(false);
     }
@@ -122,8 +128,8 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
           title={t("import.rollback.confirmTitle", { filename: batch.filename })}
           description={t("import.rollback.window")}
         >
-          {outcome?.error ? (
-            <Banner tone="danger" title={t("import.failed")} className="mb-4">{outcome.error}</Banner>
+          {error ? (
+            <Banner tone="danger" title={t("import.failed")} className="mb-4">{error}</Banner>
           ) : null}
 
           <p className="mb-5 text-[length:var(--d-text-body)] text-fg">
@@ -156,7 +162,7 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
         </DialogContent>
       </Dialog>
 
-      {outcome && !outcome.error ? (
+      {outcome ? (
         <Flash message={t("import.rolledBack")}>
           {t("import.rollback.done", {
             removed: outcome.removed ?? 0,

@@ -42,6 +42,12 @@ export function Places({
     if (!pending) setDoing(undefined);
   }, [pending]);
 
+  /* The label is chosen for the address being added, so the next one asks again. */
+  const close = (next: boolean) => {
+    setAdding(next);
+    if (!next) setLabel("home");
+  };
+
   const act = (key: string, work: () => Promise<{ error?: string }>) => {
     setDoing(key);
     run(async () => setError((await work()).error));
@@ -107,7 +113,7 @@ export function Places({
       ) : null}
 
       {canEdit ? (
-        <Sheet open={adding} onOpenChange={setAdding}>
+        <Sheet open={adding} onOpenChange={close}>
           <SheetTrigger asChild>
             <button
               type="button"
@@ -146,7 +152,7 @@ export function Places({
                     },
                     church,
                   );
-                  if (!result.error) setAdding(false);
+                  if (!result.error) close(false);
                   return result;
                 });
               }}

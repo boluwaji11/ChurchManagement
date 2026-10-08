@@ -60,6 +60,16 @@ export function Relationships({
   const [cancelled, setCancelled] = React.useState(0);
   const [pending, startTransition] = React.useTransition();
 
+  /*
+   * Add is enabled as soon as both are set, so a pair left behind by an
+   * abandoned attempt would write a relationship on the next single press.
+   */
+  const stopAdding = () => {
+    setAdding(false);
+    setRelated("");
+    setKind("");
+  };
+
   const submit = () => {
     if (!related || !kind) return;
     const data = new FormData();
@@ -76,9 +86,7 @@ export function Relationships({
       }
       setError(undefined);
       setCancelled(result.cancelled ?? 0);
-      setAdding(false);
-      setRelated("");
-      setKind("");
+      stopAdding();
       router.refresh();
     });
   };
@@ -213,7 +221,7 @@ export function Relationships({
             <Button onClick={submit} disabled={!related || !kind || pending}>
               {t("action.add")}
             </Button>
-            <Button variant="ghost" onClick={() => setAdding(false)}>{t("action.cancel")}</Button>
+            <Button variant="ghost" onClick={stopAdding}>{t("action.cancel")}</Button>
           </div>
         ) : (
           <div>

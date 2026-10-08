@@ -54,6 +54,17 @@ export function Milestones({
   const [pending, startTransition] = React.useTransition();
   const form = React.useRef<HTMLFormElement>(null);
 
+  /*
+   * The kind is a choice about the record being written now, and Add is enabled
+   * on it alone, so a kind left over from an abandoned attempt is one press away
+   * from a milestone nobody chose.
+   */
+  const toggle = (next: boolean) => {
+    setAdding(next);
+    if (next) setFollowed(undefined);
+    else setKind("");
+  };
+
   const submit = (data: FormData) => {
     data.set("church", church);
     data.set("memberId", memberId);
@@ -73,8 +84,7 @@ export function Milestones({
             : t("milestone.firstVisitSet")
           : undefined,
       );
-      setAdding(false);
-      setKind("");
+      toggle(false);
       form.current?.reset();
       router.refresh();
     });
@@ -133,7 +143,7 @@ export function Milestones({
       </ul>
 
       {canEdit ? (
-        <Sheet open={adding} onOpenChange={(next) => { setAdding(next); if (next) setFollowed(undefined); }}>
+        <Sheet open={adding} onOpenChange={toggle}>
           <SheetTrigger asChild>
             <Button variant="ghost" className="self-start">
               <Plus /> {t("milestone.add")}
@@ -172,7 +182,7 @@ export function Milestones({
               </div>
 
               <div className="flex flex-wrap items-center justify-end gap-3">
-                <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
+                <Button type="button" variant="ghost" onClick={() => toggle(false)}>
                   {t("action.cancel")}
                 </Button>
               <Button type="submit" disabled={!kind || pending}>{t("action.add")}</Button>

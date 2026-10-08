@@ -45,8 +45,25 @@ export function FileReport({
   const [pending, startTransition] = React.useTransition();
   const full = useAnswered("incident-form", open);
 
+  /*
+   * R8.13. The child, the room, the service and the tick all belong to the
+   * report just filed. A sheet that reopens holding them names the wrong child
+   * on the next record, which is the one mistake this form cannot make.
+   */
+  const clear = () => {
+    setPersonId("");
+    setRoomId("");
+    setServiceId("");
+    setNotified(false);
+  };
+
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) clear();
+  };
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
 
       <SheetContent
@@ -54,7 +71,7 @@ export function FileReport({
         closeLabel={t("common.close")}
         footer={
           <>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
             <Button type="submit" form="incident-form" disabled={pending || !full || !memberId}>
@@ -83,11 +100,7 @@ export function FileReport({
               );
               setError(result.error);
               if (!result.error) {
-                setOpen(false);
-                setPersonId("");
-                setRoomId("");
-                setServiceId("");
-                setNotified(false);
+                close(false);
                 router.refresh();
               }
             });

@@ -44,8 +44,17 @@ export function NoteForm({
   const formId = React.useId();
   const full = useAnswered(formId, open);
 
+  /*
+   * Who may read it is a decision about this note. Inherited from the last one,
+   * it changes who can open the next note without anybody choosing that.
+   */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setConfidential(false);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
         {trigger ?? <Button variant="secondary"><Plus /> {t("notes.add")}</Button>}
       </SheetTrigger>
@@ -54,7 +63,7 @@ export function NoteForm({
         closeLabel={t("common.close")}
         footer={
           <>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
             <Button type="submit" form={formId} loading={pending} disabled={!full}>
@@ -74,8 +83,7 @@ export function NoteForm({
               const result = await addNote(data);
               setError(result.error);
               if (!result.error) {
-                setOpen(false);
-                setConfidential(false);
+                close(false);
                 router.refresh();
               }
             });

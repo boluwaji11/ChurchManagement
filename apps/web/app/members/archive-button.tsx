@@ -5,6 +5,7 @@ import { Archive, ArchiveRestore } from "lucide-react";
 import { Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter, Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { setArchived } from "./actions";
+import { useFormError } from "@/lib/form-error";
 
 /**
  * Archiving is confirmed, never one click.
@@ -25,7 +26,8 @@ export function ArchiveButton({
   name: string;
   archived: boolean;
 }) {
-  const [error, setError] = React.useState<string>();
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = useFormError(open);
   const [pending, setPending] = React.useState(false);
 
   const submit = async (data: FormData) => {
@@ -52,7 +54,7 @@ export function ArchiveButton({
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost">
           <Archive /> {t("person.archive")}

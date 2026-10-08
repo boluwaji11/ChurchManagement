@@ -132,8 +132,17 @@ function AddDialog({
   const formId = React.useId();
   const full = useAnswered(formId, open);
 
+  /*
+   * The result belongs to the check just filed. Reopening on "flagged" with a
+   * blank provider reads as a flagged check somebody half typed.
+   */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setStatus("clear");
+  };
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
         <Button variant="secondary"><Plus /> {t("checks.add")}</Button>
       </SheetTrigger>
@@ -149,7 +158,7 @@ function AddDialog({
               const result = await addCheck(data);
               onError(result.error);
               if (!result.error) {
-                setOpen(false);
+                close(false);
                 onDone();
               }
             });
@@ -183,7 +192,7 @@ function AddDialog({
           </Field>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
               <Button type="submit" disabled={pending || saving || !full}>{t("action.save")}</Button>
