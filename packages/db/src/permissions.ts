@@ -131,6 +131,14 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
     "checkin.rooms", "checkin.stations", "checkin.run", "checkin.supervise",
     "checkin.incidents", "checkin.checks",
     "followups.manage", "groups.manage", "services.manage", "events.manage",
+    /*
+     * R1.6, R9.3. Leading one group is narrower than running all of them.
+     *
+     * Admin was given groups.manage and never groups.lead, because no Admin
+     * screen asks for it. Nobody may hand out a permission they do not hold,
+     * so that omission stopped an Admin appointing a group leader at all.
+     */
+    "groups.lead",
     "teams.manage", "teams.lead",
   ],
   staff: [
