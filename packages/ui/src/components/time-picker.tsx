@@ -262,7 +262,10 @@ export function TimePicker({
             type="button"
             aria-label={labels.clear}
             onClick={() => { onChange(""); setTyped(null); input.current?.focus(); }}
-            className="shrink-0 rounded-md p-1 text-fg-subtle hover:bg-sunken hover:text-fg"
+            /* R24.6. 32px, so the mark inside a field is a target a thumb
+               hits. The field keeps its height: it is 40px at a desk and 44
+               on a phone, and the button sits inside either. */
+            className="grid size-8 shrink-0 place-items-center rounded-md text-fg-subtle hover:bg-sunken hover:text-fg"
           >
             <X className="size-4" aria-hidden />
           </button>
@@ -274,7 +277,7 @@ export function TimePicker({
           aria-expanded={open}
           disabled={disabled}
           onClick={() => setOpen((o) => !o)}
-          className="mr-1 shrink-0 rounded-md p-1.5 text-fg-muted hover:bg-sunken hover:text-fg"
+          className="mr-1 grid size-8 shrink-0 place-items-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg"
         >
           <Clock className="size-4" aria-hidden />
         </button>

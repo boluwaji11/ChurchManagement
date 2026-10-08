@@ -276,7 +276,10 @@ export function Combobox({
               setQuery("");
               input.current?.focus();
             }}
-            className="shrink-0 rounded-md p-1 text-fg-subtle hover:bg-sunken hover:text-fg"
+            /* R24.6. 32px, so the mark inside a field is a target a thumb
+               hits. The field keeps its height: it is 40px at a desk and 44
+               on a phone, and the button sits inside either. */
+            className="grid size-8 shrink-0 place-items-center rounded-md text-fg-subtle hover:bg-sunken hover:text-fg"
           >
             <X className="size-4" aria-hidden />
           </button>
@@ -298,7 +301,7 @@ export function Combobox({
             setOpen(true);
             input.current?.focus();
           }}
-          className="mr-1 shrink-0 cursor-pointer rounded-md p-1 text-fg-subtle hover:bg-sunken hover:text-fg"
+          className="mr-1 grid size-8 shrink-0 cursor-pointer place-items-center rounded-md text-fg-subtle hover:bg-sunken hover:text-fg"
         >
           <ChevronDown className="size-4 opacity-60" aria-hidden />
         </button>

@@ -13,7 +13,10 @@ export function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 font-medium text-primary"
+      /* R24.6. The row of text is 20px tall, which is not a target. The
+         padding raises the hit box to 32px and the negative margin takes it
+         back out of the layout, so nothing on the screen moves. */
+      className="-my-1.5 inline-flex items-center gap-1.5 py-1.5 font-medium text-primary"
     >
       <ArrowLeft className="size-4" aria-hidden /> {label}
     </Link>

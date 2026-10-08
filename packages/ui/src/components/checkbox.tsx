@@ -11,8 +11,16 @@ export const Checkbox = React.forwardRef<
   <P.Root
     ref={ref}
     className={cn(
-      "peer shrink-0 cursor-pointer rounded-[6px] border border-line-strong bg-surface shadow-sm",
+      "peer relative shrink-0 cursor-pointer rounded-[6px] border border-line-strong bg-surface shadow-sm",
       "size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+      /*
+       * R24.6. A 20px box is a 20px target, and on a phone that is a press
+       * somebody with a tremor misses. The box keeps its size and the thing
+       * you press is the density's own target, centred on it, so one
+       * implementation serves a desk, a kiosk and a thumb.
+       */
+      "before:absolute before:top-1/2 before:left-1/2 before:size-[var(--d-tap)]",
+      "before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']",
       "data-[state=indeterminate]:bg-primary data-[state=indeterminate]:border-primary",
       "transition-colors duration-instant ease-out",
       "disabled:opacity-45 disabled:pointer-events-none",
