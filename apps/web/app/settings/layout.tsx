@@ -24,47 +24,30 @@ export const dynamic = "force-dynamic";
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
 
+  /*
+   * R24.6. Six headings, in the order a church reads them: what this church
+   * is, the people, what it puts on, the money, you, and getting it all back
+   * out. Check-in and Schedule were headings of their own holding two names
+   * and one, which is a door in front of a door.
+   */
   const groups: SettingsGroup[] = [
     {
       title: t("settings.group.church"),
-      items: [
-        ...(canManageChurch(session)
-          ? [
-              { href: "/settings/church", label: t("settings.tab.church") },
-              { href: "/settings/website", label: t("settings.tab.website") },
-              { href: "/settings/roles", label: t("settings.tab.roles") },
-              { href: "/settings/manage-accesses", label: t("settings.tab.access") },
-            ]
-          : []),
-      ],
-    },
-    {
-      title: t("settings.group.checkin"),
-      items: canManageRooms(session)
+      items: canManageChurch(session)
         ? [
-            { href: "/settings/rooms", label: t("settings.tab.rooms") },
-            { href: "/settings/stations", label: t("settings.tab.stations") },
+            { href: "/settings/church", label: t("settings.tab.church") },
+            { href: "/settings/website", label: t("settings.tab.website") },
+            { href: "/settings/roles", label: t("settings.tab.roles") },
+            { href: "/settings/manage-accesses", label: t("settings.tab.access") },
           ]
-        : [],
-    },
-    {
-      title: t("settings.group.services"),
-      items: canManageServices(session)
-        ? [
-            { href: "/settings/service-template", label: t("settings.tab.plans") },
-            { href: "/settings/service-type", label: t("settings.tab.kinds") },
-          ]
-        : [],
-    },
-    {
-      title: t("settings.group.serving"),
-      items: canManageTeams(session)
-        ? [{ href: "/settings/teams", label: t("settings.tab.teams") }]
         : [],
     },
     {
       title: t("settings.group.members"),
       items: [
+        ...(canManageTeams(session)
+          ? [{ href: "/settings/teams", label: t("settings.tab.teams") }]
+          : []),
         ...(canManageHouseholds(session)
           ? [{ href: "/settings/households", label: t("settings.tab.households") }]
           : []),
@@ -74,11 +57,28 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         ...(canManageCustomFields(session)
           ? [{ href: "/settings/fields", label: t("settings.tab.fields") }]
           : []),
-        ...(canManageGroups(session)
-          ? [{ href: "/settings/group-types", label: t("settings.tab.grouptypes") }]
-          : []),
         ...(canManageChurch(session)
           ? [{ href: "/settings/followups", label: t("settings.tab.followups") }]
+          : []),
+      ],
+    },
+    {
+      title: t("settings.group.services"),
+      items: [
+        ...(canManageRooms(session)
+          ? [
+              { href: "/settings/rooms", label: t("settings.tab.rooms") },
+              { href: "/settings/stations", label: t("settings.tab.stations") },
+            ]
+          : []),
+        ...(canManageServices(session)
+          ? [
+              { href: "/settings/service-template", label: t("settings.tab.plans") },
+              { href: "/settings/service-type", label: t("settings.tab.kinds") },
+            ]
+          : []),
+        ...(canManageGroups(session)
+          ? [{ href: "/settings/group-types", label: t("settings.tab.grouptypes") }]
           : []),
       ],
     },
