@@ -132,8 +132,8 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
   ];
 
   const cell =
-    "flex cursor-pointer items-center gap-2 border-b border-sunken px-5 py-2.5 text-left "
-    + "text-[length:var(--d-text-body)] disabled:cursor-default";
+    "flex cursor-pointer items-center gap-2 border-b border-sunken px-3 py-2.5 text-left "
+    + "text-[length:var(--d-text-body)] disabled:cursor-default sm:px-5";
 
   return (
     <section className="overflow-hidden rounded-lg border border-line bg-surface">
@@ -155,7 +155,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
         </Banner>
       ) : null}
 
-      <div className="grid [grid-template-columns:110px_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-2 sm:[grid-template-columns:110px_minmax(0,1fr)_minmax(0,1fr)]">
         {rows.map((row) => {
           const chosen = row.key === "name" ? (keepA ? "a" : "b") : sideOf(row.key as FieldKey);
           const choose = (side: "a" | "b") =>
@@ -168,7 +168,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
 
           return (
             <React.Fragment key={row.key}>
-              <div className="flex flex-col justify-center border-b border-sunken px-5 py-2.5 text-[12px] text-fg-subtle">
+              <div className="col-span-2 flex flex-col justify-center border-sunken px-3 pt-3 pb-1 text-[12px] text-fg-subtle sm:col-span-1 sm:border-b sm:px-5 sm:py-2.5">
                 {row.label}
                 {/* R2.5. Said under the label, so the two values keep the
                     columns every other row lines up with. */}
@@ -254,8 +254,8 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
       ) : null}
 
       {history.map((m) => (
-        <div key={m.id} className="flex items-center gap-3 border-t border-sunken py-2.5">
-          <span className="flex-1 text-[length:var(--d-text-body)] text-fg">
+        <div key={m.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-sunken py-2.5">
+          <span className="min-w-0 flex-1 text-[length:var(--d-text-body)] text-fg">
             <span className="font-medium">{m.loserName}</span>{" "}
             <ArrowRight className="inline size-3.5 text-fg-subtle" aria-hidden />{" "}
             <span className="font-medium">{m.winnerName}</span>
@@ -270,7 +270,7 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
                 type="submit"
                 variant="secondary"
                 loading={pending}
-                className="min-h-[30px] px-2.5 text-[13px]"
+                className="min-h-8 px-2.5 text-[13px]"
               >
                 {t("merge.undo")}
               </Button>

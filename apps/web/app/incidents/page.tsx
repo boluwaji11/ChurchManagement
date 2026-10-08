@@ -111,7 +111,7 @@ export default async function IncidentsPage({
     <AppShell session={session} title={t("incident.title")} action={filing} max="max-w-[760px]">
       <Link
         href={`/checkin?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("checkin.title")}
       </Link>

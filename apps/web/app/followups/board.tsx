@@ -112,18 +112,18 @@ export function Board({
               <span className="ml-auto text-fg-subtle">{inStage.length}</span>
             </div>
 
-            <div className="flex min-h-[140px] flex-col gap-2">
+            <div className="flex flex-col gap-2 sm:min-h-[140px]">
               {inStage.map((card) => (
                 <div
                   key={card.entryId}
                   draggable
                   onDragStart={() => setDragging(card.entryId)}
                   onDragEnd={() => setDragging(null)}
-                  className="flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3"
+                  className="relative flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3 hover:border-line-strong"
                 >
                   <Link
                     href={`/members/${card.personSlug}?church=${church}`}
-                    className="font-medium text-fg"
+                    className="font-medium text-fg after:absolute after:inset-0 after:content-['']"
                   >
                     {card.who}
                   </Link>
@@ -213,7 +213,7 @@ function AddToStage({
           setOpen(true);
         }}
         disabled={pending}
-        className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[12px] text-fg-subtle hover:bg-surface hover:text-fg"
+        className="flex min-h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[12px] text-fg-subtle hover:bg-surface hover:text-fg"
       >
         <Plus className="size-3.5" aria-hidden /> {t("board.add")}
       </button>
@@ -251,7 +251,7 @@ function AddToStage({
 /** The one line that says the board can be dragged. */
 export function DragHint() {
   return (
-    <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
+    <span className="hidden items-center gap-1.5 text-[12px] text-fg-subtle sm:flex">
       <Move className="size-3.5" aria-hidden /> {t("board.dragHint")}
     </span>
   );
