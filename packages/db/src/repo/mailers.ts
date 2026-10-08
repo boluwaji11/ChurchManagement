@@ -29,6 +29,11 @@ export type MailerRecipients = (typeof MAILER_RECIPIENTS)[number];
  */
 export const MAILER_PAPERS = ["envelope", "avery5160", "averyL7160", "avery5162"] as const;
 
+/** The typefaces a letter may be set in. The faces themselves live in the UI. */
+export const MAILER_FONTS = [
+  "inter", "georgia", "times", "garamond", "arial", "verdana",
+] as const;
+
 export interface Mailer {
   id: string;
   name: string;
@@ -36,6 +41,7 @@ export interface Mailer {
   listId: string | null;
   paper: string;
   skip: number;
+  font: string;
   body: string;
   archivedAt: Date | null;
   updatedAt: Date;
@@ -63,6 +69,7 @@ const shape = (row: typeof mailers.$inferSelect): Mailer => ({
   listId: row.listId,
   paper: (MAILER_PAPERS as readonly string[]).includes(row.paper) ? row.paper : "envelope",
   skip: row.skip,
+  font: (MAILER_FONTS as readonly string[]).includes(row.font) ? row.font : "inter",
   body: row.body,
   archivedAt: row.archivedAt,
   updatedAt: row.updatedAt,
@@ -130,6 +137,7 @@ export interface MailerPatch {
   listId?: string | null;
   paper?: string;
   skip?: number;
+  font?: string;
   body?: string;
 }
 
@@ -163,6 +171,11 @@ export async function updateMailer(db: Tx, actor: Actor, input: MailerPatch): Pr
   }
   if (input.skip !== undefined) {
     patch.skip = Number.isFinite(input.skip) ? Math.max(0, Math.floor(input.skip)) : 0;
+  }
+  if (input.font !== undefined) {
+    patch.font = (MAILER_FONTS as readonly string[]).includes(input.font)
+      ? input.font
+      : "inter";
   }
   if (input.body !== undefined) patch.body = input.body;
 

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, postalRows, listSavedLists, listMailers, getMailer, canEditPeople,
+  withTenant, postalRows, listSavedLists, listMailers, countArchivedMailers, getMailer,
+  canEditPeople,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -46,9 +47,11 @@ const stamp = (at: Date): string =>
 export default async function MailerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; id?: string }>;
+  searchParams: Promise<{ church?: string; id?: string; archived?: string }>;
 }) {
-  const { church, id } = await searchParams;
+  const { church, id, archived } = await searchParams;
+  /** R24.6. The ones put away, reached from the shelf they came off. */
+  const putAway = archived === "1";
   const session = await requireSession(church);
 
   if (!canEditPeople(session)) {
@@ -69,7 +72,8 @@ export default async function MailerPage({
   const read = await withTenant(ctx, async (tx) => ({
     households: id ? (await postalRows(tx)).length : 0,
     lists: id ? await listSavedLists(tx) : [],
-    mailers: id ? [] : await listMailers(tx),
+    mailers: id ? [] : await listMailers(tx, putAway ? { archivedOnly: true } : {}),
+    archivedCount: id ? 0 : await countArchivedMailers(tx),
     open: id ? await getMailer(tx, id) : null,
   }));
 
@@ -77,15 +81,22 @@ export default async function MailerPage({
 
   const back = (
     <Link
-      href={id ? `/members/mailer?church=${session.tenantSlug}` : `/members?church=${session.tenantSlug}`}
+      href={
+        id || putAway
+          ? `/members/mailer?church=${session.tenantSlug}`
+          : `/members?church=${session.tenantSlug}`
+      }
       className="flex min-h-[var(--d-tap)] items-center gap-1.5 self-start font-medium text-primary [&_svg]:size-4"
     >
-      <ArrowLeft aria-hidden /> {id ? t("post.title") : t("members.title")}
+      <ArrowLeft aria-hidden /> {id || putAway ? t("post.title") : t("members.title")}
     </Link>
   );
 
   return (
-    <AppShell session={session} title={read.open ? read.open.name : t("post.title")}>
+    <AppShell
+      session={session}
+      title={read.open ? read.open.name : putAway ? t("post.archived.title") : t("post.title")}
+    >
       <div className="flex flex-col gap-6">
         {back}
 
@@ -101,12 +112,15 @@ export default async function MailerPage({
               listId: read.open.listId,
               paper: read.open.paper,
               skip: read.open.skip,
+              font: read.open.font,
               body: read.open.body,
             }}
           />
         ) : (
           <Shelf
             church={session.tenantSlug}
+            putAway={putAway}
+            archivedCount={read.archivedCount}
             mailers={read.mailers.map((one) => ({
               id: one.id,
               name: one.name,

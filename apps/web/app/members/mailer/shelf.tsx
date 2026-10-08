@@ -3,12 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, FileText, Plus } from "lucide-react";
+import { Archive, ArchiveRestore, FileText, Plus } from "lucide-react";
 import {
   Button, Dialog, DialogContent, DialogFooter, EmptyState, Field, IconButton, Input,
   Sheet, SheetContent,
 } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { plural, t } from "@connectapp/i18n";
 import { SearchField } from "@/components/search-field";
 import { archiveMailer, startMailer } from "./actions";
 
@@ -29,7 +29,19 @@ const SEARCHABLE = 5;
  * what is already being written rather than on an empty box. Starting a new
  * one asks for its name and nothing else, the way a report does.
  */
-export function Shelf({ church, mailers }: { church: string; mailers: MailerCard[] }) {
+export function Shelf({
+  church,
+  mailers,
+  putAway = false,
+  archivedCount = 0,
+}: {
+  church: string;
+  mailers: MailerCard[];
+  /** R24.6. Whether this is the list of the ones put away. */
+  putAway?: boolean;
+  /** How many are put away, for the link that reaches them. */
+  archivedCount?: number;
+}) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
@@ -73,7 +85,7 @@ export function Shelf({ church, mailers }: { church: string; mailers: MailerCard
 
   return (
     <div className="flex flex-col gap-4">
-      {mailers.length > 0 ? (
+      {mailers.length > 0 && !putAway ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           {mailers.length > SEARCHABLE ? (
             <SearchField value={find} onChange={setFind} placeholder={t("post.find")} />
@@ -88,7 +100,9 @@ export function Shelf({ church, mailers }: { church: string; mailers: MailerCard
         <p role="status" className="text-[13px] text-danger-text">{error}</p>
       ) : null}
 
-      {mailers.length === 0 ? (
+      {mailers.length === 0 && putAway ? (
+        <p className="text-fg-muted">{t("post.archived.none")}</p>
+      ) : mailers.length === 0 ? (
         <EmptyState
           mark={
             <span
@@ -131,15 +145,37 @@ export function Shelf({ church, mailers }: { church: string; mailers: MailerCard
               </span>
 
               <span className="relative z-10 shrink-0">
-                <IconButton
-                  label={t("post.archiveDo")}
-                  variant="ghost"
-                  disabled={busy}
-                  className="size-8 min-h-0 [&_svg]:size-4"
-                  onClick={() => setAsking(one)}
-                >
-                  <Archive />
-                </IconButton>
+                {putAway ? (
+                  <IconButton
+                    label={t("post.restore")}
+                    variant="ghost"
+                    disabled={busy}
+                    className="size-8 min-h-0 [&_svg]:size-4"
+                    onClick={() => {
+                      setWorking(true);
+                      void archiveMailer(one.id, false, church).then((back) => {
+                        setWorking(false);
+                        if (back.error) {
+                          setError(back.error);
+                          return;
+                        }
+                        startGoing(() => router.refresh());
+                      });
+                    }}
+                  >
+                    <ArchiveRestore />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    label={t("post.archiveDo")}
+                    variant="ghost"
+                    disabled={busy}
+                    className="size-8 min-h-0 [&_svg]:size-4"
+                    onClick={() => setAsking(one)}
+                  >
+                    <Archive />
+                  </IconButton>
+                )}
               </span>
             </div>
           ))}
@@ -148,6 +184,15 @@ export function Shelf({ church, mailers }: { church: string; mailers: MailerCard
 
       {shown.length === 0 && mailers.length > 0 ? (
         <p className="text-[13px] text-fg-muted">{t("lists.noneFound")}</p>
+      ) : null}
+
+      {!putAway && archivedCount > 0 ? (
+        <Link
+          href={`/members/mailer?church=${church}&archived=1`}
+          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {plural("post.archived", archivedCount)}
+        </Link>
       ) : null}
 
       <Sheet open={open} onOpenChange={(next) => { if (!busy) setOpen(next); }}>

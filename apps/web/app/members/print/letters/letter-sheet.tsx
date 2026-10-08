@@ -1,4 +1,4 @@
-import { merge } from "@connectapp/ui";
+import { merge, LETTER_FACE, faceOf } from "@connectapp/ui";
 import type { PostalRow } from "@connectapp/db";
 import { Markdown } from "@/components/markdown";
 
@@ -30,12 +30,15 @@ export function LetterSheet({
   body,
   today,
   from,
+  font,
 }: {
   rows: PostalRow[];
   head: LetterHead;
   body: string;
   today: string;
   from: string;
+  /** R16.12. The typeface the church chose for this letter. */
+  font?: string;
 }) {
   return (
     <>
@@ -45,7 +48,11 @@ export function LetterSheet({
           className={at === rows.length - 1 ? "" : "break-after-page"}
           /* 25mm all round, which is what a letter is typed in and what a
              window envelope expects to find the address behind. */
-          style={{ padding: "25mm 25mm 20mm", minHeight: "297mm" }}
+          style={{
+            padding: "25mm 25mm 20mm",
+            minHeight: "297mm",
+            fontFamily: LETTER_FACE[faceOf(font)].css,
+          }}
         >
           {/* The letterhead. The mark first, then the church, then the ways
               to answer it, which is the order a reader's eye takes them. */}

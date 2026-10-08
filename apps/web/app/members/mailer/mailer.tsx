@@ -5,7 +5,7 @@ import { Download as DownloadIcon, FileText, Mail, Printer } from "lucide-react"
 import {
   Banner, Button, Combobox, Field, Input, Tooltip,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  PAPER, PAPERS, perPage, unknownMarks, type PaperStock,
+  PAPER, PAPERS, perPage, unknownMarks, faceOf, type PaperStock, type LetterFont,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Download } from "@/components/download";
@@ -57,6 +57,7 @@ export interface SavedMailer {
   listId: string | null;
   paper: string;
   skip: number;
+  font: string;
   body: string;
 }
 
@@ -97,6 +98,7 @@ export function Mailer({
   );
   const [paper, setPaper] = React.useState<PaperStock>(saved.paper as PaperStock);
   const [skip, setSkip] = React.useState(String(saved.skip));
+  const [font, setFont] = React.useState<LetterFont>(faceOf(saved.font));
   const [letter, setLetter] = React.useState(saved.body);
   const [saving, setSaving] = React.useState(false);
   const [savedAt, setSavedAt] = React.useState<number | null>(null);
@@ -119,10 +121,10 @@ export function Mailer({
     + (used > 0 ? `&skip=${used}` : "");
 
   const lettersHref = `/members/print/letters?church=${church}${who}`
-    + `&body=${encodeURIComponent(letter)}`;
+    + `&font=${font}&body=${encodeURIComponent(letter)}`;
 
   const fileHref = `/api/letters?church=${church}${who}`
-    + `&body=${encodeURIComponent(letter)}`;
+    + `&font=${font}&body=${encodeURIComponent(letter)}`;
 
   /*
    * R16.12. It saves itself.
@@ -150,6 +152,7 @@ export function Mailer({
           listId: list === PEOPLE || list === HOUSEHOLDS ? null : list,
           paper,
           skip: Number(skip) || 0,
+          font,
           body: letter,
         },
         church,
@@ -171,7 +174,7 @@ export function Mailer({
     };
     // The names of the two sentinels never change, so they are left out.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saved.id, name, list, paper, skip, letter, church]);
+  }, [saved.id, name, list, paper, skip, font, letter, church]);
 
   const put = (mark: string) => {
     if (write.current) write.current(`{${mark}}`);
@@ -331,6 +334,8 @@ export function Mailer({
               maxHeight={420}
               onChange={setLetter}
               insert={(put) => { write.current = put; }}
+              font={font}
+              onFont={setFont}
             />
           </Field>
 

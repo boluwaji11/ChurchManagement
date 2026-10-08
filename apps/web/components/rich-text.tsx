@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import {
   Button, Field, IconButton, Input, cn,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  LETTER_FACE, LETTER_FONTS, faceOf, type LetterFont,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/rich-text";
@@ -31,6 +33,8 @@ export function RichText({
   maxHeight,
   onChange,
   insert,
+  font,
+  onFont,
 }: {
   /** Left out where the value is read through onChange rather than a form. */
   name?: string;
@@ -54,6 +58,15 @@ export function RichText({
    * writer was, rather than at the end of everything they have written.
    */
   insert?: (put: (text: string) => void) => void;
+  /**
+   * R16.12. The typeface the whole box is set in.
+   *
+   * Left out everywhere the words are a description rather than a letter.
+   * What is stored is markdown, which carries no font, so this belongs to the
+   * thing being written rather than to a run of words inside it.
+   */
+  font?: LetterFont;
+  onFont?: (next: LetterFont) => void;
 }) {
   const box = React.useRef<HTMLDivElement>(null);
   const [markdown, setMarkdown] = React.useState(defaultValue);
@@ -138,6 +151,32 @@ export function RichText({
       {name ? <input type="hidden" name={name} value={markdown} /> : null}
 
       <div className="flex flex-wrap items-center gap-0.5 border-b border-line px-1.5 py-1">
+        {onFont ? (
+          <>
+            <Select value={font ?? "inter"} onValueChange={(next) => onFont(next as LetterFont)}>
+              <SelectTrigger
+                aria-label={t("rich.font")}
+                className="h-8 min-h-8 w-[168px] border-transparent bg-transparent px-2 text-[13px] shadow-none hover:bg-sunken"
+                style={{ fontFamily: LETTER_FACE[faceOf(font)].css }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LETTER_FONTS.map((one) => (
+                  <SelectItem
+                    key={one}
+                    value={one}
+                    style={{ fontFamily: LETTER_FACE[one].css }}
+                  >
+                    {LETTER_FACE[one].name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span aria-hidden className="mx-1 h-5 w-px bg-line" />
+          </>
+        ) : null}
+
         {/* R24.6. Undo and redo first, because the one thing somebody wants
             after a formatting button did the wrong thing is to take it back,
             and a toolbar with no way back teaches members not to press
@@ -220,7 +259,11 @@ export function RichText({
           "[&_strong]:font-semibold",
           maxHeight ? "overflow-y-auto" : "",
         )}
-        style={{ minHeight, maxHeight }}
+        style={{
+          minHeight,
+          maxHeight,
+          fontFamily: font ? LETTER_FACE[faceOf(font)].css : undefined,
+        }}
       />
 
       {/* R24.6. The address is asked for on a row of this editor rather than in

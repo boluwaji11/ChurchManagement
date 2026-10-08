@@ -23,6 +23,8 @@ export const mailers = pgTable(
     paper: text("paper").notNull().default("envelope"),
     /** How many labels have already gone off the first sheet. */
     skip: integer("skip").notNull().default(0),
+    /** Which typeface the letter is set in. The words carry none. */
+    font: text("font").notNull().default("inter"),
     /** The words, as markdown, exactly as the editor round-trips them. */
     body: text("body").notNull().default(""),
     createdByUserId: uuid("created_by_user_id").references(() => appUsers.id, { onDelete: "set null" }),

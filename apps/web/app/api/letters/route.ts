@@ -5,7 +5,7 @@ import {
 import {
   withTenant, postalRows, resolveList, listPeople, getChurch, canEditPeople,
 } from "@connectapp/db";
-import { merge } from "@connectapp/ui";
+import { merge, LETTER_FACE, faceOf } from "@connectapp/ui";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -36,6 +36,9 @@ export async function GET(request: Request) {
   const each = url.searchParams.get("each") === "person" ? "person" : "household";
   const list = url.searchParams.get("list");
   const ids = url.searchParams.get("ids");
+  /* R16.12. The typeface the church chose, named so the file and the paper
+     are set the same way. */
+  const face = LETTER_FACE[faceOf(url.searchParams.get("font"))].name;
 
   const read = await withTenant(
     {
@@ -220,7 +223,11 @@ export async function GET(request: Request) {
   });
 
   const file = await Packer.toBuffer(
-    new Document({ sections: [{ properties: {}, children }] }),
+    new Document({
+      // Said once for the whole document rather than on every run in it.
+      styles: { default: { document: { run: { font: face, size: 22 } } } },
+      sections: [{ properties: {}, children }],
+    }),
   );
 
   return new Response(new Uint8Array(file), {
