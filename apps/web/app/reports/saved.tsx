@@ -27,7 +27,16 @@ export interface SavedCard {
  * sit above it as icons. They appear on every card, so they carry the icon
  * alone and say what they are through their label.
  */
-export function SavedReports({ church, reports }: { church: string; reports: SavedCard[] }) {
+export function SavedReports({
+  church,
+  reports,
+  putAway = false,
+}: {
+  church: string;
+  reports: SavedCard[];
+  /** R24.6. Whether this is the list of the ones put away. */
+  putAway?: boolean;
+}) {
   const router = useRouter();
   const [asking, setAsking] = React.useState<SavedCard | null>(null);
   const [naming, setNaming] = React.useState<SavedCard | null>(null);
@@ -37,7 +46,9 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="font-display text-[22px] leading-7 text-fg">{t("report.yours")}</h2>
+      <h2 className="font-display text-[22px] leading-7 text-fg">
+        {putAway ? t("report.archived.title") : t("report.yours")}
+      </h2>
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
 
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
@@ -81,20 +92,42 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
                   </IconButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onSelect={() => router.push(`/reports/build?church=${church}&id=${one.slug}`)}
-                  >
-                    {t("report.edit")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => { setName(one.name); setNaming(one); }}
-                  >
-                    {t("report.rename")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setAsking(one)}>
-                    {t("report.archiveDo")}
-                  </DropdownMenuItem>
+                  {putAway ? (
+                    /* R24.6. A report that has been put away has one thing
+                       that can be done to it. */
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        setWorking(true);
+                        void archiveReport(one.id, false, church).then((result) => {
+                          setWorking(false);
+                          if (result.error) {
+                            setError(result.error);
+                            return;
+                          }
+                          router.refresh();
+                        });
+                      }}
+                    >
+                      {t("report.restore")}
+                    </DropdownMenuItem>
+                  ) : (
+                    <>
+                      <DropdownMenuItem
+                        onSelect={() => router.push(`/reports/build?church=${church}&id=${one.slug}`)}
+                      >
+                        {t("report.edit")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => { setName(one.name); setNaming(one); }}
+                      >
+                        {t("report.rename")}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={() => setAsking(one)}>
+                        {t("report.archiveDo")}
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </span>

@@ -52,14 +52,29 @@ const shape = (row: typeof savedReports.$inferSelect): SavedReport => ({
 
 export async function listSavedReports(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<SavedReport[]> {
   const rows = await db
     .select()
     .from(savedReports)
-    .where(opts.includeArchived ? undefined : isNull(savedReports.archivedAt))
+    .where(
+      opts.archivedOnly
+        ? sql`${savedReports.archivedAt} is not null`
+        : opts.includeArchived
+          ? undefined
+          : isNull(savedReports.archivedAt),
+    )
     .orderBy(asc(savedReports.name));
   return rows.map(shape);
+}
+
+/** R18.x, R24.6. How many a church has put away, for the link that reaches them. */
+export async function countArchivedSavedReports(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(savedReports)
+    .where(sql`${savedReports.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, HandCoins, TrendingUp, UserPlus } from "lucide-react";
 import {
-  withTenant, listSavedReports, canEditPeople, canReadIncidents, canReadGivingAmounts,
+  ArrowLeft, ArrowRight, CalendarCheck, HandCoins, TrendingUp, UserPlus,
+} from "lucide-react";
+import {
+  withTenant, listSavedReports, countArchivedSavedReports,
+  canEditPeople, canReadIncidents, canReadGivingAmounts,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
@@ -39,9 +42,10 @@ export async function generateMetadata({
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; archived?: string }>;
 }) {
-  const { church } = await searchParams;
+  const params = await searchParams;
+  const church = params.church;
   const session = await requireSession(church);
 
   if (!canEditPeople(session) && !canReadIncidents(session)) {
@@ -53,9 +57,16 @@ export default async function ReportsPage({
 
   const here = `?church=${session.tenantSlug}`;
 
-  const saved = await withTenant(
+  /* R24.6. A report that was put away could be archived and then never seen
+     again: nothing listed it and nothing brought it back. */
+  const putAway = params.archived === "1";
+
+  const { saved, archivedCount } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    (tx) => listSavedReports(tx),
+    async (tx) => ({
+      saved: await listSavedReports(tx, putAway ? { archivedOnly: true } : {}),
+      archivedCount: await countArchivedSavedReports(tx),
+    }),
   );
 
   const reports = [
@@ -96,11 +107,22 @@ export default async function ReportsPage({
 
   return (
     <AppShell session={session} title={t("reports.title")}>
+      {putAway ? (
+        <Link
+          href={`/reports?church=${session.tenantSlug}`}
+          className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        >
+          <ArrowLeft className="size-4" /> {t("report.archived.back")}
+        </Link>
+      ) : null}
+
       {/* No heading: the bar above it already says Reports, and a page that
           says its own name twice reads as a page nobody laid out. */}
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <StartReport church={session.tenantSlug} />
-      </div>
+      {putAway ? null : (
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <StartReport church={session.tenantSlug} />
+        </div>
+      )}
 
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
         {reports.map((one) => {
@@ -136,10 +158,22 @@ export default async function ReportsPage({
       {saved.length > 0 ? (
         <SavedReports
           church={session.tenantSlug}
+          putAway={putAway}
           reports={saved.map((one) => ({
             id: one.id, slug: one.slug, name: one.name, subject: one.subject,
           }))}
         />
+      ) : putAway ? (
+        <p className="text-fg-muted">{t("report.archived.none")}</p>
+      ) : null}
+
+      {!putAway && archivedCount > 0 ? (
+        <Link
+          href={`/reports?church=${session.tenantSlug}&archived=1`}
+          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {plural("report.archived", archivedCount)}
+        </Link>
       ) : null}
     </AppShell>
   );
