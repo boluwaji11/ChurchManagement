@@ -55,6 +55,12 @@ const dayName = (iso: string) =>
 
 const dayNumber = (iso: string) => new Date(`${iso}T00:00:00`).getUTCDate();
 
+/** "Monday 5 October", which is how a day reads when it heads an agenda. */
+const agendaDay = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: "long", day: "numeric", month: "long",
+  });
+
 const span = (from: string, to: string) =>
   `${new Date(`${from}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "long" })}`
   + ` to ${new Date(`${to}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "long" })}`;
@@ -73,6 +79,40 @@ interface Entry {
   hue: string;
   /** R24.6. Where the thing on this day lives, where it has a page. */
   href?: string;
+}
+
+/**
+ * One thing on one day, drawn the same in the month grid and in the phone's
+ * agenda. R24.6: where it has a page, the whole block opens it.
+ */
+function EntryBlock({ entry, church }: { entry: Entry; church: string }) {
+  const body = (
+    <>
+      <div className="text-[13px] font-medium" style={{ color: `var(--hue-${entry.hue}-key)` }}>
+        {entry.title}
+      </div>
+      {entry.detail ? <div className="text-[12px] text-fg-muted">{entry.detail}</div> : null}
+    </>
+  );
+
+  const style = {
+    background: `var(--hue-${entry.hue}-tint)`,
+    borderLeft: `3px solid var(--hue-${entry.hue}-500)`,
+  };
+
+  return entry.href ? (
+    <Link
+      href={`${entry.href}?church=${church}`}
+      className="group block min-h-[var(--d-tap)] cursor-pointer rounded-sm px-2.5 py-2 outline-none transition-all hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
+      style={style}
+    >
+      {body}
+    </Link>
+  ) : (
+    <div className="rounded-sm px-2.5 py-2" style={style}>
+      {body}
+    </div>
+  );
 }
 
 export default async function CalendarPage({
@@ -157,6 +197,9 @@ export default async function CalendarPage({
   const link = (at: string) =>
     `/calendar?church=${session.tenantSlug}&at=${at}`;
 
+  // The days the agenda has anything to show.
+  const busy = days.filter((day) => day.entries.length > 0);
+
   return (
     <AppShell session={session} title={t("calendar.title")} wide>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -193,7 +236,8 @@ export default async function CalendarPage({
         </div>
       </div>
 
-      <div className="grid overflow-auto rounded-lg border border-line [grid-template-columns:repeat(7,minmax(120px,1fr))]">
+      {/* R15.1. The fortnight, seven columns a week. */}
+      <div className="hidden overflow-auto rounded-lg border border-line md:grid [grid-template-columns:repeat(7,minmax(120px,1fr))]">
         {days.map((day, at) => (
           <section
             key={day.date}
@@ -207,46 +251,39 @@ export default async function CalendarPage({
             </div>
 
             <div className="flex min-h-[150px] flex-col gap-1.5 pt-2">
-              {day.entries.map((entry) => {
-                const body = (
-                  <>
-                    <div
-                      className="text-[13px] font-medium"
-                      style={{ color: `var(--hue-${entry.hue}-key)` }}
-                    >
-                      {entry.title}
-                    </div>
-                    {entry.detail ? (
-                      <div className="text-[12px] text-fg-muted">{entry.detail}</div>
-                    ) : null}
-                  </>
-                );
-
-                const style = {
-                  background: `var(--hue-${entry.hue}-tint)`,
-                  borderLeft: `3px solid var(--hue-${entry.hue}-500)`,
-                };
-
-                // R24.6. A tile that stands for something with a page opens it.
-                return entry.href ? (
-                  <Link
-                    key={entry.id}
-                    href={`${entry.href}?church=${session.tenantSlug}`}
-                    className="group block cursor-pointer rounded-sm px-2.5 py-2 outline-none transition-all hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
-                    style={style}
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <div key={entry.id} className="rounded-sm px-2.5 py-2" style={style}>
-                    {body}
-                  </div>
-                );
-              })}
+              {day.entries.map((entry) => (
+                <EntryBlock key={entry.id} entry={entry} church={session.tenantSlug} />
+              ))}
             </div>
           </section>
         ))}
       </div>
+
+      {/* R24.6. Seven columns at phone width is a column an inch wide, so a
+          phone reads the same fortnight down the page: the days that have
+          something on, in the order they come. */}
+      {busy.length === 0 ? (
+        <p className="text-fg-muted md:hidden">{t("calendar.nothing")}</p>
+      ) : (
+        <ol className="flex flex-col gap-5 md:hidden">
+          {busy.map((day) => (
+            <li key={day.date} className="flex flex-col gap-2">
+              <h3
+                className={`text-label ${
+                  day.date === today ? "font-semibold text-fg" : "text-fg-muted"
+                }`}
+              >
+                {agendaDay(day.date)}
+              </h3>
+              <div className="flex flex-col gap-1.5">
+                {day.entries.map((entry) => (
+                  <EntryBlock key={entry.id} entry={entry} church={session.tenantSlug} />
+                ))}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
     </AppShell>
   );
 }
