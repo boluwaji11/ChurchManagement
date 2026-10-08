@@ -64,7 +64,10 @@ export function SetupChecklist({
         </IconButton>
       </div>
 
-      <ol className="flex items-start">
+      {/* Across the top where there is room for it, and down the screen on a
+          phone, where six steps squeezed onto one row leaves each of them
+          three letters wide. */}
+      <ol className="flex flex-col sm:flex-row sm:items-start">
         {progress.steps.map((step, i) => {
           const settled = step.done || step.skipped;
           const before = progress.steps[i - 1];
@@ -78,7 +81,7 @@ export function SetupChecklist({
                    rule between two circles. */
                 <span
                   aria-hidden
-                  className="relative mt-[15px] h-0.5 min-w-4 flex-1 rounded-full"
+                  className="relative mt-[15px] hidden h-0.5 min-w-4 flex-1 rounded-full sm:block"
                   style={{
                     background: run
                       ? "var(--hue-fern-500)"
@@ -96,10 +99,10 @@ export function SetupChecklist({
                 </span>
               ) : null}
 
-              <li className="flex min-w-0 flex-[0_1_140px] justify-center">
+              <li className="flex min-w-0 sm:flex-[0_1_140px] sm:justify-center">
                 <Link
                   href={`${SETUP_LINKS[step.step]}?church=${church}`}
-                  className="flex min-w-0 flex-col items-center gap-2 rounded-[10px] px-2 py-1 text-center transition-colors hover:bg-[color-mix(in_oklch,var(--hue-amber-500)_14%,transparent)]"
+                  className="flex min-w-0 flex-1 items-center gap-3 rounded-[10px] px-2 py-2 text-left transition-colors hover:bg-[color-mix(in_oklch,var(--hue-amber-500)_14%,transparent)] sm:flex-none sm:flex-col sm:gap-2 sm:py-1 sm:text-center"
                 >
                   <span
                     aria-hidden

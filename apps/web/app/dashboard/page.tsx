@@ -278,7 +278,8 @@ export default async function DashboardPage({
               .join(" · ")}
           </p>
         </div>
-        <p className="flex items-center gap-1.5 text-caption text-fg-subtle">
+        {/* The tiles are dragged with a pointer, and a phone has none. */}
+        <p className="hidden items-center gap-1.5 text-caption text-fg-subtle sm:flex">
           <GripVertical className="size-3.5" aria-hidden />
           {t("dashboard.reorder")}
         </p>

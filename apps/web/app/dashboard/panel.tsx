@@ -23,7 +23,10 @@ export function Panel({
       <div className="mb-2.5 flex items-baseline justify-between gap-3">
         <h2 className="font-display text-[22px] leading-7 text-fg">{title}</h2>
         {link ? (
-          <Link href={link.href} className="text-[13px] font-medium text-primary">
+          <Link
+            href={link.href}
+            className="-my-1.5 inline-flex items-center py-1.5 text-[13px] font-medium text-primary"
+          >
             {link.label}
           </Link>
         ) : aside ? (

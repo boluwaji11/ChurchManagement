@@ -57,7 +57,7 @@ export function FollowUp({
               <span className="flex min-w-0 flex-1 flex-col leading-[18px]">
                 <Link
                   href={`/members/${one.personSlug}?church=${church}`}
-                  className="truncate font-medium text-fg hover:text-primary"
+                  className="-my-2 inline-flex max-w-full items-center truncate py-2 font-medium text-fg hover:text-primary"
                 >
                   {one.personName}
                 </Link>
@@ -81,7 +81,7 @@ export function FollowUp({
 
               <Button
                 variant="secondary"
-                className="min-h-[30px] shrink-0 px-2.5 text-[13px]"
+                className="min-h-8 shrink-0 px-2.5 text-[13px]"
                 loading={working === one.id}
                 onClick={() => {
                   setWorking(one.id);

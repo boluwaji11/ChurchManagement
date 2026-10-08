@@ -101,7 +101,7 @@ export function Tiles({ church, tiles }: { church: string; tiles: Tile[] }) {
                 if (e.key === "ArrowLeft") { e.preventDefault(); moveTo(tile.id, i - 1); }
                 if (e.key === "ArrowRight") { e.preventDefault(); moveTo(tile.id, i + 1); }
               }}
-              className="-mr-1 shrink-0 cursor-grab rounded-sm p-1 text-fg-subtle hover:text-fg-muted"
+              className="-mr-1.5 grid size-8 shrink-0 cursor-grab place-items-center rounded-sm text-fg-subtle hover:text-fg-muted"
             >
               <GripVertical className="size-3.5" aria-hidden />
             </button>
