@@ -8,7 +8,7 @@ import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { ReportFrame, backBy, windowOf } from "../frame";
-import { Figure } from "../figure";
+import { Figure, Figures } from "../figure";
 import { Columns, Line } from "../charts";
 import { PagedTable, type Row } from "../paged-table";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -97,7 +97,7 @@ export default async function GrowthReport({
           <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("reports.none")}</p>
         ) : (
           <>
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+            <Figures>
               <Figure
                 label={t("reports.growth.kept")}
                 value={`${kept.retention}%`}
@@ -129,7 +129,7 @@ export default async function GrowthReport({
                 hue={net > 0 ? "fern" : net < 0 ? "rose" : "teal"}
                 sub={t("reports.growth.netSub")}
               />
-            </div>
+            </Figures>
 
             <Line
               title={t("reports.growth.netOverTime")}

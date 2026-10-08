@@ -10,7 +10,7 @@ import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { ReportFrame, backBy, windowOf } from "../frame";
-import { Figure } from "../figure";
+import { Figure, Figures } from "../figure";
 import { Line, RowBars } from "../charts";
 import { PagedTable } from "../paged-table";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -92,7 +92,7 @@ export default async function GivingReport({
         window={window}
         path="giving"
       >
-        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+        <Figures>
           <Figure
             label={t("reports.giving.total")}
             value={money(read.totals.cents)}
@@ -111,13 +111,13 @@ export default async function GivingReport({
             sub={t("reports.giving.lapsed.sub")}
             hue="amber"
           />
-        </div>
+        </Figures>
 
         {/* R13.9. What the giver's intent binds, apart from what it does
             not. A board asking what the church can spend is asking for the
             first of these two numbers. */}
         {restricted > 0 ? (
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+          <Figures>
             <Figure
               label={t("giving.funds.available")}
               value={money(read.totals.cents - restricted)}
@@ -130,7 +130,7 @@ export default async function GivingReport({
               sub={t("giving.funds.restrictedWhy")}
               hue="orchid"
             />
-          </div>
+          </Figures>
         ) : null}
 
         <Line

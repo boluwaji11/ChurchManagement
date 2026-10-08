@@ -121,7 +121,7 @@ export function Donut({
             <span data-numeric className="font-display text-[26px] leading-7 text-fg">
               {readable(total)}
             </span>
-            <span className="text-[11px] text-fg-subtle">{totalLabel}</span>
+            <span className="text-[12px] sm:text-[11px] text-fg-subtle">{totalLabel}</span>
           </div>
         </Tappable>
 
@@ -245,7 +245,7 @@ export function Line({
             {points.map((one, i) => (
               <span
                 key={one.key}
-                className="min-w-0 flex-1 truncate text-center text-[11px] text-fg-subtle"
+                className="min-w-0 flex-1 truncate text-center text-[12px] sm:text-[11px] text-fg-subtle"
               >
                 {i % every === 0 ? one.label : ""}
               </span>
@@ -283,12 +283,14 @@ export function Line({
               <span
                 key={one.key}
                 tabIndex={0}
-                className="group absolute size-5 -translate-x-1/2 -translate-y-1/2 cursor-default outline-none"
+                /* R24.6. What is pressed is a tap target, what is drawn is
+                   still an eight point dot. */
+                className="group absolute size-5 -translate-x-1/2 -translate-y-1/2 cursor-default outline-none before:absolute before:top-1/2 before:left-1/2 before:size-[var(--d-tap)] before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
                 style={{ left: `${x}%`, top: `${(y / H) * 100}%` }}
               >
                 <Hint label={one.label} value={readable(one.value)} />
                 {labels ? (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] text-fg-muted tabular-nums">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[12px] sm:text-[11px] text-fg-muted tabular-nums">
                     {labelled(one.value, one.value / sum, labelKind)}
                   </span>
                 ) : null}
@@ -365,7 +367,7 @@ export function Columns({
               {groups.map((group, i) => (
                 <span
                   key={group.key}
-                  className="min-w-0 flex-1 truncate text-center text-[11px] text-fg-subtle"
+                  className="min-w-0 flex-1 truncate text-center text-[12px] sm:text-[11px] text-fg-subtle"
                 >
                   {i % every === 0 ? group.label : ""}
                 </span>
@@ -387,7 +389,7 @@ export function Columns({
                     value={group.values.map((one) => readable(one)).join(" / ")}
                   />
                   {labels ? (
-                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] text-fg-muted tabular-nums">
+                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap text-[12px] sm:text-[11px] text-fg-muted tabular-nums">
                       {labelled(stack, stack / sum, labelKind)}
                     </span>
                   ) : null}
@@ -615,7 +617,7 @@ export function Stacked({
                   <Hint label={one.label} value={`${readable(one.value)} \u00b7 ${Math.round(share)}%`} />
                   {/* The number only where there is room for it. */}
                   {labels && share >= 9 ? (
-                    <span className="px-1 text-[11px] font-semibold text-white tabular-nums">
+                    <span className="px-1 text-[12px] sm:text-[11px] font-semibold text-white tabular-nums">
                       {labelled(one.value, one.value / sum, labelKind)}
                     </span>
                   ) : null}
@@ -706,7 +708,7 @@ export function Series({
               {names.map((label, i) => (
                 <span
                   key={label + i}
-                  className="min-w-0 flex-1 truncate text-center text-[11px] text-fg-subtle"
+                  className="min-w-0 flex-1 truncate text-center text-[12px] sm:text-[11px] text-fg-subtle"
                 >
                   {i % every === 0 ? label : ""}
                 </span>
@@ -727,7 +729,7 @@ export function Series({
                 />
 
                 {valueLabels ? (
-                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] text-fg-muted tabular-nums">
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap text-[12px] sm:text-[11px] text-fg-muted tabular-nums">
                     {labelled(columnTotals[i] ?? 0, (columnTotals[i] ?? 0) / sum, labelKind)}
                   </span>
                 ) : null}

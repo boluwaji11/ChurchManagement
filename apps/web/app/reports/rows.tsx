@@ -98,8 +98,7 @@ export function Rows({
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
           <span className="text-[13px] text-fg-muted">
             {t("pages.range", {
-              first: String(first + 1),
-              upto: String(Math.min(first + size, rows.length)),
+              shown: String(Math.min(first + size, rows.length) - first),
               matching: String(rows.length),
             })}
           </span>

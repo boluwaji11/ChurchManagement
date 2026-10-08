@@ -10,7 +10,7 @@ import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { ReportFrame, backBy, windowOf } from "../frame";
-import { Figure } from "../figure";
+import { Figure, Figures } from "../figure";
 import { Donut, Line, RowBars, type Slice } from "../charts";
 import { PagedTable, type Row } from "../paged-table";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -111,7 +111,7 @@ export default async function AttendanceReport({
           <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("reports.none")}</p>
         ) : (
           <>
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+            <Figures>
               <Figure
                 label={t("reports.attendance.average")}
                 value={String(summary.average)}
@@ -146,7 +146,7 @@ export default async function AttendanceReport({
                 hue="teal"
                 sub={plural("reports.attendance.heldSub", byName.length)}
               />
-            </div>
+            </Figures>
 
             <Line
               title={t("reports.attendance.overTime")}

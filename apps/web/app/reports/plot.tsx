@@ -194,7 +194,7 @@ export function Frame({
   return (
     <div className={fill ? "flex min-h-0 flex-1" : "flex"}>
       {valueTitle ? (
-        <span className="flex shrink-0 items-center text-[11px] font-medium text-fg-muted [writing-mode:vertical-rl] [transform:rotate(180deg)]">
+        <span className="flex shrink-0 items-center text-[12px] sm:text-[11px] font-medium text-fg-muted [writing-mode:vertical-rl] [transform:rotate(180deg)]">
           {valueTitle}
         </span>
       ) : null}
@@ -212,7 +212,7 @@ export function Frame({
           >
             {axis
               ? [...marks].reverse().map((mark) => (
-                  <span key={mark} className="text-[11px] leading-none text-fg-subtle tabular-nums">
+                  <span key={mark} className="text-[12px] sm:text-[11px] leading-none text-fg-subtle tabular-nums">
                     {readable(mark)}
                   </span>
                 ))
@@ -251,7 +251,7 @@ export function Frame({
         ) : null}
 
         {categoryTitle ? (
-          <span className="shrink-0 pt-1 text-center text-[11px] font-medium text-fg-muted">
+          <span className="shrink-0 pt-1 text-center text-[12px] sm:text-[11px] font-medium text-fg-muted">
             {categoryTitle}
           </span>
         ) : null}

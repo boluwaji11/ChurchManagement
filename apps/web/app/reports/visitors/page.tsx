@@ -9,7 +9,7 @@ import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { ReportFrame, backBy, windowOf } from "../frame";
-import { Figure } from "../figure";
+import { Figure, Figures } from "../figure";
 import { Donut, Funnel, Line, type Slice } from "../charts";
 import { PagedTable, type Row } from "../paged-table";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -137,7 +137,7 @@ export default async function VisitorReport({
           <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("reports.none")}</p>
         ) : (
           <>
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+            <Figures>
               <Figure
                 label={t("reports.visitors.first")}
                 value={String(visitors.length)}
@@ -162,7 +162,7 @@ export default async function VisitorReport({
                 hue={uncontacted > 0 ? "rose" : "teal"}
                 sub={t("reports.visitors.waitingSub")}
               />
-            </div>
+            </Figures>
 
             <Funnel
               title={t("reports.visitors.journey")}

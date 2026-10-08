@@ -59,8 +59,8 @@ export function ReportFrame({
               aria-current={one === days ? "page" : undefined}
               className={
                 one === days
-                  ? "rounded-sm bg-surface px-3 py-1 text-[13px] font-medium text-fg shadow-sm"
-                  : "rounded-sm px-3 py-1 text-[13px] font-medium text-fg-muted hover:text-fg"
+                  ? "inline-flex min-h-[34px] items-center rounded-sm bg-surface px-3 text-[13px] font-medium text-fg shadow-sm sm:min-h-[26px]"
+                  : "inline-flex min-h-[34px] items-center rounded-sm px-3 text-[13px] font-medium text-fg-muted hover:text-fg sm:min-h-[26px]"
               }
             >
               {t(`reports.window.${one}` as never)}
