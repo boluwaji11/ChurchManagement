@@ -22,7 +22,10 @@ export function StatementsBy({
   const [pending, startTransition] = React.useTransition();
 
   return (
-    <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]" aria-busy={pending}>
+    <div
+      className="flex items-center gap-1 rounded-[var(--d-radius-control)] border border-line bg-sunken p-[3px]"
+      aria-busy={pending}
+    >
       {(["person", "household"] as const).map((one) => (
         <button
           key={one}
@@ -35,8 +38,12 @@ export function StatementsBy({
               router.refresh();
             })
           }
-          className={`flex h-7 cursor-pointer items-center rounded-sm px-3 text-[13px] font-medium ${
-            one === by ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
+          /* The chosen side is the church's purple rather than a white pill
+             on a near-white track, which read as neither pressed nor not. */
+          className={`flex h-8 cursor-pointer items-center rounded-[6px] px-3 text-[13px] transition-colors duration-instant ${
+            one === by
+              ? "bg-primary font-semibold text-primary-fg"
+              : "font-medium text-fg-muted hover:bg-surface hover:text-fg"
           }`}
         >
           {t(`statement.by.${one}` as never)}

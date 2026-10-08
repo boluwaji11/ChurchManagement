@@ -6,6 +6,7 @@ import { PermissionError, canReadGivingAmounts, canManageGiving } from "../roles
 import { settled } from "./gift-status";
 import { tenants } from "../schema/tenancy";
 import type { WriteActor } from "./members";
+import { t } from "@connectapp/i18n";
 
 /**
  * R13.17 to R13.19. The year-end giving statement.
@@ -20,6 +21,35 @@ import type { WriteActor } from "./members";
  * Nothing here sends anything. The statement is read on screen, printed, and
  * downloaded by the giver from their own portal.
  */
+
+/**
+ * R13.18. Every year this church has taken a gift in, newest first.
+ *
+ * The picker is built from this rather than from a fixed count back, so a
+ * church in its ninth year can reach its first and a church in its first is
+ * not offered two years of blank pages.
+ */
+export async function givingYears(db: Tx): Promise<string[]> {
+  const rows = await db
+    .select({ year: sql<string>`to_char(${gifts.receivedOn}, 'YYYY')` })
+    .from(gifts)
+    .where(settled)
+    .groupBy(sql`to_char(${gifts.receivedOn}, 'YYYY')`)
+    .orderBy(desc(sql`to_char(${gifts.receivedOn}, 'YYYY')`));
+  return rows.map((row) => row.year);
+}
+
+/**
+ * R13.18. A household's name, as it reads at the head of a statement.
+ *
+ * "Smith" on its own is a surname, and a letter addressed to it reads as a
+ * letter to one person. A church that has already written the word into the
+ * name keeps what it wrote.
+ */
+function householdName(name: string): string {
+  const written = t("statement.household", { name });
+  return /household\s*$/i.test(name.trim()) ? name : written;
+}
 
 /** R13.17. The threshold at which a single gift must be acknowledged in writing. */
 export const ACKNOWLEDGE_FROM_CENTS = 25_000;
@@ -132,7 +162,7 @@ export async function statementGivers(
     }
     folded.set(key, {
       memberId: one.memberId,
-      name: home?.name ?? one.name,
+      name: home ? householdName(home.name) : one.name,
       totalCents: one.totalCents,
       gifts: one.gifts,
     });
@@ -177,7 +207,7 @@ export async function statementFor(
       .limit(1);
 
     if (home) {
-      name = home.name;
+      name = householdName(home.name);
       const kin = await db
         .select({ memberId: householdMemberships.memberId })
         .from(householdMemberships)

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Printer } from "lucide-react";
 import {
-  withTenant, getChurch, statementGivers, canReadGivingAmounts,
+  withTenant, getChurch, statementGivers, givingYears, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -10,6 +10,7 @@ import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
 import { money } from "@/lib/money";
 import { StatementsBy } from "./by";
+import { YearPicker } from "./year-picker";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -60,10 +61,12 @@ export default async function StatementsPage({
     // R13.18. A person each, or a household each, as the church has chosen.
     const by: "person" | "household" =
       profile?.statementsBy === "household" ? "household" : "person";
-    return { year, by, givers: await statementGivers(tx, ctx, year, by) };
+    /* R13.18. Every year with a gift in it, and the year on screen even
+       where it has none, so the picker can show what it is set to. */
+    const seen = await givingYears(tx);
+    const years = seen.includes(year) ? seen : [year, ...seen].sort().reverse();
+    return { year, by, years, givers: await statementGivers(tx, ctx, year, by) };
   });
-
-  const years = [0, 1, 2].map((back) => String(Number(read.year) - back));
 
   return (
     <AppShell session={session} title={t("statement.title")} wide>
@@ -76,20 +79,7 @@ export default async function StatementsPage({
         </Link>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
-            {years.map((one) => (
-              <Link
-                key={one}
-                href={`/giving/statements?church=${session.tenantSlug}&year=${one}`}
-                aria-current={one === read.year ? "page" : undefined}
-                className={`flex h-7 items-center rounded-sm px-3 text-[13px] font-medium no-underline ${
-                  one === read.year ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
-                }`}
-              >
-                {one}
-              </Link>
-            ))}
-          </div>
+          <YearPicker church={session.tenantSlug} year={read.year} years={read.years} />
 
           <div className="flex flex-wrap items-center gap-3">
             {/* R13.18. The church's own choice, where it is felt. */}
