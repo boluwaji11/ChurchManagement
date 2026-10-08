@@ -1610,6 +1610,8 @@ export const en = {
   "lists.addToTitle": "Add {count} to a list",
   "lists.newList": "A new list",
   "lists.name": "Name",
+  "lists.namePlaceholder": "e.g. No email on file",
+  "lists.takeOff": "Take off this list",
   "lists.rename": "Rename",
   "lists.renameTitle": "Rename {name}",
   "lists.archive": "Archive",

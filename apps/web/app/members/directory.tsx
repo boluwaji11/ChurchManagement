@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FilterDrawer, FilterGroup, ChipButton } from "@/components/filter-drawer";
 import { ResizableTable } from "@/components/resizable-columns";
-import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Check, Tag, CheckCircle2 } from "lucide-react";
+import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Check, Tag, CheckCircle2, ListMinus } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
   IconButton,
@@ -21,7 +21,8 @@ import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkArchive, bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
 import { Pages } from "@/components/pages";
 import { useAnswered } from "@/components/form-actions";
-import { rename, archiveList } from "./list-actions";
+import { rename, archiveList, takeOffList } from "./list-actions";
+import { SaveView, OpenList, AddToList } from "./saved-lists";
 import { SearchField } from "@/components/search-field";
 
 export interface ListOption {
@@ -265,6 +266,15 @@ export function Directory({
           narrowing={narrowing}
         />
 
+        {/* R1.14. The lists this church keeps, and the way to keep this one.
+            Saving is offered only while something is narrowing the list: the
+            whole directory saved under a name is the screen it is already on. */}
+        <OpenList church={church} lists={lists} />
+
+        {canEdit && !viewing && (narrowing > 0 || q !== "") ? (
+          <SaveView church={church} params={params} />
+        ) : null}
+
         {canArchive ? (
           <ToolButton href={`/duplicates?church=${church}`}>
             <Copy /> {t("merge.title")}
@@ -341,6 +351,11 @@ export function Directory({
               : null
           }
           pending={pending}
+          onTakeOff={
+            viewing?.kind === "static"
+              ? () => act(takeOffList, { listId: viewing.id })
+              : undefined
+          }
           onClear={() => setSelected([])}
           onTag={(tagId, on) => act(bulkTag, { tagId, on: on ? "1" : "0" })}
           onGroup={(groupId) => act(bulkAddToGroup, { groupId })}
@@ -781,6 +796,7 @@ function SelectionBar({
   groups,
   mergeHref,
   pending,
+  onTakeOff,
   onClear,
   onTag,
   onGroup,
@@ -796,6 +812,8 @@ function SelectionBar({
   /** R2.8. Set when exactly two are picked. */
   mergeHref: string | null;
   pending: boolean;
+  /** R1.14. Set only while a picked list is open, since a rule list has none. */
+  onTakeOff?: () => void;
   onClear: () => void;
   onTag: (tagId: string, on: boolean) => void;
   onGroup: (groupId: string) => void;
@@ -850,6 +868,20 @@ function SelectionBar({
         options={LIFECYCLE_VALUES.map((v) => ({ value: v, label: lifecycleLabel(v) }))}
         onPick={onStatus}
       />
+
+      {/* R1.14. Onto a list the church keeps, or a new one named here. */}
+      <AddToList church={church} lists={lists} ids={ids} onDone={onClear} />
+
+      {/* R1.14. Off the list being read. Their records are untouched. */}
+      {onTakeOff ? (
+        <Button
+          variant="ghost"
+          className="min-h-9 rounded-full px-2.5 text-[13px]"
+          onClick={onTakeOff}
+        >
+          <ListMinus /> {t("lists.takeOff")}
+        </Button>
+      ) : null}
 
       <Button
         variant="ghost"

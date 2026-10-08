@@ -124,7 +124,8 @@ and a design file does not move it.
 | HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | Resolved |
 | HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
 | HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
-| HRT-110 | Saved lists, static and rule-based | R1.14 | Resolved |
+| HRT-110 | Saved lists, static and rule-based | R1.14 | Resolved. The repository and the actions only; nothing rendered a control, so no list could be made. Finished in HRT-255 |
+| HRT-255 | The controls that make a saved list, and the ones that read it | R1.14, R2.14 | Resolved |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
@@ -716,6 +717,23 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-255, how to test it
+
+Everything is on the Members screen.
+
+1. **Keep a filtered view.** Narrow the directory, by a status, a tag, a group
+   or a search. **Save as a list** appears beside Filter. Name it and you land
+   on it. It answers itself: whoever matches is on it.
+2. **Keep the people you ticked.** Tick a few members. **Add to a list** is on
+   the bar along the bottom, offering the lists the church already keeps and a
+   new one named there.
+3. **Open one.** The **Lists** control beside Filter holds them all.
+4. **Take somebody off.** While reading a picked list, tick them and press
+   **Take off this list**. Their record is untouched. A list that answers
+   itself has nobody to take off, so the control is not there.
+5. Rename and Archive sit on the bar naming the list. An archived one is behind
+   the link at the foot of the directory.
 
 ### HRT-254, how to test it
 

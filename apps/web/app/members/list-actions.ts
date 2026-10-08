@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, createStaticList, createRuleList, renameList, setListArchived,
-  addToList, removeFromList, cleanRule, canEditPeople, PermissionError,
+  addToList, removeFromList, cleanRule, RULE_KEYS, canEditPeople, PermissionError,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
@@ -49,13 +49,12 @@ export async function saveSelection(data: FormData): Promise<ListResult> {
 export async function saveView(data: FormData): Promise<ListResult> {
   try {
     const session = await allowed(field(data, "church") || undefined);
-    const rule = cleanRule({
-      q: field(data, "q"),
-      status: field(data, "status"),
-      tag: field(data, "tag"),
-      has: field(data, "has"),
-      show: field(data, "show"),
-    });
+    /* Every filter the directory offers. Five of the ten were being read,
+       so a list saved from "joined this year" or from a group came back as
+       the whole directory. */
+    const rule = cleanRule(
+      Object.fromEntries(RULE_KEYS.map((key) => [key, field(data, key)])),
+    );
 
     const made = await withTenant(session, (tx) =>
       createRuleList(tx, session, { name: field(data, "name"), rule }),
