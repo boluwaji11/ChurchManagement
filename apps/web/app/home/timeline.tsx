@@ -44,7 +44,7 @@ export function Block({
         >
           {icon}
         </span>
-        <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-fg">{title}</span>
+        <span className="min-w-0 flex-1 text-[15px] font-bold text-fg">{title}</span>
         {action ? <span className="shrink-0">{action}</span> : null}
       </header>
 
@@ -76,6 +76,14 @@ export interface Stop {
   /** The hue of the thing it is, which is what marks it. */
   hue: string;
   icon: React.ReactNode;
+  /**
+   * R24.4. A mark of its own, in place of the icon square.
+   *
+   * A serving date is better read as the date itself than as a hand holding a
+   * heart, so the stop can hand over what goes on the thread. The thread
+   * widens to fit it.
+   */
+  mark?: React.ReactNode;
   /** The date and time, above the name, because the thread is chronological. */
   when: string;
   title: string;
@@ -93,7 +101,7 @@ export interface Stop {
  * The rail runs between the marks rather than past the last one, so it reads
  * as a sequence closing rather than a line falling off the bottom of a card.
  */
-export function Thread({ stops }: { stops: Stop[] }) {
+export function Thread({ stops, wide }: { stops: Stop[]; wide?: boolean }) {
   return (
     <ol className="m-0 flex list-none flex-col p-0">
       {stops.map((stop, at) => {
@@ -105,17 +113,22 @@ export function Thread({ stops }: { stops: Stop[] }) {
                 into this row's own padding and one filling what is left
                 below the mark, so the line crosses the gap between rows
                 instead of stopping short of the next one. */}
-            <span className="flex w-9 shrink-0 flex-col items-center self-stretch" aria-hidden>
+            <span
+              aria-hidden
+              className={`flex ${wide ? "w-12" : "w-9"} shrink-0 flex-col items-center self-stretch`}
+            >
               <span className={`h-3 w-px ${at === 0 ? "" : "bg-line"}`} />
-              <span
-                className="grid size-9 shrink-0 place-items-center rounded-[10px] [&_svg]:size-[18px]"
-                style={{
-                  background: `var(--hue-${stop.hue}-tint)`,
-                  color: `var(--hue-${stop.hue}-key)`,
-                }}
-              >
-                {stop.icon}
-              </span>
+              {stop.mark ?? (
+                <span
+                  className="grid size-9 shrink-0 place-items-center rounded-[10px] [&_svg]:size-[18px]"
+                  style={{
+                    background: `var(--hue-${stop.hue}-tint)`,
+                    color: `var(--hue-${stop.hue}-key)`,
+                  }}
+                >
+                  {stop.icon}
+                </span>
+              )}
               <span className={`w-px flex-1 ${last ? "" : "bg-line"}`} />
             </span>
 
@@ -145,6 +158,34 @@ export function Thread({ stops }: { stops: Stop[] }) {
         );
       })}
     </ol>
+  );
+}
+
+/**
+ * R24.4. A date, as a card that stands on its own.
+ *
+ * The weekday over the day, in the colour of whatever the date belongs to.
+ * It reads at a glance the way a page in a diary does, which a line of small
+ * grey text above a heading does not.
+ */
+export function DateMark({ iso, hue }: { iso: string; hue: string }) {
+  const when = new Date(`${iso}T00:00:00`);
+
+  return (
+    <span
+      className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl leading-none"
+      style={{
+        background: `var(--hue-${hue}-tint)`,
+        color: `var(--hue-${hue}-key)`,
+      }}
+    >
+      <span className="text-[10px] font-semibold uppercase tracking-[0.06em]">
+        {when.toLocaleDateString("en-US", { weekday: "short" })}
+      </span>
+      <span data-numeric className="mt-0.5 font-display text-[19px] leading-[22px] text-fg">
+        {when.getDate()}
+      </span>
+    </span>
   );
 }
 

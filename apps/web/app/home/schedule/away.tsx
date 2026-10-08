@@ -7,10 +7,11 @@ import {
 } from "@connectapp/ui";
 import type { Blockout } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { Panel } from "@/components/portal/panel";
+import { Block, Quiet } from "../timeline";
 import { Confirm } from "@/components/confirm";
 import { addAway, removeAway } from "../actions";
 import { onDayLong } from "../when";
+import { shortDate } from "@/lib/dates";
 
 /**
  * R17.7, R10.4. The days this member has said they cannot serve.
@@ -32,10 +33,15 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
   const [all, setAll] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  /*
+   * R17.7. "Thursday, October 29 to Thursday, November 5" is two weekdays
+   * nobody reads and a line that wraps. The weekday is on the day itself and
+   * the end of a span is the date alone.
+   */
   const span = (one: Blockout) =>
     one.startsOn === one.endsOn
       ? onDayLong(one.startsOn)
-      : t("home.awaySpan", { from: onDayLong(one.startsOn), to: onDayLong(one.endsOn) });
+      : t("home.awaySpan", { from: shortDate(one.startsOn), to: shortDate(one.endsOn) });
 
   const save = () =>
     start(async () => {
@@ -52,35 +58,49 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
     });
 
   return (
-    <Panel className="flex flex-col gap-3">
-      {/* R24.6. The mark sits with the name, reading as one heading. */}
-      <span className="flex items-center gap-2.5">
-        <span
-          aria-hidden
-          className="grid size-8 shrink-0 place-items-center rounded-[9px] bg-primary-soft text-primary"
+    <Block
+      icon={<CalendarOff />}
+      title={t("home.away")}
+    >
+      {/* R17.7. The press everybody comes here for, above the list, because a
+          member opens this to say they are away rather than to read the days
+          they already said. On its own line, so neither it nor the heading
+          beside it has to give up its words in a 300px column. */}
+      <div className="px-5 pt-2">
+        <button
+          type="button"
+          onClick={() => { setPicked([]); setAdding(true); }}
+          className="flex min-h-[var(--d-tap)] cursor-pointer items-center gap-1.5 font-medium text-primary [&_svg]:size-4"
         >
-          <CalendarOff className="size-[17px]" />
-        </span>
-        <span className="font-semibold text-fg">{t("home.away")}</span>
-      </span>
+          <Plus aria-hidden /> {t("home.awayAdd")}
+        </button>
+      </div>
 
-      {dates.length > 0 ? (
-        /* R24.6. The connected path the rest of the product draws its lists
-           with: a marker a row, the line between them carrying its own dot. */
-        <ol className="m-0 flex list-none flex-col p-0">
+      {dates.length === 0 ? (
+        <Quiet>{t("home.awayNone")}</Quiet>
+      ) : (
+        /* R24.4. The same thread the rest of the portal draws a list with,
+           in two pieces so the line crosses the gap between rows. */
+        <ol className="m-0 flex list-none flex-col px-5 py-1">
           {(all ? dates : dates.slice(0, 5)).map((one, i, shown) => (
-            <li key={one.id} className="flex gap-2.5">
-              <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                <span className="mt-2.5 size-2.5 shrink-0 rounded-full bg-primary" />
-                {i === shown.length - 1 ? null : (
-                  <span className="relative my-0.5 w-px flex-1 bg-primary/35">
-                    <span className="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/60" />
-                  </span>
-                )}
+            <li key={one.id} className="flex min-w-0 gap-3">
+              <span
+                aria-hidden
+                className="flex w-2.5 shrink-0 flex-col items-center self-stretch"
+              >
+                <span className={`h-[19px] w-px ${i === 0 ? "" : "bg-line-strong"}`} />
+                <span className="size-2 shrink-0 rounded-full bg-primary" />
+                <span
+                  className={`w-px flex-1 ${i === shown.length - 1 ? "" : "bg-line-strong"}`}
+                />
               </span>
 
-              <span className="flex min-w-0 flex-1 items-center gap-2 pb-3">
-                <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+              {/* The whole span reads: a date cut to "Thursday, October..."
+                  is a date nobody can check. */}
+              <span className="flex min-w-0 flex-1 items-center gap-2 py-1.5">
+                {/* A span of dates is long. Read at the caption size it
+                    sits on one line, which is how a list of them is read. */}
+                <span className="min-w-0 flex-1 truncate text-[13px] text-fg">
                   {span(one)}
                 </span>
                 <Confirm
@@ -106,33 +126,23 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
             </li>
           ))}
         </ol>
-      ) : (
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("home.awayNone")}</p>
       )}
 
       {dates.length > 5 ? (
         <button
           type="button"
           onClick={() => setAll((was) => !was)}
-          className="-mt-1 flex min-h-[var(--d-tap)] cursor-pointer items-center self-start rounded-md px-2 font-medium text-primary"
+          className="flex min-h-[var(--d-tap)] cursor-pointer items-center self-start px-5 font-medium text-primary"
         >
           {all ? t("list.showLess") : t("list.showMore", { count: dates.length - 5 })}
         </button>
       ) : null}
 
       {error ? (
-        <p role="status" className="text-[length:var(--d-text-body)] text-danger-text">
+        <p role="status" className="px-5 pb-3 text-[length:var(--d-text-body)] text-danger-text">
           {error}
         </p>
       ) : null}
-
-      <Button
-        variant="ghost"
-        className="self-start px-2 font-medium text-primary"
-        onClick={() => { setPicked([]); setAdding(true); }}
-      >
-        <Plus /> {t("home.awayAdd")}
-      </Button>
 
       <Dialog open={adding} onOpenChange={(open) => { if (!open) setAdding(false); }}>
         <DialogContent title={t("home.awayAdd")} closeLabel={t("action.cancel")}>
@@ -154,6 +164,6 @@ export function Away({ dates, church }: { dates: Blockout[]; church: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Panel>
+    </Block>
   );
 }

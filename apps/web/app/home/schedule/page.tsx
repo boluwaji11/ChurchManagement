@@ -1,16 +1,17 @@
 import { redirect } from "next/navigation";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CalendarCheck, HandHeart } from "lucide-react";
 import {
   withTenant, personForUser, assignmentsForPerson, listBlockouts,
   canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
+import { PortalShell, PortalTitle } from "@/components/portal-shell";
+import { Block, Thread, DateMark, Quiet } from "../timeline";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./respond";
 import { Away } from "./away";
-import { onDay, readableTime } from "../when";
+import { readableTime } from "../when";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -24,22 +25,6 @@ export async function generateMetadata({
   const { church } = await searchParams;
   return tabMetadata(t("home.mySchedule"), church);
 }
-
-/** Where an assignment stands, as a word, a mark and a colour. */
-const STATES = {
-  pending: {
-    key: "home.waiting", Icon: Clock,
-    tone: "bg-hue-amber-100 text-hue-amber-700",
-  },
-  accepted: {
-    key: "home.accepted", Icon: CheckCircle2,
-    tone: "bg-hue-fern-100 text-hue-fern-700",
-  },
-  declined: {
-    key: "home.declinedShort", Icon: XCircle,
-    tone: "bg-sunken text-fg-muted",
-  },
-} as const;
 
 /**
  * R17.7. A member's own serving: what is coming, and when they are away.
@@ -77,61 +62,58 @@ export default async function MyServingPage({
     },
   );
 
+  const asked = mine.schedule.filter((one) => one.status === "pending");
+  const ahead = mine.schedule.filter((one) => one.status !== "pending");
+
   return (
     <PortalShell session={session} tab={t("home.mySchedule")}>
       <PortalTitle title={t("home.mySchedule")} />
 
       <div className="flex flex-wrap items-start gap-6">
-        <div className="flex min-w-0 flex-[999_1_460px] flex-col gap-4">
-          {mine.schedule.length === 0 ? (
-            <Panel>
-              <p className="text-[length:var(--d-text-body)] text-fg-muted">
-                {t("home.noSchedule")}
-              </p>
-            </Panel>
-          ) : (
-            <Panel className="flex flex-col divide-y divide-line px-5 py-0">
-              {mine.schedule.map((one) => {
-                const state = STATES[one.status];
-                const when = new Date(`${one.occursOn}T00:00:00`);
-                return (
-                  <div key={one.id} className="flex flex-col gap-2.5 py-3.5">
-                    <div className="flex flex-wrap items-center gap-3.5">
-                      <span className="flex w-16 shrink-0 flex-col leading-[18px]">
-                        <span className="text-caption font-medium text-fg-subtle">
-                          {onDay(one.occursOn).split(",")[0]}
-                        </span>
-                        <span className="font-display text-[20px] leading-6 text-fg">
-                          {when.toLocaleDateString("en-US", { day: "numeric", month: "short" })}
-                        </span>
-                      </span>
+        <div className="flex min-w-0 flex-[999_1_460px] flex-col gap-6">
+          {/* R17.7. What the church is waiting on, first and on its own. It
+              is the only thing on this screen that asks for a press. */}
+          {asked.length > 0 ? (
+            <Block icon={<HandHeart />} title={t("home.needsYou")} className="shadow-sm">
+              <Thread
+                wide
+                stops={asked.map((one) => ({
+                  id: one.id,
+                  hue: one.teamHue,
+                  icon: <HandHeart />,
+                  mark: <DateMark iso={one.occursOn} hue={one.teamHue} />,
+                  when: `${one.teamName} ${readableTime(one.startsAt)}`,
+                  title: one.positionName,
+                  action: <Respond id={one.id} church={session.tenantSlug} />,
+                }))}
+              />
+            </Block>
+          ) : null}
 
-                      <span className="flex min-w-[180px] flex-1 flex-col leading-5">
-                        <span className="font-medium text-fg">{one.positionName}</span>
-                        <span className="text-caption text-fg-muted">
-                          {one.teamName} {readableTime(one.startsAt)}
-                        </span>
-                      </span>
-
-                      <span
-                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-caption font-medium ${state.tone}`}
-                      >
-                        <state.Icon className="size-3.5" aria-hidden />
-                        {t(state.key)}
-                      </span>
-                    </div>
-
-                    {one.status === "pending" ? (
-                      <Respond id={one.id} church={session.tenantSlug} />
-                    ) : null}
-                  </div>
-                );
-              })}
-            </Panel>
-          )}
+          <Block icon={<CalendarCheck />} title={t("home.serving")}>
+            {ahead.length > 0 ? (
+              <Thread
+                wide
+                stops={ahead.map((one) => ({
+                  id: one.id,
+                  hue: one.teamHue,
+                  icon: <HandHeart />,
+                  mark: <DateMark iso={one.occursOn} hue={one.teamHue} />,
+                  when: `${one.teamName} ${readableTime(one.startsAt)}`,
+                  title: one.positionName,
+                  /* R17.7. A date they turned down keeps its word, because the
+                     list is otherwise a list of things they are doing. Nothing
+                     is said on the ones they are, since the heading says it. */
+                  detail: one.status === "declined" ? t("home.declinedShort") : null,
+                }))}
+              />
+            ) : (
+              <Quiet>{t("home.noSchedule")}</Quiet>
+            )}
+          </Block>
         </div>
 
-        <aside className="flex min-w-0 flex-[1_1_280px] flex-col">
+        <aside className="flex min-w-0 flex-[1_1_300px] flex-col">
           <Away dates={mine.away} church={session.tenantSlug} />
         </aside>
       </div>
