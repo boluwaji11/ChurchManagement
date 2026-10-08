@@ -985,8 +985,24 @@ export async function countArchivedPeople(db: Tx): Promise<number> {
 export interface HouseholdCard {
   id: string;
   name: string;
-  members: { id: string; displayName: string; role: string }[];
+  members: {
+    id: string;
+    displayName: string;
+    role: string;
+    /** R2.9. Their face, where the church holds one. */
+    photoKey: string | null;
+    /** R2.11. Their birthday, which is a household's own business. */
+    dateOfBirth: string | null;
+  }[];
 }
+
+/**
+ * R2.4. The order a household reads in.
+ *
+ * By surname is how a church's index is sorted and it is nobody's idea of
+ * their own family. A household reads from its head outwards.
+ */
+const HOUSEHOLD_ORDER: Record<string, number> = { head: 0, spouse: 1, child: 2, other: 3 };
 
 /**
  * R2.4. The household a person belongs to, and who else is in it.
@@ -1016,6 +1032,8 @@ export async function householdFor(db: Tx, memberId: string): Promise<HouseholdC
       firstName: members.firstName,
       lastName: members.lastName,
       preferredName: members.preferredName,
+      photoKey: members.photoKey,
+      dateOfBirth: sql<string | null>`${members.dateOfBirth}::text`,
       role: householdMemberships.role,
     })
     .from(householdMemberships)
@@ -1032,11 +1050,19 @@ export async function householdFor(db: Tx, memberId: string): Promise<HouseholdC
   return {
     id: household.id,
     name: household.name,
-    members: household_members.map((m: typeof household_members[number]) => ({
-      id: m.id,
-      displayName: `${m.preferredName ?? m.firstName} ${m.lastName}`,
-      role: m.role,
-    })),
+    members: household_members
+      .map((m: typeof household_members[number]) => ({
+        id: m.id,
+        displayName: `${m.preferredName ?? m.firstName} ${m.lastName}`,
+        role: m.role,
+        photoKey: m.photoKey,
+        dateOfBirth: m.dateOfBirth,
+      }))
+      .sort(
+        (a, b) =>
+          (HOUSEHOLD_ORDER[a.role] ?? 9) - (HOUSEHOLD_ORDER[b.role] ?? 9)
+          || a.displayName.localeCompare(b.displayName),
+      ),
   };
 }
 

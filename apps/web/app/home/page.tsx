@@ -1,7 +1,7 @@
-import { CalendarDays, HandHeart, House, Users } from "lucide-react";
+import { CalendarDays, HandHeart, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import {
-  withTenant, findGroups, personForUser, householdFor, assignmentsForPerson,
+  withTenant, findGroups, personForUser, assignmentsForPerson,
   listEvents, listOccurrences, myChildren, canEditPeople, canReadIncidents,
   getChurch,
 } from "@connectapp/db";
@@ -105,7 +105,6 @@ export default async function MemberHomePage({
         children: next ? await myChildren(tx, actor, next.id) : [],
         today: now.date,
         groups: (await findGroups(tx, { memberId: self })).filter((group) => group.mine),
-        household: self ? await householdFor(tx, self) : null,
         serving: self
           ? await assignmentsForPerson(tx, self, { from: now.date, limit: 6 })
           : [],
@@ -253,24 +252,6 @@ export default async function MemberHomePage({
             )}
           </Block>
 
-          {mine.household ? (
-            <Block
-              icon={<House />}
-              title={t("home.myHousehold")}
-              action={
-                <Through href={`/settings/household?church=${at}`}>{t("home.seeAll")}</Through>
-              }
-            >
-              <SideThread
-                rows={mine.household.members.map((one) => ({
-                  id: one.id,
-                  hue: "indigo",
-                  label: one.displayName,
-                  note: t(`householdRole.${one.role}` as never),
-                }))}
-              />
-            </Block>
-          ) : null}
         </aside>
       </div>
     </PortalShell>
