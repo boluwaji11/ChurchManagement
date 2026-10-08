@@ -73,7 +73,7 @@ export function FundManager({ church, funds }: { church: string; funds: Fund[] }
         <FundPanel church={church} pending={pending} codesInUse={codes} />
       </div>
 
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
         {live.map((fund) => (
           <FundPanel
             key={fund.id}

@@ -134,7 +134,7 @@ export function Security({ email }: { email: string }) {
           action={(data) => run("password", () => changePassword(data), t("password.changed"))}
           className="flex flex-col gap-4"
         >
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))]">
             <Field label={t("password.current")} required>
               <Input name="current" type="password" autoComplete="current-password" autoFocus />
             </Field>

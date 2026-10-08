@@ -259,7 +259,7 @@ export default async function PersonPage({
           than across, so it gets a column of its own rather than a band under
           the others. */}
       <div className="flex flex-wrap items-stretch gap-6">
-        <div className="grid min-w-0 flex-[3_1_420px] content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+        <div className="grid min-w-0 flex-[3_1_420px] content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
         <InfoCard title={t("person.contact")}>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">

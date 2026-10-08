@@ -102,7 +102,7 @@ export default async function ReportsPage({
         <StartReport church={session.tenantSlug} />
       </div>
 
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
         {reports.map((one) => {
           const Icon = one.icon;
           return (

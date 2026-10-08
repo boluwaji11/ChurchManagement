@@ -195,7 +195,7 @@ export default async function CelebrationsPage({
       </div>
 
       {/* Two counts, each with its hue, the number in Fraunces at 40. */}
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))]">
         {[
           { label: t("celebrations.birthdays"), n: birthdays.length, hue: "rose" },
           { label: t("celebrations.anniversaries"), n: anniversaries.length, hue: "violet" },

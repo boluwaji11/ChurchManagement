@@ -210,7 +210,7 @@ export default function Site() {
               <SectionTitle>{t("site.features.title")}</SectionTitle>
               <p className="m-0 text-[18px] text-fg-muted">{t("site.features.sub")}</p>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(250px,100%),1fr))] gap-4">
               {FEATURES.map((f) => (
                 <Tile
                   key={f.key}

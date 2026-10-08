@@ -52,7 +52,7 @@ export function TeamList({ church, teams }: { church: string; teams: TeamItem[] 
           action={<AddTeam church={church} taken={teams.map((one) => one.name)} />}
         />
       ) : (
-        <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
+        <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))]">
           {live.map((team) => (
             <li key={team.id}>
               {/* R24.6. The whole tile opens the team's panel: its name, its

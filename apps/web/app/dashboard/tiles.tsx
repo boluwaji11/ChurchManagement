@@ -70,7 +70,7 @@ export function Tiles({ church, tiles }: { church: string; tiles: Tile[] }) {
     .filter((one): one is Tile => Boolean(one));
 
   return (
-    <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+    <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
       {shown.map((tile, i) => (
         <div
           key={tile.id}

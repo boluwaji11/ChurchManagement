@@ -94,7 +94,7 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
           action={<AddRoom church={church} />}
         />
       ) : (
-        <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
           {open.map((room) => (
             <section
               key={room.id}

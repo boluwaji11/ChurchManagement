@@ -83,7 +83,7 @@ export function Board({
       {error ? <Banner tone="danger" title={t("board.failed")}>{error}</Banner> : null}
 
       <div
-        className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(210px,1fr))]"
+        className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))]"
         aria-busy={pending}
       >
       {stages.map((stage) => {

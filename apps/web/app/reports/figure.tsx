@@ -9,7 +9,7 @@ import * as React from "react";
  */
 export function Figures({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(215px,1fr))]">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(min(215px,100%),1fr))]">
       {children}
     </div>
   );

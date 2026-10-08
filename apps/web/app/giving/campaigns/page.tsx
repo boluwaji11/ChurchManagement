@@ -93,7 +93,7 @@ export default async function CampaignsPage({
               </div>
             ) : null}
 
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(330px,1fr))]">
+            <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr))]">
               {live.map((one) => {
                 const standing = standingOf({ ...one, today: read.today });
                 return (

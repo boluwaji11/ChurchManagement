@@ -277,7 +277,7 @@ export default async function GroupPage({
 
       {/* The kind, the name and when it meets on the left, the banner beside
           them, on one line until the screen is too narrow for two. */}
-      <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+      <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
         <div className="flex flex-col gap-2.5">
           <span className="flex flex-wrap items-center gap-2">
             {group.status === "draft" ? (

@@ -169,7 +169,7 @@ export function Floor({
           ))}
         </section>
 
-        <div className="grid content-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+        <div className="grid content-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
           {data.board.rooms.map((room) => {
             const kids = (data.rosters[room.roomId] ?? []).filter((k) => k.checkedOutAt === null);
             const filled =

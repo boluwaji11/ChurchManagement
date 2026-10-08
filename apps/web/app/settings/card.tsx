@@ -94,7 +94,7 @@ export function SettingCard({
 /** The facts a card holds, laid out across whatever room the screen has. */
 export function Details({ children }: { children: React.ReactNode }) {
   return (
-    <dl className="grid gap-x-6 gap-y-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+    <dl className="grid gap-x-6 gap-y-4 [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))]">
       {children}
     </dl>
   );

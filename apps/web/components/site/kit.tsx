@@ -51,7 +51,7 @@ export function SectionTitle({
 /** The ticks beside a feature section. */
 export function Ticks({ items }: { items: readonly string[] }) {
   return (
-    <ul className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-6 gap-y-3 p-0">
+    <ul className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] gap-x-6 gap-y-3 p-0">
       {items.map((item) => (
         <li key={item} className="flex gap-2.5 text-[16px] leading-6 text-fg">
           <Check className="mt-0.5 size-5 shrink-0 text-success-text" aria-hidden />

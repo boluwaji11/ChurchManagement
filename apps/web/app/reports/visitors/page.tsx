@@ -175,7 +175,7 @@ export default async function VisitorReport({
               }))}
             />
 
-            <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))]">
+            <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]">
               <Donut
                 title={t("reports.visitors.where")}
                 slices={slices}

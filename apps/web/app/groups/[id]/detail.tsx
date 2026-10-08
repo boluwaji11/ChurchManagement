@@ -685,7 +685,7 @@ function Register({
         </div>
       </div>
 
-      <div className="grid [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
+      <div className="grid [grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr))]">
         {members.map((person) => {
           const on = Boolean(here[person.memberId]);
           return (

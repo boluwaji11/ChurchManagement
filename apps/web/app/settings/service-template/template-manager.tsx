@@ -80,7 +80,7 @@ export function TemplateManager({
             <TemplatePanel church={church} pending={pending} taken={taken} kinds={kinds} />
           </div>
 
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))]">
             {live.map((one) => (
               <TemplatePanel
                 key={one.id}

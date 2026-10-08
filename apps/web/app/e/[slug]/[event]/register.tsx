@@ -317,7 +317,7 @@ export function Register({
                 ) : null}
               </div>
 
-              <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+              <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
                 <Field
                   label={t("publicEvent.firstName")}
                   required

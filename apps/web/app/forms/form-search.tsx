@@ -51,7 +51,7 @@ export function FormSearch({
       {shown.length === 0 ? (
         <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("common.noMatch")}</p>
       ) : (
-        <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+        <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))]">
           {shown}
         </ul>
       )}

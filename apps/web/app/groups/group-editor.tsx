@@ -190,7 +190,7 @@ export function GroupEditor({
 
       {/* The name and when it meets on the left, the banner beside them, the
           same two columns the group's own page opens with. */}
-      <div className="grid items-start gap-7 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+      <div className="grid items-start gap-7 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
         <div className="flex flex-col gap-4">
           {/* The label reads as the small-caps heading the rest of the page
               uses, so Name sits alongside About and Categories. */}
@@ -294,7 +294,7 @@ export function GroupEditor({
           </Side>
 
           <Side label={t("group.schedule")}>
-            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
+            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))]">
               <Field label={t("groups.frequency")}>
                 <Picker
                   name="frequency"
@@ -352,7 +352,7 @@ export function GroupEditor({
           </Side>
 
           <Side label={t("group.location")}>
-            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))]">
               <Field label={t("groups.location")} className="[grid-column:1/-1]">
                 <Input name="location" defaultValue={group?.location ?? ""} autoComplete="off" />
               </Field>

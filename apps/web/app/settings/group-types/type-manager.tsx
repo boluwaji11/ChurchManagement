@@ -66,7 +66,7 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
             <TypeDialog church={church} pending={pending} taken={types.map((one) => one.name)} />
           </div>
 
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(230px,1fr))]">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
             {live.map((one) => (
               <TypeDialog
                 key={one.id}

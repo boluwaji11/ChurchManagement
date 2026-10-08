@@ -68,7 +68,7 @@ function Band({
       </h2>
 
       {view === "tiles" ? (
-        <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+        <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))]">
           {items.map((one) => (
             <li key={one.id} className="contents">{one.card}</li>
           ))}

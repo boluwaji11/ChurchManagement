@@ -272,7 +272,10 @@ export function ProfileForm({
         />
 
         <span className="flex min-w-0 flex-1 flex-col leading-5">
-          <span className="text-[17px] font-bold text-fg">{display}</span>
+          {/* A name with no space in it, and an address like
+              somebody@riverside.example.org, have nowhere to break, so at
+              320px they pushed the page sideways. */}
+          <span className="text-[17px] font-bold break-words text-fg">{display}</span>
           <span className="truncate text-[13px] text-fg-muted">{signedInAs}</span>
         </span>
 
@@ -344,7 +347,7 @@ export function ProfileForm({
         }}
         className={editing ? "flex flex-col gap-4" : "hidden"}
       >
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
           <Field label={t("settings.profile.firstName")} required>
             <Input name="firstName" defaultValue={values.firstName} autoComplete="given-name" />
           </Field>

@@ -559,7 +559,7 @@ function PreviewStep({
         </Banner>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3 sm:[grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+      <div className="grid grid-cols-2 gap-3 sm:[grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
         <Stat label={t("import.stat.new")} value={totals.create} />
         <Stat label={t("import.stat.updates")} value={totals.update} />
         <Stat

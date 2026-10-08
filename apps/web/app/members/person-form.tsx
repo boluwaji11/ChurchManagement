@@ -231,7 +231,7 @@ export function PersonForm({
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-5">
       <FormCard title={t("personForm.section.details")}>
-        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
           <Field label={t("personForm.firstName")} error={errors.firstName} required>
             <Input name="firstName" defaultValue={values?.firstName ?? ""} autoComplete="off" autoFocus={!editing} />
           </Field>
@@ -325,7 +325,7 @@ export function PersonForm({
 
       {customFields.length > 0 ? (
         <FormCard title={t("person.more")}>
-          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
             <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
           </div>
         </FormCard>

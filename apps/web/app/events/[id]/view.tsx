@@ -235,7 +235,7 @@ export function EventView({
 
       {/* The name and when on the left, the cover beside them, which is what
           the designer was drawing. */}
-      <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+      <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
         <div className="flex flex-col gap-2.5">
           <span
             className="w-fit rounded-full px-2.5 py-0.5 text-[12px] font-medium"

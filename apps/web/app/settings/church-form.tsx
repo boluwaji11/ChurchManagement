@@ -123,7 +123,7 @@ export function ChurchForm({
           noValidate
           className={editing ? "flex flex-col gap-4" : "hidden"}
         >
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
             <Field label={t("church.name")} required>
               <Input name="name" defaultValue={values.name} disabled={!canEdit} />
             </Field>

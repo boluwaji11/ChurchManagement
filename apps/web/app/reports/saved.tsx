@@ -40,7 +40,7 @@ export function SavedReports({ church, reports }: { church: string; reports: Sav
       <h2 className="font-display text-[22px] leading-7 text-fg">{t("report.yours")}</h2>
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
 
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
         {reports.map((one) => (
           <div
             key={one.id}

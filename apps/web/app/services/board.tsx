@@ -77,7 +77,7 @@ export function ServiceBoard({
       <div className="grid gap-6 lg:[grid-template-columns:1fr_auto_minmax(240px,280px)]">
         <div className="flex flex-col gap-3.5">
           {view === "tiles" ? (
-            <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+            <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))]">
               {upcoming.slice(0, shown).map((one, i) => (
                 <Card key={one.id} service={one} next={i === 0} />
               ))}

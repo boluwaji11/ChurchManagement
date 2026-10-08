@@ -41,7 +41,7 @@ export function NewFormButton({ church }: { church: string }) {
       </SheetTrigger>
 
       <SheetContent title={t("form.start")} closeLabel={t("common.close")} width="560px">
-        <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
+        <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr))]">
           <button
             type="button"
             disabled={pending}

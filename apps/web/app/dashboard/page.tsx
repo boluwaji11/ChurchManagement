@@ -287,7 +287,7 @@ export default async function DashboardPage({
 
       <Tiles church={session.tenantSlug} tiles={tiles} />
 
-      <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+      <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
         {/* R18.2. What has been happening, which is the question the number
             above cannot answer on its own. */}
         <Weeks services={weeks} today={now.date} />

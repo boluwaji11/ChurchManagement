@@ -759,7 +759,7 @@ function GroupBand({
       ) : null}
 
       {view === "tiles" ? (
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
           {shown.map((group) => (
             <GroupCard key={group.id} church={church} group={group} from={from} />
           ))}

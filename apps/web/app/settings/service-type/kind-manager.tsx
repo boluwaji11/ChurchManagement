@@ -65,7 +65,7 @@ export function KindManager({ church, kinds }: { church: string; kinds: KindRow[
         <KindPanel church={church} pending={pending} taken={taken} />
       </div>
 
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr))]">
         {live.map((one) => (
           <KindPanel
             key={one.id}

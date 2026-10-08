@@ -268,7 +268,7 @@ export default async function GivingPage({
         {/* R13.17, R13.16. The rest of a treasurer's year. These were three
             small links wedged into the side of a heading about something
             else, each now carrying a figure that earns it the room. */}
-        <div className="grid gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+        <div className="grid gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
           <Destination
             icon={<Landmark />}
             title={t("payouts.title")}

@@ -367,7 +367,7 @@ export function EventEditor({
 
       {/* The name and when on the left, the cover beside them, the two columns
           the event's own page opens with. */}
-      <div className="grid items-start gap-7 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+      <div className="grid items-start gap-7 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
         <div className="flex flex-col gap-4">
           <Field
             label={t("event.name")}
@@ -527,7 +527,7 @@ export function EventEditor({
           </Side>
 
           <Side label={t("event.when")}>
-            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
+            <div className="grid max-w-[68ch] gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))]">
               <Field label={t("event.starts")} required>
                 <DateField name="startsOn" defaultValue={startsOn} onValueChange={setStartsOn} />
               </Field>
@@ -591,7 +591,7 @@ export function EventEditor({
                 checked={showCapacity}
                 onChange={setShowCapacity}
               />
-              <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(130px,1fr))]">
+              <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr))]">
                 <Field label={t("event.closesOn")}>
                   {/* No further back than today, because registration cannot
                       have closed before now. No ceiling: a church taking names
