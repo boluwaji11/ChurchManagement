@@ -123,12 +123,15 @@ function FillSlot({
   positionId,
   occurrenceId,
   onFilled,
+  className,
 }: {
   church: string;
   teamId: string;
   positionId: string;
   occurrenceId: string;
   onFilled: () => void;
+  /** How the empty slot reads where it is a row rather than a cell. */
+  className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   const [who, setWho] = React.useState<PlanCandidate[]>([]);
@@ -161,7 +164,11 @@ function FillSlot({
       <button
         type="button"
         onClick={look}
-        className="w-full cursor-pointer rounded-sm px-1 py-0.5 text-left text-[12px] text-fg-subtle hover:bg-sunken hover:text-fg"
+        className={cn(
+          "flex min-h-9 w-full cursor-pointer items-center rounded-sm px-2 text-left",
+          "text-[12px] text-fg-subtle hover:bg-sunken hover:text-fg",
+          className,
+        )}
       >
         {t("serving.openSlot")}
       </button>
@@ -194,6 +201,61 @@ const LOOK = {
   pending: { icon: Clock, hue: "amber" },
   declined: { icon: XCircle, hue: "rose" },
 } as const;
+
+/**
+ * R10.6. Somebody already in a slot: the reply they gave, and the way to take
+ * them out of it. The same block in the month grid and in a phone's list.
+ */
+function Filled({
+  slot,
+  pending,
+  onRemove,
+}: {
+  slot: GridSlot;
+  pending: boolean;
+  onRemove: () => void;
+}) {
+  const look = LOOK[slot.status ?? "pending"];
+
+  return (
+    <>
+      <div
+        className="flex items-center gap-1.5 rounded-sm px-2 py-1"
+        style={{ background: `var(--hue-${look.hue}-tint)` }}
+      >
+        <look.icon
+          className="size-3.5 shrink-0"
+          style={{ color: `var(--hue-${look.hue}-key)` }}
+          aria-hidden
+        />
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate text-[13px] font-medium text-fg",
+            slot.status === "declined" && "line-through",
+          )}
+        >
+          {slot.personName}
+        </span>
+        <button
+          type="button"
+          aria-label={t("serving.unschedule")}
+          disabled={pending}
+          onClick={onRemove}
+          className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-sm text-fg-subtle hover:bg-surface hover:text-fg"
+        >
+          <X className="size-3.5" aria-hidden />
+        </button>
+      </div>
+
+      {slot.warning ? (
+        <span className="flex items-center gap-1 text-[11px] font-medium leading-[14px] text-danger-text">
+          <AlertTriangle className="size-3 shrink-0" aria-hidden />
+          {slot.warning}
+        </span>
+      ) : null}
+    </>
+  );
+}
 
 /**
  * R10.3, R10.4. One team's month: a row per position, a column per service.
@@ -257,6 +319,21 @@ export function ScheduleGrid({
     });
   };
 
+  /*
+   * R10.3, R24.6. A month of services across a phone is a spreadsheet nobody
+   * can read, so a narrow screen fills one service at a time. Which one is
+   * chosen at the top of the list.
+   */
+  const [one, setOne] = React.useState(services[0]?.id ?? "");
+  const ids = services.map((service) => service.id).join(",");
+  React.useEffect(() => {
+    setOne((was) => (ids.split(",").includes(was) ? was : (ids.split(",")[0] ?? "")));
+  }, [ids]);
+
+  const needed = positions.reduce((n, position) => n + position.needed, 0);
+  const filledFor = (occurrenceId: string) =>
+    slots.filter((slot) => slot.occurrenceId === occurrenceId && slot.assignmentId).length;
+
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
@@ -275,7 +352,7 @@ export function ScheduleGrid({
       </div>
 
       <div className="flex flex-wrap items-start gap-5">
-        <section className="flex-[999_1_560px] overflow-auto rounded-lg border border-line bg-surface">
+        <section className="hidden flex-[999_1_560px] overflow-auto rounded-lg border border-line bg-surface md:block">
           <div
             className="grid min-w-[760px]"
             style={{
@@ -345,42 +422,11 @@ export function ScheduleGrid({
                       )}
                     >
                       {slot?.assignmentId && look ? (
-                        <>
-                          <div
-                            className="flex items-center gap-1.5 rounded-sm px-2 py-1.5"
-                            style={{ background: `var(--hue-${look.hue}-tint)` }}
-                          >
-                            <look.icon
-                              className="size-3.5 shrink-0"
-                              style={{ color: `var(--hue-${look.hue}-key)` }}
-                              aria-hidden
-                            />
-                            <span
-                              className={cn(
-                                "min-w-0 flex-1 truncate text-[13px] font-medium text-fg",
-                                slot.status === "declined" && "line-through",
-                              )}
-                            >
-                              {slot.personName}
-                            </span>
-                            <button
-                              type="button"
-                              aria-label={t("serving.unschedule")}
-                              disabled={pending}
-                              onClick={() => take(slot.assignmentId!)}
-                              className="grid size-5 place-items-center rounded-sm text-fg-subtle hover:bg-surface hover:text-fg"
-                            >
-                              <X className="size-3" aria-hidden />
-                            </button>
-                          </div>
-
-                          {slot.warning ? (
-                            <span className="flex items-center gap-1 text-[11px] font-medium leading-[14px] text-danger-text">
-                              <AlertTriangle className="size-3 shrink-0" aria-hidden />
-                              {slot.warning}
-                            </span>
-                          ) : null}
-                        </>
+                        <Filled
+                          slot={slot}
+                          pending={pending}
+                          onRemove={() => take(slot.assignmentId!)}
+                        />
                       ) : (
                         <FillSlot
                           church={church}
@@ -401,6 +447,70 @@ export function ScheduleGrid({
           {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
         </section>
 
+        {/* R10.3. The same month on a phone: one service, its positions down
+            the page, and the service picked at the top. */}
+        <section className="w-full overflow-hidden rounded-lg border border-line bg-surface md:hidden">
+          <div className="flex flex-col gap-2.5 border-b border-line p-4">
+            <Combobox
+              aria-label={t("serving.service")}
+              options={services.map((service) => ({
+                value: service.id,
+                label: service.label,
+              }))}
+              value={one}
+              onChange={setOne}
+              emptyLabel={t("serving.noneThisMonth")}
+              clearLabel={t("date.clear")}
+              clearable={false}
+            />
+            <span
+              data-numeric
+              className="text-[13px] font-medium"
+              style={{
+                color:
+                  filledFor(one) >= needed
+                    ? "var(--hue-fern-key)"
+                    : "var(--color-danger-text)",
+              }}
+            >
+              {t("serving.filledOf", { filled: filledFor(one), needed })}
+            </span>
+          </div>
+
+          <ul className="flex flex-col">
+            {positions.map((position) => {
+              const slot = at.get(key(position.id, one));
+
+              return (
+                <li
+                  key={position.id}
+                  className="flex flex-col gap-1.5 border-b border-sunken px-4 py-3 last:border-0"
+                >
+                  <span className="text-[13px] font-medium text-fg">{position.name}</span>
+                  {slot?.assignmentId ? (
+                    <Filled
+                      slot={slot}
+                      pending={pending}
+                      onRemove={() => take(slot.assignmentId!)}
+                    />
+                  ) : (
+                    <FillSlot
+                      church={church}
+                      teamId={team.id}
+                      positionId={position.id}
+                      occurrenceId={one}
+                      onFilled={() => router.refresh()}
+                      className="rounded-md border border-dashed border-line-strong text-[13px] text-fg-muted"
+                    />
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+
+          {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
+        </section>
+
         {/* R10.3. Who is on this team, with what they are already doing, so a
             leader spreads the load rather than asking the same four members. */}
         <aside className="flex flex-[1_1_240px] flex-col gap-2 rounded-lg border border-line bg-surface p-4 lg:sticky lg:top-[84px]">
@@ -408,7 +518,9 @@ export function ScheduleGrid({
             <span className="min-w-0 truncate font-semibold text-fg">
               {t("serving.volunteers", { team: team.name })}
             </span>
-            <span className="shrink-0 whitespace-nowrap text-[12px] text-fg-subtle">
+            {/* Dragging is the month grid's way of filling a slot, and the
+                month grid is not on a phone. */}
+            <span className="hidden shrink-0 whitespace-nowrap text-[12px] text-fg-subtle md:inline">
               {t("serving.dragOnto")}
             </span>
           </div>

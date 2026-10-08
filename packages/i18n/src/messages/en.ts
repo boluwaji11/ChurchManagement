@@ -2650,6 +2650,8 @@ export const en = {
   "serving.keep": "Keep it",
   "serving.position.archiveTitle": "Archive {name}?",
   "serving.team": "Team",
+  "serving.service": "Service",
+  "serving.filledOf": "{filled} of {needed} filled",
   "schedule.error.occurrence": "That service could not be found.",
   "schedule.error.position": "That position is not on this team.",
   "schedule.error.already": "They are already down for that.",
