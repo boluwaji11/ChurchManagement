@@ -425,7 +425,6 @@ export interface PersonInput {
   /** R2.1. Single, married, widowed, and so on. */
   maritalStatus?: string | null;
   /** R2.1. Pre-K through graduate school, from the managed list. */
-  schoolLevel?: string | null;
   /** An existing household, or null for none. Ignored when householdName is set. */
   householdId?: string | null;
   /** Creates a household with this name and puts the person in it. */
@@ -490,7 +489,6 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
       medicalNote: trimmed(input.medicalNote),
       campusId: trimmed(input.campusId),
       maritalStatus: trimmed(input.maritalStatus),
-      schoolLevel: trimmed(input.schoolLevel),
     })
     .returning({ id: members.id });
 
@@ -534,7 +532,6 @@ export async function updatePerson(
       medicalNote: trimmed(input.medicalNote),
       campusId: trimmed(input.campusId),
       maritalStatus: trimmed(input.maritalStatus),
-      schoolLevel: trimmed(input.schoolLevel),
       updatedAt: new Date(),
     })
     .where(eq(members.id, id))
@@ -807,7 +804,6 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
     medicalNote: person.medicalNote,
     campusId: person.campusId,
     maritalStatus: person.maritalStatus,
-    schoolLevel: person.schoolLevel,
     address: await addressPartsFor(db, memberId),
     email: contacts.find((c) => c.kind === "email")?.value ?? null,
     phone: contacts.find((c) => c.kind === "phone")?.value ?? null,
@@ -1191,7 +1187,6 @@ export async function updateOwnProfile(
     address?: string | AddressInput | null;
     campusId?: string | null;
     maritalStatus?: string | null;
-    schoolLevel?: string | null;
     /** R2.11. The wedding date, which is held as a marriage milestone. */
     anniversary?: string | null;
   },
@@ -1215,7 +1210,6 @@ export async function updateOwnProfile(
       dateOfBirth: trimmed(input.dateOfBirth),
       campusId: trimmed(input.campusId),
       maritalStatus: trimmed(input.maritalStatus),
-      schoolLevel: trimmed(input.schoolLevel),
       updatedAt: new Date(),
     })
     .where(eq(members.id, mine.id));

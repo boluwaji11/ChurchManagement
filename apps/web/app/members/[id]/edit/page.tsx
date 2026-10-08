@@ -112,7 +112,6 @@ export default async function EditPersonPage({
             dateOfBirth: person.dateOfBirth,
             campusId: person.campusId,
             maritalStatus: person.maritalStatus,
-            schoolLevel: person.schoolLevel,
             lifecycleStatus: person.lifecycleStatus,
             membershipDate: person.membershipDate,
             firstVisitOn: person.firstVisitOn,

@@ -92,7 +92,6 @@ export default async function ProfilePage({
               dateOfBirth: result.person.dateOfBirth ?? "",
               address: toAddress(result.contact?.address as never),
               maritalStatus: result.person.maritalStatus,
-              schoolLevel: result.person.schoolLevel,
               anniversary: result.anniversary ?? "",
               campusId: result.person.campusId,
             }}

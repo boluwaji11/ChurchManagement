@@ -6,9 +6,9 @@ import { t } from "@connectapp/i18n";
  * R24.6. The foot of a list that is longer than the page it is on.
  *
  * Links rather than buttons, so a page of a list is an address somebody can
- * send to the treasurer, come back to, and open in a second tab. It says
- * where the reader is as well as how to move, because "Next" on its own
- * leaves somebody counting pages to work out how much is left.
+ * send to the treasurer, come back to, and open in a second tab. It says how
+ * much of the list is on screen as well as how to move, because "Next" on
+ * its own leaves somebody counting pages to work out how much is left.
  */
 export function Pager({
   page,
@@ -26,13 +26,12 @@ export function Pager({
   const pages = Math.max(1, Math.ceil(total / size));
   if (total <= size) return null;
 
-  const first = (page - 1) * size + 1;
-  const last = Math.min(total, page * size);
+  const shown = Math.min(total, page * size) - (page - 1) * size;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-2.5">
       <span data-numeric className="text-[13px] text-fg-muted">
-        {t("pager.showing", { first, last, total })}
+        {t("pager.showing", { shown, total })}
       </span>
 
       <span className="flex items-center gap-1">

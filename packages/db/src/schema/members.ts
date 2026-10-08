@@ -51,7 +51,6 @@ export const members = pgTable(
      * assignment cannot be made from "6th" and "sixth grade" being two answers.
      * Null for everybody who is not in school, which is most members.
      */
-    schoolLevel: text("school_level"),
     lifecycleStatus: lifecycleStatus("lifecycle_status").notNull().default("visitor"),
     membershipDate: date("membership_date"),
     firstVisitOn: date("first_visit_on"),

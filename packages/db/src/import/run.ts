@@ -11,7 +11,7 @@ import { churchStanding } from "../repo/provisional";
 import type { Sheet } from "./csv";
 import {
   PERSON_FIELDS, parseImportedDate, parseLifecycle, parseHouseholdRole,
-  parseMarital, parseSchoolLevel, splitValues,
+  parseMarital, splitValues,
 } from "./columns";
 import { buildMatchIndex, findMatches, indexNewPerson, type Match, type MatchIndex } from "./match";
 
@@ -217,7 +217,6 @@ function planRow(
     householdRole: parseHouseholdRole(get("householdRole")) as HouseholdRole,
     address,
     maritalStatus: parseMarital(get("maritalStatus")),
-    schoolLevel: parseSchoolLevel(get("schoolLevel")),
     allergies: get("allergies") || null,
     medicalNote: get("medicalNote") || null,
   };

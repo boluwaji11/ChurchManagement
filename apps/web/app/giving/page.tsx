@@ -6,8 +6,8 @@ import {
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
 import {
-  Banknote, CalendarCheck, FileText, Landmark, Printer, Repeat, Target,
-  TrendingUp, Users, Wallet,
+  Banknote, CalendarCheck, CornerDownRight, FileText, Landmark, Plus, Printer,
+  Repeat, Target, TrendingUp, Users, Wallet,
 } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -29,7 +29,7 @@ import { RepeatMark } from "./repeat-mark";
 import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
 import { Tooltip } from "@connectapp/ui";
-import { Panel, Nothing, Destination, Rail } from "./panel";
+import { Panel, Nothing, Destination } from "./panel";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -129,11 +129,39 @@ export default async function GivingPage({
     `/giving?church=${session.tenantSlug}&counts=${name === "counts" ? to : countsPage}`
     + `&gifts=${name === "gifts" ? to : giftsPage}`;
 
+  /*
+   * R24.x. Recording a gift and exporting read as the two things done to
+   * this list, so they are written as links rather than as a button with a
+   * link beside it, which read as one action and one afterthought.
+   */
+  const asLink =
+    "inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-[var(--d-radius-control)]"
+    + " px-2 text-[13px] font-medium text-primary underline underline-offset-4"
+    + " hover:bg-sunken [&_svg]:size-4";
+
   const record = manage ? (
-    <GiftPanel church={session.tenantSlug} today={read.today} funds={fundList} />
+    <GiftPanel
+      church={session.tenantSlug}
+      today={read.today}
+      funds={fundList}
+      trigger={
+        <button type="button" className={asLink}>
+          <Plus aria-hidden /> {t("giving.gift.add")}
+        </button>
+      }
+    />
   ) : null;
   const startCount = manage ? (
-    <StartCount church={session.tenantSlug} today={read.today} funds={fundList} />
+    <StartCount
+      church={session.tenantSlug}
+      today={read.today}
+      funds={fundList}
+      trigger={
+        <button type="button" className={asLink}>
+          <Plus aria-hidden /> {t("giving.count.start")}
+        </button>
+      }
+    />
   ) : null;
 
   return (
@@ -206,7 +234,6 @@ export default async function GivingPage({
           <Destination
             icon={<FileText />}
             title={t("giving.statements")}
-            detail={t("giving.statements.for", { count: read.thisYear.givers })}
             href={`/giving/statements?church=${session.tenantSlug}`}
           />
         </div>
@@ -216,7 +243,11 @@ export default async function GivingPage({
             icon="calendar"
             title={t("giving.empty.title")}
             body={t("giving.empty.body")}
-            action={startCount ?? undefined}
+            action={
+              manage ? (
+                <StartCount church={session.tenantSlug} today={read.today} funds={fundList} />
+              ) : undefined
+            }
           />
         ) : (
           <>
@@ -226,7 +257,6 @@ export default async function GivingPage({
             <Panel
               icon={<CalendarCheck />}
               title={t("giving.counts")}
-              count={plural("giving.counts.count", read.allCounts)}
               action={startCount}
             >
               {read.counts.length === 0 ? (
@@ -339,7 +369,6 @@ export default async function GivingPage({
             <Panel
               icon={<Banknote />}
               title={t("giving.recent")}
-              count={plural("giving.gifts.count", read.allGifts)}
               action={
                 <>
                   {record}
@@ -349,7 +378,7 @@ export default async function GivingPage({
                     file={`giving-${session.tenantSlug}.csv`}
                     label={t("download.building")}
                     title={t("giving.export")}
-                    className="inline-flex min-h-9 items-center rounded-[var(--d-radius-control)] px-3 text-[13px] font-medium text-primary hover:bg-sunken"
+                    className={asLink}
                   >
                     {t("giving.export")}
                   </Download>
@@ -388,18 +417,26 @@ export default async function GivingPage({
                               key={row.key}
                               className={
                                 back
-                                  ? "italic text-fg-muted"
+                                  /* R13.15. The rule between a gift and its
+                                     refund is drawn inside the row rather
+                                     than across it, so the pair reads as one
+                                     payment with two lines. */
+                                  ? "italic text-fg-muted [&>td]:relative"
+                                    + " [&>td]:before:absolute [&>td]:before:inset-x-0"
+                                    + " [&>td]:before:top-0 [&>td]:before:h-px"
+                                    + " [&>td]:before:bg-line [&>td]:before:content-['']"
+                                    + " [&>td:first-child]:before:left-10"
+                                    + " [&>td:last-child]:before:right-5"
                                   : "border-t border-line hover:bg-sunken"
                               }
                             >
-                              {/* R13.15. A refund hangs off the gift it came
-                                  off, on the same rail the rest of the
-                                  product hangs a child from its parent. */}
-                              <td className="relative whitespace-nowrap py-3 pr-3 pl-5 text-[13px] text-fg-subtle">
-                                {row.tied ? (
-                                  <Rail role={back ? "child" : "parent"} />
-                                ) : null}
-                                <span className={row.tied ? "pl-5" : undefined}>
+                              {/* R13.15. The turn marks the refund as
+                                  belonging to the gift above it. */}
+                              <td className="whitespace-nowrap py-3 pr-3 pl-5 text-[13px] text-fg-subtle">
+                                <span className="flex items-center gap-1">
+                                  {back ? (
+                                    <CornerDownRight className="size-3.5 shrink-0" aria-hidden />
+                                  ) : null}
                                   {longDate(row.on)}
                                 </span>
                               </td>
@@ -502,7 +539,6 @@ export default async function GivingPage({
           <Panel
             icon={<Wallet />}
             title={t("giving.funds")}
-            count={plural("giving.funds.count", read.funds.length)}
             action={
               <Link
                 href={`/settings/funds?church=${session.tenantSlug}`}

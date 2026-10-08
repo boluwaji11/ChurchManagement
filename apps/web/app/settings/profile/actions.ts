@@ -51,7 +51,6 @@ export async function saveProfile(data: FormData): Promise<ProfileResult> {
           anniversary: field(data, "anniversary") || null,
           campusId: pick(data, "campusId"),
           maritalStatus: pick(data, "maritalStatus"),
-          schoolLevel: pick(data, "schoolLevel"),
         },
       ),
     );

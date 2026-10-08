@@ -57,8 +57,6 @@ export const PERSON_FIELDS: TargetField[] = [
     aliases: ["zip", "zip code", "postcode", "postal code", "post code"] },
   { key: "maritalStatus", label: "person.maritalStatus",
     aliases: ["marital status", "marital", "married", "relationship status"] },
-  { key: "schoolLevel", label: "person.schoolLevel",
-    aliases: ["school level", "grade", "school grade", "grade level", "year group", "school year"] },
   { key: "allergies", label: "personForm.allergies",
     aliases: ["allergies", "allergy", "allergen", "allergens"] },
   { key: "medicalNote", label: "personForm.medicalNote",

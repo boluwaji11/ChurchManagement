@@ -100,7 +100,26 @@ export const FIELD_LIBRARY: FieldPreset[] = [
     ],
   },
   { key: "parkingPermit", label: "fieldLib.parkingPermit", type: "text" },
-  { key: "school", label: "fieldLib.school", type: "text" },
+  /*
+   * R2.1. The product shipped this as a column and took it back out.
+   *
+   * It is a question some churches ask and most do not, and the ones that
+   * ask it want their own bands: a school in England has Year 7 where one in
+   * Missouri has 6th grade. Taking it up fills the same form anybody would
+   * have typed, so a church can rename every band before it saves.
+   */
+  {
+    key: "school",
+    label: "fieldLib.school",
+    type: "select",
+    options: [
+      "school.pre_k", "school.kindergarten",
+      "school.grade_1", "school.grade_2", "school.grade_3", "school.grade_4",
+      "school.grade_5", "school.grade_6", "school.grade_7", "school.grade_8",
+      "school.grade_9", "school.grade_10", "school.grade_11", "school.grade_12",
+      "school.college", "school.graduate",
+    ],
+  },
 ];
 
 /** The preset as the form holds it: real words, in this church's language. */

@@ -84,7 +84,6 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
     },
     campusId: str(data, "campusId") || null,
     maritalStatus: pick(data, "maritalStatus"),
-    schoolLevel: pick(data, "schoolLevel"),
     householdId: householdChoice === HOUSEHOLD_NEW || householdChoice === HOUSEHOLD_NONE ? null : householdChoice,
     householdName: householdChoice === HOUSEHOLD_NEW ? str(data, "householdName") || null : null,
     householdRole: (str(data, "householdRole") || "other") as HouseholdRole,

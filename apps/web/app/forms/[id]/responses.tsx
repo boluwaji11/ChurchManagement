@@ -308,7 +308,7 @@ export function Responses({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-[13px] text-fg-muted">
           {t("form.responses.showing", {
-            range: t("pages.range", { first, upto, matching: total }),
+            range: t("pages.range", { shown: upto - first + 1, matching: total }),
           })}
         </span>
         <Pages page={page} last={Math.max(1, Math.ceil(total / perPage))} onPage={go} />

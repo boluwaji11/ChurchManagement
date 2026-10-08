@@ -116,8 +116,7 @@ export function PagedTable({
           <span className="text-[13px] text-fg-muted">
             {t("reports.showing", {
               range: t("pages.range", {
-                first: String(first + 1),
-                upto: String(Math.min(first + PER_PAGE, rows.length)),
+                shown: String(Math.min(first + PER_PAGE, rows.length) - first),
                 matching: String(rows.length),
               }),
             })}

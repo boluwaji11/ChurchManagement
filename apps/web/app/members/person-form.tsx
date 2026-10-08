@@ -14,7 +14,7 @@ import type { HouseholdOption } from "@connectapp/db";
 import {
   parsePerson, personErrors, hasErrors,
   lifecycleOptions, householdRoleOptions, HOUSEHOLD_NEW, HOUSEHOLD_NONE,
-  maritalOptions, schoolOptions,
+  maritalOptions,
   type PersonErrors,
 } from "@/lib/person-input";
 import { AddressFields } from "@/components/address-fields";
@@ -35,7 +35,6 @@ export interface PersonFormValues {
   address?: AddressValues;
   campusId?: string | null;
   maritalStatus?: string | null;
-  schoolLevel?: string | null;
   id?: string;
   firstName?: string;
   lastName?: string;
@@ -266,17 +265,6 @@ export function PersonForm({
             />
           </Field>
 
-          {/* R2.1. Only the school years, because a church asks this to put a
-              child in the right room and a student in the right group. */}
-          <Field label={t("person.schoolLevel")}>
-            <Picker
-              name="schoolLevel"
-              defaultValue={values?.schoolLevel ?? null}
-              options={schoolOptions()}
-              label={t("person.schoolLevel")}
-            />
-          </Field>
-
           {/* R1.2. Only where this church has more than one. */}
           {campuses.length > 1 ? (
             <Field label={t("person.campus")}>
@@ -331,6 +319,14 @@ export function PersonForm({
                 canEdit
               />
             </div>
+          </div>
+        </FormCard>
+      ) : null}
+
+      {customFields.length > 0 ? (
+        <FormCard title={t("person.more")}>
+          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+            <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
           </div>
         </FormCard>
       ) : null}
@@ -392,13 +388,6 @@ export function PersonForm({
         </FormCard>
       ) : null}
 
-      {customFields.length > 0 ? (
-        <FormCard title={t("person.more")}>
-          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
-            <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
-          </div>
-        </FormCard>
-      ) : null}
 
         </div>
 

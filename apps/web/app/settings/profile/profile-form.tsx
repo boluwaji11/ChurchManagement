@@ -15,7 +15,7 @@ import { longDate } from "@/lib/dates";
 import { AddressFields } from "@/components/address-fields";
 import { Picker } from "@/components/picker";
 import { oneLineAddress, type AddressValues } from "@/lib/address";
-import { maritalOptions, schoolOptions } from "@/lib/person-input";
+import { maritalOptions } from "@/lib/person-input";
 import { saveProfile, clearPhoto } from "./actions";
 import { useFormError } from "@/lib/form-error";
 import { Details, Detail } from "../card";
@@ -41,7 +41,6 @@ export interface ProfileValues {
   /** R2.4. Where they live, in the parts a letter needs. */
   address: AddressValues;
   maritalStatus: string | null;
-  schoolLevel: string | null;
   anniversary: string;
   campusId: string | null;
 }
@@ -84,6 +83,16 @@ export function ProfileForm({
   const [showing, setShowing] = React.useState(false);
   const [birthday, setBirthday] = React.useState(values.dateOfBirth);
   const [anniversary, setAnniversary] = React.useState(values.anniversary);
+  const [marital, setMarital] = React.useState(values.maritalStatus ?? "");
+  /*
+   * R2.1. A wedding date belongs to a marriage.
+   *
+   * Asked of everybody it is a box most people leave empty. It stays on
+   * screen for anybody who already has one, so somebody whose marriage has
+   * since ended is not quietly stripped of the date by a form that stopped
+   * drawing the field.
+   */
+  const wedded = marital === "married" || Boolean(anniversary);
   const [saving, startTransition] = React.useTransition();
   const [removing, startRemoving] = React.useTransition();
   const file = React.useRef<HTMLInputElement>(null);
@@ -290,11 +299,9 @@ export function ProfileForm({
               t("person.maritalStatus"),
               values.maritalStatus ? t(`marital.${values.maritalStatus}` as never) : "",
             ],
-            [t("person.anniversary"), values.anniversary ? longDate(values.anniversary) : ""],
-            [
-              t("person.schoolLevel"),
-              values.schoolLevel ? t(`school.${values.schoolLevel}` as never) : "",
-            ],
+            ...(values.anniversary
+              ? [[t("person.anniversary"), longDate(values.anniversary)] as [string, string]]
+              : []),
             ...(campuses.length > 1
               ? [[
                   t("person.campus"),
@@ -352,28 +359,22 @@ export function ProfileForm({
               defaultValue={values.maritalStatus}
               options={maritalOptions()}
               label={t("person.maritalStatus")}
+              onChange={setMarital}
             />
           </Field>
 
-          <Field label={t("person.anniversary")}>
-            <DatePicker
-              locale={readingLocale()}
-              name="anniversary"
-              value={anniversary}
-              onChange={setAnniversary}
-              placeholder={t("date.placeholder")}
-              labels={DATE_LABELS()}
-            />
-          </Field>
-
-          <Field label={t("person.schoolLevel")}>
-            <Picker
-              name="schoolLevel"
-              defaultValue={values.schoolLevel}
-              options={schoolOptions()}
-              label={t("person.schoolLevel")}
-            />
-          </Field>
+          {wedded ? (
+            <Field label={t("person.anniversary")}>
+              <DatePicker
+                locale={readingLocale()}
+                name="anniversary"
+                value={anniversary}
+                onChange={setAnniversary}
+                placeholder={t("date.placeholder")}
+                labels={DATE_LABELS()}
+              />
+            </Field>
+          ) : null}
 
           {campuses.length > 1 ? (
             <Field label={t("person.campus")}>

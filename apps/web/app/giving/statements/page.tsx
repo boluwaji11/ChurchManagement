@@ -70,7 +70,9 @@ export default async function StatementsPage({
 
   return (
     <AppShell session={session} title={t("statement.title")} wide>
-      <div className="flex flex-col gap-5">
+      {/* Four short columns do not want the whole of a wide screen: the
+          name and the total ended up a hand's width apart. */}
+      <div className="flex max-w-3xl flex-col gap-5">
         <Link
           href={`/giving?church=${session.tenantSlug}`}
           className="flex w-fit items-center gap-1.5 font-medium text-primary"

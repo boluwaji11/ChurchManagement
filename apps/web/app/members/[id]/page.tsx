@@ -6,6 +6,7 @@ import {
   withTenant, getPerson, householdFor,
   personTimeline, servingForPerson, groupsForPerson,
   listContacts, listAddresses, givingForPerson, getChurch,
+  listCustomFields, getCustomValues,
   canEditPeople, canReadGivingAmounts,
 } from "@connectapp/db";
 import { Avatar, Button } from "@connectapp/ui";
@@ -22,6 +23,7 @@ import { Contacts } from "./contacts";
 import { Places } from "./places";
 import { MessageButton } from "./message";
 import { NoteForm } from "../note-form";
+import { customFieldValue } from "../custom-fields";
 import { canReadConfidentialNotes } from "@connectapp/db";
 import { tabMetadata } from "@/lib/page-metadata";
 
@@ -132,7 +134,10 @@ export default async function PersonPage({
       (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
     ).date.slice(0, 4);
 
-    const [contacts, addresses, household, groups, serving, history, giving] = await Promise.all([
+    const [
+      contacts, addresses, household, groups, serving, history, giving,
+      customFields, customValues,
+    ] = await Promise.all([
       // R2.4. Every way of reaching them, not only the one that leads.
       listContacts(tx, memberId),
       listAddresses(tx, memberId),
@@ -148,15 +153,35 @@ export default async function PersonPage({
       amounts
         ? givingForPerson(tx, memberId, { from: `${year}-01-01`, to: `${year}-12-31` })
         : Promise.resolve(null),
+      /* R1.10. Whatever this church decided a person needs. It was on the
+         form and in the directory and nowhere on the record itself. */
+      listCustomFields(tx, "person"),
+      getCustomValues(tx, "person", memberId),
     ]);
 
-    return { person, contacts, addresses, household, groups, serving, history, giving };
+    return {
+      person, contacts, addresses, household, groups, serving, history, giving,
+      customFields, customValues,
+    };
   });
 
   // Not found and not permitted are the same response on purpose. A person in
   // another church must not be distinguishable from a person who does not exist.
   if (!result) notFound();
-  const { person, contacts, addresses, household, groups, serving, history, giving } = result;
+  const {
+    person, contacts, addresses, household, groups, serving, history, giving,
+    customFields, customValues,
+  } = result;
+
+  /* R1.10. Only the ones with an answer on this person: a card listing every
+     field the church has ever added, most of them blank, says nothing. */
+  const extra = customFields
+    .map((field) => ({
+      id: field.id,
+      label: field.label,
+      value: customFieldValue(field, customValues[field.id], longDate),
+    }))
+    .filter((one) => one.value !== "");
 
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   // R2.9. Their face, signed for the hour.
@@ -310,6 +335,19 @@ export default async function PersonPage({
                     last: giving.lastOn ? shortDate(giving.lastOn) : "",
                   })}
             </div>
+          </InfoCard>
+        ) : null}
+
+        {/* R1.10. What this church asks about its people beyond the fields
+            the product ships with. */}
+        {extra.length > 0 ? (
+          <InfoCard title={t("person.more")}>
+            {extra.map((one) => (
+              <div key={one.id} className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-caption text-fg-subtle">{one.label}</span>
+                <span className="text-[length:var(--d-text-body)] text-fg">{one.value}</span>
+              </div>
+            ))}
           </InfoCard>
         ) : null}
 

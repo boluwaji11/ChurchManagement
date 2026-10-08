@@ -71,8 +71,8 @@ export function Destination({
 }: {
   icon: React.ReactNode;
   title: string;
-  /** One live figure, so the tile says something rather than just pointing. */
-  detail: string;
+  /** One live figure, where there is one worth the line. */
+  detail?: string;
   href: string;
 }) {
   return (
@@ -86,7 +86,9 @@ export function Destination({
 
       <span className="flex min-w-0 flex-1 flex-col leading-5">
         <span className="truncate text-[15px] font-bold text-fg">{title}</span>
-        <span className="truncate text-[13px] text-fg-muted">{detail}</span>
+        {detail ? (
+          <span className="truncate text-[13px] text-fg-muted">{detail}</span>
+        ) : null}
       </span>
 
       <ChevronRight
@@ -94,34 +96,5 @@ export function Destination({
         className="size-4 shrink-0 text-fg-subtle transition-transform duration-instant group-hover:translate-x-0.5"
       />
     </Link>
-  );
-}
-
-/**
- * R13.15. The rail that ties a line to the one above it.
- *
- * A refund belongs to its gift the way a step belongs to the thing it is a
- * step of, so it is drawn the way the rest of the product draws that: a dot
- * on the parent, a line down the gutter, an elbow into the child. An arrow
- * glyph in the date column said the same thing in a place nobody looks.
- */
-export function Rail({ role }: { role: "parent" | "child" }) {
-  if (role === "parent") {
-    return (
-      <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 flex w-7 justify-center">
-        <span className="relative w-px bg-line-strong">
-          <span className="absolute -top-px left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-primary" />
-        </span>
-      </span>
-    );
-  }
-
-  return (
-    <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 flex w-7 justify-center">
-      {/* Down to the middle of the row, then out to meet the line. */}
-      <span className="relative h-1/2 w-px bg-line-strong">
-        <span className="absolute bottom-0 left-0 h-px w-2.5 bg-line-strong" />
-      </span>
-    </span>
   );
 }

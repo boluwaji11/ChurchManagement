@@ -417,12 +417,7 @@ export function Directory({
           {matching === 0
             ? t("directory.none")
             : t("directory.showing", {
-                range:
-                  // One row is one row. "1 to 1 of 1" is three numbers for a
-                  // fact that needs one.
-                  first === upto
-                    ? t("directory.rangeOne", { first, matching })
-                    : t("directory.range", { first, upto, matching }),
+                range: t("directory.range", { shown: upto - first + 1, matching }),
               })}
         </span>
         <Pages
