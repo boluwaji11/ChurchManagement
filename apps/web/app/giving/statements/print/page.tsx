@@ -97,7 +97,9 @@ export default async function StatementPrintPage({
         return (
           <section
             key={statement.memberId}
-            className="mx-auto max-w-3xl px-10 py-10 break-after-page"
+            /* The break goes between sheets. On the last one it pushes an
+               empty page out of the printer. */
+            className="mx-auto max-w-3xl px-10 py-10 break-after-page last:break-after-auto"
           >
             {/* R13.17. The church on the left, whoever it is for on the
                 right, which is how a letter is laid out. */}
