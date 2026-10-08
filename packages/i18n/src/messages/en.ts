@@ -902,7 +902,7 @@ export const en = {
   "roles.error.owner": "The Owner cannot be changed.",
   "roles.error.missing": "That role could not be found.",
   "roles.error.beyond": "You can only change permissions you hold yourself. Ask an Owner.",
-  "roles.beyond": "Only somebody who holds this can give it away.",
+  "roles.beyond": "Only somebody who holds this can edit it.",
   "team.error.beyond": "That role can do more than you can. Ask an Owner to assign it.",
   "roles.error.permission": "That permission does not exist.",
   "common.yes": "Yes",
