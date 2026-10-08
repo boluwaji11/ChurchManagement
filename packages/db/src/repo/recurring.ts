@@ -32,10 +32,29 @@ export interface Recurring {
 }
 
 /** R13.3. What this church is expecting, largest first. */
+/** R13.3. How many repeating gifts the same filter matches. */
+export async function countRecurring(
+  db: Tx,
+  options: { activeOnly?: boolean; memberId?: string } = {},
+): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(recurringGifts)
+    .where(
+      and(
+        options.activeOnly ? sql`${recurringGifts.status} <> 'canceled'` : undefined,
+        options.memberId ? eq(recurringGifts.memberId, options.memberId) : undefined,
+      ),
+    );
+  return row?.n ?? 0;
+}
+
 export async function listRecurring(
   db: Tx,
   who: WriteActor,
-  options: { activeOnly?: boolean; memberId?: string } = {},
+  options: {
+    activeOnly?: boolean; memberId?: string; limit?: number; offset?: number;
+  } = {},
 ): Promise<Recurring[]> {
   const rows = await db
     .select({
@@ -66,7 +85,9 @@ export async function listRecurring(
         options.memberId ? eq(recurringGifts.memberId, options.memberId) : undefined,
       ),
     )
-    .orderBy(desc(recurringGifts.amountCents));
+    .orderBy(desc(recurringGifts.amountCents))
+    .limit(options.limit ?? 500)
+    .offset(options.offset ?? 0);
 
   const amounts = canReadGivingAmounts(who);
 

@@ -22,7 +22,6 @@ export function StopRepeating({
   church,
   label,
   who,
-  compact,
 }: {
   id: string;
   church: string;
@@ -30,8 +29,6 @@ export function StopRepeating({
   label: string;
   /** Whose it is, where somebody else is stopping it. */
   who?: string | null;
-  /** On a list where this is one action of several on every row. */
-  compact?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -40,15 +37,15 @@ export function StopRepeating({
 
   return (
     <>
-      {compact ? (
-        <IconButton label={t("give.stop")} onClick={() => setOpen(true)}>
-          <CircleSlash />
-        </IconButton>
-      ) : (
-        <Button variant="secondary" onClick={() => setOpen(true)}>
-          {t("give.stop")}
-        </Button>
-      )}
+      {/* R24.x. One of two actions on every repeating gift, so both are
+          the icon alone and the tooltip carries the words. */}
+      <IconButton
+        label={t("give.stop")}
+        className="text-danger-text hover:bg-danger-soft"
+        onClick={() => setOpen(true)}
+      >
+        <CircleSlash />
+      </IconButton>
 
       <Dialog open={open} onOpenChange={(on) => (on ? null : setOpen(false))}>
         <DialogContent

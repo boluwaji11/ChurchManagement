@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import {
-  Banknote, CheckCircle2, CornerDownRight, CreditCard, FileText, Repeat, Target,
+  Banknote, CheckCircle2, CornerDownRight, FileText, Repeat, Target,
 } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
   getStripeAccount, listRecurring, givingPage, pledgesForMember, givingYears,
+  countGifts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
@@ -26,6 +27,7 @@ import { Panel as Block, Nothing } from "./panel";
 import { Figure } from "@/app/reports/figure";
 import { MyStatement } from "./my-statement";
 import { ResizableTable } from "@/components/resizable-columns";
+import { Pager } from "@/components/pager";
 
 /**
  * R13.19, R17.4. A member's own giving, and their own statement.
@@ -34,7 +36,17 @@ import { ResizableTable } from "@/components/resizable-columns";
  * is the screen that means a church secretary is not asked for a copy of a
  * statement in the second week of January.
  */
-export async function MyGiving({ session }: { session: Session }) {
+/** How many of their own gifts are read at once. */
+const PER_PAGE = 15;
+
+export async function MyGiving({
+  session,
+  page: at = 1,
+}: {
+  session: Session;
+  /** Which page of their own giving, one based, out of the address. */
+  page?: number;
+}) {
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,
@@ -63,8 +75,11 @@ export async function MyGiving({ session }: { session: Session }) {
       gifts: await listGifts(
         tx,
         { ...ctx, permissions: [...(ctx.permissions ?? []), "giving.amounts"] },
-        { memberId: self, limit: 200 },
+        { memberId: self, limit: PER_PAGE, offset: (at - 1) * PER_PAGE },
       ),
+      /* R13.19. A member who has given weekly for four years has more than
+         one page of it, and the rest of it is not allowed to go missing. */
+      allGifts: await countGifts(tx, { memberId: self }),
       total: await givingForPerson(tx, self, { from: `${year}-01-01`, to: `${year}-12-31` }),
       /* R13.2. Their own bank transfer, before the bank has moved it. */
       coming: await onTheWay(tx, self),
@@ -240,10 +255,113 @@ export async function MyGiving({ session }: { session: Session }) {
           </Block>
         ) : null}
 
+        {/* R13.19. Their giving on the left, what repeats on the right. The
+            table had the whole of a wide screen for five short columns. */}
+        <div className="grid items-start gap-5 lg:[grid-template-columns:minmax(0,1fr)_minmax(280px,340px)]">
+          <div className="flex min-w-0 flex-col gap-5">
+
+        {/* R13.19. Everything, in the order it happened. */}
+        <Block icon={<Banknote />} title={t("mine.giving.history")}>
+          {mine.gifts.length === 0 ? (
+            <Nothing>{t("mine.giving.none")}</Nothing>
+          ) : (
+            <ResizableTable id="my-giving">
+              <table className="w-full min-w-[520px] border-collapse">
+                <thead>
+                  <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
+                    <th className="w-[120px] px-5 py-2 text-left font-bold">
+                      {t("giving.col.date")}
+                    </th>
+                    {/* The fund takes whatever the others do not. */}
+                    <th className="w-full px-3 py-2 text-left font-bold">
+                      {t("giving.col.fund")}
+                    </th>
+                    <th className="w-[80px] px-3 py-2 text-left font-bold">
+                      {t("giving.col.method")}
+                    </th>
+                    <th className="w-[100px] px-3 py-2 text-left font-bold">
+                      {t("giving.col.status")}
+                    </th>
+                    <th className="w-[110px] px-3 py-2 text-right font-bold">
+                      {t("giving.col.amount")}
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {giftRows(mine.gifts).map((row) => {
+                    const back = row.kind === "refund";
+                    return (
+                      <tr
+                        key={row.key}
+                        className={
+                          back
+                            /* R13.15. The rule between a gift and what came
+                               back off it is drawn inside the row, so the
+                               pair reads as one payment with two lines. */
+                            ? "italic text-fg-muted [&>td]:relative"
+                              + " [&>td]:before:absolute [&>td]:before:inset-x-0"
+                              + " [&>td]:before:top-0 [&>td]:before:h-px"
+                              + " [&>td]:before:bg-line [&>td]:before:content-['']"
+                              + " [&>td:first-child]:before:left-10"
+                              + " [&>td:last-child]:before:right-5"
+                            : "border-t border-line hover:bg-sunken"
+                        }
+                      >
+                        <td className="whitespace-nowrap py-2.5 pr-3 pl-5 text-[13px] text-fg-subtle">
+                          <span className="flex items-center gap-1">
+                            {back ? (
+                              <CornerDownRight className="size-3.5 shrink-0" aria-hidden />
+                            ) : null}
+                            {longDate(row.on)}
+                          </span>
+                        </td>
+                        <td className="min-w-0 px-3 py-2.5 text-fg">{row.gift.fundName}</td>
+                        <td className="px-3 py-2.5 text-[13px] text-fg-muted">
+                          {t(`giving.method.${row.gift.method}` as never)}
+                        </td>
+                        {/* R13.2, R13.15. Their bank transfer before it
+                            arrives, and anything the church gave back. */}
+                        <td className="px-3 py-2.5 text-[13px]">
+                          <GiftState status={row.status} audience="giver" />
+                        </td>
+                        <td
+                          data-numeric
+                          className={`whitespace-nowrap px-3 py-2.5 text-right ${
+                            row.status === "settled" && !back
+                              ? "font-semibold text-fg"
+                              : "text-fg-subtle"
+                          }`}
+                        >
+                          <span className="flex items-center justify-end gap-1.5">
+                            {row.gift.recurring && !back ? <RepeatMark /> : null}
+                            {row.gift.inKindDescription && !back
+                              ? row.gift.inKindDescription
+                              : money(row.amountCents)}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </ResizableTable>
+          )}
+
+          <Pager
+            page={at}
+            size={PER_PAGE}
+            total={mine.allGifts}
+            href={(to) => `/giving?church=${session.tenantSlug}&gifts=${to}`}
+          />
+        </Block>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-5">
         {/* R13.3, R13.19. What they have set to repeat, and the way to stop
             it without ringing the church. */}
         {mine.repeating.length > 0 ? (
-          <Block icon={<CreditCard />} title={t("giving.recurring")}>
+          <Block icon={<Repeat />} title={t("giving.recurring")}>
             <ul className="m-0 flex list-none flex-col p-0">
               {mine.repeating.map((one) => (
                 <li
@@ -291,95 +409,8 @@ export async function MyGiving({ session }: { session: Session }) {
             </ul>
           </Block>
         ) : null}
-
-        {/* R13.19. Everything, in the order it happened. */}
-        <Block icon={<Banknote />} title={t("mine.giving.history")}>
-          {mine.gifts.length === 0 ? (
-            <Nothing>{t("mine.giving.none")}</Nothing>
-          ) : (
-            <ResizableTable id="my-giving">
-              <table className="w-full min-w-[620px] border-collapse">
-                <thead>
-                  <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                    <th className="w-[140px] px-5 py-2 text-left font-bold">
-                      {t("giving.col.date")}
-                    </th>
-                    {/* The fund takes whatever the others do not. */}
-                    <th className="w-full px-3 py-2 text-left font-bold">
-                      {t("giving.col.fund")}
-                    </th>
-                    <th className="w-[100px] px-3 py-2 text-left font-bold">
-                      {t("giving.col.method")}
-                    </th>
-                    <th className="w-[120px] px-3 py-2 text-left font-bold">
-                      {t("giving.col.status")}
-                    </th>
-                    <th className="w-[130px] px-3 py-2 text-right font-bold">
-                      {t("giving.col.amount")}
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {giftRows(mine.gifts).map((row) => {
-                    const back = row.kind === "refund";
-                    return (
-                      <tr
-                        key={row.key}
-                        className={
-                          back
-                            /* R13.15. The rule between a gift and what came
-                               back off it is drawn inside the row, so the
-                               pair reads as one payment with two lines. */
-                            ? "italic text-fg-muted [&>td]:relative"
-                              + " [&>td]:before:absolute [&>td]:before:inset-x-0"
-                              + " [&>td]:before:top-0 [&>td]:before:h-px"
-                              + " [&>td]:before:bg-line [&>td]:before:content-['']"
-                              + " [&>td:first-child]:before:left-10"
-                              + " [&>td:last-child]:before:right-5"
-                            : "border-t border-line hover:bg-sunken"
-                        }
-                      >
-                        <td className="whitespace-nowrap py-3 pr-3 pl-5 text-[13px] text-fg-subtle">
-                          <span className="flex items-center gap-1">
-                            {back ? (
-                              <CornerDownRight className="size-3.5 shrink-0" aria-hidden />
-                            ) : null}
-                            {longDate(row.on)}
-                          </span>
-                        </td>
-                        <td className="min-w-0 px-3 py-3 text-fg">{row.gift.fundName}</td>
-                        <td className="px-3 py-3 text-[13px] text-fg-muted">
-                          {t(`giving.method.${row.gift.method}` as never)}
-                        </td>
-                        {/* R13.2, R13.15. Their bank transfer before it
-                            arrives, and anything the church gave back. */}
-                        <td className="px-3 py-3 text-[13px]">
-                          <GiftState status={row.status} audience="giver" />
-                        </td>
-                        <td
-                          data-numeric
-                          className={`whitespace-nowrap px-3 py-3 text-right ${
-                            row.status === "settled" && !back
-                              ? "font-semibold text-fg"
-                              : "text-fg-subtle"
-                          }`}
-                        >
-                          <span className="flex items-center justify-end gap-1.5">
-                            {row.gift.recurring && !back ? <RepeatMark /> : null}
-                            {row.gift.inKindDescription && !back
-                              ? row.gift.inKindDescription
-                              : money(row.amountCents)}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </ResizableTable>
-          )}
-        </Block>
+          </div>
+        </div>
       </div>
     </PortalShell>
   );

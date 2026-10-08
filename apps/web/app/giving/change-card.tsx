@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Banner, Button, Sheet, SheetContent } from "@connectapp/ui";
+import { Banner, IconButton, Sheet, SheetContent, Spinner } from "@connectapp/ui";
+import { CreditCard } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { Pay } from "@/app/give/[slug]/pay";
 import { startCardChange } from "./actions";
@@ -30,11 +31,11 @@ export function ChangeCard({
 
   return (
     <>
-      <Button
-        variant="ghost"
-        className="h-auto min-h-0 p-0 text-[13px] font-medium"
+      {/* R24.x. One of two actions on every repeating gift, so it is the
+          icon alone. IconButton carries the words as its tooltip. */}
+      <IconButton
+        label={t("give.card")}
         disabled={pending}
-        loading={pending}
         onClick={() =>
           startTransition(async () => {
             const answer = await startCardChange(id, church);
@@ -49,8 +50,8 @@ export function ChangeCard({
           })
         }
       >
-        {t("give.card")}
-      </Button>
+        {pending ? <Spinner /> : <CreditCard />}
+      </IconButton>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent title={t("give.card")} closeLabel={t("common.close")} width="560px">

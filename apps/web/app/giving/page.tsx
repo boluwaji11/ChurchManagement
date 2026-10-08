@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   withTenant, getChurch, listFunds, fundTotals, listBatches, countBatches,
   listGifts, countGifts, givingTotals, onTheWay, listCampaigns,
-  getStripeAccount, listRecurring, recurringMonthly,
+  getStripeAccount, listRecurring, countRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
 import {
@@ -75,7 +75,7 @@ export default async function GivingPage({
 }: {
   searchParams: Promise<{
     church?: string; counts?: string; gifts?: string;
-    period?: string; fund?: string; how?: string; state?: string;
+    period?: string; fund?: string; how?: string; state?: string; repeats?: string;
   }>;
 }) {
   const asked = await searchParams;
@@ -90,7 +90,7 @@ export default async function GivingPage({
    * asks which groups they are in. Two routes for one word would have meant
    * two places for a link to point and one of them always wrong.
    */
-  if (!manage && !amounts) return <MyGiving session={session} />;
+  if (!manage && !amounts) return <MyGiving session={session} page={pageFrom(asked.gifts)} />;
 
   const ctx = {
     tenantId: session.tenantId,
@@ -102,6 +102,7 @@ export default async function GivingPage({
   const countsPage = pageFrom(asked.counts);
   const giftsPage = pageFrom(asked.gifts);
   const narrowing = narrowingFrom(asked);
+  const repeatsPage = pageFrom(asked.repeats);
 
   const read = await withTenant(ctx, async (tx) => {
     const profile = await getChurch(tx, session.tenantId);
@@ -135,7 +136,12 @@ export default async function GivingPage({
       /* R13.2. Bank transfers authorised and not yet arrived. */
       coming: await onTheWay(tx),
       // R13.3. What the church is expecting without anybody doing anything.
-      recurring: await listRecurring(tx, ctx, { activeOnly: true }),
+      recurring: await listRecurring(tx, ctx, {
+        activeOnly: true,
+        limit: ASIDE_ROWS,
+        offset: (repeatsPage - 1) * ASIDE_ROWS,
+      }),
+      allRecurring: await countRecurring(tx, { activeOnly: true }),
       expected: await recurringMonthly(tx),
       campaigns: await listCampaigns(tx),
       stripe: await getStripeAccount(tx),
@@ -150,7 +156,7 @@ export default async function GivingPage({
     narrowingCount(narrowing) === 0 && read.allCounts === 0 && read.allGifts === 0;
   /* The pager keeps whatever the filter is set to, so paging a narrowed
      list does not quietly hand back the whole of it. */
-  const page = (name: "counts" | "gifts", to: number) => {
+  const page = (name: "counts" | "gifts" | "repeats", to: number) => {
     const at = new URLSearchParams({ church: session.tenantSlug });
     if (asked.period) at.set("period", asked.period);
     if (asked.fund) at.set("fund", asked.fund);
@@ -158,6 +164,7 @@ export default async function GivingPage({
     if (asked.state) at.set("state", asked.state);
     at.set("counts", String(name === "counts" ? to : countsPage));
     at.set("gifts", String(name === "gifts" ? to : giftsPage));
+    at.set("repeats", String(name === "repeats" ? to : repeatsPage));
     return `/giving?${at.toString()}`;
   };
 
@@ -251,7 +258,7 @@ export default async function GivingPage({
             icon={<Repeat />}
             label={t("giving.recurring")}
             value={money(read.expected)}
-            sub={plural("giving.repeating.count", read.recurring.length)}
+            sub={plural("giving.repeating.count", read.allRecurring)}
             hue="amber"
           />
         </div>
@@ -713,7 +720,7 @@ export default async function GivingPage({
             icon={<Repeat />}
             title={t("giving.recurring")}
             count={
-              read.recurring.length > 0
+              read.allRecurring > 0
                 ? t("giving.recurring.monthly", { amount: money(read.expected) })
                 : undefined
             }
@@ -722,7 +729,7 @@ export default async function GivingPage({
               <Nothing>{t("giving.recurring.none")}</Nothing>
             ) : (
               <ul className="m-0 flex list-none flex-col p-0">
-                {read.recurring.slice(0, ASIDE_ROWS).map((one) => (
+                {read.recurring.map((one) => (
                   <li
                     key={one.id}
                     className="flex items-center gap-3 border-t border-sunken px-5 py-3 first:border-0"
@@ -770,19 +777,19 @@ export default async function GivingPage({
                         church={session.tenantSlug}
                         label={money(one.amountCents)}
                         who={one.name || null}
-                        compact
                       />
                     ) : null}
                   </li>
                 ))}
-
-                {read.recurring.length > ASIDE_ROWS ? (
-                  <li className="border-t border-sunken px-5 py-2.5 text-[13px] text-fg-muted">
-                    {plural("giving.more", read.recurring.length - ASIDE_ROWS)}
-                  </li>
-                ) : null}
               </ul>
             )}
+
+            <Pager
+              page={repeatsPage}
+              size={ASIDE_ROWS}
+              total={read.allRecurring}
+              href={(to) => page("repeats", to)}
+            />
           </Panel>
           </div>
         </div>
