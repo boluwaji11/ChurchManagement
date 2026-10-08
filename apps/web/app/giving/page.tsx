@@ -205,7 +205,7 @@ export default async function GivingPage({
                       >
                         {count.closed ? t("giving.count.closed") : t("giving.count.open")}
                       </span>
-                      <span data-numeric className="w-[160px] shrink-0 text-right font-mono text-[13px] text-fg-muted">
+                      <span data-numeric className="w-[160px] shrink-0 text-right text-[13px] text-fg-muted">
                         {t("giving.count.entered", {
                           entered: money(count.enteredCents),
                           expected: money(count.expectedCents),
@@ -293,7 +293,7 @@ export default async function GivingPage({
 
                     <span
                       data-numeric
-                      className={`text-right font-mono ${
+                      className={`text-right ${
                         gift.status === "settled" && !back ? "text-fg" : "text-fg-subtle"
                       }`}
                     >
@@ -394,7 +394,7 @@ export default async function GivingPage({
                           </span>
                         ) : null}
                       </span>
-                      <span data-numeric className="shrink-0 font-mono text-[13px] text-fg">
+                      <span data-numeric className="shrink-0 text-[13px] text-fg">
                         {money(one.amountCents)}
                       </span>
                       {/* R13.3. A treasurer is asked to stop one on a giver's
@@ -452,7 +452,7 @@ export default async function GivingPage({
                           : t("giving.funds.available")}
                       </span>
                     </Tooltip>
-                    <span data-numeric className="font-mono text-[13px] text-fg-muted">
+                    <span data-numeric className="text-[13px] text-fg-muted">
                       {money(held)}
                     </span>
                   </div>
@@ -466,7 +466,7 @@ export default async function GivingPage({
                         <span className="min-w-0 flex-1 truncate font-medium text-fg">
                           {fund.name}
                         </span>
-                        <span data-numeric className="shrink-0 font-mono text-[15px] text-fg">
+                        <span data-numeric className="shrink-0 text-[15px] text-fg">
                           {money(read.byFund[fund.id]?.cents ?? 0)}
                         </span>
                       </li>

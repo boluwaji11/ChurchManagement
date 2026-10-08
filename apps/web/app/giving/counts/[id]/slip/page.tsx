@@ -91,20 +91,20 @@ export default async function DepositSlipPage({
               key={one.id}
               className="flex items-baseline gap-4 border-b border-neutral-200 py-2 last:border-0"
             >
-              <span className="w-[90px] shrink-0 font-mono text-[14px]">
+              <span className="w-[90px] shrink-0 text-[14px]">
                 {one.reference ?? ""}
               </span>
               <span className="min-w-0 flex-1 text-[15px]">
                 {one.memberName ?? t("giving.gift.anonymous")}
               </span>
-              <span className="w-[120px] shrink-0 text-right font-mono text-[15px]">
+              <span className="w-[120px] shrink-0 text-right text-[15px]">
                 {money(one.amountCents)}
               </span>
             </div>
           ))}
           <div className="flex items-baseline justify-between border-t border-black pt-2 text-[15px] font-semibold">
             <span>{t("giving.method.cheque")}</span>
-            <span className="font-mono">{money(sum(cheques))}</span>
+            <span data-numeric>{money(sum(cheques))}</span>
           </div>
         </section>
       ) : null}
@@ -112,20 +112,20 @@ export default async function DepositSlipPage({
       {cash.length > 0 ? (
         <section className="mt-6 flex items-baseline justify-between border-t border-black pt-2 text-[15px] font-semibold">
           <span>{t("giving.method.cash")}</span>
-          <span className="font-mono">{money(sum(cash))}</span>
+          <span data-numeric>{money(sum(cash))}</span>
         </section>
       ) : null}
 
       {other.length > 0 ? (
         <section className="mt-6 flex items-baseline justify-between border-t border-neutral-200 pt-2 text-[15px]">
           <span>{t("giving.method.other")}</span>
-          <span className="font-mono">{money(sum(other))}</span>
+          <span data-numeric>{money(sum(other))}</span>
         </section>
       ) : null}
 
       <section className="mt-8 flex items-baseline justify-between border-t-2 border-black pt-3">
         <span className="font-display text-[22px]">{t("giving.count.lines")}</span>
-        <span className="font-mono text-[24px] font-semibold">
+        <span className="text-[24px] font-semibold">
           {money(read.count.enteredCents)}
         </span>
       </section>

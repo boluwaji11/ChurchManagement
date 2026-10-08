@@ -75,6 +75,7 @@ export function FormActions({
   pending?: boolean;
 }) {
   const dirty = useDirty(form);
+  const full = useAnswered(form);
   // Both hooks run every render. Reading the registry on the right of a `||`
   // skipped the call whenever `pending` was already true, and a hook that is
   // sometimes called is a hook React refuses to line up.
@@ -83,7 +84,7 @@ export function FormActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button type="submit" form={form} disabled={!dirty || working}>
+      <Button type="submit" form={form} disabled={!dirty || !full || working}>
         {working ? (
           <span
             aria-hidden
@@ -182,25 +183,6 @@ export function useDirty(form: string): boolean {
     const compare = () => setDirty(snapshot(element) !== opened);
 
     /*
-     * Listened for on the document rather than on the form.
-     *
-     * A date picker, a combobox and a select all draw their panel in a portal
-     * at the end of the body, so the press that chooses an answer happens
-     * outside the form and never bubbles to it. Watching the document catches
-     * those, and the snapshot is still taken from the form, so nothing outside
-     * it can count as a change.
-     */
-    const frames = new Set<number>();
-    const later = () => {
-      /*
-       * Two frames, because the answer is written into a hidden field by React
-       * and setting a value from code fires no event at all. One frame is the
-       * state update, the second is the commit that puts the value in the DOM.
-       */
-      frames.add(requestAnimationFrame(() => frames.add(requestAnimationFrame(compare))));
-    };
-
-    /*
      * What was just saved becomes the new baseline.
      *
      * A form that stays on screen after saving would otherwise go dirty again
@@ -212,23 +194,103 @@ export function useDirty(form: string): boolean {
       setDirty(false);
     };
 
-    document.addEventListener("input", later);
-    document.addEventListener("change", later);
-    document.addEventListener("click", later);
-    document.addEventListener("keyup", later);
     element.addEventListener("submit", onSubmit);
+    const stop = watch(element, compare);
 
     return () => {
-      for (const frame of frames) cancelAnimationFrame(frame);
-      document.removeEventListener("input", later);
-      document.removeEventListener("change", later);
-      document.removeEventListener("click", later);
-      document.removeEventListener("keyup", later);
       element.removeEventListener("submit", onSubmit);
+      stop();
     };
   }, [form]);
 
   return dirty;
+}
+
+/**
+ * Calls back whenever anything in this form could have changed.
+ *
+ * Listened for on the document rather than on the form. A date picker, a
+ * combobox and a select all draw their panel in a portal at the end of the
+ * body, so the press that chooses an answer happens outside the form and never
+ * bubbles to it. Watching the document catches those, and the reading is still
+ * taken from the form, so nothing outside it can count.
+ */
+function watch(element: HTMLFormElement, read: () => void): () => void {
+  const frames = new Set<number>();
+  const later = () => {
+    /*
+     * Two frames, because the answer is written into a hidden field by React
+     * and setting a value from code fires no event at all. One frame is the
+     * state update, the second is the commit that puts the value in the DOM.
+     */
+    frames.add(requestAnimationFrame(() => frames.add(requestAnimationFrame(read))));
+  };
+
+  document.addEventListener("input", later);
+  document.addEventListener("change", later);
+  document.addEventListener("click", later);
+  document.addEventListener("keyup", later);
+
+  return () => {
+    for (const frame of frames) cancelAnimationFrame(frame);
+    document.removeEventListener("input", later);
+    document.removeEventListener("change", later);
+    document.removeEventListener("click", later);
+    document.removeEventListener("keyup", later);
+  };
+}
+
+/** Whether every field in this form that draws an asterisk holds an answer. */
+function answered(form: HTMLFormElement): boolean {
+  for (const field of Array.from(form.querySelectorAll("[data-required]"))) {
+    const controls = Array.from(
+      field.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+        "input, select, textarea",
+      ),
+    ).filter((control) => !control.disabled);
+    // A field with nothing to read, such as one drawn entirely from state or
+    // one nobody on this screen may answer, is left to the server. A guess
+    // here would be a Save nobody can press.
+    if (controls.length === 0) continue;
+
+    let given = false;
+    for (const control of controls) {
+      if (control instanceof HTMLInputElement && (control.type === "checkbox" || control.type === "radio")) {
+        if (control.checked) given = true;
+      } else if (control.value.trim() !== "") {
+        given = true;
+      }
+    }
+    if (!given) return false;
+  }
+  return true;
+}
+
+/**
+ * Whether this form has everything it refuses to be saved without.
+ *
+ * Read from the asterisks, the same mark the reader is looking at. The server
+ * still refuses a blank, and that refusal is now somewhere nobody arrives:
+ * pressing Save and being told to fill in the name is a worse way to learn it
+ * than a button that waits.
+ */
+export function useAnswered(form: string, open: boolean = true): boolean {
+  const [full, setFull] = React.useState(true);
+
+  React.useEffect(() => {
+    // A panel's form is in the document only while the panel is open, so the
+    // reading is taken again each time one is opened.
+    if (!open) return;
+
+    const element = document.getElementById(form);
+    if (!(element instanceof HTMLFormElement)) return;
+
+    const read = () => setFull(answered(element));
+    read();
+    return watch(element, read);
+  }, [form, open]);
+
+  return full;
 }
 
 /**

@@ -13,6 +13,7 @@ import { t, plural } from "@connectapp/i18n";
 import { addTag, saveTag, removeTag, foldTag } from "../../tags/actions";
 import { useFormError } from "@/lib/form-error";
 import { LibraryPicker } from "@/components/library-picker";
+import { useAnswered } from "@/components/form-actions";
 import { tagLibrary } from "./library";
 
 export interface TagItem {
@@ -218,6 +219,8 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
   const [pending, setPending] = React.useState(false);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
   const [mergeInto, setMergeInto] = React.useState<string>();
+  const formId = React.useId();
+  const full = useAnswered(formId, open);
 
   const run = async (fn: (d: FormData) => Promise<{ error?: string }>, data: FormData) => {
     setError(undefined);
@@ -256,7 +259,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
       <SheetContent title={tag.name} closeLabel={t("common.close")}>
         {error ? <Banner tone="danger" title={t("tags.failed")} className="mb-4">{error}</Banner> : null}
 
-        <form action={(d) => run(saveTag, d)} className="flex flex-col gap-4">
+        <form id={formId} action={(d) => run(saveTag, d)} className="flex flex-col gap-4">
           <input type="hidden" name="church" value={church} />
           <input type="hidden" name="id" value={tag.id} />
           <input type="hidden" name="hue" value={hue} />
@@ -289,7 +292,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
           </fieldset>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" loading={pending}>{t("action.save")}</Button>
+            <Button type="submit" loading={pending} disabled={!full}>{t("action.save")}</Button>
             <SheetClose asChild>
               <Button type="button" variant="ghost">{t("action.cancel")}</Button>
             </SheetClose>

@@ -491,7 +491,7 @@ function ItemDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="button" loading={pending} onClick={submit}>{t("action.save")}</Button>
+              <Button type="button" loading={pending} disabled={!title.trim()} onClick={submit}>{t("action.save")}</Button>
           </div>
         </div>
       </SheetContent>
@@ -551,7 +551,7 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="button" loading={pending} onClick={submit}>{t("action.save")}</Button>
+              <Button type="button" loading={pending} disabled={!body.trim()} onClick={submit}>{t("action.save")}</Button>
           </div>
         </div>
       </DialogContent>
@@ -929,7 +929,7 @@ function TemplateDialog({
               <Button
               type="button"
               loading={doing === "keep"}
-              disabled={pending}
+              disabled={pending || !name.trim()}
               onClick={() =>
                 run("keep", () => keepAsTemplate(planId, name, church), () => {
                   setName("");

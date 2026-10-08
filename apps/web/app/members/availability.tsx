@@ -9,6 +9,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
+import { useAnswered } from "@/components/form-actions";
 import type { ServingFrequency } from "@connectapp/db";
 import { saveBlockout, dropBlockout, saveFrequency } from "../schedule/actions";
 
@@ -45,6 +46,8 @@ export function Availability({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [adding, setAdding] = React.useState(false);
+  const formId = React.useId();
+  const full = useAnswered(formId, adding);
   const [pending, startTransition] = React.useTransition();
 
   const run = (work: () => Promise<{ error?: string }>) => {
@@ -128,6 +131,7 @@ export function Availability({
 
         {canEdit && adding ? (
           <form
+            id={formId}
             noValidate
             action={(data) => {
               data.set("church", church);
@@ -158,7 +162,7 @@ export function Availability({
               <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+              <Button type="submit" disabled={pending || !full}>{t("action.save")}</Button>
             </div>
           </form>
         ) : null}

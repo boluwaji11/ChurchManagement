@@ -11,6 +11,7 @@ import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import { report } from "../checkin/rooms/actions";
 import { useFormError } from "@/lib/form-error";
+import { useAnswered } from "@/components/form-actions";
 
 /**
  * R8.13. Writing a report from the screen the leads read.
@@ -42,6 +43,7 @@ export function FileReport({
   const [serviceId, setServiceId] = React.useState("");
   const [notified, setNotified] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
+  const full = useAnswered("incident-form", open);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -55,7 +57,7 @@ export function FileReport({
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form="incident-form" disabled={pending}>
+            <Button type="submit" form="incident-form" disabled={pending || !full || !memberId}>
               {t("action.save")}
             </Button>
           </>

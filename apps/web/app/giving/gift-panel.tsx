@@ -60,6 +60,16 @@ export function GiftPanel({
   const [note, setNote] = React.useState("");
   const [inKind, setInKind] = React.useState("");
 
+  /*
+   * Every asterisk on the panel, answered. The fund, the method and the date
+   * open with one, so what is left is what was given, and Save waits for it
+   * rather than letting the server say so.
+   */
+  const ready =
+    fundId !== "" &&
+    date !== "" &&
+    (method === "in_kind" ? inKind.trim() !== "" : amount.trim() !== "");
+
   const clear = () => {
     setGiver("");
     setAmount("");
@@ -148,7 +158,7 @@ export function GiftPanel({
               <Button
                 type="button"
                 variant="secondary"
-                disabled={saving || !dirty}
+                disabled={saving || !dirty || !ready}
                 onClick={() => save(true)}
               >
                 {t("action.saveAndAdd")}
@@ -156,7 +166,7 @@ export function GiftPanel({
             ) : null}
             <Button
               type="button"
-              disabled={saving || !dirty}
+              disabled={saving || !dirty || !ready}
               loading={saving}
               onClick={() => save(false)}
             >

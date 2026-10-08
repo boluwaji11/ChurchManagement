@@ -88,12 +88,12 @@ function zoneName(zone: string): string {
  * a transition, which defers an ordinary state update, so the button that set
  * one never repainted before the await and the press looked like it had missed.
  */
-function Submit() {
+function Submit({ ready }: { ready: boolean }) {
   const { pending } = useFormStatus();
 
   return (
     <>
-      <Button type="submit" full loading={pending}>
+      <Button type="submit" full loading={pending} disabled={!ready}>
         <Church /> {t("createChurch.submit")}
       </Button>
       <Working open={pending} label={t("createChurch.working")} />
@@ -189,7 +189,7 @@ export function CreateChurchForm() {
         </Select>
       </Field>
 
-      <Submit />
+      <Submit ready={name.trim() !== "" && country !== ""} />
     </form>
   );
 }

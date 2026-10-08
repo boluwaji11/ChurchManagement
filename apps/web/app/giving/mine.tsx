@@ -226,7 +226,7 @@ export async function MyGiving({ session }: { session: Session }) {
                 </span>
                 <span
                   data-numeric
-                  className={`text-right font-mono ${
+                  className={`text-right ${
                     row.status === "settled" ? "text-fg" : "text-fg-subtle"
                   }`}
                 >

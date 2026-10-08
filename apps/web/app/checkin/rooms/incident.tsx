@@ -10,6 +10,7 @@ import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
 import { report } from "./actions";
 import { useFormError } from "@/lib/form-error";
+import { useAnswered } from "@/components/form-actions";
 
 /**
  * R8.13. Writing it down in the room, at the time.
@@ -41,6 +42,8 @@ export function IncidentDialog({
   const [error, setError] = useFormError(open);
   const [notified, setNotified] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
+  const formId = React.useId();
+  const full = useAnswered(formId, open);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -58,6 +61,7 @@ export function IncidentDialog({
         closeLabel={t("common.close")}
       >
         <form
+          id={formId}
           noValidate
           action={(data) => {
             startTransition(async () => {
@@ -115,7 +119,7 @@ export function IncidentDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+              <Button type="submit" disabled={pending || !full}>{t("action.save")}</Button>
           </div>
         </form>
       </SheetContent>

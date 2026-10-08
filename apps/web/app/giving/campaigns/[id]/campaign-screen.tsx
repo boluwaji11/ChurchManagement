@@ -4,11 +4,12 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, Undo2 } from "lucide-react";
 import {
-  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input, Textarea,
+  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Textarea,
   Sheet, SheetContent, SheetTrigger,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import type { Campaign, Pledge } from "@connectapp/db";
+import { MoneyInput } from "@/components/money-input";
 import { Picker } from "@/components/picker";
 import { useFormError } from "@/lib/form-error";
 import { usePanelGuard } from "@/components/panel-guard";
@@ -150,7 +151,7 @@ export function CampaignScreen({
                     {t("pledge.kept")}
                   </span>
                 ) : null}
-                <span data-numeric className="w-[110px] shrink-0 text-right font-mono text-fg">
+                <span data-numeric className="w-[110px] shrink-0 text-right text-fg">
                   {money(one.amountCents)}
                 </span>
                 {manage ? (
@@ -252,7 +253,7 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
         footer={
           <Button
             type="button"
-            disabled={saving || !dirty || !memberId}
+            disabled={saving || !dirty || !memberId || !amount.trim()}
             loading={saving}
             onClick={() => {
               const cents = toCents(amount);
@@ -313,13 +314,12 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
           </Field>
 
           <Field label={t("pledge.amount")} required>
-            <Input
+            <MoneyInput
               value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value);
+              onChange={(next) => {
+                setAmount(next);
                 setDirty(true);
               }}
-              inputMode="decimal"
               placeholder="0.00"
               autoComplete="off"
             />

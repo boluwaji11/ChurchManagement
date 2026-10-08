@@ -7,7 +7,7 @@ import {
   Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { money, toCents } from "@/lib/money";
+import { groupAmount, money, toCents } from "@/lib/money";
 import { MoneyInput } from "@/components/money-input";
 import { giveBack } from "./actions";
 
@@ -42,7 +42,7 @@ export function RefundGift({
   const left = gift.amountCents - gift.refundedCents;
 
   React.useEffect(() => {
-    if (open) setAmount((left / 100).toFixed(2));
+    if (open) setAmount(groupAmount((left / 100).toFixed(2)));
   }, [open, left]);
 
   return (
@@ -88,7 +88,7 @@ export function RefundGift({
             </Button>
             <Button
               variant="danger"
-              disabled={pending}
+              disabled={pending || !amount.trim()}
               loading={pending}
               onClick={() => {
                 const cents = toCents(amount);

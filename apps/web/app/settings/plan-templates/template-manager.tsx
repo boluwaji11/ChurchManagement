@@ -262,7 +262,7 @@ function TemplatePanel({
               ) : null}
               <Button
                 type="button"
-                disabled={pending || saving || !dirty}
+                disabled={pending || saving || !dirty || !name.trim()}
                 loading={saving}
                 onClick={save}
               >

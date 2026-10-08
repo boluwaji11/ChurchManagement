@@ -18,6 +18,7 @@ import { Empty } from "@/components/empty";
 import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
 import { bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
 import { Pages } from "@/components/pages";
+import { useAnswered } from "@/components/form-actions";
 import { rename, archiveList } from "./list-actions";
 import { SearchField } from "@/components/search-field";
 
@@ -920,6 +921,8 @@ function ListBar({
 }) {
   const router = useRouter();
   const [renaming, setRenaming] = React.useState(false);
+  const renameForm = React.useId();
+  const renameFull = useAnswered(renameForm, renaming);
   const [archiving, setArchiving] = React.useState(false);
   const [failed, setFailed] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
@@ -957,6 +960,7 @@ function ListBar({
       <Dialog open={renaming} onOpenChange={setRenaming}>
         <DialogContent title={t("lists.renameTitle", { name: list.name })} closeLabel={t("common.close")}>
           <form
+            id={renameForm}
             noValidate
             action={(data) =>
               startTransition(async () => {
@@ -977,7 +981,7 @@ function ListBar({
               <Button type="button" variant="ghost" onClick={() => setRenaming(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" loading={pending}>{t("action.save")}</Button>
+              <Button type="submit" loading={pending} disabled={!renameFull}>{t("action.save")}</Button>
             </div>
           </form>
         </DialogContent>

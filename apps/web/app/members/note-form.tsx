@@ -11,6 +11,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { addNote } from "./note-actions";
 import { useFormError } from "@/lib/form-error";
+import { useAnswered } from "@/components/form-actions";
 
 /**
  * R2.7. A note about somebody.
@@ -41,6 +42,7 @@ export function NoteForm({
   const [pending, startTransition] = React.useTransition();
 
   const formId = React.useId();
+  const full = useAnswered(formId, open);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -55,7 +57,7 @@ export function NoteForm({
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} loading={pending}>
+            <Button type="submit" form={formId} loading={pending} disabled={!full}>
               {t("notes.save")}
             </Button>
           </>

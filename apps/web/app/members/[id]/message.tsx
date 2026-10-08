@@ -44,7 +44,7 @@ export function MessageButton({ name }: { name: string }) {
           </Field>
 
           <DialogFooter>
-            <Button type="button">{t("message.send")}</Button>
+            <Button type="button" disabled={!text.trim()}>{t("message.send")}</Button>
           </DialogFooter>
         </div>
       </DialogContent>

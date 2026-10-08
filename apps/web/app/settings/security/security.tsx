@@ -8,6 +8,7 @@ import { Said } from "@/components/said";
 import { SettingCard } from "../card";
 import { changeEmail, changePassword, emailMeALink } from "./actions";
 import { useFormError } from "@/lib/form-error";
+import { useAnswered } from "@/components/form-actions";
 
 /**
  * R1.8. The two things somebody changes about how they get in.
@@ -61,6 +62,11 @@ export function Security({ email }: { email: string }) {
   /* Which of the three was pressed, so the other two stay as they are. */
   const [doing, setDoing] = React.useState<string>();
 
+  const emailForm = React.useId();
+  const passwordForm = React.useId();
+  const emailFull = useAnswered(emailForm, open === "email");
+  const passwordFull = useAnswered(passwordForm, open === "password");
+
   React.useEffect(() => {
     if (!pending) setDoing(undefined);
   }, [pending]);
@@ -98,6 +104,7 @@ export function Security({ email }: { email: string }) {
         onToggle={() => toggle("email")}
       >
         <form
+          id={emailForm}
           noValidate
           action={(data) => run("email", () => changeEmail(data), t("email.sent"))}
           className="flex flex-wrap items-end gap-3"
@@ -112,7 +119,7 @@ export function Security({ email }: { email: string }) {
               <Input name="password" type="password" autoComplete="current-password" />
             </Field>
           </div>
-          <Button type="submit" loading={doing === "email"} disabled={pending}>
+          <Button type="submit" loading={doing === "email"} disabled={pending || !emailFull}>
             <Check /> {t("email.change")}
           </Button>
         </form>
@@ -125,6 +132,7 @@ export function Security({ email }: { email: string }) {
         onToggle={() => toggle("password")}
       >
         <form
+          id={passwordForm}
           noValidate
           action={(data) => run("password", () => changePassword(data), t("password.changed"))}
           className="flex flex-col gap-4"
@@ -155,7 +163,7 @@ export function Security({ email }: { email: string }) {
             >
               <Mail /> {t("password.sendLink")}
             </Button>
-            <Button type="submit" loading={doing === "password"} disabled={pending}>
+            <Button type="submit" loading={doing === "password"} disabled={pending || !passwordFull}>
               <KeyRound /> {t("password.change")}
             </Button>
           </div>

@@ -11,9 +11,10 @@ import {
 import { t } from "@connectapp/i18n";
 import type { Campaign } from "@connectapp/db";
 import { DateField } from "@/components/date-field";
+import { MoneyInput } from "@/components/money-input";
 import { usePanelGuard } from "@/components/panel-guard";
 import { useFormError } from "@/lib/form-error";
-import { toCents } from "@/lib/money";
+import { groupAmount, toCents } from "@/lib/money";
 import { saveCampaign } from "./actions";
 
 /** R13.16. Writing a campaign down, or changing one. */
@@ -43,7 +44,7 @@ export function CampaignPanel({
   const [description, setDescription] = React.useState(campaign?.description ?? "");
   const [fundId, setFundId] = React.useState(campaign?.fundId ?? funds[0]?.id ?? "");
   const [target, setTarget] = React.useState(
-    campaign ? (campaign.targetCents / 100).toFixed(2) : "",
+    campaign ? groupAmount((campaign.targetCents / 100).toFixed(2)) : "",
   );
   const [starts, setStarts] = React.useState(campaign?.startsOn ?? today);
   const [ends, setEnds] = React.useState(campaign?.endsOn ?? "");
@@ -53,7 +54,7 @@ export function CampaignPanel({
     setName(campaign?.name ?? "");
     setDescription(campaign?.description ?? "");
     setFundId(campaign?.fundId ?? funds[0]?.id ?? "");
-    setTarget(campaign ? (campaign.targetCents / 100).toFixed(2) : "");
+    setTarget(campaign ? groupAmount((campaign.targetCents / 100).toFixed(2)) : "");
     setStarts(campaign?.startsOn ?? today);
     setEnds(campaign?.endsOn ?? "");
   }, [open, campaign, funds, today]);
@@ -119,7 +120,12 @@ export function CampaignPanel({
                 <Archive />
               </IconButton>
             ) : null}
-            <Button type="button" disabled={saving || !dirty} loading={saving} onClick={save}>
+            <Button
+              type="button"
+              disabled={saving || !dirty || !name.trim() || !fundId || !target.trim() || !starts}
+              loading={saving}
+              onClick={save}
+            >
               {t("action.save")}
             </Button>
           </>
@@ -167,13 +173,12 @@ export function CampaignPanel({
           </Field>
 
           <Field label={t("campaigns.target")} required>
-            <Input
+            <MoneyInput
               value={target}
-              onChange={(e) => {
-                setTarget(e.target.value);
+              onChange={(next) => {
+                setTarget(next);
                 setDirty(true);
               }}
-              inputMode="decimal"
               placeholder="0.00"
               autoComplete="off"
             />

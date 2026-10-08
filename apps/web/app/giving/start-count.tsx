@@ -73,7 +73,12 @@ export function StartCount({ church, today }: { church: string; today: string })
         title={t("giving.count.start")}
         closeLabel={t("common.close")}
         footer={
-          <Button type="button" disabled={saving || !dirty} loading={saving} onClick={save}>
+          <Button
+            type="button"
+            disabled={saving || !dirty || !name.trim() || !date || !expected.trim()}
+            loading={saving}
+            onClick={save}
+          >
             {t("action.save")}
           </Button>
         }

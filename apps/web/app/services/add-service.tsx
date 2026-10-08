@@ -13,6 +13,7 @@ import { DateField } from "@/components/date-field";
 import { TimeField } from "@/components/time-field";
 import { addGathering } from "./actions";
 import { useFormError } from "@/lib/form-error";
+import { useAnswered } from "@/components/form-actions";
 
 const REPEATS = ["never", "weekly", "fortnightly", "monthly"] as const;
 
@@ -39,6 +40,7 @@ export function AddService({
   const [date, setDate] = React.useState("");
   const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
+  const full = useAnswered("add-service", open);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -56,7 +58,7 @@ export function AddService({
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form="add-service" disabled={pending}>
+            <Button type="submit" form="add-service" disabled={pending || !full}>
               {t("action.add")}
             </Button>
           </>

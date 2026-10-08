@@ -10,6 +10,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
+import { useAnswered } from "@/components/form-actions";
 import { addCheck } from "./check-actions";
 
 export interface CheckRow {
@@ -128,6 +129,8 @@ function AddDialog({
   const [open, setOpen] = React.useState(false);
   const [status, setStatus] = React.useState("clear");
   const [saving, startTransition] = React.useTransition();
+  const formId = React.useId();
+  const full = useAnswered(formId, open);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -136,6 +139,7 @@ function AddDialog({
       </SheetTrigger>
       <SheetContent title={t("checks.add")} closeLabel={t("common.close")}>
         <form
+          id={formId}
           noValidate
           action={(data) => {
             data.set("church", church);
@@ -182,7 +186,7 @@ function AddDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
+              <Button type="submit" disabled={pending || saving || !full}>{t("action.save")}</Button>
           </div>
         </form>
       </SheetContent>

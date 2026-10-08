@@ -97,7 +97,10 @@ export function Field({
   const Label = group ? "span" : "label";
 
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    // The asterisk is a contract, so it is readable from the DOM too: a form's
+    // own Save reads these to know whether it has everything it needs before
+    // the server has to say so.
+    <div data-required={required ? "" : undefined} className={cn("flex flex-col gap-1.5", className)}>
       <Label
         id={labelId}
         htmlFor={group ? undefined : id}

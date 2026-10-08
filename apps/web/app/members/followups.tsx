@@ -12,6 +12,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
+import { useAnswered } from "@/components/form-actions";
 import {
   startFollowUp, finishStep, undoStep, leaveFollowUp, addPersonTask, takeStep,
 } from "./followup-actions";
@@ -586,6 +587,8 @@ function TaskDialog({
 }) {
   const [open, setOpen] = React.useState(false);
   const [saving, startTransition] = React.useTransition();
+  const formId = React.useId();
+  const full = useAnswered(formId, open);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -594,6 +597,7 @@ function TaskDialog({
       </SheetTrigger>
       <SheetContent title={t("followups.task")} closeLabel={t("common.close")}>
         <form
+          id={formId}
           noValidate
           action={(data) => {
             data.set("church", church);
@@ -619,7 +623,7 @@ function TaskDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="submit" loading={saving} disabled={pending || saving}>
+              <Button type="submit" loading={saving} disabled={pending || saving || !full}>
                 {t("action.save")}
               </Button>
           </div>

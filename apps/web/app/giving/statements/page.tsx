@@ -120,7 +120,7 @@ export default async function StatementsPage({
                 <span className="w-[120px] shrink-0 text-[13px] text-fg-muted">
                   {plural("statement.gifts", giver.gifts)}
                 </span>
-                <span data-numeric className="w-[120px] shrink-0 text-right font-mono text-fg">
+                <span data-numeric className="w-[120px] shrink-0 text-right text-fg">
                   {money(giver.totalCents)}
                 </span>
                 <a

@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
+import { useAnswered } from "@/components/form-actions";
 import { LibraryPicker } from "@/components/library-picker";
 import { followupLibrary, type FlowPreset } from "./library";
 import { addPipeline, savePipeline, switchPipeline } from "./actions";
@@ -380,6 +381,7 @@ export function NewPipeline({
   /** The journey being started from, or null for a blank one. */
   const [preset, setPreset] = React.useState<FlowPreset | null>(null);
   const [picking, setPicking] = React.useState(library.length > 0);
+  const full = useAnswered(formId, open && !picking);
 
   const reset = (next: boolean) => {
     setOpen(next);
@@ -400,7 +402,7 @@ export function NewPipeline({
         width="560px"
         footer={
           picking ? null : (
-            <Button type="submit" form={formId} loading={busy}>
+            <Button type="submit" form={formId} loading={busy} disabled={!full}>
               {t("action.add")}
             </Button>
           )
@@ -451,6 +453,7 @@ function EditDialog({
   const [open, setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const formId = React.useId();
+  const full = useAnswered(formId, open);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -460,7 +463,7 @@ function EditDialog({
         closeLabel={t("common.close")}
         width="560px"
         footer={
-          <Button type="submit" form={formId} loading={busy} disabled={pending}>
+          <Button type="submit" form={formId} loading={busy} disabled={pending || !full}>
             {t("action.save")}
           </Button>
         }

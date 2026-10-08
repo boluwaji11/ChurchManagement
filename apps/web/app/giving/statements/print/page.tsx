@@ -122,7 +122,7 @@ export default async function StatementPrintPage({
                 >
                   <span className="w-[140px] shrink-0 text-[14px]">{longDate(line.date)}</span>
                   <span className="min-w-0 flex-1 text-[15px]">{line.fund}</span>
-                  <span className="w-[120px] shrink-0 text-right font-mono text-[15px]">
+                  <span className="w-[120px] shrink-0 text-right text-[15px]">
                     {money(line.amountCents)}
                   </span>
                 </div>
@@ -131,7 +131,7 @@ export default async function StatementPrintPage({
 
             <div className="mt-4 flex items-baseline justify-between border-t-2 border-black pt-3">
               <span className="font-display text-[20px]">{t("statement.total")}</span>
-              <span className="font-mono text-[22px] font-semibold">
+              <span className="text-[22px] font-semibold">
                 {money(statement.totalCents)}
               </span>
             </div>

@@ -172,7 +172,7 @@ export function CountScreen({
                 {t(`giving.method.${line.method}` as never)}
                 {line.reference ? ` · ${line.reference}` : ""}
               </span>
-              <span data-numeric className="w-[110px] shrink-0 text-right font-mono text-fg">
+              <span data-numeric className="w-[110px] shrink-0 text-right text-fg">
                 {line.inKind ? line.inKind : money(line.amountCents)}
               </span>
               {count.closed ? null : (

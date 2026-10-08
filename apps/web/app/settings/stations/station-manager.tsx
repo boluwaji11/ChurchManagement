@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { usePanelGuard } from "@/components/panel-guard";
+import { useAnswered } from "@/components/form-actions";
 import { Empty } from "@/components/empty";
 import { createStation, saveStation, archiveStation } from "./actions";
 
@@ -212,6 +213,7 @@ function StationDialog({
 
   const formId = React.useId();
   const [dirty, setDirty] = React.useState(false);
+  const full = useAnswered(formId, open);
   const { onOpenChange, guard } = usePanelGuard({
     dirty,
     setOpen: (next) => {
@@ -231,7 +233,7 @@ function StationDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={pending || !dirty}>
+            <Button type="submit" form={formId} disabled={pending || !dirty || !full}>
               {t("action.save")}
             </Button>
           </>

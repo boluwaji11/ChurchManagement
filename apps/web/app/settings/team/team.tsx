@@ -565,7 +565,7 @@ function InviteDialog({
               type="submit"
               form={formId}
               loading={saving}
-              disabled={pending || saving || !dirty || !role}
+              disabled={pending || saving || !dirty || !role || !email.trim()}
             >
               {t("team.send")}
             </Button>

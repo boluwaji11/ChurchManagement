@@ -220,7 +220,7 @@ export function TeamPanel({
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" form={formId} disabled={saving || !dirty}>
+              <Button type="submit" form={formId} disabled={saving || !dirty || !name.trim()}>
                 {t("action.save")}
               </Button>
             </>

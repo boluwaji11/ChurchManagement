@@ -149,7 +149,7 @@ export default async function CampaignsPage({
                 className="flex flex-wrap items-center justify-between gap-3 text-fg-muted"
               >
                 <span>{one.name}</span>
-                <span data-numeric className="font-mono text-[13px]">
+                <span data-numeric className="text-[13px]">
                   {money(one.receivedCents)}
                 </span>
               </Link>
