@@ -14,6 +14,7 @@ import {
   type ReportPage, type ReportTile, type SubjectKey, type Condition,
 } from "@connectapp/db/rules";
 import { t } from "@connectapp/i18n";
+import { DATE_LABELS } from "@/lib/date-labels";
 import { previewPage, saveReport, type ReportResultish } from "./actions";
 import { FieldsPanel } from "./fields";
 import { Gallery } from "./gallery";
@@ -25,15 +26,6 @@ import { read } from "../read";
 import { readingLocale } from "@/lib/reading-locale";
 
 /** The date picker's words, said once rather than at every call. */
-const DATE_LABELS = () => ({
-  open: t("date.open"),
-  clear: t("date.clear"),
-  previousMonth: t("date.previousMonth"),
-  nextMonth: t("date.nextMonth"),
-  month: t("date.month"),
-  year: t("date.year"),
-  today: t("date.today"),
-});
 
 /** What a control on the toolbar looks like. */
 const CHIP =

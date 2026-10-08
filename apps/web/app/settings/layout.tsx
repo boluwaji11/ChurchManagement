@@ -37,6 +37,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         ? [
             { href: "/settings/church", label: t("settings.tab.church") },
             { href: "/settings/website", label: t("settings.tab.website") },
+            /* R16.11. What the church tells everybody, which sits with the
+               rest of how the church speaks for itself. */
+            { href: "/settings/announcements", label: t("announce.title") },
             { href: "/settings/roles", label: t("settings.tab.roles") },
             { href: "/settings/manage-accesses", label: t("settings.tab.access") },
           ]

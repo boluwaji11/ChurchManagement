@@ -8,6 +8,7 @@ import {
   Field, IconButton, Input, Working,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { DATE_LABELS } from "@/lib/date-labels";
 import { imageLimit } from "@/components/image-limit";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
@@ -25,15 +26,6 @@ import { Details, Detail } from "../card";
 import { readingLocale } from "@/lib/reading-locale";
 
 /** The date picker's words, said once rather than at every call. */
-const DATE_LABELS = () => ({
-  open: t("date.open"),
-  clear: t("date.clear"),
-  previousMonth: t("date.previousMonth"),
-  nextMonth: t("date.nextMonth"),
-  month: t("date.month"),
-  year: t("date.year"),
-  today: t("date.today"),
-});
 
 export interface ProfileValues {
   memberId: string;

@@ -20,6 +20,11 @@ export {
   householdAddress, setHouseholdAddress, addressesOfMembers,
   type HouseholdRow, type HouseholdAddress,
 } from "./repo/households";
+export {
+  feedFor, listAnnouncements, countArchivedAnnouncements, getAnnouncement,
+  writeAnnouncement, updateAnnouncement, setAnnouncementArchived,
+  type Announcement, type AnnouncementInput,
+} from "./repo/announcements";
 export { InvalidInputError, NameTakenError } from "./errors";
 export { encryptNote, decryptNote } from "./crypto";
 export {
