@@ -10,6 +10,15 @@ import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * R16.12. How many ticked members an address will carry.
+ *
+ * A uuid is 36 characters and browsers give up somewhere past two thousand.
+ * Past this a church saves the selection as a list and posts to that, which
+ * is the better habit anyway.
+ */
+const PICKED_CAP = 40;
+
 /** R17.1. What the browser tab says. */
 export async function generateMetadata({
   searchParams,
@@ -36,7 +45,9 @@ export async function generateMetadata({
 export default async function PrintLabelsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; sheet?: string; list?: string; skip?: string }>;
+  searchParams: Promise<{
+    church?: string; sheet?: string; list?: string; skip?: string; ids?: string;
+  }>;
 }) {
   const params = await searchParams;
   const session = await requireSession(params.church);
@@ -60,6 +71,14 @@ export default async function PrintLabelsPage({
       permissions: session.permissions,
     },
     async (tx) => {
+      /* R16.12. Whoever was ticked in the directory, which is where the
+         search and the filters already are. A long selection goes on a list
+         first; this carries the handful somebody picked off a screen. */
+      if (params.ids) {
+        const ids = params.ids.split(",").filter(Boolean).slice(0, PICKED_CAP);
+        return postalRows(tx, { memberIds: ids });
+      }
+
       if (!params.list) return postalRows(tx);
 
       /* R1.14. A saved list, which is how a church posts to the people it

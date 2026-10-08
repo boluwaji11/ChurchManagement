@@ -3,7 +3,8 @@
 import * as React from "react";
 import { Printer } from "lucide-react";
 import {
-  Button, Field, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Button, Combobox, Field, Input,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   PAPER, PAPERS, perPage, type PaperStock,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -52,16 +53,21 @@ export function Labels({
   return (
     <div className="flex flex-col gap-5">
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
+        {/* R1.14. Typing finds one. A church that keeps twenty lists should
+            not read the whole menu to reach the one it posts to. */}
         <Field label={t("post.who")}>
-          <Select value={list} onValueChange={setList}>
-            <SelectTrigger aria-label={t("post.who")}><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value={EVERYONE}>{t("post.everyone")}</SelectItem>
-              {lists.map((one) => (
-                <SelectItem key={one.id} value={one.id}>{one.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={[
+              { value: EVERYONE, label: t("post.everyone") },
+              ...lists.map((one) => ({ value: one.id, label: one.name })),
+            ]}
+            value={list}
+            onChange={(next) => setList(next || EVERYONE)}
+            clearable={false}
+            aria-label={t("post.who")}
+            emptyLabel={t("lists.noneFound")}
+            clearLabel={t("common.close")}
+          />
         </Field>
 
         <Field label={t("post.sheet")}>

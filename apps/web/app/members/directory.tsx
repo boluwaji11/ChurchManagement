@@ -970,6 +970,20 @@ function SelectionBar({
       {/* R1.14. Onto a list the church keeps, or a new one named here. */}
       <AddToList church={church} lists={lists} ids={ids} onDone={onClear} />
 
+      {/* R16.12. Labels for whoever was ticked, which is how a church posts
+          to the people it just searched for. */}
+      {ids.length <= 40 ? (
+        <Button asChild variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]">
+          <a
+            href={`/members/print/labels?church=${church}&ids=${ids.join(",")}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Printer /> {t("post.title")}
+          </a>
+        </Button>
+      ) : null}
+
       {/* R1.14. Off the list being read. Their records are untouched. */}
       {onTakeOff ? (
         <Button
