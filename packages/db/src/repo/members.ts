@@ -1067,6 +1067,20 @@ export async function householdFor(db: Tx, memberId: string): Promise<HouseholdC
 }
 
 /**
+ * R2.4. Which of a record's addresses goes on the envelope.
+ *
+ * A household that moved, or two volunteers who each typed one in, leaves two
+ * rows and nothing saying which is current. The flag the church set decides
+ * it, and where nothing is flagged the most recently written one does, since
+ * the usual reason there are two is that somebody moved.
+ *
+ * Both queries below took whatever the database handed back first, which with
+ * no order is not a promise of anything: the same household could read one
+ * address on the directory and the other on its own screen.
+ */
+const NEWEST_FIRST = [desc(addresses.isPrimary), desc(addresses.createdAt)];
+
+/**
  * R2.4. The address to put on an envelope.
  *
  * Their own if they have one, otherwise the household's, because a church
@@ -1093,7 +1107,8 @@ export async function addressFor(db: Tx, memberId: string): Promise<string | nul
       mine?.householdId
         ? or(eq(addresses.memberId, memberId), eq(addresses.householdId, mine.householdId))
         : eq(addresses.memberId, memberId),
-    );
+    )
+    .orderBy(...NEWEST_FIRST);
 
   // Their own wins over the household's.
   const row = rows.find((r) => r.memberId === memberId) ?? rows[0];
@@ -1163,7 +1178,8 @@ export async function addressesFor(
             inArray(addresses.householdId, houses),
           )
         : inArray(addresses.memberId, personIds),
-    );
+    )
+    .orderBy(...NEWEST_FIRST);
 
   for (const id of personIds) {
     const mine = rows.find((r) => r.memberId === id);
