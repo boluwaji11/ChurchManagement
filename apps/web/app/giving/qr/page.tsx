@@ -65,17 +65,19 @@ export default async function GivingQrPage({
   });
 
   return (
-    <main className="mx-auto grid min-h-dvh max-w-2xl place-items-center bg-white px-10 py-10 text-black">
+    <main className="mx-auto grid min-h-dvh max-w-2xl place-items-center bg-white px-6 py-10 text-black sm:px-10">
       <AutoPrint />
       <style>{"@page { size: auto; margin: 0; }"}</style>
 
       <div className="flex flex-col items-center gap-6 text-center">
-        <h1 className="font-display text-[34px] leading-[42px]">
+        <h1 className="font-display text-[28px] leading-9 sm:text-[34px] sm:leading-[42px]">
           {t("give.title", { church: read.profile?.name ?? session.tenantName })}
         </h1>
 
         <div
-          className="w-[320px]"
+          /* The sheet is paper, and it is read on a phone before it is
+             printed. 320px plus the margins is wider than one. */
+          className="w-[min(320px,100%)]"
           // The encoder returns a complete SVG document for the address above.
           dangerouslySetInnerHTML={{ __html: svg }}
         />
