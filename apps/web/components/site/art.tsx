@@ -11,8 +11,11 @@ import { cn } from "@connectapp/ui";
  *
  * They sit in the margins of the centred sections, which is the room the design
  * leaves and the only room on the page that is not already carrying something.
- * Below 1280px those margins close up, so they come off rather than landing on
- * the words: a drawing over a paragraph is worse than no drawing.
+ * Below 1280px those margins close up, so `Art` comes off rather than landing
+ * on the words: a drawing over a paragraph is worse than no drawing. What a
+ * narrow screen gets instead is `InlineArt`, the same drawing taking a line of
+ * its own in the flow, because a phone reading the whole page as columns of
+ * text is the one place the margins were doing the most work.
  */
 
 /** Where a drawing sits, how wide, and which way it leans. */
@@ -52,5 +55,24 @@ export function Art({ pieces, className }: { pieces: readonly Piece[]; className
         />
       ))}
     </div>
+  );
+}
+
+/**
+ * One of the same drawings, in the flow rather than in a margin.
+ *
+ * Shown exactly where `Art` is not: a phone and a tablet have no margin to
+ * hang anything in, so the drawing takes its own line between the words and
+ * whatever comes next. It is decoration, so it is hidden from a reader using
+ * a screen reader, the same as the margin pieces.
+ */
+export function InlineArt({ name, className }: { name: string; className?: string }) {
+  return (
+    <img
+      aria-hidden
+      alt=""
+      src={`/art/${name}.svg`}
+      className={cn("mx-auto block w-[min(210px,58%)] opacity-90 xl:hidden", className)}
+    />
   );
 }

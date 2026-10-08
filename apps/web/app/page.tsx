@@ -17,7 +17,7 @@ import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { SiteFooter, SiteHeader, START } from "@/components/site/chrome";
 import { CheckinLabels, GiveCard } from "@/components/site/mocks";
-import { Art, type Piece } from "@/components/site/art";
+import { Art, InlineArt, type Piece } from "@/components/site/art";
 import {
   BrowserFrame,
   Eyebrow,
@@ -125,6 +125,7 @@ export default function Site() {
             <Start />
             <StartDemoButton className={SITE_CTA_QUIET} />
           </div>
+          <InlineArt name="sanctuary" className="mt-6" />
         </section>
 
         {/* Why a church would want this at all, before any feature is named. */}
@@ -137,6 +138,7 @@ export default function Site() {
             <p className="m-0 max-w-[44ch] text-balance text-[19px] leading-[30px] text-fg-muted">
               {t("site.purpose.body")}
             </p>
+            <InlineArt name="gathering" className="mt-2" />
           </div>
         </section>
 
@@ -326,6 +328,7 @@ export default function Site() {
               <Ticks items={PRICE.map((key) => t(`site.price.${key}` as never))} />
               <Start className={`${SITE_CTA} justify-center`} arrow={false} />
             </div>
+            <InlineArt name="giving" />
           </div>
         </section>
 
@@ -344,6 +347,7 @@ export default function Site() {
                 />
               ))}
             </div>
+            <InlineArt name="safe" />
           </div>
         </section>
 
@@ -355,6 +359,7 @@ export default function Site() {
               {t("site.end.title")}
             </h2>
             <p className="m-0 text-[18px] text-fg-muted">{t("site.end.sub")}</p>
+            <InlineArt name="congregation" />
             <div className="mt-2 flex flex-wrap justify-center gap-3">
               <Start />
               <StartDemoButton className={SITE_CTA_QUIET} />
