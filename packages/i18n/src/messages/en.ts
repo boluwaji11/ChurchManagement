@@ -388,6 +388,8 @@ export const en = {
   "directory.bulkMessage": "Message",
   "directory.bulkGroup": "Add to group",
   "directory.bulkExport": "Export selected",
+  "directory.exporting": "Building the file",
+  "directory.exportFailed": "Not exported",
   "directory.messageTitle": "Message {count} members",
   "directory.exportView": "Export all",
   "directory.exportAll": "Export everything",

@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FilterDrawer } from "@/components/filter-drawer";
 import { MultiSelect } from "@/components/multi-select";
 import { ResizableTable } from "@/components/resizable-columns";
+import { Download as FileDownload } from "@/components/download";
 import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus } from "lucide-react";
 import {
   Avatar, Button, Field, Input, Textarea, Checkbox, Banner, HueDot, Tooltip,
@@ -309,9 +310,18 @@ export function Directory({
           <Printer /> {t("members.printAll")}
         </ToolButton>
 
-        <ToolButton href={exportHref}>
+        {/* R19.x, R24.6. The server builds this one, which takes a moment on
+            a directory of any size, so it is asked for in the page and the
+            Working panel holds the screen until the file lands. */}
+        <FileDownload
+          href={exportHref}
+          file="members.csv"
+          label={t("directory.exporting")}
+          title={t("directory.exportFailed")}
+          className={TOOL_SHAPE}
+        >
           <Download /> {t("directory.exportView")}
-        </ToolButton>
+        </FileDownload>
 
         {canEdit ? (
           <ToolButton href={`/import?church=${church}`}>
@@ -616,6 +626,11 @@ export function Directory({
 }
 
 /** A 34px secondary control. The row of them above the list is all this shape. */
+/** The shape every mark on the tool row wears, link or button. */
+const TOOL_SHAPE =
+  "flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3"
+  + " text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4";
+
 function ToolButton({
   href,
   target,
@@ -626,11 +641,7 @@ function ToolButton({
   children: React.ReactNode;
 }) {
   return (
-    <Link
-      href={href}
-      target={target}
-      className="flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
-    >
+    <Link href={href} target={target} className={TOOL_SHAPE}>
       {children}
     </Link>
   );
@@ -964,15 +975,15 @@ function SelectionBar({
         </Button>
       ) : null}
 
-      <Button
-        variant="ghost"
-        className="min-h-9 rounded-full px-2.5 text-[13px]"
-        asChild
+      <FileDownload
+        href={`/api/export?church=${church}&ids=${ids.join(",")}`}
+        file="members.csv"
+        label={t("directory.exporting")}
+        title={t("directory.exportFailed")}
+        className="flex min-h-9 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
       >
-        <a href={`/api/export?church=${church}&ids=${ids.join(",")}`}>
-          <Download /> {t("directory.bulkExport")}
-        </a>
-      </Button>
+        <Download /> {t("directory.bulkExport")}
+      </FileDownload>
 
       {/* R2.8. Two members picked is the question "are these the same person",
           and the merge screen is where it is answered. */}

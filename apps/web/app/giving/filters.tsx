@@ -40,6 +40,12 @@ export function GivingFilters({
 
   const [open, setOpen] = React.useState(false);
   const [draft, setDraft] = React.useState<Narrowing>(now);
+  /*
+   * R24.6. Narrowing the gifts is a round trip, so it says so. The panel
+   * stays open with its controls dead and the button spinning, and puts
+   * itself away when the rows land.
+   */
+  const [busy, startNarrowing] = React.useTransition();
 
   /* The panel opens on what is actually in force, never on what somebody
      half chose the last time and walked away from. */
@@ -62,8 +68,10 @@ export function GivingFilters({
     // A narrowed list has its own first page.
     next.delete("gifts");
     next.delete("counts");
-    setOpen(false);
-    router.push(`${pathname}?${next.toString()}`);
+    startNarrowing(() => {
+      router.push(`${pathname}?${next.toString()}`);
+      setOpen(false);
+    });
   };
 
   const options = (values: readonly string[], label: (one: string) => string) =>
@@ -110,19 +118,23 @@ export function GivingFilters({
           <div className="flex w-full items-center gap-2">
             <Button
               variant="secondary"
+              disabled={busy}
               onClick={() => apply({ period: "year", fundIds: [], methods: [], statuses: [] })}
             >
               {t("find.clear")}
             </Button>
             {/* No count on it. The server does the narrowing, so a figure
                 here would be the one from before the last choice. */}
-            <Button className="flex-1" onClick={() => apply(draft)}>
+            <Button className="flex-1" loading={busy} onClick={() => apply(draft)}>
               {t("giving.filter.show")}
             </Button>
           </div>
         }
       >
-        <div className="flex flex-col gap-4">
+        <div
+          aria-busy={busy}
+          className={`flex flex-col gap-4 ${busy ? "pointer-events-none opacity-60" : ""}`}
+        >
           <div className="flex flex-col gap-1.5">
             <span className="text-label text-fg">{t("giving.filter.period")}</span>
             <Select
