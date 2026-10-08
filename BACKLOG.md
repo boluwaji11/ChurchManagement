@@ -130,7 +130,9 @@ and a design file does not move it.
 | HRT-257 | The bell rings for all seven kinds, not the two that had writers | R24.6, R4.6, R5.3, R10.5 | Resolved |
 | HRT-258 | A church picks the colour a kind of group wears | R9.1, R24.4 | Resolved |
 | HRT-259 | A service that has gone takes nobody new onto its rota | R10.3 | Resolved |
-| HRT-260 | The member's home screen: the next service, and the four doors | R17.1, R24.4 | Resolved |
+| HRT-260 | The member's home screen, the household screen, and which address is read | R17.1, R2.4, R24.4 | Resolved |
+| HRT-261 | A church's own colour, any colour, with the contrast rebuilt from it | R1.1, R24.4 | Resolved |
+| HRT-262 | The household address: a screen that sets it, and the settings menu on a phone | R2.4, R24.6 | Resolved |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
