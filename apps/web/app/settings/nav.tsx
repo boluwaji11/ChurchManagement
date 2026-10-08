@@ -63,11 +63,11 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
 
   return (
     <>
-      <Strip items={all} church={church} pathname={pathname} className="md:hidden" />
+      <Strip items={all} church={church} pathname={pathname} className="lg:hidden" />
 
       <nav
         aria-label={t("settings.sections")}
-        className="sticky top-[var(--d-topbar)] z-20 -mt-1 hidden flex-wrap items-stretch border-b border-line bg-canvas md:flex"
+        className="sticky top-[var(--d-topbar)] z-20 -mt-1 hidden flex-wrap items-stretch border-b border-line bg-canvas lg:flex"
       >
         {groups.map((group, at) => {
         const open = group.items.find((item) => item.href === pathname);
@@ -105,7 +105,12 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
                 too, so the keyboard reaches every screen in the section. */}
             <div
               className={cn(
-                "invisible absolute top-full left-0 z-30 min-w-[11rem] translate-y-0 opacity-0",
+                "invisible absolute top-full z-30 min-w-[11rem] translate-y-0 opacity-0",
+                /* R24.6. The last sections hang from their right edge. A
+                   176px list under a heading near the end of the bar runs
+                   off the side of the screen, and a list nobody can see
+                   still widens the page it is on. */
+                at >= groups.length - 2 ? "right-0" : "left-0",
                 "rounded-lg border border-line bg-surface p-1 shadow-lg",
                 "transition-opacity duration-instant",
                 chosen === group.title
