@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { CalendarRange, Target, Users } from "lucide-react";
+import { ArrowLeft, CalendarRange, Target, Users } from "lucide-react";
 import {
-  withTenant, getChurch, listCampaigns, listFunds, canManageGiving, canReadGivingAmounts,
+  withTenant, getChurch, listCampaigns, countArchivedCampaigns, listFunds,
+  canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -38,9 +39,9 @@ export async function generateMetadata({
 export default async function CampaignsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; archived?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, archived } = await searchParams;
   const session = await requireSession(church);
   const manage = canManageGiving(session);
 
@@ -58,43 +59,57 @@ export default async function CampaignsPage({
     permissions: session.permissions,
   };
 
+  /* R13.16. Closing a campaign is archiving it, so the closed ones come off
+     this screen and sit behind the one link under it. A campaign past its end
+     date is a different thing: it stays here, reading as ended. */
+  const putAway = archived === "1";
+
   const read = await withTenant(ctx, async (tx) => ({
     today: churchNow(
       (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
     ).date,
-    campaigns: await listCampaigns(tx, { includeArchived: true }),
+    campaigns: await listCampaigns(tx, putAway ? { archivedOnly: true } : {}),
+    archivedCount: await countArchivedCampaigns(tx),
     funds: await listFunds(tx),
   }));
 
-  const live = read.campaigns.filter((one) => !one.archived);
-  const closed = read.campaigns.filter((one) => one.archived);
+  const shown = read.campaigns;
   const funds = read.funds.map((one) => ({ id: one.id, name: one.name }));
 
   return (
     <AppShell session={session} title={t("campaigns.title")} wide>
       <div className="flex flex-col gap-5">
-        <BackLink href={`/giving?church=${session.tenantSlug}`} label={t("giving.count.back")} />
+        {putAway ? (
+          <Link
+            href={`/giving/campaigns?church=${session.tenantSlug}`}
+            className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+          >
+            <ArrowLeft className="size-4" /> {t("campaigns.archived.back")}
+          </Link>
+        ) : (
+          <BackLink href={`/giving?church=${session.tenantSlug}`} label={t("giving.count.back")} />
+        )}
 
-        {read.campaigns.length === 0 ? (
+        {shown.length === 0 ? (
           <Empty
             icon="calendar"
-            title={t("campaigns.none")}
+            title={putAway ? t("campaigns.archived.none") : t("campaigns.none")}
             action={
-              manage ? (
+              manage && !putAway ? (
                 <CampaignPanel church={session.tenantSlug} today={read.today} funds={funds} />
               ) : undefined
             }
           />
         ) : (
           <>
-            {manage ? (
+            {manage && !putAway ? (
               <div className="flex justify-end">
                 <CampaignPanel church={session.tenantSlug} today={read.today} funds={funds} />
               </div>
             ) : null}
 
             <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr))]">
-              {live.map((one) => {
+              {shown.map((one) => {
                 const standing = standingOf({ ...one, today: read.today });
                 return (
                 <Link
@@ -166,22 +181,13 @@ export default async function CampaignsPage({
           </>
         )}
 
-        {closed.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            <h2 className="text-label text-fg-muted">{t("campaigns.closed")}</h2>
-            {closed.map((one) => (
-              <Link
-                key={one.id}
-                href={`/giving/campaigns/${one.slug}?church=${session.tenantSlug}`}
-                className="flex flex-wrap items-center justify-between gap-3 text-fg-muted"
-              >
-                <span>{one.name}</span>
-                <span data-numeric className="text-[13px]">
-                  {money(one.receivedCents)}
-                </span>
-              </Link>
-            ))}
-          </div>
+        {!putAway && read.archivedCount > 0 ? (
+          <Link
+            href={`/giving/campaigns?church=${session.tenantSlug}&archived=1`}
+            className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+          >
+            {plural("campaigns.archived", read.archivedCount)}
+          </Link>
         ) : null}
       </div>
     </AppShell>

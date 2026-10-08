@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, isNotNull, ne, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { campaigns, funds, gifts, pledges } from "../schema/giving";
 import { members } from "../schema/members";
@@ -54,10 +54,19 @@ const day = (value: string | undefined | null, key: string): string => {
   return value;
 };
 
+/** R13.16. How many campaigns have been closed, for the link to them. */
+export async function countArchivedCampaigns(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(campaigns)
+    .where(isNotNull(campaigns.archivedAt));
+  return row?.count ?? 0;
+}
+
 /** R13.16. What this church is raising, newest first. */
 export async function listCampaigns(
   db: Tx,
-  options: { includeArchived?: boolean } = {},
+  options: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<Campaign[]> {
   const rows = await db
     .select({
@@ -74,7 +83,13 @@ export async function listCampaigns(
     })
     .from(campaigns)
     .innerJoin(funds, eq(funds.id, campaigns.fundId))
-    .where(options.includeArchived ? undefined : isNull(campaigns.archivedAt))
+    .where(
+      options.archivedOnly
+        ? isNotNull(campaigns.archivedAt)
+        : options.includeArchived
+          ? undefined
+          : isNull(campaigns.archivedAt),
+    )
     .orderBy(desc(campaigns.startsOn));
 
   const out: Campaign[] = [];
