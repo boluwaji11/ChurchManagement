@@ -9,6 +9,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { Fund } from "@connectapp/db";
+import { Empty } from "@/components/empty";
 import { usePanelGuard } from "@/components/panel-guard";
 import { LibraryPicker } from "@/components/library-picker";
 import { FUND_LIBRARY, presetFund } from "./library";
@@ -48,7 +49,16 @@ function suggestCode(name: string, taken: string[]): string {
   return base;
 }
 
-export function FundManager({ church, funds }: { church: string; funds: Fund[] }) {
+export function FundManager({
+  church,
+  funds,
+  putAway,
+}: {
+  church: string;
+  funds: Fund[];
+  /** R24.6. Whether this is the shelf of funds that have been put away. */
+  putAway?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
@@ -62,8 +72,41 @@ export function FundManager({ church, funds }: { church: string; funds: Fund[] }
     });
 
   const codes = funds.map((one) => one.code ?? "").filter(Boolean);
-  const live = funds.filter((one) => !one.archived);
-  const archived = funds.filter((one) => one.archived);
+
+  if (putAway) {
+    return (
+      <div className="flex flex-col gap-4" aria-busy={pending}>
+        {error ? <Banner tone="danger" title={t("fund.failed")}>{error}</Banner> : null}
+
+        {funds.length === 0 ? (
+          <Empty icon="tag" title={t("fund.archived.none")} />
+        ) : (
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
+            {funds.map((fund) => (
+              <div
+                key={fund.id}
+                className="flex items-center gap-2 rounded-[14px] border border-line bg-surface p-4"
+              >
+                <span className="min-w-0 flex-1 truncate font-semibold text-fg-muted">
+                  {fund.name}
+                </span>
+                <IconButton
+                  label={t("fund.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => run(() => archiveFund(fund.id, false, church))}
+                >
+                  <Undo2 />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const live = funds;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
@@ -107,25 +150,6 @@ export function FundManager({ church, funds }: { church: string; funds: Fund[] }
           />
         ))}
       </div>
-
-      {archived.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-label text-fg-muted">{t("fund.archived")}</h2>
-          {archived.map((fund) => (
-            <div key={fund.id} className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">{fund.name}</span>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                className="h-8 min-h-0 px-2.5 text-[13px]"
-                onClick={() => run(() => archiveFund(fund.id, false, church))}
-              >
-                <Undo2 className="size-4" aria-hidden /> {t("fund.restore")}
-              </Button>
-            </div>
-          ))}
-        </div>
-      ) : null}
 
       <Dialog open={asking !== null} onOpenChange={(on) => (on ? null : setAsking(null))}>
         <DialogContent alert title={t("fund.archiveTitle", { name: asking?.name ?? "" })}>

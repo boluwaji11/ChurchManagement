@@ -37,7 +37,7 @@ function checkName(name: string | undefined | null): string {
 /** R13.9. The funds this church keeps. */
 export async function listFunds(
   db: Tx,
-  options: { includeArchived?: boolean } = {},
+  options: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<Fund[]> {
   const rows = await db
     .select({
@@ -49,7 +49,13 @@ export async function listFunds(
       archivedAt: funds.archivedAt,
     })
     .from(funds)
-    .where(options.includeArchived ? undefined : isNull(funds.archivedAt))
+    .where(
+      options.archivedOnly
+        ? sql`${funds.archivedAt} is not null`
+        : options.includeArchived
+          ? undefined
+          : isNull(funds.archivedAt),
+    )
     .orderBy(asc(funds.position), asc(funds.name));
 
   return rows.map((row) => ({
@@ -60,6 +66,15 @@ export async function listFunds(
     description: row.description,
     archived: row.archivedAt !== null,
   }));
+}
+
+/** R13.9. How many funds have been put away, for the link that goes to them. */
+export async function countArchivedFunds(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(funds)
+    .where(sql`${funds.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 export interface FundInput {

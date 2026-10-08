@@ -34,13 +34,24 @@ export interface TypeRow {
  * tells a life group from a ministry team across four screens, and a church
  * setting up has better questions to answer than which of twelve.
  */
-export function TypeManager({ church, types }: { church: string; types: TypeRow[] }) {
+export function TypeManager({
+  church,
+  types,
+  taken,
+  putAway,
+}: {
+  church: string;
+  types: TypeRow[];
+  /** R9.1. Every name this church keeps, archived ones included. */
+  taken: string[];
+  /** R24.6. Whether this is the shelf of kinds that have been put away. */
+  putAway?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
-  const live = types.filter((one) => !one.archived);
-  const archived = types.filter((one) => one.archived);
+  const live = types;
 
   const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
@@ -49,21 +60,54 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
       if (!result.error) router.refresh();
     });
 
+  if (putAway) {
+    return (
+      <div className="flex flex-col gap-4" aria-busy={pending}>
+        {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+
+        {types.length === 0 ? (
+          <Empty icon="group" title={t("groupType.archived.none")} />
+        ) : (
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
+            {types.map((one) => (
+              <div
+                key={one.id}
+                className="flex items-center gap-2 rounded-[14px] border border-line bg-surface p-4"
+              >
+                <span className="min-w-0 flex-1 truncate font-semibold text-fg-muted">
+                  {one.name}
+                </span>
+                <IconButton
+                  label={t("groupType.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => run(() => archiveType(one.id, false, church))}
+                >
+                  <Undo2 />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
-      {live.length === 0 && archived.length === 0 ? (
+      {live.length === 0 ? (
         <Empty
           icon="group"
           title={t("groupType.empty.title")}
           body={t("groupType.empty.body")}
-          action={<TypeDialog church={church} pending={pending} taken={types.map((one) => one.name)} />}
+          action={<TypeDialog church={church} pending={pending} taken={taken} />}
         />
       ) : (
         <>
           <div className="flex justify-end">
-            <TypeDialog church={church} pending={pending} taken={types.map((one) => one.name)} />
+            <TypeDialog church={church} pending={pending} taken={taken} />
           </div>
 
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
@@ -90,24 +134,6 @@ export function TypeManager({ church, types }: { church: string; types: TypeRow[
         </>
       )}
 
-      {archived.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-label text-fg-muted">{t("groupType.archived")}</h2>
-          {archived.map((one) => (
-            <div key={one.id} className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">{one.name}</span>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                className="h-8 min-h-0 px-2.5 text-[13px]"
-                onClick={() => run(() => archiveType(one.id, false, church))}
-              >
-                <Undo2 className="size-4" aria-hidden /> {t("groupType.restore")}
-              </Button>
-            </div>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }

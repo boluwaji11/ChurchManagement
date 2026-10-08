@@ -169,14 +169,29 @@ async function withLinks(db: Tx, rows: StationRow[]): Promise<Station[]> {
 
 export async function listStations(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<Station[]> {
   const rows = await db
     .select(COLUMNS)
     .from(checkinStations)
-    .where(opts.includeArchived ? undefined : isNull(checkinStations.archivedAt))
+    .where(
+      opts.archivedOnly
+        ? sql`${checkinStations.archivedAt} is not null`
+        : opts.includeArchived
+          ? undefined
+          : isNull(checkinStations.archivedAt),
+    )
     .orderBy(asc(checkinStations.name));
   return withLinks(db, rows);
+}
+
+/** R8.1. How many stations have been put away, for the link that goes to them. */
+export async function countArchivedStations(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(checkinStations)
+    .where(sql`${checkinStations.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 export async function getStation(db: Tx, id: string): Promise<Station | null> {

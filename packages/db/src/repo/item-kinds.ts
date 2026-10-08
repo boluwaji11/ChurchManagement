@@ -66,7 +66,7 @@ function slugify(name: string): string {
  */
 export async function listItemKinds(
   db: Tx,
-  options: { includeArchived?: boolean } = {},
+  options: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<ItemKindRow[]> {
   const rows = await db
     .select({
@@ -76,7 +76,13 @@ export async function listItemKinds(
       archivedAt: planItemKinds.archivedAt,
     })
     .from(planItemKinds)
-    .where(options.includeArchived ? undefined : isNull(planItemKinds.archivedAt))
+    .where(
+      options.archivedOnly
+        ? sql`${planItemKinds.archivedAt} is not null`
+        : options.includeArchived
+          ? undefined
+          : isNull(planItemKinds.archivedAt),
+    )
     .orderBy(asc(planItemKinds.position), asc(planItemKinds.createdAt));
 
   return rows.map((row) => ({
@@ -85,6 +91,15 @@ export async function listItemKinds(
     name: row.name,
     archived: row.archivedAt !== null,
   }));
+}
+
+/** R11.2. How many kinds have been put away, for the link that goes to them. */
+export async function countArchivedItemKinds(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(planItemKinds)
+    .where(sql`${planItemKinds.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 /**

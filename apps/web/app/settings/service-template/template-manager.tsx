@@ -35,12 +35,18 @@ const summary = (lines: { minutes: number }[]) =>
 export function TemplateManager({
   church,
   templates,
+  taken,
   kinds,
+  putAway,
 }: {
   church: string;
   templates: TemplateShape[];
+  /** R11.8. Every name this church keeps, archived ones included. */
+  taken: string[];
   /** R11.2. The kinds this church files an item under. */
   kinds: KindOption[];
+  /** R24.6. Whether this is the shelf of shapes that have been put away. */
+  putAway?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -59,15 +65,47 @@ export function TemplateManager({
       if (!result.error) router.refresh();
     });
 
-  const live = templates.filter((one) => !one.archived);
-  const archived = templates.filter((one) => one.archived);
-  const taken = templates.map((one) => one.name);
+  const live = templates;
+
+  if (putAway) {
+    return (
+      <div className="flex flex-col gap-4" aria-busy={pending}>
+        {error ? <Banner tone="danger" title={t("planTpl.failed")}>{error}</Banner> : null}
+
+        {templates.length === 0 ? (
+          <Empty icon="calendar" title={t("planTpl.archived.none")} />
+        ) : (
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))]">
+            {templates.map((one) => (
+              <div
+                key={one.id}
+                className="flex items-center gap-2 rounded-[14px] border border-line bg-surface p-4"
+              >
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="truncate font-semibold text-fg-muted">{one.name}</span>
+                  <span className="text-[13px] text-fg-subtle">{summary(one.lines)}</span>
+                </span>
+                <IconButton
+                  label={t("planTpl.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => run(() => archiveTemplate(one.id, false, church))}
+                >
+                  <Undo2 />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("planTpl.failed")}>{error}</Banner> : null}
 
-      {live.length === 0 && archived.length === 0 ? (
+      {live.length === 0 ? (
         <Empty
           icon="calendar"
           title={t("planTpl.empty.title")}
@@ -104,25 +142,6 @@ export function TemplateManager({
           </div>
         </>
       )}
-
-      {archived.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-label text-fg-muted">{t("planTpl.archived")}</h2>
-          {archived.map((one) => (
-            <div key={one.id} className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">{one.name}</span>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                className="h-8 min-h-0 px-2.5 text-[13px]"
-                onClick={() => run(() => archiveTemplate(one.id, false, church))}
-              >
-                <Undo2 className="size-4" aria-hidden /> {t("planTpl.restore")}
-              </Button>
-            </div>
-          ))}
-        </div>
-      ) : null}
 
       <Dialog open={asking !== null} onOpenChange={(on) => (on ? null : setAsking(null))}>
         <DialogContent

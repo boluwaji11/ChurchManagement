@@ -68,14 +68,29 @@ const COLUMNS = {
 
 export async function listRooms(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<Room[]> {
   const rows = await db
     .select(COLUMNS)
     .from(checkinRooms)
-    .where(opts.includeArchived ? undefined : isNull(checkinRooms.archivedAt))
+    .where(
+      opts.archivedOnly
+        ? sql`${checkinRooms.archivedAt} is not null`
+        : opts.includeArchived
+          ? undefined
+          : isNull(checkinRooms.archivedAt),
+    )
     .orderBy(asc(checkinRooms.position), asc(checkinRooms.name));
   return rows;
+}
+
+/** R8.14. How many rooms have been put away, for the link that goes to them. */
+export async function countArchivedRooms(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(checkinRooms)
+    .where(sql`${checkinRooms.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 export async function getRoom(db: Tx, id: string): Promise<Room | null> {

@@ -37,9 +37,12 @@ export interface StationItem {
 export function StationManager({
   church,
   stations,
+  putAway,
 }: {
   church: string;
   stations: StationItem[];
+  /** R24.6. Whether this is the shelf of stations that have been put away. */
+  putAway?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -56,8 +59,7 @@ export function StationManager({
     });
   };
 
-  const open = stations.filter((s) => !s.archived);
-  const archived = stations.filter((s) => s.archived);
+  const open = stations;
 
   const setMode = (station: StationItem, mode: string) =>
     act(saveStation, {
@@ -66,6 +68,37 @@ export function StationManager({
       printer: station.printer,
       mode,
     });
+
+  if (putAway) {
+    return (
+      <div className="flex flex-col gap-5" aria-busy={pending}>
+        {error ? <Banner tone="danger" title={t("stations.failed")}>{error}</Banner> : null}
+
+        {stations.length === 0 ? (
+          <Empty icon="station" title={t("stations.archived.none")} />
+        ) : (
+          <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
+            {stations.map((station) => (
+              <div
+                key={station.id}
+                className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
+              >
+                <span className="flex-1 text-fg-subtle">{station.name}</span>
+                <IconButton
+                  label={t("stations.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => act(archiveStation, { id: station.id, archived: "0" })}
+                >
+                  <Undo2 />
+                </IconButton>
+              </div>
+            ))}
+          </section>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
@@ -167,29 +200,6 @@ export function StationManager({
         </section>
       )}
 
-      {archived.length === 0 ? null : (
-        <section className="flex flex-col gap-2">
-          <span className="text-[12px] font-medium text-fg-subtle">{t("stations.archived")}</span>
-          <div className="rounded-[14px] border border-line bg-surface px-5 py-1">
-            {archived.map((station) => (
-              <div
-                key={station.id}
-                className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
-              >
-                <span className="flex-1 text-fg-subtle">{station.name}</span>
-                <IconButton
-                  label={t("stations.restore")}
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() => act(archiveStation, { id: station.id, archived: "0" })}
-                >
-                  <Undo2 />
-                </IconButton>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

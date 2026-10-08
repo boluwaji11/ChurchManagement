@@ -31,7 +31,19 @@ export interface KindRow {
  * the plan already carries one a kind, assigned rather than asked for, and a
  * church writing down "Testimony" has better questions to answer.
  */
-export function KindManager({ church, kinds }: { church: string; kinds: KindRow[] }) {
+export function KindManager({
+  church,
+  kinds,
+  taken,
+  putAway,
+}: {
+  church: string;
+  kinds: KindRow[];
+  /** R11.2. Every slug this church keeps, archived ones included. */
+  taken: string[];
+  /** R24.6. Whether this is the shelf of kinds that have been put away. */
+  putAway?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
@@ -44,15 +56,46 @@ export function KindManager({ church, kinds }: { church: string; kinds: KindRow[
       if (!result.error) router.refresh();
     });
 
-  const live = kinds.filter((one) => !one.archived);
-  const archived = kinds.filter((one) => one.archived);
-  const taken = kinds.map((one) => one.slug);
+  const live = kinds;
+
+  if (putAway) {
+    return (
+      <div className="flex flex-col gap-4" aria-busy={pending}>
+        {error ? <Banner tone="danger" title={t("itemKind.failed")}>{error}</Banner> : null}
+
+        {kinds.length === 0 ? (
+          <Empty icon="calendar" title={t("itemKind.archived.none")} />
+        ) : (
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr))]">
+            {kinds.map((one) => (
+              <div
+                key={one.id}
+                className="flex items-center gap-2 rounded-[14px] border border-line bg-surface p-4"
+              >
+                <span className="min-w-0 flex-1 truncate font-semibold text-fg-muted">
+                  {one.name}
+                </span>
+                <IconButton
+                  label={t("itemKind.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => run(() => archiveKind(one.id, false, church))}
+                >
+                  <Undo2 />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("itemKind.failed")}>{error}</Banner> : null}
 
-      {live.length === 0 && archived.length === 0 ? (
+      {live.length === 0 ? (
         <Empty
           icon="calendar"
           title={t("itemKind.empty.title")}
@@ -87,25 +130,6 @@ export function KindManager({ church, kinds }: { church: string; kinds: KindRow[
       </div>
         </>
       )}
-
-      {archived.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-label text-fg-muted">{t("itemKind.archived")}</h2>
-          {archived.map((one) => (
-            <div key={one.id} className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">{one.name}</span>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                className="h-8 min-h-0 px-2.5 text-[13px]"
-                onClick={() => run(() => archiveKind(one.id, false, church))}
-              >
-                <Undo2 className="size-4" aria-hidden /> {t("itemKind.restore")}
-              </Button>
-            </div>
-          ))}
-        </div>
-      ) : null}
 
       <Dialog open={asking !== null} onOpenChange={(on) => (on ? null : setAsking(null))}>
         <DialogContent alert title={t("itemKind.archiveTitle", { name: asking?.name ?? "" })}>

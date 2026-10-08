@@ -215,7 +215,10 @@ export async function writeTemplate(
 }
 
 /** R11.8. Every shape this church keeps, with what is on each one. */
-export async function listTemplateShapes(db: Tx): Promise<TemplateShape[]> {
+export async function listTemplateShapes(
+  db: Tx,
+  opts: { archivedOnly?: boolean } = {},
+): Promise<TemplateShape[]> {
   const rows = await db
     .select({
       id: planTemplates.id,
@@ -227,6 +230,11 @@ export async function listTemplateShapes(db: Tx): Promise<TemplateShape[]> {
     })
     .from(planTemplates)
     .leftJoin(planTemplateItems, eq(planTemplateItems.templateId, planTemplates.id))
+    .where(
+      opts.archivedOnly
+        ? sql`${planTemplates.archivedAt} is not null`
+        : isNull(planTemplates.archivedAt),
+    )
     .orderBy(asc(planTemplates.name), asc(planTemplateItems.position), asc(planTemplateItems.createdAt));
 
   const held = new Map<string, TemplateShape>();
@@ -250,6 +258,15 @@ export async function listTemplateShapes(db: Tx): Promise<TemplateShape[]> {
   }
 
   return [...held.values()];
+}
+
+/** R11.8. How many shapes have been put away, for the link that goes to them. */
+export async function countArchivedTemplates(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(planTemplates)
+    .where(sql`${planTemplates.archivedAt} is not null`);
+  return row?.count ?? 0;
 }
 
 export async function renameTemplate(

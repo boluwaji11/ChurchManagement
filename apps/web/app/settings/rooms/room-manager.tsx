@@ -37,7 +37,16 @@ export interface RoomItem {
  * it prints. The colour is how a volunteer points a parent at the right door
  * across a full foyer, so it is part of the configuration rather than a theme.
  */
-export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem[] }) {
+export function RoomManager({
+  church,
+  rooms,
+  putAway,
+}: {
+  church: string;
+  rooms: RoomItem[];
+  /** R24.6. Whether this is the shelf of rooms that have been put away. */
+  putAway?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
@@ -64,8 +73,7 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
     });
   };
 
-  const open = rooms.filter((r) => !r.archived);
-  const archived = rooms.filter((r) => r.archived);
+  const open = rooms;
 
   const setCapacity = (room: RoomItem, key: string, next: number) =>
     act(key, saveRoom, {
@@ -81,6 +89,47 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
       // a children's room every time somebody pressed plus.
       forChildren: room.forChildren ? "1" : "",
     });
+
+  if (putAway) {
+    return (
+      <div className="flex flex-col gap-5" aria-busy={pending}>
+        {error ? <Banner tone="danger" title={t("rooms.failed")}>{error}</Banner> : null}
+
+        {rooms.length === 0 ? (
+          <Empty icon="room" title={t("rooms.archived.none")} />
+        ) : (
+          <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
+            {rooms.map((room) => (
+              <div
+                key={room.id}
+                className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
+              >
+                <span
+                  className="size-3 shrink-0 rounded-[4px]"
+                  style={{ background: `var(--hue-${room.hue}-500)` }}
+                />
+                <span className="flex-1 text-fg-subtle">{room.name}</span>
+                <IconButton
+                  label={t("rooms.restore")}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() =>
+                    act(`restore:${room.id}`, archiveRoom, { id: room.id, archived: "0" })
+                  }
+                >
+                  {doing === `restore:${room.id}` ? (
+                    <Spinner label={t("rooms.restore")} />
+                  ) : (
+                    <Undo2 />
+                  )}
+                </IconButton>
+              </div>
+            ))}
+          </section>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
@@ -176,39 +225,6 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
         </div>
       )}
 
-      {archived.length === 0 ? null : (
-        <section className="flex flex-col gap-2">
-          <span className="text-[12px] font-medium text-fg-subtle">{t("rooms.archived")}</span>
-          <div className="rounded-[14px] border border-line bg-surface px-5 py-1">
-            {archived.map((room) => (
-              <div
-                key={room.id}
-                className="flex items-center gap-3 border-b border-sunken py-2.5 last:border-0"
-              >
-                <span
-                  className="size-3 shrink-0 rounded-[4px]"
-                  style={{ background: `var(--hue-${room.hue}-500)` }}
-                />
-                <span className="flex-1 text-fg-subtle">{room.name}</span>
-                <IconButton
-                  label={t("rooms.restore")}
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() =>
-                    act(`restore:${room.id}`, archiveRoom, { id: room.id, archived: "0" })
-                  }
-                >
-                  {doing === `restore:${room.id}` ? (
-                    <Spinner label={t("rooms.restore")} />
-                  ) : (
-                    <Undo2 />
-                  )}
-                </IconButton>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

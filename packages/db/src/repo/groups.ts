@@ -189,9 +189,18 @@ async function freeTypeSlug(db: Tx, name: string): Promise<string> {
   return slug;
 }
 
+/** R9.1. How many kinds have been put away, for the link that goes to them. */
+export async function countArchivedGroupTypes(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(groupTypes)
+    .where(sql`${groupTypes.archivedAt} is not null`);
+  return row?.count ?? 0;
+}
+
 export async function listGroupTypes(
   db: Tx,
-  opts: { includeArchived?: boolean } = {},
+  opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<GroupType[]> {
   const rows = await db
     .select({
@@ -204,7 +213,13 @@ export async function listGroupTypes(
       archivedAt: groupTypes.archivedAt,
     })
     .from(groupTypes)
-    .where(opts.includeArchived ? undefined : isNull(groupTypes.archivedAt))
+    .where(
+      opts.archivedOnly
+        ? sql`${groupTypes.archivedAt} is not null`
+        : opts.includeArchived
+          ? undefined
+          : isNull(groupTypes.archivedAt),
+    )
     .orderBy(asc(groupTypes.position), asc(groupTypes.name));
   return rows;
 }
