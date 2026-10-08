@@ -31,11 +31,17 @@ export function GroupLine({ group }: { group: PublicGroup }) {
     <>
       <span className="text-[length:var(--d-text-body)] text-fg-muted">
         {meetsWhen(group)}
-        {group.dayOfWeek !== null && group.location ? ` ${group.location}` : ""}
+        {/* "Tuesdays, 7:30pm to 9pm, the foyer". A bare space ran the time
+            into the place and read as one phrase. */}
+        {group.dayOfWeek !== null && group.location ? `, ${group.location}` : ""}
       </span>
 
+      {/* R9.5. The church's own word for who it is for, rather than the
+          value the column holds. */}
       {group.forWhom ? (
-        <span className="text-caption text-fg-muted">{group.forWhom}</span>
+        <span className="text-caption text-fg-muted">
+          {t(`groups.audience.${group.forWhom}` as never)}
+        </span>
       ) : null}
 
       <span className="mt-1 flex flex-wrap items-center gap-2">
