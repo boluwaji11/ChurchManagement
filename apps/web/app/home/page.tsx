@@ -104,7 +104,14 @@ export default async function MemberHomePage({
         service: next,
         children: next ? await myChildren(tx, actor, next.id) : [],
         today: now.date,
-        groups: (await findGroups(tx, { memberId: self })).filter((group) => group.mine),
+        /*
+         * R9.5, R17.5. The ones they are in, and the ones they have asked
+         * about. A member who presses Join and then sees nothing on their own
+         * screen has no way to tell whether the church heard them, so the
+         * group they asked for stands in the list with the answer pending.
+         */
+        groups: (await findGroups(tx, { memberId: self }))
+          .filter((group) => group.mine || group.requested === "pending"),
         serving: self
           ? await assignmentsForPerson(tx, self, { from: now.date, limit: 6 })
           : [],
@@ -243,7 +250,9 @@ export default async function MemberHomePage({
                   id: group.id,
                   hue: group.typeHue,
                   label: group.name,
-                  note: group.dayOfWeek !== null ? `${dayName(group.dayOfWeek)}s` : null,
+                  note: group.mine
+                    ? (group.dayOfWeek !== null ? `${dayName(group.dayOfWeek)}s` : null)
+                    : t("home.groupAsked"),
                   href: `/groups/${group.slug}?church=${at}`,
                 }))}
               />

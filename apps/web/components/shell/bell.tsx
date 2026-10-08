@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell, UserPlus, CircleX, CircleCheck, TriangleAlert, Copy, ClipboardList,
+  ChevronRight,
 } from "lucide-react";
 import { cn, Spinner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -131,14 +132,24 @@ export function NotificationBell({
               ) : (
                 shown.map((item) => {
                   const Icon = ICONS[item.kind] ?? Bell;
+                  /*
+                   * R24.6. A line that goes somewhere is pressed; a line that
+                   * does not is read. Every one of them looked the same and
+                   * behaved two ways, so half of them answered a press by
+                   * doing nothing, which reads as broken rather than as
+                   * finished.
+                   */
+                  const goes = Boolean(item.href);
                   return (
                     <button
                       key={item.id}
                       type="button"
-                      disabled={working}
+                      disabled={working || !goes}
+                      aria-disabled={goes ? undefined : true}
                       onClick={() => open1(item)}
                       className={cn(
-                        "flex w-full items-start gap-3 border-b border-sunken px-4 py-3 text-left hover:bg-canvas",
+                        "flex w-full items-start gap-3 border-b border-sunken px-4 py-3 text-left",
+                        goes ? "cursor-pointer hover:bg-canvas" : "cursor-default",
                         item.unread ? "bg-canvas" : "bg-surface",
                       )}
                     >
@@ -159,9 +170,16 @@ export function NotificationBell({
                       </span>
                       {going === item.id ? (
                         <Spinner className="mt-0.5 shrink-0 text-fg-muted" label={t("bell.opening")} />
-                      ) : item.unread ? (
-                        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
-                      ) : null}
+                      ) : (
+                        <span className="mt-0.5 flex shrink-0 items-center gap-2">
+                          {item.unread ? (
+                            <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
+                          ) : null}
+                          {goes ? (
+                            <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                          ) : null}
+                        </span>
+                      )}
                     </button>
                   );
                 })
