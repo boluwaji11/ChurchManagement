@@ -72,7 +72,7 @@ export function Places({
           </span>
 
           {canEdit && !one.fromHousehold ? (
-            <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+            <span className="flex shrink-0 items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
               {one.isPrimary ? null : (
                 <IconButton
                   label={t("contact.makePrimary")}
@@ -80,7 +80,7 @@ export function Places({
                   onClick={() =>
                     act(`primary:${one.id}`, () => leadWithPlace(one.id, memberId, church))
                   }
-                  className="size-7 min-h-0 [&_svg]:size-3.5"
+                  className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
                   {doing === `primary:${one.id}` ? (
                     <Spinner label={t("contact.makePrimary")} />
@@ -95,7 +95,7 @@ export function Places({
                 onClick={() =>
                   act(`remove:${one.id}`, () => removePlace(one.id, memberId, church))
                 }
-                className="size-7 min-h-0 [&_svg]:size-3.5"
+                className="size-8 min-h-0 [&_svg]:size-3.5"
               >
                 {doing === `remove:${one.id}` ? (
                   <Spinner label={t("contact.remove", { value: one.line1 })} />
@@ -117,7 +117,7 @@ export function Places({
           <SheetTrigger asChild>
             <button
               type="button"
-              className="flex cursor-pointer items-center gap-1.5 self-start text-caption font-medium text-primary"
+              className="-my-2 flex cursor-pointer items-center gap-1.5 self-start py-2 text-caption font-medium text-primary"
             >
               <Plus className="size-3.5" aria-hidden />
               {t("contact.addAddress")}

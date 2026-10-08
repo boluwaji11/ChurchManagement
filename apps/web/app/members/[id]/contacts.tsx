@@ -72,7 +72,7 @@ export function Contacts({
             href={kind === "email"
               ? `mailto:${one.value}`
               : `tel:${one.value.replace(/[^+\d]/g, "")}`}
-            className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
+            className="-my-2 min-w-0 flex-1 truncate py-2 text-[length:var(--d-text-body)] text-fg underline-offset-4 hover:underline"
           >
             {kind === "phone" ? formatPhone(one.value) : one.value}
           </a>
@@ -88,7 +88,7 @@ export function Contacts({
           </span>
 
           {canEdit ? (
-            <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+            <span className="flex shrink-0 items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
               {one.isPrimary ? null : (
                 <IconButton
                   label={t("contact.makePrimary")}
@@ -96,7 +96,7 @@ export function Contacts({
                   onClick={() =>
                     act(`primary:${one.id}`, () => leadWithOne(one.id, memberId, church))
                   }
-                  className="size-7 min-h-0 [&_svg]:size-3.5"
+                  className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
                   {doing === `primary:${one.id}` ? (
                     <Spinner label={t("contact.makePrimary")} />
@@ -112,7 +112,7 @@ export function Contacts({
                   onClick={() =>
                     act(`remove:${one.id}`, () => removeOne(one.id, memberId, church))
                   }
-                  className="size-7 min-h-0 [&_svg]:size-3.5"
+                  className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
                   {doing === `remove:${one.id}` ? (
                     <Spinner label={t("contact.remove", { value: one.value })} />
@@ -178,7 +178,7 @@ export function Contacts({
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="flex cursor-pointer items-center gap-1.5 self-start text-caption font-medium text-primary"
+          className="-my-2 flex cursor-pointer items-center gap-1.5 self-start py-2 text-caption font-medium text-primary"
         >
           <Plus className="size-3.5" aria-hidden />
           {kind === "email" ? t("contact.addEmail") : t("contact.addPhone")}

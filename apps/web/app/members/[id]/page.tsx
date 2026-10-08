@@ -9,7 +9,7 @@ import {
   listCustomFields, getCustomValues,
   canEditPeople, canReadGivingAmounts,
 } from "@connectapp/db";
-import { Avatar, Button } from "@connectapp/ui";
+import { Avatar, Button, Tooltip } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { photoUrls } from "@/lib/photos";
@@ -199,7 +199,7 @@ export default async function PersonPage({
     >
       <Link
         href={`/members?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("members.title")}
       </Link>
@@ -236,19 +236,20 @@ export default async function PersonPage({
             <MessageButton name={display} />
             {/* Sized from the same token as the IconButton beside it, so the
                 two actions are one pair rather than two shapes. */}
-            <Button
-              variant="ghost"
-              asChild
-              className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
-            >
-              <Link
-                href={`/members/${person.slug}/edit?church=${session.tenantSlug}`}
-                aria-label={t("action.edit")}
-                title={t("action.edit")}
+            <Tooltip content={t("action.edit")}>
+              <Button
+                variant="ghost"
+                asChild
+                className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
               >
-                <Pencil />
-              </Link>
-            </Button>
+                <Link
+                  href={`/members/${person.slug}/edit?church=${session.tenantSlug}`}
+                  aria-label={t("action.edit")}
+                >
+                  <Pencil />
+                </Link>
+              </Button>
+            </Tooltip>
           </div>
         ) : null}
       </div>
@@ -303,7 +304,7 @@ export default async function PersonPage({
                 <Avatar
                   name={m.displayName}
                   id={m.id}
-                  className="size-7 text-[11px] font-semibold"
+                  className="size-7 text-[12px] font-semibold"
                 />
                 <span className="min-w-0 flex-1 truncate font-medium text-fg">{m.displayName}</span>
                 <span className="text-[13px] text-fg-subtle">
@@ -380,7 +381,7 @@ export default async function PersonPage({
                   name={display}
                   canConfidential={canReadConfidentialNotes(session)}
                   trigger={
-                    <Button variant="secondary" className="min-h-[30px] px-2.5 text-[13px]">
+                    <Button variant="secondary" className="min-h-8 px-2.5 text-[13px]">
                       {t("person.addNote")}
                     </Button>
                   }

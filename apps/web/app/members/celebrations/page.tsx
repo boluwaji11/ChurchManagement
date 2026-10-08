@@ -127,7 +127,7 @@ export default async function CelebrationsPage({
     >
       <Link
         href={`/members?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("members.title")}
       </Link>
@@ -172,7 +172,7 @@ export default async function CelebrationsPage({
               <Link
                 key={option}
                 href={link({ view: option })}
-                className={`h-7 cursor-pointer rounded-sm px-3 text-[13px] font-medium leading-7 ${
+                className={`h-8 cursor-pointer rounded-sm px-3 text-[13px] font-medium leading-8 ${
                   option === view ? "bg-surface text-fg shadow-sm" : "text-fg-muted"
                 }`}
               >
@@ -221,12 +221,12 @@ export default async function CelebrationsPage({
         </div>
       ) : (
         <ResizableTable id="celebrations" className="rounded-lg border border-line bg-surface">
-         <table className="w-full min-w-[520px] border-collapse">
+         <table className="w-full border-collapse sm:min-w-[520px]">
           <thead>
             <tr className="text-left text-[12px] font-semibold text-fg">
-              <th className="w-[90px] border-b border-line px-4 py-3 font-medium">{t("celebrations.day")}</th>
-              <th className="border-b border-line px-4 py-3 font-medium">{t("celebrations.who")}</th>
-              <th className="border-b border-line px-4 py-3 font-medium">{t("celebrations.what")}</th>
+              <th className="w-[72px] border-b border-line px-3 py-3 font-medium sm:w-[90px] sm:px-4">{t("celebrations.day")}</th>
+              <th className="border-b border-line px-3 py-3 font-medium sm:px-4">{t("celebrations.who")}</th>
+              <th className="border-b border-line px-3 py-3 font-medium sm:px-4">{t("celebrations.what")}</th>
             </tr>
           </thead>
           <tbody>
@@ -235,21 +235,21 @@ export default async function CelebrationsPage({
                 .filter((c) => c.on === day)
                 .map((c, index) => (
                   <tr key={`${c.kind}-${c.memberId}`}>
-                    <td className="whitespace-nowrap border-b border-sunken px-4 py-2.5 text-fg-muted">
+                    <td className="border-b border-sunken px-3 py-2.5 text-fg-muted sm:px-4 sm:whitespace-nowrap">
                       {index === 0 ? shortDate(day) : null}
                     </td>
-                    <td className="border-b border-sunken px-4 py-2.5">
+                    <td className="border-b border-sunken px-3 py-2.5 sm:px-4">
                       <Link
                         href={`/members/${c.personSlug}?church=${session.tenantSlug}`}
-                        className="font-medium text-fg underline-offset-4 hover:underline"
+                        className="-my-2 inline-flex items-center py-2 font-medium text-fg underline-offset-4 hover:underline"
                       >
                         {c.partnerName
                           ? t("celebrations.couple", { one: c.name, two: c.partnerName })
                           : c.name}
                       </Link>
                     </td>
-                    <td className="whitespace-nowrap border-b border-sunken px-4 py-2.5">
-                      <span className="flex items-center gap-2">
+                    <td className="border-b border-sunken px-3 py-2.5 sm:px-4 sm:whitespace-nowrap">
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1 sm:flex-nowrap">
                         <HueTag hue={c.kind === "birthday" ? "rose" : "violet"}>
                           {c.kind === "birthday"
                             ? t("celebrations.kind.birthday")

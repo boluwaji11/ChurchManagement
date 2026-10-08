@@ -70,7 +70,7 @@ export default async function EditPersonPage({
     >
       <Link
         href={`/members/${person.slug}?church=${session.tenantSlug}`}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {display}
       </Link>

@@ -94,12 +94,12 @@ function HouseholdMembers({
           <li key={member.id} className="relative">
             <Link
               href={`/members/${member.slug}?church=${church}`}
-              className="flex items-center gap-2.5"
+              className="-my-1.5 flex items-center gap-2.5 py-1.5"
             >
               <Avatar
                 name={member.name}
                 id={member.id}
-                className="absolute -left-6 size-6 border-2 border-surface text-[10px] font-semibold"
+                className="absolute -left-6 size-6 border-2 border-surface text-[12px] font-semibold"
               />
               <span className="min-w-0 flex-1 truncate font-medium text-primary">
                 {member.name}
