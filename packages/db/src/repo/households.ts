@@ -507,6 +507,13 @@ export interface PostalRow {
   householdId: string;
   /** What the church calls them, which is what the label is addressed to. */
   name: string;
+  /**
+   * R16.12. What a letter says after "Dear".
+   *
+   * A person's own first name. A household has none, so it keeps the name it
+   * is known by: "Dear The Bennetts" is how a family is written to.
+   */
+  first: string;
   /** The address, already in the order it is written on an envelope. */
   lines: string[];
 }
@@ -574,6 +581,7 @@ export async function postalRows(
     out.push({
       householdId: row.householdId,
       name: row.name,
+      first: row.name,
       lines: [
         row.line1,
         row.line2,
@@ -645,6 +653,7 @@ async function postalPeople(db: Tx, memberIds?: string[]): Promise<PostalRow[]> 
     out.push({
       householdId: row.memberId,
       name: `${row.first ?? row.given} ${row.last}`,
+      first: row.first ?? row.given,
       lines: [line1, line2, [town, postal].filter(Boolean).join(" ")]
         .filter((one): one is string => Boolean(one && one.trim())),
     });

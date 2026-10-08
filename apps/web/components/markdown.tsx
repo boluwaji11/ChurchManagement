@@ -117,6 +117,26 @@ export function Markdown({
       continue;
     }
 
+    /* R16.12. A run of lines somebody set in, set in. */
+    if (line.startsWith("\t")) {
+      const inside: string[] = [];
+      while (i < lines.length && lines[i]!.startsWith("\t")) {
+        inside.push(lines[i]!.slice(1));
+        i += 1;
+      }
+      blocks.push(
+        <div key={`q${i}`} className="pl-8">
+          {inside.map((one, n) => (
+            <React.Fragment key={n}>
+              {n > 0 ? <br /> : null}
+              {inline(one, `q${i}-${n}`, flat)}
+            </React.Fragment>
+          ))}
+        </div>,
+      );
+      continue;
+    }
+
     const paragraph: string[] = [];
     while (
       i < lines.length &&
@@ -126,7 +146,25 @@ export function Markdown({
       paragraph.push(lines[i]!);
       i += 1;
     }
-    blocks.push(<p key={`p${i}`}>{inline(paragraph.join(" "), `p${i}`, flat)}</p>);
+    /*
+     * R9.2, R16.12. A line break is a line break.
+     *
+     * Markdown's own rule joins consecutive lines into one, which is right
+     * for somebody writing markdown in a text file and wrong for everybody
+     * who writes in this product: they type into a box that shows them the
+     * lines they made, and a letter that reads back as one run-on paragraph
+     * is a letter they did not write.
+     */
+    blocks.push(
+      <p key={`p${i}`}>
+        {paragraph.map((one, n) => (
+          <React.Fragment key={n}>
+            {n > 0 ? <br /> : null}
+            {inline(one, `p${i}-${n}`, flat)}
+          </React.Fragment>
+        ))}
+      </p>,
+    );
   }
 
   return <div className={className}>{blocks}</div>;

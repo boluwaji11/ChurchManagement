@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { FileText, Mail, Printer } from "lucide-react";
+import { Download as DownloadIcon, FileText, Mail, Printer } from "lucide-react";
 import {
-  Banner, Button, Combobox, Field, Input, Textarea,
+  Banner, Button, Combobox, Field, Input, Tooltip,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   PAPER, PAPERS, perPage, unknownMarks, type PaperStock,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Download } from "@/components/download";
+import { RichText } from "@/components/rich-text";
 
 export interface PostList {
   id: string;
@@ -23,11 +24,15 @@ export interface PostList {
  * name" and "Today's date" is one they can use.
  */
 const FIELDS = [
+  { mark: "first", label: "post.field.first" },
   { mark: "name", label: "post.field.name" },
   { mark: "address", label: "post.field.address" },
   { mark: "church", label: "post.field.church" },
   { mark: "today", label: "post.field.today" },
   { mark: "from", label: "post.field.from" },
+  { mark: "phone", label: "post.field.phone" },
+  { mark: "email", label: "post.field.email" },
+  { mark: "website", label: "post.field.website" },
 ] as const;
 
 /**
@@ -55,13 +60,14 @@ export function Mailer({
   const HOUSEHOLDS = "__households";
   const PEOPLE = "__people";
 
-  const [doing, setDoing] = React.useState<"labels" | "letters">("labels");
+  const [doing, setDoing] = React.useState<"letters" | "labels">("letters");
   const [list, setList] = React.useState(HOUSEHOLDS);
   const [paper, setPaper] = React.useState<PaperStock>("envelope");
   const [skip, setSkip] = React.useState("0");
   const [letter, setLetter] = React.useState("");
 
-  const box = React.useRef<HTMLTextAreaElement>(null);
+  /** R16.12. Writes a field's mark where the writer's caret is. */
+  const write = React.useRef<((text: string) => void) | null>(null);
 
   /* R16.12. A mark this product cannot fill prints exactly as typed, which
      the church should know before a hundred of them are in envelopes. */
@@ -82,24 +88,53 @@ export function Mailer({
   const fileHref = `/api/letters?church=${church}${who}`
     + `&body=${encodeURIComponent(letter)}`;
 
-  /** Puts a mark where the cursor is rather than at the end of the letter. */
   const put = (mark: string) => {
-    const at = box.current;
-    const token = `{${mark}}`;
-    if (!at) {
-      setLetter((was) => was + token);
-      return;
-    }
-    const from = at.selectionStart ?? letter.length;
-    const to = at.selectionEnd ?? from;
-    setLetter(letter.slice(0, from) + token + letter.slice(to));
-    requestAnimationFrame(() => {
-      at.focus();
-      at.setSelectionRange(from + token.length, from + token.length);
-    });
+    if (write.current) write.current(`{${mark}}`);
+    else setLetter((was) => `${was}{${mark}}`);
   };
 
   const nothing = households === 0;
+  const ready = !nothing && Boolean(letter.trim());
+
+  /*
+   * R24.6. Two ways to take the same letters away, as marks on the heading's
+   * own line. Two long buttons under a box saying nearly the same thing is
+   * two decisions where there is one.
+   */
+  const letterActions = (
+    <span className="flex items-center gap-1">
+      <Tooltip content={t("post.printLetters")}>
+        <a
+          href={ready ? lettersHref : undefined}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={t("post.printLetters")}
+          aria-disabled={!ready}
+          className={`grid size-9 place-items-center rounded-[var(--d-radius-control)] [&_svg]:size-[18px] ${
+            ready
+              ? "cursor-pointer text-fg hover:bg-sunken"
+              : "cursor-default text-fg-subtle opacity-45"
+          }`}
+        >
+          <Printer aria-hidden />
+        </a>
+      </Tooltip>
+
+      {ready ? (
+        <Tooltip content={t("post.download")}>
+          <Download
+            href={fileHref}
+            file="letters.docx"
+            label={t("post.writing")}
+            title={t("post.writeFailed")}
+            className="grid size-9 cursor-pointer place-items-center rounded-[var(--d-radius-control)] text-fg hover:bg-sunken [&_svg]:size-[18px]"
+          >
+            <DownloadIcon aria-hidden />
+          </Download>
+        </Tooltip>
+      ) : null}
+    </span>
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -111,8 +146,8 @@ export function Mailer({
         className="flex w-fit gap-1 rounded-full border border-line bg-sunken p-1"
       >
         {([
-          { key: "labels", label: t("post.tab.labels"), icon: <Mail /> },
           { key: "letters", label: t("post.tab.letters"), icon: <FileText /> },
+          { key: "labels", label: t("post.tab.labels"), icon: <Mail /> },
         ] as const).map((one) => (
           <button
             key={one.key}
@@ -184,20 +219,20 @@ export function Mailer({
 
       {doing === "letters" ? (
         <>
-          <Field label={t("post.letter")} required>
-            <Textarea
-              ref={box}
-              rows={10}
-              value={letter}
-              onChange={(event) => setLetter(event.target.value)}
-              placeholder={t("post.letterPlaceholder")}
+          <Field label={t("post.letter")} required action={letterActions}>
+            <RichText
+              defaultValue=""
+              minHeight={260}
+              maxHeight={420}
+              onChange={setLetter}
+              insert={(put) => { write.current = put; }}
             />
           </Field>
 
           {/* R16.12. Each one says what it means and writes its own mark in
               wherever the cursor is. */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-label text-fg">{t("post.fields")}</span>
+            <span className="text-label text-fg">{t("post.fields")}:</span>
             {FIELDS.map((one) => (
               <button
                 key={one.mark}
@@ -217,37 +252,15 @@ export function Mailer({
         </>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3">
-        {doing === "labels" ? (
+      {doing === "labels" ? (
+        <div className="flex flex-wrap items-center gap-3">
           <Button asChild disabled={nothing}>
             <a href={labelsHref} target="_blank" rel="noreferrer">
               <Printer /> {t("post.printLabels")}
             </a>
           </Button>
-        ) : (
-          <>
-            <Button asChild disabled={nothing || !letter.trim()}>
-              <a href={lettersHref} target="_blank" rel="noreferrer">
-                <Printer /> {t("post.printLetters")}
-              </a>
-            </Button>
-
-            {/* R24.6. The server writes the file, which takes a moment on a
-                congregation of any size, so it is asked for in the page and
-                the Working panel holds the screen until it lands. */}
-            {letter.trim() && !nothing ? (
-              <Download
-                href={fileHref}
-                file="letters.docx"
-                label={t("post.writing")}
-                title={t("post.writeFailed")}
-              >
-                <FileText /> {t("post.download")}
-              </Download>
-            ) : null}
-          </>
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

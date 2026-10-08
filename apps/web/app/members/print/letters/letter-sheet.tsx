@@ -1,5 +1,6 @@
 import { merge } from "@connectapp/ui";
 import type { PostalRow } from "@connectapp/db";
+import { Markdown } from "@/components/markdown";
 
 /**
  * R16.12. A letter from a church, laid out the way a letter is laid out.
@@ -19,6 +20,7 @@ export interface LetterHead {
   address: string | null;
   phone: string | null;
   email: string | null;
+  website: string | null;
   logoUrl: string | null;
 }
 
@@ -69,25 +71,33 @@ export function LetterSheet({
             </span>
           </header>
 
-          {/* R16.12. Date, then who it is going to, which is the order block
-              format puts them in. */}
-          <p className="m-0 mb-[10mm] text-[11pt]">{today}</p>
-
-          <div className="mb-[10mm] text-[11pt] leading-[1.45]">
-            <p className="m-0">{one.name}</p>
-            {one.lines.map((line) => <p key={line} className="m-0">{line}</p>)}
+          {/* R16.12. Who it is going to on the right, where a window envelope
+              shows it, and the date under it on the left. */}
+          <div className="mb-[8mm] flex justify-end text-[11pt] leading-[1.45]">
+            <div className="text-left">
+              {/* The name leads, the way an envelope is addressed. */}
+              <p className="m-0 font-semibold">{one.name}</p>
+              {one.lines.map((line) => <p key={line} className="m-0">{line}</p>)}
+            </div>
           </div>
 
-          {/* The words. A letter is not markdown: the lines a church typed are
-              the lines it gets, and a blank line is a paragraph. */}
-          <div className="whitespace-pre-wrap text-[11pt] leading-[1.65]">
-            {merge(body, {
-              name: one.name,
-              address: one.lines.join(", "),
-              church: head.church,
-              today,
-              from,
-            })}
+          <p className="m-0 mb-[10mm] text-[11pt]">{today}</p>
+
+          {/* The words, as the writer laid them out. */}
+          <div className="text-[11pt] leading-[1.65] [&_p]:mb-[4mm]">
+            <Markdown
+              text={merge(body, {
+                first: one.first,
+                name: one.name,
+                address: one.lines.join(", "),
+                church: head.church,
+                today,
+                from,
+                phone: head.phone ?? "",
+                email: head.email ?? "",
+                website: head.website ?? "",
+              })}
+            />
           </div>
         </article>
       ))}

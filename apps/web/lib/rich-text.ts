@@ -71,6 +71,18 @@ export function htmlToMarkdown(root: Node): string {
           .join("\n")}\n`;
       case "LI":
         return kids(null);
+      /*
+       * R16.12. An indented block, which is what the browser makes when
+       * somebody presses the indent button. Kept as a tab a line, so a letter
+       * that sets a paragraph in comes back set in, and so nothing in the
+       * stored text can be mistaken for markdown's own syntax.
+       */
+      case "BLOCKQUOTE":
+        return `${kids()
+          .replace(/\n$/, "")
+          .split("\n")
+          .map((line) => (line.trim() === "" ? line : `\t${line}`))
+          .join("\n")}\n`;
       case "DIV":
       case "P": {
         const inside = kids();
@@ -158,6 +170,18 @@ export function markdownToHtml(markdown: string): string {
         out.push("<div><br></div>");
       }
       i += 1;
+      continue;
+    }
+
+    /* R16.12. A run of indented lines comes back as the block the browser
+       indents, so pressing outdent on it undoes what indent did. */
+    if (line.startsWith("\t")) {
+      const inside: string[] = [];
+      while (i < lines.length && lines[i]!.startsWith("\t")) {
+        inside.push(`<div>${inlineHtml(lines[i]!.slice(1))}</div>`);
+        i += 1;
+      }
+      out.push(`<blockquote>${inside.join("")}</blockquote>`);
       continue;
     }
 

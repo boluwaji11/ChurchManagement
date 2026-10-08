@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import {
-  Bold, Italic, Link2, List, ListOrdered, Redo2, RemoveFormatting, Undo2,
+  Bold, IndentDecrease, IndentIncrease, Italic, Link2, List, ListOrdered,
+  Redo2, RemoveFormatting, Undo2,
 } from "lucide-react";
 import {
   Button, Field, IconButton, Input, cn,
@@ -28,14 +29,31 @@ export function RichText({
   className,
   minHeight = 160,
   maxHeight,
+  onChange,
+  insert,
 }: {
-  name: string;
+  /** Left out where the value is read through onChange rather than a form. */
+  name?: string;
   /** Markdown, as it is stored. */
   defaultValue: string;
   className?: string;
   minHeight?: number;
   /** Past this the box keeps its height and the text scrolls inside it. */
   maxHeight?: number;
+  /**
+   * R16.12. The markdown, on every keystroke.
+   *
+   * A form reads this box through its hidden field. A screen that builds an
+   * address out of what was typed needs the value itself.
+   */
+  onChange?: (markdown: string) => void;
+  /**
+   * R16.12. A way to write text in wherever the caret is.
+   *
+   * Handed back so a field chip outside the box can put its mark where the
+   * writer was, rather than at the end of everything they have written.
+   */
+  insert?: (put: (text: string) => void) => void;
 }) {
   const box = React.useRef<HTMLDivElement>(null);
   const [markdown, setMarkdown] = React.useState(defaultValue);
@@ -53,8 +71,23 @@ export function RichText({
   }, [defaultValue]);
 
   const read = () => {
-    if (box.current) setMarkdown(htmlToMarkdown(box.current));
+    if (!box.current) return;
+    const next = htmlToMarkdown(box.current);
+    setMarkdown(next);
+    onChange?.(next);
   };
+
+  /* R16.12. Text written in at the caret, which is where the writer is. */
+  React.useEffect(() => {
+    if (!insert) return;
+    insert((text: string) => {
+      box.current?.focus();
+      document.execCommand("insertText", false, text);
+      read();
+    });
+    // The caller holds the function; it does not change between renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [insert]);
 
   /** Which marks the caret is sitting in, so the buttons show their state. */
   const sense = () => {
@@ -102,7 +135,7 @@ export function RichText({
         className,
       )}
     >
-      <input type="hidden" name={name} value={markdown} />
+      {name ? <input type="hidden" name={name} value={markdown} /> : null}
 
       <div className="flex flex-wrap items-center gap-0.5 border-b border-line px-1.5 py-1">
         {/* R24.6. Undo and redo first, because the one thing somebody wants
@@ -125,6 +158,18 @@ export function RichText({
         <Mark label={t("rich.italic")} on={marks.italic} onPress={() => run("italic")}>
           <Italic />
         </Mark>
+        {/* R16.12. A letter indents: an address block, a quoted line, a
+            paragraph set in from the rest. The browser does this with a
+            blockquote, which is what the stored text keeps. */}
+        <Mark label={t("rich.outdent")} onPress={() => run("outdent")}>
+          <IndentDecrease />
+        </Mark>
+        <Mark label={t("rich.indent")} onPress={() => run("indent")}>
+          <IndentIncrease />
+        </Mark>
+
+        <span aria-hidden className="mx-1 h-5 w-px bg-line" />
+
         <Mark label={t("rich.bullets")} onPress={() => run("insertUnorderedList")}>
           <List />
         </Mark>

@@ -1,5 +1,6 @@
 import {
   Document, Packer, Paragraph, TextRun, AlignmentType, PageBreak,
+  BorderStyle, ImageRun,
 } from "docx";
 import {
   withTenant, postalRows, resolveList, listPeople, getChurch, canEditPeople,
@@ -7,7 +8,8 @@ import {
 import { merge } from "@connectapp/ui";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { longDate } from "@/lib/dates";
+import { supabaseServer } from "@/lib/supabase/server";
+import { localeFor } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +64,19 @@ export async function GET(request: Request) {
     },
   );
 
-  const today = longDate(churchNow(read.profile?.timezone ?? "America/Chicago").date);
+  /*
+   * R22.8. The church's own way of writing a date.
+   *
+   * `longDate` reads a per-request store the printed page has and an API
+   * route does not, so the file said "8 October 2026" where the paper said
+   * "October 8, 2026". The country decides it here, which both of them agree
+   * on.
+   */
+  const when = churchNow(read.profile?.timezone ?? "America/Chicago").date;
+  const today = new Date(`${when}T00:00:00`).toLocaleDateString(
+    localeFor(read.profile?.country),
+    { day: "numeric", month: "long", year: "numeric" },
+  );
   const where = [
     read.profile?.addressLine1,
     read.profile?.addressLine2,
@@ -70,37 +84,133 @@ export async function GET(request: Request) {
     [read.profile?.region, read.profile?.postalCode].filter(Boolean).join(" "),
   ].filter(Boolean).join(", ");
 
-  const line = (text: string, options: { bold?: boolean; size?: number; after?: number } = {}) =>
+  const line = (
+    text: string,
+    options: { bold?: boolean; size?: number; after?: number; right?: boolean } = {},
+  ) =>
     new Paragraph({
-      alignment: AlignmentType.LEFT,
+      alignment: options.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
       spacing: { after: options.after ?? 0 },
       children: [new TextRun({ text, bold: options.bold, size: options.size ?? 22 })],
     });
 
+  /*
+   * R16.12. The small markdown the writer is offered, as Word runs.
+   *
+   * Bold, italic and a bullet, which is what the editor can make. A link
+   * keeps its words and drops its address: a printed letter cannot be
+   * pressed, and "the rota (https://...)" is how a sentence stops reading
+   * like one.
+   */
+  const INLINE = /(\*\*([^*]+)\*\*)|(_([^_]+)_)|(\[([^\]]+)\]\(([^)\s]+)\))/g;
+
+  const runs = (text: string) => {
+    const out: TextRun[] = [];
+    let at = 0;
+    for (const m of text.matchAll(INLINE)) {
+      const start = m.index!;
+      if (start > at) out.push(new TextRun({ text: text.slice(at, start), size: 22 }));
+      if (m[2] !== undefined) out.push(new TextRun({ text: m[2], bold: true, size: 22 }));
+      else if (m[4] !== undefined) out.push(new TextRun({ text: m[4], italics: true, size: 22 }));
+      else if (m[6] !== undefined) out.push(new TextRun({ text: m[6], size: 22 }));
+      at = start + m[0].length;
+    }
+    if (at < text.length) out.push(new TextRun({ text: text.slice(at), size: 22 }));
+    return out.length > 0 ? out : [new TextRun({ text: "", size: 22 })];
+  };
+
+  const written = (markdown: string) =>
+    markdown.split("\n").map((raw) => {
+      // R16.12. Lines somebody set in carry a tab each.
+      const steps = /^\t+/.exec(raw)?.[0].length ?? 0;
+      const flat = raw.slice(steps);
+      const bullet = /^\s*[-*]\s+/.exec(flat);
+      const numbered = /^\s*\d+[.)]\s+/.exec(flat);
+      const text = flat.slice(bullet?.[0].length ?? numbered?.[0].length ?? 0);
+
+      return new Paragraph({
+        alignment: AlignmentType.LEFT,
+        /* A line is a line and a blank line is a blank line, the same as the
+           box it was typed in and the page it prints on. */
+        spacing: { after: 0 },
+        ...(steps > 0 ? { indent: { left: 360 * steps } } : {}),
+        ...(bullet ? { bullet: { level: 0 } } : {}),
+        ...(numbered ? { numbering: undefined, bullet: { level: 0 } } : {}),
+        children: runs(text),
+      });
+    });
+
+  /*
+   * R1.1. The church's mark, as bytes, because a Word file carries its own
+   * pictures rather than pointing at one. Fetched once for the whole run.
+   */
+  const mark = await (async () => {
+    if (!read.profile?.logoKey) return null;
+    try {
+      const supabase = await supabaseServer();
+      const signed = await supabase.storage
+        .from("church")
+        .createSignedUrl(read.profile.logoKey, 600);
+      if (!signed.data?.signedUrl) return null;
+      const got = await fetch(signed.data.signedUrl);
+      if (!got.ok) return null;
+      return new Uint8Array(await got.arrayBuffer());
+    } catch {
+      // A letter without the mark is still a letter.
+      return null;
+    }
+  })();
+
+  /** The hairline under the letterhead, which a paragraph carries as a border. */
+  const rule = () =>
+    new Paragraph({
+      spacing: { before: 120, after: 360 },
+      border: {
+        bottom: { style: BorderStyle.SINGLE, size: 4, color: "BFBFBF", space: 6 },
+      },
+      children: [new TextRun({ text: "", size: 2 })],
+    });
+
   const children = read.rows.flatMap((one, at) => {
     const letter = merge(body, {
+      first: one.first,
       name: one.name,
       address: one.lines.join(", "),
       church: session.tenantName,
       today,
       from: session.displayName,
+      phone: read.profile?.phone ?? "",
+      email: read.profile?.email ?? "",
+      website: read.profile?.website ?? "",
     });
 
     return [
+      ...(mark
+        ? [new Paragraph({
+            spacing: { after: 60 },
+            children: [new ImageRun({
+              type: "png",
+              data: mark,
+              transformation: { width: 64, height: 64 },
+            })],
+          })]
+        : []),
       line(session.tenantName, { bold: true, size: 28 }),
       ...(where ? [line(where, { size: 19 })] : []),
       ...(read.profile?.phone || read.profile?.email
         ? [line([read.profile?.phone, read.profile?.email].filter(Boolean).join("  ·  "), { size: 19, after: 480 })]
-        : [line("", { after: 480 })]),
+        : []),
+
+      rule(),
+
+      // Who it is going to on the right, the date under it on the left.
+      line(one.name, { right: true, bold: true }),
+      ...one.lines.map((l) => line(l, { right: true })),
+      line("", { after: 240 }),
 
       line(today, { after: 360 }),
 
-      line(one.name),
-      ...one.lines.map((l) => line(l)),
-      line("", { after: 360 }),
-
-      // A blank line in what the church typed is a blank paragraph here.
-      ...letter.split("\n").map((l) => line(l, { after: 120 })),
+      ...written(letter),
 
       // Every letter but the last starts a fresh page.
       ...(at === read.rows.length - 1

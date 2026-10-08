@@ -2,10 +2,10 @@
  * R16.12. The marks a church writes into a letter that become each
  * household's own words.
  *
- * Five of them, not a field browser. A church writing to its congregation says
- * the family's name, where they live and who it is from, and every merge
- * system that offered more than that ended up with volunteers pasting a field
- * name into a sentence and posting it.
+ * Nine of them, not a field browser. A church writing to its congregation
+ * says who it is to, where they live, who it is from and how to answer it,
+ * and every merge system that offered more than that ended up with
+ * volunteers pasting a field name into a sentence and posting it.
  *
  * Unknown marks are left exactly as typed. A letter that says
  * "{nickname}" is a letter somebody can see is wrong before it goes in the
@@ -14,11 +14,15 @@
  */
 
 export const MERGE_FIELDS = [
+  "first",
   "name",
   "address",
   "church",
   "today",
   "from",
+  "phone",
+  "email",
+  "website",
 ] as const;
 
 export type MergeField = (typeof MERGE_FIELDS)[number];

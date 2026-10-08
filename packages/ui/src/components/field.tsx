@@ -51,6 +51,7 @@ export function Field({
   error,
   required,
   htmlFor,
+  action,
   children,
   className,
 }: {
@@ -59,6 +60,13 @@ export function Field({
   error?: string;
   required?: boolean;
   htmlFor?: string;
+  /**
+   * R24.6. What this one field can be done with, on its own label's line.
+   *
+   * A box that is printed or downloaded carries those where the eye already
+   * is, rather than under it where they read as the whole form's actions.
+   */
+  action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -101,6 +109,7 @@ export function Field({
     // own Save reads these to know whether it has everything it needs before
     // the server has to say so.
     <div data-required={required ? "" : undefined} className={cn("flex flex-col gap-1.5", className)}>
+      <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
       <Label
         id={labelId}
         htmlFor={group ? undefined : id}
@@ -115,6 +124,8 @@ export function Field({
           </span>
         ) : null}
       </Label>
+      {action}
+      </div>
 
       {/* Under the question and above the box, because it is read before the
           answer is given rather than after. */}

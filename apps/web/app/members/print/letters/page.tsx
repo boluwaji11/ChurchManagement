@@ -2,10 +2,10 @@ import { redirect } from "next/navigation";
 import {
   withTenant, postalRows, resolveList, listPeople, getChurch, canEditPeople,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, localeFor } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
-import { longDate } from "@/lib/dates";
+
 import { AutoPrint } from "../../../checkin/rooms/print/auto-print";
 import { tabMetadata } from "@/lib/page-metadata";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -94,7 +94,13 @@ export default async function PrintLettersPage({
     return signed.data?.signedUrl ?? null;
   })();
 
-  const today = longDate(churchNow(read.profile?.timezone ?? "America/Chicago").date);
+  /* R22.8. The country decides how the date is written, which is the rule the
+     Word file follows too, so the two never disagree. */
+  const when = churchNow(read.profile?.timezone ?? "America/Chicago").date;
+  const today = new Date(`${when}T00:00:00`).toLocaleDateString(
+    localeFor(read.profile?.country),
+    { day: "numeric", month: "long", year: "numeric" },
+  );
 
   const where = [
     read.profile?.addressLine1,
@@ -125,6 +131,7 @@ export default async function PrintLettersPage({
             address: where,
             phone: read.profile?.phone ?? null,
             email: read.profile?.email ?? null,
+            website: read.profile?.website ?? null,
             logoUrl,
           }}
         />
