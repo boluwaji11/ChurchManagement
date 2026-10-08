@@ -479,7 +479,7 @@ export function ScheduleGrid({
       </div>
 
       <div className="flex flex-wrap items-start gap-5">
-        <section className="relative hidden flex-[999_1_560px] lg:block">
+        <section className="relative hidden min-w-0 flex-[999_1_560px] lg:block">
           {/* R10.3. A month with more than six services reaches the rest of
               them sideways. The arrows sit over the grid's own edges, so a
               reader who has not noticed the columns continue still has
@@ -488,7 +488,7 @@ export function ScheduleGrid({
 
           <div
             ref={scroller}
-            className="overflow-x-auto rounded-lg border border-line bg-surface"
+            className="w-full overflow-x-auto rounded-lg border border-line bg-surface"
           >
           <div
             className="grid min-w-[760px]"
