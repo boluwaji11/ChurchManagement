@@ -13,6 +13,8 @@ import { readsAs } from "@/lib/spelling";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
 import { TabTitle } from "./tab-title";
+import { brandVars } from "@connectapp/ui";
+import { brandHexOf } from "@/lib/brand";
 import type { Session } from "@/lib/session";
 import { Tooltip } from "@connectapp/ui";
 
@@ -82,7 +84,19 @@ export async function PortalShell({
     : null;
 
   return (
-    <div className="site-wash flex min-h-dvh flex-col" data-density="portal">
+    /*
+     * R1.1, R24.4. The church's own colour, on the screens its members read.
+     *
+     * This is the one surface a member thinks of as their church rather than
+     * as software, so the product's purple gives way to the church's here:
+     * the tab they are on, and the mark on every block. Set as properties on
+     * the frame, so a block does not have to be told what church it is in.
+     */
+    <div
+      className="site-wash flex min-h-dvh flex-col"
+      data-density="portal"
+      style={brandVars(brandHexOf(church)) as React.CSSProperties}
+    >
       {/* R17.11. What a phone reads when somebody adds this church to their
           home screen, and the worker that keeps it answering with no signal.
           React hoists both into the head. */}

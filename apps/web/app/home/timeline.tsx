@@ -37,7 +37,11 @@ export function Block({
       className={`flex min-w-0 flex-col rounded-2xl border border-line bg-surface ${className ?? ""}`}
     >
       <header className="flex flex-wrap items-center gap-3 px-5 py-4">
-        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&_svg]:size-[18px]">
+        {/* R1.1. The church's colour, which the frame sets. */}
+        <span
+          className="grid size-9 shrink-0 place-items-center rounded-[10px] [&_svg]:size-[18px]"
+          style={{ background: "var(--brand-tint)", color: "var(--brand-key)" }}
+        >
           {icon}
         </span>
         <span className="min-w-0 flex-1 truncate text-[15px] font-bold text-fg">{title}</span>
