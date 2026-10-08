@@ -55,7 +55,16 @@ function MonthStep({
 }
 
 /** How many services the grid shows. A month of weekends, as the design draws. */
-const COLUMNS = 4;
+/*
+ * R10.3. How many services fit across the grid before it scrolls.
+ *
+ * The position column is 150px and each service asks for 150 more, so six
+ * of them need 1050px: what the board has at a desk with the navigation
+ * open. Below that the grid scrolls sideways rather than squeezing, and a
+ * phone reads one service at a time. Six is also three dates for a church
+ * that holds two services on a day.
+ */
+const COLUMNS = 6;
 
 /**
  * R10.1, R10.3. Serving: the schedule, and the teams that fill it.
@@ -276,6 +285,7 @@ export default async function ServingPage({
                     label: twice
                       ? `${shortDate(one.occursOn)}, ${readableTime(one.startsAt)}`
                       : shortDate(one.occursOn),
+                    day: one.occursOn,
                     /* R10.3. A service that has already happened. Read against
                        the church's own clock, so a leader in Hawaii opening
                        this at ten at night is not told their evening service
@@ -309,13 +319,22 @@ export default async function ServingPage({
                   }),
                 ),
                 volunteers: data.team.members.map((one) => {
-                  const off = data.away.find((x) => x.memberId === one.memberId);
+                  const off = data.away.filter((x) => x.memberId === one.memberId);
                   return {
                     memberId: one.memberId,
                     name: one.name,
                     photoUrl: one.photoKey ? (faces[one.photoKey] ?? null) : null,
-                    note: off ? t("serving.away", { date: shortDate(off.startsOn) }) : "",
-                    away: Boolean(off),
+                    /* R10.4. Which of the dates on the board this member has
+                       blocked out, so the grid can refuse those columns and
+                       leave the rest of them alone. */
+                    awayOn: data.services
+                      .filter((service) =>
+                        off.some(
+                          (gap) =>
+                            gap.startsOn <= service.occursOn && gap.endsOn >= service.occursOn,
+                        ),
+                      )
+                      .map((service) => service.occursOn),
                   };
                 }),
               }

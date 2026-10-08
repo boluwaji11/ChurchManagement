@@ -8,11 +8,14 @@ import { t } from "@connectapp/i18n";
 import { schedule, unschedule, whoCouldFill, savePosition } from "./actions";
 import type { PlanCandidate } from "@connectapp/db";
 import { useFormError } from "@/lib/form-error";
+import { Confirm } from "@/components/confirm";
 
 export interface GridService {
   id: string;
   /** "Sun 5 Oct", as the column head reads. */
   label: string;
+  /** The date it is filed under, which is what a blockout is checked against. */
+  day: string;
   /**
    * R10.3. Whether this service has already happened.
    *
@@ -53,9 +56,13 @@ export interface GridVolunteer {
   name: string;
   /** R2.9. Their face, when the church has one for them. */
   photoUrl?: string | null;
-  /** How much they are already doing, or the day they are away. */
-  note: string;
-  away: boolean;
+  /**
+   * R10.4. The dates in view this member has blocked out.
+   *
+   * The dates rather than a flag, because the roster has to say they are
+   * away at all and the grid has to refuse the one day they are away on.
+   */
+  awayOn: string[];
 }
 
 /** R10.2. One more position on this team, from the bottom of its grid. */
@@ -170,18 +177,10 @@ function FillSlot({
     });
   };
 
-  if (closed) {
-    return (
-      <span
-        className={cn(
-          "flex min-h-9 w-full items-center px-2 text-[12px] text-fg-subtle",
-          className,
-        )}
-      >
-        {t("serving.closedSlot")}
-      </span>
-    );
-  }
+  /* R10.3. A date that has gone says nothing. The grey ground under the
+     whole column has already said it, and repeating it in every empty cell
+     puts the same four words on screen twenty times. */
+  if (closed) return <span className={cn("block min-h-9", className)} aria-hidden />;
 
   if (!open) {
     return (
@@ -237,7 +236,8 @@ function Filled({
 }: {
   slot: GridSlot;
   pending: boolean;
-  onRemove: () => void;
+  /** Hands back the work, so the confirmation can wait on it. */
+  onRemove: () => void | Promise<unknown>;
 }) {
   const look = LOOK[slot.status ?? "pending"];
 
@@ -260,15 +260,25 @@ function Filled({
         >
           {slot.personName}
         </span>
-        <button
-          type="button"
-          aria-label={t("serving.unschedule")}
+        {/* R24.x. Taking somebody off a rota withdraws a request they may
+            already have answered, so it asks first. */}
+        <Confirm
+          title={t("serving.unscheduleTitle", { name: slot.personName ?? "" })}
+          body={t("serving.unscheduleBody")}
+          confirmLabel={t("serving.unschedule")}
           disabled={pending}
-          onClick={onRemove}
-          className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-sm text-fg-subtle hover:bg-surface hover:text-fg"
-        >
-          <X className="size-3.5" aria-hidden />
-        </button>
+          onConfirm={onRemove}
+          trigger={
+            <button
+              type="button"
+              aria-label={t("serving.unschedule")}
+              disabled={pending}
+              className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-sm text-fg-subtle hover:bg-surface hover:text-fg"
+            >
+              <X className="size-3.5" aria-hidden />
+            </button>
+          }
+        />
       </div>
 
       {slot.warning ? (
@@ -322,6 +332,20 @@ export function ScheduleGrid({
   const drop = (positionId: string, occurrenceId: string) => {
     const who = dragging;
     setDragging(null);
+
+    /*
+     * R10.4. A blockout is the one thing a member asked for in advance, and
+     * scheduling over it sends a request they have already said no to. The
+     * refusal names them and the date, because a drag that simply does
+     * nothing reads as a drag that missed.
+     */
+    const onto = services.find((service) => service.id === occurrenceId);
+    if (who && onto && who.awayOn.includes(onto.day)) {
+      setOver(null);
+      setError(t("serving.awayThatDay", { name: who.name, date: onto.label }));
+      return;
+    }
+
     setOver(null);
     if (!who) return;
 
@@ -335,12 +359,12 @@ export function ScheduleGrid({
     });
   };
 
-  const take = (assignmentId: string) => {
-    startTransition(async () => {
-      const result = await unschedule(assignmentId, church);
-      setError(result.error);
-      router.refresh();
-    });
+  /* The promise goes back to the confirmation, which keeps its button busy
+     and the box open until the row has actually gone. */
+  const take = async (assignmentId: string) => {
+    const result = await unschedule(assignmentId, church);
+    setError(result.error);
+    router.refresh();
   };
 
   /*
@@ -603,14 +627,15 @@ export function ScheduleGrid({
                   <span className="block truncate text-[13px] font-medium text-fg">
                     {one.name}
                   </span>
-                  {/* R10.4. Only when there is something to say: the day they
-                      are away. */}
-                  {one.away ? (
+                  {/* R10.4. Only when there is something to say. Which dates
+                      is the grid's business: the columns they cannot go in
+                      refuse them. */}
+                  {one.awayOn.length > 0 ? (
                     <span
                       className="block truncate text-[12px]"
                       style={{ color: "var(--hue-amber-key)" }}
                     >
-                      {one.note}
+                      {t("serving.notAvailable")}
                     </span>
                   ) : null}
                 </span>
