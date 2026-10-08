@@ -68,7 +68,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
 | HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
 | HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Resolved |
-| HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Active |
+| HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Resolved. The check-in desk and the supervisor board need a service on today's date to exercise |
 | HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Active |
 | HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Resolved |
 | HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Resolved |
@@ -715,6 +715,36 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-253, how to test it
+
+Everything below is at 390px, which is an iPhone 13. 360px and 768px were held to
+the same bar.
+
+1. **Every section is reachable.** The tab bar along the bottom carries four
+   sections and **More**. More opens the whole list, so giving, reports, forms,
+   events and settings can be opened on a phone, which they could not before.
+2. **Settings.** Every screen in settings is on one row that scrolls sideways.
+   The grouped menu that opens under a pointer is for 1024px and up, since a
+   phone has no pointer to open it with.
+3. **Nothing scrolls sideways.** On any screen, drag the page left. It should
+   not move. A wide table scrolls inside its own frame; the page does not.
+4. **The lists that were tables.** Giving's gifts and counting sessions, the
+   directory, event registrations and form responses all stack into cards on a
+   phone and go back to being tables on a desk. A refund still sits under the
+   gift it came off.
+5. **Paging.** Press the arrow at the foot of any list. It should bring you to
+   the head of that list, not the top of the page.
+6. **Targets.** A checkbox, a radio, a switch and the marks on a date or time
+   field are all a finger wide, while the drawn control stays the size it was.
+7. **The notch.** Install the member portal to a home screen and open it. The
+   tab bar sits above the bar iOS draws at the bottom, and the header clears
+   the notch.
+8. **A church's public pages.** The giving page, an event and its registration,
+   a form and the group finder are the links a church sends by text message.
+   Open each one on a phone.
+9. **Check-in.** Choose a station: the desk runs at 56px targets and 20px text.
+   Nothing about check-in was weakened to make it fit.
 
 ### HRT-248, how to test it
 
