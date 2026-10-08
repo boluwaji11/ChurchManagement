@@ -37,11 +37,10 @@ export function usePanelGuard({
 
   const guard = (
     <Dialog open={asking} onOpenChange={setAsking}>
-      <DialogContent alert title={t("panel.discardTitle")} closeLabel={t("common.close")}>
-        <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("panel.discardBody")}</p>
+      <DialogContent alert title={t("unsaved.title")} closeLabel={t("common.close")}>
         <DialogFooter>
           <Button type="button" variant="ghost" data-dismiss onClick={() => setAsking(false)}>
-            {t("panel.keepEditing")}
+            {t("unsaved.stay")}
           </Button>
           <Button
             type="button"
@@ -51,7 +50,7 @@ export function usePanelGuard({
               setOpen(false);
             }}
           >
-            {t("panel.discard")}
+            {t("unsaved.discard")}
           </Button>
         </DialogFooter>
       </DialogContent>

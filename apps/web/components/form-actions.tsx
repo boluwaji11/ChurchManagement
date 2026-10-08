@@ -131,7 +131,6 @@ export function BackToView({
 
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent alert title={t("unsaved.title")} closeLabel={t("common.close")}>
-          <p className="text-[length:var(--d-text-body)] text-fg">{t("unsaved.body")}</p>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
               {t("unsaved.stay")}
@@ -336,7 +335,6 @@ export function LeaveGuard({ dirty }: { dirty: boolean }) {
       onOpenChange={(next) => (next ? null : setLeaving(null))}
     >
       <DialogContent alert title={t("unsaved.title")} closeLabel={t("common.close")}>
-        <p className="text-[length:var(--d-text-body)] text-fg">{t("unsaved.body")}</p>
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => setLeaving(null)}>
@@ -351,7 +349,7 @@ export function LeaveGuard({ dirty }: { dirty: boolean }) {
               if (to) window.location.href = to;
             }}
           >
-            {t("unsaved.leave")}
+            {t("unsaved.discard")}
           </Button>
         </DialogFooter>
       </DialogContent>
