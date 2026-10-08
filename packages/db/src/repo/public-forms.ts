@@ -7,6 +7,7 @@ import {
 } from "./form-rules";
 import { publicChurch, type PublicChurch } from "./public-groups";
 import { placeSubmission } from "./form-matching";
+import { notifyRolesRaw } from "./notifications";
 
 /**
  * R4.3. A form as somebody with no account meets it.
@@ -239,6 +240,34 @@ export async function submitPublicForm(input: {
       fields,
       answers,
     });
+
+    /*
+     * R4.6, R24.6. Somebody answered, and nobody is watching the table.
+     *
+     * The bell is the only place a church hears about this: a form is
+     * answered by a visitor at eleven at night and read by a volunteer on
+     * Tuesday, and without a mark the response sits in a list nobody opens.
+     */
+    await notifyRolesRaw(tx, row.tenantId, ["owner", "admin"], {
+      kind: "form_response",
+      messageKey: "bell.formResponse",
+      params: { form: row.name },
+      href: `/forms/${row.id}`,
+    });
+
+    /*
+     * R4.5, R2.8. Somebody fitted and not certainly enough to attach to. The
+     * record was written anyway, so the church now holds two that may be one
+     * person, and the only honest thing is to say so while it is fresh.
+     */
+    if (placed.state === "review") {
+      await notifyRolesRaw(tx, row.tenantId, ["owner", "admin"], {
+        kind: "duplicate",
+        messageKey: "bell.duplicate",
+        params: { name: nameFrom(fields, answers).name },
+        href: "/duplicates",
+      });
+    }
 
     if (input.eventSlug) {
       await takePlace(tx, {

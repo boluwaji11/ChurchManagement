@@ -9,6 +9,7 @@ import { members } from "../schema/members";
 import { PermissionError } from "../roles";
 import { InvalidInputError } from "../errors";
 import { canManageTeams, leadsTeam } from "./serving";
+import { notifyRoles } from "./notifications";
 import type { WriteActor } from "./members";
 
 /**
@@ -463,9 +464,44 @@ export async function answerMyAssignment(
       eq(servingAssignments.id, input.id),
       eq(servingAssignments.memberId, actor.memberId),
     ))
-    .returning({ id: servingAssignments.id });
+    .returning({
+      id: servingAssignments.id,
+      teamId: servingAssignments.teamId,
+      occurrenceId: servingAssignments.occurrenceId,
+    });
 
   if (changed.length === 0) throw new InvalidInputError("respond.error.unknown");
+
+  /*
+   * R10.5, R24.6. An answer is only worth asking for if it reaches whoever
+   * has to fill the gap. A decline two days out is the one a rota holder has
+   * to act on, and an acceptance is how they know they can stop chasing.
+   */
+  const row = changed[0]!;
+  const [about] = await db
+    .select({
+      first: members.firstName,
+      last: members.lastName,
+      team: teams.name,
+      day: serviceOccurrences.occursOn,
+    })
+    .from(servingAssignments)
+    .innerJoin(members, eq(members.id, servingAssignments.memberId))
+    .innerJoin(teams, eq(teams.id, servingAssignments.teamId))
+    .innerJoin(serviceOccurrences, eq(serviceOccurrences.id, servingAssignments.occurrenceId))
+    .where(eq(servingAssignments.id, row.id))
+    .limit(1);
+
+  await notifyRoles(db, actor.tenantId, ["owner", "admin", "staff"], {
+    kind: input.accept ? "serving_accepted" : "serving_declined",
+    messageKey: input.accept ? "bell.servingAccepted" : "bell.servingDeclined",
+    params: {
+      name: [about?.first, about?.last].filter(Boolean).join(" "),
+      team: about?.team ?? "",
+      date: about?.day ?? "",
+    },
+    href: "/schedule",
+  });
 }
 
 // ---------------------------------------------------------------------------

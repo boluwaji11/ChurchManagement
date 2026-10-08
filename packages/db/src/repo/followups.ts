@@ -8,6 +8,7 @@ import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import { canManageChurch } from "./church";
+import { notifyUsers } from "./notifications";
 
 /**
  * R5.1 to R5.7. Follow-up, which is the difference between a database and a
@@ -660,14 +661,36 @@ export async function unassignedFollowUps(db: Tx): Promise<FollowUp[]> {
 /** R5.1. Giving a step to somebody, or taking it back. */
 export async function assignFollowUp(
   db: Tx,
-  actor: { tenantId: string; role: TenantRole },
+  actor: { tenantId: string; role: TenantRole; userId?: string | null },
   input: { id: string; assigneeUserId: string | null },
 ): Promise<void> {
   if (!canFollowUp(actor)) throw new PermissionError(actor.role, "manageFollowUps");
-  await db
+  const [changed] = await db
     .update(followUps)
     .set({ assigneeUserId: input.assigneeUserId, updatedAt: new Date() })
-    .where(eq(followUps.id, input.id));
+    .where(eq(followUps.id, input.id))
+    .returning({ id: followUps.id, memberId: followUps.memberId });
+
+  /*
+   * R5.3, R24.6. Somebody has been given a person to call, and giving it to
+   * them is the whole of the handover: there is no inbox it arrives in. A
+   * volunteer who assigns a step to themselves is told nothing, because they
+   * have just this second done it.
+   */
+  if (changed && input.assigneeUserId && input.assigneeUserId !== actor.userId) {
+    const [person] = await db
+      .select({ first: members.firstName, last: members.lastName })
+      .from(members)
+      .where(eq(members.id, changed.memberId))
+      .limit(1);
+
+    await notifyUsers(db, actor.tenantId, [input.assigneeUserId], {
+      kind: "followup_assigned",
+      messageKey: "bell.followupAssigned",
+      params: { name: [person?.first, person?.last].filter(Boolean).join(" ") },
+      href: "/followups",
+    });
+  }
 }
 
 export interface PipelineCount {

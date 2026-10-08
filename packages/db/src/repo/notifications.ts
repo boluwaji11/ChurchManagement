@@ -1,4 +1,5 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import type { Sql, TransactionSql } from "postgres";
 import type { Tx } from "../client";
 import { notifications } from "../schema/notifications";
 import { tenantMembers } from "../schema/tenancy";
@@ -120,9 +121,44 @@ export async function notifyRoles(
   const rows = await db
     .select({ userId: tenantMembers.userId })
     .from(tenantMembers)
-    .where(inArray(tenantMembers.role, roles as never[]));
+    .where(and(
+      // RLS already holds this to one church. Named again because the same
+      // call on a connection without it would tell every church in the table.
+      eq(tenantMembers.tenantId, tenantId),
+      inArray(tenantMembers.role, roles as never[]),
+    ));
 
   await notifyUsers(db, tenantId, rows.map((r) => r.userId), input);
+}
+
+/**
+ * R24.6. The same, written on the raw connection.
+ *
+ * A public form is answered by somebody with no account and no church, so it
+ * is saved on the owner connection, and the church it belongs to is the form's
+ * rather than the session's. The tenant is therefore filtered here rather than
+ * left to a policy, and both statements name it.
+ */
+export async function notifyRolesRaw(
+  tx: Sql | TransactionSql,
+  tenantId: string,
+  roles: TenantRole[],
+  input: NotifyInput,
+): Promise<void> {
+  if (roles.length === 0) return;
+
+  await tx`
+    insert into notifications (tenant_id, user_id, kind, message_key, params, href)
+    select ${tenantId}, user_id, ${input.kind}, ${input.messageKey},
+           ${JSON.stringify(input.params ?? {})}::jsonb, ${input.href ?? null}
+      from tenant_members
+     where tenant_id = ${tenantId}
+       and role::text = any(${roles as string[]})`;
+
+  await tx`
+    delete from notifications
+     where tenant_id = ${tenantId}
+       and created_at < now() - ${`${NOTIFICATION_KEEP_DAYS} days`}::interval`;
 }
 
 /** R24.6. How many a person has not read. The number on the bell. */

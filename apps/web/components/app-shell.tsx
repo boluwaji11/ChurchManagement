@@ -9,6 +9,7 @@ import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";
 import { TopBar } from "./shell/top-bar";
 import { NotificationBell } from "./shell/bell";
 import { when } from "@/lib/when";
+import { shortDate } from "@/lib/dates";
 import { navFor } from "./shell/nav";
 import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
 import { SetupDock } from "./setup-dock";
@@ -32,6 +33,28 @@ import { TabTitle } from "./tab-title";
  * The role shown here comes from tenant_members, not from anything the browser
  * sent. It is the same value the data layer used to answer the request.
  */
+/** An ISO date, as written where the church is. */
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * R24.6, R24.x. What a notification stored, in the church's own hand.
+ *
+ * The words are not kept with a notification, only the key and what it fills
+ * in, so a line written on Tuesday reads in Friday's wording. A date is the
+ * one value that cannot survive that way: 2026-10-11 is not how anybody
+ * writes a date, so it is turned here, at the moment it is read.
+ */
+function readable(
+  params: Record<string, string | number> | null,
+): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  if (!params) return out;
+  for (const [key, value] of Object.entries(params)) {
+    out[key] = typeof value === "string" && ISO_DAY.test(value) ? shortDate(value) : value;
+  }
+  return out;
+}
+
 export async function AppShell({
   session,
   title,
@@ -134,7 +157,7 @@ export async function AppShell({
                 kind: NOTIFICATION_LOOK[one.kind].icon,
                 hue: NOTIFICATION_LOOK[one.kind].hue,
                 messageKey: one.messageKey,
-                params: one.params,
+                params: readable(one.params),
                 href: one.href,
                 unread: one.unread,
                 when: when(one.createdAt),

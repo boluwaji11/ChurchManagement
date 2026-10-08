@@ -37,7 +37,7 @@ export const en = {
   "bell.servingAccepted": "{name} accepted {team} on {date}",
   "bell.incident": "An incident was filed in {room}",
   "bell.followupAssigned": "{name} was assigned to you",
-  "bell.duplicate": "{count} possible duplicates are waiting",
+  "bell.duplicate": "{name} may already be in your members",
   "bell.formResponse": "{form} has new responses",
   "when.now": "Just now",
   "when.minutes.one": "{count} min ago",
