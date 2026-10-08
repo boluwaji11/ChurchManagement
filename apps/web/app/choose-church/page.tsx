@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Church, Plus } from "lucide-react";
-import { membershipsForUser, canEditPeople, canReadIncidents, resolveTenantBySlug } from "@connectapp/db";
+import { membershipsForUser, resolveTenantBySlug } from "@connectapp/db";
+import { landingForRole } from "@/lib/landing";
 import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignedInAs } from "@/components/signed-in-as";
@@ -81,11 +82,10 @@ export default async function ChooseChurch({
           {memberships.map((m) => (
             <li key={m.tenantId}>
               <Link
-                href={`${
-                  canEditPeople(m.role as never) || canReadIncidents(m.role as never)
-                    ? "/members"
-                    : "/home"
-                }?church=${m.tenantSlug}`}
+                /* R1.4. The same screen signing in to that church would
+                   open, so picking one out of a list and signing in to it
+                   land in the same place. */
+                href={`${landingForRole(m.role)}?church=${m.tenantSlug}`}
                 className={`group flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 no-underline shadow-sm ${LIFT}`}
               >
                 <span className="flex items-center gap-3">

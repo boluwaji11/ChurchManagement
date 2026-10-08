@@ -32,12 +32,38 @@ export function Confirm({
   /** The way out. Defaults to Cancel. */
   keepLabel?: string;
   disabled?: boolean;
-  onConfirm: () => void;
+  /**
+   * What to do when they say yes.
+   *
+   * Hand back what the work returns and the box stays open with its button
+   * busy until it lands, which is the only way a confirmation can obey the
+   * rule that the control which started the work shows it. Return nothing
+   * and the box closes on the press, as it always did.
+   */
+  onConfirm: () => void | Promise<unknown>;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [working, setWorking] = React.useState(false);
+
+  const say = () => {
+    const answer = onConfirm();
+    if (!(answer instanceof Promise)) {
+      setOpen(false);
+      return;
+    }
+
+    setWorking(true);
+    void answer.finally(() => {
+      setWorking(false);
+      setOpen(false);
+    });
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    /* While the work runs the box stays put: pressing outside it or the
+       cross would leave the reader looking at a list that has not changed
+       yet, wondering whether they stopped it. */
+    <Dialog open={open} onOpenChange={(on) => (working ? null : setOpen(on))}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent alert title={title}>
@@ -46,17 +72,20 @@ export function Confirm({
         ) : null}
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={working}
+            onClick={() => setOpen(false)}
+          >
             {keepLabel ?? t("action.cancel")}
           </Button>
           <Button
             type="button"
             variant="danger"
             disabled={disabled}
-            onClick={() => {
-              setOpen(false);
-              onConfirm();
-            }}
+            loading={working}
+            onClick={say}
           >
             {confirmLabel}
           </Button>
