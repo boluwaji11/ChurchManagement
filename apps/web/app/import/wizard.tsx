@@ -218,7 +218,10 @@ function Steps({ current }: { current: Step }) {
   const index = order.indexOf(current as (typeof order)[number]);
 
   return (
-    <ol className="flex items-center justify-center overflow-x-auto">
+    /* R24.6. On a phone only the step underway carries its words. Four
+       labels side by side do not fit, and a strip that scrolls sideways
+       parks the first step off the edge of the screen. */
+    <ol className="flex items-center justify-center">
       {order.map((s, i) => {
         const done = i < index;
         const now = i === index;
@@ -244,7 +247,7 @@ function Steps({ current }: { current: Step }) {
               >
                 {done ? "\u2713" : i + 1}
               </span>
-              {labels[s]}
+              <span className={now ? "" : "hidden sm:inline"}>{labels[s]}</span>
             </span>
             {i < order.length - 1 ? (
               <span
@@ -354,7 +357,62 @@ function MapColumns({
         ) : null}
       </div>
 
-      <ResizableTable id="import-preview" className="rounded-lg border border-line bg-surface">
+      {/* R19.x, R24.6. One column to a card on a phone. Matching a column to
+          a field is the whole of this step, and the control that does it
+          cannot sit off the right of the screen. */}
+      <ul className="flex flex-col gap-2 sm:hidden">
+        {headers.map((header) => {
+          const current = mapping[header] ?? IGNORE;
+          return (
+            <li
+              key={header}
+              className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4"
+            >
+              <span className="flex min-w-0 flex-col">
+                <span className="text-[12px] font-medium text-fg-subtle">
+                  {t("import.column")}
+                </span>
+                <span className="truncate font-medium text-fg">{header}</span>
+              </span>
+
+              {inspection.samples?.[header] ? (
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-[12px] font-medium text-fg-subtle">
+                    {t("import.sample")}
+                  </span>
+                  <span className="truncate text-[13px] text-fg-muted">
+                    {inspection.samples[header]}
+                  </span>
+                </span>
+              ) : null}
+
+              <Combobox
+                className="w-full"
+                options={[
+                  { value: IGNORE_VALUE, label: t("import.ignore") },
+                  ...fields
+                    .filter((f) => f.key === current || !taken.has(f.key))
+                    .map((f) => ({ value: f.key, label: f.label })),
+                ]}
+                value={current === IGNORE ? IGNORE_VALUE : current}
+                onChange={(v) =>
+                  setMapping({ ...mapping, [header]: v === IGNORE_VALUE ? IGNORE : v })
+                }
+                clearable={false}
+                placeholder={t("import.findField")}
+                emptyLabel={t("import.noField")}
+                clearLabel={t("date.clear")}
+                aria-label={t("import.field")}
+              />
+            </li>
+          );
+        })}
+      </ul>
+
+      <ResizableTable
+        id="import-preview"
+        className="hidden rounded-lg border border-line bg-surface sm:block"
+      >
         <table className="w-full min-w-[600px] border-collapse text-left">
           <thead>
             <tr className="text-[12px] font-semibold text-fg">
@@ -501,7 +559,7 @@ function PreviewStep({
         </Banner>
       ) : null}
 
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+      <div className="grid grid-cols-2 gap-3 sm:[grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
         <Stat label={t("import.stat.new")} value={totals.create} />
         <Stat label={t("import.stat.updates")} value={totals.update} />
         <Stat
