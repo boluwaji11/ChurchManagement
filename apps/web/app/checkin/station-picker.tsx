@@ -48,6 +48,12 @@ export function StationPicker({
   const [chosen, setChosen] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
+  /* The station being claimed, so one card's button shows the wait. */
+  const [claiming, setClaiming] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setClaiming(undefined);
+  }, [pending]);
 
   React.useEffect(() => {
     let saved: string | null = null;
@@ -71,6 +77,7 @@ export function StationPicker({
   };
 
   const choose = (id: string) => {
+    setClaiming(id);
     startTransition(async () => {
       const result = await claim(id, church);
       if (result.name) remember(id);
@@ -172,7 +179,11 @@ export function StationPicker({
             <span className="text-[length:var(--d-text-body)] text-fg">{option.name}</span>
             <Badge tone="neutral">{t(`stations.mode.${option.mode}` as never)}</Badge>
           </div>
-          <Button disabled={pending} onClick={() => choose(option.id)}>
+          <Button
+            loading={claiming === option.id}
+            disabled={pending}
+            onClick={() => choose(option.id)}
+          >
             {t("checkin.useThis")}
           </Button>
         </Card>

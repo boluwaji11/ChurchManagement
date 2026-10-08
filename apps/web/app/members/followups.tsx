@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Check, Undo2, LogOut } from "lucide-react";
 import {
-  Badge, Banner, Button, IconButton, Field, HueDot, HueTag, Input, Separator,
+  Badge, Banner, Button, IconButton, Field, HueDot, HueTag, Input, Separator, Spinner,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate,
@@ -70,12 +70,21 @@ export function FollowUps({
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  /* Which step's action is running, so one control shows it. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
       if (!result.error) router.refresh();
     });
+  };
 
   const open = entries.filter((entry) => entry.status === "open");
   const closed = entries.filter((entry) => entry.status !== "open");
@@ -92,6 +101,7 @@ export function FollowUps({
           today={today}
           canEdit={canEdit}
           pending={pending}
+          doing={doing}
           run={run}
         />
       ))}
@@ -142,6 +152,7 @@ function Thread({
   today,
   canEdit,
   pending,
+  doing,
   run,
 }: {
   church: string;
@@ -149,7 +160,8 @@ function Thread({
   today: string;
   canEdit: boolean;
   pending: boolean;
-  run: (work: () => Promise<{ error?: string }>) => void;
+  doing?: string;
+  run: (key: string, work: () => Promise<{ error?: string }>) => void;
 }) {
   const hue = entry.pipelineHue as Hue;
 
@@ -166,7 +178,10 @@ function Thread({
           <LeaveDialog
             name={entry.pipelineName}
             pending={pending}
-            onConfirm={(reason) => run(() => leaveFollowUp(entry.id, reason, church))}
+            busy={doing === `leave:${entry.id}`}
+            onConfirm={(reason) =>
+              run(`leave:${entry.id}`, () => leaveFollowUp(entry.id, reason, church))
+            }
           />
         ) : null}
       </div>
@@ -184,6 +199,7 @@ function Thread({
               today={today}
               canEdit={canEdit}
               pending={pending}
+              doing={doing}
               run={run}
             />
           </li>
@@ -235,12 +251,21 @@ export function PersonTasks({
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  /* Which step's action is running, so one control shows it. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
       if (!result.error) router.refresh();
     });
+  };
 
   const open = tasks.filter((task) => task.doneAt === null);
   const done = tasks.filter((task) => task.doneAt !== null);
@@ -260,6 +285,7 @@ export function PersonTasks({
                 today={today}
                 canEdit={canEdit}
                 pending={pending}
+                doing={doing}
                 run={run}
               />
             </li>
@@ -334,6 +360,7 @@ function StartDialog({
           <div className="flex flex-wrap items-center justify-end gap-3">
             <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
               <Button
+              loading={saving}
               disabled={pending || saving || !pipelineId}
               onClick={() => {
                 const data = new FormData();
@@ -366,6 +393,7 @@ function Step({
   today,
   canEdit,
   pending,
+  doing,
   run,
 }: {
   church: string;
@@ -373,7 +401,8 @@ function Step({
   today: string;
   canEdit: boolean;
   pending: boolean;
-  run: (work: () => Promise<{ error?: string }>) => void;
+  doing?: string;
+  run: (key: string, work: () => Promise<{ error?: string }>) => void;
 }) {
   const overdue = step.doneAt === null && step.dueOn !== null && step.dueOn < today;
 
@@ -405,17 +434,22 @@ function Step({
             label={t("followups.undo")}
             variant="ghost"
             disabled={pending}
-            onClick={() => run(() => undoStep(step.id, church))}
+            onClick={() => run(`undo:${step.id}`, () => undoStep(step.id, church))}
           >
-            <Undo2 />
+            {doing === `undo:${step.id}` ? (
+              <Spinner label={t("followups.undo")} />
+            ) : (
+              <Undo2 />
+            )}
           </IconButton>
         ) : (
           <span className="flex items-center gap-1">
             {step.mine ? null : (
               <Button
                 variant="ghost"
+                loading={doing === `take:${step.id}`}
                 disabled={pending}
-                onClick={() => run(() => takeStep(step.id, true, church))}
+                onClick={() => run(`take:${step.id}`, () => takeStep(step.id, true, church))}
               >
                 {t("followups.take")}
               </Button>
@@ -423,7 +457,10 @@ function Step({
             <DoneDialog
               title={step.title}
               pending={pending}
-              onConfirm={(outcome) => run(() => finishStep(step.id, outcome, church))}
+              busy={doing === `done:${step.id}`}
+              onConfirm={(outcome) =>
+                run(`done:${step.id}`, () => finishStep(step.id, outcome, church))
+              }
             />
           </span>
         )
@@ -435,10 +472,13 @@ function Step({
 function DoneDialog({
   title,
   pending,
+  busy,
   onConfirm,
 }: {
   title: string;
   pending: boolean;
+  /* The sheet closes before the write lands, so the trigger carries it. */
+  busy: boolean;
   onConfirm: (outcome: string | null) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -451,7 +491,7 @@ function DoneDialog({
           label={t("followups.doneAction")}
           variant="secondary"
         >
-          <Check />
+          {busy ? <Spinner label={t("followups.doneAction")} /> : <Check />}
         </IconButton>
       </SheetTrigger>
       <SheetContent title={title} closeLabel={t("common.close")}>
@@ -481,10 +521,13 @@ function DoneDialog({
 function LeaveDialog({
   name,
   pending,
+  busy,
   onConfirm,
 }: {
   name: string;
   pending: boolean;
+  /* The dialog closes before the write lands, so the trigger carries it. */
+  busy: boolean;
   onConfirm: (reason: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -497,7 +540,7 @@ function LeaveDialog({
           label={t("followups.leave")}
           variant="ghost"
         >
-          <LogOut />
+          {busy ? <Spinner label={t("followups.leave")} /> : <LogOut />}
         </IconButton>
       </DialogTrigger>
       <DialogContent alert title={t("followups.exitTitle", { name })}>
@@ -576,7 +619,9 @@ function TaskDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="submit" disabled={pending || saving}>{t("action.save")}</Button>
+              <Button type="submit" loading={saving} disabled={pending || saving}>
+                {t("action.save")}
+              </Button>
           </div>
         </form>
       </SheetContent>

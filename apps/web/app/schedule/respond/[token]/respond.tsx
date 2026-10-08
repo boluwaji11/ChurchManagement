@@ -79,7 +79,7 @@ export function Respond({
             <Button type="button" variant="ghost" onClick={() => setDeclining(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="submit" disabled={pending}>{t("respond.send")}</Button>
+              <Button type="submit" loading={pending}>{t("respond.send")}</Button>
           </div>
         </form>
       ) : (
@@ -87,7 +87,7 @@ export function Respond({
           <Button variant="secondary" disabled={pending} onClick={() => setDeclining(true)}>
             <X /> {t("respond.no")}
           </Button>
-              <Button disabled={pending} onClick={() => send(true, null)}>
+              <Button loading={pending} onClick={() => send(true, null)}>
             <Check /> {t("respond.yes")}
           </Button>
         </div>

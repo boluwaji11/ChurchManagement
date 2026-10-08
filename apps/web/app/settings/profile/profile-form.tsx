@@ -84,6 +84,7 @@ export function ProfileForm({
   const [birthday, setBirthday] = React.useState(values.dateOfBirth);
   const [anniversary, setAnniversary] = React.useState(values.anniversary);
   const [saving, startTransition] = React.useTransition();
+  const [removing, startRemoving] = React.useTransition();
   const file = React.useRef<HTMLInputElement>(null);
 
   const display = `${values.firstName} ${values.lastName}`.trim();
@@ -110,7 +111,10 @@ export function ProfileForm({
 
   return (
     <div className="flex flex-col gap-5">
-      <Working open={busy} label={t("profile.photo.uploading")} />
+      <Working
+        open={busy || removing}
+        label={removing ? t("profile.photo.removing") : t("profile.photo.uploading")}
+      />
 
       {error ? <Banner tone="danger" title={t("settings.profile.failed")}>{error}</Banner> : null}
 
@@ -164,6 +168,7 @@ export function ProfileForm({
                   // The photograph stays open behind the question, so the
                   // thing being removed is still on screen while it is asked
                   // about.
+                  disabled={removing}
                   onClick={() => setDropping(true)}
                 >
                   <Trash2 />
@@ -171,6 +176,7 @@ export function ProfileForm({
                 <IconButton
                   label={t("profile.photo.replace")}
                   variant="ghost"
+                  disabled={busy || removing}
                   onClick={() => file.current?.click()}
                 >
                   <RefreshCw />
@@ -207,17 +213,23 @@ export function ProfileForm({
               {t("profile.photo.removeBody")}
             </p>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setDropping(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={removing}
+                onClick={() => setDropping(false)}
+              >
                 {t("profile.photo.keep")}
               </Button>
               <Button
                 type="button"
                 variant="danger"
+                loading={removing}
                 onClick={() =>
-                  startTransition(async () => {
-                    setDropping(false);
+                  startRemoving(async () => {
                     const result = await clearPhoto(church);
                     setError(result.error);
+                    setDropping(false);
                     if (!result.error) {
                       setShowing(false);
                       router.refresh();

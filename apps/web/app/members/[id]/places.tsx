@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Plus, Star, Trash2 } from "lucide-react";
 import {
-  Banner, Button, Field, IconButton,
+  Banner, Button, Field, IconButton, Spinner,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
@@ -35,9 +35,17 @@ export function Places({
   const [label, setLabel] = React.useState<string>("home");
   const [error, setError] = React.useState<string>();
   const [pending, run] = React.useTransition();
+  /* Which row's action is running, so one icon spins rather than the lot. */
+  const [doing, setDoing] = React.useState<string>();
 
-  const act = (work: () => Promise<{ error?: string }>) =>
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const act = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     run(async () => setError((await work()).error));
+  };
 
   return (
     <div className="flex flex-col gap-2" aria-busy={pending}>
@@ -63,19 +71,31 @@ export function Places({
                 <IconButton
                   label={t("contact.makePrimary")}
                   disabled={pending}
-                  onClick={() => act(() => leadWithPlace(one.id, memberId, church))}
+                  onClick={() =>
+                    act(`primary:${one.id}`, () => leadWithPlace(one.id, memberId, church))
+                  }
                   className="size-7 min-h-0 [&_svg]:size-3.5"
                 >
-                  <Star />
+                  {doing === `primary:${one.id}` ? (
+                    <Spinner label={t("contact.makePrimary")} />
+                  ) : (
+                    <Star />
+                  )}
                 </IconButton>
               )}
               <IconButton
                 label={t("contact.remove", { value: one.line1 })}
                 disabled={pending}
-                onClick={() => act(() => removePlace(one.id, memberId, church))}
+                onClick={() =>
+                  act(`remove:${one.id}`, () => removePlace(one.id, memberId, church))
+                }
                 className="size-7 min-h-0 [&_svg]:size-3.5"
               >
-                <Trash2 />
+                {doing === `remove:${one.id}` ? (
+                  <Spinner label={t("contact.remove", { value: one.line1 })} />
+                ) : (
+                  <Trash2 />
+                )}
               </IconButton>
             </span>
           ) : null}
@@ -102,7 +122,7 @@ export function Places({
             title={t("contact.addAddress")}
             closeLabel={t("common.close")}
             footer={
-              <Button type="submit" form="add-address" disabled={pending}>
+              <Button type="submit" form="add-address" loading={pending}>
                 {t("contact.add")}
               </Button>
             }
@@ -110,7 +130,7 @@ export function Places({
             <form
               id="add-address"
               action={(data) => {
-                act(async () => {
+                act("add", async () => {
                   const result = await addPlace(
                     {
                       memberId,

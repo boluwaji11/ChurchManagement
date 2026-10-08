@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { LogOut } from "lucide-react";
 import {
   Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter,
@@ -26,6 +27,9 @@ export function SignOutButton({
   className?: string;
 }) {
   const text = label ?? t("action.signOut");
+  // The form posts and the browser navigates, so the flag is set on submit
+  // rather than read from a transition.
+  const [going, setGoing] = React.useState(false);
 
   return (
     <Dialog>
@@ -48,11 +52,18 @@ export function SignOutButton({
         </p>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="ghost" data-dismiss>{t("signOut.stay")}</Button>
+            <Button variant="ghost" data-dismiss disabled={going}>{t("signOut.stay")}</Button>
           </DialogClose>
-          <form action="/auth/sign-out" method="post" onSubmit={() => clearSectionMemory()}>
-            <Button type="submit" variant="danger">
-              <LogOut /> {text}
+          <form
+            action="/auth/sign-out"
+            method="post"
+            onSubmit={() => {
+              setGoing(true);
+              clearSectionMemory();
+            }}
+          >
+            <Button type="submit" variant="danger" loading={going}>
+              {going ? null : <LogOut />} {going ? t("common.signingOut") : text}
             </Button>
           </form>
         </DialogFooter>

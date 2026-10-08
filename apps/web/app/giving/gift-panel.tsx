@@ -49,6 +49,9 @@ export function GiftPanel({
 
   const [giver, setGiver] = React.useState("");
   const [hits, setHits] = React.useState<GiverHit[]>([]);
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
   const [fundId, setFundId] = React.useState(funds[0]?.id ?? "");
   const [amount, setAmount] = React.useState("");
   const [method, setMethod] = React.useState<GiftMethod>("cash");
@@ -78,10 +81,18 @@ export function GiftPanel({
 
   const look = (query: string) => {
     if (query.trim().length < 2) {
+      ticket.current++;
+      setSearching(false);
       setHits([]);
       return;
     }
-    void findGiver(query, church).then(setHits);
+    const mine = ++ticket.current;
+    setSearching(true);
+    void findGiver(query, church).then((found) => {
+      if (mine !== ticket.current) return;
+      setSearching(false);
+      setHits(found);
+    });
   };
 
   /** R13.10. On a count, saving keeps the panel open for the next envelope. */
@@ -171,6 +182,7 @@ export function GiftPanel({
                 setDirty(true);
               }}
               onQuery={look}
+              searching={searching}
             />
           </Field>
 

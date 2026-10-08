@@ -223,6 +223,9 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
 
   const [memberId, setMemberId] = React.useState("");
   const [hits, setHits] = React.useState<GiverHit[]>([]);
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
   const [amount, setAmount] = React.useState("");
   const [note, setNote] = React.useState("");
 
@@ -290,12 +293,21 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
                 setMemberId(id);
                 setDirty(true);
               }}
+              searching={searching}
               onQuery={(query) => {
                 if (query.trim().length < 2) {
+                  ticket.current++;
+                  setSearching(false);
                   setHits([]);
                   return;
                 }
-                void findGiver(query, church).then(setHits);
+                const mine = ++ticket.current;
+                setSearching(true);
+                void findGiver(query, church).then((found) => {
+                  if (mine !== ticket.current) return;
+                  setSearching(false);
+                  setHits(found);
+                });
               }}
             />
           </Field>

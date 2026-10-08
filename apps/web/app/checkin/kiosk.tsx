@@ -309,6 +309,7 @@ export function Kiosk({
           <div className="flex flex-wrap gap-3">
             <Button
               onClick={send}
+              loading={pending}
               disabled={
                 pending ||
                 (warnings(household.members.filter((p) => picked[p.id] && !p.checkedIn)).length > 0 &&

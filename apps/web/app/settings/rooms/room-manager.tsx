@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Minus, Archive, Undo2 } from "lucide-react";
 import {
   HUES,
-  Banner, Button, IconButton, Field, HueDot, Input,
+  Banner, Button, IconButton, Field, HueDot, Input, Spinner,
   Sheet, SheetTrigger, SheetContent, Switch,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   LIFT,
@@ -41,8 +41,19 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+  /* Which room's control was pressed, so one stepper spins rather than all. */
+  const [doing, setDoing] = React.useState<string>();
 
-  const act = (fn: (d: FormData) => Promise<{ error?: string }>, fields: Record<string, string>) => {
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const act = (
+    key: string,
+    fn: (d: FormData) => Promise<{ error?: string }>,
+    fields: Record<string, string>,
+  ) => {
+    setDoing(key);
     const data = new FormData();
     data.set("church", church);
     for (const [k, v] of Object.entries(fields)) data.set(k, v);
@@ -56,8 +67,8 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
   const open = rooms.filter((r) => !r.archived);
   const archived = rooms.filter((r) => r.archived);
 
-  const setCapacity = (room: RoomItem, next: number) =>
-    act(saveRoom, {
+  const setCapacity = (room: RoomItem, key: string, next: number) =>
+    act(key, saveRoom, {
       id: room.id,
       name: room.name,
       hue: room.hue,
@@ -103,8 +114,10 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                   />
                 }
                 title={t("rooms.editTitle", { name: room.name })}
-                onSave={(fields) => act(saveRoom, { id: room.id, ...fields })}
-                onArchive={() => act(archiveRoom, { id: room.id, archived: "1" })}
+                onSave={(fields) => act(`save:${room.id}`, saveRoom, { id: room.id, ...fields })}
+                onArchive={() =>
+                  act(`archive:${room.id}`, archiveRoom, { id: room.id, archived: "1" })
+                }
               />
 
               <div className="pointer-events-none relative flex items-center gap-2.5">
@@ -130,9 +143,15 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                     variant="secondary"
                     className="size-8 min-h-0 rounded-lg"
                     disabled={pending || (room.capacity ?? 0) <= 0}
-                    onClick={() => setCapacity(room, (room.capacity ?? 0) - 1)}
+                    onClick={() =>
+                      setCapacity(room, `fewer:${room.id}`, (room.capacity ?? 0) - 1)
+                    }
                   >
-                    <Minus />
+                    {doing === `fewer:${room.id}` ? (
+                      <Spinner label={t("rooms.fewer")} />
+                    ) : (
+                      <Minus />
+                    )}
                   </IconButton>
                   <span className="min-w-7 text-center font-semibold text-fg tabular-nums">
                     {room.capacity ?? 0}
@@ -142,9 +161,13 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                     variant="secondary"
                     className="size-8 min-h-0 rounded-lg"
                     disabled={pending}
-                    onClick={() => setCapacity(room, (room.capacity ?? 0) + 1)}
+                    onClick={() => setCapacity(room, `more:${room.id}`, (room.capacity ?? 0) + 1)}
                   >
-                    <Plus />
+                    {doing === `more:${room.id}` ? (
+                      <Spinner label={t("rooms.more")} />
+                    ) : (
+                      <Plus />
+                    )}
                   </IconButton>
                 </div>
               </div>
@@ -171,9 +194,15 @@ export function RoomManager({ church, rooms }: { church: string; rooms: RoomItem
                   label={t("rooms.restore")}
                   variant="ghost"
                   disabled={pending}
-                  onClick={() => act(archiveRoom, { id: room.id, archived: "0" })}
+                  onClick={() =>
+                    act(`restore:${room.id}`, archiveRoom, { id: room.id, archived: "0" })
+                  }
                 >
-                  <Undo2 />
+                  {doing === `restore:${room.id}` ? (
+                    <Spinner label={t("rooms.restore")} />
+                  ) : (
+                    <Undo2 />
+                  )}
                 </IconButton>
               </div>
             ))}
@@ -258,7 +287,12 @@ export function RoomSheet({
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form="room-form" disabled={pending || !name.trim()}>
+            <Button
+              type="submit"
+              form="room-form"
+              loading={pending}
+              disabled={pending || !name.trim()}
+            >
               {t("action.save")}
             </Button>
           </>

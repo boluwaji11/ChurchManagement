@@ -28,6 +28,9 @@ export function AttachGift({
   const [open, setOpen] = React.useState(false);
   const [memberId, setMemberId] = React.useState("");
   const [hits, setHits] = React.useState<GiverHit[]>([]);
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
 
@@ -59,12 +62,21 @@ export function AttachGift({
                 options={hits.map((one) => ({ value: one.id, label: one.name }))}
                 label={t("giving.gift.giver")}
                 onChange={setMemberId}
+                searching={searching}
                 onQuery={(query) => {
                   if (query.trim().length < 2) {
+                    ticket.current++;
+                    setSearching(false);
                     setHits([]);
                     return;
                   }
-                  void findGiver(query, church).then(setHits);
+                  const mine = ++ticket.current;
+                  setSearching(true);
+                  void findGiver(query, church).then((found) => {
+                    if (mine !== ticket.current) return;
+                    setSearching(false);
+                    setHits(found);
+                  });
                 }}
               />
             </Field>

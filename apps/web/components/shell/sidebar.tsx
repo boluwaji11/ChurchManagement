@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
-import { Avatar, Tooltip, cn } from "@connectapp/ui";
+import { Avatar, Tooltip, Working, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { FlameMark } from "../brand";
 import { activeHref, type NavTarget } from "./nav-active";
@@ -69,6 +69,7 @@ export function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = React.useState(initial);
+  const [going, setGoing] = React.useState(false);
   const reopen = useSectionMemory(entries);
   const forget = forgetSection;
 
@@ -212,11 +213,18 @@ export function Sidebar({
           action="/auth/sign-out"
           method="post"
           className="contents"
-          onSubmit={() => clearSectionMemory()}
+          onSubmit={() => {
+            setGoing(true);
+            clearSectionMemory();
+          }}
         >
+          {/* The post navigates the whole page, so the wait is covered rather
+              than left to the row that started it. */}
+          <Working open={going} label={t("common.signingOut")} />
           <Tooltip content={t("action.signOut")} side="right">
             <button
               type="submit"
+              disabled={going}
               aria-label={t("action.signOut")}
               className={cn(
                 "flex h-9 items-center gap-2.5 rounded-sm text-[13px] font-medium text-fg-muted hover:bg-line",

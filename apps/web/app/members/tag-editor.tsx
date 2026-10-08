@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useFormStatus } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { Button, Input, Banner, HueTag, HueDot, cn, type Hue } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -152,8 +153,7 @@ export function TagEditor({
         {creating ? (
           <form noValidate action={create} className="flex items-center gap-2">
             <Input name="name" autoFocus autoComplete="off" placeholder={t("tags.new")} aria-label={t("tags.new")} className="max-w-48" />
-            <Button type="submit" variant="secondary">{t("action.add")}</Button>
-            <Button type="button" variant="ghost" onClick={() => setCreating(false)}>{t("action.cancel")}</Button>
+            <CreateActions onCancel={() => setCreating(false)} />
           </form>
         ) : (
           <Button type="button" variant="ghost" onClick={() => setCreating(true)}>
@@ -162,5 +162,26 @@ export function TagEditor({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * R24.6. The two controls on the new tag form.
+ *
+ * Rendered inside the form, because that is where `useFormStatus` can see the
+ * submit it belongs to.
+ */
+function CreateActions({ onCancel }: { onCancel: () => void }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <>
+      <Button type="submit" variant="secondary" loading={pending}>
+        {t("action.add")}
+      </Button>
+      <Button type="button" variant="ghost" disabled={pending} onClick={onCancel}>
+        {t("action.cancel")}
+      </Button>
+    </>
   );
 }

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Archive, Check, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 import {
-  Banner, Button, Checkbox, Field, IconButton, Input,
+  Banner, Button, Checkbox, Field, IconButton, Input, Spinner,
   Sheet, SheetTrigger, SheetContent,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -214,7 +214,15 @@ export function RoleForm({
     setError(undefined);
   }, [open, role?.name, role?.permissions]);
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  /* Which of the two footer controls was pressed. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
@@ -223,6 +231,7 @@ export function RoleForm({
         router.refresh();
       }
     });
+  };
 
   const toggle = (permission: string, on: boolean) =>
     setHeld((current) =>
@@ -253,9 +262,13 @@ export function RoleForm({
                 variant="ghost"
                 className="mr-auto"
                 disabled={pending}
-                onClick={() => run(() => putAway(role.id, true, church))}
+                onClick={() => run("archive", () => putAway(role.id, true, church))}
               >
-                <Archive />
+                {doing === "archive" ? (
+                  <Spinner label={t("roles.archiveOne", { name: nameOf(role) })} />
+                ) : (
+                  <Archive />
+                )}
               </IconButton>
             ) : null}
 
@@ -264,9 +277,10 @@ export function RoleForm({
               /* R1.6. A role that holds nothing is a member with a different
                  word on it. The built-ins are exempt: Group leader holds none
                  of these and still means something. */
+              loading={doing === "save"}
               disabled={pending || !name.trim() || (!taking?.builtin && !role?.builtin && held.length === 0)}
               onClick={() =>
-                run(async () => {
+                run("save", async () => {
                   if (role) return saveRole(role.id, name, held, church);
                   if (!taking) return addRole(name, held, church);
 

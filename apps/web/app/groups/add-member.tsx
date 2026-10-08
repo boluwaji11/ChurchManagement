@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Banner, Combobox } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Searching } from "@/components/searching";
 import { findPerson, join, type PersonHit } from "./actions";
 
 /**
@@ -23,13 +24,24 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
   const [hits, setHits] = React.useState<PersonHit[]>([]);
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
 
   const look = (query: string) => {
     if (query.trim().length < 2) {
+      ticket.current++;
+      setSearching(false);
       setHits([]);
       return;
     }
-    void findPerson(query, church).then(setHits);
+    const mine = ++ticket.current;
+    setSearching(true);
+    void findPerson(query, church).then((found) => {
+      if (mine !== ticket.current) return;
+      setSearching(false);
+      setHits(found);
+    });
   };
 
   const add = (memberId: string) => {
@@ -46,20 +58,22 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
     <div className="flex flex-col gap-2" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
-      <Combobox
-        options={hits.map((one) => ({
-          value: one.id,
-          label: one.name,
-          keywords: one.household ?? undefined,
-        }))}
-        value=""
-        onChange={add}
-        onQueryChange={look}
-        icon={<Search />}
-        placeholder={t("groups.addPerson")}
-        emptyLabel={t("person.noMatch")}
-        clearLabel={t("date.clear")}
-      />
+      <Searching on={searching}>
+        <Combobox
+          options={hits.map((one) => ({
+            value: one.id,
+            label: one.name,
+            keywords: one.household ?? undefined,
+          }))}
+          value=""
+          onChange={add}
+          onQueryChange={look}
+          icon={<Search />}
+          placeholder={t("groups.addPerson")}
+          emptyLabel={t("person.noMatch")}
+          clearLabel={t("date.clear")}
+        />
+      </Searching>
     </div>
   );
 }

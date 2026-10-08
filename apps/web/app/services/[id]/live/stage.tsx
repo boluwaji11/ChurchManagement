@@ -41,6 +41,12 @@ export function Stage({
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
   const [now, setNow] = React.useState(() => Date.now());
+  /* Which of the four controls was pressed, so one of them shows the wait. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
 
   // The clock ticks locally, the state is asked for less often.
   React.useEffect(() => {
@@ -57,7 +63,8 @@ export function Stage({
     return () => clearInterval(poll);
   }, [occurrenceId, church]);
 
-  const run = (work: () => Promise<{ error?: string }>) => {
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
@@ -152,27 +159,34 @@ export function Stage({
               <>
                 <Button
                   variant="secondary"
+                  loading={doing === "back"}
                   disabled={pending || at <= 0}
-                  onClick={() => run(() => move(occurrenceId, "back", church))}
+                  onClick={() => run("back", () => move(occurrenceId, "back", church))}
                 >
                   <ChevronLeft /> {t("live.back")}
                 </Button>
                 <Button
+                  loading={doing === "next"}
                   disabled={pending}
-                  onClick={() => run(() => move(occurrenceId, "next", church))}
+                  onClick={() => run("next", () => move(occurrenceId, "next", church))}
                 >
                   {t("live.next")} <ChevronRight />
                 </Button>
                 <Button
                   variant="ghost"
+                  loading={doing === "stop"}
                   disabled={pending}
-                  onClick={() => run(() => end(occurrenceId, church))}
+                  onClick={() => run("stop", () => end(occurrenceId, church))}
                 >
                   <Square /> {t("live.stop")}
                 </Button>
               </>
             ) : (
-              <Button disabled={pending} onClick={() => run(() => begin(occurrenceId, church))}>
+              <Button
+                loading={doing === "start"}
+                disabled={pending}
+                onClick={() => run("start", () => begin(occurrenceId, church))}
+              >
                 <Play /> {t("live.start")}
               </Button>
             )}
@@ -213,7 +227,7 @@ export function Stage({
                   <button
                     type="button"
                     disabled={pending}
-                    onClick={() => run(() => jumpTo(occurrenceId, item.id, church))}
+                    onClick={() => run(`jump:${item.id}`, () => jumpTo(occurrenceId, item.id, church))}
                     className={`flex w-full rounded-[var(--d-radius-control)] px-3 py-2.5 text-left hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] ${tone}`}
                   >
                     {body}

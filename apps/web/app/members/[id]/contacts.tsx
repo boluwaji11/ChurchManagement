@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Plus, Star, Trash2 } from "lucide-react";
 import {
-  Banner, Button, IconButton, Input,
+  Banner, Button, IconButton, Input, Spinner,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -40,6 +40,12 @@ export function Contacts({
   const [label, setLabel] = React.useState<string>(kind === "email" ? "home" : "mobile");
   const [error, setError] = React.useState<string>();
   const [pending, run] = React.useTransition();
+  /* Which row's action is running, so one icon spins rather than the lot. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
 
   const mine = contacts.filter((one) => one.kind === kind);
 
@@ -51,8 +57,10 @@ export function Contacts({
   const named = (one: ContactLabel) =>
     kind === "email" && one === "home" ? t("contact.personal") : t(`contactLabel.${one}` as never);
 
-  const act = (work: () => Promise<{ error?: string }>) =>
+  const act = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     run(async () => setError((await work()).error));
+  };
 
   return (
     <div className="flex flex-col gap-2" aria-busy={pending}>
@@ -85,20 +93,32 @@ export function Contacts({
                 <IconButton
                   label={t("contact.makePrimary")}
                   disabled={pending}
-                  onClick={() => act(() => leadWithOne(one.id, memberId, church))}
+                  onClick={() =>
+                    act(`primary:${one.id}`, () => leadWithOne(one.id, memberId, church))
+                  }
                   className="size-7 min-h-0 [&_svg]:size-3.5"
                 >
-                  <Star />
+                  {doing === `primary:${one.id}` ? (
+                    <Spinner label={t("contact.makePrimary")} />
+                  ) : (
+                    <Star />
+                  )}
                 </IconButton>
               )}
               {one.isSignIn ? null : (
                 <IconButton
                   label={t("contact.remove", { value: one.value })}
                   disabled={pending}
-                  onClick={() => act(() => removeOne(one.id, memberId, church))}
+                  onClick={() =>
+                    act(`remove:${one.id}`, () => removeOne(one.id, memberId, church))
+                  }
                   className="size-7 min-h-0 [&_svg]:size-3.5"
                 >
-                  <Trash2 />
+                  {doing === `remove:${one.id}` ? (
+                    <Spinner label={t("contact.remove", { value: one.value })} />
+                  ) : (
+                    <Trash2 />
+                  )}
                 </IconButton>
               )}
             </span>
@@ -136,10 +156,11 @@ export function Contacts({
               and an untyped button submits it. */}
           <Button
             type="button"
+            loading={pending}
             disabled={pending || !value.trim()}
             className="h-9 min-h-0 px-3 text-[13px]"
             onClick={() =>
-              act(async () => {
+              act("add", async () => {
                 const result = await addOne({ memberId, kind, label, value }, church);
                 if (!result.error) {
                   setValue("");

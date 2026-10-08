@@ -38,7 +38,7 @@ export function GroupBanner({
   const [busy, setBusy] = React.useState(false);
   const [asking, setAsking] = React.useState(false);
   const [error, setError] = useFormError(asking);
-  const [, startTransition] = React.useTransition();
+  const [removing, startTransition] = React.useTransition();
   const input = React.useRef<HTMLInputElement>(null);
 
   const upload = async (file: File) => {
@@ -65,8 +65,11 @@ export function GroupBanner({
   };
 
   return (
-    <div className="flex flex-col gap-2" aria-busy={busy}>
-      <Working open={busy} label={t("image.uploading")} />
+    <div className="flex flex-col gap-2" aria-busy={busy || removing}>
+      <Working
+        open={busy || removing}
+        label={removing ? t("image.removing") : t("image.uploading")}
+      />
       {error ? <Banner tone="danger" title={groupName}>{error}</Banner> : null}
 
       <div className="relative">
@@ -110,7 +113,7 @@ export function GroupBanner({
             <Button
               type="button"
               variant="secondary"
-              disabled={busy}
+              disabled={busy || removing}
               onClick={() => input.current?.click()}
               className="absolute right-3 bottom-3 h-[34px] min-h-0 gap-1.5 px-3 text-[13px] shadow-sm"
             >
@@ -122,7 +125,7 @@ export function GroupBanner({
               <IconButton
                 label={t("group.banner.remove")}
                 variant="secondary"
-                disabled={busy}
+                disabled={busy || removing}
                 onClick={() => setAsking(true)}
                 className="absolute top-3 right-3 size-8 min-h-0 shadow-sm"
               >
@@ -138,17 +141,19 @@ export function GroupBanner({
         <DialogContent alert title={t("group.banner.remove")} closeLabel={t("common.close")}>
           <p className="text-[length:var(--d-text-body)] text-fg">{t("group.photo.removeBody")}</p>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setAsking(false)}>{t("action.cancel")}</Button>
+            <Button variant="ghost" disabled={removing} onClick={() => setAsking(false)}>
+              {t("action.cancel")}
+            </Button>
             <Button
               variant="danger"
-              onClick={() => {
-                setAsking(false);
+              loading={removing}
+              onClick={() =>
                 startTransition(async () => {
                   const result = await clearGroupPhoto(groupId, church);
                   setError(result.error);
+                  setAsking(false);
                   if (!result.error) router.refresh();
-                });
-              }}
+                })}
             >
               {t("group.banner.remove")}
             </Button>

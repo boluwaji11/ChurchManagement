@@ -32,7 +32,7 @@ export function ChurchLogo({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
-  const [, startTransition] = React.useTransition();
+  const [removing, startTransition] = React.useTransition();
   const [busy, setBusy] = React.useState(false);
   const [showing, setShowing] = React.useState(false);
   const [dropping, setDropping] = React.useState(false);
@@ -65,13 +65,18 @@ export function ChurchLogo({
     startTransition(async () => {
       const result = await clearLogo(data);
       setError(result.error);
+      setDropping(false);
+      setShowing(false);
       if (!result.error) router.refresh();
     });
   };
 
   return (
-    <div className="flex flex-col gap-3" aria-busy={busy}>
-      <Working open={busy} label={t("church.logo.uploading")} />
+    <div className="flex flex-col gap-3" aria-busy={busy || removing}>
+      <Working
+        open={busy || removing}
+        label={removing ? t("church.logo.removing") : t("church.logo.uploading")}
+      />
 
       {error ? <Banner tone="danger" title={t("church.logo")}>{error}</Banner> : null}
 
@@ -110,6 +115,7 @@ export function ChurchLogo({
                   <IconButton
                     label={t("church.logo.remove")}
                     variant="ghost"
+                    disabled={removing}
                     onClick={() => setDropping(true)}
                   >
                     <Trash2 />
@@ -117,7 +123,7 @@ export function ChurchLogo({
                   <IconButton
                     label={t("church.logo.upload")}
                     variant="ghost"
-                    disabled={busy}
+                    disabled={busy || removing}
                     onClick={() => input.current?.click()}
                   >
                     <RefreshCw />
@@ -136,7 +142,7 @@ export function ChurchLogo({
           <span className="flex shrink-0 flex-col items-center gap-1.5">
             <button
               type="button"
-              disabled={!canEdit || busy}
+              disabled={!canEdit || busy || removing}
               onClick={() => input.current?.click()}
               aria-label={t("church.logo.upload")}
               className="group relative grid size-14 place-items-center rounded-xl bg-primary font-display text-[24px] text-primary-fg enabled:cursor-pointer"
@@ -192,17 +198,19 @@ export function ChurchLogo({
             {t("church.logo.removeBody")}
           </p>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setDropping(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={removing}
+              onClick={() => setDropping(false)}
+            >
               {t("church.logo.keep")}
             </Button>
             <Button
               type="button"
               variant="danger"
-              onClick={() => {
-                setDropping(false);
-                setShowing(false);
-                remove();
-              }}
+              loading={removing}
+              onClick={remove}
             >
               <Trash2 /> {t("church.logo.remove")}
             </Button>

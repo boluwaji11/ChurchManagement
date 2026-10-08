@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, X, HelpCircle } from "lucide-react";
 import {
   Avatar, Badge, Banner, Button, Combobox, IconButton, Card, CardTitle, Field, Input,
-  Separator,
+  Separator, Spinner,
   Dialog, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -15,6 +15,7 @@ import { useFormError } from "@/lib/form-error";
 import { usePanelGuard } from "@/components/panel-guard";
 import { Confirm } from "@/components/confirm";
 import { Said } from "@/components/said";
+import { Searching } from "@/components/searching";
 import {
   invite, invitees, withdraw, changeRole, removeAccess,
 } from "./actions";
@@ -95,13 +96,25 @@ export function Team({
   /** R1.4. Whether the person reading this holds the church's own keys. */
   const iAmOwner = members.some((one) => one.isSelf && one.role === "owner");
 
-  const run = (work: () => Promise<{ error?: string }>, said?: string) =>
+  /*
+   * Which row's action is running. Both of these are confirmed in a dialog
+   * that closes before the write lands, so the row's own control carries it.
+   */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>, said?: string) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
       setMessage(result.error ? undefined : said);
       if (!result.error) router.refresh();
     });
+  };
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
@@ -133,6 +146,7 @@ export function Team({
                 setChanging(null);
                 if (next) {
                   run(
+                    `role:${next.member.userId}`,
                     () => {
                       const picked = roles.find((r) => r.id === next.role);
                       return picked?.builtin
@@ -170,6 +184,7 @@ export function Team({
                 setRemoving(null);
                 if (who) {
                   run(
+                    `remove:${who.userId}`,
                     () => removeAccess(who.userId, church),
                     t("team.removed", { name: (who.name ?? who.email).split(" ")[0]! }),
                   );
@@ -280,7 +295,11 @@ export function Team({
                       disabled={pending}
                       onClick={() => setRemoving(member)}
                     >
-                      <X />
+                      {doing === `remove:${member.userId}` ? (
+                        <Spinner label={t("team.remove")} />
+                      ) : (
+                        <X />
+                      )}
                     </IconButton>
                   )}
                 </td>
@@ -314,14 +333,22 @@ export function Team({
                       body={t("team.withdrawBody")}
                       confirmLabel={t("team.withdraw")}
                       disabled={pending}
-                      onConfirm={() => run(() => withdraw(invitation.id, church))}
+                      onConfirm={() =>
+                        run(`withdraw:${invitation.id}`, () =>
+                          withdraw(invitation.id, church),
+                        )
+                      }
                       trigger={
                         <IconButton
                           label={t("team.withdraw")}
                           variant="ghost"
                           disabled={pending}
                         >
-                          <X />
+                          {doing === `withdraw:${invitation.id}` ? (
+                            <Spinner label={t("team.withdraw")} />
+                          ) : (
+                            <X />
+                          )}
                         </IconButton>
                       }
                     />
@@ -483,16 +510,27 @@ function InviteDialog({
   const [person, setPerson] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [found, setFound] = React.useState<{ id: string; name: string; email: string }[]>([]);
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
   const [email, setEmail] = React.useState("");
 
   const look = React.useCallback(
     (search: string) => {
       setQuery(search);
       if (!search.trim()) {
+        ticket.current++;
+        setSearching(false);
         setFound([]);
         return;
       }
-      void invitees(search, church).then(setFound);
+      const mine = ++ticket.current;
+      setSearching(true);
+      void invitees(search, church).then((people) => {
+        if (mine !== ticket.current) return;
+        setSearching(false);
+        setFound(people);
+      });
     },
     [church],
   );
@@ -523,7 +561,12 @@ function InviteDialog({
         closeLabel={t("common.close")}
         footer={
           <>
-            <Button type="submit" form={formId} disabled={pending || saving || !dirty || !role}>
+            <Button
+              type="submit"
+              form={formId}
+              loading={saving}
+              disabled={pending || saving || !dirty || !role}
+            >
               {t("team.send")}
             </Button>
           </>
@@ -556,23 +599,25 @@ function InviteDialog({
           <input type="hidden" name="memberId" value={person} />
 
           <Field label={t("team.fromPeople")}>
-            <Combobox
-              options={found.map((one) => ({
-                value: one.id,
-                label: one.name,
-                keywords: one.email,
-              }))}
-              value={person}
-              onChange={(id) => {
-                setPerson(id);
-                setEmail(found.find((one) => one.id === id)?.email ?? "");
-              }}
-              onQueryChange={look}
-              placeholder={t("team.findPerson")}
-              emptyLabel={query.trim() ? t("team.noPerson") : t("team.typeName")}
-              clearLabel={t("date.clear")}
-              aria-label={t("team.fromPeople")}
-            />
+            <Searching on={searching}>
+              <Combobox
+                options={found.map((one) => ({
+                  value: one.id,
+                  label: one.name,
+                  keywords: one.email,
+                }))}
+                value={person}
+                onChange={(id) => {
+                  setPerson(id);
+                  setEmail(found.find((one) => one.id === id)?.email ?? "");
+                }}
+                onQueryChange={look}
+                placeholder={t("team.findPerson")}
+                emptyLabel={query.trim() ? t("team.noPerson") : t("team.typeName")}
+                clearLabel={t("date.clear")}
+                aria-label={t("team.fromPeople")}
+              />
+            </Searching>
           </Field>
 
           <Field label={t("team.email")} required>

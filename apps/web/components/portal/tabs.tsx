@@ -7,7 +7,7 @@ import { Bell, BellOff, Download, LogOut, Settings } from "lucide-react";
 import {
   Avatar,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator,
+  DropdownMenuSeparator, Working,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { useInstall, usePush } from "./installed";
@@ -97,6 +97,7 @@ export function PortalAccount({
    * never the thing that was clicked.
    */
   const out = React.useRef<HTMLFormElement>(null);
+  const [going, setGoing] = React.useState(false);
   const install = useInstall();
   const push = usePush(church);
 
@@ -133,11 +134,20 @@ export function PortalAccount({
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => out.current?.requestSubmit()}>
+        <DropdownMenuItem
+          disabled={going}
+          onSelect={() => {
+            setGoing(true);
+            out.current?.requestSubmit();
+          }}
+        >
           <LogOut /> {t("action.signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
 
+      {/* The post navigates the whole page, and the menu has already closed,
+          so the wait is covered. */}
+      <Working open={going} label={t("common.signingOut")} />
       <form ref={out} action="/auth/sign-out" method="post" hidden />
     </DropdownMenu>
   );

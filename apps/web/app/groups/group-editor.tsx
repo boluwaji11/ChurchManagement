@@ -10,6 +10,7 @@ import { t } from "@connectapp/i18n";
 import { imageLimit } from "@/components/image-limit";
 import { TimeField } from "@/components/time-field";
 import { Picker } from "@/components/picker";
+import { Searching } from "@/components/searching";
 import { RichText } from "@/components/rich-text";
 import { AddressFields } from "@/components/address-fields";
 import { toAddress } from "@/lib/address";
@@ -101,6 +102,9 @@ export function GroupEditor({
   // busy state is reported rather than passed.
   useReportBusy("group-form", saving);
   const file = React.useRef<HTMLInputElement>(null);
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
 
   React.useEffect(() => {
     if (!picture) {
@@ -117,10 +121,18 @@ export function GroupEditor({
   /** R9.3. Who runs it, looked up the way every other person field is. */
   const lookUp = (query: string) => {
     if (query.trim().length < 2) {
+      ticket.current++;
+      setSearching(false);
       setHits([]);
       return;
     }
-    void findPerson(query, church).then(setHits);
+    const mine = ++ticket.current;
+    setSearching(true);
+    void findPerson(query, church).then((found) => {
+      if (mine !== ticket.current) return;
+      setSearching(false);
+      setHits(found);
+    });
   };
 
   return (
@@ -431,21 +443,23 @@ export function GroupEditor({
                 </span>
               ))}
 
-              <Combobox
-                options={hits
-                  .filter((one) => !leaders.some((x) => x.id === one.id))
-                  .map((one) => ({ value: one.id, label: one.name }))}
-                value={leader}
-                onChange={(id) => {
-                  const hit = hits.find((one) => one.id === id);
-                  if (hit) setLeaders((was) => [...was, { id: hit.id, name: hit.name }]);
-                  setLeader("");
-                }}
-                onQueryChange={lookUp}
-                placeholder={t("groups.leaders.add")}
-                emptyLabel={t("person.noMatch")}
-                clearLabel={t("date.clear")}
-              />
+              <Searching on={searching}>
+                <Combobox
+                  options={hits
+                    .filter((one) => !leaders.some((x) => x.id === one.id))
+                    .map((one) => ({ value: one.id, label: one.name }))}
+                  value={leader}
+                  onChange={(id) => {
+                    const hit = hits.find((one) => one.id === id);
+                    if (hit) setLeaders((was) => [...was, { id: hit.id, name: hit.name }]);
+                    setLeader("");
+                  }}
+                  onQueryChange={lookUp}
+                  placeholder={t("groups.leaders.add")}
+                  emptyLabel={t("person.noMatch")}
+                  clearLabel={t("date.clear")}
+                />
+              </Searching>
             </div>
           </Side>
 

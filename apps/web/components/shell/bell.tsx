@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Bell, UserPlus, CircleX, CircleCheck, TriangleAlert, Copy, ClipboardList,
 } from "lucide-react";
-import { cn } from "@connectapp/ui";
+import { cn, Spinner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { readOne, readAll, olderThan } from "./bell-actions";
@@ -57,6 +57,9 @@ export function NotificationBell({
   // The first ten come from the server with the page. Show more appends.
   const [shown, setShown] = React.useState(items);
   const [loading, setLoading] = React.useState(false);
+  const [working, startTransition] = React.useTransition();
+  // Which line was pressed, so the spinner lands on that one.
+  const [going, setGoing] = React.useState<string | null>(null);
 
   React.useEffect(() => setShown(items), [items]);
 
@@ -71,9 +74,13 @@ export function NotificationBell({
   };
 
   const open1 = (item: BellItem) => {
-    setOpen(false);
-    void readOne(item.id, church);
-    if (item.href) router.push(`${item.href}?church=${church}`);
+    setGoing(item.id);
+    startTransition(async () => {
+      await readOne(item.id, church);
+      setOpen(false);
+      setGoing(null);
+      if (item.href) router.push(`${item.href}?church=${church}`);
+    });
   };
 
   return (
@@ -102,12 +109,15 @@ export function NotificationBell({
               {unread > 0 ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    void readAll(church);
-                    setOpen(false);
-                  }}
-                  className="cursor-pointer text-[13px] font-medium text-primary"
+                  disabled={working}
+                  onClick={() =>
+                    startTransition(async () => {
+                      await readAll(church);
+                      setOpen(false);
+                    })}
+                  className="flex cursor-pointer items-center gap-1.5 text-[13px] font-medium text-primary disabled:opacity-60"
                 >
+                  {working && going === null ? <Spinner label={t("bell.markAll")} /> : null}
                   {t("bell.markAll")}
                 </button>
               ) : null}
@@ -125,6 +135,7 @@ export function NotificationBell({
                     <button
                       key={item.id}
                       type="button"
+                      disabled={working}
                       onClick={() => open1(item)}
                       className={cn(
                         "flex w-full items-start gap-3 border-b border-sunken px-4 py-3 text-left hover:bg-canvas",
@@ -146,7 +157,9 @@ export function NotificationBell({
                         </span>
                         <span className="mt-0.5 block text-[12px] text-fg-subtle">{item.when}</span>
                       </span>
-                      {item.unread ? (
+                      {going === item.id ? (
+                        <Spinner className="mt-0.5 shrink-0 text-fg-muted" label={t("bell.opening")} />
+                      ) : item.unread ? (
                         <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
                       ) : null}
                     </button>
@@ -159,8 +172,9 @@ export function NotificationBell({
                   type="button"
                   onClick={showMore}
                   disabled={loading}
-                  className="w-full py-3 text-[13px] font-medium text-primary hover:bg-canvas disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-1.5 py-3 text-[13px] font-medium text-primary hover:bg-canvas disabled:opacity-60"
                 >
+                  {loading ? <Spinner label={t("bell.more")} /> : null}
                   {t("bell.more")}
                 </button>
               ) : null}

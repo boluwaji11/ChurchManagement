@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Download, Lock, LockOpen, Printer, Trash2 } from "lucide-react";
 import {
-  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Textarea,
+  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Spinner, Textarea,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { money } from "@/lib/money";
@@ -53,13 +53,21 @@ export function CountScreen({
   const [asking, setAsking] = React.useState(false);
   const [why, setWhy] = React.useState("");
   const [removing, setRemoving] = React.useState<string | null>(null);
+  /* Which action is running, so the control pressed is the one that spins. */
+  const [doing, setDoing] = React.useState<string>();
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
       if (!result.error) router.refresh();
     });
+  };
 
   const difference = count.enteredCents - count.expectedCents;
 
@@ -121,15 +129,19 @@ export function CountScreen({
           {count.closed ? (
             <Button
               variant="secondary"
-              disabled={pending}
-              onClick={() => run(() => openAgain(count.id, church))}
+              loading={pending}
+              onClick={() => run("reopen", () => openAgain(count.id, church))}
             >
               <LockOpen /> {t("giving.count.reopen")}
             </Button>
           ) : (
             <>
               <GiftPanel church={church} today={count.receivedOn} funds={funds} batchId={count.id} />
-              <Button disabled={pending} onClick={() => setAsking(true)}>
+              <Button
+                loading={doing === "close"}
+                disabled={pending}
+                onClick={() => setAsking(true)}
+              >
                 <Lock /> {t("giving.count.close")}
               </Button>
             </>
@@ -170,7 +182,11 @@ export function CountScreen({
                   disabled={pending}
                   onClick={() => setRemoving(line.id)}
                 >
-                  <Trash2 />
+                  {doing === `drop:${line.id}` ? (
+                    <Spinner label={t("giving.gift.remove")} />
+                  ) : (
+                    <Trash2 />
+                  )}
                 </IconButton>
               )}
             </li>
@@ -195,7 +211,7 @@ export function CountScreen({
               disabled={pending || (difference !== 0 && why.trim().length === 0)}
               onClick={() => {
                 setAsking(false);
-                run(() => finishCount(count.id, why.trim() || null, church));
+                run("close", () => finishCount(count.id, why.trim() || null, church));
               }}
             >
               {t("giving.count.close")}
@@ -216,7 +232,7 @@ export function CountScreen({
               onClick={() => {
                 const id = removing;
                 setRemoving(null);
-                if (id) run(() => dropGift(id, count.id, church));
+                if (id) run(`drop:${id}`, () => dropGift(id, count.id, church));
               }}
             >
               {t("giving.gift.remove")}

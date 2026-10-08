@@ -8,7 +8,7 @@ import {
   Archive, ArchiveRestore, Code, User,
 } from "lucide-react";
 import {
-  Banner, Button, IconButton, Input, cn,
+  Banner, Button, IconButton, Input, Spinner, cn,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
 } from "@connectapp/ui";
@@ -500,6 +500,11 @@ function Question({
   const [label, setLabel] = React.useState(field.label);
   const [help, setHelp] = React.useState(field.help ?? "");
   const [options, setOptions] = React.useState(field.options ?? []);
+  // Each question writes itself as it is changed, so the row owns the flag for
+  // its own write rather than reading the page's.
+  const [writing, startWriting] = React.useTransition();
+  const [kept, setKept] = React.useState(false);
+  const busy = pending || writing;
   const Icon = KIND_ICON[field.kind];
   const wantsOptions = NEEDS_OPTIONS.includes(field.kind);
 
@@ -533,23 +538,25 @@ function Question({
     fileKinds?: string;
     help?: string | null;
   }) =>
-    void saveQuestion(
-      formId,
-      field.id,
-      {
-        kind: field.kind,
-        label: changes.label ?? label,
-        required: changes.required ?? field.required,
-        options: wantsOptions ? (changes.options ?? options) : null,
-        showWhen: field.showWhen ?? null,
-        help: changes.help === undefined ? (field.help ?? null) : changes.help,
-        mapsTo: changes.mapsTo === undefined ? (field.mapsTo ?? null) : changes.mapsTo,
-        maxFiles: changes.maxFiles ?? field.maxFiles ?? 1,
-        fileKinds: changes.fileKinds ?? field.fileKinds ?? "any",
-      },
-      church,
-    ).then((result) => {
+    startWriting(async () => {
+      const result = await saveQuestion(
+        formId,
+        field.id,
+        {
+          kind: field.kind,
+          label: changes.label ?? label,
+          required: changes.required ?? field.required,
+          options: wantsOptions ? (changes.options ?? options) : null,
+          showWhen: field.showWhen ?? null,
+          help: changes.help === undefined ? (field.help ?? null) : changes.help,
+          mapsTo: changes.mapsTo === undefined ? (field.mapsTo ?? null) : changes.mapsTo,
+          maxFiles: changes.maxFiles ?? field.maxFiles ?? 1,
+          fileKinds: changes.fileKinds ?? field.fileKinds ?? "any",
+        },
+        church,
+      );
       onError(result.error);
+      setKept(!result.error);
       if (!result.error) onDone();
     });
 
@@ -585,7 +592,7 @@ function Question({
           {field.kind === "section" ? null : (
             <button
               type="button"
-              disabled={pending}
+              disabled={busy}
               aria-pressed={field.required}
               onClick={() => save({ required: !field.required })}
               className={cn(
@@ -607,16 +614,23 @@ function Question({
             </button>
           )}
 
+          {/* It saves itself as it is changed, so it says where that has got
+              to. */}
+          <span role="status" className="text-caption text-fg-subtle">
+            {writing ? t("action.saving") : kept ? t("common.saved") : ""}
+          </span>
+
           <IconButton
             label={t("form.remove")}
-            disabled={pending}
+            disabled={busy}
             onClick={() =>
-              void dropQuestion(field.id, church).then((result) => {
+              startWriting(async () => {
+                const result = await dropQuestion(field.id, church);
                 onError(result.error);
                 if (!result.error) onDone();
               })}
           >
-            <Trash2 />
+            {writing ? <Spinner label={t("form.remove")} /> : <Trash2 />}
           </IconButton>
         </div>
 
@@ -658,7 +672,7 @@ function Question({
             <Select
               value={field.mapsTo ?? NOTHING}
               onValueChange={(next) => save({ mapsTo: next === NOTHING ? null : next })}
-              disabled={pending}
+              disabled={busy}
             >
               <SelectTrigger className="h-8 min-h-0 w-auto min-w-[160px] text-[13px]">
                 <SelectValue />
@@ -688,7 +702,7 @@ function Question({
                 min={1}
                 max={FILES_CEILING}
                 defaultValue={field.maxFiles ?? 1}
-                disabled={pending}
+                disabled={busy}
                 onBlur={(e) => {
                   const next = Math.min(FILES_CEILING, Math.max(1, Number(e.target.value) || 1));
                   e.target.value = String(next);
@@ -703,7 +717,7 @@ function Question({
               <Select
                 value={field.fileKinds ?? "any"}
                 onValueChange={(next) => save({ fileKinds: next })}
-                disabled={pending}
+                disabled={busy}
               >
                 <SelectTrigger className="h-8 min-h-0 w-auto min-w-[140px] text-[13px]">
                   <SelectValue />
@@ -745,7 +759,7 @@ function Question({
                 <IconButton
                   label={t("form.removeChoice", { label: option })}
                   className="size-5 min-h-0 [&_svg]:size-3"
-                  disabled={pending || options.length <= 1}
+                  disabled={busy || options.length <= 1}
                   onClick={() => save({ options: options.filter((_, i) => i !== at) })}
                 >
                   <X />
@@ -755,7 +769,7 @@ function Question({
 
             <button
               type="button"
-              disabled={pending}
+              disabled={busy}
               onClick={() =>
                 save({ options: [...options, `${t("form.newChoice")} ${options.length + 1}`] })}
               className="flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-line-strong px-2.5 py-0.5 text-[12px] font-medium text-fg-muted hover:text-fg"

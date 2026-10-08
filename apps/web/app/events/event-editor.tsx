@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Plus, Trash2, Upload } from "lucide-react";
 import {
-  ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Working, cn,
+  ALL_HUES, Banner, Button, Checkbox, Combobox, Field, IconButton, Input, Spinner, Working, cn,
   Dialog, DialogContent, DialogFooter,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -137,6 +137,7 @@ export function EventEditor({
   const [closesOn, setClosesOn] = React.useState(event?.registrationClosesOn ?? "");
   const [busy, setBusy] = React.useState(false);
   const [saving, startTransition] = React.useTransition();
+  const [removing, startRemoving] = React.useTransition();
   useReportBusy("event-form", saving);
 
   // Held until the event exists to hang it on, which is what makes the cover
@@ -205,7 +206,10 @@ export function EventEditor({
       }}
       className="flex flex-col gap-5"
     >
-      <Working open={busy} label={t("image.uploading")} />
+      <Working
+        open={busy || removing}
+        label={removing ? t("image.removing") : t("image.uploading")}
+      />
 
       {/* R14.5. Which form members answer when they register. */}
       <Dialog
@@ -402,6 +406,7 @@ export function EventEditor({
           <Button
             type="button"
             variant="secondary"
+            disabled={removing}
             onClick={() => file.current?.click()}
             className="absolute right-3 bottom-3 h-[34px] min-h-0 gap-1.5 px-3 text-[13px] shadow-sm"
           >
@@ -413,16 +418,20 @@ export function EventEditor({
             <IconButton
               label={t("event.coverRemove")}
               variant="secondary"
+              disabled={removing}
               onClick={() => {
                 setPicture(null);
                 if (file.current) file.current.value = "";
                 if (event && coverUrl) {
-                  void clearEventCover(event.id, church).then(() => router.refresh());
+                  startRemoving(async () => {
+                    await clearEventCover(event.id, church);
+                    router.refresh();
+                  });
                 }
               }}
               className="absolute top-3 right-3 size-8 min-h-0 shadow-sm"
             >
-              <Trash2 />
+              {removing ? <Spinner label={t("event.coverRemove")} /> : <Trash2 />}
             </IconButton>
           ) : null}
         </div>

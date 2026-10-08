@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, Globe, Lock, LockOpen, PencilLine, X } from "lucide-react";
 import {
-  Avatar, Banner, Button, IconButton, Dialog, DialogContent, DialogFooter,
+  Avatar, Banner, Button, IconButton, Spinner, Dialog, DialogContent, DialogFooter,
   Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -107,16 +107,27 @@ export function GroupDetail({
     null,
   );
   const [pending, startTransition] = React.useTransition();
+  /*
+   * Which action is running. The two requests and the roster are asked about
+   * in a dialog that closes first, so the row's own control carries the wait.
+   */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
 
   /** R9.3. Who runs it, which decides what the chips say and who may come off. */
   const leading = members.filter((one) => one.role !== "member");
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
       if (!result.error) router.refresh();
     });
+  };
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
@@ -165,8 +176,9 @@ export function GroupDetail({
                  underlined under the pointer. */
               <Button
                 variant="ghost"
+                loading={doing === "openToJoin"}
                 disabled={pending}
-                onClick={() => run(() => setOpenToJoin(groupId, !openToJoin, church))}
+                onClick={() => run("openToJoin", () => setOpenToJoin(groupId, !openToJoin, church))}
                 className="h-[34px] min-h-0 px-2.5 text-[13px] font-medium text-primary hover:underline hover:decoration-primary hover:underline-offset-[3px]"
               >
                 {openToJoin ? <Lock /> : <LockOpen />}
@@ -179,9 +191,12 @@ export function GroupDetail({
                 the undoing of the state reads as the state itself. */}
             <Button
               variant={status === "draft" ? "primary" : "ghost"}
+              loading={doing === "publish"}
               disabled={pending}
               onClick={() =>
-                run(() => publishGroup(groupId, status === "draft" ? "published" : "draft", church))}
+                run("publish", () =>
+                  publishGroup(groupId, status === "draft" ? "published" : "draft", church),
+                )}
               className={
                 status === "draft"
                   ? "h-[34px] min-h-0 px-2.5 text-[13px]"
@@ -305,7 +320,11 @@ export function GroupDetail({
                           disabled={pending}
                           onClick={() => setDeciding({ ...request, approve: true })}
                         >
-                          <Check />
+                          {doing === `decide:${request.id}:yes` ? (
+                            <Spinner label={t("find.approve")} />
+                          ) : (
+                            <Check />
+                          )}
                         </IconButton>
                         <IconButton
                           label={t("find.decline")}
@@ -313,7 +332,11 @@ export function GroupDetail({
                           disabled={pending}
                           onClick={() => setDeciding({ ...request, approve: false })}
                         >
-                          <X />
+                          {doing === `decide:${request.id}:no` ? (
+                            <Spinner label={t("find.decline")} />
+                          ) : (
+                            <X />
+                          )}
                         </IconButton>
                       </div>
                     ))
@@ -368,7 +391,11 @@ export function GroupDetail({
                         }
                         onClick={() => setRemoving(member)}
                       >
-                        <X />
+                        {doing === `leave:${member.memberId}` ? (
+                          <Spinner label={t("groups.remove")} />
+                        ) : (
+                          <X />
+                        )}
                       </IconButton>
                     ) : null}
                   </span>
@@ -412,7 +439,11 @@ export function GroupDetail({
               onClick={() => {
                 const asked = deciding;
                 setDeciding(null);
-                if (asked) run(() => decide(asked.id, asked.approve, church));
+                if (asked) {
+                  run(`decide:${asked.id}:${asked.approve ? "yes" : "no"}`, () =>
+                    decide(asked.id, asked.approve, church),
+                  );
+                }
               }}
             >
               {t(deciding?.approve ? "find.approve" : "find.decline")}
@@ -434,7 +465,7 @@ export function GroupDetail({
               onClick={() => {
                 const who = removing;
                 setRemoving(null);
-                if (who) run(() => leave(groupId, who.memberId, church));
+                if (who) run(`leave:${who.memberId}`, () => leave(groupId, who.memberId, church));
               }}
             >
               {t("groups.remove")}

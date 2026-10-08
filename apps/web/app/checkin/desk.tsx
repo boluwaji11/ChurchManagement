@@ -91,6 +91,12 @@ export function Desk({
   // R8.10. The flow does not finish until somebody has said they read it.
   const [seen, setSeen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
+  /* Which press is running, so the control pressed is the one that shows it. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
 
   const start = (match: FoundMatch) => {
     setOpen(match.id);
@@ -118,6 +124,7 @@ export function Desk({
 
   const send = () => {
     if (!household) return;
+    setDoing("send");
     const entries = household.members
       .filter((p) => picked[p.id] && !p.checkedIn)
       .map((p) => ({
@@ -213,6 +220,7 @@ export function Desk({
       return;
     }
 
+    setDoing("settle");
     startTransition(async () => {
       for (const memberId of unsettled) await undo(service, memberId, church);
       await again();
@@ -221,6 +229,7 @@ export function Desk({
   };
 
   const take = (memberId: string) => {
+    setDoing("take");
     startTransition(async () => {
       if (!station.state.online) {
         await station.undoLocally(memberId);
@@ -322,7 +331,12 @@ export function Desk({
           </ul>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button variant="ghost" disabled={pending} onClick={() => settle(false)}>
+            <Button
+              variant="ghost"
+              loading={doing === "settle"}
+              disabled={pending}
+              onClick={() => settle(false)}
+            >
               {t("checkin.notPrinted")}
             </Button>
               <Button onClick={() => settle(true)}>{t("checkin.printed")}</Button>
@@ -377,6 +391,7 @@ export function Desk({
             <div>
               <Button
                 onClick={send}
+                loading={doing === "send"}
                 disabled={pending || (needsReading && !seen)}
               >
                 <Check /> {t("checkin.check")}

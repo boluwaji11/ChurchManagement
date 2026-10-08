@@ -16,6 +16,7 @@ import { useFormError } from "@/lib/form-error";
 import { Confirm } from "@/components/confirm";
 import { usePanelGuard } from "@/components/panel-guard";
 import { LibraryPicker } from "@/components/library-picker";
+import { Searching } from "@/components/searching";
 import { teamLibrary } from "./library";
 
 export interface TeamDraft {
@@ -108,6 +109,9 @@ export function TeamPanel({
   );
   const [error, setError] = useFormError(open && step === "team");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
   /** R24.6. Whether anything in the panel has been touched since it opened. */
   const [dirty, setDirty] = React.useState(false);
   const [saving, startTransition] = React.useTransition();
@@ -117,7 +121,13 @@ export function TeamPanel({
 
   const look = React.useCallback(
     (query: string) => {
-      void findPerson(query, church).then(setHits);
+      const mine = ++ticket.current;
+      setSearching(true);
+      void findPerson(query, church).then((found) => {
+        if (mine !== ticket.current) return;
+        setSearching(false);
+        setHits(found);
+      });
     },
     [church],
   );
@@ -255,28 +265,29 @@ export function TeamPanel({
             {/* R10.1. The directory is searched as the name is typed: a church
                 of five hundred is not a dropdown. Each choice goes straight on
                 the list below, so several people are added in one visit. */}
-            <Combobox
-              options={hits
-                .filter((one) => !people.some((x) => x.memberId === one.id))
-                .map((one) => ({
-                  value: one.id,
-                  label: one.name,
-                  keywords: one.household ?? undefined,
-                }))}
-              value=""
-              onChange={(memberId) => {
-                const hit = hits.find((one) => one.id === memberId);
-                if (!hit) return;
-                setPeople((was) => [...was, { memberId, name: hit.name, membershipId: null }]);
-                setLeft((was) => was.filter((id) => id !== memberId));
-                setDirty(true);
-                setDirty(true);
-              }}
-              placeholder={t("serving.addFromPeople")}
-              emptyLabel={t("serving.roster.noMatch")}
-              clearLabel={t("date.clear")}
-              onQueryChange={look}
-            />
+            <Searching on={searching}>
+              <Combobox
+                options={hits
+                  .filter((one) => !people.some((x) => x.memberId === one.id))
+                  .map((one) => ({
+                    value: one.id,
+                    label: one.name,
+                    keywords: one.household ?? undefined,
+                  }))}
+                value=""
+                onChange={(memberId) => {
+                  const hit = hits.find((one) => one.id === memberId);
+                  if (!hit) return;
+                  setPeople((was) => [...was, { memberId, name: hit.name, membershipId: null }]);
+                  setLeft((was) => was.filter((id) => id !== memberId));
+                  setDirty(true);
+                }}
+                placeholder={t("serving.addFromPeople")}
+                emptyLabel={t("serving.roster.noMatch")}
+                clearLabel={t("date.clear")}
+                onQueryChange={look}
+              />
+            </Searching>
 
             {people.length === 0 ? (
               <p className="flex items-center gap-2 text-[length:var(--d-text-body)] text-fg-muted">

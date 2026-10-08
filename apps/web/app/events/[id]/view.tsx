@@ -7,7 +7,7 @@ import {
   Archive, ArchiveRestore, ArrowLeft, Check, Download, Eye, Link2, Paperclip, Pencil,
 } from "lucide-react";
 import {
-  Banner, Button, IconButton, cn,
+  Banner, Button, IconButton, Spinner, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Table, Thead, Tr, Th, Td, Tooltip
 } from "@connectapp/ui";
@@ -92,15 +92,23 @@ export function EventView({
   const [origin, setOrigin] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [pending, startTransition] = React.useTransition();
+  /* Which action is running, so only the control pressed shows it. */
+  const [doing, setDoing] = React.useState<string>();
 
   React.useEffect(() => setOrigin(window.location.origin), []);
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
       if (!result.error) router.refresh();
     });
+  };
 
   const publicLink = origin ? `${origin}/e/${church}/${event.slug}` : "";
 
@@ -182,9 +190,13 @@ export function EventView({
           <IconButton
             label={t("event.restore")}
             disabled={pending}
-            onClick={() => run(() => archiveEvent(event.id, false, church))}
+            onClick={() => run("restore", () => archiveEvent(event.id, false, church))}
           >
-            <ArchiveRestore />
+            {doing === "restore" ? (
+              <Spinner label={t("event.restore")} />
+            ) : (
+              <ArchiveRestore />
+            )}
           </IconButton>
         ) : (
           <Dialog>
@@ -200,13 +212,15 @@ export function EventView({
               <DialogFooter>
                 <Button
                   type="button"
-                  disabled={pending}
-                  onClick={() =>
+                  loading={pending}
+                  onClick={() => {
+                    setDoing("archive");
                     startTransition(async () => {
                       const result = await archiveEvent(event.id, true, church);
                       if (result.error) setError(result.error);
                       else router.push(`/events?church=${church}`);
-                    })}
+                    });
+                  }}
                 >
                   {t("event.archive")}
                 </Button>
@@ -297,9 +311,12 @@ export function EventView({
           <Button
             type="button"
             variant="secondary"
+            loading={doing === "registration"}
             disabled={pending}
             onClick={() =>
-              run(() => openEventRegistration(event.id, !event.registrationOpen, church))}
+              run("registration", () =>
+                openEventRegistration(event.id, !event.registrationOpen, church),
+              )}
           >
             {event.registrationOpen ? t("event.registrationClose") : t("event.registrationReopen")}
           </Button>
@@ -309,16 +326,18 @@ export function EventView({
           <Button
             type="button"
             variant="secondary"
+            loading={doing === "unpublish"}
             disabled={pending}
-            onClick={() => run(() => publishEvent(event.id, "draft", church))}
+            onClick={() => run("unpublish", () => publishEvent(event.id, "draft", church))}
           >
             {t("event.unpublish")}
           </Button>
         ) : (
           <Button
             type="button"
+            loading={doing === "publish"}
             disabled={pending}
-            onClick={() => run(() => publishEvent(event.id, "published", church))}
+            onClick={() => run("publish", () => publishEvent(event.id, "published", church))}
           >
             {t("event.publish")}
           </Button>

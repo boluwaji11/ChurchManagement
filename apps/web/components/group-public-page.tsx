@@ -1,9 +1,9 @@
-import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { PublicChurch, PublicGroup } from "@connectapp/db";
 import { mapsHref } from "@/lib/address";
 import { GroupLine } from "@/app/g/[slug]/line";
 import { PublicFooter } from "@/components/public-footer";
+import { GroupJoinButton } from "@/components/group-join-button";
 
 /**
  * R9.5. A group as the open web sees it.
@@ -101,11 +101,7 @@ export function GroupPublicPage({
           {group.openToJoin && !group.full ? (
             // A form, because joining writes. A link would make opening the
             // address the whole transaction.
-            <form method="post" action={`/g/${church.slug}/${group.slug}/join`} className="self-start">
-              <Button type="submit" className="min-h-12 px-6 text-[16px]">
-                {t("publicGroups.join")}
-              </Button>
-            </form>
+            <GroupJoinButton action={`/g/${church.slug}/${group.slug}/join`} />
           ) : group.full ? (
             <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("find.full")}</p>
           ) : null}

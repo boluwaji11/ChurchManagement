@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Combobox, SelectCreate } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Searching } from "@/components/searching";
 
 /**
  * A field somebody may leave unanswered, and may unanswer again.
@@ -24,6 +25,7 @@ export function Picker({
   clearable = true,
   create,
   onQuery,
+  searching = false,
 }: {
   name: string;
   defaultValue: string | null;
@@ -47,26 +49,30 @@ export function Picker({
    * options arrive already narrowed and are taken as given.
    */
   onQuery?: (query: string) => void;
+  /** Whether the lookup behind `onQuery` is still out. */
+  searching?: boolean;
 }) {
   const [value, setValue] = React.useState(defaultValue ?? "");
 
   return (
     <>
       <input type="hidden" name={name} value={value} />
-      <Combobox
-        options={options}
-        clearable={clearable}
-        value={value}
-        onChange={(next) => {
-          setValue(next);
-          onChange?.(next);
-        }}
-        placeholder={label}
-        emptyLabel={t("common.noMatch")}
-        clearLabel={t("date.clear")}
-        onQueryChange={onQuery}
-        footer={create ? <SelectCreate href={create.href}>{create.label}</SelectCreate> : undefined}
-      />
+      <Searching on={searching}>
+        <Combobox
+          options={options}
+          clearable={clearable}
+          value={value}
+          onChange={(next) => {
+            setValue(next);
+            onChange?.(next);
+          }}
+          placeholder={label}
+          emptyLabel={t("common.noMatch")}
+          clearLabel={t("date.clear")}
+          onQueryChange={onQuery}
+          footer={create ? <SelectCreate href={create.href}>{create.label}</SelectCreate> : undefined}
+        />
+      </Searching>
     </>
   );
 }

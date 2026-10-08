@@ -167,6 +167,7 @@ export function Checkout({
                     </Button>
                     <Button
                       variant="danger"
+                      loading={pending}
                       disabled={pending || reason.trim().length === 0}
                       onClick={() => go({ kind: block.kind, reason })}
                     >
@@ -211,7 +212,7 @@ export function Checkout({
                 <Button variant="ghost" onClick={() => setOpen(false)}>
                   {t("action.cancel")}
                 </Button>
-              <Button disabled={pending} onClick={() => go(null)}>
+              <Button loading={pending} onClick={() => go(null)}>
                   <LogOut /> {t("checkout.release")}
                 </Button>
               </div>

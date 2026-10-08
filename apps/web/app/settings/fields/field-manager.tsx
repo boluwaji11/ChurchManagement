@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, Plus, Trash2, Type, Hash, Calendar, List, ListChecks, ToggleLeft } from "lucide-react";
 import {
-  Banner, Button, IconButton, Input, Field,
+  Banner, Button, IconButton, Input, Field, Spinner,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -204,6 +204,8 @@ function FieldSheet({
   const [error, setError] = useFormError(open && !picking);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, setPending] = React.useState(false);
+  /* The delete is confirmed in a box that closes first, so the bin shows it. */
+  const [deleting, setDeleting] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -243,6 +245,7 @@ function FieldSheet({
       }
     } finally {
       setPending(false);
+      setDeleting(false);
     }
   };
 
@@ -271,7 +274,11 @@ function FieldSheet({
                     className="mr-auto"
                     disabled={pending}
                   >
-                    <Trash2 />
+                    {deleting ? (
+                      <Spinner label={t("fields.deleteOne", { name: field.label })} />
+                    ) : (
+                      <Trash2 />
+                    )}
                   </IconButton>
                 </DialogTrigger>
 
@@ -297,6 +304,7 @@ function FieldSheet({
                         data.set("church", church);
                         data.set("id", field.id);
                         setConfirming(false);
+                        setDeleting(true);
                         void run(removeField, data);
                       }}
                     >
@@ -310,6 +318,7 @@ function FieldSheet({
             <Button
               type="submit"
               form="field-form"
+              loading={pending && !deleting}
               disabled={pending || !label.trim()}
               aria-disabled={pending || !label.trim()}
             >

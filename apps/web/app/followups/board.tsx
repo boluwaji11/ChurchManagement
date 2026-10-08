@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Move, Plus } from "lucide-react";
 import { Banner, Combobox } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { Searching } from "@/components/searching";
 import { moveToStage } from "../members/followup-actions";
 import { addToStage, findPeople } from "./actions";
 
@@ -173,6 +174,9 @@ function AddToStage({
   const [query, setQuery] = React.useState("");
   const [members, setPeople] = React.useState<{ id: string; name: string }[]>([]);
   const [saving, startSaving] = React.useTransition();
+  const [searching, setSearching] = React.useState(false);
+  // An answer that arrives after a newer one was asked for is dropped.
+  const ticket = React.useRef(0);
 
   /*
    * Nothing is fetched until a name is being typed. A church of five hundred
@@ -183,10 +187,18 @@ function AddToStage({
     (search: string) => {
       setQuery(search);
       if (!search.trim()) {
+        ticket.current++;
+        setSearching(false);
         setPeople([]);
         return;
       }
-      void findPeople(pipelineId, search, church).then(setPeople);
+      const mine = ++ticket.current;
+      setSearching(true);
+      void findPeople(pipelineId, search, church).then((people) => {
+        if (mine !== ticket.current) return;
+        setSearching(false);
+        setPeople(people);
+      });
     },
     [pipelineId, church],
   );
@@ -209,28 +221,30 @@ function AddToStage({
   }
 
   return (
-    <Combobox
-      options={members.map((one) => ({ value: one.id, label: one.name }))}
-      value=""
-      onChange={(memberId) => {
-        if (!memberId) return;
-        startSaving(async () => {
-          const result = await addToStage(pipelineId, memberId, position, church);
-          onError(result.error);
-          if (!result.error) {
-            setOpen(false);
-            onAdded();
-          }
-        });
-      }}
-      onQueryChange={look}
-      placeholder={t("board.findPerson")}
-      emptyLabel={query.trim() ? t("board.noPerson") : t("board.typeName")}
-      clearLabel={t("date.clear")}
-      aria-label={t("board.add")}
-      disabled={saving}
-      className="text-[13px]"
-    />
+    <Searching on={searching}>
+      <Combobox
+        options={members.map((one) => ({ value: one.id, label: one.name }))}
+        value=""
+        onChange={(memberId) => {
+          if (!memberId) return;
+          startSaving(async () => {
+            const result = await addToStage(pipelineId, memberId, position, church);
+            onError(result.error);
+            if (!result.error) {
+              setOpen(false);
+              onAdded();
+            }
+          });
+        }}
+        onQueryChange={look}
+        placeholder={t("board.findPerson")}
+        emptyLabel={query.trim() ? t("board.noPerson") : t("board.typeName")}
+        clearLabel={t("date.clear")}
+        aria-label={t("board.add")}
+        disabled={saving}
+        className="text-[13px]"
+      />
+    </Searching>
   );
 }
 

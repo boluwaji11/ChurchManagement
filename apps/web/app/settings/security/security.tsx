@@ -58,8 +58,15 @@ export function Security({ email }: { email: string }) {
   const [error, setError] = useFormError(open);
   const [message, setMessage] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+  /* Which of the three was pressed, so the other two stay as they are. */
+  const [doing, setDoing] = React.useState<string>();
 
-  const run = (work: () => Promise<{ error?: string }>, said: string) =>
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>, said: string) => {
+    setDoing(key);
     startTransition(async () => {
       setError(undefined);
       setMessage(undefined);
@@ -70,6 +77,7 @@ export function Security({ email }: { email: string }) {
         setOpen(null);
       }
     });
+  };
 
   const toggle = (which: "email" | "password") => {
     setError(undefined);
@@ -91,7 +99,7 @@ export function Security({ email }: { email: string }) {
       >
         <form
           noValidate
-          action={(data) => run(() => changeEmail(data), t("email.sent"))}
+          action={(data) => run("email", () => changeEmail(data), t("email.sent"))}
           className="flex flex-wrap items-end gap-3"
         >
           <div className="min-w-56 flex-1">
@@ -104,7 +112,7 @@ export function Security({ email }: { email: string }) {
               <Input name="password" type="password" autoComplete="current-password" />
             </Field>
           </div>
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" loading={doing === "email"} disabled={pending}>
             <Check /> {t("email.change")}
           </Button>
         </form>
@@ -118,7 +126,7 @@ export function Security({ email }: { email: string }) {
       >
         <form
           noValidate
-          action={(data) => run(() => changePassword(data), t("password.changed"))}
+          action={(data) => run("password", () => changePassword(data), t("password.changed"))}
           className="flex flex-col gap-4"
         >
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
@@ -141,12 +149,13 @@ export function Security({ email }: { email: string }) {
             <Button
               type="button"
               variant="ghost"
+              loading={doing === "link"}
               disabled={pending}
-              onClick={() => run(emailMeALink, t("signUp.sent.title"))}
+              onClick={() => run("link", emailMeALink, t("signUp.sent.title"))}
             >
               <Mail /> {t("password.sendLink")}
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" loading={doing === "password"} disabled={pending}>
               <KeyRound /> {t("password.change")}
             </Button>
           </div>

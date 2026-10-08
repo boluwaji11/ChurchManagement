@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Archive, Merge, Plus, Undo2, X } from "lucide-react";
 import {
-  Avatar, Banner, Button, Field, IconButton, Input,
+  Avatar, Banner, Button, Field, IconButton, Input, Spinner,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -43,13 +43,21 @@ export function HouseholdList({
   const [error, setError] = React.useState<string>();
   const [find, setFind] = React.useState("");
   const [pending, startTransition] = React.useTransition();
+  /* Which household's action is running, so one control spins rather than all. */
+  const [doing, setDoing] = React.useState<string>();
 
-  const run = (work: () => Promise<{ error?: string }>) =>
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
       if (!result.error) router.refresh();
     });
+  };
 
   // A church with forty families looks for one by its name, or by the name of
   // somebody in it, which is how a volunteer actually remembers a household.
@@ -89,6 +97,7 @@ export function HouseholdList({
               <EditHousehold
                 household={household}
                 pending={pending}
+                doing={doing}
                 run={run}
                 church={church}
                 trigger={
@@ -110,10 +119,17 @@ export function HouseholdList({
                     household={household}
                     others={households.filter((one) => !one.archived && one.id !== household.id)}
                     pending={pending}
+                    doing={doing}
                     run={run}
                     church={church}
                   />
-                  <ArchiveOne household={household} pending={pending} run={run} church={church} />
+                  <ArchiveOne
+                    household={household}
+                    pending={pending}
+                    doing={doing}
+                    run={run}
+                    church={church}
+                  />
                 </div>
               </div>
 
@@ -163,9 +179,15 @@ export function HouseholdList({
                   label={t("households.restore", { name: household.name })}
                   variant="ghost"
                   disabled={pending}
-                  onClick={() => run(() => putAway(household.id, false, church))}
+                  onClick={() =>
+                    run(`restore:${household.id}`, () => putAway(household.id, false, church))
+                  }
                 >
-                  <Undo2 />
+                  {doing === `restore:${household.id}` ? (
+                    <Spinner label={t("households.restore", { name: household.name })} />
+                  ) : (
+                    <Undo2 />
+                  )}
                 </IconButton>
               </div>
             ))}
@@ -188,13 +210,15 @@ function EditHousehold({
   church,
   household,
   pending,
+  doing,
   run,
   trigger,
 }: {
   church: string;
   household: HouseholdItem;
   pending: boolean;
-  run: (work: () => Promise<{ error?: string }>) => void;
+  doing?: string;
+  run: (key: string, work: () => Promise<{ error?: string }>) => void;
   trigger: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -217,7 +241,7 @@ function EditHousehold({
               onChange={(e) => setName_(e.target.value)}
               onBlur={() => {
                 if (name.trim() && name.trim() !== household.name) {
-                  run(() => setName(household.id, name, church));
+                  run(`name:${household.id}`, () => setName(household.id, name, church));
                 }
               }}
               autoComplete="off"
@@ -228,6 +252,7 @@ function EditHousehold({
             church={church}
             household={household}
             pending={pending}
+            doing={doing}
             run={run}
           />
         </div>
@@ -247,6 +272,7 @@ function Members({
   church,
   household,
   pending,
+  doing,
   run,
   onAdded,
   onRemoved,
@@ -255,7 +281,8 @@ function Members({
   church: string;
   household: HouseholdItem;
   pending: boolean;
-  run: (work: () => Promise<{ error?: string }>) => void;
+  doing?: string;
+  run: (key: string, work: () => Promise<{ error?: string }>) => void;
   /** Given while a household is being made, where the list is held here. */
   onAdded?: (person: { id: string; name: string }) => void;
   onRemoved?: (id: string) => void;
@@ -316,7 +343,9 @@ function Members({
                   value={member.role}
                   onValueChange={(next) => {
                     onRole?.(member.id, next);
-                    run(() => setRole(household.id, member.id, next, church));
+                    run(`role:${member.id}`, () =>
+                      setRole(household.id, member.id, next, church),
+                    );
                   }}
                 >
                   <SelectTrigger
@@ -337,6 +366,7 @@ function Members({
                   household={household}
                   member={member}
                   pending={pending}
+                  doing={doing}
                   run={run}
                   onRemoved={onRemoved}
                 />
@@ -367,7 +397,7 @@ function Members({
                   onClick={() => {
                     onAdded?.(person);
                     setFree((prev) => prev.filter((one) => one.id !== person.id));
-                    run(() => putIn(household.id, person.id, church));
+                    run(`putIn:${person.id}`, () => putIn(household.id, person.id, church));
                   }}
                   className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-1 py-2 text-left hover:bg-sunken"
                 >
@@ -394,6 +424,7 @@ function TakeOut({
   household,
   member,
   pending,
+  doing,
   run,
   onRemoved,
 }: {
@@ -401,7 +432,8 @@ function TakeOut({
   household: HouseholdItem;
   member: HouseholdItem["members"][number];
   pending: boolean;
-  run: (work: () => Promise<{ error?: string }>) => void;
+  doing?: string;
+  run: (key: string, work: () => Promise<{ error?: string }>) => void;
   onRemoved?: (id: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -414,7 +446,11 @@ function TakeOut({
           variant="ghost"
           disabled={pending}
         >
-          <X />
+          {doing === `remove:${member.id}` ? (
+            <Spinner label={t("households.remove", { name: member.name })} />
+          ) : (
+            <X />
+          )}
         </IconButton>
       </DialogTrigger>
 
@@ -436,7 +472,7 @@ function TakeOut({
             disabled={pending}
             onClick={() => {
               onRemoved?.(member.id);
-              run(() => takeOut(household.id, member.id, church));
+              run(`remove:${member.id}`, () => takeOut(household.id, member.id, church));
               setOpen(false);
             }}
           >
@@ -453,12 +489,14 @@ function ArchiveOne({
   church,
   household,
   pending,
+  doing,
   run,
 }: {
   church: string;
   household: HouseholdItem;
   pending: boolean;
-  run: (work: () => Promise<{ error?: string }>) => void;
+  doing?: string;
+  run: (key: string, work: () => Promise<{ error?: string }>) => void;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -470,7 +508,11 @@ function ArchiveOne({
           variant="ghost"
           disabled={pending}
         >
-          <Archive />
+          {doing === `archive:${household.id}` ? (
+            <Spinner label={t("households.archive", { name: household.name })} />
+          ) : (
+            <Archive />
+          )}
         </IconButton>
       </DialogTrigger>
 
@@ -488,7 +530,7 @@ function ArchiveOne({
             variant="danger"
             disabled={pending}
             onClick={() => {
-              run(() => putAway(household.id, true, church));
+              run(`archive:${household.id}`, () => putAway(household.id, true, church));
               setOpen(false);
             }}
           >
@@ -506,13 +548,15 @@ function MergeInto({
   household,
   others,
   pending,
+  doing,
   run,
 }: {
   church: string;
   household: HouseholdItem;
   others: HouseholdItem[];
   pending: boolean;
-  run: (work: () => Promise<{ error?: string }>) => void;
+  doing?: string;
+  run: (key: string, work: () => Promise<{ error?: string }>) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [into, setInto] = React.useState<string>();
@@ -523,7 +567,11 @@ function MergeInto({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <IconButton label={t("households.merge")} variant="ghost" disabled={pending}>
-          <Merge />
+          {doing === `merge:${household.id}` ? (
+            <Spinner label={t("households.merge")} />
+          ) : (
+            <Merge />
+          )}
         </IconButton>
       </DialogTrigger>
 
@@ -558,7 +606,7 @@ function MergeInto({
             type="button"
             disabled={pending || !into}
             onClick={() => {
-              if (into) run(() => fold(household.id, into, church));
+              if (into) run(`merge:${household.id}`, () => fold(household.id, into, church));
               setOpen(false);
             }}
           >
@@ -757,7 +805,12 @@ export function NewHousehold({ church }: { church: string }) {
           <Button type="button" variant="secondary" onClick={() => close(false)}>
             {t("action.cancel")}
           </Button>
-          <Button type="button" disabled={pending || !name.trim()} onClick={create}>
+          <Button
+            type="button"
+            loading={pending}
+            disabled={pending || !name.trim()}
+            onClick={create}
+          >
             {t("action.add")}
           </Button>
         </DialogFooter>
