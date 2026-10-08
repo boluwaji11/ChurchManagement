@@ -69,7 +69,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
 | HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Resolved |
 | HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Resolved. The check-in desk and the supervisor board need a service on today's date to exercise |
-| HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Active |
+| HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Resolved |
 | HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Active |
 | HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Resolved |
 | HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Resolved |
@@ -716,6 +716,25 @@ the sixty-minute time-to-value metric needs. An abuser gets nothing worth having
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-254, how to test it
+
+Every screen that can put a record away now reads the same way: the live list is
+the whole screen, one quiet line under it says how many have been put away, and
+that opens them with the way back at the top.
+
+1. **Pick any of them.** Forms, events, members, groups, campaigns, reports,
+   funds, rooms, stations, group types, service types, service templates, teams,
+   households, follow-up stages, roles.
+2. Put a record away. The line appears under the list: "1 archived fund".
+3. Press it. The heading names the archived ones, there is a link back, and
+   there is no link to the screen you are already on.
+4. Put the record back from its row. The line goes when the last one is restored.
+5. **Reports and saved lists** could be archived and then never seen again:
+   nothing listed them and nothing brought one back. Both are reversible now.
+6. **Roles are the one with a rule behind it.** Sign in as an Admin, put a role
+   holding "see giving amounts" away, and try to bring it back: it is refused.
+   The same for taking Finance off the shelf. An Owner may do both.
 
 ### HRT-253, how to test it
 

@@ -202,7 +202,9 @@ export function Finder({
     }
   }, []);
 
-  const waiting = requests.filter((one) => !dismissed.includes(one.id));
+  /* R9.6, R24.6. A join request is about a group somebody can join, so it
+     has nothing to say on the list of the ones put away. */
+  const waiting = putAway ? [] : requests.filter((one) => !dismissed.includes(one.id));
 
   const dismissRequests = () => {
     // Only the ids still asking, so the list cannot grow forever.
