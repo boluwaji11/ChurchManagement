@@ -132,6 +132,8 @@ and a design file does not move it.
 | HRT-259 | A service that has gone takes nobody new onto its rota | R10.3 | Resolved |
 | HRT-260 | The member's home screen, the household screen, and which address is read | R17.1, R2.4, R24.4 | Resolved |
 | HRT-261 | A church's own colour, any colour, with the contrast rebuilt from it | R1.1, R24.4 | Resolved |
+| HRT-263 | My schedule redrawn, and a calendar that refuses a day already taken | R17.7, R10.4 | Resolved |
+| HRT-264 | A signed-in member's own details fill their first place at an event | R14.3 | Resolved |
 | HRT-262 | The household address: a screen that sets it, and the settings menu on a phone | R2.4, R24.6 | Resolved |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
@@ -529,7 +531,7 @@ no business in.
 | HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |
 | HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | Resolved |
 | HRT-161 | Submit a form or a prayer request, and the prayer wall for the ones marked public | R17.9, R17.10 | Cut |
-| HRT-162 | The announcement feed | R16.11 | New |
+| HRT-162 | The announcement feed | R16.11 | Resolved |
 | HRT-163 | Give, see my giving, manage a recurring gift, download a statement | R17.4 | Resolved as HRT-239, HRT-243 and HRT-244 |
 
 ### F6. Pastoral care
