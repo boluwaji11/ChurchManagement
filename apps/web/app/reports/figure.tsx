@@ -1,6 +1,21 @@
 import * as React from "react";
 
 /**
+ * R24.6. A row of figures.
+ *
+ * Two to a row on a phone, because one figure to a screenful means a reader
+ * scrolls past four of them before reaching anything they came for. The
+ * tiles grow to whatever the room allows above that.
+ */
+export function Figures({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(215px,1fr))]">
+      {children}
+    </div>
+  );
+}
+
+/**
  * R18.x. One number across the top of a report.
  *
  * The same shape as the dashboard's tiles, without the handle: a report is
@@ -29,7 +44,7 @@ export function Figure({
   note?: string;
 }) {
   return (
-    <div className="flex flex-col rounded-[14px] border border-line bg-surface p-5 shadow-sm">
+    <div className="flex min-w-0 flex-col rounded-[14px] border border-line bg-surface p-4 shadow-sm sm:p-5">
       <span className="flex items-center gap-2 text-[13px] font-medium text-fg-muted">
         {icon ? (
           <span
@@ -51,7 +66,12 @@ export function Figure({
         )}
         <span className="truncate">{label}</span>
       </span>
-      <p data-numeric className="mt-3 font-display text-[36px] leading-[42px] text-fg">
+      {/* The figure steps down on a narrow screen rather than overflowing
+          its tile: "$123,290.03" at 36px does not fit half of a phone. */}
+      <p
+        data-numeric
+        className="mt-2 font-display text-[26px] leading-8 text-fg sm:mt-3 sm:text-[36px] sm:leading-[42px]"
+      >
         {value}
       </p>
       <p className="mt-1 text-[13px] text-fg-muted">{sub}</p>

@@ -24,7 +24,7 @@ import { CardSaved } from "./card-saved";
 import { GiftThanks } from "./gift-thanks";
 import { StopRepeating } from "./stop-repeating";
 import { Panel as Block, Nothing } from "./panel";
-import { Figure } from "@/app/reports/figure";
+import { Figure, Figures } from "@/app/reports/figure";
 import { MyStatement } from "./my-statement";
 import { ResizableTable } from "@/components/resizable-columns";
 import { Pager } from "@/components/pager";
@@ -141,7 +141,7 @@ export async function MyGiving({
 
         {/* R13.19. What they have given, what repeats, and what they have
             promised, read the way the church reads its own. */}
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(215px,1fr))]">
+        <Figures>
           <Figure
             icon={<Banknote />}
             label={t("mine.giving.thisYear", { year: mine.year })}
@@ -176,7 +176,7 @@ export async function MyGiving({
               hue="violet"
             />
           ) : null}
-        </div>
+        </Figures>
 
         {/* The table wants about six hundred pixels and no more: five short
             columns given the whole of a wide screen put the amount a hand's

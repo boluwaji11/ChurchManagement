@@ -15,7 +15,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
-import { Figure } from "@/app/reports/figure";
+import { Figure, Figures } from "@/app/reports/figure";
 import { Pager } from "@/components/pager";
 import { ResizableTable } from "@/components/resizable-columns";
 import { money, groupAmount } from "@/lib/money";
@@ -219,7 +219,7 @@ export default async function GivingPage({
 
         {/* R13.21. The two totals a treasurer is asked for, what the church
             can plan on, and whether the online door is open. */}
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(215px,1fr))]">
+        <Figures>
           <Figure
             icon={<Banknote />}
             label={t("giving.month")}
@@ -261,12 +261,12 @@ export default async function GivingPage({
             sub={plural("giving.repeating.count", read.allRecurring)}
             hue="amber"
           />
-        </div>
+        </Figures>
 
         {/* R13.17, R13.16. The rest of a treasurer's year. These were three
             small links wedged into the side of a heading about something
             else, each now carrying a figure that earns it the room. */}
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+        <div className="grid gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
           <Destination
             icon={<Landmark />}
             title={t("payouts.title")}
