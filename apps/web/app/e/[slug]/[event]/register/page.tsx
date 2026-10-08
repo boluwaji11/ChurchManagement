@@ -5,6 +5,8 @@ import { churchNow } from "@/lib/church-now";
 import { EventRegisterPage } from "@/components/event-register-page";
 import { publicTab } from "@/lib/page-metadata";
 import { knownRegistrant } from "@/lib/registrant";
+import { portalReader } from "@/lib/portal-reader";
+import { PortalShell } from "@/components/portal-shell";
 import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +47,9 @@ export default async function RegisterPage({
     return signed.data?.signedUrl ?? null;
   };
 
-  return (
+  const inPortal = await portalReader(slug);
+
+  const page = (
     <EventRegisterPage
       event={found}
       churchSlug={slug}
@@ -57,6 +61,17 @@ export default async function RegisterPage({
       /* R14.3. A member signed in to their own church does not type their own
          name in: the church already holds it. Null for anybody else. */
       me={await knownRegistrant(slug)}
+      bare={Boolean(inPortal)}
     />
+  );
+
+  if (!inPortal) return page;
+
+  /* R17.1. A member taking a place stays in their own frame all the way
+     through, so the tabs they came from are still there when they are done. */
+  return (
+    <PortalShell session={inPortal} tab={t("nav.events")}>
+      {page}
+    </PortalShell>
   );
 }

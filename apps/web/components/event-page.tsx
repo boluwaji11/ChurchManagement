@@ -20,6 +20,7 @@ export function EventPage({
   logoUrl,
   banner,
   registerHref,
+  bare,
 }: {
   event: PublicEvent;
   coverUrl: string | null;
@@ -28,6 +29,15 @@ export function EventPage({
   banner?: React.ReactNode;
   /** Where Register goes. The public route, or the preview's own. */
   registerHref: string;
+  /**
+   * R17.1. Read inside the portal, where the frame is already drawn.
+   *
+   * A member who opened this from their own Events tab was dropped onto the
+   * open web: the church's name at the top and no way back to the tabs they
+   * came from. The page is the same page either way, so it gives up its own
+   * frame rather than being written twice.
+   */
+  bare?: boolean;
 }) {
   const when = [
     longDate(event.startsOn),
@@ -53,31 +63,15 @@ export function EventPage({
     ? null
     : Math.max(0, event.capacity - event.going);
 
-  return (
-    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      {banner}
+  const body = (
+    <>
 
-      {/* The church's own mark and name, first thing, left, the way its own
-          website opens. No coloured rule over the top: the page already carries
-          the event's colour, and two bands of colour above the fold is one more
-          than the page needs. */}
-      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px] px-5 py-3 sm:px-8">
-        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt=""
-              aria-hidden
-              className="size-11 rounded-xl border border-line bg-surface object-contain p-1"
-            />
-          ) : null}
-          <span className="font-display text-[22px] leading-7 text-fg">
-            {event.church.name}
-          </span>
-        </div>
-      </header>
-
-      <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-5 pt-4 pb-10 sm:px-8 sm:pt-5 sm:pb-14">
+      <main
+        id={bare ? undefined : "main"}
+        className={bare
+          ? "flex w-full flex-1 flex-col"
+          : "mx-auto w-full max-w-3xl flex-1 px-5 pt-4 pb-10 sm:px-8 sm:pt-5 sm:pb-14"}
+      >
         {/* The page is the page. A card inside it drew a second edge around
             content that already had one, and on a phone it was a border two
             thumbs wide around everything. */}
@@ -184,6 +178,36 @@ export function EventPage({
 
         </div>
       </main>
+    </>
+  );
+
+  /* Inside the portal the frame is already there: its tabs, its footer and
+     the way back to them. */
+  if (bare) return body;
+
+  return (
+    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
+      {banner}
+
+      {/* The church's own mark and name, first thing, left, the way its own
+          website opens. */}
+      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px] px-5 py-3 sm:px-8">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              aria-hidden
+              className="size-11 rounded-xl border border-line bg-surface object-contain p-1"
+            />
+          ) : null}
+          <span className="font-display text-[22px] leading-7 text-fg">
+            {event.church.name}
+          </span>
+        </div>
+      </header>
+
+      {body}
 
       <PublicFooter church={event.church} />
     </div>

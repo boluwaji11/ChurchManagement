@@ -24,6 +24,7 @@ export function EventRegisterPage({
   coverUrl,
   logoUrl,
   backHref,
+  bare,
   banner,
   onTrial,
   me,
@@ -36,6 +37,8 @@ export function EventRegisterPage({
   logoUrl: string | null;
   /** Back to the event itself, live or previewed. */
   backHref: string;
+  /** R17.1. Read inside the portal, where the frame is already drawn. */
+  bare?: boolean;
   banner?: React.ReactNode;
   /** R14.2. Where the church's own preview sends its places instead. */
   onTrial?: React.ComponentProps<typeof Register>["onTrial"];
@@ -51,11 +54,8 @@ export function EventRegisterPage({
     ? null
     : Math.max(0, event.capacity - event.going);
 
-  return (
-    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      {banner}
-
-      <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px] px-5 py-3 sm:px-8">
+  const head = (
+    <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px] px-5 py-3 sm:px-8">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
           {logoUrl ? (
             <img
@@ -70,8 +70,15 @@ export function EventRegisterPage({
           </span>
         </div>
       </header>
+  );
 
-      <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-7 px-5 pt-4 pb-10 sm:px-8 sm:pt-5 sm:pb-12">
+  const body = (
+      <main
+        id={bare ? undefined : "main"}
+        className={bare
+          ? "flex w-full flex-1 flex-col gap-7"
+          : "mx-auto flex w-full max-w-3xl flex-1 flex-col gap-7 px-5 pt-4 pb-10 sm:px-8 sm:pt-5 sm:pb-12"}
+      >
         <Link
           href={backHref}
           className="inline-flex min-h-11 items-center gap-1.5 self-start font-medium text-primary"
@@ -123,7 +130,15 @@ export function EventRegisterPage({
           onTrial={onTrial}
         />
       </main>
+  );
 
+  if (bare) return body;
+
+  return (
+    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
+      {banner}
+      {head}
+      {body}
       <PublicFooter church={event.church} />
     </div>
   );
