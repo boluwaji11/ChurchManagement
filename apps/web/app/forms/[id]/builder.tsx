@@ -648,7 +648,7 @@ function Question({
               aria-pressed={field.required}
               onClick={() => save({ required: !field.required })}
               className={cn(
-                "flex h-7 cursor-pointer items-center gap-1.5 px-2 text-[12px] font-medium",
+                "flex h-9 cursor-pointer items-center gap-1.5 px-2 text-[12px] font-medium sm:h-7",
                 field.required ? "text-fg" : "text-fg-muted",
               )}
             >
@@ -806,11 +806,11 @@ function Question({
                   }}
                   aria-label={t("form.choices")}
                   autoComplete="off"
-                  className="min-w-6 bg-transparent text-[12px] text-fg outline-none"
+                  className="min-w-6 bg-transparent py-1.5 text-[12px] text-fg outline-none"
                 />
                 <IconButton
                   label={t("form.removeChoice", { label: option })}
-                  className="size-5 min-h-0 [&_svg]:size-3"
+                  className="size-8 min-h-0 sm:size-5 [&_svg]:size-3.5 sm:[&_svg]:size-3"
                   disabled={busy || options.length <= 1}
                   onClick={() => save({ options: options.filter((_, i) => i !== at) })}
                 >
@@ -824,7 +824,7 @@ function Question({
               disabled={busy}
               onClick={() =>
                 save({ options: [...options, `${t("form.newChoice")} ${options.length + 1}`] })}
-              className="flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-line-strong px-2.5 py-0.5 text-[12px] font-medium text-fg-muted hover:text-fg"
+              className="flex h-8 cursor-pointer items-center gap-1 rounded-full border border-dashed border-line-strong px-2.5 text-[12px] font-medium text-fg-muted hover:text-fg sm:h-[26px]"
             >
               <Plus className="size-3" aria-hidden />
               {t("form.addChoice")}
