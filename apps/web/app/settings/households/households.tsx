@@ -238,6 +238,8 @@ function EditHousehold({
   const [open, setOpen] = React.useState(false);
   const [name, setName_] = React.useState(household.name);
   const [where, setWhere] = React.useState(() => parts(household.address));
+  /** Where the cursor goes when a pick has nothing to copy. */
+  const street = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (open) {
@@ -294,38 +296,52 @@ function EditHousehold({
           <div className="flex flex-col gap-4">
             <span className="text-[15px] font-semibold text-fg">{t("households.address")}</span>
 
-            {/* A family is entered one person at a time, so the address the
-                church already holds is usually on somebody's own record. */}
-            {household.memberAddresses.length > 0 ? (
+            {/* R2.4. A family is entered one person at a time, so the address
+                the church holds is usually on somebody's own record. Every
+                member is offered, so the row says what it can do whether or
+                not anybody has one yet. Picking somebody who has one copies
+                it; picking somebody who has not clears the boxes to type
+                theirs in. */}
+            {household.members.length > 0 ? (
               <div className="flex flex-wrap items-center gap-1.5">
-                {household.memberAddresses.map((one) => (
-                  <button
-                    key={one.memberId}
-                    type="button"
-                    onClick={() => {
-                      const next = {
-                        line1: one.address.line1 ?? "",
-                        line2: one.address.line2 ?? "",
-                        city: one.address.city ?? "",
-                        region: one.address.region ?? "",
-                        postalCode: one.address.postalCode ?? "",
-                      };
-                      setWhere(next);
-                      run(`address:${household.id}`, () =>
-                        setAddress(household.id, next, church));
-                    }}
-                    className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-3.5"
-                  >
-                    <Copy aria-hidden />
-                    {t("households.sameAs", { name: one.name })}
-                  </button>
-                ))}
+                {household.members.map((who) => {
+                  const theirs = household.memberAddresses
+                    .find((one) => one.memberId === who.id)?.address;
+
+                  return (
+                    <button
+                      key={who.id}
+                      type="button"
+                      onClick={() => {
+                        const next = {
+                          line1: theirs?.line1 ?? "",
+                          line2: theirs?.line2 ?? "",
+                          city: theirs?.city ?? "",
+                          region: theirs?.region ?? "",
+                          postalCode: theirs?.postalCode ?? "",
+                        };
+                        setWhere(next);
+                        if (theirs) {
+                          run(`address:${household.id}`, () =>
+                            setAddress(household.id, next, church));
+                        } else {
+                          street.current?.focus();
+                        }
+                      }}
+                      className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-3.5"
+                    >
+                      {theirs ? <Copy aria-hidden /> : null}
+                      {t("households.sameAs", { name: who.name })}
+                    </button>
+                  );
+                })}
               </div>
             ) : null}
 
             <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
               <Field label={t("address.line1")} className="[grid-column:1/-1]">
                 <Input
+                  ref={street}
                   value={where.line1}
                   onChange={(e) => setWhere({ ...where, line1: e.target.value })}
                   onBlur={keep}

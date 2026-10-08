@@ -561,7 +561,7 @@ export async function listTeam(
     {
       user_id: string; email: string; full_name: string | null; role: string;
       role_id: string | null; role_name: string | null;
-      last_sign_in_at: Date | null;
+      last_sign_in_at: Date | string | null;
     }[]
   >`
     select m.user_id, u.email, u.full_name, m.role::text as role,
@@ -587,14 +587,30 @@ export async function listTeam(
     // by the product unless this church renamed it, which listRoles reports.
     roleName: row.role_id ? row.role_name : null,
     isSelf: row.user_id === selfUserId,
-    lastSignedInAt: row.last_sign_in_at ?? null,
+    /*
+     * R1.4. A date, whatever the driver handed back.
+     *
+     * `auth.users` is not our schema and the column comes back as a Date on a
+     * direct connection and as text through a pooler that has not been told
+     * about the type. The screen called `toISOString` on it and fell over on
+     * whichever of those it got second. The boundary decides, once.
+     */
+    lastSignedInAt: asDate(row.last_sign_in_at),
   }));
+}
+
+/** Whatever the driver gave back for a timestamp, as a date or as nothing. */
+function asDate(value: Date | string | null | undefined): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  const made = new Date(value);
+  return Number.isNaN(made.getTime()) ? null : made;
 }
 
 /** R1.7. Invitations nobody has accepted, and nobody has revoked. */
 export async function listInvitations(tenantId: string): Promise<PendingInvitation[]> {
   const rows = await owner()<
-    { id: string; email: string; role: string; expires_at: Date }[]
+    { id: string; email: string; role: string; expires_at: Date | string }[]
   >`
     select id, email, role::text as role, expires_at
       from invitations
@@ -608,7 +624,8 @@ export async function listInvitations(tenantId: string): Promise<PendingInvitati
     id: row.id,
     email: row.email,
     role: row.role as TenantRole,
-    expiresAt: row.expires_at,
+    // The same rule as above: a repository that promises a Date returns one.
+    expiresAt: asDate(row.expires_at) ?? new Date(),
   }));
 }
 
