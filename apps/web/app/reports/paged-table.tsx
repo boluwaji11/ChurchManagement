@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Table, Thead, Tr, Th, Td } from "@connectapp/ui";
+import { Thead, Tr, Th, Td } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Pages } from "@/components/pages";
+import { ResizableTable } from "@/components/resizable-columns";
 
 export interface Cell {
   text: string;
@@ -54,7 +55,8 @@ export function PagedTable({
       <h3 className="font-display text-[22px] leading-7 text-fg">{title}</h3>
 
       <div className="overflow-x-auto">
-        <Table>
+        <ResizableTable id="report-rows" className="rounded-lg border border-line bg-surface">
+          <table className="w-full text-[length:var(--d-text-body)]">
           <Thead>
             <Tr>
               {columns.map((one) => (
@@ -108,7 +110,8 @@ export function PagedTable({
               </Tr>
             ))}
           </tbody>
-        </Table>
+          </table>
+        </ResizableTable>
       </div>
 
       {rows.length > PER_PAGE ? (

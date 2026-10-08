@@ -9,7 +9,7 @@ import {
 import {
   Banner, Button, IconButton, Spinner, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
-  Table, Thead, Tr, Th, Td, Tooltip
+  Thead, Tr, Th, Td, Tooltip
 } from "@connectapp/ui";
 import type { ChurchEvent, EventRegistration } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
@@ -20,6 +20,7 @@ import { oneLineAddress, directionsLink } from "@/lib/address";
 import { publishEvent, openEventRegistration, archiveEvent } from "../actions";
 import { PrintRoster } from "./print-roster";
 import { Pages } from "@/components/pages";
+import { ResizableTable } from "@/components/resizable-columns";
 
 const PER_PAGE = 10;
 
@@ -441,7 +442,8 @@ export function EventView({
             </div>
 
             <div className="overflow-x-auto">
-              <Table>
+              <ResizableTable id="event-registrations" className="rounded-lg border border-line bg-surface">
+                <table className="w-full text-[length:var(--d-text-body)]">
                 <Thead>
                   <Tr>
                     <Th>{t("event.registrant")}</Th>
@@ -518,7 +520,8 @@ export function EventView({
                     </Tr>
                   ))}
                 </tbody>
-              </Table>
+                </table>
+              </ResizableTable>
             </div>
 
             <Pages page={at} last={lastPage} onPage={setPage} />

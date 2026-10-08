@@ -10,6 +10,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { addRole, saveRole, putAway } from "./actions";
 import { useFormError } from "@/lib/form-error";
+import { ResizableTable } from "@/components/resizable-columns";
 
 /** One heading in the permission list, and what sits under it. */
 export interface PermissionGroupRow {
@@ -73,7 +74,7 @@ export function Matrix({
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="overflow-x-auto rounded-[14px] border border-line bg-surface">
+      <ResizableTable id="roles" className="rounded-[14px] border border-line bg-surface">
       <table className="w-full border-collapse text-left">
         <thead>
           <tr className="border-b border-line">
@@ -162,7 +163,7 @@ export function Matrix({
           ))}
         </tbody>
       </table>
-      </section>
+      </ResizableTable>
 
     </div>
   );

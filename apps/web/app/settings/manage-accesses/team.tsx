@@ -19,6 +19,7 @@ import { Searching } from "@/components/searching";
 import {
   invite, invitees, withdraw, changeRole, removeAccess,
 } from "./actions";
+import { ResizableTable } from "@/components/resizable-columns";
 
 export interface ChurchRoleOption {
   id: string;
@@ -222,7 +223,7 @@ export function Team({
 
       {/* R1.4. A row per person: who they are, what they may do, and when they
           were last here. The three a church checks when somebody leaves. */}
-      <div className="overflow-hidden rounded-[14px] border border-line bg-surface">
+      <ResizableTable id="access" className="rounded-[14px] border border-line bg-surface">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-line">
@@ -321,7 +322,7 @@ export function Team({
             ))}
           </tbody>
         </table>
-      </div>
+      </ResizableTable>
 
       {invitations.length > 0 ? (
         <Card>

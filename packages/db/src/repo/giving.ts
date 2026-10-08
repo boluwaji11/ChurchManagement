@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { funds, giftBatches, gifts } from "../schema/giving";
 import { members } from "../schema/members";
@@ -452,11 +452,12 @@ export async function removeGift(db: Tx, actor: WriteActor, id: string): Promise
 export interface GiftFilter {
   batchId?: string;
   memberId?: string;
-  fundId?: string;
+  /** Any of these funds. Empty or absent means all of them. */
+  fundIds?: string[];
   /** cash, cheque, card, ach, in_kind, other. */
-  method?: string;
+  methods?: string[];
   /** settled, pending, failed, or "refunded" for anything given back. */
-  status?: string;
+  statuses?: string[];
   from?: string;
   to?: string;
   limit?: number;
@@ -468,15 +469,19 @@ function giftWhere(filter: GiftFilter) {
   return and(
     filter.batchId ? eq(gifts.batchId, filter.batchId) : undefined,
     filter.memberId ? eq(gifts.memberId, filter.memberId) : undefined,
-    filter.fundId ? eq(gifts.fundId, filter.fundId) : undefined,
-    filter.method ? eq(gifts.method, filter.method) : undefined,
-    /* R13.15. Given back is a thing that happened to a gift rather than a
-       status it carries, so it is asked of the refund instead. */
-    filter.status === "refunded"
-      ? sql`${gifts.refundedCents} > 0`
-      : filter.status
-        ? eq(gifts.status, filter.status)
-        : undefined,
+    filter.fundIds?.length ? inArray(gifts.fundId, filter.fundIds) : undefined,
+    filter.methods?.length ? inArray(gifts.method, filter.methods) : undefined,
+    /* R13.15. Given back is something that happened to a gift rather than a
+       state it carries, so it is asked of the refund instead and sits
+       alongside the states rather than replacing them. */
+    filter.statuses?.length
+      ? or(
+          filter.statuses.includes("refunded") ? sql`${gifts.refundedCents} > 0` : undefined,
+          ...(filter.statuses.filter((one) => one !== "refunded").length > 0
+            ? [inArray(gifts.status, filter.statuses.filter((one) => one !== "refunded"))]
+            : []),
+        )
+      : undefined,
     filter.from ? sql`${gifts.receivedOn} >= ${filter.from}::date` : undefined,
     filter.to ? sql`${gifts.receivedOn} <= ${filter.to}::date` : undefined,
   );

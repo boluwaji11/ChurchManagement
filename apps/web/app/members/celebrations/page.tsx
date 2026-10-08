@@ -12,6 +12,7 @@ import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { tabMetadata } from "@/lib/page-metadata";
+import { ResizableTable } from "@/components/resizable-columns";
 
 export const dynamic = "force-dynamic";
 
@@ -219,7 +220,7 @@ export default async function CelebrationsPage({
             : t("celebrations.empty.month", { span: heading })}
         </div>
       ) : (
-        <div className="overflow-auto rounded-lg border border-line bg-surface">
+        <ResizableTable id="celebrations" className="rounded-lg border border-line bg-surface">
          <table className="w-full min-w-[520px] border-collapse">
           <thead>
             <tr className="text-left text-[12px] font-semibold text-fg">
@@ -268,7 +269,7 @@ export default async function CelebrationsPage({
             )}
           </tbody>
          </table>
-        </div>
+        </ResizableTable>
       )}
     </AppShell>
   );

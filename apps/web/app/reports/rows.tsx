@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Table, Thead, Tr, Th, Td } from "@connectapp/ui";
+import { Thead, Tr, Th, Td } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Pages } from "@/components/pages";
 import { read } from "./read";
+import { ResizableTable } from "@/components/resizable-columns";
 
 /**
  * R18.12. A built report's list, a page at a time.
@@ -43,7 +44,8 @@ export function Rows({
   return (
     <div className={fill ? "flex min-h-0 flex-1 flex-col gap-2" : "flex flex-col gap-2"}>
       <div className={fill ? "min-h-0 flex-1 overflow-auto" : "overflow-x-auto"}>
-        <Table>
+        <ResizableTable id="report-list" className="rounded-lg border border-line bg-surface">
+          <table className="w-full text-[length:var(--d-text-body)]">
           <Thead>
             <Tr>
               {columns.map((one) => (
@@ -77,7 +79,8 @@ export function Rows({
               </Tr>
             ))}
           </tbody>
-        </Table>
+          </table>
+        </ResizableTable>
       </div>
 
       {/* The control goes where there is more than one page of anything. */}

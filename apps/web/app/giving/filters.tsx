@@ -2,19 +2,28 @@
 
 import * as React from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { t, plural } from "@connectapp/i18n";
-import { FilterDrawer, FilterGroup, ChipButton } from "@/components/filter-drawer";
+import { SlidersHorizontal } from "lucide-react";
 import {
-  PERIODS, METHODS, STATES, type Narrowing, narrowingCount,
+  Button, Sheet, SheetTrigger, SheetContent,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
+import { MultiSelect } from "@/components/multi-select";
+import {
+  PERIODS, METHODS, STATES, STATE_LABELS, type Narrowing, narrowingCount,
 } from "./narrowing";
 
 /**
- * The panel itself.
+ * R13.21. What the giving list is narrowed to, chosen in a panel.
  *
- * Choosing anything sends the reader to a new address, which is also what
- * clears the pager: a narrowed list has its own first page, and leaving
- * somebody on page four of a list that now holds eleven rows is a blank
- * screen with no explanation.
+ * Built the way the group finder builds its filter, because a church that
+ * has learned one of those screens has learned both: one question to a row,
+ * a dropdown where the answer is one of a set and a multi select where it
+ * is any of them.
+ *
+ * Nothing moves until Show is pressed. A list that re-sorts itself under
+ * somebody halfway through choosing is a list they have to find their place
+ * in again.
  */
 export function GivingFilters({
   church,
@@ -32,87 +41,128 @@ export function GivingFilters({
   const pathname = usePathname();
   const params = useSearchParams();
 
-  const go = (changes: Record<string, string | undefined>) => {
+  const [open, setOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState<Narrowing>(now);
+
+  /* The panel opens on what is actually in force, never on what somebody
+     half chose the last time and walked away from. */
+  const onOpenChange = (next: boolean) => {
+    if (next) setDraft(now);
+    setOpen(next);
+  };
+
+  const apply = (one: Narrowing) => {
     const next = new URLSearchParams(params.toString());
-    for (const [key, value] of Object.entries(changes)) {
+    next.set("church", church);
+    const set = (key: string, value: string) => {
       if (value) next.set(key, value);
       else next.delete(key);
-    }
-    next.set("church", church);
+    };
+    set("period", one.period === "year" ? "" : one.period);
+    set("fund", one.fundIds.join(","));
+    set("how", one.methods.join(","));
+    set("state", one.statuses.join(","));
+    // A narrowed list has its own first page.
     next.delete("gifts");
     next.delete("counts");
+    setOpen(false);
     router.push(`${pathname}?${next.toString()}`);
   };
 
+  const options = (values: readonly string[], label: (one: string) => string) =>
+    values.map((value) => ({ value, label: label(value) }));
+
+  const sections: {
+    key: "fundIds" | "methods" | "statuses";
+    label: string;
+    opts: { value: string; label: string }[];
+  }[] = [
+    {
+      key: "fundIds",
+      label: t("giving.filter.fund"),
+      opts: funds.map((one) => ({ value: one.id, label: one.name })),
+    },
+    {
+      key: "methods",
+      label: t("giving.filter.method"),
+      opts: options(METHODS, (one) => t(`giving.method.${one}` as never)),
+    },
+    {
+      key: "statuses",
+      label: t("giving.filter.status"),
+      opts: options(STATES, (one) => t(STATE_LABELS[one as keyof typeof STATE_LABELS] as never)),
+    },
+  ];
+
+  const narrowing = narrowingCount(now);
+
   return (
-    <FilterDrawer
-      title={t("giving.filter.title")}
-      narrowing={narrowingCount(now)}
-      onClear={() => go({ period: undefined, fund: undefined, how: undefined, state: undefined })}
-      done={plural("giving.filter.done", matching)}
-    >
-      <FilterGroup label={t("giving.filter.period")}>
-        {PERIODS.map((one) => (
-          <ChipButton
-            key={one}
-            tone="ink"
-            on={now.period === one}
-            onClick={() => go({ period: one === "year" ? undefined : one })}
-          >
-            {t(`giving.filter.period.${one}` as never)}
-          </ChipButton>
-        ))}
-      </FilterGroup>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetTrigger asChild>
+        <Button variant="secondary" className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
+          <SlidersHorizontal className="size-4" aria-hidden />
+          {narrowing > 0 ? t("find.filterCount", { count: narrowing }) : t("find.filter")}
+        </Button>
+      </SheetTrigger>
 
-      {funds.length > 0 ? (
-        <FilterGroup label={t("giving.filter.fund")}>
-          <ChipButton tone="ink" on={!now.fundId} onClick={() => go({ fund: undefined })}>
-            {t("giving.filter.any")}
-          </ChipButton>
-          {funds.map((fund) => (
-            <ChipButton
-              key={fund.id}
-              tone="ink"
-              on={now.fundId === fund.id}
-              onClick={() => go({ fund: now.fundId === fund.id ? undefined : fund.id })}
+      <SheetContent
+        title={t("giving.filter.title")}
+        closeLabel={t("common.close")}
+        width="380px"
+        footer={
+          <div className="flex w-full items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => apply({ period: "year", fundIds: [], methods: [], statuses: [] })}
             >
-              {fund.name}
-            </ChipButton>
+              {t("find.clear")}
+            </Button>
+            <Button className="flex-1" onClick={() => apply(draft)}>
+              {plural("giving.filter.done", matching)}
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-label text-fg">{t("giving.filter.period")}</span>
+            <Select
+              value={draft.period}
+              onValueChange={(next) =>
+                setDraft((was) => ({ ...was, period: next as Narrowing["period"] }))
+              }
+            >
+              <SelectTrigger aria-label={t("giving.filter.period")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PERIODS.map((one) => (
+                  <SelectItem key={one} value={one}>
+                    {t(`giving.filter.period.${one}` as never)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {sections.map((section) => (
+            <div key={section.key} className="flex flex-col gap-1.5">
+              <span className="text-label text-fg">{section.label}</span>
+              <MultiSelect
+                label={section.label}
+                options={section.opts}
+                value={draft[section.key]}
+                onChange={(next) => setDraft((was) => ({ ...was, [section.key]: next }))}
+                summary={(picks) =>
+                  picks.length > 2
+                    ? t("find.chosen", { count: picks.length })
+                    : picks.map((one) => one.label).join(", ")
+                }
+              />
+            </div>
           ))}
-        </FilterGroup>
-      ) : null}
-
-      <FilterGroup label={t("giving.filter.method")}>
-        <ChipButton tone="ink" on={!now.method} onClick={() => go({ how: undefined })}>
-          {t("giving.filter.any")}
-        </ChipButton>
-        {METHODS.map((one) => (
-          <ChipButton
-            key={one}
-            tone="ink"
-            on={now.method === one}
-            onClick={() => go({ how: now.method === one ? undefined : one })}
-          >
-            {t(`giving.method.${one}` as never)}
-          </ChipButton>
-        ))}
-      </FilterGroup>
-
-      <FilterGroup label={t("giving.filter.status")}>
-        <ChipButton tone="ink" on={!now.status} onClick={() => go({ state: undefined })}>
-          {t("giving.filter.any")}
-        </ChipButton>
-        {STATES.map((one) => (
-          <ChipButton
-            key={one}
-            tone="ink"
-            on={now.status === one}
-            onClick={() => go({ state: now.status === one ? undefined : one })}
-          >
-            {t(`giving.filter.status.${one}` as never)}
-          </ChipButton>
-        ))}
-      </FilterGroup>
-    </FilterDrawer>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

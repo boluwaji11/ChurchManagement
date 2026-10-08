@@ -17,9 +17,10 @@ import { t } from "@connectapp/i18n";
  * handles over the heading row, so a screen gets this by wrapping its table
  * rather than by being rebuilt around a hook.
  *
- * The widths are kept for this sitting only, in the browser's session: it is
- * a preference about the list somebody is reading now, and a column dragged
- * narrow on a borrowed laptop should not follow them home.
+ * The widths are kept in the browser and stay kept. Somebody who has set a
+ * table up the way they read it should find it that way next week, so this
+ * outlives the tab rather than being set again every visit. It never leaves
+ * the machine it was set on.
  */
 
 /** Nothing is ever dragged narrower than this. */
@@ -59,7 +60,7 @@ export function ResizableTable({
 
     let held: number[] | null = null;
     try {
-      const raw = window.sessionStorage.getItem(`cols:${id}`);
+      const raw = window.localStorage.getItem(`cols:${id}`);
       const parsed = raw ? (JSON.parse(raw) as unknown) : null;
       if (
         Array.isArray(parsed)
@@ -114,7 +115,7 @@ export function ResizableTable({
       next[at + 1] = theirs - room;
 
       try {
-        window.sessionStorage.setItem(`cols:${id}`, JSON.stringify(next));
+        window.localStorage.setItem(`cols:${id}`, JSON.stringify(next));
       } catch {
         // Nothing to do. The widths hold for this page either way.
       }

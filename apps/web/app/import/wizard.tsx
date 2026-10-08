@@ -14,6 +14,7 @@ import {
   inspectFile, previewImport, runImport, undoImport,
   type Inspection, type Preview, type ImportResult,
 } from "./actions";
+import { ResizableTable } from "@/components/resizable-columns";
 
 /** R19.4. Thirty days from today, as a date a church reads. */
 function undoBy(): string {
@@ -353,7 +354,7 @@ function MapColumns({
         ) : null}
       </div>
 
-      <section className="w-full overflow-auto rounded-lg border border-line bg-surface">
+      <ResizableTable id="import-preview" className="rounded-lg border border-line bg-surface">
         <table className="w-full min-w-[600px] border-collapse text-left">
           <thead>
             <tr className="text-[12px] font-semibold text-fg">
@@ -401,7 +402,7 @@ function MapColumns({
             })}
           </tbody>
         </table>
-      </section>
+      </ResizableTable>
 
       <div className="flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={onBack}>

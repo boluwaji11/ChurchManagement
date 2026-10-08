@@ -39,7 +39,7 @@ export const dynamic = "force-dynamic";
 
 /** How much of each list is on one page. */
 const COUNTS_PER_PAGE = 8;
-const GIFTS_PER_PAGE = 12;
+const GIFTS_PER_PAGE = 10;
 
 /** R17.1. Giving to whoever runs it, My giving to everybody else. */
 export async function generateMetadata({
@@ -111,9 +111,9 @@ export default async function GivingPage({
     const span = periodRange(narrowing.period, today);
     const narrowed = {
       ...span,
-      fundId: narrowing.fundId,
-      method: narrowing.method,
-      status: narrowing.status,
+      fundIds: narrowing.fundIds,
+      methods: narrowing.methods,
+      statuses: narrowing.statuses,
     };
 
     return {
@@ -268,23 +268,6 @@ export default async function GivingPage({
           />
         </div>
 
-        {/* R13.21. What is narrowing the gifts below, on the left where a
-            reader looks for it. The figures above are the month and the
-            year by definition and are not narrowed by it. */}
-        <div className="flex flex-wrap items-center gap-3">
-          <GivingFilters
-            church={session.tenantSlug}
-            now={narrowing}
-            funds={fundList}
-            matching={read.allGifts}
-          />
-          {narrowingCount(narrowing) > 0 ? (
-            <span className="text-[13px] text-fg-muted">
-              {plural("giving.gifts.count", read.allGifts)}
-            </span>
-          ) : null}
-        </div>
-
         {/* R13.21. The lists on the left, what the church is holding on the
             right. A table given the whole of a wide screen leaves a hand's
             width of nothing between a name and a fund, and the two standing
@@ -311,7 +294,20 @@ export default async function GivingPage({
             <Panel
               icon={<CalendarCheck />}
               title={t("giving.counts")}
-              action={startCount}
+              action={
+                <>
+                  {startCount}
+                  {/* R13.21. What is narrowing the lists, at the head of the
+                      first of them. The figures above are the month and the
+                      year by definition and are not narrowed by it. */}
+                  <GivingFilters
+                    church={session.tenantSlug}
+                    now={narrowing}
+                    funds={fundList}
+                    matching={read.allGifts}
+                  />
+                </>
+              }
             >
               {read.counts.length === 0 ? (
                 <Nothing>{t("giving.counts.none")}</Nothing>

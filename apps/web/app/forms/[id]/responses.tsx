@@ -10,6 +10,7 @@ import { Empty } from "@/components/empty";
 import type { FormAnswer, FormFieldDef } from "@connectapp/db/rules";
 import { Pages } from "@/components/pages";
 import { matchResponses } from "../actions";
+import { ResizableTable } from "@/components/resizable-columns";
 
 export interface SubmissionRow {
   id: string;
@@ -169,7 +170,7 @@ export function Responses({
         </span>
       ) : null}
 
-      <div className="overflow-hidden rounded-[14px] border border-line bg-surface">
+      <ResizableTable id="form-responses" className="rounded-[14px] border border-line bg-surface">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-line">
@@ -303,7 +304,7 @@ export function Responses({
             ))}
           </tbody>
         </table>
-      </div>
+      </ResizableTable>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-[13px] text-fg-muted">
