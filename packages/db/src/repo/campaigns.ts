@@ -216,8 +216,7 @@ export async function setCampaignArchived(
 }
 
 /**
- * R13.16, R13.18. The commitments, and what each household has given against
- * one.
+ * R13.16, R13.18. The pledges, and what each household has given against one.
  *
  * The household roll-up is the point: a couple pledge once, and whichever of
  * them writes the cheque, the pledge reads as kept.
@@ -277,7 +276,83 @@ export async function listPledges(
   }));
 }
 
-/** R13.16. One household's commitment, written down or corrected. */
+
+/** R13.16, R17.4. One of a member's own pledges, as they read it. */
+export interface MyPledge {
+  id: string;
+  campaignName: string;
+  campaignSlug: string;
+  fundName: string;
+  amountCents: number;
+  givenCents: number;
+  startsOn: string;
+  endsOn: string | null;
+  archived: boolean;
+}
+
+/**
+ * R13.16, R17.4. What this member has pledged, across every campaign.
+ *
+ * Their own, which is why it is matched on the record rather than on a name.
+ * What counts towards it is the household's giving to the campaign's fund
+ * inside its period, the same roll-up the church reads, so the two screens
+ * never disagree about whether a pledge has been kept.
+ */
+export async function pledgesForMember(
+  db: Tx,
+  who: WriteActor,
+  memberId: string,
+): Promise<MyPledge[]> {
+  if (!canReadGivingAmounts(who)) throw new PermissionError(who.role, "manageGiving");
+
+  const all = await listCampaigns(db, { includeArchived: true });
+  const out: MyPledge[] = [];
+
+  for (const campaign of all) {
+    const [row] = await db
+      .select({
+        id: pledges.id,
+        amountCents: pledges.amountCents,
+        givenCents: sql<number>`(
+          select coalesce(sum(g.amount_cents - g.refunded_cents), 0)::int
+            from gifts g
+           where g.fund_id = ${campaign.fundId}
+             and g.status = 'settled'
+             and g.received_on >= ${campaign.startsOn}::date
+             ${campaign.endsOn ? sql`and g.received_on <= ${campaign.endsOn}::date` : sql``}
+             and (
+               g.member_id = ${memberId}
+               or g.member_id in (
+                 select hm2.member_id
+                   from household_memberships hm1
+                   join household_memberships hm2 on hm2.household_id = hm1.household_id
+                  where hm1.member_id = ${memberId}
+               )
+             )
+        )`,
+      })
+      .from(pledges)
+      .where(and(eq(pledges.campaignId, campaign.id), eq(pledges.memberId, memberId)))
+      .limit(1);
+
+    if (!row) continue;
+    out.push({
+      id: row.id,
+      campaignName: campaign.name,
+      campaignSlug: campaign.slug,
+      fundName: campaign.fundName,
+      amountCents: row.amountCents,
+      givenCents: row.givenCents,
+      startsOn: campaign.startsOn,
+      endsOn: campaign.endsOn,
+      archived: campaign.archived,
+    });
+  }
+
+  return out;
+}
+
+/** R13.16. One household's pledge, written down or corrected. */
 export async function writePledge(
   db: Tx,
   actor: WriteActor,
@@ -307,7 +382,7 @@ export async function writePledge(
     });
 }
 
-/** R13.16. Taking a commitment back off. */
+/** R13.16. Taking a pledge back off. */
 export async function removePledge(db: Tx, actor: WriteActor, id: string): Promise<void> {
   if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
   const gone = await db.delete(pledges).where(eq(pledges.id, id)).returning({ id: pledges.id });

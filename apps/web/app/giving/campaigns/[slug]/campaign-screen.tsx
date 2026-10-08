@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus, Trash2, Undo2 } from "lucide-react";
+import {
+  CalendarRange, CheckCircle2, HandCoins, Pencil, Plus, Target, Trash2, Undo2, Users, Wallet,
+} from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Textarea,
   Sheet, SheetContent, SheetTrigger,
@@ -18,7 +20,7 @@ import { longDate } from "@/lib/dates";
 import { findGiver, type GiverHit } from "../../actions";
 import { savePledge, dropPledge, closeCampaign } from "../actions";
 import { CampaignPanel } from "../campaign-panel";
-import { Progress } from "../progress";
+import { Progress, PaceChip, percentOf, standingOf } from "../progress";
 
 /**
  * R13.16, R13.18. One campaign, and the commitments against it.
@@ -48,6 +50,8 @@ export function CampaignScreen({
   const [asking, setAsking] = React.useState(false);
   const [removing, setRemoving] = React.useState<string | null>(null);
 
+  const standing = standingOf({ ...campaign, today });
+
   const run = (work: () => Promise<{ error?: string }>) =>
     startTransition(async () => {
       const result = await work();
@@ -59,116 +63,196 @@ export function CampaignScreen({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("campaigns.failed")}>{error}</Banner> : null}
 
-      <div className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex min-w-0 flex-col gap-1">
-            <span data-numeric className="font-display text-[34px] leading-[40px] text-fg">
-              {money(campaign.receivedCents)}
+      {/* R13.16. The one number somebody opened this page for, what it is
+          measured against, and how that is going. */}
+      <section className="flex flex-col rounded-[14px] border border-line bg-surface shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4 p-5 pb-4">
+          <div className="flex min-w-0 items-start gap-3.5">
+            <span
+              className="grid size-11 shrink-0 place-items-center rounded-xl [&_svg]:size-5"
+              style={{ background: standing.tone.tint, color: standing.tone.text }}
+            >
+              <Target aria-hidden />
             </span>
-            <span className="text-[13px] text-fg-muted">
-              {t("campaigns.received", {
-                amount: money(campaign.receivedCents),
-                target: money(campaign.targetCents),
-              })}
-              {" · "}
-              {plural("campaigns.pledged", campaign.pledges, {
-                amount: money(campaign.pledgedCents),
-              })}
-            </span>
-            <span className="text-[12px] text-fg-subtle">
-              {[campaign.fundName, longDate(campaign.startsOn),
-                campaign.endsOn ? longDate(campaign.endsOn) : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
+
+            <div className="flex min-w-0 flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span data-numeric className="font-display text-[34px] leading-[38px] text-fg">
+                  {money(campaign.receivedCents)}
+                </span>
+                <span
+                  data-numeric
+                  className="text-[15px] font-bold"
+                  style={{ color: standing.tone.text }}
+                >
+                  {percentOf(standing)}
+                </span>
+                <PaceChip standing={standing} />
+              </div>
+
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-fg-subtle">
+                <span className="flex items-center gap-1.5">
+                  <Wallet className="size-3.5 shrink-0" aria-hidden />
+                  {campaign.fundName}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CalendarRange className="size-3.5 shrink-0" aria-hidden />
+                  {campaign.endsOn
+                    ? t("campaigns.period", {
+                        from: longDate(campaign.startsOn), to: longDate(campaign.endsOn),
+                      })
+                    : t("campaigns.openEnded", { from: longDate(campaign.startsOn) })}
+                </span>
+              </span>
+            </div>
           </div>
 
           {manage ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {campaign.archived ? (
-                <Button
-                  variant="secondary"
-                  disabled={pending}
-                  onClick={() => run(() => closeCampaign(campaign.id, false, church))}
-                >
-                  <Undo2 /> {t("campaigns.reopen")}
-                </Button>
-              ) : (
-                <>
-                  <PledgePanel church={church} campaignId={campaign.id} />
-                  <CampaignPanel
-                    church={church}
-                    today={today}
-                    funds={funds}
-                    campaign={campaign}
-                    onClose={() => setAsking(true)}
-                    trigger={
-                      <Button variant="secondary">
-                        <Pencil /> {t("action.edit")}
-                      </Button>
-                    }
-                  />
-                </>
-              )}
-            </div>
+            campaign.archived ? (
+              <Button
+                variant="secondary"
+                loading={pending}
+                onClick={() => run(() => closeCampaign(campaign.id, false, church))}
+              >
+                <Undo2 /> {t("campaigns.reopen")}
+              </Button>
+            ) : (
+              <CampaignPanel
+                church={church}
+                today={today}
+                funds={funds}
+                campaign={campaign}
+                onClose={() => setAsking(true)}
+                trigger={
+                  <IconButton label={t("action.edit")} variant="secondary">
+                    <Pencil />
+                  </IconButton>
+                }
+              />
+            )
           ) : null}
         </div>
 
-        <Progress received={campaign.receivedCents} target={campaign.targetCents} />
+        <div className="px-5 pb-4">
+          <Progress standing={standing} height={10} />
+        </div>
 
         {campaign.description ? (
-          <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
-            {campaign.description}
-          </p>
+          <>
+            <hr className="border-0 border-t border-line" />
+            <p className="m-0 px-5 py-4 text-[length:var(--d-text-body)] text-fg-muted">
+              {campaign.description}
+            </p>
+          </>
         ) : null}
-      </div>
 
-      <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("pledge.title")}</h2>
+        <hr className="border-0 border-t border-line" />
 
-      {pledges.length === 0 ? (
-        <p className="text-fg-muted">{t("pledge.none")}</p>
-      ) : (
-        <ul className="overflow-hidden rounded-lg border border-line bg-surface">
-          {pledges.map((one) => {
-            const kept = one.givenCents >= one.amountCents;
-            return (
-              <li
-                key={one.id}
-                className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-0"
-              >
-                <span className="min-w-0 flex-1 font-medium text-fg">{one.name}</span>
-                <span className="w-[150px] shrink-0 text-[13px] text-fg-muted">
-                  {t("pledge.given", { amount: money(one.givenCents) })}
-                </span>
-                {kept ? (
-                  <span
-                    className="flex h-[22px] shrink-0 items-center rounded-full px-2 text-[11px] font-semibold"
-                    style={{
-                      background: "var(--hue-fern-tint)",
-                      color: "var(--hue-fern-key)",
-                    }}
-                  >
-                    {t("pledge.kept")}
+        {/* The four figures a treasurer reads together, so they are one row
+            rather than a sentence somebody has to take apart. */}
+        <dl className="m-0 grid grid-cols-2 divide-line sm:grid-cols-4 sm:divide-x">
+          <Figure
+            icon={<HandCoins />}
+            label={t("campaigns.raised")}
+            value={money(campaign.receivedCents)}
+          />
+          <Figure
+            icon={<Target />}
+            label={t("campaigns.target")}
+            value={money(campaign.targetCents)}
+          />
+          <Figure
+            icon={<CheckCircle2 />}
+            label={t("campaigns.remaining")}
+            value={money(Math.max(0, campaign.targetCents - campaign.receivedCents))}
+          />
+          <Figure
+            icon={<Users />}
+            label={t("campaigns.pledgedTotal")}
+            value={money(campaign.pledgedCents)}
+            note={plural("pledge.count", campaign.pledges)}
+          />
+        </dl>
+      </section>
+
+      {/* R13.16. The pledges, with the one action that writes one. It sits
+          here rather than beside the campaign's own: adding a pledge is
+          something done to this list. */}
+      <section className="flex flex-col rounded-[14px] border border-line bg-surface shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&_svg]:size-[18px]">
+              <Users aria-hidden />
+            </span>
+            <span className="flex min-w-0 flex-col leading-5">
+              <span className="text-[15px] font-bold text-fg">{t("pledge.title")}</span>
+              <span className="truncate text-[13px] text-fg-muted">
+                {plural("pledge.count", pledges.length)}
+              </span>
+            </span>
+          </div>
+
+          {manage && !campaign.archived ? (
+            <PledgePanel church={church} campaignId={campaign.id} />
+          ) : null}
+        </div>
+
+        <hr className="border-0 border-t border-line" />
+
+        {pledges.length === 0 ? (
+          <p className="m-0 px-5 py-8 text-center text-fg-muted">{t("pledge.none")}</p>
+        ) : (
+          <ul className="m-0 flex list-none flex-col p-0">
+            {pledges.map((one) => {
+              const kept = one.givenCents >= one.amountCents;
+              const short = Math.max(0, one.amountCents - one.givenCents);
+              return (
+                <li
+                  key={one.id}
+                  className="flex flex-wrap items-center gap-3 border-t border-sunken px-5 py-3 first:border-0"
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-2.5">
+                    <span className="truncate font-medium text-fg">{one.name}</span>
+                    {kept ? (
+                      <span
+                        className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-semibold"
+                        style={{
+                          background: "var(--success-soft)", color: "var(--success-text)",
+                        }}
+                      >
+                        <CheckCircle2 className="size-3" aria-hidden />
+                        {t("pledge.kept")}
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
-                <span data-numeric className="w-[110px] shrink-0 text-right text-fg">
-                  {money(one.amountCents)}
-                </span>
-                {manage ? (
-                  <IconButton
-                    label={t("pledge.remove")}
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => setRemoving(one.id)}
-                  >
-                    <Trash2 />
-                  </IconButton>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+
+                  <span className="flex shrink-0 flex-col items-end leading-5">
+                    <span data-numeric className="font-semibold text-fg">
+                      {money(one.amountCents)}
+                    </span>
+                    <span data-numeric className="text-[12px] text-fg-subtle">
+                      {kept
+                        ? t("pledge.given", { amount: money(one.givenCents) })
+                        : t("pledge.toGo", { amount: money(short) })}
+                    </span>
+                  </span>
+
+                  {manage ? (
+                    <IconButton
+                      label={t("pledge.remove")}
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => setRemoving(one.id)}
+                    >
+                      <Trash2 />
+                    </IconButton>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <Dialog open={asking} onOpenChange={(on) => (on ? null : setAsking(false))}>
         <DialogContent alert title={t("campaigns.closeTitle", { name: campaign.name })}>
@@ -214,7 +298,26 @@ export function CampaignScreen({
   );
 }
 
-/** R13.16. One household's commitment, written down. */
+/** One figure under the campaign, with the mark that says which it is. */
+function Figure({ icon, label, value, note }: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  note?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1 border-t border-line px-5 py-3.5 sm:border-t-0">
+      <dt className="flex items-center gap-1.5 text-[12px] font-medium text-fg-muted [&_svg]:size-3.5">
+        {icon}
+        {label}
+      </dt>
+      <dd data-numeric className="m-0 text-[17px] font-semibold text-fg">{value}</dd>
+      {note ? <dd className="m-0 text-[12px] text-fg-subtle">{note}</dd> : null}
+    </div>
+  );
+}
+
+/** R13.16. One household's pledge, written down. */
 function PledgePanel({ church, campaignId }: { church: string; campaignId: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -244,7 +347,7 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button><Plus /> {t("pledge.add")}</Button>
+        <Button variant="secondary"><Plus /> {t("pledge.add")}</Button>
       </SheetTrigger>
 
       <SheetContent

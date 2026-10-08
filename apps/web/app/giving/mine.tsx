@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CornerDownRight, Download } from "lucide-react";
+import { CheckCircle2, CornerDownRight, Download, Target } from "lucide-react";
 import {
   withTenant, personForUser, listGifts, givingForPerson, onTheWay, getChurch,
-  getStripeAccount, listRecurring, givingPage,
+  getStripeAccount, listRecurring, givingPage, pledgesForMember,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
@@ -11,6 +11,7 @@ import type { Session } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { longDate } from "@/lib/dates";
 import { money } from "@/lib/money";
+import { Progress, PaceChip, standingOf } from "./campaigns/progress";
 import { GiftState } from "./gift-state";
 import { giftRows } from "./rows";
 import { RepeatMark } from "./repeat-mark";
@@ -40,12 +41,14 @@ export async function MyGiving({ session }: { session: Session }) {
     const self = await personForUser(tx, session.userId);
     if (!self) return null;
 
-    const year = churchNow(
+    const today = churchNow(
       (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
-    ).date.slice(0, 4);
+    ).date;
+    const year = today.slice(0, 4);
 
     return {
       year,
+      today,
       self,
       /*
        * R1.5. Their own gifts, read as themselves. listGifts hides amounts
@@ -69,6 +72,12 @@ export async function MyGiving({ session }: { session: Session }) {
         tx,
         { ...ctx, permissions: [...(ctx.permissions ?? []), "giving.amounts"] },
         { activeOnly: true, memberId: self },
+      ),
+      /* R13.16, R17.4. What they have pledged, and how far they have got. */
+      pledges: await pledgesForMember(
+        tx,
+        { ...ctx, permissions: [...(ctx.permissions ?? []), "giving.amounts"] },
+        self,
       ),
     };
   });
@@ -131,6 +140,67 @@ export async function MyGiving({ session }: { session: Session }) {
             </Link>
           ) : null}
         </Panel>
+
+        {/* R13.16, R17.4. Their own pledges, so somebody who promised in
+            October can see in March what is left of it without asking. */}
+        {mine.pledges.length > 0 ? (
+          <Panel className="flex flex-col gap-3">
+            <span className="font-medium text-fg">{t("pledge.mine")}</span>
+
+            {mine.pledges.map((one) => {
+              const kept = one.givenCents >= one.amountCents;
+              const standing = standingOf({
+                receivedCents: one.givenCents,
+                targetCents: one.amountCents,
+                startsOn: one.startsOn,
+                endsOn: one.endsOn,
+                today: mine.today,
+                archived: one.archived,
+              });
+
+              return (
+                <div
+                  key={one.id}
+                  className="flex flex-col gap-2 border-t border-line pt-3 first-of-type:border-0 first-of-type:pt-0"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Target className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                      <span className="truncate font-medium text-fg">{one.campaignName}</span>
+                      {kept ? (
+                        <span
+                          className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-semibold"
+                          style={{ background: "var(--success-soft)", color: "var(--success-text)" }}
+                        >
+                          <CheckCircle2 className="size-3" aria-hidden />
+                          {t("pledge.kept")}
+                        </span>
+                      ) : (
+                        <PaceChip standing={standing} />
+                      )}
+                    </span>
+
+                    <span data-numeric className="shrink-0 text-caption text-fg-muted">
+                      {t("pledge.given", { amount: money(one.givenCents) })}
+                      {" \u00b7 "}
+                      {t("pledge.mine.of", { amount: money(one.amountCents) })}
+                    </span>
+                  </div>
+
+                  <Progress standing={standing} height={6} />
+
+                  {kept ? null : (
+                    <span data-numeric className="text-caption text-fg-subtle">
+                      {t("pledge.toGo", {
+                        amount: money(Math.max(0, one.amountCents - one.givenCents)),
+                      })}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </Panel>
+        ) : null}
 
         {/* R13.3, R13.19. What they have set to repeat, and the way to
             stop it without ringing the church. */}

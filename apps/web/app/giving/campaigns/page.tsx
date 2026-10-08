@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarRange, Target, Users } from "lucide-react";
 import {
   withTenant, getChurch, listCampaigns, listFunds, canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
@@ -12,7 +12,7 @@ import { Empty } from "@/components/empty";
 import { money } from "@/lib/money";
 import { longDate } from "@/lib/dates";
 import { CampaignPanel } from "./campaign-panel";
-import { Progress } from "./progress";
+import { Progress, PaceChip, percentOf, standingOf } from "./progress";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -97,43 +97,75 @@ export default async function CampaignsPage({
               </div>
             ) : null}
 
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))]">
-              {live.map((one) => (
+            <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(330px,1fr))]">
+              {live.map((one) => {
+                const standing = standingOf({ ...one, today: read.today });
+                return (
                 <Link
                   key={one.id}
                   href={`/giving/campaigns/${one.slug}?church=${session.tenantSlug}`}
-                  className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 no-underline hover:bg-sunken"
+                  className="group flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface p-5 no-underline shadow-sm transition-colors duration-instant hover:border-line-strong hover:bg-sunken"
                 >
-                  <span className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 flex-1 truncate font-semibold text-fg">
-                      {one.name}
+                  <span className="flex items-start gap-3">
+                    {/* The campaign's mark, in the colour its pace is running
+                        at, so a wall of cards reads before any of it is. */}
+                    <span
+                      className="grid size-9 shrink-0 place-items-center rounded-[10px] [&_svg]:size-[18px]"
+                      style={{ background: standing.tone.tint, color: standing.tone.text }}
+                    >
+                      <Target aria-hidden />
                     </span>
-                    <span className="shrink-0 text-[13px] text-fg-subtle">{one.fundName}</span>
+
+                    <span className="flex min-w-0 flex-1 flex-col leading-5">
+                      <span className="truncate text-[15px] font-bold text-fg">{one.name}</span>
+                      <span className="truncate text-[13px] text-fg-muted">{one.fundName}</span>
+                    </span>
+
+                    <PaceChip standing={standing} />
                   </span>
 
-                  <Progress received={one.receivedCents} target={one.targetCents} />
-
-                  <span className="flex flex-wrap items-baseline justify-between gap-2 text-[13px]">
-                    <span data-numeric className="font-medium text-fg">
-                      {t("campaigns.received", {
-                        amount: money(one.receivedCents),
-                        target: money(one.targetCents),
-                      })}
-                    </span>
-                    <span className="text-fg-muted">
-                      {plural("campaigns.pledged", one.pledges, {
-                        amount: money(one.pledgedCents),
-                      })}
+                  <span className="flex flex-col gap-2">
+                    <Progress standing={standing} />
+                    <span className="flex items-baseline justify-between gap-3 text-[13px]">
+                      <span data-numeric className="font-semibold text-fg">
+                        {t("campaigns.received", {
+                          amount: money(one.receivedCents),
+                          target: money(one.targetCents),
+                        })}
+                      </span>
+                      <span
+                        data-numeric
+                        className="shrink-0 font-semibold"
+                        style={{ color: standing.tone.text }}
+                      >
+                        {percentOf(standing)}
+                      </span>
                     </span>
                   </span>
 
-                  <span className="text-[12px] text-fg-subtle">
-                    {[longDate(one.startsOn), one.endsOn ? longDate(one.endsOn) : null]
-                      .filter(Boolean)
-                      .join(" to ")}
+                  <hr className="border-0 border-t border-line" />
+
+                  <span className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-fg-subtle">
+                    <span className="flex items-center gap-1.5">
+                      <CalendarRange className="size-3.5 shrink-0" aria-hidden />
+                      {one.endsOn
+                        ? t("campaigns.period", {
+                            from: longDate(one.startsOn), to: longDate(one.endsOn),
+                          })
+                        : t("campaigns.openEnded", { from: longDate(one.startsOn) })}
+                    </span>
+                    {one.pledges > 0 ? (
+                      <span className="flex items-center gap-1.5">
+                        <Users className="size-3.5 shrink-0" aria-hidden />
+                        {plural("campaigns.pledged", one.pledges, {
+                          amount: money(one.pledgedCents),
+                        })}
+                      </span>
+                    ) : null}
                   </span>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
