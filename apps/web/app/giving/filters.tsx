@@ -7,7 +7,7 @@ import {
   Button, Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
-import { t, plural } from "@connectapp/i18n";
+import { t } from "@connectapp/i18n";
 import { MultiSelect } from "@/components/multi-select";
 import {
   PERIODS, METHODS, STATES, STATE_LABELS, type Narrowing, narrowingCount,
@@ -29,13 +29,10 @@ export function GivingFilters({
   church,
   now,
   funds,
-  matching,
 }: {
   church: string;
   now: Narrowing;
   funds: { id: string; name: string }[];
-  /** How many gifts the current narrowing matches, for the foot. */
-  matching: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -117,8 +114,10 @@ export function GivingFilters({
             >
               {t("find.clear")}
             </Button>
+            {/* No count on it. The server does the narrowing, so a figure
+                here would be the one from before the last choice. */}
             <Button className="flex-1" onClick={() => apply(draft)}>
-              {plural("giving.filter.done", matching)}
+              {t("giving.filter.show")}
             </Button>
           </div>
         }

@@ -23,7 +23,8 @@ export function Panel({
   /** What is in it, read before opening anything. */
   count?: string;
   action?: React.ReactNode;
-  children: React.ReactNode;
+  /** Left out where the head is the whole of it. */
+  children?: React.ReactNode;
   className?: string;
 }) {
   return (
@@ -43,9 +44,13 @@ export function Panel({
         {action ? <span className="flex flex-wrap items-center gap-2">{action}</span> : null}
       </header>
 
-      <hr className="border-0 border-t border-line" />
-
-      {children}
+      {/* No rule under a head with nothing beneath it. */}
+      {children ? (
+        <>
+          <hr className="border-0 border-t border-line" />
+          {children}
+        </>
+      ) : null}
     </section>
   );
 }

@@ -275,6 +275,17 @@ export default async function GivingPage({
         <div className="grid items-start gap-6 xl:[grid-template-columns:minmax(0,1fr)_minmax(300px,360px)]">
           <div className="flex min-w-0 flex-col gap-6">
 
+        {/* R13.21. What is narrowing the lists, over the first of them. The
+            figures above are the month and the year by definition and are
+            not narrowed by it. */}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <GivingFilters
+            church={session.tenantSlug}
+            now={narrowing}
+            funds={fundList}
+          />
+        </div>
+
         {nothing ? (
           <Empty
             icon="calendar"
@@ -294,20 +305,7 @@ export default async function GivingPage({
             <Panel
               icon={<CalendarCheck />}
               title={t("giving.counts")}
-              action={
-                <>
-                  {startCount}
-                  {/* R13.21. What is narrowing the lists, at the head of the
-                      first of them. The figures above are the month and the
-                      year by definition and are not narrowed by it. */}
-                  <GivingFilters
-                    church={session.tenantSlug}
-                    now={narrowing}
-                    funds={fundList}
-                    matching={read.allGifts}
-                  />
-                </>
-              }
+              action={startCount}
             >
               {read.counts.length === 0 ? (
                 <Nothing>{t("giving.counts.none")}</Nothing>

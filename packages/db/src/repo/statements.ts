@@ -29,11 +29,11 @@ import { t } from "@connectapp/i18n";
  * church in its ninth year can reach its first and a church in its first is
  * not offered two years of blank pages.
  */
-export async function givingYears(db: Tx): Promise<string[]> {
+export async function givingYears(db: Tx, memberId?: string): Promise<string[]> {
   const rows = await db
     .select({ year: sql<string>`to_char(${gifts.receivedOn}, 'YYYY')` })
     .from(gifts)
-    .where(settled)
+    .where(memberId ? and(settled, eq(gifts.memberId, memberId)) : settled)
     .groupBy(sql`to_char(${gifts.receivedOn}, 'YYYY')`)
     .orderBy(desc(sql`to_char(${gifts.receivedOn}, 'YYYY')`));
   return rows.map((row) => row.year);
