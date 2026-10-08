@@ -81,7 +81,9 @@ export function Pages({
     "grid size-8 cursor-pointer place-items-center rounded-sm border border-line-strong bg-surface disabled:cursor-default disabled:opacity-40";
 
   return (
-    <div className="flex items-center gap-1">
+    /* Seven numbers and two arrows are wider than a phone, so the row wraps
+       rather than taking the page off the side. */
+    <div className="flex flex-wrap items-center gap-1">
       <button
         type="button"
         aria-label={t("pages.previous")}

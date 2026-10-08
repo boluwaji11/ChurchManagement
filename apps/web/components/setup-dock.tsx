@@ -89,7 +89,8 @@ export function SetupDock({
       aria-label={t("setup.dock.title")}
       className={cn(
         "fixed right-4 z-40 w-[310px] max-w-[calc(100vw-2rem)]",
-        "bottom-20 sm:bottom-6",
+        // Over the phone's tab bar and clear of the inset under it.
+        "bottom-[calc(5rem+env(safe-area-inset-bottom))] sm:bottom-6",
         "flex flex-col gap-3 rounded-2xl border border-line p-4",
         // Translucent, so it reads as something laid over the screen rather
         // than a hole cut in it, and the page keeps showing through. The wash
@@ -100,7 +101,7 @@ export function SetupDock({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="flex flex-col">
+        <span className="flex min-w-0 flex-col">
           <span className="text-[14px] font-semibold text-fg">{t("setup.dock.title")}</span>
           <span className="text-[length:var(--d-text-caption)] text-fg-muted">
             {t("setup.dock.count", { done: String(done), all: String(steps.length) })}

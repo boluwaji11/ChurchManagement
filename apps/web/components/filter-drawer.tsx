@@ -60,18 +60,26 @@ export function FilterDrawer({
             onClick={(e) => e.stopPropagation()}
             className="flex h-full w-[min(380px,100%)] flex-col bg-canvas shadow-[-8px_0_24px_oklch(0_0_0/0.12)]"
           >
-            <div className="flex items-center gap-3 border-b border-line px-6 py-[18px]">
-              <span className="flex-1 font-display text-[22px] text-fg">{title}</span>
+            <div className="flex items-center gap-3 border-b border-line px-4 py-[18px] sm:px-6">
+              <span className="min-w-0 flex-1 truncate font-display text-[22px] text-fg">{title}</span>
               <IconButton label={t("common.close")} onClick={() => setOpen(false)}>
                 <X />
               </IconButton>
             </div>
 
-            <div className="flex flex-1 flex-col gap-6 overflow-auto px-6 py-5">{children}</div>
+            <div className="flex flex-1 flex-col gap-6 overflow-auto px-4 py-5 sm:px-6">{children}</div>
 
-            <div className="flex items-center gap-3 border-t border-line px-6 py-4">
+            {/* R24.6. The panel runs to the glass on a phone, so the foot
+                clears the inset the home indicator sits in, and the pair
+                wraps rather than squashing one of them to half its words. */}
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-3 border-t border-line px-4 py-4 sm:px-6",
+                "pb-[calc(1rem+env(safe-area-inset-bottom))]",
+              )}
+            >
               <Button variant="secondary" onClick={onClear}>{t("directory.clear")}</Button>
-              <Button className="flex-1" onClick={() => setOpen(false)}>{done}</Button>
+              <Button className="min-w-0 flex-1" onClick={() => setOpen(false)}>{done}</Button>
             </div>
           </aside>
         </div>
