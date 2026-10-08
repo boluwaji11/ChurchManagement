@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { brandOf } from "@/lib/brand";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { givingPage } from "@connectapp/db";
@@ -89,7 +88,7 @@ export default async function GivePage({
           <Mark
             name={church.name}
             logoUrl={logoUrl}
-            colour={brandOf(church).key}
+            hue={church.brandHue}
             homepage={homepage}
           />
           <h1 className="font-display text-[28px] leading-[34px] text-fg">

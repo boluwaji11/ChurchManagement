@@ -1,6 +1,4 @@
 import type { NextRequest } from "next/server";
-import { brandHexOf } from "@/lib/brand";
-import { brandRamp, oklchToHex as okHex } from "@connectapp/ui";
 import PptxGenJS from "pptxgenjs";
 import {
   withTenant, getChurch, getSavedReport, runReport, canEditPeople, canReadIncidents,
@@ -117,21 +115,13 @@ export async function GET(
         saved,
         answers,
         when: churchNow(profile?.timezone ?? "America/Chicago"),
-        hue: brandHexOf(profile),
+        hue: profile?.brandHue ?? "indigo",
       };
     },
   );
 
   if (!found) return new Response("", { status: 404 });
   const { saved, answers, when, hue } = found;
-
-  /* PowerPoint takes sRGB and nothing else, so the ramp's darker step is
-     turned back into one. */
-  const deckInk = (brand: string) => {
-    const [l, c, h] = brandRamp(brand)["700"]
-      .replace(/oklch\(|\)/g, "").split(/\s+/).map(Number);
-    return okHex({ l: l!, c: c!, h: h! }).replace("#", "");
-  };
 
   const logo = await logoData(await churchLogoUrl(session.tenantId, session.role));
 
@@ -144,14 +134,14 @@ export async function GET(
   // The cover: whose this is, what it is, and when it was run.
   const cover = deck.addSlide();
   cover.addShape(deck.ShapeType.rect, {
-    x: 0, y: 0, w: SLIDE.w, h: 0.22, fill: { color: hue.replace('#', '') },
+    x: 0, y: 0, w: SLIDE.w, h: 0.22, fill: { color: hueHex(hue) },
   });
   if (logo) {
     cover.addImage({ data: logo, x: MARGIN, y: 1.5, w: 1.1, h: 1.1, sizing: { type: "contain", w: 1.1, h: 1.1 } });
   }
   cover.addText(session.tenantName, {
     x: MARGIN, y: logo ? 2.8 : 2.4, w: SLIDE.w - MARGIN * 2, h: 0.5,
-    fontSize: 18, bold: true, color: deckInk(hue),
+    fontSize: 18, bold: true, color: hueHex(hue, "700"),
   });
   cover.addText(saved.name, {
     x: MARGIN, y: logo ? 3.3 : 2.9, w: SLIDE.w - MARGIN * 2, h: 1.1,

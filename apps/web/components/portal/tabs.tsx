@@ -70,7 +70,7 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
           aria-current={on(tab) ? "page" : undefined}
           className={
             on(tab)
-              ? "flex min-h-[52px] items-center whitespace-nowrap border-b-2 border-[var(--brand-500)] px-2.5 text-[15px] font-semibold text-fg sm:min-h-16 sm:px-3"
+              ? "flex min-h-[52px] items-center whitespace-nowrap border-b-2 border-primary px-2.5 text-[15px] font-semibold text-fg sm:min-h-16 sm:px-3"
               : "flex min-h-[52px] items-center whitespace-nowrap border-b-2 border-transparent px-2.5 text-[15px] font-medium text-fg-muted hover:text-fg sm:min-h-16 sm:px-3"
           }
         >

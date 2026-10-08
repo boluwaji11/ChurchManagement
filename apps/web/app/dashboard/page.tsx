@@ -1,5 +1,4 @@
 import { GripVertical } from "lucide-react";
-import { brandOf } from "@/lib/brand";
 import {
   withTenant, dashboard, attendanceByService, openFollowUps, setupProgress,
   listOccurrences, listGroups, listEvents,
@@ -114,8 +113,7 @@ export default async function DashboardPage({
   const { numbers, weeks, setup, tasks, week, next, now } = await withTenant(ctx, async (tx) => {
     const today = clockNow.date;
     const until = shift(today, AHEAD);
-    /* R1.1. The church's own colour marks its own services on the week. */
-    const brand = brandOf(profile)["500"];
+    const brand = profile?.brandHue ?? "indigo";
 
     /*
      * Seven reads that have nothing to say to each other used to wait on each
@@ -143,7 +141,7 @@ export default async function DashboardPage({
           day: dayName(date),
           title: one.name,
           time: clock(one.startsAt),
-          colour: brand,
+          hue: brand,
         });
       }
 
@@ -155,7 +153,7 @@ export default async function DashboardPage({
           day: dayName(date),
           title: one.name,
           time: date === one.startsOn && one.startsAt ? clock(one.startsAt) : "",
-          colour: `var(--hue-${one.hue}-500)`,
+          hue: one.hue,
           href: `/events/${one.slug}`,
         });
       }
@@ -174,7 +172,7 @@ export default async function DashboardPage({
           day: dayName(date),
           title: group.name,
           time: group.startsAt ? clock(group.startsAt) : "",
-          colour: `var(--hue-${group.typeHue ?? "fern"}-500)`,
+          hue: group.typeHue ?? "fern",
           href: `/groups/${group.slug}`,
         });
       }

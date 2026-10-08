@@ -12,13 +12,12 @@ import { Tooltip } from "@connectapp/ui";
 export function Mark({
   name,
   logoUrl,
-  colour,
+  hue,
   homepage,
 }: {
   name: string;
   logoUrl: string | null;
-  /** The church's own colour, already drawn at the product's lightness. */
-  colour: string;
+  hue: string;
   /** The church's own website, where it has given one. */
   homepage: string | null;
 }) {
@@ -29,7 +28,7 @@ export function Mark({
     <span
       aria-hidden
       className="grid size-14 place-items-center rounded-[14px] font-display text-[24px] text-primary-fg"
-      style={{ background: colour }}
+      style={{ background: `var(--hue-${hue}-key)` }}
     >
       {name.slice(0, 1)}
     </span>

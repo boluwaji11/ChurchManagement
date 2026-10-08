@@ -595,7 +595,6 @@ export const en = {
   "church.email": "Email",
   "church.phone": "Phone",
   "church.website": "Website",
-  "church.colour": "Your colour",
 
   // HRT-162, R16.11. What a church tells everybody, read in the portal.
   "announce.title": "Announcements",
@@ -631,10 +630,6 @@ export const en = {
   "announce.error.body": "Write what the announcement says.",
   "announce.error.gone": "That announcement is no longer here.",
   "announce.failed": "That did not save. Try again.",
-  "church.colour.hue": "Colour",
-  "church.colour.strength": "Strength",
-  "church.colour.hex": "Hex",
-  "church.colour.invalid": "Six characters, like #4f46e5.",
   "church.timezone": "Timezone",
   "church.chooseTimezone": "Search for a timezone",
   "church.noTimezone": "No timezone by that name",

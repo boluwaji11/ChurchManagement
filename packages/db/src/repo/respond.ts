@@ -19,8 +19,6 @@ export interface ServingRequest {
   churchName: string;
   /** R1.1. The church's own colour, for a page its volunteer sees. */
   brandHue: string;
-  /** R1.1. The colour the church picked, where it has picked one. */
-  brandColor: string | null;
   personName: string;
   teamName: string;
   positionName: string;
@@ -49,7 +47,6 @@ export async function servingRequestFor(token: string): Promise<ServingRequest |
     select
       ten.name as "churchName",
       ten.brand_hue::text as "brandHue",
-      ten.brand_color as "brandColor",
       coalesce(p.preferred_name, p.first_name) || ' ' || p.last_name as "personName",
       tm.name as "teamName",
       tp.name as "positionName",

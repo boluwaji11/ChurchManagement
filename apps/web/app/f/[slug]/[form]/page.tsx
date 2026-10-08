@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { publicForm } from "@connectapp/db";
 import { BrandRuleFor } from "@/components/brand-rule";
-import { brandOf } from "@/lib/brand";
 import { supabaseServer } from "@/lib/supabase/server";
 import { PublicForm } from "./public-form";
 import { publicTab } from "@/lib/page-metadata";
@@ -56,7 +55,7 @@ export default async function PublicFormPage({
 
   return (
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      <BrandRuleFor colour={brandOf(found.church)["500"]} className="h-1.5 w-full" />
+      <BrandRuleFor hue={found.church.brandHue} className="h-1.5 w-full" />
 
       {/* The church's name across the top, so somebody who followed a link off
           a bulletin can see whose form this is before they read a word of it. */}
@@ -72,7 +71,7 @@ export default async function PublicFormPage({
           <span
             aria-hidden
             className="size-2.5 rounded-full"
-            style={{ background: brandOf(found.church)["500"] }}
+            style={{ background: `var(--hue-${found.church.brandHue}-500)` }}
           />
         )}
         <span className="text-label font-semibold text-fg">{found.church.name}</span>

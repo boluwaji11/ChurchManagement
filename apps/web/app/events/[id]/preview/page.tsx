@@ -90,7 +90,6 @@ export default async function PreviewEventPage({
       slug: session.tenantSlug,
       name: profile?.name ?? session.tenantName,
       brandHue: profile?.brandHue ?? "indigo",
-      brandColor: profile?.brandColor ?? null,
       phone: profile?.phone ?? null,
     email: profile?.email ?? null,
       website: profile?.website ?? null,
