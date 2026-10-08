@@ -74,7 +74,7 @@ export function CheckinLabels() {
       </div>
 
       <div className="flex h-[150px] w-[200px] rotate-[2.5deg] flex-col justify-between rounded-[10px] bg-white px-4 py-3.5 text-black shadow-[0_1px_2px_oklch(0_0_0/0.08),0_8px_24px_oklch(0_0_0/0.08)]">
-        <span className="text-[11px] font-bold tracking-[0.06em]">{t("site.checkin.label.parent")}</span>
+        <span className="text-[12px] font-bold tracking-[0.06em]">{t("site.checkin.label.parent")}</span>
         <div className="flex items-end gap-2">
           <span className="flex-1 text-[14px]">{t("site.checkin.label.first")}</span>
           <span className="font-mono text-[32px] font-bold leading-none">

@@ -17,7 +17,7 @@ export const SITE_CTA =
 
 /** The same action at the 38px the sticky bar carries. */
 export const SITE_BAR_CTA =
-  "min-h-[38px] gap-1.5 rounded-[10px] px-4 text-[14px] font-semibold shadow-none active:scale-100";
+  "min-h-[38px] gap-1.5 rounded-[10px] px-3 text-[14px] font-semibold shadow-none active:scale-100 sm:px-4";
 
 /** The outlined one beside it: a 1px line, no fill of its own. */
 export const SITE_CTA_QUIET =
