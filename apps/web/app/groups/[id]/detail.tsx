@@ -544,7 +544,7 @@ function MeetingList({
               className="flex h-[52px] w-[56px] shrink-0 flex-col items-center justify-center rounded-[8px]"
               style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
             >
-              <span className="text-[10px] font-semibold tracking-[0.06em] uppercase opacity-80">
+              <span className="text-[12px] font-semibold tracking-[0.06em] uppercase opacity-80 sm:text-[10px]">
                 {row.mon}
               </span>
               <span className="font-display text-[19px] leading-[21px]">{row.day}</span>
@@ -665,7 +665,7 @@ function Register({
           {/* R9.7. Which meeting is being recorded. A leader who missed last
               week opens the week they missed. */}
           {days.length > 1 ? (
-            <div className="w-[240px]">
+            <div className="w-full sm:w-[240px]">
               <Picker
                 name="metOn"
                 defaultValue={day}

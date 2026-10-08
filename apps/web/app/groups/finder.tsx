@@ -676,7 +676,7 @@ function GroupRow({
   const leader = group.leaderNames.join(", ");
 
   return (
-    <div className={`relative flex items-center gap-4 px-4 py-3 ${LIFT}`}>
+    <div className={`relative flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 ${LIFT}`}>
       {group.photoUrl ? (
         <img src={group.photoUrl} alt="" className="size-11 shrink-0 rounded-[10px] object-cover" />
       ) : (
@@ -699,26 +699,30 @@ function GroupRow({
         </span>
       </div>
 
-      {group.status === "draft" ? (
+      {/* R24.6. The marks run together under the name on a phone, where
+          there is no room for them beside it. */}
+      <span className="flex basis-full items-center gap-3 pl-[60px] sm:basis-auto sm:pl-0">
+        {group.status === "draft" ? (
+          <span
+            className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium"
+            style={{ background: "var(--hue-amber-tint)", color: "var(--hue-amber-key)" }}
+          >
+            {t("event.status.draft")}
+          </span>
+        ) : null}
+
+        {group.memberCount !== null ? (
+          <span className="shrink-0 text-[13px] text-fg-muted tabular-nums">
+            {plural("publicGroups.size", group.memberCount)}
+          </span>
+        ) : null}
+
         <span
-          className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium"
-          style={{ background: "var(--hue-amber-tint)", color: "var(--hue-amber-key)" }}
+          className="shrink-0 text-[12px] font-medium"
+          style={{ color: group.openToJoin && !group.full ? "var(--hue-fern-key)" : "var(--fg-muted)" }}
         >
-          {t("event.status.draft")}
+          {group.full ? t("find.full") : group.openToJoin ? t("find.open") : t("find.closed")}
         </span>
-      ) : null}
-
-      {group.memberCount !== null ? (
-        <span className="shrink-0 text-[13px] text-fg-muted tabular-nums">
-          {plural("publicGroups.size", group.memberCount)}
-        </span>
-      ) : null}
-
-      <span
-        className="shrink-0 text-[12px] font-medium"
-        style={{ color: group.openToJoin && !group.full ? "var(--hue-fern-key)" : "var(--fg-muted)" }}
-      >
-        {group.full ? t("find.full") : group.openToJoin ? t("find.open") : t("find.closed")}
       </span>
     </div>
   );
