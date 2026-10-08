@@ -68,8 +68,12 @@ export default async function SchedulePlanPage({
       // record's own id rather than from whatever was in the URL.
       const team = await getTeam(tx, id);
 
-      // The one being planned: whichever was asked for, or the next one.
-      const chosen = upcoming.find((o) => o.id === service)?.id ?? upcoming[0]?.id ?? null;
+      // The one being planned: whichever was asked for, or the next one. Found
+      // by its readable address or by its id, so a link somebody sent before a
+      // service had a name in its address goes on working.
+      const chosen = upcoming.find((o) => o.slug === service || o.id === service)?.id
+        ?? upcoming[0]?.id
+        ?? null;
 
       return {
         team,
@@ -90,7 +94,7 @@ export default async function SchedulePlanPage({
       title={t("plan.title")}
     >
       <Button variant="ghost" asChild className="mb-4">
-        <Link href={`/schedule?church=${session.tenantSlug}&team=${team.id}`}>
+        <Link href={`/schedule?church=${session.tenantSlug}&team=${team.slug}`}>
           <ChevronLeft aria-hidden /> {team.name}
         </Link>
       </Button>
@@ -101,10 +105,12 @@ export default async function SchedulePlanPage({
 
       <SchedulePlan
         church={session.tenantSlug}
-        teamId={team.slug}
+        teamId={team.id}
+        teamPath={team.slug}
         chosen={chosen ?? ""}
         gatherings={gatherings.map((o) => ({
           id: o.id,
+          slug: o.slug,
           label: `${dayAndMonth(o.occursOn)} · ${o.name} ${readableTime(o.startsAt)}`,
         }))}
         positions={team.positions.map((p) => ({

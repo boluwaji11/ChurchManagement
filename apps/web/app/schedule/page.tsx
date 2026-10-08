@@ -93,7 +93,10 @@ export default async function ServingPage({
       const found = await listTeams(tx, { includeArchived: showArchived });
       const live = found.filter((one) => one.archivedAt === null);
 
-      const chosen = live.find((one) => one.id === params.team) ?? live[0] ?? null;
+      // R10.1. Found by its readable name or by its id, so a link somebody sent
+      // before a team had a name in its address goes on working.
+      const chosen = live.find((one) => one.slug === params.team || one.id === params.team)
+        ?? live[0] ?? null;
 
       /*
        * R10.3. A month at a time. The month in the URL, so a leader planning
@@ -190,7 +193,7 @@ export default async function ServingPage({
                 <MonthStep
                   church={session.tenantSlug}
                   at={shiftMonth(-1)}
-                  team={data.chosen?.id}
+                  team={data.chosen?.slug}
                   label={t("serving.earlier")}
                 >
                   <ChevronLeft className="size-4" aria-hidden />
@@ -198,7 +201,7 @@ export default async function ServingPage({
                 <MonthStep
                   church={session.tenantSlug}
                   at={data.clock.date.slice(0, 7)}
-                  team={data.chosen?.id}
+                  team={data.chosen?.slug}
                   label={t("serving.now")}
                 >
                   <span
@@ -215,7 +218,7 @@ export default async function ServingPage({
                 <MonthStep
                   church={session.tenantSlug}
                   at={shiftMonth(1)}
-                  team={data.chosen?.id}
+                  team={data.chosen?.slug}
                   label={t("serving.later")}
                 >
                   <ChevronRight className="size-4" aria-hidden />
@@ -247,12 +250,14 @@ export default async function ServingPage({
             ? {
                 teams: data.live.map((one) => ({
                   id: one.id,
+                  slug: one.slug,
                   name: one.name,
                   hue: one.hue,
                   open: openOf(one.id),
                 })),
                 team: {
                   id: data.chosen.id,
+                  slug: data.chosen.slug,
                   name: data.chosen.name,
                   hue: data.chosen.hue,
                   open: openOf(data.chosen.id),

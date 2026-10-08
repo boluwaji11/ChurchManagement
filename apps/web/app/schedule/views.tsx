@@ -82,7 +82,7 @@ export function ServingViews({
         slots={schedule.slots}
         volunteers={schedule.volunteers}
         canManage={canManage}
-        onTeam={(id) => go({ team: id })}
+        onTeam={(slug) => go({ team: slug })}
       />
     </>
   );

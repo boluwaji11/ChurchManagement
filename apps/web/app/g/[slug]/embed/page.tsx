@@ -69,7 +69,7 @@ export default async function EmbeddedGroupsPage({
                 ) : null}
 
                 <Link
-                  href={`/g/${slug}/${group.id}`}
+                  href={`/g/${slug}/${group.slug}`}
                   target="_top"
                   className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
                 >

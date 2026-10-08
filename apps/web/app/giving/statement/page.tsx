@@ -7,7 +7,7 @@ import { longDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { photoUrls } from "@/lib/photos";
-import { Letterhead } from "./letterhead";
+import { Letterhead, Recipient } from "./letterhead";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -89,17 +89,21 @@ export default async function MyStatementPage({
       <AutoPrint />
       <style>{"@page { size: auto; margin: 0; }"}</style>
 
-      <Letterhead
-        name={read.profile?.legalName || session.tenantName}
-        address={address}
-        logoUrl={logoUrl}
-      />
+      {/* R13.17. The church on the left, whoever it is for on the right,
+          which is how a letter is laid out and how a window envelope reads. */}
+      <div className="flex items-start justify-between gap-8">
+        <Letterhead
+          name={read.profile?.legalName || session.tenantName}
+          address={address}
+          logoUrl={logoUrl}
+        />
+        <Recipient name={statement.name} address={statement.address} />
+      </div>
 
       <header className="mt-3 border-b-2 border-black pb-3">
         <h1 className="font-display text-[30px] leading-[38px]">
           {t("statement.heading", { year: read.year })}
         </h1>
-        <p className="mt-1 text-[15px]">{t("statement.for", { name: statement.name })}</p>
       </header>
 
       <div className="mt-5">

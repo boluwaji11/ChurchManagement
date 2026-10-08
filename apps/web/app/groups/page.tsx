@@ -82,6 +82,7 @@ export default async function GroupsPage({
     const of = groups.filter((group) => group.typeId === one.id);
     return {
       id: one.id,
+      slug: one.slug,
       name: one.name,
       description: one.description,
       hue: one.hue,
@@ -107,7 +108,11 @@ export default async function GroupsPage({
     );
   }
 
-  const only = type && type !== "all" ? kinds.find((one) => one.id === type) : null;
+  // Found by its readable name or by its id, so an address somebody saved
+  // before a kind had a name in its address goes on working.
+  const only = type && type !== "all"
+    ? kinds.find((one) => one.slug === type || one.id === type)
+    : null;
   const shown = only ? groups.filter((group) => group.typeId === only.id) : groups;
 
   const finder = (

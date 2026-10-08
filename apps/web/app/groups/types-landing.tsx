@@ -6,6 +6,8 @@ import { plainFromMarkdown } from "@/lib/rich-text";
 
 export interface TypeCard {
   id: string;
+  /** R9.1. What the kind is called in the address this row opens. */
+  slug: string | null;
   name: string;
   description: string | null;
   hue: string;
@@ -50,7 +52,7 @@ export function TypesLanding({
       {types.map((one) => (
         <Link
           key={one.id}
-          href={`/groups?church=${church}&type=${one.id}`}
+          href={`/groups?church=${church}&type=${one.slug ?? one.id}`}
           className="group flex items-start gap-4 py-6"
         >
           <span

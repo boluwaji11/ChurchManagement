@@ -15,6 +15,8 @@ import { schedule, unschedule, whoCouldFill } from "../../actions";
 
 export interface Gathering {
   id: string;
+  /** R24.6. What the service is called in the address this screen opens. */
+  slug: string;
   /** "Sunday, 4 October · First service 9:00am", already in the reader's locale. */
   label: string;
 }
@@ -46,13 +48,17 @@ export interface PlanEntry {
 export function SchedulePlan({
   church,
   teamId,
+  teamPath,
   gatherings,
   chosen,
   positions,
   entries,
 }: {
   church: string;
+  /** The team's own id, which is what a write is filed against. */
   teamId: string;
+  /** R10.1. What the team is called in this screen's address. */
+  teamPath: string;
   gatherings: Gathering[];
   chosen: string;
   positions: PlanPosition[];
@@ -63,7 +69,10 @@ export function SchedulePlan({
   const [pending, startTransition] = React.useTransition();
 
   const choose = (id: string) => {
-    router.push(`/schedule/${teamId}/schedule?church=${church}&service=${id}`);
+    const one = gatherings.find((gathering) => gathering.id === id);
+    router.push(
+      `/schedule/${teamPath}/schedule?church=${church}&service=${one?.slug ?? id}`,
+    );
   };
 
   const take = (id: string) => {

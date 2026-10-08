@@ -69,18 +69,24 @@ export default async function RosterPrintPage({
       const wanted = room ? rooms.filter((r) => r.id === room) : rooms;
       const today = await listOccurrences(tx, { from: now.date, to: now.date });
 
+      // R24.6. Found by its readable address or by its id, so the rosters are
+      // read from the record's own id rather than from whatever was in the URL.
+      const found = today.find((o) => o.slug === service || o.id === service) ?? null;
+
       return {
         when: now,
-        occurrence: today.find((o) => o.id === service) ?? null,
+        occurrence: found,
         sheets: await Promise.all(
           wanted.map(async (r) => ({
             id: r.id,
             name: r.name,
             capacity: r.capacity,
             ages: ageLine(r),
-            entries: (await roomRoster(tx, service, r.id)).filter(
-              (e) => e.checkedOutAt === null,
-            ),
+            entries: found
+              ? (await roomRoster(tx, found.id, r.id)).filter(
+                  (e) => e.checkedOutAt === null,
+                )
+              : [],
           })),
         ),
       };

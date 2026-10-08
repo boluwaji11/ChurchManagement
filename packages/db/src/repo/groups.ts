@@ -65,6 +65,7 @@ export const DEFAULT_GROUP_TYPES = [
 
 export interface GroupType {
   id: string;
+  slug: string | null;
   name: string;
   description: string | null;
   hue: string;
@@ -160,6 +161,34 @@ const called = (row: { firstName: string; lastName: string; preferredName: strin
 
 /* ------------------------------------------------------------------ types */
 
+/** A name as it reads in an address. */
+function slugOf(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    || "type";
+}
+
+/**
+ * R9.1. The slug a new kind gets.
+ *
+ * Two names can read the same once punctuation is dropped, so a second one
+ * takes a number. The slug is set when the kind is written and stays as it is
+ * through a rename, so an address somebody saved goes on working.
+ */
+async function freeTypeSlug(db: Tx, name: string): Promise<string> {
+  const base = slugOf(name.slice(0, 60));
+  const taken = await db
+    .select({ slug: groupTypes.slug })
+    .from(groupTypes)
+    .where(sql`${groupTypes.slug} = ${base} or ${groupTypes.slug} like ${`${base}-%`}`);
+  const used = new Set(taken.map((one) => one.slug));
+  let slug = base;
+  for (let at = 2; used.has(slug); at += 1) slug = `${base}-${at}`;
+  return slug;
+}
+
 export async function listGroupTypes(
   db: Tx,
   opts: { includeArchived?: boolean } = {},
@@ -167,6 +196,7 @@ export async function listGroupTypes(
   const rows = await db
     .select({
       id: groupTypes.id,
+      slug: groupTypes.slug,
       name: groupTypes.name,
       description: groupTypes.description,
       hue: groupTypes.hue,
@@ -220,9 +250,11 @@ export async function addGroupType(
        */
       hue: input.hue ?? NEXT_HUE[position % NEXT_HUE.length]!,
       position,
+      slug: await freeTypeSlug(db, name),
     })
     .returning({
       id: groupTypes.id,
+      slug: groupTypes.slug,
       name: groupTypes.name,
       description: groupTypes.description,
       hue: groupTypes.hue,
@@ -244,6 +276,7 @@ export async function seedGroupTypes(db: Tx, actor: WriteActor): Promise<GroupTy
       name: type.name,
       hue: type.hue,
       position: index,
+      slug: await freeTypeSlug(db, type.name),
     });
   }
   return listGroupTypes(db);

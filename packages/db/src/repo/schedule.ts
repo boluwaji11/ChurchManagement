@@ -110,10 +110,11 @@ async function mayScheduleFor(db: Tx, actor: WriteActor, teamId: string): Promis
 export async function upcomingServices(
   db: Tx,
   options: { from: string; limit?: number },
-): Promise<{ id: string; name: string; occursOn: string; startsAt: string }[]> {
+): Promise<{ id: string; slug: string; name: string; occursOn: string; startsAt: string }[]> {
   return db
     .select({
       id: serviceOccurrences.id,
+      slug: serviceOccurrences.slug,
       name: serviceOccurrences.name,
       occursOn: sql<string>`${serviceOccurrences.occursOn}::text`,
       startsAt: serviceOccurrences.startsAt,

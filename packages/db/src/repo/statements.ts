@@ -1,7 +1,7 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { funds, gifts } from "../schema/giving";
-import { members, households, householdMemberships } from "../schema/members";
+import { members, households, householdMemberships, addresses } from "../schema/members";
 import { PermissionError, canReadGivingAmounts, canManageGiving } from "../roles";
 import { settled } from "./gift-status";
 import { tenants } from "../schema/tenancy";
@@ -37,6 +37,21 @@ export interface Statement {
   /** The person, or whoever in the household the statement was asked for. */
   memberId: string;
   name: string;
+  /**
+   * R13.17. Where to post it, in the parts an envelope needs.
+   *
+   * A statement is a letter a church prints and puts in the post, so the
+   * sheet carries the address it is going to. Their own where they have
+   * one, otherwise the household's.
+   */
+  address: {
+    line1: string;
+    line2: string | null;
+    city: string | null;
+    region: string | null;
+    postalCode: string | null;
+    country: string;
+  } | null;
   lines: StatementLine[];
   /** Cash gifts only. A gift in kind is listed and left out of the total. */
   totalCents: number;
@@ -171,6 +186,31 @@ export async function statementFor(
     }
   }
 
+  /*
+   * R13.17. Where the letter goes. Their own address first, the household's
+   * where they have none of their own, and the primary one of either.
+   */
+  const [where] = await db
+    .select({
+      line1: addresses.line1,
+      line2: addresses.line2,
+      city: addresses.city,
+      region: addresses.region,
+      postalCode: addresses.postalCode,
+      country: addresses.country,
+    })
+    .from(addresses)
+    .where(
+      or(
+        inArray(addresses.memberId, whose),
+        sql`${addresses.householdId} in (
+          select household_id from household_memberships where member_id = ${person.id}
+        )`,
+      ),
+    )
+    .orderBy(desc(addresses.isPrimary), sql`${addresses.memberId} = ${person.id} desc`)
+    .limit(1);
+
   const rows = await db
     .select({
       date: sql<string>`${gifts.receivedOn}::text`,
@@ -194,6 +234,7 @@ export async function statementFor(
   return {
     memberId: person.id,
     name,
+    address: where ?? null,
     lines: rows,
     totalCents: rows.reduce((sum, row) => sum + (row.inKindDescription ? 0 : row.amountCents), 0),
     needsAcknowledgment: rows.some((row) => row.amountCents >= ACKNOWLEDGE_FROM_CENTS),

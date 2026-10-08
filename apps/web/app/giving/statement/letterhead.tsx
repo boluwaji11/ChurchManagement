@@ -37,3 +37,46 @@ export function Letterhead({
     </div>
   );
 }
+
+/**
+ * R13.17. Who the letter is for, and where it is going.
+ *
+ * A statement is printed and put in an envelope, so the address it is going
+ * to is on the sheet, set against the church's own so a window envelope has
+ * something to show. A giver the church holds no address for keeps their
+ * name on its own.
+ */
+export function Recipient({
+  name,
+  address,
+}: {
+  name: string;
+  address: {
+    line1: string;
+    line2: string | null;
+    city: string | null;
+    region: string | null;
+    postalCode: string | null;
+  } | null;
+}) {
+  /* "St. Louis, MO 63108", with whatever of it the church actually holds. */
+  const town = [
+    [address?.city, address?.region].filter(Boolean).join(", "),
+    address?.postalCode,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <div className="flex flex-col gap-0.5 text-right">
+      <div className="text-[15px] font-semibold text-black">{name}</div>
+      {address ? (
+        <div className="text-[13px] leading-5 text-neutral-600">
+          <div>{address.line1}</div>
+          {address.line2 ? <div>{address.line2}</div> : null}
+          {town ? <div>{town}</div> : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}

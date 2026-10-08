@@ -17,6 +17,8 @@ export interface GridService {
 
 export interface GridTeam {
   id: string;
+  /** R10.1. What the team is called in the address the picker opens. */
+  slug: string;
   name: string;
   hue: string;
   open: number;
@@ -216,7 +218,7 @@ export function ScheduleGrid({
   volunteers: GridVolunteer[];
   /** Whether this person may change the team itself. */
   canManage: boolean;
-  onTeam: (id: string) => void;
+  onTeam: (slug: string) => void;
 }) {
   const router = useRouter();
   const [dragging, setDragging] = React.useState<GridVolunteer | null>(null);
@@ -259,8 +261,8 @@ export function ScheduleGrid({
         <Combobox
           aria-label={t("serving.team")}
           className="w-full max-w-[320px]"
-          options={teams.map((one) => ({ value: one.id, label: one.name }))}
-          value={team.id}
+          options={teams.map((one) => ({ value: one.slug, label: one.name }))}
+          value={team.slug}
           onChange={onTeam}
           emptyLabel={t("serving.noTeam")}
           clearLabel={t("date.clear")}

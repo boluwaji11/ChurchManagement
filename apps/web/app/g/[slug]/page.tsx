@@ -82,7 +82,7 @@ export default async function PublicGroupsPage({
                   ) : null}
 
                   <Link
-                    href={`/g/${slug}/${group.id}`}
+                    href={`/g/${slug}/${group.slug}`}
                     className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
                   >
                     {group.name}

@@ -16,7 +16,7 @@ export function PipelinePicker({
   current,
 }: {
   church: string;
-  pipelines: { id: string; name: string }[];
+  pipelines: { key: string; name: string }[];
   current: string;
 }) {
   const router = useRouter();
@@ -25,9 +25,9 @@ export function PipelinePicker({
     <Combobox
       aria-label={t("queue.title")}
       className="w-full max-w-[280px]"
-      options={pipelines.map((one) => ({ value: one.id, label: one.name }))}
+      options={pipelines.map((one) => ({ value: one.key, label: one.name }))}
       value={current}
-      onChange={(id) => router.push(`/followups?church=${church}&pipeline=${id}`)}
+      onChange={(key) => router.push(`/followups?church=${church}&pipeline=${key}`)}
       emptyLabel={t("board.noPipeline")}
       clearLabel={t("date.clear")}
       clearable={false}

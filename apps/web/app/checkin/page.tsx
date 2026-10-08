@@ -94,6 +94,7 @@ export default async function CheckinPage({
         .filter((o) => o.status === "scheduled")
         .map((o) => ({
           id: o.id,
+          slug: o.slug,
           name: o.name,
           startsAt: o.startsAt,
           readableTime: readableTime(o.startsAt),
@@ -102,8 +103,10 @@ export default async function CheckinPage({
       // The one running or about to, and outside those hours the first of the
       // day, because somebody opening this at nine at night is looking back at
       // what happened rather than at nothing.
+      // R24.6. Found by its readable address or by its id, so the board reads
+      // from the record's own id rather than from whatever was in the URL.
       const chosen =
-        services.find((s) => s.id === params.service)?.id ||
+        services.find((s) => s.slug === params.service || s.id === params.service)?.id ||
         serviceNow(services, clock.time) ||
         services[0]?.id ||
         "";
@@ -208,7 +211,7 @@ export default async function CheckinPage({
           </ToolLink>
 
           <ToolLink
-            href={`/checkin/rooms/print?church=${session.tenantSlug}&service=${data.chosen ?? ""}`}
+            href={`/checkin/rooms/print?church=${session.tenantSlug}&service=${service?.slug ?? ""}`}
             target="_blank"
           >
             <Printer /> {t("checkin.rosters")}
@@ -224,7 +227,7 @@ export default async function CheckinPage({
           {data.services.map((one) => (
             <Link
               key={one.id}
-              href={`/checkin?church=${session.tenantSlug}&service=${one.id}`}
+              href={`/checkin?church=${session.tenantSlug}&service=${one.slug}`}
               aria-current={one.id === data.chosen ? "page" : undefined}
               className={`flex h-[34px] items-center rounded-full px-3.5 text-[13px] font-medium ${
                 one.id === data.chosen

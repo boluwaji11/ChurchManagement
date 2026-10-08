@@ -53,7 +53,10 @@ export default async function FollowUpsPage({
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const all = await listPipelines(tx);
-      const chosen = all.find((p) => p.id === params.pipeline) ?? all[0];
+      // R5.5. Found by its readable key or by its id, so an address somebody
+      // saved before the board read a name goes on working.
+      const chosen = all.find((p) => p.key === params.pipeline || p.id === params.pipeline)
+        ?? all[0];
       return {
         pipelines: all,
         entries: chosen
@@ -68,7 +71,8 @@ export default async function FollowUpsPage({
     },
   );
 
-  const pipeline = pipelines.find((p) => p.id === params.pipeline) ?? pipelines[0];
+  const pipeline = pipelines.find((p) => p.key === params.pipeline || p.id === params.pipeline)
+    ?? pipelines[0];
 
   /*
    * The stages are the pipeline's own steps, plus the one at the end for
@@ -120,8 +124,8 @@ export default async function FollowUpsPage({
         {pipelines.length > 1 ? (
           <PipelinePicker
             church={session.tenantSlug}
-            pipelines={pipelines.map((one) => ({ id: one.id, name: one.name }))}
-            current={pipeline?.id ?? ""}
+            pipelines={pipelines.map((one) => ({ key: one.key, name: one.name }))}
+            current={pipeline?.key ?? ""}
           />
         ) : (
           <h2 className="font-display text-[22px] leading-[28px] text-fg">
