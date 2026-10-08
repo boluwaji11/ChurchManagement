@@ -244,14 +244,17 @@ export default async function ServingPage({
                   team={data.chosen?.slug}
                   label={t("serving.now")}
                 >
+                  {/* R24.4. The product's own colour, so the way back to
+                      this month reads as a control rather than as a full
+                      stop between two arrows. */}
                   <span
                     aria-hidden
                     className="size-2 rounded-full"
                     style={{
                       background:
                         data.month === data.clock.date.slice(0, 7)
-                          ? "var(--color-fg)"
-                          : "var(--color-fg-subtle)",
+                          ? "var(--color-primary)"
+                          : "color-mix(in oklch, var(--color-primary) 45%, transparent)",
                     }}
                   />
                 </MonthStep>

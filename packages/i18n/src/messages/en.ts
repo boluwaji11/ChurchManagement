@@ -2624,7 +2624,7 @@ export const en = {
   "position.error.missing": "That position could not be found.",
   "nav.serving": "Schedule",
   "serving.title": "Schedule",
-  "serving.schedule.title": "{month} schedule",
+  "serving.schedule.title": "{month}",
   "serving.legend.accepted": "Accepted",
   "serving.legend.waiting": "Waiting for reply",
   "serving.legend.declined": "Declined",
