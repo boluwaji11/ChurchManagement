@@ -72,8 +72,7 @@ export function StartCount({
          * the panel closes onto the list rather than carrying the reader
          * into a screen with one line on it.
          */
-        setDirty(false);
-        setOpen(false);
+        close(false);
         router.refresh();
       }
     });

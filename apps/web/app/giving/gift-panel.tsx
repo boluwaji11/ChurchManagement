@@ -70,6 +70,11 @@ export function GiftPanel({
     date !== "" &&
     (method === "in_kind" ? inKind.trim() !== "" : amount.trim() !== "");
 
+  /*
+   * Back to a blank panel. Every one of these is about the gift just
+   * written down, and the next gift is a different one: a panel that opens
+   * holding the last person's cheque number is a panel somebody saves twice.
+   */
   const clear = () => {
     setGiver("");
     setAmount("");
@@ -77,15 +82,14 @@ export function GiftPanel({
     setNote("");
     setInKind("");
     setMethod("cash");
+    setFundId(funds[0]?.id ?? "");
+    setDate(today);
     setDirty(false);
   };
 
   const close = (next: boolean) => {
     setOpen(next);
-    if (!next) {
-      clear();
-      setDate(today);
-    }
+    if (!next) clear();
   };
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
 
@@ -136,8 +140,7 @@ export function GiftPanel({
         clear();
         return;
       }
-      setDirty(false);
-      setOpen(false);
+      close(false);
     });
   };
 
