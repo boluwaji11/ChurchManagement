@@ -20,7 +20,7 @@ export async function generateMetadata({
   searchParams: Promise<{ church?: string }>;
 }) {
   const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.team"), church);
+  return tabMetadata(t("settings.tab.access"), church);
 }
 
 /** R1.4, R1.7. Who can get into this church, and what they may do. */
@@ -57,7 +57,7 @@ export default async function TeamPage({
 
   return (
     <>
-      <SettingsHeading title="settings.tab.team" lede="settings.lede.team" />
+      <SettingsHeading title="settings.tab.access" lede="settings.lede.access" />
       <Team
         approved={standing.approved}
         church={session.tenantSlug}

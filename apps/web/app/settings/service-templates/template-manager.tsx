@@ -443,7 +443,7 @@ function Lines({
                   </SelectTrigger>
                   <SelectContent
                     create={
-                      <SelectCreate href={`/settings/item-kinds?church=${church}`}>
+                      <SelectCreate href={`/settings/plan-items?church=${church}`}>
                         {t("itemKind.create")}
                       </SelectCreate>
                     }
