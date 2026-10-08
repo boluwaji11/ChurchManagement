@@ -3,7 +3,7 @@
 import {
   createInvitation, revokeInvitation, setMemberRole, canManageChurch,
   withTenant, peopleToInvite, listRoles, memberRole,
-  type TenantRole,
+  type TenantRole, PermissionError,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
@@ -20,7 +20,12 @@ const ROLES: TenantRole[] = [
 
 async function allowed(church?: string) {
   const session = await requireSession(church);
-  if (!canManageChurch(session)) throw new Error(t("forbidden.denied"));
+  /*
+   * A PermissionError and not a plain Error: explain() rethrows anything it
+   * does not know, so a plain one escaped the action's own catch and took
+   * the screen down instead of writing a sentence on the form.
+   */
+  if (!canManageChurch(session)) throw new PermissionError(session.role, "editChurch");
   return session;
 }
 
@@ -141,7 +146,18 @@ export async function invitees(
   search: string,
   church?: string,
 ): Promise<{ id: string; name: string; email: string }[]> {
-  const session = await allowed(church);
+  /*
+   * A search box asks this as somebody types, so a refusal comes back as no
+   * matches rather than as a rejected promise the field cannot do anything
+   * with. Whoever cannot manage the team cannot open this panel anyway.
+   */
+  let session;
+  try {
+    session = await allowed(church);
+  } catch {
+    return [];
+  }
+
   return withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     (tx) => peopleToInvite(tx, search),

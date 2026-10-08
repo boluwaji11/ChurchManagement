@@ -2,8 +2,7 @@
 
 import {
   withTenant, getChurch, getEvent, registerForEvent, canManageEvents,
-  type Registrant,
-} from "@connectapp/db";
+  type Registrant, PermissionError } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { explain } from "@/lib/explain";
@@ -28,7 +27,9 @@ export async function registerFromPreview(input: {
   error?: string;
 }> {
   const session = await requireSession(input.church);
-  if (!canManageEvents(session)) return { ok: false, error: "forbidden" };
+  if (!canManageEvents(session)) {
+    return { ok: false, error: explain(new PermissionError(session.role, "manageEvents")) };
+  }
 
   try {
     const found = await withTenant(

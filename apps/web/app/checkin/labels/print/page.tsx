@@ -50,7 +50,7 @@ export default async function LabelsPage({
   if (!canCheckIn(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Denied />
+        <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
       </main>
     );
   }

@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import {
   withTenant, createStaticList, createRuleList, renameList, setListArchived,
-  addToList, removeFromList, cleanRule, canEditPeople,
+  addToList, removeFromList, cleanRule, canEditPeople, PermissionError,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 
@@ -19,7 +18,8 @@ const field = (data: FormData, name: string) => String(data.get(name) ?? "").tri
 
 async function allowed(church?: string) {
   const session = await requireSession(church);
-  if (!canEditPeople(session)) throw new Error(t("forbidden.addPeople"));
+  // A PermissionError, so explain() writes the sentence rather than rethrowing.
+  if (!canEditPeople(session)) throw new PermissionError(session.role, "editPerson");
   return session;
 }
 

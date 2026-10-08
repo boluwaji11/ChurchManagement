@@ -38,7 +38,7 @@ export default async function DuplicatesPage({
         session={session}
         title={t("merge.title")}
       >
-          <Denied />
+          <Denied role={session.role} action="mergePeople" church={session.tenantSlug} />
       </AppShell>
     );
   }

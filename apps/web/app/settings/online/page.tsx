@@ -113,7 +113,7 @@ export default async function OnlineGivingPage({
           signedInAs={session.displayName}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />
       )}
     </div>
   );

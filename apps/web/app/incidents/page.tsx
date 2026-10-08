@@ -50,7 +50,7 @@ export default async function IncidentsPage({
   if (!canReadIncidents(session)) {
     return (
       <AppShell session={session} title={t("incident.title")}>
-        <Denied />
+        <Denied role={session.role} action="readIncidents" church={session.tenantSlug} />
       </AppShell>
     );
   }

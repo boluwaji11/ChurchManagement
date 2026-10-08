@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { withTenant, listGifts, toCsv, canManageGiving, canReadGivingAmounts } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
+import { refused } from "@/lib/refuse";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
   const session = await requireSession(params.get("church") ?? undefined);
 
   if (!canManageGiving(session) && !canReadGivingAmounts(session)) {
-    return new Response("Not allowed", { status: 403 });
+    return refused(session.role, "manageGiving");
   }
 
   const ctx = {

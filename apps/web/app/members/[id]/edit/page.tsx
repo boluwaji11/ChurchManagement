@@ -123,7 +123,7 @@ export default async function EditPersonPage({
           }}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
       )}
     </AppShell>
   );

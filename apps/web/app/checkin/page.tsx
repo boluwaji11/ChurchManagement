@@ -55,6 +55,16 @@ export default async function CheckinPage({
   const params = await searchParams;
   const session = await requireSession(params.church);
 
+  // R1.5. Asked before anything is read, so a role that cannot run check-in
+  // does not set the board's dozen queries going on its way to being refused.
+  if (!canSupervise(session)) {
+    return (
+      <AppShell session={session} title={t("checkin.title")}>
+        <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
+      </AppShell>
+    );
+  }
+
   // The frame around this screen has already read the church, and the clock the
   // board runs on comes out of it.
   const profile = (await shellData(session)).church;
@@ -160,14 +170,6 @@ export default async function CheckinPage({
       }
     />
   );
-
-  if (!canSupervise(session)) {
-    return (
-      <AppShell session={session} title={t("checkin.title")}>
-        <Denied />
-      </AppShell>
-    );
-  }
 
   return (
     /* The action rides the service's own header row, with the other things

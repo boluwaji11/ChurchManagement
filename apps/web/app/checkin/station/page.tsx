@@ -49,7 +49,7 @@ export default async function StationPage({
   if (!canCheckIn(session)) {
     return (
       <AppShell session={session} title={t("checkin.check")}>
-        <Denied />
+        <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
       </AppShell>
     );
   }

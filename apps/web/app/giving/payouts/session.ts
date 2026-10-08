@@ -1,8 +1,9 @@
 "use server";
 
-import { withTenant, getStripeAccount, canManageGiving } from "@connectapp/db";
+import { withTenant, getStripeAccount, canManageGiving, PermissionError } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { stripe, stripeConfigured } from "@/lib/stripe";
+import { explain } from "@/lib/explain";
 
 /**
  * R13.1. A session that lets this church read its own Stripe inside our page.
@@ -17,7 +18,9 @@ export async function accountSession(
   church?: string,
 ): Promise<{ secret?: string; error?: string }> {
   const session = await requireSession(church);
-  if (!canManageGiving(session)) return { error: "denied" };
+  if (!canManageGiving(session)) {
+    return { error: explain(new PermissionError(session.role, "manageGiving")) };
+  }
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
   const account = await withTenant(

@@ -4,6 +4,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { refused } from "@/lib/refuse";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function GET(
   const church = request.nextUrl.searchParams.get("church") ?? undefined;
   const session = await requireSession(church);
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    return new Response("", { status: 403 });
+    return refused(session.role, "buildReports");
   }
 
   const found = await withTenant(

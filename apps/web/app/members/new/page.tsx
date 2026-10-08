@@ -72,7 +72,7 @@ export default async function NewPersonPage({
           campuses={data.campuses.map((one) => ({ id: one.id, name: one.name }))}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="addPerson" church={session.tenantSlug} />
       )}
     </AppShell>
   );

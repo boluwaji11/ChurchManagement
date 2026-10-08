@@ -37,7 +37,7 @@ export default async function TeamsSettingsPage({
   const session = await requireSession(church);
 
   if (!canManageTeams(session)) {
-    return <Denied />;
+    return <Denied role={session.role} action="manageTeams" church={session.tenantSlug} />;
   }
 
   const { teams, positions, rosters } = await withTenant(

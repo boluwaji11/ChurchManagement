@@ -86,7 +86,7 @@ export default async function CalendarPage({
   if (!canManageServices(session)) {
     return (
       <AppShell session={session} title={t("calendar.title")}>
-        <Denied />
+        <Denied role={session.role} action="manageServices" church={session.tenantSlug} />
       </AppShell>
     );
   }

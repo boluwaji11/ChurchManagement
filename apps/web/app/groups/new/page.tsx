@@ -66,7 +66,7 @@ export default async function NewGroupPage({
           types={types.map((one) => ({ id: one.id, name: one.name, hue: one.hue }))}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="manageGroups" church={session.tenantSlug} />
       )}
     </AppShell>
   );

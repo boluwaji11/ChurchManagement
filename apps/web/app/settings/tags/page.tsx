@@ -40,7 +40,7 @@ export default async function TagsPage({
 
 
       {!canCreate && !canManage ? (
-        <Denied />
+        <Denied role={session.role} action="createTag" church={session.tenantSlug} />
       ) : tags.length === 0 ? (
         <Empty
           icon="tag"

@@ -74,7 +74,7 @@ export default async function ImportPage({
           }
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="addPerson" church={session.tenantSlug} />
       )}
     </AppShell>
   );

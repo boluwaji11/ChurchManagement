@@ -42,7 +42,7 @@ export default async function CampaignPage({
   if (!canReadGivingAmounts(session) && !canManageGiving(session)) {
     return (
       <AppShell session={session} title={t("campaigns.title")}>
-        <Denied />
+        <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />
       </AppShell>
     );
   }

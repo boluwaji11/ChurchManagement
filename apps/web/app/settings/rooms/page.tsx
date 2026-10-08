@@ -31,7 +31,7 @@ export default async function RoomsPage({
   );
 
   if (!canManageRooms(session)) {
-    return <Denied />;
+    return <Denied role={session.role} action="manageRooms" church={session.tenantSlug} />;
   }
 
   return (

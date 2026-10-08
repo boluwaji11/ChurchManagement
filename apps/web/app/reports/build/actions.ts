@@ -4,16 +4,16 @@ import {
   withTenant, runReport, createSavedReport, updateSavedReport, setSavedReportArchived,
   getSavedReport,
   canEditPeople, canReadIncidents, SCREEN_LIMIT, cleanSpec,
-  type ReportResult, type ReportSpec, type ReportPage,
+  type ReportResult, type ReportSpec, type ReportPage, PermissionError,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
 async function context(church?: string) {
   const session = await requireSession(church);
+  // A PermissionError, so explain() writes the sentence rather than rethrowing.
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    throw new Error(t("forbidden.denied"));
+    throw new PermissionError(session.role, "buildReports");
   }
   return {
     session,

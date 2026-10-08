@@ -44,7 +44,7 @@ export default async function FundsPage({
   return (
     <div className="flex flex-col gap-5">
       <SettingsHeading title="settings.tab.funds" lede="settings.lede.funds" />
-      {manage ? <FundManager church={session.tenantSlug} funds={funds} /> : <Denied />}
+      {manage ? <FundManager church={session.tenantSlug} funds={funds} /> : <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />}
     </div>
   );
 }

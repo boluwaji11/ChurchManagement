@@ -46,7 +46,7 @@ export default async function PrintDirectoryPage({
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Denied />
+        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
       </main>
     );
   }

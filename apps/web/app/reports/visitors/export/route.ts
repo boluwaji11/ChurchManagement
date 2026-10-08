@@ -5,6 +5,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { backBy, windowOf } from "../../frame";
+import { refused } from "@/lib/refuse";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   const church = request.nextUrl.searchParams.get("church") ?? undefined;
   const session = await requireSession(church);
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    return new Response("", { status: 403 });
+    return refused(session.role, "buildReports");
   }
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);

@@ -28,7 +28,7 @@ export default async function PipelineSettingsPage({
   const session = await requireSession(church);
 
   if (!canManageChurch(session)) {
-    return <Denied />;
+    return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
   }
 
   const { rows, team } = await withTenant(

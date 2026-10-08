@@ -58,7 +58,7 @@ export default async function ItemKindsPage({
           }))}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="manageServices" church={session.tenantSlug} />
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import {
   withTenant, getEvent, getForm, listRegistrations, toCsv, canManageEvents,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
+import { refused } from "@/lib/refuse";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export async function GET(
   const { id } = await params;
   const church = request.nextUrl.searchParams.get("church") ?? undefined;
   const session = await requireSession(church);
-  if (!canManageEvents(session)) return new Response("", { status: 403 });
+  if (!canManageEvents(session)) return refused(session.role, "manageEvents");
 
   const found = await withTenant(
     {

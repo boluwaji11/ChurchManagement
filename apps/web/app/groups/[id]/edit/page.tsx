@@ -94,7 +94,7 @@ export default async function EditGroupPage({
           }}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="manageGroups" church={session.tenantSlug} />
       )}
     </AppShell>
   );

@@ -60,7 +60,7 @@ export default async function PlanTemplatesPage({
           kinds={read.kinds}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="manageServices" church={session.tenantSlug} />
       )}
     </div>
   );

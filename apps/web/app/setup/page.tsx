@@ -54,7 +54,7 @@ export default async function SetupPage({
   if (!canManageChurch(session)) {
     return (
       <AppShell session={session} title={t("setup.title")}>
-        <Denied />
+        <Denied role={session.role} action="editChurch" church={session.tenantSlug} />
       </AppShell>
     );
   }

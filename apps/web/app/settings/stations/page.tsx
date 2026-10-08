@@ -34,7 +34,7 @@ export default async function StationsPage({
   );
 
   if (!canManageStations(session)) {
-    return <Denied />;
+    return <Denied role={session.role} action="manageStations" church={session.tenantSlug} />;
   }
 
   return (

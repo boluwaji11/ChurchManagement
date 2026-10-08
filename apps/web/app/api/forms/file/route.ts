@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { canManageChurch, canManageEvents } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
+import { refused } from "@/lib/refuse";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
    * can open what was attached to it without being given the whole church.
    */
   if (!canManageChurch(session) && !canManageEvents(session)) {
-    return new NextResponse(null, { status: 403 });
+    return refused(session.role, "manageForms");
   }
   if (!key.startsWith(`${session.tenantSlug}/form_answer/`)) {
     return new NextResponse(null, { status: 404 });

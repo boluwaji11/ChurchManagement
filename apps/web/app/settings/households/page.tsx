@@ -30,7 +30,7 @@ export default async function HouseholdsPage({
 
   if (!canManageHouseholds(session)) {
     return (
-      <Denied />
+      <Denied role={session.role} action="manageHouseholds" church={session.tenantSlug} />
     );
   }
 

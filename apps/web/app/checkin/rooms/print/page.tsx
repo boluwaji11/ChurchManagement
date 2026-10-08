@@ -55,7 +55,7 @@ export default async function RosterPrintPage({
   if (!canSupervise(session) || !service) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Denied />
+        <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
       </main>
     );
   }

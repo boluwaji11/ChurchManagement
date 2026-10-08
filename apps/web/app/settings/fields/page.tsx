@@ -58,7 +58,7 @@ export default async function FieldsPage({
         ) : null}
 
         {!canManage ? (
-          <Denied />
+          <Denied role={session.role} action="addField" church={session.tenantSlug} />
         ) : (
           <FieldManager church={session.tenantSlug} fields={fields} canManage={canManage} />
         )}

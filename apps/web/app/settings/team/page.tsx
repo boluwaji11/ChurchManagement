@@ -33,7 +33,7 @@ export default async function TeamPage({
   const session = await requireSession(church);
 
   if (!canManageChurch(session)) {
-    return <Denied />;
+    return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
   }
 
   const [members, invitations, roles, shell] = await Promise.all([

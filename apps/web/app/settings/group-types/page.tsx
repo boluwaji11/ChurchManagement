@@ -62,7 +62,7 @@ export default async function GroupTypesPage({
           }))}
         />
       ) : (
-        <Denied />
+        <Denied role={session.role} action="manageGroups" church={session.tenantSlug} />
       )}
     </div>
   );

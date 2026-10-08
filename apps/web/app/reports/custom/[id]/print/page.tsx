@@ -54,7 +54,7 @@ export default async function PrintReportPage({
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Denied />
+        <Denied role={session.role} action="buildReports" church={session.tenantSlug} />
       </main>
     );
   }

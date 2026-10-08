@@ -42,7 +42,7 @@ export default async function StatementsPage({
   if (!canReadGivingAmounts(session)) {
     return (
       <AppShell session={session} title={t("statement.title")}>
-        <Denied />
+        <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />
       </AppShell>
     );
   }
