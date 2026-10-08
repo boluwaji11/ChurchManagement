@@ -40,6 +40,7 @@ export interface DirectoryQuery {
   /** Matches a name, an email, or a phone number. */
   q?: string;
   status?: string;
+  /** R1.13. The tag's readable name or its id. */
   tagId?: string;
   /** "any" means no filter. */
   has?: "email" | "phone" | "noEmail" | "noPhone";
@@ -153,8 +154,15 @@ export function directoryWhere(opts: DirectoryQuery): (SQL | undefined)[] {
   if (opts.status) where.push(eq(members.lifecycleStatus, opts.status as never));
 
   if (opts.tagId) {
+    // R1.13. Matched by the tag's readable name or by its id, so an address
+    // somebody saved before a tag had a name in its address goes on working.
+    // The id is compared as text, because a slug is not castable to a uuid.
     where.push(sql`exists (
-      select 1 from member_tags pt where pt.member_id = ${members.id} and pt.tag_id = ${opts.tagId}::uuid
+      select 1
+        from member_tags pt
+        join tags tg on tg.id = pt.tag_id
+       where pt.member_id = ${members.id}
+         and (tg.slug = ${opts.tagId} or tg.id::text = ${opts.tagId})
     )`);
   }
 

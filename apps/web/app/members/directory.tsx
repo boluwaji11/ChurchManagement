@@ -49,6 +49,8 @@ const EMPTY = "\u2014";
 
 export interface TagOption {
   id: string;
+  /** R1.13. What the tag is called in this screen's address. */
+  slug: string | null;
   name: string;
   hue: string;
 }
@@ -560,8 +562,12 @@ function FilterDrawer({
                   {tags.map((one) => (
                     <ChipButton
                       key={one.id}
-                      on={tag === one.id}
-                      onClick={() => setParam({ tag: tag === one.id ? undefined : one.id })}
+                      on={tag === (one.slug ?? one.id)}
+                      onClick={() =>
+                        setParam({
+                          tag: tag === (one.slug ?? one.id) ? undefined : (one.slug ?? one.id),
+                        })
+                      }
                     >
                       {one.name}
                     </ChipButton>

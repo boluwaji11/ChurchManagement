@@ -102,7 +102,7 @@ export default async function CampaignsPage({
               {live.map((one) => (
                 <Link
                   key={one.id}
-                  href={`/giving/campaigns/${one.id}?church=${session.tenantSlug}`}
+                  href={`/giving/campaigns/${one.slug}?church=${session.tenantSlug}`}
                   className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5 no-underline hover:bg-sunken"
                 >
                   <span className="flex items-baseline justify-between gap-3">
@@ -145,7 +145,7 @@ export default async function CampaignsPage({
             {closed.map((one) => (
               <Link
                 key={one.id}
-                href={`/giving/campaigns/${one.id}?church=${session.tenantSlug}`}
+                href={`/giving/campaigns/${one.slug}?church=${session.tenantSlug}`}
                 className="flex flex-wrap items-center justify-between gap-3 text-fg-muted"
               >
                 <span>{one.name}</span>

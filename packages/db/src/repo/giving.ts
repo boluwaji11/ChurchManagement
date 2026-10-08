@@ -58,9 +58,11 @@ export interface Batch {
   counterOneId: string | null;
   counterTwoId: string | null;
   closed: boolean;
-  /** What has actually been entered against it. */
+  /** What was counted. */
   enteredCents: number;
   lines: number;
+  /** R13.9. The fund it was given to, or the funds where it was split. */
+  funds: string;
 }
 
 const money = (value: unknown): number => {
@@ -218,9 +220,11 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
       closedAt: giftBatches.closedAt,
       enteredCents: sql<number>`coalesce(sum(${gifts.amountCents}), 0)::int`,
       lines: sql<number>`count(${gifts.id})::int`,
+      funds: sql<string>`coalesce(string_agg(distinct ${funds.name}, ', '), '')`,
     })
     .from(giftBatches)
     .leftJoin(gifts, eq(gifts.batchId, giftBatches.id))
+    .leftJoin(funds, eq(funds.id, gifts.fundId))
     .groupBy(giftBatches.id)
     .orderBy(desc(giftBatches.receivedOn), desc(giftBatches.createdAt))
     .limit(limit);
@@ -235,12 +239,14 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
     closed: row.closedAt !== null,
     enteredCents: row.enteredCents,
     lines: row.lines,
+    funds: row.funds,
   }));
 }
 
+/** R13.10. One session, by the name in its address or by its id. */
 export async function getBatch(db: Tx, id: string): Promise<Batch | null> {
-  const [found] = (await listBatches(db, 500)).filter((one) => one.id === id);
-  return found ?? null;
+  const all = await listBatches(db, 500);
+  return all.find((one) => one.slug === id || one.id === id) ?? null;
 }
 
 export interface GiftInput {

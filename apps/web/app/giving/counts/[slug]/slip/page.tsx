@@ -31,17 +31,17 @@ export default async function DepositSlipPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ church?: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
   const { church } = await searchParams;
   const session = await requireSession(church);
   /*
    * A sheet with no shell around it, so the refusal panel has nowhere to
    * sit. Back to the screen this sheet was asked for from, which says why.
    */
-  if (!canManageGiving(session)) redirect(`/giving/counts/${id}?church=${session.tenantSlug}`);
+  if (!canManageGiving(session)) redirect(`/giving?church=${session.tenantSlug}`);
 
   const ctx = {
     tenantId: session.tenantId,
@@ -50,11 +50,15 @@ export default async function DepositSlipPage({
     permissions: session.permissions,
   };
 
-  const read = await withTenant(ctx, async (tx) => ({
-    count: await getBatch(tx, id),
-    lines: await listGifts(tx, ctx, { batchId: id, limit: 500 }),
-    profile: await getChurch(tx, session.tenantId),
-  }));
+  const read = await withTenant(ctx, async (tx) => {
+    /* The session by the name in the address, then its lines by its id. */
+    const count = await getBatch(tx, slug);
+    return {
+      count,
+      lines: count ? await listGifts(tx, ctx, { batchId: count.id, limit: 500 }) : [],
+      profile: await getChurch(tx, session.tenantId),
+    };
+  });
 
   if (!read.count) notFound();
 

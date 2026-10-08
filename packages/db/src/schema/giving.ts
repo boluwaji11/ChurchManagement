@@ -261,6 +261,8 @@ export const campaigns = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
+    /** R13.16. The name in its address, unique within the church. */
+    slug: text("slug"),
     name: text("name").notNull(),
     description: text("description"),
     fundId: uuid("fund_id").notNull().references(() => funds.id, { onDelete: "restrict" }),
@@ -272,6 +274,7 @@ export const campaigns = pgTable(
     updatedAt: updated(),
   },
   (t) => [
+    uniqueIndex("campaign_slug_unique").on(t.tenantId, t.slug),
     index("campaign_tenant_idx").on(t.tenantId),
     uniqueIndex("campaign_name_unique").on(t.tenantId, t.name),
   ],

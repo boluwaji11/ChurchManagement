@@ -25,6 +25,8 @@ export const TAG_HUES = PALETTE;
 
 export interface TagRow {
   id: string;
+  /** R1.13. What the tag is called in the directory's address. */
+  slug: string | null;
   name: string;
   hue: string;
   members: number;
@@ -46,6 +48,7 @@ export async function listTagsWithCounts(db: Tx): Promise<TagRow[]> {
   const rows = await db
     .select({
       id: tags.id,
+      slug: tags.slug,
       name: tags.name,
       hue: tags.hue,
       members: sql<number>`(select count(*) from member_tags pt where pt.tag_id = ${tags.id})`,
@@ -88,6 +91,34 @@ async function nextHue(db: Tx): Promise<TagHue> {
   return best;
 }
 
+/** A name as it reads in an address. */
+function slugOf(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    || "tag";
+}
+
+/**
+ * R1.13. The slug a new tag gets.
+ *
+ * Two names can read the same once punctuation is dropped, so a second one
+ * takes a number. The slug is set when the tag is written and stays as it is
+ * through a rename, so an address somebody saved goes on working.
+ */
+async function freeTagSlug(db: Tx, name: string): Promise<string> {
+  const base = slugOf(name.slice(0, 60));
+  const taken = await db
+    .select({ slug: tags.slug })
+    .from(tags)
+    .where(sql`${tags.slug} = ${base} or ${tags.slug} like ${`${base}-%`}`);
+  const used = new Set(taken.map((one) => one.slug));
+  let slug = base;
+  for (let at = 2; used.has(slug); at += 1) slug = `${base}-${at}`;
+  return slug;
+}
+
 export async function createTag(
   db: Tx,
   actor: WriteActor,
@@ -104,7 +135,7 @@ export async function createTag(
   const hue = input.hue ?? (await nextHue(db));
   const [row] = await db
     .insert(tags)
-    .values({ tenantId: actor.tenantId, name, hue })
+    .values({ tenantId: actor.tenantId, name, hue, slug: await freeTagSlug(db, name) })
     .returning({ id: tags.id, name: tags.name, hue: tags.hue });
 
   if (!row) throw new Error("Tag insert returned no row.");
@@ -133,7 +164,12 @@ export async function ensureTag(
 
   const [row] = await db
     .insert(tags)
-    .values({ tenantId: actor.tenantId, name, hue: await nextHue(db) })
+    .values({
+      tenantId: actor.tenantId,
+      name,
+      hue: await nextHue(db),
+      slug: await freeTagSlug(db, name),
+    })
     .returning({ id: tags.id });
   return row ?? null;
 }

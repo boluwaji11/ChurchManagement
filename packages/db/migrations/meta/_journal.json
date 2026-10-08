@@ -855,6 +855,20 @@
       "when": 1791422001000,
       "tag": "0121_group_type_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1791422002000,
+      "tag": "0122_tag_slug",
+      "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1791423000000,
+      "tag": "0123_campaign_slug",
+      "breakpoints": true
     }
   ]
 }

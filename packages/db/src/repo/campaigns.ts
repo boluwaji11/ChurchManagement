@@ -20,6 +20,8 @@ import type { WriteActor } from "./members";
 
 export interface Campaign {
   id: string;
+  /** R13.16. The name in its address. */
+  slug: string;
   name: string;
   description: string | null;
   fundId: string;
@@ -60,6 +62,7 @@ export async function listCampaigns(
   const rows = await db
     .select({
       id: campaigns.id,
+      slug: campaigns.slug,
       name: campaigns.name,
       description: campaigns.description,
       fundId: campaigns.fundId,
@@ -100,6 +103,7 @@ export async function listCampaigns(
 
     out.push({
       id: row.id,
+      slug: row.slug ?? row.id,
       name: row.name,
       description: row.description,
       fundId: row.fundId,
@@ -118,7 +122,10 @@ export async function listCampaigns(
 }
 
 export async function getCampaign(db: Tx, id: string): Promise<Campaign | null> {
-  return (await listCampaigns(db, { includeArchived: true })).find((one) => one.id === id) ?? null;
+  /* Found by the name in the address, and by the id for a link saved
+     before campaigns had one. */
+  const all = await listCampaigns(db, { includeArchived: true });
+  return all.find((one) => one.slug === id || one.id === id) ?? null;
 }
 
 /** R13.16. Writing a campaign down, or changing one. */
@@ -163,6 +170,7 @@ export async function writeCampaign(
 
   const values = {
     name: name.slice(0, 80),
+    slug: slugOf(name),
     description: input.description?.trim() || null,
     fundId: input.fundId,
     targetCents: input.targetCents,
@@ -304,4 +312,13 @@ export async function removePledge(db: Tx, actor: WriteActor, id: string): Promi
   if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
   const gone = await db.delete(pledges).where(eq(pledges.id, id)).returning({ id: pledges.id });
   if (gone.length === 0) throw new InvalidInputError("campaign.error.missing");
+}
+
+/** A name as it reads in an address. The church's own names are unique. */
+function slugOf(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    || "campaign";
 }

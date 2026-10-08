@@ -4,7 +4,7 @@ import {
   getStripeAccount, listRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
-import { CornerDownRight } from "lucide-react";
+import { CornerDownRight, Printer } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -194,29 +194,43 @@ export default async function GivingPage({
               <p className="text-fg-muted">{t("giving.counts.none")}</p>
             ) : (
               <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+                {/* R13.10. A session is what was counted at one service: the
+                    day, what the church called it, the fund it went to and
+                    how much there was, with the slip for the bank on it. */}
+                <li className="grid items-center gap-3 border-b border-line bg-sunken px-4 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-fg [grid-template-columns:152px_minmax(0,1fr)_140px_120px_44px]">
+                  <span>{t("giving.col.date")}</span>
+                  <span>{t("giving.count.name")}</span>
+                  <span>{t("giving.col.fund")}</span>
+                  <span className="text-right">{t("giving.count.counted")}</span>
+                  <span />
+                </li>
+
                 {read.counts.map((count) => (
-                  <li key={count.id}>
-                    <Link
-                      href={`/giving/counts/${count.id}?church=${session.tenantSlug}`}
-                      className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-sunken"
-                    >
-                      <span className="w-[120px] shrink-0 text-[13px] font-medium text-fg-subtle">
-                        {longDate(count.receivedOn)}
-                      </span>
-                      <span className="min-w-0 flex-1 font-medium text-fg">{count.name}</span>
-                      <span
-                        className={`flex h-[22px] shrink-0 items-center rounded-full px-2 text-[11px] font-semibold ${
-                          count.closed
-                            ? "bg-sunken text-fg-muted"
-                            : "bg-primary-soft text-primary"
-                        }`}
-                      >
-                        {count.closed ? t("giving.count.closed") : t("giving.count.open")}
-                      </span>
-                      <span data-numeric className="w-[160px] shrink-0 text-right text-[13px] text-fg-muted">
-                        {money(count.enteredCents)}
-                      </span>
-                    </Link>
+                  <li
+                    key={count.id}
+                    className="grid items-center gap-3 border-b border-line px-4 py-3 last:border-0 [grid-template-columns:152px_minmax(0,1fr)_140px_120px_44px]"
+                  >
+                    <span className="whitespace-nowrap text-[13px] text-fg-subtle">
+                      {longDate(count.receivedOn)}
+                    </span>
+                    <span className="min-w-0 truncate font-medium text-fg">{count.name}</span>
+                    <span className="truncate text-[13px] text-fg-muted">{count.funds}</span>
+                    <span data-numeric className="text-right text-fg">
+                      {money(count.enteredCents)}
+                    </span>
+                    <span className="flex justify-end">
+                      <Tooltip content={t("giving.count.slip")}>
+                        <a
+                          href={`/giving/counts/${count.slug}/slip?church=${session.tenantSlug}`}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          aria-label={t("giving.count.slip")}
+                          className="inline-flex size-[var(--d-tap)] items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+                        >
+                          <Printer />
+                        </a>
+                      </Tooltip>
+                    </span>
                   </li>
                 ))}
               </ul>

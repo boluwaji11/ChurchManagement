@@ -222,10 +222,20 @@ export const tags = pgTable(
     id: pk(),
     tenantId: tenantId(),
     name: text("name").notNull(),
+    /**
+     * R1.13. What the tag is called in an address.
+     *
+     * The directory filters by tag, and the filter was a raw id, which is what
+     * somebody saw when they copied the address to send to a colleague.
+     */
+    slug: text("slug"),
     hue: hue("hue").notNull().default("teal"),
     createdAt: created(),
   },
-  (t) => [uniqueIndex("tags_unique").on(t.tenantId, t.name)],
+  (t) => [
+    uniqueIndex("tags_unique").on(t.tenantId, t.name),
+    uniqueIndex("tags_slug_unique").on(t.tenantId, t.slug),
+  ],
 );
 
 export const memberTags = pgTable(

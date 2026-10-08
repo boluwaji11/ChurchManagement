@@ -127,7 +127,7 @@ export default async function PeoplePage({
         duplicates={duplicates}
         lists={lists}
         viewing={viewing}
-        tags={tags.map((x) => ({ id: x.id, name: x.name, hue: x.hue }))}
+        tags={tags.map((x) => ({ id: x.id, slug: x.slug, name: x.name, hue: x.hue }))}
         groups={groups.map((g) => ({ id: g.id, name: g.name, hue: g.typeHue }))}
         rows={members.map((p) => ({
           id: p.id,

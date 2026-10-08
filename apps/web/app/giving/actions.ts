@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, openBatch, updateBatch, closeBatch, reopenBatch,
+  withTenant, openBatch, updateBatch,
   recordGift, removeGift, refundGift, attachGift, giftCharge, getStripeAccount,
   getChurch, lookupPeople, personForUser,
   recurringSubscription, markRecurring, canManageGiving, PermissionError, type GiftMethod,
@@ -79,33 +79,6 @@ export async function saveCount(
   const { actor, ctx } = await context(church);
   try {
     await withTenant(ctx, (tx) => updateBatch(tx, actor, id, input));
-    revalidatePath(`/giving/counts/${id}`);
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-/** R13.11. Closing it, which is what makes it a deposit. */
-export async function finishCount(
-  id: string,
-  church?: string,
-): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
-  try {
-    await withTenant(ctx, (tx) => closeBatch(tx, actor, id));
-    revalidatePath(`/giving/counts/${id}`);
-    revalidatePath("/giving");
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-export async function openAgain(id: string, church?: string): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
-  try {
-    await withTenant(ctx, (tx) => reopenBatch(tx, actor, id));
     revalidatePath(`/giving/counts/${id}`);
     return {};
   } catch (error) {
