@@ -12,8 +12,6 @@ import {
 import { check, email } from "@/lib/validate";
 import { PageTitle, Section, Row } from "@/components/section";
 
-/** The gallery is a tool for us, so it names itself plainly. */
-export const metadata = { title: "Design · components" };
 
 function ValidationDemo() {
   const [error, setError] = React.useState<string | undefined>();
