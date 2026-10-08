@@ -67,6 +67,15 @@ function MonthStep({
 const COLUMNS = 31;
 
 /**
+ * R10.3. How long a service stays on the board after it has happened.
+ *
+ * Long enough to cover the weekend from the Monday somebody catches up on
+ * it, short enough that the board is about what is coming. Two days reaches
+ * a Saturday service from Monday, which is the case this is sized for.
+ */
+const RECENT_DAYS = 2;
+
+/**
  * R10.1, R10.3. Serving: the schedule, and the teams that fill it.
  *
  * A volunteer serves across the church, so this is one screen for every team
@@ -115,7 +124,7 @@ export default async function ServingPage({
       const month = asked ?? clock.date.slice(0, 7);
       const [y, m] = month.split("-").map(Number);
       const last = new Date(Date.UTC(y!, m!, 0)).getUTCDate();
-      const services = (
+      const inMonth = (
         await listOccurrences(tx, {
           from: `${month}-01`,
           to: `${month}-${String(last).padStart(2, "0")}`,
@@ -126,6 +135,27 @@ export default async function ServingPage({
             a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
         )
         .slice(0, COLUMNS);
+
+      /*
+       * R10.3. A rota looks forward, with the weekend just gone still on it.
+       *
+       * By the end of a month the board was four dead columns and two live
+       * ones, and the live ones were off the right-hand edge. What comes off
+       * is only what is older than the grace: somebody filling in Monday
+       * morning still has the service they are filling in about, and the one
+       * before it, in front of them.
+       *
+       * Only the month they are standing in is cut this way. Opening last
+       * September is a deliberate act of looking back, and a board with
+       * nothing on it is no answer to it.
+       */
+      const current = month === clock.date.slice(0, 7);
+      const keepFrom = new Date(`${clock.date}T00:00:00Z`);
+      keepFrom.setUTCDate(keepFrom.getUTCDate() - RECENT_DAYS);
+      const recent = inMonth.filter((one) => one.occursOn >= keepFrom.toISOString().slice(0, 10));
+
+      /* A month wholly behind the grace is a month being read as a record. */
+      const services = current && recent.length > 0 ? recent : inMonth;
 
       const team = chosen ? await getTeam(tx, chosen.id) : null;
       const slots =
