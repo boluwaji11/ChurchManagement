@@ -40,6 +40,8 @@ export const dynamic = "force-dynamic";
 /** How much of each list is on one page. */
 const COUNTS_PER_PAGE = 8;
 const GIFTS_PER_PAGE = 10;
+/** How many of a side panel's rows fit before it stops being a glance. */
+const ASIDE_ROWS = 8;
 
 /** R17.1. Giving to whoever runs it, My giving to everybody else. */
 export async function generateMetadata({
@@ -197,6 +199,17 @@ export default async function GivingPage({
   return (
     <AppShell session={session} title={t("giving.title")} wide>
       <div className="flex flex-col gap-6">
+        {/* R13.21. What is narrowing the lists, above the whole screen. The
+            figures are the month and the year by definition and are not
+            narrowed by it. */}
+        <div className="flex flex-wrap items-center justify-end">
+          <GivingFilters
+            church={session.tenantSlug}
+            now={narrowing}
+            funds={fundList}
+          />
+        </div>
+
         {/* R13.21. The two totals a treasurer is asked for, what the church
             can plan on, and whether the online door is open. */}
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(215px,1fr))]">
@@ -274,17 +287,6 @@ export default async function GivingPage({
             facts were sitting under a fold nobody scrolled to. */}
         <div className="grid items-start gap-6 xl:[grid-template-columns:minmax(0,1fr)_minmax(300px,360px)]">
           <div className="flex min-w-0 flex-col gap-6">
-
-        {/* R13.21. What is narrowing the lists, over the first of them. The
-            figures above are the month and the year by definition and are
-            not narrowed by it. */}
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          <GivingFilters
-            church={session.tenantSlug}
-            now={narrowing}
-            funds={fundList}
-          />
-        </div>
 
         {nothing ? (
           <Empty
@@ -621,9 +623,14 @@ export default async function GivingPage({
             ) : (
               <div className="flex flex-col gap-5 px-5 py-4">
                 {([true, false] as const).map((restricted) => {
-                  const group = read.funds.filter((one) => one.restricted === restricted);
-                  if (group.length === 0) return null;
-                  const held = group.reduce(
+                  const all = read.funds.filter((one) => one.restricted === restricted);
+                  if (all.length === 0) return null;
+                  /* The total is of every one of them. The list under it is
+                     the first few, because a column of twenty funds beside a
+                     table is not something anybody glances at. */
+                  const group = all.slice(0, ASIDE_ROWS);
+                  const rest = all.length - group.length;
+                  const held = all.reduce(
                     (sum, one) => sum + (read.byFund[one.id]?.cents ?? 0),
                     0,
                   );
@@ -680,6 +687,15 @@ export default async function GivingPage({
                           </li>
                         ))}
                       </ul>
+
+                      {rest > 0 ? (
+                        <Link
+                          href={`/settings/funds?church=${session.tenantSlug}`}
+                          className="mt-1 pl-[22px] text-[13px] font-medium text-primary no-underline"
+                        >
+                          {plural("giving.more", rest)}
+                        </Link>
+                      ) : null}
                     </div>
                   );
                 })}
@@ -701,7 +717,7 @@ export default async function GivingPage({
               <Nothing>{t("giving.recurring.none")}</Nothing>
             ) : (
               <ul className="m-0 flex list-none flex-col p-0">
-                {read.recurring.slice(0, 8).map((one) => (
+                {read.recurring.slice(0, ASIDE_ROWS).map((one) => (
                   <li
                     key={one.id}
                     className="flex items-center gap-3 border-t border-sunken px-5 py-3 first:border-0"
@@ -754,6 +770,12 @@ export default async function GivingPage({
                     ) : null}
                   </li>
                 ))}
+
+                {read.recurring.length > ASIDE_ROWS ? (
+                  <li className="border-t border-sunken px-5 py-2.5 text-[13px] text-fg-muted">
+                    {plural("giving.more", read.recurring.length - ASIDE_ROWS)}
+                  </li>
+                ) : null}
               </ul>
             )}
           </Panel>

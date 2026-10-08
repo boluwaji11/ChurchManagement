@@ -986,6 +986,8 @@ export const en = {
   "giving.filter.status.failed": "Failed",
   "giving.filter.status.refunded": "Refunded",
   "giving.filter.show": "Show the giving",
+  "giving.more.one": "{count} more",
+  "giving.more.other": "{count} more",
   "mine.giving.statementFor": "Statement for {year}",
   "mine.giving.history": "Every gift",
   "mine.giving.thisYear": "Given in {year}",
