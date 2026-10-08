@@ -4,8 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Archive, Plus, Undo2 } from "lucide-react";
 import {
-  Banner, Button, Field, IconButton, Input, LIFT,
-  Sheet, SheetContent, SheetTrigger,
+  Banner, Button, Field, HueDot, HUES, IconButton, Input, LIFT,
+  Sheet, SheetContent, SheetTrigger, type Hue,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
@@ -30,9 +30,10 @@ export interface TypeRow {
  * R9.1. The kinds of group a church runs.
  *
  * A tile each, the way the rooms are drawn, and the whole tile opens it. The
- * colour a kind wears is assigned rather than asked for: it is the thing that
- * tells a life group from a ministry team across four screens, and a church
- * setting up has better questions to answer than which of twelve.
+ * colour a kind wears runs down the left of every group filed under it, so a
+ * church reading its groups tells a life group from a ministry team before it
+ * has read a word. A new kind is given the next hue in the spectrum, and the
+ * church changes it in the panel where it changes the name.
  */
 export function TypeManager({
   church,
@@ -123,6 +124,7 @@ export function TypeManager({
                     type="button"
                     className={`flex cursor-pointer items-center gap-2.5 rounded-[14px] border border-line bg-surface p-4 text-left ${LIFT}`}
                   >
+                    <HueDot hue={one.hue as Hue} />
                     <span className="min-w-0 flex-1 truncate font-semibold text-fg">
                       {one.name}
                     </span>
@@ -175,6 +177,7 @@ function TypeDialog({
   const [error, setError] = useFormError(open && !picking);
   const [name, setName] = React.useState(type?.name ?? "");
   const [body, setBody] = React.useState(type?.description ?? "");
+  const [hue, setHue] = React.useState<Hue>((type?.hue as Hue) ?? HUES[0]);
   /** Remounts the editor when a ready-made kind fills it. */
   const [filled, setFilled] = React.useState(0);
 
@@ -189,8 +192,9 @@ function TypeDialog({
     if (!open) return;
     setName(type?.name ?? "");
     setBody(type?.description ?? "");
+    setHue((type?.hue as Hue) ?? HUES[0]);
     setFilled((n) => n + 1);
-  }, [open, type?.name, type?.description]);
+  }, [open, type?.name, type?.description, type?.hue]);
 
   const close = (next: boolean) => {
     setOpen(next);
@@ -291,10 +295,8 @@ function TypeDialog({
             onInput={() => setDirty(true)}
             action={(data) => {
               data.set("church", church);
-              if (type) {
-                data.set("id", type.id);
-                data.set("hue", type.hue);
-              }
+              data.set("hue", hue);
+              if (type) data.set("id", type.id);
               startTransition(async () => {
                 const result = await saveType(data);
                 setError(result.error);
@@ -327,6 +329,34 @@ function TypeDialog({
                 autoFocus
               />
             </Field>
+
+            {/* R9.1, R24.4. A hue does work here: it runs down the left of
+                every group of this kind, so the list reads as groups of
+                things rather than as one long list. */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-label text-fg">{t("groupType.colour")}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {HUES.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-label={t(`hue.${option}` as never)}
+                    aria-pressed={hue === option}
+                    onClick={() => {
+                      setHue(option);
+                      setDirty(true);
+                    }}
+                    className={
+                      hue === option
+                        ? "cursor-pointer rounded-full p-1 ring-2 ring-primary"
+                        : "cursor-pointer rounded-full p-1 ring-2 ring-transparent hover:ring-line-strong"
+                    }
+                  >
+                    <HueDot hue={option} />
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <Field label={t("groupType.description")}>
               {/* R24.6. The box grows a little and then scrolls inside itself.

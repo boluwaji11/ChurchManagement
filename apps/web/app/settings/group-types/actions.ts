@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   withTenant, addGroupType, updateGroupType, setGroupTypeArchived, reorderGroupTypes,
 } from "@connectapp/db";
+import { HUES } from "@connectapp/ui";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
@@ -32,9 +33,14 @@ export async function saveType(data: FormData): Promise<TypeResult> {
   const id = field(data, "id");
   const input = {
     name: field(data, "name"),
-    // R9.1. Only an edit carries one; a new kind is given the next in the
-    // spectrum by the query layer.
-    hue: field(data, "hue") || undefined,
+    /*
+     * R9.1, R24.4. The colour the church picked, checked against the twelve
+     * the product actually has. Anything else is dropped, and a new kind with
+     * nothing chosen is given the next in the spectrum by the query layer.
+     */
+    hue: (HUES as readonly string[]).includes(field(data, "hue"))
+      ? field(data, "hue")
+      : undefined,
     description: field(data, "description") || null,
   };
 
