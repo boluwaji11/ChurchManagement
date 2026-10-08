@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FilterDrawer, FilterGroup, ChipButton } from "@/components/filter-drawer";
+import { ResizableTable } from "@/components/resizable-columns";
 import { X, Archive, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Check, Tag, CheckCircle2 } from "lucide-react";
 import {
   Avatar, Badge, Button, Field, Input, Textarea, Checkbox, Banner, HueDot,
@@ -335,7 +336,10 @@ export function Directory({
           }
         />
       ) : (
-        <div className="overflow-auto rounded-lg border border-line bg-surface">
+        <ResizableTable
+          id="directory"
+          className="rounded-lg border border-line bg-surface"
+        >
           <table className="w-full min-w-[720px] border-collapse">
             <thead>
               <tr className="text-left text-[12px] font-semibold text-fg">
@@ -410,7 +414,7 @@ export function Directory({
               ))}
             </tbody>
           </table>
-        </div>
+        </ResizableTable>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">

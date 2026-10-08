@@ -998,6 +998,7 @@ export const en = {
   "giving.repeating.count.other": "{count} repeating gifts",
   "giving.campaigns.count.one": "{count} running",
   "giving.campaigns.count.other": "{count} running",
+  "table.resize": "Drag to set the column width",
   "pager.showing": "Showing {shown} of {total}",
   "pager.previous": "Previous page",
   "pager.next": "Next page",

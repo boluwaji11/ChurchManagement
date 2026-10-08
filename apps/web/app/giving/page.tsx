@@ -17,6 +17,7 @@ import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
 import { Figure } from "@/app/reports/figure";
 import { Pager } from "@/components/pager";
+import { ResizableTable } from "@/components/resizable-columns";
 import { money, groupAmount } from "@/lib/money";
 import { longDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
@@ -284,6 +285,13 @@ export default async function GivingPage({
           ) : null}
         </div>
 
+        {/* R13.21. The lists on the left, what the church is holding on the
+            right. A table given the whole of a wide screen leaves a hand's
+            width of nothing between a name and a fund, and the two standing
+            facts were sitting under a fold nobody scrolled to. */}
+        <div className="grid items-start gap-6 xl:[grid-template-columns:minmax(0,1fr)_minmax(300px,360px)]">
+          <div className="flex min-w-0 flex-col gap-6">
+
         {nothing ? (
           <Empty
             icon="calendar"
@@ -309,24 +317,24 @@ export default async function GivingPage({
                 <Nothing>{t("giving.counts.none")}</Nothing>
               ) : (
                 <>
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full min-w-[720px] border-collapse">
+                  <ResizableTable id="giving-counts">
+                    <table className="w-full min-w-[640px] border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="w-[150px] px-5 py-2 text-left font-bold">
+                          <th className="w-[130px] px-5 py-2 text-left font-bold">
                             {t("giving.col.date")}
                           </th>
                           {/* The name takes whatever the others do not. */}
                           <th className="w-full px-3 py-2 text-left font-bold">
                             {t("giving.count.name")}
                           </th>
-                          <th className="w-[170px] px-3 py-2 text-left font-bold">
+                          <th className="w-[140px] px-3 py-2 text-left font-bold">
                             {t("giving.col.fund")}
                           </th>
                           <th className="w-[100px] px-3 py-2 text-left font-bold">
                             {t("giving.col.method")}
                           </th>
-                          <th className="w-[150px] px-3 py-2 text-right font-bold">
+                          <th className="w-[130px] px-3 py-2 text-right font-bold">
                             {t("giving.count.counted")}
                           </th>
                           <th className="w-[56px] px-3 py-2" />
@@ -407,7 +415,7 @@ export default async function GivingPage({
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </ResizableTable>
 
                   <Pager
                     page={countsPage}
@@ -444,8 +452,8 @@ export default async function GivingPage({
                 <Nothing>{t("giving.recent.none")}</Nothing>
               ) : (
                 <>
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full min-w-[820px] border-collapse">
+                  <ResizableTable id="giving-gifts">
+                    <table className="w-full min-w-[760px] border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
                           <th className="w-[150px] px-5 py-2 text-left font-bold">
@@ -455,16 +463,16 @@ export default async function GivingPage({
                           <th className="w-full px-3 py-2 text-left font-bold">
                             {t("giving.col.giver")}
                           </th>
-                          <th className="w-[160px] px-3 py-2 text-left font-bold">
+                          <th className="w-[130px] px-3 py-2 text-left font-bold">
                             {t("giving.col.fund")}
                           </th>
                           <th className="w-[100px] px-3 py-2 text-left font-bold">
                             {t("giving.col.method")}
                           </th>
-                          <th className="w-[140px] px-3 py-2 text-right font-bold">
+                          <th className="w-[120px] px-3 py-2 text-right font-bold">
                             {t("giving.col.amount")}
                           </th>
-                          <th className="w-[120px] px-3 py-2 text-left font-bold">
+                          <th className="w-[110px] px-3 py-2 text-left font-bold">
                             {t("giving.col.status")}
                           </th>
                           <th className="w-[84px] px-3 py-2" />
@@ -582,7 +590,7 @@ export default async function GivingPage({
                         })}
                       </tbody>
                     </table>
-                  </div>
+                  </ResizableTable>
 
                   <Pager
                     page={giftsPage}
@@ -596,7 +604,9 @@ export default async function GivingPage({
           </>
         )}
 
-        <div className="grid items-start gap-6 lg:grid-cols-2">
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-6">
           {/* R13.9. The board's question is what the church can spend, so
               the funds are read in two groups with a total on each. Money
               given for a building is in the bank and is not available. */}
@@ -753,6 +763,7 @@ export default async function GivingPage({
               </ul>
             )}
           </Panel>
+          </div>
         </div>
       </div>
     </AppShell>
