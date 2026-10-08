@@ -134,6 +134,8 @@ and a design file does not move it.
 | HRT-261 | A church's own colour, any colour, with the contrast rebuilt from it | R1.1, R24.4 | Resolved |
 | HRT-263 | My schedule redrawn, and a calendar that refuses a day already taken | R17.7, R10.4 | Resolved |
 | HRT-264 | A signed-in member's own details fill their first place at an event | R14.3 | Resolved |
+| HRT-265 | A member can take back a request to join a group | R9.5 | Resolved |
+| HRT-266 | A member reads an event and registers without leaving the portal | R14.2, R17.1 | Resolved |
 | HRT-262 | The household address: a screen that sets it, and the settings menu on a phone | R2.4, R24.6 | Resolved |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
@@ -462,7 +464,8 @@ behind them were dropped in migration 0058.
 | HRT-143 | Consent and unsubscribe | R16.8 | Deferred |
 | HRT-144 | The church's own Twilio, and opt-in before any SMS | R16.2, R16.8 | Deferred |
 | HRT-145 | Inbound replies into a shared inbox | R16.9 | Deferred |
-| HRT-146 | Mail-merge letters, Avery labels and envelopes | R16.12 | Deferred |
+| HRT-146 | Avery labels and envelopes | R16.12 | Resolved. Mail-merge letters are HRT-267 |
+| HRT-267 | Mail-merge letters, one page a household | R16.12 | New |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms
