@@ -561,10 +561,17 @@ function MergeInto({
   const [open, setOpen] = React.useState(false);
   const [into, setInto] = React.useState<string>();
 
+  // Once the merge has run the chosen household is gone, so the id has to go
+  // with it rather than sitting behind a live confirm button.
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setInto(undefined);
+  };
+
   if (others.length === 0) return null;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
         <IconButton label={t("households.merge")} variant="ghost" disabled={pending}>
           {doing === `merge:${household.id}` ? (
@@ -599,7 +606,7 @@ function MergeInto({
         </Field>
 
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+          <Button type="button" variant="secondary" onClick={() => close(false)}>
             {t("action.cancel")}
           </Button>
           <Button
@@ -607,7 +614,7 @@ function MergeInto({
             disabled={pending || !into}
             onClick={() => {
               if (into) run(`merge:${household.id}`, () => fold(household.id, into, church));
-              setOpen(false);
+              close(false);
             }}
           >
             {t("households.mergeAction", { name: household.name })}

@@ -204,8 +204,7 @@ function TypeDialog({
                 variant="danger"
                 disabled={pending}
                 onClick={() => {
-                  setAsking(false);
-                  setOpen(false);
+                  close(false);
                   onArchive();
                 }}
               >
@@ -274,8 +273,7 @@ function TypeDialog({
                 const result = await saveType(data);
                 setError(result.error);
                 if (!result.error) {
-                  setDirty(false);
-                  setOpen(false);
+                  close(false);
                   router.refresh();
                 }
               });

@@ -214,13 +214,21 @@ function StationDialog({
   const formId = React.useId();
   const [dirty, setDirty] = React.useState(false);
   const full = useAnswered(formId, open);
-  const { onOpenChange, guard } = usePanelGuard({
-    dirty,
-    setOpen: (next) => {
-      setOpen(next);
-      if (!next) setDirty(false);
-    },
-  });
+
+  /*
+   * One Add panel serves every new station, so the two Selects go back to the
+   * station being described rather than keeping the last one's answers: a
+   * device left on the wrong mode behaves differently at check-in.
+   */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setMode(station?.mode ?? "desk");
+      setPrinter(station?.printer ?? "paper");
+      setDirty(false);
+    }
+  };
+  const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -230,7 +238,7 @@ function StationDialog({
         closeLabel={t("common.close")}
         footer={
           <>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
             <Button type="submit" form={formId} disabled={pending || !dirty || !full}>
@@ -250,7 +258,7 @@ function StationDialog({
               mode,
               printer,
             });
-            setOpen(false);
+            close(false);
           }}
           noValidate
           className="flex flex-col gap-4"

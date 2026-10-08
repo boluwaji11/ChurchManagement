@@ -207,8 +207,7 @@ function FundPanel({
       );
       setError(result.error);
       if (!result.error) {
-        setDirty(false);
-        setOpen(false);
+        close(false);
         router.refresh();
       }
     });
@@ -238,7 +237,7 @@ function FundPanel({
                 className="mr-auto"
                 disabled={pending || saving}
                 onClick={() => {
-                  setOpen(false);
+                  close(false);
                   onArchive();
                 }}
               >

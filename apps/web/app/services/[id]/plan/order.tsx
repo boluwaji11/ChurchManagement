@@ -403,6 +403,17 @@ function ItemDialog({
   const [description, setDescription] = React.useState(item?.description ?? "");
   const [pending, startTransition] = React.useTransition();
 
+  /* The panel is filled from the item each time it opens, so an abandoned
+     draft, or a kind picked for the last item, is gone by the next one. */
+  React.useEffect(() => {
+    if (!open) return;
+    setKind(item?.kind ?? kinds[0]?.slug ?? "custom");
+    setTitle(item?.title ?? "");
+    setMinutes(String(item?.minutes ?? 5));
+    setDescription(item?.description ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, item?.kind, item?.title, item?.minutes, item?.description, kinds[0]?.slug]);
+
   const submit = () => {
     startTransition(async () => {
       const result = await saveItem(
@@ -419,11 +430,6 @@ function ItemDialog({
       setError(result.error);
       if (!result.error) {
         setOpen(false);
-        if (!item) {
-          setTitle("");
-          setMinutes("5");
-          setDescription("");
-        }
         router.refresh();
       }
     });
@@ -512,6 +518,11 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
   const [body, setBody] = React.useState("");
   const [pending, startTransition] = React.useTransition();
 
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setBody("");
+  };
+
   /*
    * R11.6. A note on an item, read by everybody who reads the plan.
    *
@@ -527,15 +538,14 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
       );
       setError(result.error);
       if (!result.error) {
-        setOpen(false);
-        setBody("");
+        close(false);
         router.refresh();
       }
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
         <IconButton label={t("order.note.add")}><MessageSquare /></IconButton>
       </DialogTrigger>
@@ -548,7 +558,7 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
           </Field>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
               <Button type="button" loading={pending} disabled={!body.trim()} onClick={submit}>{t("action.save")}</Button>
@@ -890,6 +900,17 @@ function TemplateDialog({
     if (!pending) setDoing(undefined);
   }, [pending]);
 
+  /* Rename mode belongs to the row it was started on, so it closes with the
+     panel rather than greeting the next reader as an open text box. */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setName("");
+      setEditing(null);
+      setEditName("");
+    }
+  };
+
   const run = (key: string, work: () => Promise<{ error?: string }>, after?: () => void) => {
     setDoing(key);
     startTransition(async () => {
@@ -903,7 +924,7 @@ function TemplateDialog({
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
         <Button variant="ghost" disabled={empty}>
           <LayoutList /> {t("order.template.save")}
@@ -923,7 +944,7 @@ function TemplateDialog({
           </Field>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
               <Button
@@ -931,10 +952,7 @@ function TemplateDialog({
               loading={doing === "keep"}
               disabled={pending || !name.trim()}
               onClick={() =>
-                run("keep", () => keepAsTemplate(planId, name, church), () => {
-                  setName("");
-                  setOpen(false);
-                })
+                run("keep", () => keepAsTemplate(planId, name, church), () => close(false))
               }
             >
               {t("action.save")}

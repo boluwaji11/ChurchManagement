@@ -545,6 +545,7 @@ function InviteDialog({
       setEmail("");
       setQuery("");
       setFound([]);
+      setRole(giveable[0]?.id ?? "");
       setFailed(undefined);
       setDirty(false);
     }
@@ -585,7 +586,7 @@ function InviteDialog({
               const result = await invite(data);
               setFailed(result.error);
               if (!result.error) {
-                setOpen(false);
+                close(false);
                 onDone();
               }
             });

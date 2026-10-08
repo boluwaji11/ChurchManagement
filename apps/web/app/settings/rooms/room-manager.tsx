@@ -244,18 +244,23 @@ export function RoomSheet({
   // something in it, rather than taking the press and answering with an error.
   const [name, setName] = React.useState(room?.name ?? "");
 
-  React.useEffect(() => {
-    if (!open) return;
-    setName(room?.name ?? "");
-    setHue(room?.hue ?? "sky");
-    setForChildren(room?.forChildren ?? false);
-  }, [open, room?.name, room?.hue, room?.forChildren]);
-
   const start = room ? (room.minAgeMonths === null ? null : say(room.minAgeMonths)) : null;
   const end = room ? (room.maxAgeMonths === null ? null : say(room.maxAgeMonths)) : null;
 
   const [fromUnit, setFromUnit] = React.useState<string>(start?.unit ?? "months");
   const [toUnit, setToUnit] = React.useState<string>(end?.unit ?? "years");
+
+  // The two units are read back when the form is submitted, so a unit left
+  // over from the last room multiplies the next room's number: 18 typed as
+  // months, stored as 216.
+  React.useEffect(() => {
+    if (!open) return;
+    setName(room?.name ?? "");
+    setHue(room?.hue ?? "sky");
+    setForChildren(room?.forChildren ?? false);
+    setFromUnit(start?.unit ?? "months");
+    setToUnit(end?.unit ?? "years");
+  }, [open, room?.name, room?.hue, room?.forChildren, start?.unit, end?.unit]);
 
   const months = (raw: FormDataEntryValue | null, unit: string): string => {
     const text = String(raw ?? "").trim();

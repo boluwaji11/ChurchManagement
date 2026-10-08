@@ -42,8 +42,20 @@ export function AddService({
   const [pending, startTransition] = React.useTransition();
   const full = useAnswered("add-service", open);
 
+  /*
+   * The date is read back by the time field and the end date as their earliest
+   * allowed value, so one left over from the last service limits the next one.
+   */
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setRepeat("never");
+      setDate("");
+    }
+  };
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
         <Button>
           <Plus /> {t("services.add")}
@@ -55,7 +67,7 @@ export function AddService({
         closeLabel={t("common.close")}
         footer={
           <>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
             <Button type="submit" form="add-service" disabled={pending || !full}>
@@ -76,9 +88,7 @@ export function AddService({
               const result = await addGathering(data);
               setError(result.error);
               if (!result.error) {
-                setOpen(false);
-                setRepeat("never");
-                setDate("");
+                close(false);
                 router.refresh();
               }
             });

@@ -113,8 +113,7 @@ export function NewTag({
         setError(result.error);
         return;
       }
-      setName("");
-      setOpen(false);
+      close(false);
       router.refresh();
     } finally {
       setPending(false);
@@ -228,7 +227,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
     try {
       const result = await fn(data);
       if (result.error) setError(result.error);
-      else setOpen(false);
+      else reset(false);
     } finally {
       setPending(false);
     }

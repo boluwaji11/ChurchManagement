@@ -182,8 +182,7 @@ function KindPanel({
       const result = await saveKind({ id: kind?.id, ...input }, church);
       setError(result.error);
       if (!result.error) {
-        setDirty(false);
-        setOpen(false);
+        close(false);
         router.refresh();
       }
     });
@@ -213,7 +212,7 @@ function KindPanel({
                 className="mr-auto"
                 disabled={pending || saving}
                 onClick={() => {
-                  setOpen(false);
+                  close(false);
                   onArchive();
                 }}
               >

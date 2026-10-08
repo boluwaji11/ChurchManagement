@@ -57,8 +57,15 @@ export function Help() {
   );
   const rest = found.filter((article) => article.key !== here?.key);
 
+  // Opening Help shows the screen you are on, which the last search would
+  // otherwise be covering.
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setQuery("");
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
         <Button variant="ghost" aria-label={t("help.open")}>
           <CircleHelp />

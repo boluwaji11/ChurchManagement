@@ -58,6 +58,11 @@ function AddPosition({ church, teamId }: { church: string; teamId: string }) {
   const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
 
+  const close = () => {
+    setOpen(false);
+    setName("");
+  };
+
   const save = () => {
     if (!name.trim()) return;
     startTransition(async () => {
@@ -68,8 +73,7 @@ function AddPosition({ church, teamId }: { church: string; teamId: string }) {
       );
       setError(result.error);
       if (!result.error) {
-        setName("");
-        setOpen(false);
+        close();
         router.refresh();
       }
     });
@@ -95,13 +99,13 @@ function AddPosition({ church, teamId }: { church: string; teamId: string }) {
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") save();
-          if (e.key === "Escape") setOpen(false);
+          if (e.key === "Escape") close();
         }}
         aria-label={t("serving.position.name")}
         className="max-w-[260px]"
       />
       <Button onClick={save} disabled={pending || !name.trim()}>{t("action.add")}</Button>
-      <Button variant="ghost" onClick={() => setOpen(false)}>{t("action.cancel")}</Button>
+      <Button variant="ghost" onClick={close}>{t("action.cancel")}</Button>
       {error ? <span className="text-[12px] text-danger-text">{error}</span> : null}
     </div>
   );

@@ -302,17 +302,16 @@ function AddStep({
 
   const ready = name.trim() !== "" && Number.isInteger(Number(days || 0)) && Number(days || 0) >= 0;
 
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setName("");
+      setDays("");
+    }
+  };
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) {
-          setName("");
-          setDays("");
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
         <button
           type="button"
@@ -343,7 +342,7 @@ function AddStep({
           </Field>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
             <Button
@@ -351,7 +350,7 @@ function AddStep({
               disabled={!ready}
               onClick={() => {
                 onAdd(name.trim(), Number(days || 0));
-                setOpen(false);
+                close(false);
               }}
             >
               {t("action.add")}
