@@ -59,9 +59,8 @@ export default async function CheckinPage({
   // does not set the board's dozen queries going on its way to being refused.
   if (!canSupervise(session)) {
     return (
-      <AppShell session={session} title={t("checkin.title")}>
-        <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
+      
     );
   }
 

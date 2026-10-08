@@ -50,9 +50,8 @@ export default async function SchedulePlanPage({
 
   if (!canLeadTeams(session)) {
     return (
-      <AppShell session={session} title={t("plan.title")}>
-        <Denied role={session.role} action="schedule" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="schedule" church={session.tenantSlug} />
+      
     );
   }
 

@@ -44,9 +44,8 @@ export default async function FollowUpsPage({
 
   if (!canFollowUp(session)) {
     return (
-      <AppShell session={session} title={t("queue.title")}>
-        <Denied role={session.role} action="manageFollowUps" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="manageFollowUps" church={session.tenantSlug} />
+      
     );
   }
 

@@ -36,9 +36,8 @@ export default async function LabelsPage({
 
   if (!canManageStations(session)) {
     return (
-      <AppShell session={session} title={t("labels.title")}>
-        <Denied role={session.role} action="manageStations" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="manageStations" church={session.tenantSlug} />
+      
     );
   }
 

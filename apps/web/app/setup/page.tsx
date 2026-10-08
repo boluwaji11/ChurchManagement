@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { withTenant, setupProgress, canManageChurch } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { AppShell } from "@/components/app-shell";
 import { SiteBar, SiteFooter } from "@/components/site/chrome";
 import { AuthSteps } from "../auth-shell";
 import { Art, type Piece } from "@/components/site/art";
@@ -53,9 +52,8 @@ export default async function SetupPage({
   // R1.3. Nobody else's business, and it is not their screen to put away.
   if (!canManageChurch(session)) {
     return (
-      <AppShell session={session} title={t("setup.title")}>
-        <Denied role={session.role} action="editChurch" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="editChurch" church={session.tenantSlug} />
+      
     );
   }
 

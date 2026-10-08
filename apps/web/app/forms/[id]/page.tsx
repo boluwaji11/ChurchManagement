@@ -48,9 +48,8 @@ export default async function FormPage({
 
   if (!canManageChurch(session)) {
     return (
-      <AppShell session={session} title={t("form.title")}>
-        <Denied role={session.role} action="manageForms" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="manageForms" church={session.tenantSlug} />
+      
     );
   }
 

@@ -48,9 +48,8 @@ export default async function StationPage({
   // R8.14. The desk belongs to whoever is running check-in.
   if (!canCheckIn(session)) {
     return (
-      <AppShell session={session} title={t("checkin.check")}>
-        <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
+      
     );
   }
 

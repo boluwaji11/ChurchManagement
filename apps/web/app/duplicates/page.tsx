@@ -34,12 +34,8 @@ export default async function DuplicatesPage({
   // so the review queue is only shown to the roles that may do it.
   if (!canArchivePeople(session)) {
     return (
-      <AppShell
-        session={session}
-        title={t("merge.title")}
-      >
-          <Denied role={session.role} action="mergePeople" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="mergePeople" church={session.tenantSlug} />
+      
     );
   }
 

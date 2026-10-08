@@ -42,9 +42,8 @@ export default async function CountPage({
 
   if (!canManageGiving(session)) {
     return (
-      <AppShell session={session} title={t("giving.title")}>
-        <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />
+      
     );
   }
 

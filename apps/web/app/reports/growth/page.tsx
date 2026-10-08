@@ -44,9 +44,8 @@ export default async function GrowthReport({
   const session = await requireSession(church);
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
-      <AppShell session={session} title={t("reports.title")}>
-        <Denied role={session.role} action="readReports" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="readReports" church={session.tenantSlug} />
+      
     );
   }
 

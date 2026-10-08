@@ -67,9 +67,8 @@ export default async function CelebrationsPage({
 
   if (!canEditPeople(session)) {
     return (
-      <AppShell session={session} title={t("celebrations.title")}>
-        <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
+      
     );
   }
 

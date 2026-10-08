@@ -90,9 +90,8 @@ export default async function DashboardPage({
   // Somebody who is not staff has their own screen, and this is not it.
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
-      <AppShell session={session} title={t("dashboard.title")}>
-        <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
+      
     );
   }
 

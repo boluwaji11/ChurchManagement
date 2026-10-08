@@ -40,9 +40,8 @@ export default async function PayoutsPage({
 
   if (!canManageGiving(session)) {
     return (
-      <AppShell session={session} title={t("payouts.title")}>
-        <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="manageGiving" church={session.tenantSlug} />
+      
     );
   }
 

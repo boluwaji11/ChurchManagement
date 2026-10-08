@@ -76,9 +76,8 @@ export default async function ServingPage({
 
   if (!canLeadTeams(session)) {
     return (
-      <AppShell session={session} title={t("serving.title")}>
-        <Denied role={session.role} action="schedule" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="schedule" church={session.tenantSlug} />
+      
     );
   }
 

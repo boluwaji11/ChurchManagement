@@ -47,7 +47,10 @@ export function Denied({
   };
 
   return (
-    <div className="grid min-h-[50vh] place-items-center px-6 py-10">
+    /* R1.5. The whole screen. The frame around a page is furniture for a
+       page that is not being shown, and a sidebar over a refusal invites
+       somebody to press the same thing again. */
+    <main className="site-wash grid min-h-dvh place-items-center px-6 py-10">
       <div className="flex max-w-[420px] flex-col items-center gap-4 text-center">
         <span className="grid size-12 place-items-center rounded-full bg-sunken text-fg-muted [&_svg]:size-5">
           <Lock aria-hidden />
@@ -65,6 +68,6 @@ export function Denied({
           <Link href={home.href}>{home.label}</Link>
         </Button>
       </div>
-    </div>
+    </main>
   );
 }

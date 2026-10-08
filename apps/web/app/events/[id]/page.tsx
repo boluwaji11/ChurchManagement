@@ -42,9 +42,8 @@ export default async function EventPage({
   const session = await requireSession(church);
   if (!canManageEvents(session)) {
     return (
-      <AppShell session={session} title={t("nav.events")}>
-        <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />
-      </AppShell>
+      <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />
+      
     );
   }
 
