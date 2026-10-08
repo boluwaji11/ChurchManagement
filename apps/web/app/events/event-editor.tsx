@@ -390,13 +390,13 @@ export function EventEditor({
                 aria-pressed={hue === one}
                 onClick={() => setHue(one)}
                 className={
-                  "grid size-6 cursor-pointer place-items-center rounded-full border-2 transition-colors "
+                  "grid size-9 cursor-pointer place-items-center rounded-full border-2 transition-colors sm:size-6 "
                   + (hue === one ? "border-fg" : "border-transparent hover:border-line-strong")
                 }
                 style={{ background: `var(--hue-${one}-500)` }}
               >
                 {hue === one ? (
-                  <Check className="size-3.5 text-white" strokeWidth={3} aria-hidden />
+                  <Check className="size-5 text-white sm:size-3.5" strokeWidth={3} aria-hidden />
                 ) : null}
               </button>
             ))}

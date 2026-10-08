@@ -441,11 +441,93 @@ export function EventView({
               <PrintRoster church={church} eventSlug={event.slug} questions={questions} />
             </div>
 
-            <div className="overflow-x-auto">
+            {/* R24.6. A registration is a record somebody reads one of, so on
+                a phone each one is a card rather than a column in a table
+                nine wide. */}
+            <div id="event-registrations-rows" className="scroll-mt-20">
+            <ul className="flex flex-col gap-2 sm:hidden">
+              {paged.map((one) => (
+                <li
+                  key={one.id}
+                  className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4"
+                >
+                  <span className="flex flex-wrap items-center gap-2">
+                    {one.memberId ? (
+                      <Link
+                        href={`/members/${one.personSlug}?church=${church}`}
+                        className="font-medium text-fg underline-offset-4 hover:underline"
+                      >
+                        {one.name}
+                      </Link>
+                    ) : (
+                      <span className="font-medium text-fg">{one.name}</span>
+                    )}
+                    {one.trial ? (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+                        style={{
+                          background: "var(--hue-violet-tint)",
+                          color: "var(--hue-violet-key)",
+                        }}
+                      >
+                        {t("event.trial")}
+                      </span>
+                    ) : null}
+                    {one.state === "waiting" ? (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+                        style={{
+                          background: "var(--hue-amber-tint)",
+                          color: "var(--hue-amber-key)",
+                        }}
+                      >
+                        {t("event.onWaitlist")}
+                      </span>
+                    ) : null}
+                  </span>
+
+                  <dl className="flex flex-col gap-1.5 text-[13px]">
+                    {one.email ? (
+                      <Line label={t("person.email")}>
+                        <span className="break-all">{one.email}</span>
+                      </Line>
+                    ) : null}
+                    {one.phone ? (
+                      <Line label={t("person.phone")}>
+                        <span className="tabular-nums">{one.phone}</span>
+                      </Line>
+                    ) : null}
+                    <Line label={t("event.registeredOn")}>
+                      <span className="tabular-nums">
+                        {shortDate(one.registeredAt.slice(0, 10))}
+                      </span>
+                    </Line>
+                    {/* A question nobody answered is left off the card. A
+                        label on its own reads as a value that failed to
+                        load. */}
+                    {questions.map((q) => {
+                      const answer = one.answers[q.id];
+                      if (q.kind === "file") {
+                        return Array.isArray(answer) && answer.length > 0 ? (
+                          <Line key={q.id} label={q.label}>
+                            <AnswerFiles answer={answer} church={church} />
+                          </Line>
+                        ) : null;
+                      }
+                      const said = answerText(answer);
+                      return said ? (
+                        <Line key={q.id} label={q.label}>{said}</Line>
+                      ) : null;
+                    })}
+                  </dl>
+                </li>
+              ))}
+            </ul>
+
+            <div className="hidden overflow-x-auto sm:block">
               <ResizableTable
                 id="event-registrations"
-                anchor="event-registrations-rows"
-                className="scroll-mt-20 rounded-lg border border-line bg-surface"
+                className="rounded-lg border border-line bg-surface"
               >
                 <table className="w-full text-[length:var(--d-text-body)]">
                 <Thead>
@@ -527,6 +609,7 @@ export function EventView({
                 </table>
               </ResizableTable>
             </div>
+            </div>
 
             <Pages
               page={at}
@@ -538,6 +621,16 @@ export function EventView({
         )
       ) : null}
 
+    </div>
+  );
+}
+
+/** One label and its answer, down a registration card on a phone. */
+function Line({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col">
+      <dt className="text-[12px] font-medium text-fg-subtle">{label}</dt>
+      <dd className="min-w-0 text-fg-muted">{children}</dd>
     </div>
   );
 }
