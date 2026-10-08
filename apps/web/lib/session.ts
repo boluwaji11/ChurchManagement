@@ -140,6 +140,27 @@ export const belongsTo = cache(async (userId: string, slug: string): Promise<boo
   return (await myMembership(userId, tenant.id)) !== null;
 });
 
+/**
+ * The address this request is on, as a path.
+ *
+ * The middleware passes it through on a header, because a server component
+ * cannot read the URL it is rendering for. Without it the reader still gets
+ * to sign-in, just without the way back.
+ */
+const here = cache(async (): Promise<string | null> => {
+  const head = await headers();
+  const path = head.get("x-pathname");
+  const query = head.get("x-search") ?? "";
+  return path ? `${path}${query}` : null;
+});
+
+/** `?next=` for a path worth returning to, and nothing for anything else. */
+function nextFrom(path: string | null): string {
+  if (!path || !path.startsWith("/")) return "";
+  if (path.startsWith("/sign-in") || path.startsWith("/sign-up")) return "";
+  return `?next=${encodeURIComponent(path)}`;
+}
+
 export const requireSession = cache(async (asked?: string): Promise<Session> => {
   /*
    * The address in the request wins, because a link somebody was sent names
@@ -152,7 +173,13 @@ export const requireSession = cache(async (asked?: string): Promise<Session> => 
   if (!user) {
     const demo = await demoVisitorSession();
     if (demo) return demo;
-    redirect("/sign-in");
+    /*
+     * R1.4. Signing in carries the reader back to what they opened. A link
+     * out of an email, a bookmark, a tab left open overnight: all of them
+     * land on sign-in, and sending somebody to the dashboard afterwards
+     * means they have to find their way back to the thing they wanted.
+     */
+    redirect(`/sign-in${nextFrom(await here())}`);
   }
 
   const memberships = await myMemberships(user.id);
@@ -164,11 +191,12 @@ export const requireSession = cache(async (asked?: string): Promise<Session> => 
     const tenant = await tenantBySlug(slug);
     // Same outcome whether the church does not exist or the user is not in it.
     chosen = tenant ? ((await myMembership(user.id, tenant.id)) ?? undefined) : undefined;
-    if (!chosen) redirect("/choose-church?reason=denied");
+    // R1.4. Which church was asked for, so the chooser can say so by name.
+    if (!chosen) redirect(`/choose-church?reason=denied&asked=${encodeURIComponent(slug)}`);
   } else if (memberships.length === 1) {
     chosen = memberships[0];
   } else {
-    redirect("/choose-church");
+    redirect("/choose-church?reason=which");
   }
 
   const m = chosen!;

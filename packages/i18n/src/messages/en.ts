@@ -273,6 +273,9 @@ export const en = {
   "chooseChurch.signedInAs": "Signed in as {email}",
   "chooseChurch.none.title": "Your account is not in a church yet",
   "chooseChurch.none.body": "Your church will have sent you its own link. Or set up a church here.",
+  "chooseChurch.denied.named": "{church} is not open to your account",
+  "chooseChurch.which.title": "Which church?",
+  "chooseChurch.which.body": "Your account is in more than one.",
   "chooseChurch.denied.title": "That church is not available to you",
   "chooseChurch.denied.body": "Ask whoever runs that church to invite you.",
 
@@ -1606,7 +1609,17 @@ export const en = {
   // Permissions
   "forbidden.addPeople": "Your role cannot add members",
   "forbidden.editPeople": "Your role cannot edit members",
-  "forbidden.denied": "Access denied",
+  "missing.title": "That is not here",
+  "missing.body": "It may have been archived, or the address may be wrong.",
+  "missing.back": "Back to the start",
+  "fault.title": "That screen did not load",
+  "fault.body": "Try again. If it keeps happening, tell whoever runs this church.",
+  "fault.retry": "Try again",
+  "fault.ref": "Reference {ref}",
+  "forbidden.denied": "This is not open to your role",
+  "forbidden.body": "Your role does not reach this screen.",
+  "forbidden.ask": "Ask whoever runs this church if you need it.",
+  "forbidden.back": "Back to your own screens",
 
   // Validation
   "validate.required": "Enter {what}.",

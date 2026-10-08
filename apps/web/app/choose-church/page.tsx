@@ -17,7 +17,7 @@ export async function generateMetadata() {
   return publicTab(t("chooseChurch.title"));
 }
 
-const REASONS = ["none", "denied"] as const;
+const REASONS = ["none", "denied", "which"] as const;
 const isReason = (value: string | undefined): value is (typeof REASONS)[number] =>
   REASONS.includes(value as (typeof REASONS)[number]);
 
@@ -30,9 +30,9 @@ const ART: Piece[] = [
 export default async function ChooseChurch({
   searchParams,
 }: {
-  searchParams: Promise<{ reason?: string }>;
+  searchParams: Promise<{ reason?: string; asked?: string }>;
 }) {
-  const { reason } = await searchParams;
+  const { reason, asked } = await searchParams;
   const user = await currentUser();
   if (!user) redirect("/sign-in");
 
@@ -47,8 +47,18 @@ export default async function ChooseChurch({
       width="max-w-[520px]"
       bar={<SignedInAs email={user.email} />}
     >
+      {/* R1.4. Which church was asked for, where the address named one.
+          "That church is not available to you" with no name in it leaves
+          somebody in two churches wondering which one it meant. */}
       {notice ? (
-        <Banner tone={notice === "denied" ? "warning" : "info"} title={t(`chooseChurch.${notice}.title`)}>
+        <Banner
+          tone={notice === "denied" ? "warning" : "info"}
+          title={
+            notice === "denied" && asked
+              ? t("chooseChurch.denied.named", { church: asked })
+              : t(`chooseChurch.${notice}.title`)
+          }
+        >
           {t(`chooseChurch.${notice}.body`)}
         </Banner>
       ) : null}

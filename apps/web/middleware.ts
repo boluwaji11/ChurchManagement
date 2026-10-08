@@ -8,7 +8,17 @@ import { NextResponse, type NextRequest } from "next/server";
  * may reach and with what role, is decided in the data layer from the database.
  */
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  /*
+   * R1.4. The address the request is on, passed through on the request so a
+   * server component can read it. A screen cannot see its own URL, and a
+   * refusal that cannot name where the reader was going has to send them
+   * somewhere arbitrary afterwards.
+   */
+  const asked = new Headers(request.headers);
+  asked.set("x-pathname", request.nextUrl.pathname);
+  asked.set("x-search", request.nextUrl.search);
+
+  let response = NextResponse.next({ request: { headers: asked } });
 
   const supabase = createServerClient(
     process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
@@ -18,7 +28,7 @@ export async function middleware(request: NextRequest) {
         getAll: () => request.cookies.getAll(),
         setAll: (list) => {
           for (const { name, value } of list) request.cookies.set(name, value);
-          response = NextResponse.next({ request });
+          response = NextResponse.next({ request: { headers: asked } });
           for (const { name, value, options } of list) response.cookies.set(name, value, options);
         },
       },
