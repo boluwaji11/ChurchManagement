@@ -11,11 +11,14 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   LIFT,
 } from "@connectapp/ui";
+import type { HouseholdAddress } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
-import { add, setName, setRole, putAway, fold, freePeople, putIn, takeOut } from "./actions";
+import {
+  add, setName, setAddress, setRole, putAway, fold, freePeople, putIn, takeOut,
+} from "./actions";
 import { useFormError } from "@/lib/form-error";
 
 export interface HouseholdItem {
@@ -23,6 +26,8 @@ export interface HouseholdItem {
   name: string;
   members: { id: string; slug: string; name: string; role: string }[];
   archived: boolean;
+  /** R2.4. Where the church writes to, when it holds one. */
+  address: HouseholdAddress | null;
 }
 
 /**
@@ -32,6 +37,15 @@ export interface HouseholdItem {
  * left a church with no way to see a family, rename it, or put two halves of
  * the same one back together.
  */
+/** R2.4. An address, as the five boxes the panel types into. */
+const parts = (held: HouseholdItem["address"]) => ({
+  line1: held?.line1 ?? "",
+  line2: held?.line2 ?? "",
+  city: held?.city ?? "",
+  region: held?.region ?? "",
+  postalCode: held?.postalCode ?? "",
+});
+
 export function HouseholdList({
   church,
   households,
@@ -221,10 +235,24 @@ function EditHousehold({
 }) {
   const [open, setOpen] = React.useState(false);
   const [name, setName_] = React.useState(household.name);
+  const [where, setWhere] = React.useState(() => parts(household.address));
 
   React.useEffect(() => {
-    if (open) setName_(household.name);
-  }, [open, household.name]);
+    if (open) {
+      setName_(household.name);
+      setWhere(parts(household.address));
+    }
+  }, [open, household.name, household.address]);
+
+  /* The five fields go back as one address, on leaving any of them, the same
+     way the name above them saves. */
+  const keep = () => {
+    const was = parts(household.address);
+    const same = (Object.keys(was) as (keyof typeof was)[])
+      .every((key) => was[key].trim() === where[key].trim());
+    if (same) return;
+    run(`address:${household.id}`, () => setAddress(household.id, where, church));
+  };
 
 
   return (
@@ -245,6 +273,51 @@ function EditHousehold({
               autoComplete="off"
             />
           </Field>
+
+          {/* R2.4. The one fact a family holds in common. It was written by
+              an import or not at all. */}
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr))]">
+            <Field label={t("address.line1")} className="[grid-column:1/-1]">
+              <Input
+                value={where.line1}
+                onChange={(e) => setWhere({ ...where, line1: e.target.value })}
+                onBlur={keep}
+                autoComplete="off"
+                              />
+            </Field>
+            <Field label={t("address.line2")} className="[grid-column:1/-1]">
+              <Input
+                value={where.line2}
+                onChange={(e) => setWhere({ ...where, line2: e.target.value })}
+                onBlur={keep}
+                autoComplete="off"
+              />
+            </Field>
+            <Field label={t("address.city")}>
+              <Input
+                value={where.city}
+                onChange={(e) => setWhere({ ...where, city: e.target.value })}
+                onBlur={keep}
+                autoComplete="off"
+              />
+            </Field>
+            <Field label={t("address.region")}>
+              <Input
+                value={where.region}
+                onChange={(e) => setWhere({ ...where, region: e.target.value })}
+                onBlur={keep}
+                autoComplete="off"
+              />
+            </Field>
+            <Field label={t("address.postalCode")}>
+              <Input
+                value={where.postalCode}
+                onChange={(e) => setWhere({ ...where, postalCode: e.target.value })}
+                onBlur={keep}
+                autoComplete="off"
+              />
+            </Field>
+          </div>
 
           <Members
             church={church}

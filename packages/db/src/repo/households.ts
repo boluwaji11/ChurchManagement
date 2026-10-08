@@ -1,6 +1,6 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { households, householdMemberships, members } from "../schema/members";
+import { households, householdMemberships, members, addresses } from "../schema/members";
 import { PermissionError, canManageHouseholds } from "../roles";
 import { InvalidInputError } from "../errors";
 import type { WriteActor } from "./members";
@@ -13,11 +13,23 @@ import type { WriteActor } from "./members";
  * family back together. This is that screen's data.
  */
 
+/** R2.4. What a church writes on the envelope for this family. */
+export interface HouseholdAddress {
+  line1: string;
+  line2: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+  country: string;
+}
+
 export interface HouseholdRow {
   id: string;
   name: string;
   members: { id: string; slug: string; name: string; role: string }[];
   archived: boolean;
+  /** R2.4. Where the church writes to, when it holds one. */
+  address: HouseholdAddress | null;
 }
 
 function guard(actor: WriteActor): void {
@@ -52,6 +64,17 @@ export async function listHouseholdRows(
             ) m
         ),
         '[]'::json
+      )`,
+      /* R2.4. The one the church writes to, read with the list so the panel
+         opens filled rather than fetching a second time per household. */
+      address: sql<HouseholdAddress | null>`(
+        select json_build_object(
+                 'line1', a.line1, 'line2', a.line2, 'city', a.city,
+                 'region', a.region, 'postalCode', a.postal_code, 'country', a.country)
+          from addresses a
+         where a.household_id = households.id
+         order by a.is_primary desc, a.created_at desc
+         limit 1
       )`,
     })
     .from(households)
@@ -304,4 +327,91 @@ export async function mergeHouseholds(
     .where(and(eq(households.id, fromId), isNull(households.archivedAt)));
 
   return { moved };
+}
+
+/**
+ * R2.4. The address held against the household itself.
+ *
+ * A household's address was only ever written by an import or the seed: the
+ * panel that names a household and says who is in it had no field for it, so
+ * the one fact a family holds in common could not be entered or corrected
+ * anywhere in the product.
+ *
+ * One row per household, which is the thing a church means by "their
+ * address". Where a household somehow carries more than one, the flagged or
+ * most recent is the one read and the one written back to.
+ */
+export async function householdAddress(
+  db: Tx,
+  householdId: string,
+): Promise<HouseholdAddress | null> {
+  const [row] = await db
+    .select({
+      line1: addresses.line1,
+      line2: addresses.line2,
+      city: addresses.city,
+      region: addresses.region,
+      postalCode: addresses.postalCode,
+      country: addresses.country,
+    })
+    .from(addresses)
+    .where(eq(addresses.householdId, householdId))
+    .orderBy(desc(addresses.isPrimary), desc(addresses.createdAt))
+    .limit(1);
+
+  return row ?? null;
+}
+
+/**
+ * R2.4. Writes it, changes it, or takes it off.
+ *
+ * An empty first line means the church is clearing it, which is what somebody
+ * does when a family's address turns out to be wrong and they do not yet know
+ * the new one. Clearing removes every row rather than leaving an older one to
+ * surface in its place.
+ */
+export async function setHouseholdAddress(
+  db: Tx,
+  actor: WriteActor,
+  householdId: string,
+  input: Partial<HouseholdAddress>,
+): Promise<void> {
+  guard(actor);
+
+  const line1 = input.line1?.trim();
+
+  const held = await db
+    .select({ id: addresses.id })
+    .from(addresses)
+    .where(eq(addresses.householdId, householdId))
+    .orderBy(desc(addresses.isPrimary), desc(addresses.createdAt));
+
+  if (!line1) {
+    if (held.length > 0) {
+      await db.delete(addresses).where(eq(addresses.householdId, householdId));
+    }
+    return;
+  }
+
+  const values = {
+    line1,
+    line2: input.line2?.trim() || null,
+    city: input.city?.trim() || null,
+    region: input.region?.trim() || null,
+    postalCode: input.postalCode?.trim() || null,
+    country: input.country?.trim() || "US",
+    isPrimary: true,
+  };
+
+  const [first, ...rest] = held;
+  if (first) {
+    await db.update(addresses).set(values).where(eq(addresses.id, first.id));
+    // A second row on one household is a mistake nobody meant to keep.
+    for (const extra of rest) {
+      await db.delete(addresses).where(eq(addresses.id, extra.id));
+    }
+    return;
+  }
+
+  await db.insert(addresses).values({ tenantId: actor.tenantId, householdId, ...values });
 }

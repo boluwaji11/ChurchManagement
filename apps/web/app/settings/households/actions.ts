@@ -1,8 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import {
   withTenant, createHousehold, renameHousehold, setHouseholdArchived, mergeHouseholds,
   peopleWithoutHousehold, addToHousehold, removeFromHousehold, setHouseholdRole,
+  setHouseholdAddress,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -43,6 +46,34 @@ export async function setName(
   const who = await actor(church);
   try {
     await withTenant(who, (tx) => renameHousehold(tx, who, id, name));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * R2.4. Where the church writes to for this family.
+ *
+ * The panel that names a household had no field for it, so the address every
+ * member of a family shares could be read on their own screens and set
+ * nowhere. An empty street clears it.
+ */
+export async function setAddress(
+  id: string,
+  input: {
+    line1: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    postalCode?: string;
+  },
+  church?: string,
+): Promise<HouseholdResult> {
+  const who = await actor(church);
+  try {
+    await withTenant(who, (tx) => setHouseholdAddress(tx, who, id, input));
+    revalidatePath("/settings/households");
     return {};
   } catch (error) {
     return { error: explain(error) };
