@@ -130,12 +130,6 @@ export default async function DepositSlipPage({
         </span>
       </section>
 
-      {read.count.varianceNote ? (
-        <p className="mt-4 text-[14px] text-neutral-600">
-          {t("giving.count.variance")}: {read.count.varianceNote}
-        </p>
-      ) : null}
-
       {/* R13.11. The two who counted it sign the slip. */}
       <section className="mt-12 flex gap-10">
         {[0, 1].map((at) => (

@@ -34,17 +34,31 @@ export async function startCount(
   input: {
     name: string;
     receivedOn: string;
-    expectedCents: number;
+    /** R13.9, R13.10. What was counted, and which fund it was given to. */
+    fundId: string;
+    amountCents: number;
     counterOneId?: string | null;
     counterTwoId?: string | null;
   },
   church?: string,
-): Promise<GivingResult> {
+): Promise<GivingResult & { slug?: string }> {
   const { actor, ctx } = await context(church);
   try {
-    const { id } = await withTenant(ctx, (tx) => openBatch(tx, actor, input));
+    const made = await withTenant(ctx, async (tx) => {
+      const batch = await openBatch(tx, actor, input);
+      /* The session and the first thing counted are one press. */
+      await recordGift(tx, actor, {
+        fundId: input.fundId,
+        batchId: batch.id,
+        amountCents: input.amountCents,
+        method: "cash",
+        receivedOn: input.receivedOn,
+      });
+      return batch;
+    });
+
     revalidatePath("/giving");
-    return { id };
+    return { id: made.id, slug: made.slug };
   } catch (error) {
     return { error: explain(error) };
   }
@@ -75,12 +89,11 @@ export async function saveCount(
 /** R13.11. Closing it, which is what makes it a deposit. */
 export async function finishCount(
   id: string,
-  varianceNote: string | null,
   church?: string,
 ): Promise<GivingResult> {
   const { actor, ctx } = await context(church);
   try {
-    await withTenant(ctx, (tx) => closeBatch(tx, actor, id, varianceNote));
+    await withTenant(ctx, (tx) => closeBatch(tx, actor, id));
     revalidatePath(`/giving/counts/${id}`);
     revalidatePath("/giving");
     return {};

@@ -73,17 +73,13 @@ describe("funds", () => {
 describe("a counting session", () => {
   let batch: string;
 
-  it("opens on a declared total", async () => {
+  it("opens with a name in its address", async () => {
     batch = (await run((tx) =>
-      openBatch(tx, as(), {
-        name: "Morning count",
-        receivedOn: "2030-10-06",
-        expectedCents: 15_000,
-      }),
+      openBatch(tx, as(), { name: "Morning count", receivedOn: "2030-10-06" }),
     )).id;
 
     const [row] = await run((tx) => listBatches(tx));
-    expect(row!.expectedCents).toBe(15_000);
+    expect(row!.slug).toBe("morning-count-2030-10-06");
     expect(row!.enteredCents).toBe(0);
     expect(row!.closed).toBe(false);
   });
@@ -107,21 +103,17 @@ describe("a counting session", () => {
     expect(row!.lines).toBe(2);
   });
 
-  it("refuses to close while it is short of two counters", async () => {
-    await expect(run((tx) => closeBatch(tx, as(), batch)))
-      .rejects.toBeInstanceOf(InvalidInputError);
-  });
-
-  it("refuses to close on a variance with nothing written down", async () => {
+  it("names two counters, which is the control an auditor asks about", async () => {
     await run((tx) =>
       updateBatch(tx, as(), batch, { counterOneId: countOne, counterTwoId: countTwo }),
     );
-    // 14,000 entered against 15,000 declared.
-    await expect(run((tx) => closeBatch(tx, as(), batch)))
-      .rejects.toBeInstanceOf(InvalidInputError);
+
+    const [row] = await run((tx) => listBatches(tx));
+    expect(row!.counterOneId).toBe(countOne);
+    expect(row!.counterTwoId).toBe(countTwo);
   });
 
-  it("closes when the entered total matches the declaration", async () => {
+  it("closes when the church says it has finished, and stops taking lines", async () => {
     await run((tx) =>
       recordGift(tx, as(), {
         fundId: general, batchId: batch, amountCents: 1_000,
@@ -132,9 +124,9 @@ describe("a counting session", () => {
 
     const [row] = await run((tx) => listBatches(tx));
     expect(row!.closed).toBe(true);
-    expect(row!.enteredCents).toBe(row!.expectedCents);
+    expect(row!.enteredCents).toBe(15_000);
 
-    // A closed count is the record of a deposit, so it stops taking lines.
+    // A closed session is the record of a deposit, so it takes no more.
     await expect(
       run((tx) =>
         recordGift(tx, as(), {
@@ -172,6 +164,13 @@ describe("a counting session", () => {
     const lines = await run((tx) => listGifts(tx, as(), { batchId: batch }));
     await run((tx) => removeGift(tx, as(), lines[0]!.id));
     expect(await run((tx) => listGifts(tx, as(), { batchId: batch }))).toHaveLength(2);
+  });
+
+  it("gives a second session of the same name a number of its own", async () => {
+    const again = await run((tx) =>
+      openBatch(tx, as(), { name: "Morning count", receivedOn: "2030-10-06" }),
+    );
+    expect(again.slug).toBe("morning-count-2030-10-06-2");
   });
 
   it("refuses a gift to an archived fund", async () => {

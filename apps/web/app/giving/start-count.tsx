@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   Banner, Button, Field, Input, Sheet, SheetContent, SheetTrigger,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { DateField } from "@/components/date-field";
@@ -21,14 +22,24 @@ import { startCount } from "./actions";
  * total typed after the entry is a total that agrees with the entry. That is
  * the whole of the control.
  */
-export function StartCount({ church, today }: { church: string; today: string }) {
+export function StartCount({
+  church,
+  today,
+  funds,
+}: {
+  church: string;
+  today: string;
+  /** R13.9. What the money can be given to, so a session says which. */
+  funds: { id: string; name: string }[];
+}) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
   const [error, setError] = useFormError(open);
   const [name, setName] = React.useState("");
   const [date, setDate] = React.useState(today);
-  const [expected, setExpected] = React.useState("");
+  const [fundId, setFundId] = React.useState(funds[0]?.id ?? "");
+  const [amount, setAmount] = React.useState("");
   const [saving, startTransition] = React.useTransition();
 
   const close = (next: boolean) => {
@@ -36,29 +47,34 @@ export function StartCount({ church, today }: { church: string; today: string })
     if (!next) {
       setDirty(false);
       setName("");
-      setExpected("");
+      setAmount("");
+      setFundId(funds[0]?.id ?? "");
       setDate(today);
     }
   };
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
 
   const save = () => {
-    const cents = toCents(expected);
-    if (cents === null) {
+    const cents = toCents(amount);
+    if (cents === null || cents <= 0) {
       setError(t("gift.error.amount"));
       return;
     }
     startTransition(async () => {
       const result = await startCount(
-        { name, receivedOn: date, expectedCents: cents },
+        { name, receivedOn: date, fundId, amountCents: cents },
         church,
       );
       setError(result.error);
       if (!result.error) {
+        /*
+         * R13.10. The session and what was counted are written together, so
+         * the panel closes onto the list rather than carrying the reader
+         * into a screen with one line on it.
+         */
         setDirty(false);
         setOpen(false);
-        if (result.id) router.push(`/giving/counts/${result.id}?church=${church}`);
-        else router.refresh();
+        router.refresh();
       }
     });
   };
@@ -75,7 +91,7 @@ export function StartCount({ church, today }: { church: string; today: string })
         footer={
           <Button
             type="button"
-            disabled={saving || !dirty || !name.trim() || !date || !expected.trim()}
+            disabled={saving || !dirty || !name.trim() || !date || !fundId || !amount.trim()}
             loading={saving}
             onClick={save}
           >
@@ -112,11 +128,32 @@ export function StartCount({ church, today }: { church: string; today: string })
             />
           </Field>
 
-          <Field label={t("giving.count.expected")} required>
+          {/* R13.9. Which fund it was given to, because "we counted
+              $10,000" cannot tell a board what went to the building. */}
+          <Field label={t("giving.gift.fund")} required>
+            <Select
+              value={fundId}
+              onValueChange={(next) => {
+                setFundId(next);
+                setDirty(true);
+              }}
+            >
+              <SelectTrigger aria-label={t("giving.gift.fund")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent create={`/settings/funds?church=${church}`}>
+                {funds.map((fund) => (
+                  <SelectItem key={fund.id} value={fund.id}>{fund.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field label={t("giving.count.counted")} required>
             <MoneyInput
-              value={expected}
+              value={amount}
               onChange={(next) => {
-                setExpected(next);
+                setAmount(next);
                 setDirty(true);
               }}
               placeholder="0.00"

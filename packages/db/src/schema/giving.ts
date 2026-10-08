@@ -54,26 +54,24 @@ export const funds = pgTable(
 /**
  * R13.10, R13.11. A counting session: what the team took out of the plate.
  *
- * The batch is declared before it is entered. The counters say what they think
- * is there, then enter it line by line, and the batch closes only when the two
- * agree or somebody writes down why they do not.
+ * What was counted, fund by fund, on the day it was received. Two counters
+ * can be named against it, which is the control an auditor asks about, and
+ * the session is finished when the church says it has finished.
  */
 export const giftBatches = pgTable(
   "gift_batches",
   {
     id: pk(),
     tenantId: tenantId(),
-    /** "Sunday morning, 12 October". What the treasurer calls this count. */
+    /** "Sunday morning, 12 October". What the treasurer calls this session. */
     name: text("name").notNull(),
+    /** R13.10. The name in its address, unique within the church. */
+    slug: text("slug"),
     /** The day the money was received, which is the day it is given on. */
     receivedOn: date("received_on").notNull(),
-    /** R13.10. What the counters declared before entering a single line. */
-    expectedCents: integer("expected_cents").notNull().default(0),
     /** R13.11. Dual control: two people counted it. */
     counterOneId: uuid("counter_one_id").references(() => members.id, { onDelete: "set null" }),
     counterTwoId: uuid("counter_two_id").references(() => members.id, { onDelete: "set null" }),
-    /** R13.11. Why the count and the declaration differ, where they do. */
-    varianceNote: text("variance_note"),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     createdAt: created(),
     updatedAt: updated(),
@@ -81,6 +79,7 @@ export const giftBatches = pgTable(
   (t) => [
     index("gift_batch_tenant_idx").on(t.tenantId),
     index("gift_batch_date_idx").on(t.tenantId, t.receivedOn),
+    uniqueIndex("gift_batch_slug_unique").on(t.tenantId, t.slug),
   ],
 );
 

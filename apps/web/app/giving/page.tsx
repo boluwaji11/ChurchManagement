@@ -139,7 +139,11 @@ export default async function GivingPage({
             body={t("giving.empty.body")}
             action={
               manage ? (
-                <StartCount church={session.tenantSlug} today={read.today} />
+                <StartCount
+                    church={session.tenantSlug}
+                    today={read.today}
+                    funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
+                  />
               ) : undefined
             }
           />
@@ -177,7 +181,11 @@ export default async function GivingPage({
                     today={read.today}
                     funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
                   />
-                  <StartCount church={session.tenantSlug} today={read.today} />
+                  <StartCount
+                    church={session.tenantSlug}
+                    today={read.today}
+                    funds={read.funds.map((one) => ({ id: one.id, name: one.name }))}
+                  />
                 </div>
               ) : null}
             </div>
@@ -206,10 +214,7 @@ export default async function GivingPage({
                         {count.closed ? t("giving.count.closed") : t("giving.count.open")}
                       </span>
                       <span data-numeric className="w-[160px] shrink-0 text-right text-[13px] text-fg-muted">
-                        {t("giving.count.entered", {
-                          entered: money(count.enteredCents),
-                          expected: money(count.expectedCents),
-                        })}
+                        {money(count.enteredCents)}
                       </span>
                     </Link>
                   </li>

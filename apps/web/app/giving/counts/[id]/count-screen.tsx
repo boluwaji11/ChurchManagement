@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Download, Lock, LockOpen, Printer, Trash2 } from "lucide-react";
 import {
-  Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Spinner, Textarea,
+  Banner, Button, Dialog, DialogContent, DialogFooter, IconButton, Spinner,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { money } from "@/lib/money";
@@ -39,9 +39,7 @@ export function CountScreen({
     id: string;
     name: string;
     receivedOn: string;
-    expectedCents: number;
     enteredCents: number;
-    varianceNote: string | null;
     closed: boolean;
   };
   lines: CountLine[];
@@ -51,7 +49,6 @@ export function CountScreen({
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
   const [asking, setAsking] = React.useState(false);
-  const [why, setWhy] = React.useState("");
   const [removing, setRemoving] = React.useState<string | null>(null);
   /* Which action is running, so the control pressed is the one that spins. */
   const [doing, setDoing] = React.useState<string>();
@@ -69,44 +66,19 @@ export function CountScreen({
     });
   };
 
-  const difference = count.enteredCents - count.expectedCents;
-
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
 
       <div className="flex flex-wrap items-end justify-between gap-4 rounded-[14px] border border-line bg-surface p-5">
-        <div className="flex flex-wrap gap-8">
-          <span className="flex flex-col">
-            <span className="text-[13px] font-medium text-fg-muted">
-              {t("giving.count.expected")}
-            </span>
-            <span data-numeric className="font-display text-[32px] leading-[38px] text-fg">
-              {money(count.expectedCents)}
-            </span>
+        <span className="flex flex-col">
+          <span className="text-[13px] font-medium text-fg-muted">
+            {t("giving.count.lines")}
           </span>
-
-          <span className="flex flex-col">
-            <span className="text-[13px] font-medium text-fg-muted">
-              {t("giving.count.lines")}
-            </span>
-            <span data-numeric className="font-display text-[32px] leading-[38px] text-fg">
-              {money(count.enteredCents)}
-            </span>
-            <span
-              className="mt-1 text-[13px] font-medium"
-              style={{
-                color: difference === 0 ? "var(--hue-fern-key)" : "var(--hue-amber-key)",
-              }}
-            >
-              {difference === 0
-                ? t("giving.count.balanced")
-                : difference > 0
-                  ? t("giving.count.over", { amount: money(difference) })
-                  : t("giving.count.under", { amount: money(-difference) })}
-            </span>
+          <span data-numeric className="font-display text-[32px] leading-[38px] text-fg">
+            {money(count.enteredCents)}
           </span>
-        </div>
+        </span>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* R13.22, R13.23. What the treasurer takes to the bank, and what
@@ -149,10 +121,6 @@ export function CountScreen({
         </div>
       </div>
 
-      {count.varianceNote ? (
-        <Banner tone="info" title={t("giving.count.variance")}>{count.varianceNote}</Banner>
-      ) : null}
-
       {lines.length === 0 ? (
         <p className="text-fg-muted">{t("giving.count.empty")}</p>
       ) : (
@@ -194,24 +162,25 @@ export function CountScreen({
         </ul>
       )}
 
-      {/* R13.11. Closing asks for the note when the two numbers differ. */}
+      {/* R13.11. Finishing makes it the record of a deposit, so it asks. */}
       <Dialog open={asking} onOpenChange={(on) => (on ? null : setAsking(false))}>
-        <DialogContent title={t("giving.count.closedTitle", { name: count.name })} closeLabel={t("common.close")}>
-          {difference === 0 ? null : (
-            <Field label={t("giving.count.variance")} required>
-              <Textarea rows={3} value={why} onChange={(e) => setWhy(e.target.value)} autoFocus />
-            </Field>
-          )}
+        <DialogContent
+          title={t("giving.count.closedTitle", { name: count.name })}
+          closeLabel={t("common.close")}
+        >
+          <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
+            {t("giving.count.closedBody")}
+          </p>
 
           <DialogFooter>
             <Button variant="ghost" data-dismiss onClick={() => setAsking(false)}>
               {t("action.cancel")}
             </Button>
             <Button
-              disabled={pending || (difference !== 0 && why.trim().length === 0)}
+              disabled={pending}
               onClick={() => {
                 setAsking(false);
-                run("close", () => finishCount(count.id, why.trim() || null, church));
+                run("close", () => finishCount(count.id, church));
               }}
             >
               {t("giving.count.close")}

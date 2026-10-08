@@ -51,12 +51,12 @@ export interface Gift {
 
 export interface Batch {
   id: string;
+  /** R13.10. The name in its address. */
+  slug: string;
   name: string;
   receivedOn: string;
-  expectedCents: number;
   counterOneId: string | null;
   counterTwoId: string | null;
-  varianceNote: string | null;
   closed: boolean;
   /** What has actually been entered against it. */
   enteredCents: number;
@@ -77,35 +77,64 @@ const day = (value: string | undefined | null): string => {
   return value;
 };
 
-/** R13.10. Opening a count. */
+/**
+ * R13.10. Opening a counting session, on the first thing counted.
+ *
+ * A session is named, dated, and carries what was found: the fund it was
+ * given to and how much of it there was. More lines go on afterwards, one a
+ * fund, which is how a church answers what went to the building.
+ */
 export async function openBatch(
   db: Tx,
   actor: WriteActor,
   input: {
     name: string;
     receivedOn: string;
-    expectedCents: number;
     counterOneId?: string | null;
     counterTwoId?: string | null;
   },
-): Promise<{ id: string }> {
+): Promise<{ id: string; slug: string }> {
   if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
   const name = input.name?.trim();
   if (!name) throw new InvalidInputError("gift.error.batchName");
+  const receivedOn = day(input.receivedOn);
+
+  /*
+   * The name in the address, from what the church called it and the day it
+   * counted. Two sessions named the same thing on the same day is a church
+   * counting twice, so the second takes a number.
+   */
+  const base = slugOf(`${name.slice(0, 60)}-${receivedOn}`);
+  const taken = await db
+    .select({ slug: giftBatches.slug })
+    .from(giftBatches)
+    .where(sql`${giftBatches.slug} = ${base} or ${giftBatches.slug} like ${`${base}-%`}`);
+  const used = new Set(taken.map((one) => one.slug));
+  let slug = base;
+  for (let at = 2; used.has(slug); at += 1) slug = `${base}-${at}`;
 
   const [row] = await db
     .insert(giftBatches)
     .values({
       tenantId: actor.tenantId,
+      slug,
       name: name.slice(0, 80),
-      receivedOn: day(input.receivedOn),
-      expectedCents: money(input.expectedCents),
+      receivedOn,
       counterOneId: input.counterOneId || null,
       counterTwoId: input.counterTwoId || null,
     })
     .returning({ id: giftBatches.id });
 
-  return { id: row!.id };
+  return { id: row!.id, slug };
+}
+
+/** A name as it reads in an address. */
+function slugOf(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    || "session";
 }
 
 /** R13.10, R13.11. Changing a count that is still open. */
@@ -116,7 +145,6 @@ export async function updateBatch(
   input: {
     name?: string;
     receivedOn?: string;
-    expectedCents?: number;
     counterOneId?: string | null;
     counterTwoId?: string | null;
   },
@@ -135,7 +163,6 @@ export async function updateBatch(
     .set({
       ...(input.name === undefined ? {} : { name: input.name.trim().slice(0, 80) }),
       ...(input.receivedOn === undefined ? {} : { receivedOn: day(input.receivedOn) }),
-      ...(input.expectedCents === undefined ? {} : { expectedCents: money(input.expectedCents) }),
       ...(input.counterOneId === undefined ? {} : { counterOneId: input.counterOneId || null }),
       ...(input.counterTwoId === undefined ? {} : { counterTwoId: input.counterTwoId || null }),
       updatedAt: new Date(),
@@ -143,58 +170,27 @@ export async function updateBatch(
     .where(eq(giftBatches.id, id));
 }
 
-/** What has been entered against a batch so far. */
-async function entered(db: Tx, batchId: string): Promise<{ cents: number; lines: number }> {
-  const [row] = await db
-    .select({
-      cents: sql<number>`coalesce(sum(${gifts.amountCents}), 0)::int`,
-      lines: sql<number>`count(*)::int`,
-    })
-    .from(gifts)
-    .where(eq(gifts.batchId, batchId));
-  return { cents: row?.cents ?? 0, lines: row?.lines ?? 0 };
-}
-
 /**
- * R13.11. Closing a count.
+ * R13.11. Finishing a counting session.
  *
- * Two counters, and either the entered total matches what was declared or
- * somebody says in writing why it does not. A batch that is closed is the
- * record of a deposit, so it stops taking lines.
+ * A session that is finished is the record of a deposit, so it stops taking
+ * lines. Reopening is there for the hour afterwards when somebody finds an
+ * envelope under the table.
  */
-export async function closeBatch(
-  db: Tx,
-  actor: WriteActor,
-  id: string,
-  varianceNote?: string | null,
-): Promise<void> {
+export async function closeBatch(db: Tx, actor: WriteActor, id: string): Promise<void> {
   if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
 
   const [batch] = await db
-    .select({
-      expectedCents: giftBatches.expectedCents,
-      counterOneId: giftBatches.counterOneId,
-      counterTwoId: giftBatches.counterTwoId,
-      closedAt: giftBatches.closedAt,
-    })
+    .select({ closedAt: giftBatches.closedAt })
     .from(giftBatches)
     .where(eq(giftBatches.id, id))
     .limit(1);
   if (!batch) throw new InvalidInputError("gift.error.batchMissing");
   if (batch.closedAt) throw new InvalidInputError("gift.error.batchClosed");
-  if (!batch.counterOneId || !batch.counterTwoId) {
-    throw new InvalidInputError("gift.error.counters");
-  }
-
-  const totals = await entered(db, id);
-  const note = varianceNote?.trim() || null;
-  if (totals.cents !== batch.expectedCents && !note) {
-    throw new InvalidInputError("gift.error.variance");
-  }
 
   await db
     .update(giftBatches)
-    .set({ closedAt: new Date(), varianceNote: note, updatedAt: new Date() })
+    .set({ closedAt: new Date(), updatedAt: new Date() })
     .where(eq(giftBatches.id, id));
 }
 
@@ -216,10 +212,9 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
       id: giftBatches.id,
       name: giftBatches.name,
       receivedOn: sql<string>`${giftBatches.receivedOn}::text`,
-      expectedCents: giftBatches.expectedCents,
+      slug: giftBatches.slug,
       counterOneId: giftBatches.counterOneId,
       counterTwoId: giftBatches.counterTwoId,
-      varianceNote: giftBatches.varianceNote,
       closedAt: giftBatches.closedAt,
       enteredCents: sql<number>`coalesce(sum(${gifts.amountCents}), 0)::int`,
       lines: sql<number>`count(${gifts.id})::int`,
@@ -234,10 +229,9 @@ export async function listBatches(db: Tx, limit = 30): Promise<Batch[]> {
     id: row.id,
     name: row.name,
     receivedOn: row.receivedOn,
-    expectedCents: row.expectedCents,
+    slug: row.slug ?? row.id,
     counterOneId: row.counterOneId,
     counterTwoId: row.counterTwoId,
-    varianceNote: row.varianceNote,
     closed: row.closedAt !== null,
     enteredCents: row.enteredCents,
     lines: row.lines,
