@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@connectapp/ui";
+import { ChevronDown } from "lucide-react";
+import { cn, Sheet, SheetContent, SheetTrigger } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 export interface SettingsLink {
@@ -58,12 +59,9 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
   const only = groups.length === 1 ? groups[0]! : null;
   if (only) return <Strip items={only.items} church={church} pathname={pathname} />;
 
-  /* Every screen in every section, which is what a phone shows. */
-  const all = groups.flatMap((group) => group.items);
-
   return (
     <>
-      <Strip items={all} church={church} pathname={pathname} className="lg:hidden" />
+      <Pocket groups={groups} church={church} pathname={pathname} />
 
       <nav
         aria-label={t("settings.sections")}
@@ -150,12 +148,89 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
 }
 
 /**
+ * R24.6. Every settings screen on a phone, in one panel.
+ *
+ * Twenty-five screens were laid along a row that scrolled sideways, so
+ * reaching Funds meant dragging the bar past Teams, Households, Tags, Custom
+ * fields and six more, with no way to tell how much was left. A phone cannot
+ * hover, which is what the bar below opens its sections with, so the row was
+ * the only thing a phone had.
+ *
+ * One control instead, saying where you are, opening the whole menu with its
+ * headings intact. Everything is on screen at once and nothing is dragged
+ * past anything.
+ */
+function Pocket({
+  groups,
+  church,
+  pathname,
+}: {
+  groups: SettingsGroup[];
+  church: string;
+  pathname: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  const here = groups
+    .map((group) => ({ group, item: group.items.find((one) => one.href === pathname) }))
+    .find((one) => one.item);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <div className="sticky top-[var(--d-topbar)] z-20 -mt-1 border-b border-line bg-canvas py-2 lg:hidden">
+        <SheetTrigger asChild>
+          <button
+            type="button"
+            className="flex min-h-[var(--d-tap)] w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-line bg-surface px-4 text-left hover:bg-sunken"
+          >
+            <span className="flex min-w-0 flex-col leading-5">
+              <span className="truncate text-[length:var(--d-text-label)] font-semibold text-fg">
+                {here?.item?.label ?? t("settings.sections")}
+              </span>
+              {here ? (
+                <span className="truncate text-caption text-fg-subtle">{here.group.title}</span>
+              ) : null}
+            </span>
+            <ChevronDown className="size-4 shrink-0 text-fg-muted" aria-hidden />
+          </button>
+        </SheetTrigger>
+      </div>
+
+      <SheetContent title={t("settings.sections")} closeLabel={t("common.close")}>
+        <nav aria-label={t("settings.sections")} className="flex flex-col gap-5">
+          {groups.map((group) => (
+            <div key={group.title} className="flex flex-col gap-1">
+              <span className="px-2.5 text-caption font-semibold uppercase tracking-[0.04em] text-fg-subtle">
+                {group.title}
+              </span>
+              {group.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={`${item.href}?church=${church}`}
+                  aria-current={item.href === pathname ? "page" : undefined}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex min-h-[var(--d-tap)] items-center rounded-md px-2.5 no-underline",
+                    "text-[length:var(--d-text-body)] hover:bg-sunken",
+                    item.href === pathname ? "bg-sunken font-semibold text-fg" : "text-fg-muted",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          ))}
+        </nav>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/**
  * R24.6. Every settings screen as one row, scrolling sideways.
  *
- * What a phone gets, and what a member gets at any width. The grouped bar
- * below opens its lists under the pointer, and a phone has no pointer, so on
- * one the screens inside a section could not be reached at all. Here they are
- * all on the row.
+ * What a member gets, whose menu is one section of three names. A church's
+ * menu is twenty-five and gets the panel above instead.
  */
 function Strip({
   items,
