@@ -2,11 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { FilePlus2, Plus } from "lucide-react";
-import {
-  Button, Sheet, SheetTrigger, SheetContent, LIFT,
-} from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { Plus } from "lucide-react";
+import { Button, Sheet, SheetTrigger, SheetContent } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
+import { LibraryPicker } from "@/components/library-picker";
 import { FORM_TEMPLATES } from "@connectapp/db/rules";
 import { newForm } from "./actions";
 
@@ -41,37 +40,21 @@ export function NewFormButton({ church }: { church: string }) {
       </SheetTrigger>
 
       <SheetContent title={t("form.start")} closeLabel={t("common.close")} width="560px">
-        <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr))]">
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => start()}
-            className={`flex cursor-pointer items-center gap-2.5 rounded-xl border border-dashed border-line-strong bg-surface px-4 py-3.5 text-left ${LIFT}`}
-          >
-            <FilePlus2 className="size-4 shrink-0 text-fg-subtle" aria-hidden />
-            <span className="font-medium text-fg">{t("form.start.blank")}</span>
-          </button>
-
-          {FORM_TEMPLATES.map((one) => (
-            <button
-              key={one.key}
-              type="button"
-              disabled={pending}
-              onClick={() => start(one.key)}
-              className={`flex cursor-pointer flex-col gap-1.5 overflow-hidden rounded-xl border border-line bg-surface px-4 py-3.5 text-left ${LIFT}`}
-            >
-              <span
-                aria-hidden
-                className="-mx-4 -mt-3.5 mb-0.5 h-1.5"
-                style={{ background: `var(--hue-${one.hue}-500)` }}
-              />
-              <span className="font-medium text-fg">{t(one.name)}</span>
-              <span className="text-[12px] text-fg-subtle tabular-nums">
-                {one.questions.length}
-              </span>
-            </button>
-          ))}
-        </div>
+        {/* R4.1, R4.8. The same shape as tags, group types and the rest:
+            writing your own leads, and the six a church keeps anyway hang
+            off it. They were a grid of tiles, which read as six equal
+            choices with the blank form hidden among them. */}
+        <LibraryPicker
+          ownLabel={t("form.ownForm")}
+          items={FORM_TEMPLATES.map((one) => ({
+            key: one.key,
+            label: t(one.name),
+            detail: plural("form.questions", one.questions.length),
+          }))}
+          onOwn={() => start()}
+          onPick={(item) => start(item.key)}
+          busy={pending}
+        />
       </SheetContent>
     </Sheet>
   );

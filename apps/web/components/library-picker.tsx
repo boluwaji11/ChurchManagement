@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ChevronRight, Plus } from "lucide-react";
+import { Spinner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 export interface LibraryItem {
@@ -28,6 +29,7 @@ export function LibraryPicker({
   onOwn,
   onPick,
   limit = 8,
+  busy = false,
 }: {
   ownLabel: string;
   items: LibraryItem[];
@@ -35,20 +37,45 @@ export function LibraryPicker({
   onPick: (item: LibraryItem) => void;
   /** How many are offered before the list says there are more. */
   limit?: number;
+  /**
+   * R24.6. Whether picking one is still being acted on.
+   *
+   * Most callers fill a form in the same panel and land instantly. One of
+   * them writes a record and opens it, which takes a moment, and a list that
+   * looks untouched for two seconds gets pressed again.
+   */
+  busy?: boolean;
 }) {
   const [all, setAll] = React.useState(false);
+  const [chose, setChose] = React.useState<string>();
   const shown = all ? items : items.slice(0, limit);
+
+  React.useEffect(() => {
+    if (!busy) setChose(undefined);
+  }, [busy]);
+
+  /** The mark at the end of a row: a chevron, or the wait on the one pressed. */
+  const mark = (key: string) =>
+    chose === key ? (
+      <Spinner className="shrink-0" />
+    ) : (
+      <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+    );
 
   return (
     <div className="flex flex-col">
       <button
         type="button"
-        onClick={onOwn}
-        className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-sunken"
+        disabled={busy}
+        onClick={() => {
+          setChose("");
+          onOwn();
+        }}
+        className="flex min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-sunken disabled:cursor-default"
       >
         <Plus className="size-[18px] shrink-0 text-primary" aria-hidden />
         <span className="min-w-0 flex-1 font-semibold text-primary">{ownLabel}</span>
-        <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+        {mark("")}
       </button>
 
       {items.length === 0 ? null : (
@@ -65,8 +92,12 @@ export function LibraryPicker({
 
                 <button
                   type="button"
-                  onClick={() => onPick(item)}
-                  className="mb-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken"
+                  disabled={busy}
+                  onClick={() => {
+                    setChose(item.key);
+                    onPick(item);
+                  }}
+                  className="mb-1 flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-sunken disabled:cursor-default"
                 >
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="font-medium text-fg">{item.label}</span>
@@ -74,7 +105,7 @@ export function LibraryPicker({
                       <span className="truncate text-[12px] text-fg-subtle">{item.detail}</span>
                     ) : null}
                   </span>
-                  <ChevronRight className="size-4 shrink-0 text-fg-subtle" aria-hidden />
+                  {mark(item.key)}
                 </button>
               </li>
             ))}
