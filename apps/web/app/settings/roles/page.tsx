@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
 import { canManageChurch, listRoles, withTenant, PERMISSIONS, PERMISSION_GROUPS } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { Matrix, NewRole } from "./matrix";
 import { t } from "@connectapp/i18n";
@@ -26,7 +26,9 @@ export default async function RolesPage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageChurch(session)) redirect(`/settings/profile?church=${session.tenantSlug}`);
+  if (!canManageChurch(session)) {
+    return <Denied role={session.role} action="editRoles" church={session.tenantSlug} />;
+  }
 
   // R1.6. The groups the screen reads them in, flattened for the client.
   const groups = PERMISSION_GROUPS.map((group) => ({

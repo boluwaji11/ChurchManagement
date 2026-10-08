@@ -4,7 +4,7 @@ import * as React from "react";
 import { Search, Check, Undo2, UserCheck } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Card, Checkbox, CodeDisplay, Field, HueDot, Input,
-  Separator,
+  Separator, Spinner,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
   type Hue,
 } from "@connectapp/ui";
@@ -361,6 +361,7 @@ export function Desk({
                   onPick={(on) => setPicked((p) => ({ ...p, [person.id]: on }))}
                   onBag={(on) => setBags((b) => ({ ...b, [person.id]: on }))}
                   onUndo={() => take(person.id)}
+                  pending={pending}
                   offline={{
                     online: station.state.online,
                     pickupFor: station.pickupFor,
@@ -420,6 +421,7 @@ function Member({
   onPick,
   onBag,
   onUndo,
+  pending,
   offline,
 }: {
   church: string;
@@ -435,6 +437,8 @@ function Member({
   onPick: (on: boolean) => void;
   onBag: (on: boolean) => void;
   onUndo: () => void;
+  /** R8.6. The desk is already writing something. */
+  pending: boolean;
   offline: OfflineCheckout;
 }) {
   const room = rooms.find((r) => r.id === roomId);
@@ -468,9 +472,10 @@ function Member({
           <IconButton
             label={t("checkin.undo")}
             variant="ghost"
+            disabled={pending}
             onClick={onUndo}
           >
-            <Undo2 />
+            {pending ? <Spinner label={t("checkin.undo")} /> : <Undo2 />}
           </IconButton>
         </div>
       </div>

@@ -44,6 +44,9 @@ export function Roster({
   );
   const [query, setQuery] = React.useState("");
   const [error, setError] = React.useState<string>();
+  const [bulk, startBulk] = React.useTransition();
+  // Which of the two was pressed, so the spinner lands on that one.
+  const [bulkOn, setBulkOn] = React.useState<boolean | null>(null);
 
   // Only the members still marked count, so unticking somebody entered by
   // mistake takes them out of the number as well as off the list.
@@ -109,7 +112,10 @@ export function Roster({
     data.set("present", next ? "1" : "0");
     for (const id of ids) data.append("memberId", id);
 
-    void markManyPresent(data).then((result) => {
+    setBulkOn(next);
+    startBulk(async () => {
+      const result = await markManyPresent(data);
+      setBulkOn(null);
       if (!result.error) return;
       setError(result.error);
       setPresentIds(before);
@@ -139,8 +145,22 @@ export function Roster({
 
       {canEdit && shown.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => markShown(true)}>{t("roster.markAll")}</Button>
-          <Button variant="ghost" onClick={() => markShown(false)}>{t("roster.clearAll")}</Button>
+          <Button
+            variant="secondary"
+            disabled={bulk}
+            loading={bulk && bulkOn === true}
+            onClick={() => markShown(true)}
+          >
+            {t("roster.markAll")}
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={bulk}
+            loading={bulk && bulkOn === false}
+            onClick={() => markShown(false)}
+          >
+            {t("roster.clearAll")}
+          </Button>
         </div>
       ) : null}
 

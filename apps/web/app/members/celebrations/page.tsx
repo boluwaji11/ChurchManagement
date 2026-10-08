@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft, ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import {
   withTenant, listCelebrations, monthWindow, weekWindow, getChurch, canEditPeople,
@@ -8,6 +7,7 @@ import {
 import { HueTag } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
@@ -66,7 +66,11 @@ export default async function CelebrationsPage({
   const session = await requireSession(params.church);
 
   if (!canEditPeople(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("celebrations.title")}>
+        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
+      </AppShell>
+    );
   }
 
   const view: View = params.view === "week" ? "week" : "month";

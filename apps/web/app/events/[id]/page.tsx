@@ -1,9 +1,10 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import {
   withTenant, getEvent, getForm, listRegistrations, canManageEvents,
 } from "@connectapp/db";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EventView } from "./view";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -39,7 +40,13 @@ export default async function EventPage({
   const { id } = await params;
   const { church, tab } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageEvents(session)) redirect(`/?church=${session.tenantSlug}`);
+  if (!canManageEvents(session)) {
+    return (
+      <AppShell session={session} title={t("nav.events")}>
+        <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />
+      </AppShell>
+    );
+  }
 
   const ctx = {
     tenantId: session.tenantId,

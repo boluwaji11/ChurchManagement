@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
 import { canArchivePeople } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import type { MessageKey } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { DownloadRow } from "./download";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -48,7 +48,9 @@ const ROWS: Array<{ name: MessageKey; what: MessageKey; file: string; only?: str
  */
 export default async function ExportPage() {
   const session = await requireSession();
-  if (!canArchivePeople(session)) redirect(`/settings/profile?church=${session.tenantSlug}`);
+  if (!canArchivePeople(session)) {
+    return <Denied role={session.role} action="exportEverything" church={session.tenantSlug} />;
+  }
 
   return (
     <>

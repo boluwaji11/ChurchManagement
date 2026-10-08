@@ -10,6 +10,7 @@ import { t } from "@connectapp/i18n";
 import { PageMeta } from "@/components/section";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { dayAndMonth, readableTime } from "@/lib/dates";
 import { SchedulePlan } from "./plan";
@@ -48,7 +49,11 @@ export default async function SchedulePlanPage({
   const session = await requireSession(church);
 
   if (!canLeadTeams(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("plan.title")}>
+        <Denied role={session.role} action="schedule" church={session.tenantSlug} />
+      </AppShell>
+    );
   }
 
   const canManage = canManageTeams(session);

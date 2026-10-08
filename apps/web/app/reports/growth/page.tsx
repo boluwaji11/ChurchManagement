@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import {
   withTenant, getChurch, canEditPeople, canReadIncidents,
   growthByMonth, growthSummary,
@@ -6,6 +5,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { ReportFrame, backBy, windowOf } from "../frame";
 import { Figure } from "../figure";
@@ -43,7 +43,11 @@ export default async function GrowthReport({
   const { church, days } = await searchParams;
   const session = await requireSession(church);
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("reports.title")}>
+        <Denied role={session.role} action="buildReports" church={session.tenantSlug} />
+      </AppShell>
+    );
   }
 
   const window = windowOf(days);

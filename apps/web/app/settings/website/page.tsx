@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { withTenant, getChurch, canManageChurch, churchStanding } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { OnYourSite } from "../church/on-your-site";
 import { t } from "@connectapp/i18n";
@@ -34,7 +34,9 @@ export default async function WebsitePage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageChurch(session)) redirect(`/settings/profile?church=${session.tenantSlug}`);
+  if (!canManageChurch(session)) {
+    return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
+  }
 
   const { profile, standing } = await withTenant(
     { tenantId: session.tenantId, role: session.role },

@@ -31,13 +31,15 @@ export function LabelLayoutForm({
 }) {
   const [layout, setLayout] = React.useState(initial);
   const [error, setError] = React.useState<string>();
-  const [, startTransition] = React.useTransition();
+  const [saving, startTransition] = React.useTransition();
+  const [kept, setKept] = React.useState(false);
 
   const change = (next: LabelLayout) => {
     setLayout(next);
     startTransition(async () => {
       const result = await saveLayout(next, church);
       setError(result.error);
+      setKept(!result.error);
     });
   };
 
@@ -46,6 +48,14 @@ export function LabelLayoutForm({
   return (
     <div className="flex flex-col gap-4">
       {error ? <Banner tone="danger" title={t("labels.failed")}>{error}</Banner> : null}
+
+      {/* It saves itself on every press, so it says where that has got to
+          rather than leaving the station guessing. */}
+      <div className="flex justify-end">
+        <span role="status" className="text-caption text-fg-subtle">
+          {saving ? t("action.saving") : kept ? t("labels.saved") : ""}
+        </span>
+      </div>
 
       <div className="flex flex-wrap items-start gap-5">
         <section className="flex-[1_1_300px] rounded-lg border border-line bg-surface px-5 py-2">
@@ -57,6 +67,7 @@ export function LabelLayoutForm({
               <span className="flex-1 font-medium text-fg">{t(row.label as never)}</span>
               <Switch
                 checked={layout[row.key]}
+                disabled={saving}
                 onCheckedChange={(on) => change({ ...layout, [row.key]: on === true })}
               />
             </label>
@@ -68,7 +79,7 @@ export function LabelLayoutForm({
               value={layout.size}
               onValueChange={(size) => change({ ...layout, size: size as LabelSize })}
             >
-              <SelectTrigger className="min-h-9 w-auto text-[13px]">
+              <SelectTrigger disabled={saving} className="min-h-9 w-auto text-[13px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

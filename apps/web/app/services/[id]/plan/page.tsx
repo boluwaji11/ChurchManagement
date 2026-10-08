@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
@@ -7,6 +7,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { AppShell } from "@/components/app-shell";
 import { longDate, readableTime, shortDate } from "@/lib/dates";
 import { kindOptions } from "@/lib/kinds";
@@ -46,7 +47,11 @@ export default async function PlanPage({
   const session = await requireSession(church);
 
   if (!canManageServices(session)) {
-    redirect(`/services/${id}?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("order.title")}>
+        <Denied role={session.role} action="manageServices" church={session.tenantSlug} back={{ href: `/services?church=${session.tenantSlug}`, label: t("order.allServices") }} />
+      </AppShell>
+    );
   }
 
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };

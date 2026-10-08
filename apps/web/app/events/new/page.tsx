@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { withTenant, getChurch, listForms, canManageEvents } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { EventEditor } from "../event-editor";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -29,7 +29,13 @@ export default async function NewEventPage({
 }) {
   const { church } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageEvents(session)) redirect(`/?church=${session.tenantSlug}`);
+  if (!canManageEvents(session)) {
+    return (
+      <AppShell session={session} title={t("nav.events")}>
+        <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />
+      </AppShell>
+    );
+  }
 
   const forms = await withTenant(
     {

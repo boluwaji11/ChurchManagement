@@ -1,10 +1,11 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import {
   withTenant, getChurch, getEvent, getForm, canManageEvents,
   type PublicEvent,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EventRegisterPage } from "@/components/event-register-page";
 import { registerFromPreview } from "./actions";
@@ -39,7 +40,13 @@ export default async function PreviewRegisterPage({
   const { id } = await params;
   const { church } = await searchParams;
   const session = await requireSession(church);
-  if (!canManageEvents(session)) redirect(`/?church=${session.tenantSlug}`);
+  if (!canManageEvents(session)) {
+    return (
+      <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
+        <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />
+      </main>
+    );
+  }
 
   const ctx = {
     tenantId: session.tenantId,

@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { GripVertical } from "lucide-react";
 import {
   withTenant, dashboard, attendanceByService, openFollowUps, setupProgress,
@@ -9,6 +8,7 @@ import { upcomingMeetings } from "@connectapp/db/rules";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { shellData } from "@/lib/shell-data";
 import { churchNow, hasHappened } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
@@ -89,7 +89,11 @@ export default async function DashboardPage({
 
   // Somebody who is not staff has their own screen, and this is not it.
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("dashboard.title")}>
+        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
+      </AppShell>
+    );
   }
 
   const ctx = {

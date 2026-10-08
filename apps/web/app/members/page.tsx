@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import {
   withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents,
@@ -8,6 +7,7 @@ import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Flash } from "@/components/said";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";
 import { photoUrls } from "@/lib/photos";
@@ -44,7 +44,11 @@ export default async function PeoplePage({
    * anybody for them, so that is where they go.
    */
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("members.title")}>
+        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
+      </AppShell>
+    );
   }
 
   const viewer = { role: session.role, userId: session.userId };

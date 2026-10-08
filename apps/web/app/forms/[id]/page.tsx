@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getForm, listSubmissions, countSubmissions, listCustomFields,
@@ -8,6 +8,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { supabaseServer } from "@/lib/supabase/server";
 import { longDate } from "@/lib/dates";
 import { Builder } from "./builder";
@@ -45,7 +46,13 @@ export default async function FormPage({
   const { church, view, page } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageChurch(session)) redirect(`/?church=${session.tenantSlug}`);
+  if (!canManageChurch(session)) {
+    return (
+      <AppShell session={session} title={t("form.title")}>
+        <Denied role={session.role} action="manageForms" church={session.tenantSlug} />
+      </AppShell>
+    );
+  }
 
   const reading = view === "responses";
   const at = Math.max(1, Number(page) || 1);

@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import {
   withTenant, getChurch, givingTotals, givingByMonth, givingByFund,
   lapsedGivers, firstTimeGivers, canReadGivingAmounts,
@@ -6,6 +5,7 @@ import {
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
@@ -41,7 +41,13 @@ export default async function GivingReport({
 }) {
   const { church, days } = await searchParams;
   const session = await requireSession(church);
-  if (!canReadGivingAmounts(session)) redirect(`/reports?church=${session.tenantSlug}`);
+  if (!canReadGivingAmounts(session)) {
+    return (
+      <AppShell session={session} title={t("reports.title")}>
+        <Denied role={session.role} action="manageGiving" church={session.tenantSlug} back={{ href: `/reports?church=${session.tenantSlug}`, label: t("reports.back") }} />
+      </AppShell>
+    );
+  }
 
   const window = windowOf(days);
   const ctx = {

@@ -1,6 +1,5 @@
 import * as React from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   withTenant, listTeams, getTeam, getChurch, answerCounts, listOccurrences,
@@ -10,6 +9,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { photoUrls } from "@/lib/photos";
 import { shortDate, readableTime } from "@/lib/dates";
@@ -75,7 +75,11 @@ export default async function ServingPage({
   const session = await requireSession(params.church);
 
   if (!canLeadTeams(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("serving.title")}>
+        <Denied role={session.role} action="schedule" church={session.tenantSlug} />
+      </AppShell>
+    );
   }
 
   const canManage = canManageTeams(session);

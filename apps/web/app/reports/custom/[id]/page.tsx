@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil } from "lucide-react";
 import {
   withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents,
@@ -8,6 +8,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { Answer } from "../../answer";
 import { DownloadMenu } from "./download";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -49,7 +50,11 @@ export default async function CustomReportPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
   if (!canEditPeople(session) && !canReadIncidents(session)) {
-    redirect(`/home?church=${session.tenantSlug}`);
+    return (
+      <AppShell session={session} title={t("reports.title")}>
+        <Denied role={session.role} action="buildReports" church={session.tenantSlug} />
+      </AppShell>
+    );
   }
 
   const found = await withTenant(

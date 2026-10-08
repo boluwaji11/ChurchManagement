@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { withTenant, listForms, countArchivedForms, canManageChurch } from "@connectapp/db";
 import { LIFT } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { Denied } from "@/components/denied";
 import { Empty } from "@/components/empty";
 import { NewFormButton } from "./new-form";
 import { FormSearch } from "./form-search";
@@ -41,7 +41,13 @@ export default async function FormsPage({
   const { church, archived } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canManageChurch(session)) redirect(`/?church=${session.tenantSlug}`);
+  if (!canManageChurch(session)) {
+    return (
+      <AppShell session={session} title={t("form.title")}>
+        <Denied role={session.role} action="manageForms" church={session.tenantSlug} />
+      </AppShell>
+    );
+  }
 
   const putAway = archived === "1";
 

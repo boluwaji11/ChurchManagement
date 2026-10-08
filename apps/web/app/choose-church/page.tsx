@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Church, Plus } from "lucide-react";
-import { membershipsForUser, canEditPeople, canReadIncidents } from "@connectapp/db";
+import { membershipsForUser, canEditPeople, canReadIncidents, resolveTenantBySlug } from "@connectapp/db";
 import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignedInAs } from "@/components/signed-in-as";
@@ -39,6 +39,13 @@ export default async function ChooseChurch({
   const memberships = await membershipsForUser(user.id);
   const notice = isReason(reason) ? reason : undefined;
 
+  /*
+   * R1.4. The church by the name it calls itself. The address carries its
+   * slug, which is how the product writes it down and not how anybody says
+   * it. A church with no name to resolve leaves the sentence general.
+   */
+  const asking = asked ? (await resolveTenantBySlug(asked))?.name : undefined;
+
   return (
     <AuthShell
       title={memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
@@ -54,8 +61,8 @@ export default async function ChooseChurch({
         <Banner
           tone={notice === "denied" ? "warning" : "info"}
           title={
-            notice === "denied" && asked
-              ? t("chooseChurch.denied.named", { church: asked })
+            notice === "denied" && asking
+              ? t("chooseChurch.denied.named", { church: asking })
               : t(`chooseChurch.${notice}.title`)
           }
         >

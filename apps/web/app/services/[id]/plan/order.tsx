@@ -8,7 +8,7 @@ import {
   Copy, LayoutList,
 } from "lucide-react";
 import {
-  Banner, Button, Field, IconButton, Input, Separator, Textarea, cn,
+  Banner, Button, Field, IconButton, Input, Separator, Spinner, Textarea, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate, Tooltip
@@ -112,6 +112,12 @@ export function Order({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
+  /* Which row's action is running, so only the control pressed spins. */
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
 
   const start = fromTime(serviceStartsAt);
   let at = start;
@@ -150,10 +156,11 @@ export function Order({
 
     order.splice(target.after ? at + 1 : at, 0, id);
     if (order.every((one, i) => one === items[i]?.id)) return;
-    run(() => reorder(planId, order, church));
+    run("reorder", () => reorder(planId, order, church));
   };
 
-  const run = (work: () => Promise<{ error?: string }>) => {
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
@@ -295,7 +302,8 @@ export function Order({
                             key={file.id}
                             file={file}
                             pending={pending}
-                            onRemove={() => run(() => dropFile(file.id, church))}
+                            removing={doing === `file:${file.id}`}
+                            onRemove={() => run(`file:${file.id}`, () => dropFile(file.id, church))}
                           />
                         ))}
 
@@ -309,10 +317,14 @@ export function Order({
                             <IconButton
                               label={t("order.note.remove")}
                               disabled={pending}
-                              onClick={() => run(() => dropNote(note.id, church))}
+                              onClick={() => run(`note:${note.id}`, () => dropNote(note.id, church))}
                               className="size-6"
                             >
-                              <X />
+                              {doing === `note:${note.id}` ? (
+                                <Spinner label={t("order.note.remove")} />
+                              ) : (
+                                <X />
+                              )}
                             </IconButton>
                           </span>
                           </Tooltip>
@@ -333,9 +345,13 @@ export function Order({
                       <IconButton
                         label={t("order.remove")}
                         disabled={pending}
-                        onClick={() => run(() => dropItem(item.id, church))}
+                        onClick={() => run(`item:${item.id}`, () => dropItem(item.id, church))}
                       >
-                        <Trash2 />
+                        {doing === `item:${item.id}` ? (
+                          <Spinner label={t("order.remove")} />
+                        ) : (
+                          <Trash2 />
+                        )}
                       </IconButton>
                     </span>
                   </div>
@@ -475,7 +491,7 @@ function ItemDialog({
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
+              <Button type="button" loading={pending} onClick={submit}>{t("action.save")}</Button>
           </div>
         </div>
       </SheetContent>
@@ -535,7 +551,7 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               {t("action.cancel")}
             </Button>
-              <Button type="button" disabled={pending} onClick={submit}>{t("action.save")}</Button>
+              <Button type="button" loading={pending} onClick={submit}>{t("action.save")}</Button>
           </div>
         </div>
       </DialogContent>
@@ -547,10 +563,12 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
 function Attachment({
   file,
   pending,
+  removing,
   onRemove,
 }: {
   file: OrderFile;
   pending: boolean;
+  removing: boolean;
   onRemove: () => void;
 }) {
   const [opening, setOpening] = React.useState(false);
@@ -585,7 +603,11 @@ function Attachment({
         disabled={opening}
         className="flex min-w-0 items-center gap-1.5 text-[12px] text-fg-muted underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
       >
-        <Paperclip className="size-3.5 shrink-0" aria-hidden />
+        {opening ? (
+          <Spinner className="size-3.5 shrink-0 [&>span]:size-3.5" label={t("order.file.open")} />
+        ) : (
+          <Paperclip className="size-3.5 shrink-0" aria-hidden />
+        )}
         <span className="truncate">{name}</span>
       </button>
       </Tooltip>
@@ -595,7 +617,7 @@ function Attachment({
         onClick={onRemove}
         className="size-6"
       >
-        <X />
+        {removing ? <Spinner label={t("order.file.remove")} /> : <X />}
       </IconButton>
     </span>
   );
@@ -642,7 +664,7 @@ function AttachButton({ church, itemId }: { church: string; itemId: string }) {
         disabled={busy}
         onClick={() => input.current?.click()}
       >
-        <Paperclip />
+        {busy ? <Spinner label={t("order.file.add")} /> : <Paperclip />}
       </IconButton>
     </>
   );
@@ -672,6 +694,12 @@ function StartFrom({
   const [failed, setFailed] = React.useState<string>();
   const [term, setTerm] = React.useState("");
   const [pending, startTransition] = React.useTransition();
+  /* The shape being read, so the card pressed is the one that spins. */
+  const [reading, setReading] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setReading(undefined);
+  }, [pending]);
 
   const found = templates.filter((one) =>
     one.name.toLowerCase().includes(term.trim().toLowerCase()),
@@ -682,10 +710,12 @@ function StartFrom({
 
   /** R11.8. Nothing is copied until it has been read. */
   const look = (
+    key: string,
     label: string,
     source: Parameters<typeof shapeOf>[0],
     apply: () => Promise<{ error?: string }>,
   ) => {
+    setReading(key);
     startTransition(async () => {
       const result = await shapeOf(source, church);
       setFailed(result.error);
@@ -715,7 +745,10 @@ function StartFrom({
       onClick={pick}
       className="flex w-full cursor-pointer flex-col rounded-md border border-line bg-surface px-4 py-3 text-left hover:bg-sunken disabled:opacity-50"
     >
-      <span className="font-medium text-fg">{label}</span>
+      <span className="flex items-center gap-2 font-medium text-fg">
+        {label}
+        {reading === key ? <Spinner label={label} /> : null}
+      </span>
       <span className="text-[13px] text-fg-muted">{detail}</span>
     </button>
   );
@@ -771,7 +804,7 @@ function StartFrom({
               <Button variant="ghost" onClick={() => setLooking(null)}>
                 {t("order.start.back")}
               </Button>
-              <Button onClick={use} disabled={pending}>
+              <Button onClick={use} loading={pending}>
                 {t("order.start.use")}
               </Button>
             </DialogFooter>
@@ -802,6 +835,7 @@ function StartFrom({
                   summary(template.items, template.minutes),
                   () =>
                     look(
+                      template.id,
                       template.name,
                       { kind: "template", id: template.id },
                       () => useTemplate(planId, template.id, church),
@@ -849,8 +883,15 @@ function TemplateDialog({
   const [editing, setEditing] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");
   const [pending, startTransition] = React.useTransition();
+  /* Which of the saved shapes is being written, so one control spins. */
+  const [doing, setDoing] = React.useState<string>();
 
-  const run = (work: () => Promise<{ error?: string }>, after?: () => void) => {
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>, after?: () => void) => {
+    setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
@@ -887,9 +928,10 @@ function TemplateDialog({
             </Button>
               <Button
               type="button"
+              loading={doing === "keep"}
               disabled={pending}
               onClick={() =>
-                run(() => keepAsTemplate(planId, name, church), () => {
+                run("keep", () => keepAsTemplate(planId, name, church), () => {
                   setName("");
                   setOpen(false);
                 })
@@ -918,9 +960,11 @@ function TemplateDialog({
                         <Button
                           type="button"
                           variant="secondary"
+                          loading={doing === `rename:${template.id}`}
                           disabled={pending}
                           onClick={() =>
                             run(
+                              `rename:${template.id}`,
                               () => renamePlanTemplate(template.id, editName, church),
                               () => setEditing(null),
                             )
@@ -955,9 +999,15 @@ function TemplateDialog({
                         <IconButton
                           label={t("order.template.remove")}
                           disabled={pending}
-                          onClick={() => run(() => dropTemplate(template.id, church))}
+                          onClick={() =>
+                            run(`drop:${template.id}`, () => dropTemplate(template.id, church))
+                          }
                         >
-                          <Trash2 />
+                          {doing === `drop:${template.id}` ? (
+                            <Spinner label={t("order.template.remove")} />
+                          ) : (
+                            <Trash2 />
+                          )}
                         </IconButton>
                       </>
                     )}
