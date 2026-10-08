@@ -43,11 +43,8 @@ function Row({
       icon={icon}
       title={title}
       lede={value}
-      action={
-        <Button variant={open ? "ghost" : "secondary"} onClick={onToggle} aria-expanded={open}>
-          {open ? t("common.close") : t("action.change")}
-        </Button>
-      }
+      onPress={onToggle}
+      expanded={open}
     >
       {open ? children : undefined}
     </SettingCard>

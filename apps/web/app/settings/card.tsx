@@ -1,4 +1,5 @@
 import * as React from "react";
+import { ChevronDown } from "lucide-react";
 
 /**
  * R24.6. The shape a settings screen is built from.
@@ -13,6 +14,8 @@ export function SettingCard({
   title,
   lede,
   action,
+  onPress,
+  expanded,
   children,
   className,
 }: {
@@ -23,27 +26,60 @@ export function SettingCard({
   lede?: string;
   /** The card's one action, which rides the title's line. */
   action?: React.ReactNode;
+  /**
+   * R24.x. Makes the whole head of the card the thing you press.
+   *
+   * A card whose only action is "open me" does not need a button saying so
+   * on the end of its own title. The head opens it and a chevron says which
+   * way it is about to go.
+   */
+  onPress?: () => void;
+  expanded?: boolean;
   children?: React.ReactNode;
   className?: string;
 }) {
+  const head = (
+    <>
+      {icon ? (
+        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&_svg]:size-[18px]">
+          {icon}
+        </span>
+      ) : null}
+
+      <span className="flex min-w-0 flex-1 flex-col text-left leading-5">
+        <span className="text-[15px] font-bold text-fg">{title}</span>
+        {lede ? <span className="truncate text-[13px] text-fg-muted">{lede}</span> : null}
+      </span>
+
+      {action}
+
+      {onPress ? (
+        <ChevronDown
+          aria-hidden
+          className={`size-[18px] shrink-0 text-fg-muted transition-transform duration-instant ${
+            expanded ? "rotate-180" : ""
+          }`}
+        />
+      ) : null}
+    </>
+  );
+
   return (
     <section
       className={`flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5 shadow-sm ${className ?? ""}`}
     >
-      <div className="flex flex-wrap items-center gap-3">
-        {icon ? (
-          <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary [&_svg]:size-[18px]">
-            {icon}
-          </span>
-        ) : null}
-
-        <span className="flex min-w-0 flex-1 flex-col leading-5">
-          <span className="text-[15px] font-bold text-fg">{title}</span>
-          {lede ? <span className="truncate text-[13px] text-fg-muted">{lede}</span> : null}
-        </span>
-
-        {action}
-      </div>
+      {onPress ? (
+        <button
+          type="button"
+          onClick={onPress}
+          aria-expanded={expanded}
+          className="-m-1 flex cursor-pointer flex-wrap items-center gap-3 rounded-[10px] p-1 text-left hover:bg-sunken"
+        >
+          {head}
+        </button>
+      ) : (
+        <div className="flex flex-wrap items-center gap-3">{head}</div>
+      )}
 
       {children ? (
         <>
