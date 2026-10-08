@@ -232,10 +232,13 @@ const LOOK = {
 function Filled({
   slot,
   pending,
+  closed,
   onRemove,
 }: {
   slot: GridSlot;
   pending: boolean;
+  /** R10.3. A service that has gone. Who served is a record, so it is read-only. */
+  closed?: boolean;
   /** Hands back the work, so the confirmation can wait on it. */
   onRemove: () => void | Promise<unknown>;
 }) {
@@ -261,7 +264,9 @@ function Filled({
           {slot.personName}
         </span>
         {/* R24.x. Taking somebody off a rota withdraws a request they may
-            already have answered, so it asks first. */}
+            already have answered, so it asks first. A service that has
+            happened has nothing to withdraw: the name on it is who served. */}
+        {closed ? null : (
         <Confirm
           title={t("serving.unscheduleTitle", { name: slot.personName ?? "" })}
           body={t("serving.unscheduleBody")}
@@ -279,6 +284,7 @@ function Filled({
             </button>
           }
         />
+        )}
       </div>
 
       {slot.warning ? (
@@ -496,6 +502,7 @@ export function ScheduleGrid({
                         <Filled
                           slot={slot}
                           pending={pending}
+                          closed={service.past}
                           onRemove={() => take(slot.assignmentId!)}
                         />
                       ) : (
@@ -567,6 +574,7 @@ export function ScheduleGrid({
                     <Filled
                       slot={slot}
                       pending={pending}
+                      closed={gone}
                       onRemove={() => take(slot.assignmentId!)}
                     />
                   ) : (
