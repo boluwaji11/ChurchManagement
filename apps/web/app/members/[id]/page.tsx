@@ -21,10 +21,10 @@ import { churchNow } from "@/lib/church-now";
 import { Timeline } from "./timeline";
 import { Contacts } from "./contacts";
 import { Places } from "./places";
-import { MessageButton } from "./message";
+import { WriteTo } from "@/components/inbox/write-to";
 import { NoteForm } from "../note-form";
 import { customFieldValue } from "../field-values";
-import { canReadConfidentialNotes } from "@connectapp/db";
+import { canReadConfidentialNotes, canAnswerMessages } from "@connectapp/db";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -233,7 +233,11 @@ export default async function PersonPage({
 
         {canEdit ? (
           <div className="flex items-center gap-1">
-            <MessageButton name={display} />
+            {/* R16.9. Only the office writes to a person by name, so the action
+                is here for whoever answers for the church. */}
+            {canAnswerMessages(session) ? (
+              <WriteTo church={session.tenantSlug} at={person.slug} office />
+            ) : null}
             {/* Sized from the same token as the IconButton beside it, so the
                 two actions are one pair rather than two shapes. */}
             <Tooltip content={t("action.edit")}>

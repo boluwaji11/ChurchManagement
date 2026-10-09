@@ -8,9 +8,11 @@ import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { TeamPanel, type PositionDraft, type MemberDraft } from "../../schedule/team-panel";
 import { archiveTeam } from "../../schedule/actions";
+import { WriteTo } from "@/components/inbox/write-to";
 
 export interface TeamItem {
   id: string;
+  slug: string;
   name: string;
   description: string | null;
   members: MemberDraft[];
@@ -24,11 +26,14 @@ export function TeamList({
   church,
   teams,
   putAway = false,
+  canMessage = false,
 }: {
   church: string;
   teams: TeamItem[];
   /** R10.1. The teams that have been put away, rather than the ones in use. */
   putAway?: boolean;
+  /** R16.9. Whether this reader answers for the church. */
+  canMessage?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -83,7 +88,15 @@ export function TeamList({
       ) : (
         <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))]">
           {teams.map((team) => (
-            <li key={team.id}>
+            <li key={team.id} className="relative h-full">
+              {/* R9.7, R16.9. The team's own thread, lifted above the tile so
+                  the press reaches the conversation rather than the panel. */}
+              {canMessage ? (
+                <span className="absolute right-2 top-2 z-10">
+                  <WriteTo church={church} at={`team/${team.slug}`} office />
+                </span>
+              ) : null}
+
               {/* R24.6. The whole tile opens the team's panel: its name, its
                   positions and who serves on it are all in there. */}
               <TeamPanel
@@ -101,7 +114,9 @@ export function TeamList({
                     type="button"
                     className={`flex h-full w-full cursor-pointer flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 text-left ${LIFT}`}
                   >
-                    <span className="min-w-0 truncate font-semibold text-fg">{team.name}</span>
+                    {/* Room kept on the right for the action above it, so a
+                        long name is cut short rather than running under it. */}
+                    <span className="min-w-0 truncate pr-9 font-semibold text-fg">{team.name}</span>
 
                     {team.positions.length > 0 ? (
                       <span className="flex flex-wrap gap-1.5">

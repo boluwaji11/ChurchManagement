@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, listTeams, countArchivedTeams, positionsForTeams, getTeam, canManageTeams,
+  canAnswerMessages,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { SettingsHeading } from "../heading";
@@ -91,10 +92,12 @@ export default async function TeamsSettingsPage({
       <TeamList
         church={session.tenantSlug}
         putAway={putAway}
+        canMessage={canAnswerMessages(session)}
         teams={teams.map((team) => {
           const of = positions[team.id] ?? [];
           return {
             id: team.id,
+            slug: team.slug,
             name: team.name,
             description: team.description,
             members: (rosters[team.id] ?? []).map((one) => ({

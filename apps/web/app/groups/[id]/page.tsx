@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 import {
   withTenant, groupPage, personForUser, getChurch, upcomingMeetings,
   listGroupTypes, groupRoster, canManageGroups, pendingRequests,
-  openMeeting, lastMeetingDay, canRecordFor,
+  openMeeting, lastMeetingDay, canRecordFor, canAnswerMessages,
   type Meeting, type MeetingPerson,
 } from "@connectapp/db";
 import { Badge } from "@connectapp/ui";
@@ -22,6 +22,7 @@ import { AskedButton } from "./asked-button";
 import { LeaveButton } from "./leave-button";
 import { ManageGroup } from "./manage";
 import { GroupDetail, type DetailMeeting } from "./detail";
+import { WriteTo } from "@/components/inbox/write-to";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -242,6 +243,15 @@ export default async function GroupPage({
         <BackLink href={back.href} label={back.label} />
 
         <span className="flex-1" />
+
+        {/* R9.7, R16.9. The group's own thread, for whoever may write into it:
+            the office speaks for the church, and a member writes to the groups
+            they are in. */}
+        {canAnswerMessages(session) ? (
+          <WriteTo church={session.tenantSlug} at={`group/${group.slug}`} office />
+        ) : group.mine ? (
+          <WriteTo church={session.tenantSlug} at={`group/${group.slug}`} office={false} />
+        ) : null}
 
         {manage ? (
           <ManageGroup
