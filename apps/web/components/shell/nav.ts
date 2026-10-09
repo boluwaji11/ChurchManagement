@@ -5,7 +5,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import {
-  canCheckIn, canEditPeople, canFollowUp, canManageServices, canReadIncidents,
+  canAnswerMessages, canCheckIn, canEditPeople, canFollowUp, canManageServices,
+  canReadIncidents,
   canLeadTeams, canManageChurch, canManageEvents, canManageGiving,
   canReadGivingAmounts, type Who,
 } from "@connectapp/db";
@@ -79,7 +80,7 @@ export function navFor(role: Who): NavEntry[] {
    * directory because it is the same errand: somebody in the church, and what
    * is going on with them.
    */
-  if (canEditPeople(role)) {
+  if (canAnswerMessages(role)) {
     out.push({ label: t("inbox.title"), href: "/messages", icon: MessageSquare });
   }
 

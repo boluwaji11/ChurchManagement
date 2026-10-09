@@ -263,7 +263,6 @@ export function InboxMark({
                 <Compose
                   church={church}
                   churchName={churchName}
-                  lookup={office}
                   to={to}
                   onTo={setTo}
                   onSent={(next) => { setWriting(false); go(next); }}

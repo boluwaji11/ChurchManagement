@@ -114,6 +114,12 @@ describe("a thread with the office", () => {
     expect(await run((tx) => inboxFor(tx, office))).toHaveLength(1);
   });
 
+  it("is not written to a person by a member", async () => {
+    await expect(
+      run((tx) => sendMessage(tx, mine, { to: { office: false, slug }, body: "Psst" })),
+    ).rejects.toBeInstanceOf(PermissionError);
+  });
+
   it("refuses a message of nothing", async () => {
     await expect(
       run((tx) => sendMessage(tx, mine, { to: { office: true }, body: "   " })),

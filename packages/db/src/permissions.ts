@@ -77,6 +77,16 @@ export const PERMISSIONS = [
   "events.manage",
   "teams.manage",
   "teams.lead",
+
+  /**
+   * R16.9. Answering what members write to the church.
+   *
+   * Its own permission rather than a corner of editing a record: the person
+   * who answers the church's post is often the one who may not change
+   * anybody's details, and a pastor who answers a message is not thereby an
+   * administrator.
+   */
+  "messages.office",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -109,6 +119,7 @@ export const PERMISSION_GROUPS = [
     permissions: [
       "services.manage", "teams.manage", "teams.lead",
       "groups.manage", "groups.lead", "events.manage", "followups.manage",
+      "messages.office",
     ],
   },
   { key: "church", permissions: ["church.manage", "church.fields", "church.tags"] },
@@ -140,18 +151,22 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
      */
     "groups.lead",
     "teams.manage", "teams.lead",
+    "messages.office",
   ],
   staff: [
     "members.edit", "members.households",
     "checkin.run", "checkin.supervise",
     "followups.manage", "groups.manage", "services.manage", "events.manage",
     "teams.manage", "teams.lead",
+    "messages.office",
   ],
   finance: ["giving.amounts", "giving.manage"],
   pastoral: [
     "members.notes.confidential",
     "checkin.incidents", "checkin.checks",
     "followups.manage", "groups.manage",
+    /* R16.9. The role a church puts on answering its post. */
+    "messages.office",
   ],
   group_leader: ["groups.lead"],
   team_leader: ["teams.lead", "groups.lead"],

@@ -151,7 +151,6 @@ export function InboxScreen({
             <Compose
               church={church}
               churchName={churchName}
-              lookup={office}
               to={to}
               onTo={setTo}
               onSent={(key) => go(key)}

@@ -1,4 +1,4 @@
-import { personForUser, canEditPeople, type Reader } from "@connectapp/db";
+import { personForUser, canAnswerMessages, type Reader } from "@connectapp/db";
 import type { Tx } from "@connectapp/db";
 import type { Session } from "@/lib/session";
 
@@ -14,7 +14,7 @@ export async function readerFor(tx: Tx, session: Session): Promise<Reader> {
     tenantId: session.tenantId,
     userId: session.userId,
     memberId: await personForUser(tx, session.userId),
-    office: canEditPeople(session),
+    office: canAnswerMessages(session),
   };
 }
 

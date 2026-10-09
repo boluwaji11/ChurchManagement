@@ -153,12 +153,12 @@ async function readThreads(
          p.id is not null
          /* R9.7. A group's thread belongs to whoever is in the group now,
             read here rather than copied into a roster that goes stale. */
-         or (c.group_id is not null and exists (
+         or (c.group_id is not null and (${reader.office} or exists (
               select 1 from group_memberships gm
-               where gm.group_id = c.group_id and gm.member_id = ${me}))
-         or (c.team_id is not null and exists (
+               where gm.group_id = c.group_id and gm.member_id = ${me})))
+         or (c.team_id is not null and (${reader.office} or exists (
               select 1 from team_members tm
-               where tm.team_id = c.team_id and tm.member_id = ${me}))
+               where tm.team_id = c.team_id and tm.member_id = ${me})))
        )
        ${opts.sent
           ? sql`and exists (select 1 from messages m where m.conversation_id = c.id and ${MINE})`
@@ -266,12 +266,12 @@ export async function unreadFor(db: Tx, reader: Reader): Promise<number> {
        where c.archived_at is null
          and (
            p.id is not null
-           or (c.group_id is not null and exists (
+           or (c.group_id is not null and (${reader.office} or exists (
                 select 1 from group_memberships gm
-                 where gm.group_id = c.group_id and gm.member_id = ${me}))
-           or (c.team_id is not null and exists (
+                 where gm.group_id = c.group_id and gm.member_id = ${me})))
+           or (c.team_id is not null and (${reader.office} or exists (
                 select 1 from team_members tm
-                 where tm.team_id = c.team_id and tm.member_id = ${me}))
+                 where tm.team_id = c.team_id and tm.member_id = ${me})))
          )
          and exists (
            select 1 from messages m
@@ -410,6 +410,15 @@ export async function sendMessage(
   const toTeam = !input.to.office && "team" in input.to ? input.to.team : null;
   const toPerson = !input.to.office && "slug" in input.to ? input.to.slug : null;
 
+  /*
+   * R16.9, R3.2. Only the office writes to a person by name.
+   *
+   * A member writes to the church, or to a group or team they are part of.
+   * Anything else would be the church's own privacy settings undone by a
+   * message box.
+   */
+  if (toPerson && !reader.office) throw new PermissionError("member", "editPerson");
+
   /* Writing as the church is what the office does, to a person. Inside a
      group everybody writes as themselves, the office included. */
   const asOffice = reader.office && Boolean(toPerson);
@@ -473,6 +482,9 @@ async function inIt(
   reader: Reader,
   whose: { group?: string; team?: string },
 ): Promise<boolean> {
+  /* R9.7. The office speaks for the church, so it can reach any group. A
+     member reaches the ones they are in. */
+  if (reader.office) return true;
   if (!reader.memberId) return false;
 
   const [row] = whose.group
@@ -575,12 +587,12 @@ export async function threadAt(
        and ((p.office and ${reader.office}) or (p.member_id = ${me}))
      where ${kind === "group"
         ? sql`c.group_id = (select g.id from groups g where g.slug = ${name!} limit 1)
-              and exists (select 1 from group_memberships gm
-                           where gm.group_id = c.group_id and gm.member_id = ${me})`
+              and (${reader.office} or exists (select 1 from group_memberships gm
+                           where gm.group_id = c.group_id and gm.member_id = ${me}))`
         : kind === "team"
           ? sql`c.team_id = (select tm.id from teams tm where tm.slug = ${name!} limit 1)
-                and exists (select 1 from team_members t
-                             where t.team_id = c.team_id and t.member_id = ${me})`
+                and (${reader.office} or exists (select 1 from team_members t
+                             where t.team_id = c.team_id and t.member_id = ${me}))`
           : key === "office"
             ? sql`p.id is not null and exists (select 1 from conversation_people q
                                                 where q.conversation_id = c.id and q.office)`
@@ -811,6 +823,61 @@ export async function peopleNamed(
     name: `${one.preferred ?? one.first} ${one.last}`.trim(),
     photoKey: one.photoKey,
     through: null,
+  }));
+}
+
+/**
+ * R16.9. The groups this reader may write to.
+ *
+ * The office reaches any of them, because it speaks for the church. Everybody
+ * else reaches the ones they are in.
+ */
+export async function writableGroups(db: Tx, reader: Reader): Promise<Recipient[]> {
+  const rows = reader.office
+    ? await db
+        .select({ name: groups.name, slug: groups.slug })
+        .from(groups)
+        .where(isNull(groups.archivedAt))
+        .orderBy(asc(groups.name))
+    : reader.memberId
+      ? await db
+          .select({ name: groups.name, slug: groups.slug })
+          .from(groupMemberships)
+          .innerJoin(groups, eq(groups.id, groupMemberships.groupId))
+          .where(and(
+            eq(groupMemberships.memberId, reader.memberId),
+            isNull(groups.archivedAt),
+          ))
+          .orderBy(asc(groups.name))
+      : [];
+
+  return rows.map((one) => ({
+    value: `group/${one.slug}`, name: one.name, photoKey: null, through: null, whole: true,
+  }));
+}
+
+/** R16.9, R10.1. The teams this reader may write to. */
+export async function writableTeams(db: Tx, reader: Reader): Promise<Recipient[]> {
+  const rows = reader.office
+    ? await db
+        .select({ name: teams.name, slug: teams.slug })
+        .from(teams)
+        .where(isNull(teams.archivedAt))
+        .orderBy(asc(teams.name))
+    : reader.memberId
+      ? await db
+          .select({ name: teams.name, slug: teams.slug })
+          .from(teamMembers)
+          .innerJoin(teams, eq(teams.id, teamMembers.teamId))
+          .where(and(
+            eq(teamMembers.memberId, reader.memberId),
+            isNull(teams.archivedAt),
+          ))
+          .orderBy(asc(teams.name))
+      : [];
+
+  return rows.map((one) => ({
+    value: `team/${one.slug}`, name: one.name, photoKey: null, through: null, whole: true,
   }));
 }
 

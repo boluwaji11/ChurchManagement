@@ -41,6 +41,8 @@ export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = rolesWith("members.arch
 export const CAN_MANAGE_HOUSEHOLDS: readonly TenantRole[] = rolesWith("members.households");
 
 export const canEditPeople = (role: Who): boolean => can(role, "members.edit");
+/** R16.9. Whoever answers what members write to the church. */
+export const canAnswerMessages = (role: Who): boolean => can(role, "messages.office");
 export const canArchivePeople = (role: Who): boolean => can(role, "members.archive");
 export const canManageHouseholds = (role: Who): boolean => can(role, "members.households");
 

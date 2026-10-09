@@ -6,7 +6,8 @@ export {
   can, rolesWith, canReadConfidentialNotes, canReadGivingAmounts, canManageGiving,
   canManageHouseholds, CAN_MANAGE_HOUSEHOLDS,
   CAN_READ_CONFIDENTIAL_NOTES, CAN_READ_GIVING_AMOUNTS,
-  canEditPeople, canArchivePeople, CAN_EDIT_PEOPLE, CAN_ARCHIVE_PEOPLE, PermissionError,
+  canEditPeople, canArchivePeople, canAnswerMessages,
+  CAN_EDIT_PEOPLE, CAN_ARCHIVE_PEOPLE, PermissionError,
   type PermissionAction,
 } from "./roles";
 export {

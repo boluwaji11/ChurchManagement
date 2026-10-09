@@ -2,8 +2,8 @@
 
 import {
   withTenant, sendMessage, setThreadArchived, threadAt,
-  saveDraft, dropDraft, recipientsFor, peopleNamed, canEditPeople,
-  type Recipient,
+  saveDraft, dropDraft, peopleNamed, writableGroups, writableTeams,
+  canAnswerMessages,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -116,43 +116,65 @@ export interface WriteTo {
   whole?: boolean;
 }
 
+/** R16.9. The kinds of thing a message can be addressed to. */
+export type WriteKind = "church" | "member" | "group" | "team";
+
 /**
- * R16.9. Who this reader may write to.
+ * R16.9. What this reader may address a message to.
  *
- * Staff look anybody up, because answering a church's post is their work.
- * A member is offered the office and whoever leads something they are part
- * of: a directory of four hundred people in a To field is how somebody ends
- * up writing to a stranger.
+ * Asked a kind at a time, because a church has three different lists and
+ * putting them in one box made the office scroll past every group to reach a
+ * name. Each list is what this reader may reach: the office looks anybody up
+ * and writes to any group, a member reaches the groups and teams they are in
+ * and whoever leads one of them.
  */
 export async function whoToWriteTo(
+  kind: WriteKind,
   query: string,
   church?: string,
 ): Promise<WriteTo[]> {
   try {
     const { session, ctx } = await context(church);
     return await withTenant(ctx, async (tx) => {
-      if (canEditPeople(session)) {
-        const found = await peopleNamed(tx, query);
-        const mineToo = await recipientsFor(tx, await readerFor(tx, session));
-        return [
-          ...mineToo.filter((one) => one.whole).map((one) => ({
-            value: one.value, label: one.name, through: null, whole: true,
-          })),
-          ...found.map((one) => ({
-            value: one.value, label: one.name, through: null, whole: false,
-          })),
-        ];
+      const me = await readerFor(tx, session);
+
+      if (kind === "group") {
+        return (await writableGroups(tx, me)).map((one) => ({
+          value: one.value, label: one.name, whole: true,
+        }));
       }
 
-      const me = await readerFor(tx, session);
-      const mine: Recipient[] = await recipientsFor(tx, me);
-      return mine.map((one) => ({
-        value: one.value,
-        label: one.name,
-        through: one.through,
-        whole: one.whole ?? false,
+      if (kind === "team") {
+        return (await writableTeams(tx, me)).map((one) => ({
+          value: one.value, label: one.name, whole: true,
+        }));
+      }
+
+      /*
+       * R16.9, R3.2. Only the office writes to a person by name.
+       *
+       * A member writes to the church, or to a group or team they are part
+       * of. A directory of four hundred people in a To field would be the
+       * church's own privacy settings undone by a message box.
+       */
+      if (!canAnswerMessages(session)) return [];
+
+      return (await peopleNamed(tx, query)).map((one) => ({
+        value: one.value, label: one.name, through: null,
       }));
     });
+  } catch {
+    return [];
+  }
+}
+
+/** R16.9. Which kinds this reader may address, in the order they are offered. */
+export async function kindsICanWriteTo(church?: string): Promise<WriteKind[]> {
+  try {
+    const { session } = await context(church);
+    return canAnswerMessages(session)
+      ? ["member", "group", "team"]
+      : ["church", "group", "team"];
   } catch {
     return [];
   }

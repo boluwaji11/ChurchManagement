@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cookies } from "next/headers";
-import { NOTIFICATION_LOOK, canEditPeople } from "@connectapp/db";
+import { NOTIFICATION_LOOK, canAnswerMessages } from "@connectapp/db";
 import { t, spellingFor, localeFor } from "@connectapp/i18n";
 import { DemoBanner } from "./demo-banner";
 import { ProvisionalBanner } from "./provisional-banner";
@@ -206,7 +206,7 @@ export async function AppShell({
       <InboxMark
         church={session.tenantSlug}
         churchName={session.tenantName}
-        office={canEditPeople(session)}
+        office={canAnswerMessages(session)}
         full={`/messages?church=${session.tenantSlug}`}
         unread={counts.waiting}
         place="float"

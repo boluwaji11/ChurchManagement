@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { canEditPeople, canReadIncidents } from "@connectapp/db";
+import { canAnswerMessages } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
@@ -34,7 +34,7 @@ export default async function MemberThreadPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (canEditPeople(session) || canReadIncidents(session)) {
+  if (canAnswerMessages(session)) {
     redirect(`/messages/${key}?church=${session.tenantSlug}`);
   }
 

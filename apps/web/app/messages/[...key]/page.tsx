@@ -1,4 +1,4 @@
-import { canEditPeople } from "@connectapp/db";
+import { canAnswerMessages } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { Denied } from "@/components/denied";
@@ -40,7 +40,7 @@ export default async function MessageThreadPage({
   const { church } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canEditPeople(session)) {
+  if (!canAnswerMessages(session)) {
     return (
       <AppShell session={session} title={t("inbox.title")}>
         <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
