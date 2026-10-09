@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, ShieldCheck, Undo2 } from "lucide-react";
-import { Banner, Button, LIFT } from "@connectapp/ui";
+import { Banner, Button, IconButton, LIFT, hueForId } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { TeamPanel, type PositionDraft, type MemberDraft } from "../../schedule/team-panel";
@@ -67,21 +67,24 @@ export function TeamList({
           }
         />
       ) : putAway ? (
-        <ul className="flex flex-col rounded-[14px] border border-line bg-surface px-5 py-1">
+        <ul className="flex max-w-[420px] flex-col rounded-[14px] border border-line bg-surface px-4 py-1">
           {teams.map((team) => (
             <li
               key={team.id}
-              className="flex flex-wrap items-center justify-between gap-3 border-b border-sunken py-2.5 last:border-0"
+              className="flex items-center justify-between gap-3 border-b border-sunken py-2 last:border-0"
             >
-              <span className="text-[length:var(--d-text-body)] text-fg-muted">{team.name}</span>
-              <Button
+              <span className="min-w-0 truncate text-[length:var(--d-text-body)] text-fg-muted">
+                {team.name}
+              </span>
+              <IconButton
+                label={t("serving.restore")}
                 variant="ghost"
                 disabled={pending}
-                className="h-8 min-h-0 px-2.5 text-[13px]"
+                className="size-8 min-h-0 [&_svg]:size-4"
                 onClick={() => setArchived(team.id, false)}
               >
-                <Undo2 className="size-4" aria-hidden /> {t("serving.restore")}
-              </Button>
+                <Undo2 />
+              </IconButton>
             </li>
           ))}
         </ul>
@@ -120,14 +123,23 @@ export function TeamList({
 
                     {team.positions.length > 0 ? (
                       <span className="flex flex-wrap gap-1.5">
-                        {team.positions.map(({ id, name }) => (
-                          <span
-                            key={id}
-                            className="flex h-[26px] items-center rounded-full bg-sunken px-2.5 text-[12px] font-medium text-fg"
-                          >
-                            {name}
-                          </span>
-                        ))}
+                        {/* R24.4. A position carries a hue of its own, so a
+                            leader picks its row out of a tile at a glance. */}
+                        {team.positions.map(({ id, name }) => {
+                          const hue = hueForId(id ?? name);
+                          return (
+                            <span
+                              key={id ?? name}
+                              className="flex h-[26px] items-center rounded-full px-2.5 text-[12px] font-medium"
+                              style={{
+                                background: `var(--hue-${hue}-tint)`,
+                                color: `var(--hue-${hue}-key)`,
+                              }}
+                            >
+                              {name}
+                            </span>
+                          );
+                        })}
                       </span>
                     ) : null}
 
