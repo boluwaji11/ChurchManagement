@@ -4,11 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Trash2, GripVertical, Pencil, StickyNote, X, Paperclip,
+  Plus, GripVertical, StickyNote, X, Paperclip,
   Copy, LayoutList, ArrowUp, ArrowDown, ArrowLeft,
 } from "lucide-react";
 import {
-  Banner, Button, Field, IconButton, Input, Separator, Spinner, Textarea, cn,
+  Banner, Button, Field, IconButton, Input, Spinner, Textarea, cn,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate, Tooltip
@@ -21,7 +21,7 @@ import { useFormError } from "@/lib/form-error";
 import { Confirm } from "@/components/confirm";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
-  keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, shapeOf,
+  keepAsTemplate, useTemplate, shapeOf,
 } from "./actions";
 
 export interface OrderItem {
@@ -211,7 +211,6 @@ export function Order({
         <TemplateDialog
           church={church}
           planId={planId}
-          templates={templates}
           empty={timed.length === 0}
         />
       </div>
@@ -980,20 +979,16 @@ function StartFrom({
 function TemplateDialog({
   church,
   planId,
-  templates,
   empty,
 }: {
   church: string;
   planId: string;
-  templates: OrderTemplate[];
   empty: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = useFormError(open);
   const [name, setName] = React.useState("");
-  const [editing, setEditing] = React.useState<string | null>(null);
-  const [editName, setEditName] = React.useState("");
   const [pending, startTransition] = React.useTransition();
   /* Which of the saved shapes is being written, so one control spins. */
   const [doing, setDoing] = React.useState<string>();
@@ -1002,15 +997,11 @@ function TemplateDialog({
     if (!pending) setDoing(undefined);
   }, [pending]);
 
-  /* Rename mode belongs to the row it was started on, so it closes with the
-     panel rather than greeting the next reader as an open text box. */
+  /* Blank on every close, so the next plan saved does not open holding the
+     name the last one was given. */
   const close = (next: boolean) => {
     setOpen(next);
-    if (!next) {
-      setName("");
-      setEditing(null);
-      setEditName("");
-    }
+    if (!next) setName("");
   };
 
   const run = (key: string, work: () => Promise<{ error?: string }>, after?: () => void) => {
@@ -1032,7 +1023,27 @@ function TemplateDialog({
           <LayoutList /> {t("order.template.save")}
         </Button>
       </SheetTrigger>
-      <SheetContent title={t("order.template.save")} closeLabel={t("common.close")}>
+      <SheetContent
+        title={t("order.template.save")}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={() => close(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              type="button"
+              loading={doing === "keep"}
+              disabled={pending || !name.trim()}
+              onClick={() =>
+                run("keep", () => keepAsTemplate(planId, name, church), () => close(false))
+              }
+            >
+              {t("action.save")}
+            </Button>
+          </>
+        }
+      >
         <div className="flex flex-col gap-4" aria-busy={pending}>
           {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
 
@@ -1044,102 +1055,6 @@ function TemplateDialog({
               autoFocus
             />
           </Field>
-
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => close(false)}>
-              {t("action.cancel")}
-            </Button>
-              <Button
-              type="button"
-              loading={doing === "keep"}
-              disabled={pending || !name.trim()}
-              onClick={() =>
-                run("keep", () => keepAsTemplate(planId, name, church), () => close(false))
-              }
-            >
-              {t("action.save")}
-            </Button>
-          </div>
-
-          {templates.length > 0 ? (
-            <>
-              <Separator />
-              <span className="text-label text-fg">{t("order.template.saved")}</span>
-              <ul className="flex flex-col gap-2">
-                {templates.map((template) => (
-                  <li key={template.id} className="flex items-center gap-2">
-                    {editing === template.id ? (
-                      <>
-                        <Input
-                          className="flex-1"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          aria-label={t("order.template.name")}
-                          autoComplete="off"
-                        />
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          loading={doing === `rename:${template.id}`}
-                          disabled={pending}
-                          onClick={() =>
-                            run(
-                              `rename:${template.id}`,
-                              () => renamePlanTemplate(template.id, editName, church),
-                              () => setEditing(null),
-                            )
-                          }
-                        >
-                          {t("action.save")}
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="text-[length:var(--d-text-body)] text-fg">
-                            {template.name}
-                          </span>
-                          <span className="text-caption text-fg-muted">
-                            {t("order.summary", {
-                              items: String(template.items),
-                              minutes: String(template.minutes),
-                            })}
-                          </span>
-                        </span>
-                        <IconButton
-                          label={t("order.template.rename")}
-                          disabled={pending}
-                          onClick={() => {
-                            setEditing(template.id);
-                            setEditName(template.name);
-                          }}
-                        >
-                          <Pencil />
-                        </IconButton>
-                        <Confirm
-                          title={t("order.template.removeTitle", { name: template.name })}
-                          confirmLabel={t("order.template.remove")}
-                          disabled={pending}
-                          onConfirm={() =>
-                            run(`drop:${template.id}`, () => dropTemplate(template.id, church))
-                          }
-                          trigger={
-                            <IconButton label={t("order.template.remove")} disabled={pending}>
-                              {doing === `drop:${template.id}` ? (
-                                <Spinner label={t("order.template.remove")} />
-                              ) : (
-                                <Trash2 />
-                              )}
-                            </IconButton>
-                          }
-                        />
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
         </div>
       </SheetContent>
     </Sheet>
